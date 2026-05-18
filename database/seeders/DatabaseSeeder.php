@@ -107,6 +107,13 @@ class DatabaseSeeder extends Seeder
             'status' => 'pending',
         ]);
 
+        $sixthOrg = Organization::factory()->create([
+            'name' => 'Pusat Dialisis Al-Ikhlas',
+            'slug' => 'pusat-dialisis-al-ikhlas',
+            'contact_email' => 'dialisis@example.test',
+            'status' => 'suspended',
+        ]);
+
         User::factory()->for($secondOrg)->create([
             'name' => 'Aminah Yusof',
             'email' => 'aminah@example.test',
@@ -117,6 +124,20 @@ class DatabaseSeeder extends Seeder
             'name' => 'Hassan Basri',
             'email' => 'hassan@example.test',
             'role' => UserRole::NgoAdmin,
+        ]);
+
+        User::factory()->for($sixthOrg)->create([
+            'name' => 'Dr Fatimah Zahra',
+            'email' => 'fatimah@example.test',
+            'role' => UserRole::NgoAdmin,
+        ]);
+
+        $sixthCampaign = Campaign::factory()->for($sixthOrg)->create([
+            'title' => 'Bantuan Pesakit Dialisis',
+            'slug' => 'bantuan-pesakit-dialisis',
+            'target_amount' => 80000.00,
+            'has_target' => true,
+            'collected_amount' => 3000.00,
         ]);
 
         $secondCampaign = Campaign::factory()->for($secondOrg)->create([
@@ -167,6 +188,8 @@ class DatabaseSeeder extends Seeder
             [$thirdCampaign, $donors[11], 150.00, DonationType::OneTime, DonationStatus::Succeeded, 1],
             [$thirdCampaign, $donors[8], 100.00, DonationType::Recurring, DonationStatus::Pending, 3],
             [$thirdCampaign, $donors[9], 500.00, DonationType::OneTime, DonationStatus::Succeeded, 10],
+            [$sixthCampaign, $donors[11], 120.00, DonationType::OneTime, DonationStatus::Succeeded, 1],
+            [$sixthCampaign, $donors[2], 50.00, DonationType::OneTime, DonationStatus::Failed, 4],
         ];
 
         foreach ($donationRows as [$campaign, $donor, $amount, $type, $status, $daysAgo]) {

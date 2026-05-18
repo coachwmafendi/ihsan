@@ -27,6 +27,10 @@ class AppPanelProvider extends PanelProvider
             ->id('app')
             ->path('app')
             ->spa()
+            ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('16rem')
+            ->brandLogo(asset('logo-ihsan.png'))
+            ->brandLogoHeight('2rem')
             ->colors([
                 'primary' => Color::Teal,
             ])

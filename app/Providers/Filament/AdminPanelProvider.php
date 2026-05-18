@@ -31,6 +31,10 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->spa()
+            ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('16rem')
+            ->brandLogo(asset('logo-ihsan.png'))
+            ->brandLogoHeight('2rem')
             ->login()
             ->colors([
                 'primary' => Color::Amber,
