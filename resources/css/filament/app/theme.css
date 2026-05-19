@@ -2,6 +2,12 @@
 
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
+@layer base {
+    html {
+        font-size: 12px;
+    }
+}
+
 @source '../../../../app/Filament/App/**/*';
 @source '../../../views/filament/app/**/*';
 @source '../../../../vendor/filament/**/*.blade.php';
