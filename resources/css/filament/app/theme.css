@@ -1,5 +1,89 @@
+@import 'tailwindcss';
+
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
 @source '../../../../app/Filament/App/**/*';
 @source '../../../views/filament/app/**/*';
 @source '../../../../vendor/filament/**/*.blade.php';
+
+.fi-sidebar-item-label {
+    font-size: 11.5px;
+}
+
+.fi-sidebar-group-label {
+    font-size: 0.6rem;
+}
+
+.fi-resource-elements.fi-resource-create-record-page .fi-main,
+.fi-resource-elements.fi-resource-edit-record-page .fi-main {
+    background:
+        linear-gradient(rgba(32, 33, 48, 0.68), rgba(32, 33, 48, 0.68)),
+        rgb(250 250 250);
+}
+
+.fi-resource-elements.fi-resource-create-record-page .fi-page,
+.fi-resource-elements.fi-resource-edit-record-page .fi-page {
+    max-width: 1320px;
+    margin-inline: auto;
+    padding-block: 1.75rem 2.5rem;
+}
+
+.fi-resource-elements.fi-resource-create-record-page .fi-page-header,
+.fi-resource-elements.fi-resource-edit-record-page .fi-page-header {
+    color: white;
+}
+
+.fi-resource-elements.fi-resource-create-record-page .fi-page-header .fi-breadcrumbs,
+.fi-resource-elements.fi-resource-create-record-page .fi-page-header .fi-breadcrumbs *,
+.fi-resource-elements.fi-resource-create-record-page .fi-page-header .fi-header-heading,
+.fi-resource-elements.fi-resource-create-record-page .fi-page-header .fi-header-subheading,
+.fi-resource-elements.fi-resource-edit-record-page .fi-page-header .fi-breadcrumbs,
+.fi-resource-elements.fi-resource-edit-record-page .fi-page-header .fi-breadcrumbs *,
+.fi-resource-elements.fi-resource-edit-record-page .fi-page-header .fi-header-heading,
+.fi-resource-elements.fi-resource-edit-record-page .fi-page-header .fi-header-subheading {
+    color: white;
+}
+
+.ihsan-builder-header,
+.ihsan-builder-editor,
+.ihsan-builder-preview {
+    overflow: hidden;
+    border-color: rgb(228 228 231);
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 22px 55px rgb(15 23 42 / 0.14);
+}
+
+.ihsan-builder-shell {
+    align-items: start;
+}
+
+.ihsan-builder-editor .fi-sc-tabs-tab {
+    min-height: 3.5rem;
+    border-radius: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.ihsan-builder-preview > .fi-section-content,
+.ihsan-builder-preview .fi-section-content-ctn {
+    background: rgb(232 233 241);
+}
+
+.fi-resource-elements.fi-resource-create-record-page .fi-sc-actions:not(.fi-sticky),
+.fi-resource-elements.fi-resource-edit-record-page .fi-sc-actions:not(.fi-sticky) {
+    max-width: 1320px;
+    margin-inline: auto;
+    margin-top: 1.25rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgb(228 228 231);
+    border-radius: 0 0 10px 10px;
+    background: white;
+    box-shadow: 0 16px 40px rgb(15 23 42 / 0.12);
+}
+
+.fi-resource-elements.fi-resource-create-record-page .fi-sc-actions:not(.fi-sticky) .fi-ac,
+.fi-resource-elements.fi-resource-edit-record-page .fi-sc-actions:not(.fi-sticky) .fi-ac {
+    width: 100%;
+    justify-content: flex-end;
+}
