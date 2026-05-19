@@ -2,11 +2,12 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\App\Pages\StripeOnboarding;
+use App\Http\Middleware\RedirectIfStripeNotOnboarded;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -34,11 +35,12 @@ class AppPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Teal,
             ])
+            ->font('Manrope')
             ->viteTheme('resources/css/filament/app/theme.css')
             ->discoverResources(in: app_path('Filament/App/Resources'), for: 'App\Filament\App\Resources')
             ->discoverPages(in: app_path('Filament/App/Pages'), for: 'App\Filament\App\Pages')
             ->pages([
-                Dashboard::class,
+                StripeOnboarding::class,
             ])
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\Filament\App\Widgets')
             ->widgets([
@@ -58,6 +60,7 @@ class AppPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                RedirectIfStripeNotOnboarded::class,
             ]);
     }
 }
