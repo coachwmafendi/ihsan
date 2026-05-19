@@ -8,7 +8,7 @@ it('logs in with valid magic token', function () {
         'magic_token_expires_at' => now()->addHours(24),
     ]);
 
-    $this->get(route('donorportal.login', ['token' => 'valid-token-123']))
+    $this->get(route('donorportal.magic-login', ['token' => 'valid-token-123']))
         ->assertRedirect(route('donorportal.donations'));
 
     $this->assertEquals(session('donor_id'), $donor->getKey());
@@ -20,7 +20,7 @@ it('rejects expired magic token', function () {
         'magic_token_expires_at' => now()->subHour(),
     ]);
 
-    $this->get(route('donorportal.login', ['token' => 'expired-token']))
+    $this->get(route('donorportal.magic-login', ['token' => 'expired-token']))
         ->assertRedirect(route('home'));
 });
 

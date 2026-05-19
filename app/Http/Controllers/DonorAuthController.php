@@ -2,10 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\MagicLink;
 use App\Models\Donor;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class DonorAuthController extends Controller
 {
+    public function showLoginForm()
+    {
+        return view('donor.login');
+    }
+
+    public function sendMagicLink(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+        ]);
+
+        $donor = Donor::query()->where('email', $validated['email'])->first();
+
+        if ($donor !== null) {
+            $token = $donor->generateMagicToken();
+
+            Mail::to($donor->email)->queue(new MagicLink($donor, $token));
+        }
+
+        return redirect()->route('donorportal.login')
+            ->with('success', 'If that email is registered, a login link has been sent.');
+    }
+
     public function login(string $token)
     {
         $donor = Donor::query()

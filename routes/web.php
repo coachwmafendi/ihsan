@@ -23,7 +23,9 @@ use App\Http\Controllers\DonorPortalController;
 
 // Donor portal
 Route::prefix('donorportal')->name('donorportal.')->group(function () {
-    Route::get('login/{token}', [DonorAuthController::class, 'login'])->name('login');
+    Route::get('login', [DonorAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('login', [DonorAuthController::class, 'sendMagicLink'])->name('send-magic-link');
+    Route::get('login/{token}', [DonorAuthController::class, 'login'])->name('magic-login');
     Route::get('logout', [DonorAuthController::class, 'logout'])->name('logout');
     Route::get('donations', [DonorPortalController::class, 'donations'])->name('donations');
     Route::get('subscriptions', [DonorPortalController::class, 'subscriptions'])->name('subscriptions');

@@ -25,6 +25,17 @@ class Donor extends Model
         return $this->hasMany(Subscription::class);
     }
 
+    public function generateMagicToken(): string
+    {
+        $token = Str::random(64);
+        $this->update([
+            'magic_token' => $token,
+            'magic_token_expires_at' => now()->addHours(24),
+        ]);
+
+        return $token;
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Donor $donor) {
