@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\StripePaymentIntentController;
+use App\Http\Controllers\StripeWebhookController;
 use App\Livewire\DonationForm;
 use Illuminate\Support\Facades\Route;
 
@@ -10,6 +11,8 @@ Route::livewire('/donate/{element:token}', DonationForm::class)->name('donations
 Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
     ->middleware('throttle:10,1')
     ->name('stripe.payment-intent');
+
+Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
