@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Organizations\Pages;
 
+use App\Actions\Stripe\CreateConnectAccount;
 use App\Enums\OrganizationStatus;
 use App\Filament\Resources\Organizations\OrganizationResource;
 use Filament\Actions\Action;
@@ -26,6 +27,16 @@ class EditOrganization extends EditRecord
                         'approved_at' => now(),
                         'approved_by' => auth()->id(),
                     ]);
+
+                    try {
+                        app(CreateConnectAccount::class)->create($this->record);
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('Organization approved, but Stripe account creation failed')
+                            ->body($e->getMessage())
+                            ->warning()
+                            ->send();
+                    }
 
                     $this->refreshFormData(['status']);
 
