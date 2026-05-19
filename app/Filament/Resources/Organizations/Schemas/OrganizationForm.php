@@ -20,10 +20,12 @@ class OrganizationForm
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255),
-                        TextInput::make('slug')
-                            ->required()
-                            ->unique(ignoreRecord: true)
-                            ->maxLength(255),
+                        TextInput::make('code')
+                            ->label('Organization Code')
+                            ->disabled()
+                            ->dehydrated()
+                            ->visible(fn ($record) => $record !== null)
+                            ->helperText('Auto-generated on creation'),
                         Select::make('registration_type')
                             ->options([
                                 'ros' => 'ROS',

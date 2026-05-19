@@ -6,6 +6,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 
 class DonorsTable
@@ -33,7 +34,12 @@ class DonorsTable
                     ->sortable(),
             ])
             ->filters([
-                //
+                Filter::make('has_donations')
+                    ->label('Has donations')
+                    ->query(fn ($query) => $query->whereHas('donations')),
+                Filter::make('has_subscriptions')
+                    ->label('Has recurring')
+                    ->query(fn ($query) => $query->whereHas('subscriptions')),
             ])
             ->recordActions([
                 EditAction::make(),

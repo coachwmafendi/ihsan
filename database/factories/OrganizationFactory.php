@@ -20,7 +20,7 @@ class OrganizationFactory extends Factory
     {
         return [
             'name' => fake()->company(),
-            'slug' => fake()->unique()->slug(),
+            'code' => fake()->unique()->regexify('[A-Z]{8}'),
             'registration_type' => 'others',
             'description' => fake()->paragraph(),
             'contact_email' => fake()->safeEmail(),

@@ -18,9 +18,10 @@ class OrganizationsTable
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('slug')
+                TextColumn::make('code')
+                    ->label('Code')
                     ->searchable()
-                    ->toggleable(),
+                    ->sortable(),
                 TextColumn::make('status')
                     ->badge()
                     ->searchable()

@@ -6,24 +6,39 @@
     <title>@yield('title', 'Donor Portal') — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-neutral-100 antialiased dark:bg-neutral-950">
+<body class="min-h-screen bg-stone-50 antialiased">
+    <header class="border-b border-stone-200/70 bg-white/90 backdrop-blur-sm">
+        <div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
+            <a href="{{ route('donorportal.donations') }}" class="text-lg font-semibold tracking-tight text-emerald-700">
+                {{ config('app.name') }}
+            </a>
+            <a href="{{ route('donorportal.logout') }}" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-stone-500 transition hover:bg-stone-100 hover:text-stone-700">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                </svg>
+                Logout
+            </a>
+        </div>
+    </header>
+
     <div class="mx-auto max-w-4xl px-4 py-8">
-        <div class="mb-6 flex items-center justify-between">
-            <a href="{{ route('home') }}" class="text-lg font-semibold text-teal-700">{{ config('app.name') }}</a>
-            <a href="{{ route('donorportal.logout') }}" class="text-sm text-slate-500 hover:text-slate-700">Logout</a>
+        <div class="mb-8">
+            <nav class="flex gap-1 rounded-xl bg-stone-100/80 p-1">
+                <a href="{{ route('donorportal.donations') }}"
+                   class="flex-1 rounded-lg px-4 py-2 text-center text-sm font-medium transition
+                   {{ request()->routeIs('donorportal.donations') ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700' }}">
+                    Donations
+                </a>
+                <a href="{{ route('donorportal.subscriptions') }}"
+                   class="flex-1 rounded-lg px-4 py-2 text-center text-sm font-medium transition
+                   {{ request()->routeIs('donorportal.subscriptions') ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700' }}">
+                    Subscriptions
+                </a>
+            </nav>
         </div>
 
-        <nav class="mb-6 flex gap-4 border-b border-slate-200 pb-4">
-            <a href="{{ route('donorportal.donations') }}" class="text-sm font-medium {{ request()->routeIs('donorportal.donations') ? 'text-teal-700' : 'text-slate-500' }}">
-                Donation History
-            </a>
-            <a href="{{ route('donorportal.subscriptions') }}" class="text-sm font-medium {{ request()->routeIs('donorportal.subscriptions') ? 'text-teal-700' : 'text-slate-500' }}">
-                Subscriptions
-            </a>
-        </nav>
-
         @if (session('success'))
-            <div class="mb-4 rounded-md bg-emerald-50 p-4 text-sm text-emerald-700">{{ session('success') }}</div>
+            <div class="mb-6 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700 ring-1 ring-emerald-100">{{ session('success') }}</div>
         @endif
 
         @yield('content')

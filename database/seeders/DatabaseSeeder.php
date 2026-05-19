@@ -28,7 +28,6 @@ class DatabaseSeeder extends Seeder
     {
         $organization = Organization::factory()->create([
             'name' => 'Maahad Tahfiz Mumtazatut Taqwa',
-            'slug' => 'maahad-tahfiz-mumtazatut-taqwa',
             'contact_email' => 'ngo@ihsan.test',
             'status' => 'active',
         ]);
@@ -81,35 +80,30 @@ class DatabaseSeeder extends Seeder
 
         $secondOrg = Organization::factory()->create([
             'name' => 'Pertubuhan Kebajikan Nur Hidayah',
-            'slug' => 'pertubuhan-kebajikan-nur-hidayah',
             'contact_email' => 'nurhidayah@example.test',
             'status' => 'active',
         ]);
 
         $thirdOrg = Organization::factory()->create([
             'name' => 'Masjid Al-Islah Taman Bahagia',
-            'slug' => 'masjid-al-islah-taman-bahagia',
             'contact_email' => 'masjid@example.test',
             'status' => 'active',
         ]);
 
         $fourthOrg = Organization::factory()->create([
             'name' => 'Rumah Anak Yatim Permata Ibu',
-            'slug' => 'rumah-anak-yatim-permata-ibu',
             'contact_email' => 'permata@example.test',
             'status' => 'pending',
         ]);
 
         $fifthOrg = Organization::factory()->create([
             'name' => 'Yayasan Pendidikan Islam Terengganu',
-            'slug' => 'yayasan-pendidikan-islam-terengganu',
             'contact_email' => 'ypit@example.test',
             'status' => 'pending',
         ]);
 
         $sixthOrg = Organization::factory()->create([
             'name' => 'Pusat Dialisis Al-Ikhlas',
-            'slug' => 'pusat-dialisis-al-ikhlas',
             'contact_email' => 'dialisis@example.test',
             'status' => 'suspended',
         ]);

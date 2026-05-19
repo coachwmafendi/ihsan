@@ -21,7 +21,7 @@ it('rejects expired magic token', function () {
     ]);
 
     $this->get(route('donorportal.magic-login', ['token' => 'expired-token']))
-        ->assertRedirect(route('home'));
+        ->assertRedirect(route('donorportal.login'));
 });
 
 it('requires valid session for donor portal pages', function () {
@@ -38,7 +38,7 @@ it('shows donation history for authenticated donor', function () {
     $this->withSession(['donor_id' => $donor->getKey()])
         ->get(route('donorportal.donations'))
         ->assertOk()
-        ->assertSee('Donation History')
+        ->assertSee('Donations')
         ->assertSee($donor->name);
 });
 
@@ -51,7 +51,7 @@ it('shows subscriptions for authenticated donor', function () {
     $this->withSession(['donor_id' => $donor->getKey()])
         ->get(route('donorportal.subscriptions'))
         ->assertOk()
-        ->assertSee('My Subscriptions');
+        ->assertSee('Subscriptions');
 });
 
 it('logs out donor and redirects home', function () {
@@ -59,7 +59,7 @@ it('logs out donor and redirects home', function () {
 
     $this->withSession(['donor_id' => $donor->getKey()])
         ->get(route('donorportal.logout'))
-        ->assertRedirect(route('home'));
+        ->assertRedirect(route('donorportal.login'));
 
     $this->assertNull(session('donor_id'));
 });

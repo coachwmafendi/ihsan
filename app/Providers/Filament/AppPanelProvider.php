@@ -29,7 +29,7 @@ class AppPanelProvider extends PanelProvider
             ->path('app')
             ->spa()
             ->sidebarCollapsibleOnDesktop()
-            ->sidebarWidth('16rem')
+            ->sidebarWidth('150px')
             ->brandLogo(asset('logo-ihsan.png'))
             ->brandLogoHeight('2rem')
             ->colors([

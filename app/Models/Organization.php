@@ -8,12 +8,31 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
-#[Fillable(['name', 'slug', 'ros_rob_number', 'registration_type', 'description', 'logo_path', 'website_url', 'contact_email', 'contact_phone', 'status', 'stripe_account_id', 'stripe_onboarded', 'bank_account_name', 'bank_account_number', 'bank_name', 'settings', 'approved_at', 'approved_by'])]
+#[Fillable(['name', 'code', 'ros_rob_number', 'registration_type', 'description', 'logo_path', 'website_url', 'contact_email', 'contact_phone', 'status', 'stripe_account_id', 'stripe_onboarded', 'bank_account_name', 'bank_account_number', 'bank_name', 'settings', 'approved_at', 'approved_by'])]
 class Organization extends Model
 {
     /** @use HasFactory<OrganizationFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::creating(function (Organization $organization) {
+            if (! $organization->code) {
+                $organization->code = static::generateUniqueCode();
+            }
+        });
+    }
+
+    public static function generateUniqueCode(): string
+    {
+        do {
+            $code = strtoupper(Str::random(8));
+        } while (static::where('code', $code)->exists());
+
+        return $code;
+    }
 
     public function users(): HasMany
     {

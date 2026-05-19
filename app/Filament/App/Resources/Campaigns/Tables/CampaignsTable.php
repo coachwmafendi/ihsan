@@ -2,12 +2,17 @@
 
 namespace App\Filament\App\Resources\Campaigns\Tables;
 
+use App\Enums\CampaignStatus;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class CampaignsTable
 {
@@ -39,10 +44,25 @@ class CampaignsTable
                     ->toggleable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->options(CampaignStatus::class),
+                Filter::make('has_target')
+                    ->query(fn (Builder $query) => $query->where('has_target', true)),
+                Filter::make('allow_recurring')
+                    ->query(fn (Builder $query) => $query->where('allow_recurring', true)),
             ])
             ->recordActions([
                 EditAction::make(),
+                Action::make('duplicate')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('gray')
+                    ->action(function ($record) {
+                        $replica = $record->replicate();
+                        $replica->title = $record->title.' (Copy)';
+                        $replica->slug = $record->slug.'-copy';
+                        $replica->collected_amount = 0;
+                        $replica->save();
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

@@ -9,7 +9,6 @@ use Livewire\Livewire;
 it('shows seeded organizations by name in the super admin table', function () {
     $organization = Organization::factory()->create([
         'name' => 'Maahad Tahfiz Mumtazatut Taqwa',
-        'slug' => 'maahad-tahfiz-mumtazatut-taqwa',
         'status' => 'active',
     ]);
 

@@ -40,7 +40,7 @@ class DonorAuthController extends Controller
             ->first();
 
         if ($donor === null) {
-            return redirect()->route('home')->with('error', 'Invalid or expired login link.');
+            return redirect()->route('donorportal.login')->with('error', 'Invalid or expired login link.');
         }
 
         session()->put('donor_id', $donor->getKey());
@@ -52,6 +52,6 @@ class DonorAuthController extends Controller
     {
         session()->forget('donor_id');
 
-        return redirect()->route('home');
+        return redirect()->route('donorportal.login');
     }
 }

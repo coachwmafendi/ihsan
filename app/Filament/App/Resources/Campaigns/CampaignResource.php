@@ -5,25 +5,35 @@ namespace App\Filament\App\Resources\Campaigns;
 use App\Filament\App\Resources\Campaigns\Pages\CreateCampaign;
 use App\Filament\App\Resources\Campaigns\Pages\EditCampaign;
 use App\Filament\App\Resources\Campaigns\Pages\ListCampaigns;
+use App\Filament\App\Resources\Campaigns\RelationManagers\DonationsRelationManager;
+use App\Filament\App\Resources\Campaigns\RelationManagers\ElementsRelationManager;
+use App\Filament\App\Resources\Campaigns\RelationManagers\SubscriptionsRelationManager;
 use App\Filament\App\Resources\Campaigns\Schemas\CampaignForm;
 use App\Filament\App\Resources\Campaigns\Tables\CampaignsTable;
 use App\Models\Campaign;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class CampaignResource extends Resource
 {
     protected static ?string $model = Campaign::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-flag';
 
     protected static ?string $navigationLabel = 'Campaigns';
 
     protected static ?int $navigationSort = 40;
+
+    protected static ?string $recordTitleAttribute = 'title';
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->title;
+    }
 
     public static function getEloquentQuery(): Builder
     {
@@ -44,7 +54,9 @@ class CampaignResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            DonationsRelationManager::class,
+            SubscriptionsRelationManager::class,
+            ElementsRelationManager::class,
         ];
     }
 

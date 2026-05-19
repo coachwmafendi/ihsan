@@ -11,19 +11,31 @@ use App\Models\Subscription;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class SubscriptionResource extends Resource
 {
     protected static ?string $model = Subscription::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-path';
 
     protected static ?string $navigationLabel = 'Recurring';
 
     protected static ?int $navigationSort = 30;
+
+    protected static ?string $recordTitleAttribute = 'id';
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return 'Subscription #'.$record->id;
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['donor.name', 'campaign.title'];
+    }
 
     public static function getEloquentQuery(): Builder
     {

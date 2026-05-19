@@ -17,7 +17,7 @@ class PlatformOverview extends Page
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static ?string $navigationLabel = 'Platform Overview';
+    protected static ?string $navigationLabel = 'Overview';
 
     protected static ?int $navigationSort = 5;
 
