@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DonationStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Donor;
 
@@ -14,19 +15,21 @@ class DonorPortalController extends Controller
             return null;
         }
 
-        return Donor::query()->with('donations.campaign.organization', 'subscriptions.campaign')->find($donorId);
+        return Donor::query()->find($donorId);
     }
 
     public function donations()
     {
         $donor = $this->getDonor();
         if ($donor === null) {
-            return redirect()->route('home');
+            return redirect()->route('donorportal.login');
         }
 
         return view('donor.donations', [
             'donor' => $donor,
-            'donations' => $donor->donations()->latest()->paginate(10),
+            'totalGiven' => $donor->donations()->where('status', DonationStatus::Succeeded)->sum('gross_amount'),
+            'donationCount' => $donor->donations()->where('status', DonationStatus::Succeeded)->count(),
+            'donations' => $donor->donations()->with('campaign.organization')->latest()->paginate(10),
         ]);
     }
 
@@ -34,12 +37,12 @@ class DonorPortalController extends Controller
     {
         $donor = $this->getDonor();
         if ($donor === null) {
-            return redirect()->route('home');
+            return redirect()->route('donorportal.login');
         }
 
         return view('donor.subscriptions', [
             'donor' => $donor,
-            'subscriptions' => $donor->subscriptions()->latest()->paginate(10),
+            'subscriptions' => $donor->subscriptions()->with('campaign.organization')->latest()->paginate(10),
         ]);
     }
 
@@ -47,7 +50,7 @@ class DonorPortalController extends Controller
     {
         $donor = $this->getDonor();
         if ($donor === null) {
-            return redirect()->route('home');
+            return redirect()->route('donorportal.login');
         }
 
         $subscription = $donor->subscriptions()->findOrFail($id);

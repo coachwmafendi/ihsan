@@ -15,23 +15,23 @@
             <p class="mt-1 text-sm text-stone-400">Your giving, your way.</p>
         </div>
 
-        <div class="rounded-2xl border border-stone-200/70 bg-white/90 p-8 shadow-lg shadow-stone-200/50 backdrop-blur-sm">
-            <h1 class="text-lg font-semibold text-stone-900">Welcome back</h1>
-            <p class="mt-1 text-sm leading-relaxed text-stone-500">Enter your email and we'll send you a magic link to sign in — no password needed.</p>
+        <div class="rounded-2xl border border-stone-200/70 bg-white/90 p-10 shadow-lg shadow-stone-200/50 backdrop-blur-sm">
+            <h1 class="text-xl font-semibold text-stone-900">Welcome back</h1>
+            <p class="mt-2 text-sm leading-relaxed text-stone-500">Enter your email and we'll send you a magic link to sign in — no password needed.</p>
 
             @if (session('success'))
-                <div class="mt-5 rounded-lg bg-emerald-50 p-4 text-sm leading-relaxed text-emerald-700 ring-1 ring-emerald-100">
+                <div class="mt-6 rounded-xl bg-emerald-50 p-4 text-sm leading-relaxed text-emerald-700 ring-1 ring-emerald-100">
                     {{ session('success') }}
                 </div>
             @endif
 
             @if (session('error'))
-                <div class="mt-5 rounded-lg bg-red-50 p-4 text-sm leading-relaxed text-red-600 ring-1 ring-red-100">
+                <div class="mt-6 rounded-xl bg-red-50 p-4 text-sm leading-relaxed text-red-600 ring-1 ring-red-100">
                     {{ session('error') }}
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('donorportal.send-magic-link') }}" class="mt-6 space-y-5">
+            <form method="POST" action="{{ route('donorportal.send-magic-link') }}" class="mt-8 space-y-6">
                 @csrf
 
                 <div>

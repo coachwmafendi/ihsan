@@ -77,7 +77,7 @@ it('shows a full page donation form workbench when editing a form element', func
         ->assertSee('Behavior')
         ->assertSee('Embed')
         ->assertSee('Live Preview')
-        ->assertSee('Hosted URL')
+        ->assertSee('HTML Code')
         ->assertSee('ihsan-builder-shell')
         ->assertSee('ihsan-builder-editor')
         ->assertSee('ihsan-builder-preview')
@@ -117,7 +117,7 @@ it('reflects form builder controls in the live preview', function () {
     Livewire::test(EditElement::class, ['record' => $element->getKey()])
         ->set('data.config.title', 'Dana kilat')
         ->set('data.config.submit_text', 'Teruskan derma')
-        ->set('data.config.suggested_amounts', [300, 90, 30])
+        ->set('data.config.suggested_amounts_one_time', [300, 90, 30])
         ->set('data.config.default_amount', 90)
         ->set('data.config.default_frequency', 'one_time')
         ->assertSee('Dana kilat')
@@ -166,7 +166,8 @@ it('creates a form element with organization, token, and builder configuration',
                 'border_radius' => 6,
                 'border_color' => '#DEDFF3',
                 'show_shadow' => false,
-                'suggested_amounts' => [200, 100, 50, 30, 10, 5],
+                'suggested_amounts_one_time' => [500, 200, 100, 50, 40, 30],
+                'suggested_amounts_monthly' => [100, 50, 30, 20, 10, 5],
                 'default_amount' => 5,
                 'default_frequency' => 'monthly',
                 'allow_monthly' => true,
@@ -198,7 +199,8 @@ it('creates a form element with organization, token, and builder configuration',
             'border_radius' => 6,
             'border_color' => '#DEDFF3',
             'show_shadow' => false,
-            'suggested_amounts' => [200, 100, 50, 30, 10, 5],
+            'suggested_amounts_one_time' => [500, 200, 100, 50, 40, 30],
+            'suggested_amounts_monthly' => [100, 50, 30, 20, 10, 5],
             'default_amount' => 5,
             'default_frequency' => 'monthly',
             'allow_monthly' => true,

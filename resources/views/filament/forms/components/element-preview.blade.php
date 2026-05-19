@@ -2,7 +2,12 @@
     $type = $type ?? null;
     $type = $type instanceof \BackedEnum ? $type->value : $type;
     $config = $config ?? [];
-    $defaultAmounts = collect($config['suggested_amounts'] ?? [200, 100, 50, 30, 10, 5])
+    $defaultAmountsOneTime = collect($config['suggested_amounts_one_time'] ?? $config['suggested_amounts'] ?? [200, 100, 50, 30, 10, 5])
+        ->map(fn ($amount) => (int) $amount)
+        ->filter(fn (int $amount) => $amount > 0)
+        ->values()
+        ->all();
+    $defaultAmountsMonthly = collect($config['suggested_amounts_monthly'] ?? $config['suggested_amounts'] ?? [100, 50, 30, 20, 10, 5])
         ->map(fn ($amount) => (int) $amount)
         ->filter(fn (int $amount) => $amount > 0)
         ->values()
@@ -15,7 +20,7 @@
     $borderRadius = $config['border_radius'] ?? 6;
     $borderColor = $config['border_color'] ?? '#DEDFF3';
     $showShadow = $config['show_shadow'] ?? false;
-    $defaultAmount = (int) ($config['default_amount'] ?? ($defaultAmounts[0] ?? 5));
+    $defaultAmount = (int) ($config['default_amount'] ?? ($defaultAmountsOneTime[0] ?? 5));
     $defaultFrequency = $config['default_frequency'] ?? 'monthly';
     $allowMonthly = $config['allow_monthly'] ?? true;
     $showSuggested = $config['show_suggested'] ?? true;
@@ -27,18 +32,18 @@
 
 <div
     wire:key="element-preview-{{ md5(json_encode([$type, $config])) }}"
-    class="rounded-lg border border-zinc-200 bg-white p-5"
+    class="rounded-xl border border-zinc-200 bg-white p-6"
 >
-    <div class="mb-3 flex items-center justify-between">
-        <h3 class="text-xs font-semibold text-zinc-400">Live preview</h3>
+    <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Live Preview</h3>
         @if($type)
-            <span class="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
+            <span class="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
                 {{ ucfirst($type) }}
             </span>
         @endif
     </div>
 
-    <div class="flex min-h-[720px] items-center justify-center rounded-md bg-zinc-50 px-4 py-6">
+    <div class="flex min-h-[720px] items-center justify-center rounded-xl bg-zinc-50 px-6 py-8">
         @if(! $type)
             <p class="text-sm text-zinc-400">Select a type to preview</p>
         @elseif($type === 'button')
@@ -55,8 +60,8 @@
                     selectedAmount: @js($defaultAmount),
                     frequency: @js($previewFrequency),
                     submitted: false,
-                    monthlyAmounts: @js($defaultAmounts),
-                    oneTimeAmounts: @js($defaultAmounts),
+                    monthlyAmounts: @js($defaultAmountsMonthly),
+                    oneTimeAmounts: @js($defaultAmountsOneTime),
                     get amounts() {
                         return this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
                     },

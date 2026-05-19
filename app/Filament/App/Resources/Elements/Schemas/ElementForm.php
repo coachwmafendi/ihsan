@@ -49,7 +49,8 @@ class ElementForm
                 'show_shadow' => false,
                 'show_suggested' => true,
                 'show_amount_input' => true,
-                'suggested_amounts' => [200, 100, 50, 30, 10, 5],
+                'suggested_amounts_one_time' => [500, 200, 100, 50, 40, 30],
+                'suggested_amounts_monthly' => [100, 50, 30, 20, 10, 5],
                 'default_amount' => 5,
                 'default_frequency' => 'monthly',
                 'allow_monthly' => true,
@@ -68,33 +69,36 @@ class ElementForm
                 Section::make('Element Details')
                     ->columnSpanFull()
                     ->extraAttributes(['class' => 'ihsan-builder-header'])
-                    ->columns(4)
+                    ->columns(2)
                     ->schema([
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255)
                             ->live()
-                            ->columnSpan(2),
+                            ->placeholder('e.g. Main Donation Form'),
                         Select::make('type')
                             ->required()
                             ->live()
-                            ->options(ElementType::class),
-                        Toggle::make('is_active')
-                            ->label('Active')
-                            ->default(true),
+                            ->options(ElementType::class)
+                            ->placeholder('Select type'),
                         Select::make('campaign_id')
                             ->label('Campaign')
                             ->relationship('campaign', 'title')
                             ->nullable()
                             ->searchable()
                             ->preload()
-                            ->columnSpan(2),
-                        TextInput::make('token')
-                            ->label('Token (auto-generated)')
-                            ->disabled()
-                            ->dehydrated()
+                            ->placeholder('Optional: link to a campaign'),
+                        Toggle::make('is_active')
+                            ->label('Active')
+                            ->default(true)
+                            ->inlineLabel(false)
+                            ->helperText('Enable or disable this element'),
+                        View::make('filament.forms.components.embed-token')
+                            ->viewData(fn (?Element $record): array => [
+                                'url' => $record?->token ? url('/donate/'.$record->token) : null,
+                            ])
                             ->visible(fn ($record) => $record !== null)
-                            ->columnSpan(2),
+                            ->columnSpanFull(),
                     ]),
                 Section::make('Button Configuration')
                     ->columnSpanFull()
@@ -175,12 +179,26 @@ class ElementForm
                                             ->default('Donate and Support')
                                             ->required()
                                             ->live(),
-                                        TagsInput::make('suggested_amounts')
-                                            ->label('Suggested amounts')
-                                            ->default([200, 100, 50, 30, 10, 5])
-                                            ->placeholder('Add amount')
-                                            ->live()
-                                            ->columnSpanFull(),
+                                        Section::make('Suggested Amounts')
+                                            ->description('Configure donation amounts for each frequency type.')
+                                            ->columnSpanFull()
+                                            ->extraAttributes(['class' => 'border-t border-zinc-200 pt-4'])
+                                            ->schema([
+                                                TagsInput::make('suggested_amounts_one_time')
+                                                    ->label('One-time amounts')
+                                                    ->helperText('Amounts shown when donor selects one-time donation.')
+                                                    ->default([500, 200, 100, 50, 40, 30])
+                                                    ->placeholder('Add amount')
+                                                    ->live()
+                                                    ->columnSpanFull(),
+                                                TagsInput::make('suggested_amounts_monthly')
+                                                    ->label('Monthly amounts')
+                                                    ->helperText('Amounts shown when donor selects monthly donation.')
+                                                    ->default([100, 50, 30, 20, 10, 5])
+                                                    ->placeholder('Add amount')
+                                                    ->live()
+                                                    ->columnSpanFull(),
+                                            ]),
                                         TextInput::make('default_amount')
                                             ->label('Default amount')
                                             ->numeric()
@@ -291,29 +309,21 @@ class ElementForm
                                     ]),
                                 Tab::make('Embed')
                                     ->schema([
-                                        Placeholder::make('hosted_url')
-                                            ->label('Hosted URL')
-                                            ->content(fn (?Element $record): HtmlString => new HtmlString(
-                                                '<div x-data="{ copied: false, copyText: \''.str_replace("'", "\\'", self::hostedUrl($record)).'\', doCopy() { let t = document.createElement(\'textarea\'); t.value = this.copyText; document.body.appendChild(t); t.select(); document.execCommand(\'copy\'); document.body.removeChild(t); this.copied = true; setTimeout(() => this.copied = false, 2000) } }" class="flex items-center gap-2">'
-                                                .'<code class="flex-1 break-all text-sm">'.e(self::hostedUrl($record)).'</code>'
-                                                .'<div class="relative shrink-0">'
-                                                .'<button type="button" x-on:click="doCopy()" class="flex size-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-600" title="Copy URL">'
-                                                .'<svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
-                                                .'</button>'
-                                                .'<span x-show="copied" x-cloak class="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-800 px-2 py-1 text-xs text-white">Copied!</span>'
-                                                .'</div>'
-                                                .'</div>'
-                                            )),
                                         Placeholder::make('iframe_code')
-                                            ->label('Iframe embed code')
+                                            ->label('Iframe Embed Code')
+                                            ->helperText('Embed this code into your website to display the donation form inline.')
+                                            ->extraAttributes(['class' => '[&_.fi-fo-placeholder-label]:font-normal [&_.fi-fo-placeholder-content]:items-start'])
                                             ->content(fn (?Element $record): HtmlString => new HtmlString(
-                                                '<div x-data="{ copied: false, copyText: \''.str_replace("'", "\\'", self::iframeCode($record)).'\', doCopy() { let t = document.createElement(\'textarea\'); t.value = this.copyText; document.body.appendChild(t); t.select(); document.execCommand(\'copy\'); document.body.removeChild(t); this.copied = true; setTimeout(() => this.copied = false, 2000) } }" class="flex items-start gap-2">'
-                                                .'<code class="flex-1 whitespace-pre-wrap break-all text-sm">'.e(self::iframeCode($record)).'</code>'
+                                                '<div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4">'
+                                                .'<div x-data="{ copied: false, copyText: \''.str_replace("'", "\\'", self::iframeCode($record)).'\', doCopy() { let t = document.createElement(\'textarea\'); t.value = this.copyText; document.body.appendChild(t); t.select(); document.execCommand(\'copy\'); document.body.removeChild(t); this.copied = true; setTimeout(() => this.copied = false, 2000) } }" class="flex items-start gap-3">'
+                                                .'<code class="flex-1 whitespace-pre-wrap break-all font-mono text-xs leading-relaxed text-zinc-700">'.e(self::iframeCode($record)).'</code>'
                                                 .'<div class="relative shrink-0">'
-                                                .'<button type="button" x-on:click="doCopy()" class="mt-0.5 flex size-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-600" title="Copy code">'
-                                                .'<svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
+                                                .'<button type="button" x-on:click="doCopy()" class="flex items-center justify-center rounded-lg bg-white px-3 py-2 text-xs font-medium text-zinc-600 shadow-sm ring-1 ring-zinc-200 transition hover:bg-zinc-50 hover:text-zinc-800" title="Copy code">'
+                                                .'<svg class="mr-1.5 size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
+                                                .'Copy'
                                                 .'</button>'
-                                                .'<span x-show="copied" x-cloak class="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-800 px-2 py-1 text-xs text-white">Copied!</span>'
+                                                .'<span x-show="copied" x-cloak class="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white shadow-sm">Copied!</span>'
+                                                .'</div>'
                                                 .'</div>'
                                                 .'</div>'
                                             )),
@@ -394,6 +404,8 @@ class ElementForm
             'show_email' => $get('config.show_email'),
             'show_phone' => $get('config.show_phone'),
             'show_message' => $get('config.show_message'),
+            'suggested_amounts_one_time' => $get('config.suggested_amounts_one_time'),
+            'suggested_amounts_monthly' => $get('config.suggested_amounts_monthly'),
             'show_suggested' => $get('config.show_suggested'),
         ];
     }

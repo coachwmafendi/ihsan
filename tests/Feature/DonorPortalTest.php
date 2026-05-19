@@ -25,8 +25,8 @@ it('rejects expired magic token', function () {
 });
 
 it('requires valid session for donor portal pages', function () {
-    $this->get(route('donorportal.donations'))->assertRedirect(route('home'));
-    $this->get(route('donorportal.subscriptions'))->assertRedirect(route('home'));
+    $this->get(route('donorportal.donations'))->assertRedirect(route('donorportal.login'));
+    $this->get(route('donorportal.subscriptions'))->assertRedirect(route('donorportal.login'));
 });
 
 it('shows donation history for authenticated donor', function () {
@@ -54,11 +54,11 @@ it('shows subscriptions for authenticated donor', function () {
         ->assertSee('Subscriptions');
 });
 
-it('logs out donor and redirects home', function () {
+it('logs out donor and redirects to login', function () {
     $donor = Donor::factory()->create();
 
     $this->withSession(['donor_id' => $donor->getKey()])
-        ->get(route('donorportal.logout'))
+        ->post(route('donorportal.logout'))
         ->assertRedirect(route('donorportal.login'));
 
     $this->assertNull(session('donor_id'));
