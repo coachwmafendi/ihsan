@@ -56,6 +56,6 @@ class DonorPortalController extends Controller
             'cancelled_at' => now(),
         ]);
 
-        return redirect()->route('donor.subscriptions')->with('success', 'Subscription cancelled.');
+        return redirect()->route('donorportal.subscriptions')->with('success', 'Subscription cancelled.');
     }
 }

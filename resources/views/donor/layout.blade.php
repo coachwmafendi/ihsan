@@ -10,14 +10,14 @@
     <div class="mx-auto max-w-4xl px-4 py-8">
         <div class="mb-6 flex items-center justify-between">
             <a href="{{ route('home') }}" class="text-lg font-semibold text-teal-700">{{ config('app.name') }}</a>
-            <a href="{{ route('donor.logout') }}" class="text-sm text-slate-500 hover:text-slate-700">Logout</a>
+            <a href="{{ route('donorportal.logout') }}" class="text-sm text-slate-500 hover:text-slate-700">Logout</a>
         </div>
 
         <nav class="mb-6 flex gap-4 border-b border-slate-200 pb-4">
-            <a href="{{ route('donor.donations') }}" class="text-sm font-medium {{ request()->routeIs('donor.donations') ? 'text-teal-700' : 'text-slate-500' }}">
+            <a href="{{ route('donorportal.donations') }}" class="text-sm font-medium {{ request()->routeIs('donorportal.donations') ? 'text-teal-700' : 'text-slate-500' }}">
                 Donation History
             </a>
-            <a href="{{ route('donor.subscriptions') }}" class="text-sm font-medium {{ request()->routeIs('donor.subscriptions') ? 'text-teal-700' : 'text-slate-500' }}">
+            <a href="{{ route('donorportal.subscriptions') }}" class="text-sm font-medium {{ request()->routeIs('donorportal.subscriptions') ? 'text-teal-700' : 'text-slate-500' }}">
                 Subscriptions
             </a>
         </nav>

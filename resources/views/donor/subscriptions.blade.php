@@ -33,7 +33,7 @@
                     </span>
 
                     @if ($subscription->status === \App\Enums\SubscriptionStatus::Active)
-                        <form action="{{ route('donor.subscriptions.cancel', $subscription) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this subscription?')">
+                        <form action="{{ route('donorportal.subscriptions.cancel', $subscription) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this subscription?')">
                             @csrf
                             <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">Cancel</button>
                         </form>

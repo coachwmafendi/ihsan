@@ -22,7 +22,7 @@ use App\Http\Controllers\DonorAuthController;
 use App\Http\Controllers\DonorPortalController;
 
 // Donor portal
-Route::prefix('donor')->name('donor.')->group(function () {
+Route::prefix('donorportal')->name('donorportal.')->group(function () {
     Route::get('login/{token}', [DonorAuthController::class, 'login'])->name('login');
     Route::get('logout', [DonorAuthController::class, 'logout'])->name('logout');
     Route::get('donations', [DonorPortalController::class, 'donations'])->name('donations');

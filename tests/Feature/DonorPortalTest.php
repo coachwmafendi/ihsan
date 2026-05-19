@@ -8,8 +8,8 @@ it('logs in with valid magic token', function () {
         'magic_token_expires_at' => now()->addHours(24),
     ]);
 
-    $this->get(route('donor.login', ['token' => 'valid-token-123']))
-        ->assertRedirect(route('donor.donations'));
+    $this->get(route('donorportal.login', ['token' => 'valid-token-123']))
+        ->assertRedirect(route('donorportal.donations'));
 
     $this->assertEquals(session('donor_id'), $donor->getKey());
 });
@@ -20,13 +20,13 @@ it('rejects expired magic token', function () {
         'magic_token_expires_at' => now()->subHour(),
     ]);
 
-    $this->get(route('donor.login', ['token' => 'expired-token']))
+    $this->get(route('donorportal.login', ['token' => 'expired-token']))
         ->assertRedirect(route('home'));
 });
 
 it('requires valid session for donor portal pages', function () {
-    $this->get(route('donor.donations'))->assertRedirect(route('home'));
-    $this->get(route('donor.subscriptions'))->assertRedirect(route('home'));
+    $this->get(route('donorportal.donations'))->assertRedirect(route('home'));
+    $this->get(route('donorportal.subscriptions'))->assertRedirect(route('home'));
 });
 
 it('shows donation history for authenticated donor', function () {
@@ -36,7 +36,7 @@ it('shows donation history for authenticated donor', function () {
     ]);
 
     $this->withSession(['donor_id' => $donor->getKey()])
-        ->get(route('donor.donations'))
+        ->get(route('donorportal.donations'))
         ->assertOk()
         ->assertSee('Donation History')
         ->assertSee($donor->name);
@@ -49,7 +49,7 @@ it('shows subscriptions for authenticated donor', function () {
     ]);
 
     $this->withSession(['donor_id' => $donor->getKey()])
-        ->get(route('donor.subscriptions'))
+        ->get(route('donorportal.subscriptions'))
         ->assertOk()
         ->assertSee('My Subscriptions');
 });
@@ -58,7 +58,7 @@ it('logs out donor and redirects home', function () {
     $donor = Donor::factory()->create();
 
     $this->withSession(['donor_id' => $donor->getKey()])
-        ->get(route('donor.logout'))
+        ->get(route('donorportal.logout'))
         ->assertRedirect(route('home'));
 
     $this->assertNull(session('donor_id'));
