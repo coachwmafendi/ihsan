@@ -18,4 +18,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 });
 
+use App\Http\Controllers\DonorAuthController;
+use App\Http\Controllers\DonorPortalController;
+
+// Donor portal
+Route::prefix('donor')->name('donor.')->group(function () {
+    Route::get('login/{token}', [DonorAuthController::class, 'login'])->name('login');
+    Route::get('logout', [DonorAuthController::class, 'logout'])->name('logout');
+    Route::get('donations', [DonorPortalController::class, 'donations'])->name('donations');
+    Route::get('subscriptions', [DonorPortalController::class, 'subscriptions'])->name('subscriptions');
+    Route::post('subscriptions/{subscription}/cancel', [DonorPortalController::class, 'cancelSubscription'])->name('subscriptions.cancel');
+});
+
 require __DIR__.'/settings.php';
