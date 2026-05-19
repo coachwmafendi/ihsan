@@ -2,9 +2,11 @@
 
 namespace App\Jobs;
 
+use App\Mail\DonationReceipt;
 use App\Models\Donation;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Mail;
 
 class SendDonationReceipt implements ShouldQueue
 {
@@ -16,6 +18,7 @@ class SendDonationReceipt implements ShouldQueue
 
     public function handle(): void
     {
-        // Will be implemented in Task 6
+        Mail::to($this->donation->donor->email)
+            ->send(new DonationReceipt($this->donation));
     }
 }
