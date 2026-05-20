@@ -44,7 +44,10 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertSee('Monthly')
         ->assertSee('RM 200')
         ->assertSee('RM 5')
-        ->assertSee('Donate and Support');
+        ->assertSee('Donate and Support')
+        ->assertSee('x-show="processing" x-cloak', false)
+        ->assertSee('x-show="success" x-cloak', false)
+        ->assertSee('x-show="error" x-cloak', false);
 });
 
 it('does not render inactive or non form elements', function () {

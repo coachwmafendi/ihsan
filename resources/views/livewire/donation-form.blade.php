@@ -92,7 +92,7 @@
                 style="background-color: {{ $backgroundColor }}; color: {{ $textColor }}; border: {{ $borderSize }}px solid {{ $borderColor }}; border-radius: {{ $isPopup ? $borderRadius : $borderRadius + 10 }}px;"
             >
                 <div x-data="donationForm()">
-                    <div x-show="!processing && !success && !error">
+                    <div x-show="!processing && !success && !error" x-cloak>
                         <form class="space-y-4" @submit.prevent="handleSubmit">
                             <div class="grid grid-cols-2 gap-2">
                                 <button
@@ -192,7 +192,7 @@
                             <div wire:ignore>
                                 <label class="mb-1 block text-base font-medium">Card details</label>
                                 <div id="card-element" class="min-h-12 rounded-md border border-slate-200 px-3 py-3"></div>
-                                <div x-show="cardError" class="mt-1 text-sm text-red-600" x-text="cardError"></div>
+                                <div x-show="cardError" x-cloak class="mt-1 text-sm text-red-600" x-text="cardError"></div>
                             </div>
 
                             <button
@@ -201,20 +201,20 @@
                                 x-bind:disabled="processing"
                             >
                                 <span x-show="!processing">{{ $submitText }}</span>
-                                <span x-show="processing">Processing...</span>
+                                <span x-show="processing" x-cloak>Processing...</span>
                             </button>
                         </form>
-
-                        <div x-show="processing" class="py-10 text-center">
-                            <div class="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-blue-50 text-2xl text-blue-600">
-                                <svg class="size-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                            </div>
-                            <h2 class="text-xl font-semibold">Processing payment...</h2>
-                            <p class="mt-2 text-sm text-slate-500">Please wait while we process your donation.</p>
-                        </div>
                     </div>
 
-                    <div x-show="success" class="py-10 text-center">
+                    <div x-show="processing" x-cloak class="py-10 text-center">
+                        <div class="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-blue-50 text-2xl text-blue-600">
+                            <svg class="size-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        </div>
+                        <h2 class="text-xl font-semibold">Processing payment...</h2>
+                        <p class="mt-2 text-sm text-slate-500">Please wait while we process your donation.</p>
+                    </div>
+
+                    <div x-show="success" x-cloak class="py-10 text-center">
                         <div class="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-emerald-50 text-2xl text-emerald-600">
                             &check;
                         </div>
@@ -222,7 +222,7 @@
                         <p class="mt-2 text-sm text-slate-500">{{ $this->config('success_message', 'Thank you for your donation!') }}</p>
                     </div>
 
-                    <div x-show="error" class="py-10 text-center">
+                    <div x-show="error" x-cloak class="py-10 text-center">
                         <div class="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-red-50 text-2xl text-red-600">
                             &times;
                         </div>
