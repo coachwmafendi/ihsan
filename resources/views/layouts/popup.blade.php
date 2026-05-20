@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        @include('partials.head')
+        <script src="https://js.stripe.com/v3/"></script>
+        @livewireStyles
+    </head>
+    <body class="min-h-screen bg-[#eef1f6] text-slate-950 antialiased">
+        <div
+            x-data="popupModal()"
+            x-init="init()"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close()"></div>
+
+            <div class="relative w-full max-w-2xl">
+                <button
+                    type="button"
+                    @click="close()"
+                    class="absolute -right-2 -top-2 z-10 flex size-10 items-center justify-center rounded-full bg-white text-slate-500 shadow-lg transition hover:bg-slate-100 hover:text-slate-700"
+                    aria-label="Close"
+                >
+                    <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+
+                <div class="overflow-hidden rounded-2xl bg-white shadow-2xl">
+                    {{ $slot }}
+                </div>
+            </div>
+        </div>
+
+        @livewireScripts
+
+        <script>
+            window.stripePublishableKey = '{{ config('services.stripe.key') }}';
+
+            function popupModal() {
+                return {
+                    init() {
+                        this.$dispatch('popup-opened');
+                    },
+                    close() {
+                        if (window.parent !== window) {
+                            window.parent.postMessage({ type: 'donation-popup-close' }, '*');
+                        }
+                    }
+                }
+            }
+        </script>
+    </body>
+</html>

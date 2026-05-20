@@ -75,7 +75,7 @@ class DonationsRelationManager extends RelationManager
             ->recordTitleAttribute('title')
             ->columns([
                 TextColumn::make('donor.name')
-                    ->label('Donor')
+                    ->label('Supporter')
                     ->searchable()
                     ->limit(20),
                 TextColumn::make('gross_amount')

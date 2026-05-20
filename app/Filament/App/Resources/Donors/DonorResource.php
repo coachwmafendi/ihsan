@@ -5,6 +5,8 @@ namespace App\Filament\App\Resources\Donors;
 use App\Filament\App\Resources\Donors\Pages\CreateDonor;
 use App\Filament\App\Resources\Donors\Pages\EditDonor;
 use App\Filament\App\Resources\Donors\Pages\ListDonors;
+use App\Filament\App\Resources\Donors\RelationManagers\DonationsRelationManager;
+use App\Filament\App\Resources\Donors\RelationManagers\SubscriptionsRelationManager;
 use App\Filament\App\Resources\Donors\Schemas\DonorForm;
 use App\Filament\App\Resources\Donors\Tables\DonorsTable;
 use App\Models\Donor;
@@ -24,6 +26,12 @@ class DonorResource extends Resource
     protected static ?string $navigationLabel = 'Supporters';
 
     protected static ?int $navigationSort = 50;
+
+    protected static ?string $modelLabel = 'Supporter';
+
+    protected static ?string $pluralModelLabel = 'Supporters';
+
+    protected static ?string $slug = 'supporters';
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -57,7 +65,8 @@ class DonorResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            DonationsRelationManager::class,
+            SubscriptionsRelationManager::class,
         ];
     }
 

@@ -96,7 +96,6 @@ it('creates a pending donation from the hosted form', function () {
         ->set('comment', 'Semoga dipermudahkan.')
         ->call('submit')
         ->assertHasNoErrors()
-        ->assertSet('submitted', true)
         ->assertSee('Thank you');
 
     $donor = Donor::query()->where('email', 'wan@example.test')->firstOrFail();
@@ -115,6 +114,97 @@ it('creates a pending donation from the hosted form', function () {
             'frequency' => 'monthly',
             'dedicate' => true,
         ]);
+});
+
+it('confirms a recurring payment and creates a subscription', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => ['default_amount' => 5],
+    ]);
+
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'stripe_payment_intent_id' => 'pi_test_confirm_123',
+        'gross_amount' => 100.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::Recurring,
+    ]);
+
+    $paymentIntent = PaymentIntent::constructFrom([
+        'id' => 'pi_test_confirm_123',
+        'object' => 'payment_intent',
+        'payment_method' => null,
+        'charges' => [
+            'object' => 'list',
+            'data' => [[
+                'id' => 'ch_test_123',
+                'object' => 'charge',
+                'balance_transaction' => null,
+                'payment_method_details' => null,
+            ]],
+        ],
+    ]);
+
+    Livewire::test(DonationForm::class, ['element' => $element])
+        ->call('confirmPayment', 'pi_test_confirm_123', $paymentIntent);
+
+    $donation->refresh();
+
+    expect($donation->status)->toBe(DonationStatus::Succeeded)
+        ->and($donation->stripe_charge_id)->toBe('ch_test_123');
+
+    $subscription = $donation->subscription;
+    expect($subscription)->not->toBeNull()
+        ->and($subscription->campaign_id)->toBe($campaign->getKey())
+        ->and($subscription->donor_id)->toBe($donor->getKey())
+        ->and((float) $subscription->amount)->toBe(100.00)
+        ->and($subscription->interval->value)->toBe('monthly')
+        ->and($subscription->status->value)->toBe('active');
+});
+
+it('does not create a subscription for one-time donations', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => ['default_amount' => 5],
+    ]);
+
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'stripe_payment_intent_id' => 'pi_test_one_456',
+        'gross_amount' => 50.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::OneTime,
+    ]);
+
+    $paymentIntent = PaymentIntent::constructFrom([
+        'id' => 'pi_test_one_456',
+        'object' => 'payment_intent',
+        'payment_method' => null,
+        'charges' => [
+            'object' => 'list',
+            'data' => [[
+                'id' => 'ch_test_456',
+                'object' => 'charge',
+                'balance_transaction' => null,
+                'payment_method_details' => null,
+            ]],
+        ],
+    ]);
+
+    Livewire::test(DonationForm::class, ['element' => $element])
+        ->call('confirmPayment', 'pi_test_one_456', $paymentIntent);
+
+    $donation->refresh();
+
+    expect($donation->status)->toBe(DonationStatus::Succeeded);
+
+    expect($donation->subscription)->toBeNull();
 });
 
 it('validates hosted donation input before creating records', function () {

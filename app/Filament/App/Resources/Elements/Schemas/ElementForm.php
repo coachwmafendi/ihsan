@@ -58,6 +58,7 @@ class ElementForm
                 'show_dedication' => true,
                 'show_comment' => true,
                 'submit_text' => 'Donate and Support',
+                'display_as_popup' => false,
             ],
             default => [],
         };
@@ -281,6 +282,11 @@ class ElementForm
                                 Tab::make('Behavior')
                                     ->columns(2)
                                     ->schema([
+                                        Toggle::make('display_as_popup')
+                                            ->label('Display as popup')
+                                            ->helperText('Show the donation form as a centered modal overlay instead of a full page.')
+                                            ->default(false)
+                                            ->live(),
                                         Select::make('success_action')
                                             ->label('After Donation')
                                             ->options([
@@ -371,6 +377,10 @@ class ElementForm
 
         $url = self::hostedUrl($record);
 
+        if ($record->config('display_as_popup')) {
+            $url .= '?popup=1';
+        }
+
         return '<iframe src="'.$url.'" width="100%" height="760" style="border:0;" loading="lazy"></iframe>';
     }
 
@@ -409,6 +419,7 @@ class ElementForm
             'suggested_amounts_one_time' => $get('config.suggested_amounts_one_time'),
             'suggested_amounts_monthly' => $get('config.suggested_amounts_monthly'),
             'show_suggested' => $get('config.show_suggested'),
+            'display_as_popup' => $get('config.display_as_popup'),
         ];
     }
 }

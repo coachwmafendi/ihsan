@@ -57,7 +57,7 @@ it('shows app panel resource pages to ngo admins', function () {
         '/app/elements',
         '/app/donations',
         '/app/subscriptions',
-        '/app/donors',
+        '/app/supporters',
     ] as $path) {
         $this->get($path)->assertSuccessful();
     }

@@ -21,6 +21,17 @@ class SubscriptionsTable
                     ->date('d M Y')
                     ->sortable()
                     ->label('Date'),
+                TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn (SubscriptionStatus $state): string => match ($state) {
+                        SubscriptionStatus::Active => 'success',
+                        SubscriptionStatus::Paused => 'warning',
+                        SubscriptionStatus::Cancelled => 'gray',
+                        SubscriptionStatus::PastDue => 'danger',
+                        SubscriptionStatus::Incomplete => 'info',
+                    })
+                    ->sortable(),
                 TextColumn::make('amount')
                     ->label('Amount')
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))

@@ -6,15 +6,21 @@ use App\Actions\Stripe\CreatePaymentIntent;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
+use App\Enums\SubscriptionInterval;
+use App\Enums\SubscriptionStatus;
+use App\Jobs\SendDonationReceipt;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
+use App\Models\Subscription;
 use Illuminate\Validation\Rule;
-use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Stripe\BalanceTransaction;
+use Stripe\PaymentIntent as StripePaymentIntent;
+use Stripe\PaymentMethod;
+use Stripe\Stripe;
 
-#[Layout('layouts.donation')]
 #[Title('Donation Form')]
 class DonationForm extends Component
 {
@@ -33,10 +39,6 @@ class DonationForm extends Component
     public bool $dedicate = false;
 
     public string $comment = '';
-
-    public bool $submitted = false;
-
-    public string $stripeClientSecret = '';
 
     public function mount(Element $element): void
     {
@@ -64,7 +66,85 @@ class DonationForm extends Component
         $this->frequency = $frequency;
     }
 
-    public function submit(): void
+    public function confirmPayment(string $paymentIntentId, ?StripePaymentIntent $paymentIntent = null): void
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        $donation = Donation::query()
+            ->where('stripe_payment_intent_id', $paymentIntentId)
+            ->where('status', DonationStatus::Pending)
+            ->first();
+
+        if ($donation === null) {
+            return;
+        }
+
+        try {
+            $paymentIntent ??= StripePaymentIntent::retrieve($paymentIntentId);
+
+            [$cardBrand, $cardLast4] = $this->extractCardDetails($paymentIntent->payment_method);
+
+            $chargeId = $paymentIntent->charges->data[0]->id ?? null;
+            $stripeFee = 0;
+            $balanceTransaction = $paymentIntent->charges->data[0]->balance_transaction ?? null;
+
+            if ($balanceTransaction) {
+                $bt = BalanceTransaction::retrieve($balanceTransaction);
+                $stripeFee = (float) ($bt->fee / 100);
+            }
+
+            $donation->update([
+                'status' => DonationStatus::Succeeded,
+                'stripe_charge_id' => $chargeId,
+                'stripe_fee' => $stripeFee,
+                'payment_method_brand' => $cardBrand,
+                'payment_method_last4' => $cardLast4,
+                'net_amount' => (float) $donation->gross_amount - $stripeFee - (float) $donation->platform_fee,
+            ]);
+
+            $donation->campaign()->increment('collected_amount', (float) $donation->gross_amount);
+
+            if ($donation->type === DonationType::Recurring) {
+                $subscription = Subscription::query()->create([
+                    'campaign_id' => $donation->campaign_id,
+                    'donor_id' => $donation->donor_id,
+                    'amount' => (float) $donation->gross_amount,
+                    'currency' => $donation->currency,
+                    'interval' => SubscriptionInterval::Monthly,
+                    'status' => SubscriptionStatus::Active,
+                    'current_period_start' => now(),
+                    'current_period_end' => now()->addMonth(),
+                ]);
+
+                $donation->update(['subscription_id' => $subscription->getKey()]);
+            }
+
+            SendDonationReceipt::dispatch($donation);
+        } catch (\Exception $e) {
+            // Log error silently
+        }
+    }
+
+    protected function extractCardDetails(?string $paymentMethodId): array
+    {
+        if ($paymentMethodId === null) {
+            return [null, null];
+        }
+
+        try {
+            $paymentMethod = PaymentMethod::retrieve($paymentMethodId);
+
+            if ($paymentMethod->type === 'card' && $paymentMethod->card !== null) {
+                return [$paymentMethod->card->brand, $paymentMethod->card->last4];
+            }
+        } catch (\Exception $e) {
+            // Silently fail — card details are non-critical
+        }
+
+        return [null, null];
+    }
+
+    public function submit(): string
     {
         $validated = $this->validate();
         $email = str($validated['email'])->lower()->toString();
@@ -100,11 +180,12 @@ class DonationForm extends Component
         try {
             $paymentIntent = app(CreatePaymentIntent::class)->create($donation);
             $donation->update(['stripe_payment_intent_id' => $paymentIntent->id]);
-            $this->stripeClientSecret = $paymentIntent->client_secret;
-            $this->submitted = true;
+
+            return $paymentIntent->client_secret;
         } catch (\Exception $e) {
             $donation->update(['status' => DonationStatus::Failed]);
-            session()->flash('error', 'Payment could not be processed. Please try again.');
+
+            throw $e;
         }
     }
 
@@ -157,6 +238,9 @@ class DonationForm extends Component
 
     public function render()
     {
-        return view('livewire.donation-form');
+        $usePopup = request()->query('popup') !== null || $this->config('display_as_popup', false);
+
+        return view('livewire.donation-form')
+            ->layout(request()->query('embed') ? 'layouts.embed' : ($usePopup ? 'layouts.popup' : 'layouts.donation'));
     }
 }

@@ -24,6 +24,7 @@ class CampaignForm
         return $schema
             ->components([
                 Tabs::make('Campaign Tabs')
+                    ->columnSpanFull()
                     ->tabs([
                         Tab::make('Details')
                             ->columns(2)
@@ -82,7 +83,9 @@ class CampaignForm
                                 Toggle::make('allow_recurring')
                                     ->label('Allow recurring donations'),
                                 DatePicker::make('end_date')
-                                    ->label('Tarikh tamat'),
+                                    ->label('Tarikh tamat')
+                                    ->format('Y-m-d')
+                                    ->displayFormat('d/m/Y'),
                             ]),
                         Tab::make('Suggested Amounts')
                             ->schema([
@@ -99,6 +102,12 @@ class CampaignForm
                                 Textarea::make('thank_you_message')
                                     ->label('Thank you message')
                                     ->rows(3)
+                                    ->columnSpanFull(),
+                                TextInput::make('form_parameter')
+                                    ->label('Form parameter (for embed checkout)')
+                                    ->helperText('Example: MTMTDEVEFUND. Use ?form=THIS in URL to trigger modal checkout.')
+                                    ->maxLength(255)
+                                    ->unique(ignoreRecord: true)
                                     ->columnSpanFull(),
                                 TextInput::make('redirect_url')
                                     ->label('Redirect URL')

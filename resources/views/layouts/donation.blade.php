@@ -10,10 +10,8 @@
 
         @livewireScripts
 
-        @env('local')
         <script>
             window.stripePublishableKey = '{{ config('services.stripe.key') }}';
         </script>
-        @endenv
     </body>
 </html>

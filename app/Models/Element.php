@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['organization_id', 'campaign_id', 'name', 'token', 'type', 'config', 'is_active'])]
+#[Fillable(['organization_id', 'campaign_id', 'name', 'token', 'type', 'config', 'is_active', 'form_slug'])]
 class Element extends Model
 {
     /** @use HasFactory<ElementFactory> */
@@ -23,6 +23,11 @@ class Element extends Model
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);
+    }
+
+    public function config(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->config ?? [], $key, $default);
     }
 
     protected function casts(): array

@@ -26,7 +26,15 @@ class CampaignsTable
                 TextColumn::make('status')
                     ->badge()
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->getStateUsing(fn ($record) => $record->status->name)
+                    ->color(fn ($state): string => match ((string) $state) {
+                        'Draft' => 'gray',
+                        'Active' => 'success',
+                        'Paused' => 'warning',
+                        'Ended' => 'danger',
+                        default => 'gray',
+                    }),
                 TextColumn::make('collected_amount')
                     ->label('Raised')
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))

@@ -31,6 +31,18 @@ class DonationsTable
                     ->label('Supporter')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('payment_method_brand')
+                    ->label('Payment Method')
+                    ->formatStateUsing(function ($state, $record) {
+                        if ($state === null || $record->payment_method_last4 === null) {
+                            return '—';
+                        }
+
+                        return view('filament.tables.columns.payment-method', [
+                            'brand' => $state,
+                            'last4' => $record->payment_method_last4,
+                        ])->render();
+                    })->html(),
                 TextColumn::make('campaign.title')
                     ->label('Campaign')
                     ->searchable()
@@ -41,7 +53,15 @@ class DonationsTable
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
                     ->badge()
-                    ->sortable(),
+                    ->sortable()
+                    ->getStateUsing(fn ($record): string => ucfirst($record->status->value))
+                    ->color(fn ($state): string => match ((string) $state) {
+                        'Pending' => 'gray',
+                        'Succeeded' => 'success',
+                        'Failed' => 'danger',
+                        'Refunded' => 'warning',
+                        default => 'gray',
+                    }),
                 IconColumn::make('is_anonymous')
                     ->boolean()
                     ->label('Anonymous')
@@ -60,12 +80,14 @@ class DonationsTable
                         'succeeded' => 'Succeeded',
                         'failed' => 'Failed',
                         'refunded' => 'Refunded',
-                    ]),
+                    ])
+                    ->attribute('status'),
                 SelectFilter::make('type')
                     ->options([
                         'one_time' => 'One Time',
                         'recurring' => 'Recurring',
-                    ]),
+                    ])
+                    ->attribute('type'),
             ])
             ->recordActions([
                 Action::make('view')
@@ -86,7 +108,15 @@ class DonationsTable
                                     ->label('Amount')
                                     ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),
                                 TextEntry::make('status')
-                                    ->badge(),
+                                    ->badge()
+                                    ->getStateUsing(fn ($record): string => ucfirst($record->status->value))
+                                    ->color(fn ($state): string => match ((string) $state) {
+                                        'Pending' => 'gray',
+                                        'Succeeded' => 'success',
+                                        'Failed' => 'danger',
+                                        'Refunded' => 'warning',
+                                        default => 'gray',
+                                    }),
                                 TextEntry::make('type')
                                     ->badge(),
                                 TextEntry::make('is_anonymous')

@@ -13,6 +13,7 @@ class DonorForm
         return $schema
             ->components([
                 Section::make('Supporter Information')
+                    ->icon('heroicon-o-user')
                     ->columns(['md' => 2])
                     ->schema([
                         TextInput::make('name')
