@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
@@ -26,94 +27,141 @@ class CampaignForm
                 Tabs::make('Campaign Tabs')
                     ->columnSpanFull()
                     ->tabs([
-                        Tab::make('Details')
-                            ->columns(2)
+                        Tab::make('Overview')
                             ->schema([
-                                TextInput::make('title')
-                                    ->label('Nama kempen')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(fn ($state, $set) => $set('slug', str($state)->slug()))
-                                    ->columnSpanFull(),
-                                TextInput::make('slug')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->unique(ignoreRecord: true)
-                                    ->columnSpanFull(),
-                                Select::make('status')
-                                    ->required()
-                                    ->options(CampaignStatus::class),
-                                TextInput::make('headline')
-                                    ->label('Tajuk utama')
-                                    ->maxLength(255),
-                                TextInput::make('short_summary')
-                                    ->label('Ringkasan pendek')
-                                    ->maxLength(500)
-                                    ->columnSpanFull(),
-                            ]),
-                        Tab::make('Media')
-                            ->columns(1)
-                            ->schema([
-                                Textarea::make('description')
-                                    ->rows(6)
-                                    ->columnSpanFull(),
-                                FileUpload::make('image_path')
-                                    ->label('Gambar utama')
-                                    ->image()
-                                    ->directory('campaigns')
-                                    ->columnSpanFull(),
-                            ]),
-                        Tab::make('Fundraising')
-                            ->columns(2)
-                            ->schema([
-                                Toggle::make('has_target')
-                                    ->label('Tetapkan sasaran kutipan'),
-                                TextInput::make('target_amount')
-                                    ->label('Target amount')
-                                    ->numeric()
-                                    ->prefix('MYR')
-                                    ->hidden(fn ($get) => ! $get('has_target')),
-                                TextInput::make('minimum_amount')
-                                    ->label('Minimum amount')
-                                    ->numeric()
-                                    ->prefix('MYR'),
-                                Toggle::make('allow_custom_amount')
-                                    ->label('Allow custom amount'),
-                                Toggle::make('allow_recurring')
-                                    ->label('Allow recurring donations'),
-                                DatePicker::make('end_date')
-                                    ->label('Tarikh tamat')
-                                    ->format('Y-m-d')
-                                    ->displayFormat('d/m/Y'),
-                            ]),
-                        Tab::make('Suggested Amounts')
-                            ->schema([
-                                SuggestedAmounts::make('suggested_amounts')
-                                    ->columnSpanFull(),
+                                Section::make('General')
+                                    ->description('Name, status and donor-facing campaign copy.')
+                                    ->columns(2)
+                                    ->schema([
+                                        TextInput::make('title')
+                                            ->label('Nama kempen')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(fn ($state, $set) => $set('slug', str($state)->slug()))
+                                            ->columnSpanFull(),
+                                        TextInput::make('slug')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->unique(ignoreRecord: true)
+                                            ->columnSpanFull(),
+                                        Select::make('status')
+                                            ->required()
+                                            ->options(CampaignStatus::class),
+                                        TextInput::make('headline')
+                                            ->label('Tajuk utama')
+                                            ->maxLength(255),
+                                        TextInput::make('short_summary')
+                                            ->label('Ringkasan pendek')
+                                            ->maxLength(500)
+                                            ->columnSpanFull(),
+                                    ]),
+                                Section::make('Story and media')
+                                    ->description('Campaign page content and main image.')
+                                    ->schema([
+                                        Textarea::make('description')
+                                            ->rows(6)
+                                            ->columnSpanFull(),
+                                        FileUpload::make('image_path')
+                                            ->label('Gambar utama')
+                                            ->image()
+                                            ->directory('campaigns')
+                                            ->columnSpanFull(),
+                                    ]),
                             ]),
                         Tab::make('Settings')
-                            ->columns(2)
                             ->schema([
-                                Select::make('payment_gateway')
-                                    ->label('Payment gateway')
-                                    ->options(PaymentGateway::class)
-                                    ->default(PaymentGateway::Stripe),
-                                Textarea::make('thank_you_message')
-                                    ->label('Thank you message')
-                                    ->rows(3)
-                                    ->columnSpanFull(),
-                                TextInput::make('form_parameter')
-                                    ->label('Form parameter (for embed checkout)')
-                                    ->helperText('Example: MTMTDEVEFUND. Use ?form=THIS in URL to trigger modal checkout.')
-                                    ->maxLength(255)
-                                    ->unique(ignoreRecord: true)
-                                    ->columnSpanFull(),
-                                TextInput::make('redirect_url')
-                                    ->label('Redirect URL')
-                                    ->url()
-                                    ->placeholder('https://')
-                                    ->columnSpanFull(),
+                                Section::make('Frequencies')
+                                    ->description('Control donation frequencies and custom amount behavior.')
+                                    ->columns(2)
+                                    ->schema([
+                                        Toggle::make('allow_recurring')
+                                            ->label('Allow monthly donations'),
+                                        Toggle::make('allow_custom_amount')
+                                            ->label('Allow custom amount'),
+                                    ]),
+                                Section::make('Amounts')
+                                    ->description('Set campaign targets, minimum donation rules and timing.')
+                                    ->columns(2)
+                                    ->schema([
+                                        Toggle::make('has_target')
+                                            ->label('Tetapkan sasaran kutipan'),
+                                        TextInput::make('target_amount')
+                                            ->label('Target amount')
+                                            ->numeric()
+                                            ->prefix('MYR')
+                                            ->hidden(fn ($get) => ! $get('has_target')),
+                                        TextInput::make('minimum_amount')
+                                            ->label('Minimum amount')
+                                            ->numeric()
+                                            ->prefix('MYR'),
+                                        DatePicker::make('end_date')
+                                            ->label('Tarikh tamat')
+                                            ->format('Y-m-d')
+                                            ->displayFormat('d/m/Y'),
+                                    ]),
+                                Section::make('Suggested Amounts')
+                                    ->description('Preset donation buttons shown in the checkout form.')
+                                    ->schema([
+                                        SuggestedAmounts::make('suggested_amounts')
+                                            ->columnSpanFull(),
+                                    ]),
+                                Section::make('Payment')
+                                    ->description('Choose how this campaign processes donations.')
+                                    ->columns(2)
+                                    ->schema([
+                                        Select::make('payment_gateway')
+                                            ->label('Payment gateway')
+                                            ->options(PaymentGateway::class)
+                                            ->default(PaymentGateway::Stripe),
+                                    ]),
+                                Section::make('Supporter experience')
+                                    ->description('Configure post-donation messaging and redirects.')
+                                    ->columns(2)
+                                    ->schema([
+                                        Textarea::make('thank_you_message')
+                                            ->label('Thank you message')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
+                                        TextInput::make('redirect_url')
+                                            ->label('Redirect URL')
+                                            ->url()
+                                            ->placeholder('https://')
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
+                        Tab::make('Checkout Modal')
+                            ->schema([
+                                Section::make('Embed trigger')
+                                    ->description('Settings for script-based modal checkout on client websites.')
+                                    ->columns(2)
+                                    ->schema([
+                                        TextInput::make('form_parameter')
+                                            ->label('Form parameter')
+                                            ->helperText('Example: MTMTDEVEFUND. Use ?form=THIS in URL to trigger modal checkout.')
+                                            ->maxLength(255)
+                                            ->unique(ignoreRecord: true)
+                                            ->columnSpanFull(),
+                                        Placeholder::make('embed_modal_note')
+                                            ->label('Modal checkout')
+                                            ->content(new HtmlString('Use this code in the upcoming Ihsan embed script to open this campaign as a modal checkout. Domain allowlist will be enforced in the embed runtime.'))
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
+                        Tab::make('Campaign Page')
+                            ->schema([
+                                Section::make('Hosted page')
+                                    ->description('Direct campaign page and hosted donation settings.')
+                                    ->schema([
+                                        Placeholder::make('hosted_page_note')
+                                            ->label('Hosted donation page')
+                                            ->content(fn ($record) => new HtmlString(
+                                                $record
+                                                    ? 'Direct page: <code>'.e(url('/donate/'.$record->slug)).'</code>'
+                                                    : 'Save the campaign to generate its hosted donation page URL.'
+                                            ))
+                                            ->columnSpanFull(),
+                                    ]),
                             ]),
                         Tab::make('Stats')
                             ->visible(fn ($record) => $record !== null)
