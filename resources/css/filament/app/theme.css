@@ -137,19 +137,25 @@
     @apply p-6;
 }
 
-/* Widen campaign form content */
+/* Widen campaign form content to match table width */
 .fi-resource-elements.fi-resource-create-record-page .fi-fo-component-ctn,
 .fi-resource-elements.fi-resource-edit-record-page .fi-fo-component-ctn,
 .fi-resource-elements.fi-resource-create-record-page .fi-fo-tabs-content,
 .fi-resource-elements.fi-resource-edit-record-page .fi-fo-tabs-content,
 .fi-resource-elements.fi-resource-create-record-page .fi-schema-content,
-.fi-resource-elements.fi-resource-edit-record-page .fi-schema-content {
+.fi-resource-elements.fi-resource-edit-record-page .fi-schema-content,
+.fi-resource-elements.fi-resource-create-record-page .fi-tabs-content,
+.fi-resource-elements.fi-resource-edit-record-page .fi-tabs-content {
     max-width: none !important;
+    width: 100% !important;
 }
 
 .fi-resource-elements.fi-resource-create-record-page .fi-fo-component-ctn > *,
-.fi-resource-elements.fi-resource-edit-record-page .fi-fo-component-ctn > * {
+.fi-resource-elements.fi-resource-edit-record-page .fi-fo-component-ctn > *,
+.fi-resource-elements.fi-resource-create-record-page .fi-tabs-content > *,
+.fi-resource-elements.fi-resource-edit-record-page .fi-tabs-content > * {
     max-width: none !important;
+    width: 100% !important;
 }
 
 .ihsan-campaign-tabs .fi-tabs-tabs {
