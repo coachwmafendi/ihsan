@@ -31,7 +31,14 @@ class SubscriptionForm
                             ->columnSpan(['md' => 2, 'xl' => 3]),
                         Select::make('donor_id')
                             ->label('Supporter')
-                            ->relationship('donor', 'name')
+                            ->relationship('donor', 'name', modifyQueryUsing: fn (Builder $query) => $query
+                                ->where(function (Builder $query) {
+                                    $query
+                                        ->whereHas('donations.campaign', fn (Builder $q) => $q
+                                            ->where('organization_id', auth()->user()->organization_id))
+                                        ->orWhereHas('subscriptions.campaign', fn (Builder $q) => $q
+                                            ->where('organization_id', auth()->user()->organization_id));
+                                }))
                             ->required()
                             ->searchable()
                             ->preload()
