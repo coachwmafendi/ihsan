@@ -1,6 +1,6 @@
 <x-filament-panels::page>
-    <div class="space-y-6 px-4 md:px-6">
-        <div class="rounded-xl border border-amber-200 bg-amber-50/70 px-7 py-6 dark:border-amber-800 dark:bg-amber-900/10">
+    <div class="space-y-6">
+        <div class="mx-4 rounded-xl border border-amber-200 bg-amber-50/70 px-6 py-6 md:mx-6 lg:mx-8 dark:border-amber-800 dark:bg-amber-900/10">
             <div class="flex items-center justify-between gap-4">
                 <h2 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300">
                     <x-heroicon-s-flag class="size-3.5" />
