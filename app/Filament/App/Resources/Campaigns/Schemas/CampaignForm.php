@@ -9,6 +9,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -136,15 +137,25 @@ class CampaignForm
                                     ->description('Settings for script-based modal checkout on client websites.')
                                     ->columns(2)
                                     ->schema([
+                                        Toggle::make('checkout_modal_enabled')
+                                            ->label('Enable modal checkout')
+                                            ->helperText('Allow this campaign to open inside the Ihsan embed modal.')
+                                            ->default(false)
+                                            ->columnSpanFull(),
                                         TextInput::make('form_parameter')
                                             ->label('Form parameter')
                                             ->helperText('Example: MTMTDEVEFUND. Use ?form=THIS in URL to trigger modal checkout.')
                                             ->maxLength(255)
                                             ->unique(ignoreRecord: true)
                                             ->columnSpanFull(),
+                                        TagsInput::make('checkout_allowed_domains')
+                                            ->label('Allowed domains')
+                                            ->helperText('Only these client website domains can open this campaign in the embed modal.')
+                                            ->placeholder('Add domain')
+                                            ->columnSpanFull(),
                                         Placeholder::make('embed_modal_note')
-                                            ->label('Modal checkout')
-                                            ->content(new HtmlString('Use this code in the upcoming Ihsan embed script to open this campaign as a modal checkout. Domain allowlist will be enforced in the embed runtime.'))
+                                            ->label('Install script')
+                                            ->content(new HtmlString('Add the Ihsan embed script to the client website, then use the form parameter to open this campaign as a modal checkout. Domain allowlist will be enforced in the embed runtime.'))
                                             ->columnSpanFull(),
                                     ]),
                             ]),

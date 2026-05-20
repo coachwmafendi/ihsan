@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['organization_id', 'title', 'slug', 'description', 'headline', 'short_summary', 'image_path', 'target_amount', 'minimum_amount', 'allow_custom_amount', 'collected_amount', 'has_target', 'allow_recurring', 'payment_gateway', 'thank_you_message', 'redirect_url', 'end_date', 'status', 'suggested_amounts', 'suggested_amounts_one_time', 'suggested_amounts_monthly', 'impact_descriptions_enabled', 'default_monthly_amount', 'form_parameter'])]
+#[Fillable(['organization_id', 'title', 'slug', 'description', 'headline', 'short_summary', 'image_path', 'target_amount', 'minimum_amount', 'allow_custom_amount', 'collected_amount', 'has_target', 'allow_recurring', 'payment_gateway', 'thank_you_message', 'redirect_url', 'end_date', 'status', 'suggested_amounts', 'suggested_amounts_one_time', 'suggested_amounts_monthly', 'impact_descriptions_enabled', 'default_monthly_amount', 'form_parameter', 'checkout_modal_enabled', 'checkout_allowed_domains'])]
 class Campaign extends Model
 {
     /** @use HasFactory<CampaignFactory> */
@@ -47,11 +47,13 @@ class Campaign extends Model
             'has_target' => 'boolean',
             'allow_recurring' => 'boolean',
             'allow_custom_amount' => 'boolean',
+            'checkout_modal_enabled' => 'boolean',
             'impact_descriptions_enabled' => 'boolean',
             'end_date' => 'date',
             'suggested_amounts' => 'array',
             'suggested_amounts_one_time' => 'array',
             'suggested_amounts_monthly' => 'array',
+            'checkout_allowed_domains' => 'array',
             'status' => CampaignStatus::class,
             'payment_gateway' => PaymentGateway::class,
         ];
