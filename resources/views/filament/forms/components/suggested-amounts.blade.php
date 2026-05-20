@@ -2,6 +2,17 @@
     $statePath = $getStatePath();
 @endphp
 
+<style>
+    .suggested-amounts-component input[type="number"]::-webkit-inner-spin-button,
+    .suggested-amounts-component input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .suggested-amounts-component input[type="number"] {
+        -moz-appearance: textfield;
+    }
+</style>
+
 <div
     x-data="{
         activeTab: 'monthly',
@@ -108,7 +119,7 @@
 
             <h4 class="mb-3 text-sm font-semibold text-zinc-900">Suggested donation amount presets</h4>
 
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 <template x-for="(amount, index) in oneTimeAmounts" :key="index">
                     <div class="relative">
                         <input
@@ -116,12 +127,12 @@
                             :value="amount.amount"
                             @input="updateAmount('one-time', index, 'amount', $event.target.value)"
                             placeholder="RM"
-                            class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500"
+                            class="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
                         >
                         <button
                             type="button"
                             @click="removeAmount('one-time', index)"
-                            class="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 hover:bg-red-100 hover:text-red-500"
+                            class="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-zinc-200 text-zinc-400 hover:bg-red-50 hover:text-red-500 hover:ring-red-200"
                             x-show="oneTimeAmounts.length > 1"
                         >
                             <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -133,9 +144,10 @@
             <button
                 type="button"
                 @click="addAmount('one-time')"
-                class="mt-3 text-sm font-medium text-primary-600 hover:text-primary-700"
+                class="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-600 hover:border-primary-400 hover:text-primary-600"
             >
-                + Add amount
+                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Add amount
             </button>
         </div>
 
@@ -147,7 +159,7 @@
 
             <h4 class="mb-3 text-sm font-semibold text-zinc-900">Suggested donation amount presets</h4>
 
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 <template x-for="(amount, index) in monthlyAmounts" :key="index">
                     <div class="relative">
                         <input
@@ -155,12 +167,12 @@
                             :value="amount.amount"
                             @input="updateAmount('monthly', index, 'amount', $event.target.value)"
                             placeholder="RM"
-                            class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500"
+                            class="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
                         >
                         <button
                             type="button"
                             @click="removeAmount('monthly', index)"
-                            class="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 hover:bg-red-100 hover:text-red-500"
+                            class="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-zinc-200 text-zinc-400 hover:bg-red-50 hover:text-red-500 hover:ring-red-200"
                             x-show="monthlyAmounts.length > 1"
                         >
                             <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -172,19 +184,20 @@
             <button
                 type="button"
                 @click="addAmount('monthly')"
-                class="mt-3 text-sm font-medium text-primary-600 hover:text-primary-700"
+                class="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-600 hover:border-primary-400 hover:text-primary-600"
             >
-                + Add amount
+                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Add amount
             </button>
 
-            <div class="mt-6">
-                <label class="mb-2 block text-sm font-semibold text-zinc-900">Default monthly suggested amount</label>
+            <div class="mt-8 pt-6 border-t border-zinc-200">
+                <label class="mb-3 block text-sm font-semibold text-zinc-900">Default monthly suggested amount</label>
                 <input
                     type="number"
                     :value="defaultMonthly"
                     @input="defaultMonthly = $event.target.value"
-                    placeholder="RM25"
-                    class="w-32 rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500"
+                    placeholder="25"
+                    class="w-32 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
                 >
             </div>
         </div>
