@@ -52,6 +52,7 @@ class CampaignForm
                                     ->columnSpanFull(),
                             ]),
                         Tab::make('Media')
+                            ->columns(1)
                             ->schema([
                                 Textarea::make('description')
                                     ->rows(6)

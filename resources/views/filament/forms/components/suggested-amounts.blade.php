@@ -71,9 +71,8 @@
             }
         }
     }"
-    class="suggested-amounts-component"
+    class="suggested-amounts-component space-y-6"
 >
-    <div class="rounded-xl border border-zinc-200 bg-white p-6">
         <!-- Tabs -->
         <div class="mb-6 flex gap-1 border-b border-zinc-200">
             <button
@@ -190,16 +189,15 @@
                 Add amount
             </button>
 
-            <div class="mt-8 pt-6 border-t border-zinc-200">
-                <label class="mb-3 block text-sm font-semibold text-zinc-900">Default monthly suggested amount</label>
-                <input
-                    type="number"
-                    :value="defaultMonthly"
-                    @input="defaultMonthly = $event.target.value"
-                    placeholder="25"
-                    class="w-32 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
-                >
-            </div>
+        <div class="mt-8 pt-6 border-t border-zinc-200">
+            <label class="mb-3 block text-sm font-semibold text-zinc-900">Default monthly suggested amount</label>
+            <input
+                type="number"
+                :value="defaultMonthly"
+                @input="defaultMonthly = $event.target.value"
+                placeholder="25"
+                class="w-32 rounded-lg border border-zinc-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
+            >
         </div>
     </div>
 </div>
