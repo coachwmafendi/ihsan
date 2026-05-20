@@ -4,10 +4,13 @@ namespace App\Filament\App\Resources\Campaigns\Pages;
 
 use App\Filament\App\Resources\Campaigns\CampaignResource;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Support\Enums\Width;
 
 class CreateCampaign extends CreateRecord
 {
     protected static string $resource = CampaignResource::class;
+
+    protected Width|string|null $maxContentWidth = '7xl';
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {

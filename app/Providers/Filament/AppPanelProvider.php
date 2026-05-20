@@ -29,13 +29,14 @@ class AppPanelProvider extends PanelProvider
             ->path('app')
             ->spa()
             ->sidebarCollapsibleOnDesktop()
-            ->sidebarWidth('150px')
+            ->sidebarWidth('240px')
             ->brandLogo(asset('logo-ihsan.png'))
             ->brandLogoHeight('2rem')
             ->colors([
                 'primary' => Color::Teal,
             ])
             ->font('Manrope')
+            ->maxContentWidth('7xl')
             ->viteTheme('resources/css/filament/app/theme.css')
             ->discoverResources(in: app_path('Filament/App/Resources'), for: 'App\Filament\App\Resources')
             ->discoverPages(in: app_path('Filament/App/Pages'), for: 'App\Filament\App\Pages')

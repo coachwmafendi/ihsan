@@ -24,7 +24,6 @@ class CampaignForm
         return $schema
             ->components([
                 Tabs::make('Campaign Tabs')
-                    ->vertical()
                     ->tabs([
                         Tab::make('Details')
                             ->columns(2)
@@ -34,11 +33,13 @@ class CampaignForm
                                     ->required()
                                     ->maxLength(255)
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn ($state, $set) => $set('slug', str($state)->slug())),
+                                    ->afterStateUpdated(fn ($state, $set) => $set('slug', str($state)->slug()))
+                                    ->columnSpanFull(),
                                 TextInput::make('slug')
                                     ->required()
                                     ->maxLength(255)
-                                    ->unique(ignoreRecord: true),
+                                    ->unique(ignoreRecord: true)
+                                    ->columnSpanFull(),
                                 Select::make('status')
                                     ->required()
                                     ->options(CampaignStatus::class),
@@ -47,12 +48,13 @@ class CampaignForm
                                     ->maxLength(255),
                                 TextInput::make('short_summary')
                                     ->label('Ringkasan pendek')
-                                    ->maxLength(500),
+                                    ->maxLength(500)
+                                    ->columnSpanFull(),
                             ]),
                         Tab::make('Media')
                             ->schema([
                                 Textarea::make('description')
-                                    ->rows(5)
+                                    ->rows(6)
                                     ->columnSpanFull(),
                                 FileUpload::make('image_path')
                                     ->label('Gambar utama')
@@ -87,6 +89,7 @@ class CampaignForm
                                     ->columnSpanFull(),
                             ]),
                         Tab::make('Settings')
+                            ->columns(2)
                             ->schema([
                                 Select::make('payment_gateway')
                                     ->label('Payment gateway')
@@ -94,11 +97,13 @@ class CampaignForm
                                     ->default(PaymentGateway::Stripe),
                                 Textarea::make('thank_you_message')
                                     ->label('Thank you message')
-                                    ->rows(3),
+                                    ->rows(3)
+                                    ->columnSpanFull(),
                                 TextInput::make('redirect_url')
                                     ->label('Redirect URL')
                                     ->url()
-                                    ->placeholder('https://'),
+                                    ->placeholder('https://')
+                                    ->columnSpanFull(),
                             ]),
                         Tab::make('Stats')
                             ->visible(fn ($record) => $record !== null)
