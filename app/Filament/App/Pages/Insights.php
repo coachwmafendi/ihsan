@@ -44,10 +44,6 @@ class Insights extends Page
 
     public string $successRate = '0';
 
-    public bool $orgHasBank = false;
-
-    public bool $orgHasStripe = false;
-
     public bool $hasCampaigns = false;
 
     public bool $hasElements = false;
@@ -135,14 +131,6 @@ class Insights extends Page
         $this->statusBreakdown = $this->buildStatusBreakdown($campaignIds->all());
         $this->recentDonations = $this->buildRecentDonations($campaignIds->all());
 
-        $org = auth()->user()->organization;
-        $this->orgHasBank = $org !== null
-            && filled($org->bank_name)
-            && filled($org->bank_account_number)
-            && filled($org->bank_account_holder_name);
-        $this->orgHasStripe = $org !== null
-            && filled($org->stripe_account_id)
-            && $org->stripe_onboarded;
         $this->hasCampaigns = $campaignIds->isNotEmpty();
         $this->hasElements = Element::query()
             ->where('organization_id', auth()->user()->organization_id)

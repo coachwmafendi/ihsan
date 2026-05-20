@@ -1,49 +1,38 @@
 <x-filament-panels::page>
     <div class="space-y-6">
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-900/20">
-            <h2 class="text-sm font-semibold text-amber-900 dark:text-amber-200">Langkah Setup Organisasi</h2>
-            <ol class="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm text-amber-800 dark:text-amber-300">
-                <li class="flex items-center gap-1.5">
-                    @if ($orgHasBank)
-                        <x-heroicon-s-check-circle class="size-4 text-emerald-600" />
-                    @else
-                        <span class="flex size-4 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-800 dark:bg-amber-700 dark:text-amber-200">1</span>
-                    @endif
-                    Lengkapkan profil & bank
-                </li>
-                <li class="flex items-center gap-1.5">
-                    @if ($orgHasStripe)
-                        <x-heroicon-s-check-circle class="size-4 text-emerald-600" />
-                    @else
-                        <span class="flex size-4 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-800 dark:bg-amber-700 dark:text-amber-200">2</span>
-                    @endif
-                    Sambungkan Stripe
-                </li>
-                <li class="flex items-center gap-1.5">
-                    @if ($hasCampaigns)
-                        <x-heroicon-s-check-circle class="size-4 text-emerald-600" />
-                    @else
-                        <span class="flex size-4 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-800 dark:bg-amber-700 dark:text-amber-200">3</span>
-                    @endif
-                    Cipta kempen
-                </li>
-                <li class="flex items-center gap-1.5">
-                    @if ($hasElements)
-                        <x-heroicon-s-check-circle class="size-4 text-emerald-600" />
-                    @else
-                        <span class="flex size-4 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-800 dark:bg-amber-700 dark:text-amber-200">4</span>
-                    @endif
-                    Pasang elemen derma
-                </li>
-                <li class="flex items-center gap-1.5">
-                    @if ($hasDonations)
-                        <x-heroicon-s-check-circle class="size-4 text-emerald-600" />
-                    @else
-                        <span class="flex size-4 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-800 dark:bg-amber-700 dark:text-amber-200">5</span>
-                    @endif
-                    Mula terima derma
-                </li>
-            </ol>
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-sm font-semibold text-amber-900 dark:text-amber-200">Langkah Setup Organisasi</h2>
+                    <ol class="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm text-amber-800 dark:text-amber-300">
+                        <li class="flex items-center gap-1.5">
+                            @if ($hasCampaigns)
+                                <x-heroicon-s-check-circle class="size-4 text-emerald-600" />
+                            @else
+                                <span class="flex size-4 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-800 dark:bg-amber-700 dark:text-amber-200">1</span>
+                            @endif
+                            Cipta kempen
+                        </li>
+                        <li class="flex items-center gap-1.5">
+                            @if ($hasElements)
+                                <x-heroicon-s-check-circle class="size-4 text-emerald-600" />
+                            @else
+                                <span class="flex size-4 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-800 dark:bg-amber-700 dark:text-amber-200">2</span>
+                            @endif
+                            Pasang elemen derma
+                        </li>
+                        <li class="flex items-center gap-1.5">
+                            @if ($hasDonations)
+                                <x-heroicon-s-check-circle class="size-4 text-emerald-600" />
+                            @else
+                                <span class="flex size-4 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-800 dark:bg-amber-700 dark:text-amber-200">3</span>
+                            @endif
+                            Mula terima derma
+                        </li>
+                    </ol>
+                </div>
+                <p class="shrink-0 text-xs text-amber-600 dark:text-amber-400">Profil & pembayaran diuruskan oleh Pentadbir</p>
+            </div>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
