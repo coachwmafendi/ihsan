@@ -109,7 +109,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
-                    <template x-for="(amount, index) in sortedAmounts" :key="`${activeTab}-${index}-${amount.amount}`">
+                    <template x-for="(amount, index) in sortedAmounts" :key="`${activeTab}-${index}`">
                         <div class="group relative rounded-lg border border-zinc-200 bg-zinc-50/60 p-3 transition hover:border-zinc-300 focus-within:border-primary-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/20 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:focus-within:bg-zinc-950">
                             <button
                                 type="button"
