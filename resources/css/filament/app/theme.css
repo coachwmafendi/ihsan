@@ -118,6 +118,41 @@
 }
 
 .ihsan-campaign-tabs .fi-tabs-tabs {
+    @apply flex flex-col gap-1 border-r border-zinc-200 bg-zinc-50/60 p-3;
+}
+
+.ihsan-campaign-tabs .fi-tabs-tab {
+    @apply flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700;
+}
+
+.ihsan-campaign-tabs .fi-tabs-tab.fi-tabs-tab-active {
+    @apply bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200;
+}
+
+.ihsan-campaign-tabs .fi-tabs-tab-icon {
+    @apply size-4;
+}
+
+.ihsan-campaign-tabs .fi-tabs-content {
+    @apply p-6;
+}
+
+/* Widen campaign form content */
+.fi-resource-elements.fi-resource-create-record-page .fi-fo-component-ctn,
+.fi-resource-elements.fi-resource-edit-record-page .fi-fo-component-ctn,
+.fi-resource-elements.fi-resource-create-record-page .fi-fo-tabs-content,
+.fi-resource-elements.fi-resource-edit-record-page .fi-fo-tabs-content,
+.fi-resource-elements.fi-resource-create-record-page .fi-schema-content,
+.fi-resource-elements.fi-resource-edit-record-page .fi-schema-content {
+    max-width: none !important;
+}
+
+.fi-resource-elements.fi-resource-create-record-page .fi-fo-component-ctn > *,
+.fi-resource-elements.fi-resource-edit-record-page .fi-fo-component-ctn > * {
+    max-width: none !important;
+}
+
+.ihsan-campaign-tabs .fi-tabs-tabs {
     @apply flex flex-col gap-1 border-r border-zinc-200 bg-zinc-50/60 p-2 min-w-36;
 }
 

@@ -11,7 +11,7 @@ class EditCampaign extends EditRecord
 {
     protected static string $resource = CampaignResource::class;
 
-    protected Width|string|null $maxContentWidth = Width::Full;
+    protected Width|string|null $maxContentWidth = Width::None;
 
     protected function getHeaderActions(): array
     {
