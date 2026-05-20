@@ -1,25 +1,15 @@
 <?php
 
+use App\Http\Controllers\EmbedCheckoutController;
 use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Livewire\DonationForm;
-use App\Models\Element as ElementModel;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
 Route::livewire('/donate/{element:token}', DonationForm::class)->name('donations.show');
-Route::get('/checkout/{form}', function (string $form) {
-    $element = ElementModel::query()
-        ->where('is_active', true)
-        ->whereHas('campaign', fn ($q) => $q->where('form_parameter', $form))
-        ->first();
-
-    if (! $element) {
-        abort(404);
-    }
-
-    return redirect()->route('donations.show', ['element' => $element->token, 'embed' => 1]);
-})->name('checkout.form');
+Route::get('/embed.js', [EmbedCheckoutController::class, 'script'])->name('embed.script');
+Route::get('/checkout/{form}', [EmbedCheckoutController::class, 'checkout'])->name('checkout.form');
 
 Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
     ->middleware('throttle:10,1')
