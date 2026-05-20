@@ -24,6 +24,7 @@ class CampaignForm
         return $schema
             ->components([
                 Tabs::make('Campaign Tabs')
+                    ->vertical()
                     ->extraAttributes(['class' => 'ihsan-campaign-tabs'])
                     ->tabs([
                         Tab::make('Details')
