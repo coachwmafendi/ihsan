@@ -3,10 +3,11 @@
 namespace App\Filament\App\Resources\Campaigns\Schemas;
 
 use App\Enums\CampaignStatus;
+use App\Enums\PaymentGateway;
+use App\Filament\Forms\Components\SuggestedAmounts;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -30,6 +31,7 @@ class CampaignForm
                             ->icon('heroicon-o-document-text')
                             ->schema([
                                 TextInput::make('title')
+                                    ->label('Nama kempen')
                                     ->required()
                                     ->maxLength(255)
                                     ->live(onBlur: true)
@@ -41,9 +43,14 @@ class CampaignForm
                                 Select::make('status')
                                     ->required()
                                     ->options(CampaignStatus::class),
-                                DatePicker::make('end_date'),
+                                TextInput::make('headline')
+                                    ->label('Tajuk utama')
+                                    ->maxLength(255),
+                                TextInput::make('short_summary')
+                                    ->label('Ringkasan pendek')
+                                    ->maxLength(500),
                             ])
-                            ->columns(2),
+                            ->columns(3),
                         Tab::make('Media')
                             ->icon('heroicon-o-photo')
                             ->schema([
@@ -51,6 +58,7 @@ class CampaignForm
                                     ->rows(5)
                                     ->columnSpanFull(),
                                 FileUpload::make('image_path')
+                                    ->label('Gambar utama')
                                     ->image()
                                     ->directory('campaigns')
                                     ->columnSpanFull(),
@@ -59,30 +67,51 @@ class CampaignForm
                             ->icon('heroicon-o-currency-dollar')
                             ->schema([
                                 Toggle::make('has_target')
-                                    ->label('Set a fundraising target'),
+                                    ->label('Tetapkan sasaran kutipan'),
                                 TextInput::make('target_amount')
+                                    ->label('Target amount')
                                     ->numeric()
                                     ->prefix('MYR')
                                     ->hidden(fn ($get) => ! $get('has_target')),
+                                TextInput::make('minimum_amount')
+                                    ->label('Minimum amount')
+                                    ->numeric()
+                                    ->prefix('MYR'),
+                                Toggle::make('allow_custom_amount')
+                                    ->label('Allow custom amount'),
                                 Toggle::make('allow_recurring')
                                     ->label('Allow recurring donations'),
-                                Repeater::make('suggested_amounts')
-                                    ->label('Suggested donation amounts')
-                                    ->schema([
-                                        TextInput::make('amount')
-                                            ->numeric()
-                                            ->prefix('MYR')
-                                            ->required(),
-                                        TextInput::make('label')
-                                            ->maxLength(100),
-                                    ])
-                                    ->defaultItems(0)
-                                    ->columnSpanFull(),
+                                DatePicker::make('end_date')
+                                    ->label('Tarikh tamat'),
                             ])
-                            ->columns(2),
+                            ->columns(3),
+                        Tab::make('Suggested Amounts')
+                            ->icon('heroicon-o-banknotes')
+                            ->schema([
+                                SuggestedAmounts::make('suggested_amounts')
+                                    ->columnSpanFull(),
+                            ]),
+                        Tab::make('Settings')
+                            ->icon('heroicon-o-cog-6-tooth')
+                            ->columns(2)
+                            ->schema([
+                                Select::make('payment_gateway')
+                                    ->label('Payment gateway')
+                                    ->options(PaymentGateway::class)
+                                    ->default(PaymentGateway::Stripe),
+                                Textarea::make('thank_you_message')
+                                    ->label('Thank you message')
+                                    ->rows(3)
+                                    ->columnSpanFull(),
+                                TextInput::make('redirect_url')
+                                    ->label('Redirect URL')
+                                    ->url()
+                                    ->placeholder('https://'),
+                            ]),
                         Tab::make('Stats')
                             ->icon('heroicon-o-chart-bar')
                             ->visible(fn ($record) => $record !== null)
+                            ->columns(3)
                             ->schema([
                                 Placeholder::make('collected_amount')
                                     ->label('Total Collected')
@@ -97,14 +126,13 @@ class CampaignForm
                                 Placeholder::make('campaign_url')
                                     ->label('Campaign URL')
                                     ->content(fn ($record) => new HtmlString(
-                                        '<div class="flex items-center gap-2">'
-                                        .'<code class="flex-1 truncate text-sm text-zinc-600">'.e(url('/donate/'.$record->slug)).'</code>'
-                                        .'<button type="button" onclick="navigator.clipboard.writeText(\''.e(url('/donate/'.$record->slug)).'\'); this.textContent=\'Copied!\'; setTimeout(() => this.textContent=\'Copy\', 2000)" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200">Copy</button>'
+                                        '<div x-data="{ copied: false, url: \''.e(url('/donate/'.$record->slug)).'\' }" class="flex items-center gap-2">'
+                                        .'<code class="flex-1 truncate text-sm text-zinc-600" x-text="url"></code>'
+                                        .'<button type="button" x-on:click="navigator.clipboard.writeText(url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Copied!\' : \'Copy\'"></button>'
                                         .'</div>'
                                     ))
-                                    ->columnSpanFull(),
-                            ])
-                            ->columns(2),
+                                    ->columnSpan(2),
+                            ]),
                     ]),
             ]);
     }
