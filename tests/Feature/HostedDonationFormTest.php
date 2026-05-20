@@ -47,6 +47,12 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertSee('Donate and Support')
         ->assertSee('x-show="!processing && !success && !error"', false)
         ->assertDontSee('x-show="!processing && !success && !error" x-cloak', false)
+        ->assertSee("x-on:click=\"frequency = 'one_time'\"", false)
+        ->assertSee("x-on:click=\"frequency = 'monthly'\"", false)
+        ->assertDontSee("wire:click=\"selectFrequency('monthly')\"", false)
+        ->assertDontSee('wire:click="selectAmount', false)
+        ->assertSee('$wire.$set(&#039;frequency&#039;, this.frequency, false)', false)
+        ->assertSee('$wire.$set(&#039;amount&#039;, this.amount, false)', false)
         ->assertSee('x-show="processing" x-cloak', false)
         ->assertSee('x-show="success" x-cloak', false)
         ->assertSee('x-show="error" x-cloak', false);

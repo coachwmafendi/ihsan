@@ -91,14 +91,15 @@
                 class="{{ $showShadow ? 'shadow-xl' : 'shadow-sm' }} {{ $isPopup ? '' : 'p-6' }}"
                 style="background-color: {{ $backgroundColor }}; color: {{ $textColor }}; border: {{ $borderSize }}px solid {{ $borderColor }}; border-radius: {{ $isPopup ? $borderRadius : $borderRadius + 10 }}px;"
             >
-                <div x-data="donationForm()">
+                <div x-data="donationForm(@js($frequency), @js($amount))">
                     <div x-show="!processing && !success && !error">
                         <form class="space-y-4" @submit.prevent="handleSubmit">
                             <div class="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
-                                    wire:click="selectFrequency('one_time')"
-                                class="min-h-12 rounded-md border px-3 text-base font-medium transition {{ $frequency === 'one_time' ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-700' }}"
+                                    x-on:click="frequency = 'one_time'"
+                                    x-bind:class="frequency === 'one_time' ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-700'"
+                                    class="min-h-12 rounded-md border px-3 text-base font-medium transition"
                                 >
                                     One-time
                                 </button>
@@ -106,8 +107,9 @@
                                 @if ($allowMonthly)
                                     <button
                                         type="button"
-                                        wire:click="selectFrequency('monthly')"
-                                        class="min-h-12 rounded-md border px-3 text-base font-semibold transition {{ $frequency === 'monthly' ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-700' }}"
+                                        x-on:click="frequency = 'monthly'"
+                                        x-bind:class="frequency === 'monthly' ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-700'"
+                                        class="min-h-12 rounded-md border px-3 text-base font-semibold transition"
                                     >
                                         <span style="color: {{ $iconColor }};">&hearts;</span>
                                         Monthly
@@ -123,8 +125,9 @@
                                         <button
                                             type="button"
                                             wire:key="amount-{{ $suggestedAmount }}"
-                                            wire:click="selectAmount({{ $suggestedAmount }})"
-                                            class="min-h-14 rounded-md border px-2 text-base font-medium transition {{ (float) $amount === (float) $suggestedAmount ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-700' }}"
+                                            x-on:click="amount = {{ $suggestedAmount }}"
+                                            x-bind:class="Number(amount) === {{ $suggestedAmount }} ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-700'"
+                                            class="min-h-14 rounded-md border px-2 text-base font-medium transition"
                                         >
                                             RM {{ number_format($suggestedAmount) }}
                                         </button>
@@ -138,7 +141,7 @@
                                     <div class="flex min-h-20 items-center rounded-md border border-slate-300 px-4 focus-within:border-blue-500">
                                         <span class="text-2xl font-medium">RM</span>
                                         <input
-                                            wire:model.live.debounce.300ms="amount"
+                                            x-model="amount"
                                             type="number"
                                             min="1"
                                             step="1"
@@ -246,7 +249,9 @@
 
 @script
 <script>
-    Alpine.data('donationForm', () => ({
+    Alpine.data('donationForm', (initialFrequency, initialAmount) => ({
+        frequency: initialFrequency,
+        amount: initialAmount,
         processing: false,
         success: false,
         error: false,
@@ -272,6 +277,8 @@
 
         async handleSubmit() {
             this.processing = true;
+            $wire.$set('frequency', this.frequency, false);
+            $wire.$set('amount', this.amount, false);
 
             let clientSecret;
 
