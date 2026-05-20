@@ -18,6 +18,7 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Js;
 
 class CampaignForm
 {
@@ -155,7 +156,7 @@ class CampaignForm
                                             ->columnSpanFull(),
                                         Placeholder::make('embed_modal_note')
                                             ->label('Install script')
-                                            ->content(new HtmlString('Add the Ihsan embed script to the client website, then use the form parameter to open this campaign as a modal checkout. Domain allowlist will be enforced in the embed runtime.'))
+                                            ->content(fn ($get) => new HtmlString(self::embedSnippetHtml($get('form_parameter'))))
                                             ->columnSpanFull(),
                                     ]),
                             ]),
@@ -200,5 +201,33 @@ class CampaignForm
                             ]),
                     ]),
             ]);
+    }
+
+    private static function embedSnippetHtml(?string $formParameter): string
+    {
+        $formParameter = filled($formParameter) ? $formParameter : 'FORM_PARAMETER';
+
+        $script = '<script src="'.url('/embed.js').'" async></script>';
+        $button = '<button data-ihsan-form="'.$formParameter.'">Donate</button>';
+        $link = '<a href="?form='.$formParameter.'">Donate</a>';
+
+        return '<div class="space-y-3">'
+            .'<p class="text-sm text-zinc-600">Add the script once on the client website, then use a button or link trigger to open this campaign as a modal checkout.</p>'
+            .self::copyableSnippet('Script tag', $script)
+            .self::copyableSnippet('Button trigger', $button)
+            .self::copyableSnippet('Link trigger', $link)
+            .'<p class="text-xs text-zinc-500">Domain allowlist will be enforced by Ihsan before the checkout form opens.</p>'
+            .'</div>';
+    }
+
+    private static function copyableSnippet(string $label, string $code): string
+    {
+        return '<div x-data="{ copied: false, code: '.Js::from($code).' }" class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">'
+            .'<div class="mb-2 flex items-center justify-between gap-3">'
+            .'<span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">'.e($label).'</span>'
+            .'<button type="button" x-on:click="navigator.clipboard.writeText(code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Copied\' : \'Copy\'"></button>'
+            .'</div>'
+            .'<code class="block overflow-x-auto whitespace-pre rounded-md bg-white p-2 text-xs text-zinc-700 ring-1 ring-zinc-200">'.e($code).'</code>'
+            .'</div>';
     }
 }
