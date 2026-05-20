@@ -50,7 +50,7 @@ class CampaignForm
                                     ->label('Ringkasan pendek')
                                     ->maxLength(500),
                             ])
-                            ->columns(3),
+                            ->columns(2),
                         Tab::make('Media')
                             ->icon('heroicon-o-photo')
                             ->schema([
@@ -84,7 +84,7 @@ class CampaignForm
                                 DatePicker::make('end_date')
                                     ->label('Tarikh tamat'),
                             ])
-                            ->columns(3),
+                            ->columns(2),
                         Tab::make('Suggested Amounts')
                             ->icon('heroicon-o-banknotes')
                             ->schema([
@@ -93,7 +93,6 @@ class CampaignForm
                             ]),
                         Tab::make('Settings')
                             ->icon('heroicon-o-cog-6-tooth')
-                            ->columns(2)
                             ->schema([
                                 Select::make('payment_gateway')
                                     ->label('Payment gateway')
@@ -101,8 +100,7 @@ class CampaignForm
                                     ->default(PaymentGateway::Stripe),
                                 Textarea::make('thank_you_message')
                                     ->label('Thank you message')
-                                    ->rows(3)
-                                    ->columnSpanFull(),
+                                    ->rows(3),
                                 TextInput::make('redirect_url')
                                     ->label('Redirect URL')
                                     ->url()
