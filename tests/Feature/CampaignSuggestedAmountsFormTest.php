@@ -23,6 +23,8 @@ it('renders a polished suggested amounts editor on the campaign form', function 
         ->assertSee('One-time')
         ->assertSee('Monthly')
         ->assertSee('Preset amounts')
+        ->assertSee('get sortedAmounts()', false)
+        ->assertSee('Add amount')
         ->assertSee('Monthly default')
         ->assertSee('Donors see this amount preselected when monthly giving is active.');
 });

@@ -34,6 +34,9 @@
                 this.monthlyAmounts = value;
             }
         },
+        get sortedAmounts() {
+            return this.currentAmounts;
+        },
         updateAmount(index, value) {
             const amounts = [...this.currentAmounts];
             if (amounts[index]) {
@@ -110,7 +113,7 @@
                         <div class="group relative rounded-lg border border-zinc-200 bg-zinc-50/60 p-3 transition hover:border-zinc-300 focus-within:border-primary-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/20 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:focus-within:bg-zinc-950">
                             <button
                                 type="button"
-                                @click="removeAmount(sortedAmounts.indexOf(amount))"
+                                @click="removeAmount(index)"
                                 class="absolute -right-1.5 -top-1.5 hidden size-5 items-center justify-center rounded-full bg-red-500 text-white shadow-sm transition hover:bg-red-600 group-hover:flex dark:bg-red-600 dark:hover:bg-red-500"
                                 aria-label="Remove amount"
                             >
@@ -119,15 +122,15 @@
                                 </svg>
                             </button>
 
-                            <span class="mb-2 block text-xs font-medium text-zinc-500 dark:text-zinc-400" x-text="'Option ' + (sortedAmounts.indexOf(amount) + 1)"></span>
+                            <span class="mb-2 block text-xs font-medium text-zinc-500 dark:text-zinc-400" x-text="'Option ' + (index + 1)"></span>
                             <span class="flex min-h-11 items-center rounded-md border border-zinc-200 bg-white shadow-xs transition group-focus-within:border-primary-500 dark:border-white/10 dark:bg-zinc-900">
                                 <span class="flex h-full items-center border-r border-zinc-200 px-3 text-sm font-semibold text-zinc-500 dark:border-white/10 dark:text-zinc-400">RM</span>
                                 <input
                                     type="text"
                                     inputmode="numeric"
                                     :value="amount.amount || ''"
-                                    @input="updateAmount(sortedAmounts.indexOf(amount), $event.target.value)"
-                                    :aria-label="'Suggested amount option ' + (sortedAmounts.indexOf(amount) + 1)"
+                                    @input="updateAmount(index, $event.target.value)"
+                                    :aria-label="'Suggested amount option ' + (index + 1)"
                                     placeholder="0"
                                     class="min-w-0 flex-1 border-0 bg-transparent px-3 py-2.5 text-base font-semibold text-zinc-950 placeholder-zinc-400 outline-none focus:ring-0 dark:text-white dark:placeholder-zinc-500"
                                 >
