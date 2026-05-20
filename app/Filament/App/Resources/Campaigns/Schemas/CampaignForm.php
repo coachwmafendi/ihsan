@@ -84,7 +84,7 @@ class CampaignForm
                                 DatePicker::make('end_date')
                                     ->label('Tarikh tamat'),
                             ]),
-                        Tab::make('Suggested')
+                        Tab::make('Suggested Amounts')
                             ->schema([
                                 SuggestedAmounts::make('suggested_amounts')
                                     ->columnSpanFull(),
