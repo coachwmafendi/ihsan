@@ -118,7 +118,7 @@
 }
 
 .ihsan-campaign-tabs .fi-tabs-tabs {
-    @apply flex flex-col gap-1 border-r border-zinc-200 bg-zinc-50/60 p-3;
+    @apply flex flex-col gap-1 border-r border-zinc-200 bg-zinc-50/60 p-2 min-w-36;
 }
 
 .ihsan-campaign-tabs .fi-tabs-tab {

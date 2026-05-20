@@ -29,13 +29,13 @@ class CampaignForm
                     ->tabs([
                         Tab::make('Details')
                             ->icon('heroicon-o-document-text')
+                            ->columns(2)
                             ->schema([
                                 TextInput::make('title')
                                     ->label('Nama kempen')
                                     ->required()
                                     ->maxLength(255)
                                     ->live(onBlur: true)
-                                    ->columnSpanFull()
                                     ->afterStateUpdated(fn ($state, $set) => $set('slug', str($state)->slug())),
                                 TextInput::make('slug')
                                     ->required()
@@ -46,14 +46,11 @@ class CampaignForm
                                     ->options(CampaignStatus::class),
                                 TextInput::make('headline')
                                     ->label('Tajuk utama')
-                                    ->maxLength(255)
-                                    ->columnSpanFull(),
+                                    ->maxLength(255),
                                 TextInput::make('short_summary')
                                     ->label('Ringkasan pendek')
-                                    ->maxLength(500)
-                                    ->columnSpanFull(),
-                            ])
-                            ->columns(2),
+                                    ->maxLength(500),
+                            ]),
                         Tab::make('Media')
                             ->icon('heroicon-o-photo')
                             ->schema([
@@ -68,6 +65,7 @@ class CampaignForm
                             ]),
                         Tab::make('Fundraising')
                             ->icon('heroicon-o-currency-dollar')
+                            ->columns(2)
                             ->schema([
                                 Toggle::make('has_target')
                                     ->label('Tetapkan sasaran kutipan'),
