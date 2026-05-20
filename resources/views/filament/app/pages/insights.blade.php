@@ -4,7 +4,7 @@
             <div class="flex items-center justify-between gap-4">
                 <h2 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300">
                     <x-heroicon-s-flag class="size-3.5" />
-                    Langkah Setup Organisasi
+                    Langkah Mudah untuk Bermula
                 </h2>
                 <p class="shrink-0 text-[11px] text-amber-600 dark:text-amber-400">Profil & pembayaran diuruskan oleh Pentadbir</p>
             </div>
