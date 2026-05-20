@@ -14,12 +14,12 @@ class SuggestedAmounts extends Field
 
         $this->default([
             'one_time' => [
-                ['amount' => '200', 'label' => ''],
-                ['amount' => '100', 'label' => ''],
-                ['amount' => '50', 'label' => ''],
                 ['amount' => '30', 'label' => ''],
-                ['amount' => '10', 'label' => ''],
-                ['amount' => '5', 'label' => ''],
+                ['amount' => '50', 'label' => ''],
+                ['amount' => '100', 'label' => ''],
+                ['amount' => '200', 'label' => ''],
+                ['amount' => '500', 'label' => ''],
+                ['amount' => '1000', 'label' => ''],
             ],
             'monthly' => [
                 ['amount' => '200', 'label' => ''],
