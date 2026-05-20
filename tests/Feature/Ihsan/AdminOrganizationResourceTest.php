@@ -20,5 +20,5 @@ it('shows seeded organizations by name in the super admin table', function () {
         ->assertOk()
         ->assertCanSeeTableRecords([$organization])
         ->assertSee('Maahad Tahfiz Mumtazatut Taqwa')
-        ->assertSee('active');
+        ->assertSee('Active');
 });

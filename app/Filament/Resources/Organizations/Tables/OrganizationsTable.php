@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Organizations\Tables;
 
+use App\Enums\OrganizationStatus;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -24,6 +25,7 @@ class OrganizationsTable
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge()
+                    ->formatStateUsing(fn (OrganizationStatus $state): string => str($state->value)->headline()->toString())
                     ->searchable()
                     ->sortable(),
                 IconColumn::make('stripe_onboarded')
