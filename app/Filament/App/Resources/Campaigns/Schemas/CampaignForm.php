@@ -35,6 +35,7 @@ class CampaignForm
                                     ->required()
                                     ->maxLength(255)
                                     ->live(onBlur: true)
+                                    ->columnSpanFull()
                                     ->afterStateUpdated(fn ($state, $set) => $set('slug', str($state)->slug())),
                                 TextInput::make('slug')
                                     ->required()
@@ -45,10 +46,12 @@ class CampaignForm
                                     ->options(CampaignStatus::class),
                                 TextInput::make('headline')
                                     ->label('Tajuk utama')
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->columnSpanFull(),
                                 TextInput::make('short_summary')
                                     ->label('Ringkasan pendek')
-                                    ->maxLength(500),
+                                    ->maxLength(500)
+                                    ->columnSpanFull(),
                             ])
                             ->columns(2),
                         Tab::make('Media')
@@ -83,8 +86,7 @@ class CampaignForm
                                     ->label('Allow recurring donations'),
                                 DatePicker::make('end_date')
                                     ->label('Tarikh tamat'),
-                            ])
-                            ->columns(2),
+                            ]),
                         Tab::make('Suggested Amounts')
                             ->icon('heroicon-o-banknotes')
                             ->schema([
