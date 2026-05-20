@@ -6,6 +6,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -16,16 +17,18 @@ class DonationForm
         return $schema
             ->components([
                 Section::make('Donation Details')
-                    ->columns(2)
+                    ->columns(['md' => 2, 'xl' => 3])
                     ->schema([
                         Select::make('campaign_id')
                             ->label('Campaign')
                             ->relationship('campaign', 'title')
-                            ->disabled(),
+                            ->disabled()
+                            ->columnSpan(['md' => 2, 'xl' => 3]),
                         Select::make('donor_id')
                             ->label('Supporter')
                             ->relationship('donor', 'name')
-                            ->disabled(),
+                            ->disabled()
+                            ->columnSpan(['md' => 2, 'xl' => 3]),
                         TextInput::make('gross_amount')
                             ->label('Amount')
                             ->numeric()
@@ -71,20 +74,26 @@ class DonationForm
                             ->columnSpanFull(),
                     ]),
                 Section::make('Stripe Information')
-                    ->columns(2)
+                    ->columns(['md' => 2])
                     ->schema([
-                        TextInput::make('stripe_payment_intent_id')
-                            ->label('Payment Intent ID')
-                            ->disabled()
-                            ->copyable(),
-                        TextInput::make('stripe_charge_id')
-                            ->label('Charge ID')
-                            ->disabled()
-                            ->copyable(),
-                        TextInput::make('subscription_id')
-                            ->label('Subscription ID')
-                            ->disabled()
-                            ->visible(fn ($record) => $record?->subscription_id !== null),
+                        Fieldset::make('Payment IDs')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('stripe_payment_intent_id')
+                                    ->label('Payment Intent ID')
+                                    ->disabled()
+                                    ->copyable(),
+                                TextInput::make('stripe_charge_id')
+                                    ->label('Charge ID')
+                                    ->disabled()
+                                    ->copyable(),
+                                TextInput::make('subscription_id')
+                                    ->label('Subscription ID')
+                                    ->disabled()
+                                    ->visible(fn ($record) => $record?->subscription_id !== null)
+                                    ->columnSpanFull(),
+                            ])
+                            ->columnSpanFull(),
                     ]),
             ]);
     }

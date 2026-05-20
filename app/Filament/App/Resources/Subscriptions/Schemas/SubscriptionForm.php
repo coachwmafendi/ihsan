@@ -7,8 +7,10 @@ use App\Enums\SubscriptionStatus;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class SubscriptionForm
 {
@@ -17,20 +19,23 @@ class SubscriptionForm
         return $schema
             ->components([
                 Section::make('Subscription Details')
-                    ->columns(2)
+                    ->columns(['md' => 2, 'xl' => 3])
                     ->schema([
                         Select::make('campaign_id')
                             ->label('Campaign')
-                            ->relationship('campaign', 'title')
+                            ->relationship('campaign', 'title', modifyQueryUsing: fn (Builder $query) => $query
+                                ->where('organization_id', auth()->user()->organization_id))
                             ->required()
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->columnSpan(['md' => 2, 'xl' => 3]),
                         Select::make('donor_id')
                             ->label('Supporter')
                             ->relationship('donor', 'name')
                             ->required()
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->columnSpan(['md' => 2, 'xl' => 3]),
                         TextInput::make('amount')
                             ->required()
                             ->numeric()
@@ -53,16 +58,21 @@ class SubscriptionForm
                             ->visible(fn ($record) => $record !== null),
                     ]),
                 Section::make('Billing Period')
-                    ->columns(2)
+                    ->columns(['md' => 2])
                     ->schema([
-                        DatePicker::make('current_period_start')
-                            ->label('Period Start'),
-                        DatePicker::make('current_period_end')
-                            ->label('Period End'),
-                        DatePicker::make('paused_until')
-                            ->label('Paused Until'),
-                        DatePicker::make('cancelled_at')
-                            ->label('Cancelled At'),
+                        Fieldset::make('Dates')
+                            ->columns(2)
+                            ->schema([
+                                DatePicker::make('current_period_start')
+                                    ->label('Period Start'),
+                                DatePicker::make('current_period_end')
+                                    ->label('Period End'),
+                                DatePicker::make('paused_until')
+                                    ->label('Paused Until'),
+                                DatePicker::make('cancelled_at')
+                                    ->label('Cancelled At'),
+                            ])
+                            ->columnSpanFull(),
                     ]),
             ]);
     }

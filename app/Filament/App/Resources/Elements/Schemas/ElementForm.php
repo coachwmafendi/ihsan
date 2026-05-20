@@ -21,6 +21,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 
 class ElementForm
@@ -83,7 +84,8 @@ class ElementForm
                             ->placeholder('Select type'),
                         Select::make('campaign_id')
                             ->label('Campaign')
-                            ->relationship('campaign', 'title')
+                            ->relationship('campaign', 'title', modifyQueryUsing: fn (Builder $query) => $query
+                                ->where('organization_id', auth()->user()->organization_id))
                             ->nullable()
                             ->searchable()
                             ->preload()

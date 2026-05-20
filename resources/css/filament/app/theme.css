@@ -1,6 +1,14 @@
+@import '@fontsource/plus-jakarta-sans/400.css';
+@import '@fontsource/plus-jakarta-sans/500.css';
+@import '@fontsource/plus-jakarta-sans/600.css';
+@import '@fontsource/plus-jakarta-sans/700.css';
 @import 'tailwindcss';
 
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@theme {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
 
 @layer base {
     html {
@@ -92,4 +100,39 @@
 .fi-resource-elements.fi-resource-edit-record-page .fi-sc-actions:not(.fi-sticky) .fi-ac {
     width: 100%;
     justify-content: flex-end;
+}
+
+/* Wider page layout for all admin resources */
+.fi-page {
+    @apply max-w-7xl;
+}
+
+/* Ensure relations are visible below forms */
+.fi-resource-edit-record-page .fi-resource-relation-managers {
+    @apply mt-8 block;
+}
+
+/* Vertical tabs for Campaigns */
+.ihsan-campaign-tabs {
+    @apply overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm;
+}
+
+.ihsan-campaign-tabs .fi-tabs-tabs {
+    @apply flex flex-col gap-1 border-r border-zinc-200 bg-zinc-50/60 p-3;
+}
+
+.ihsan-campaign-tabs .fi-tabs-tab {
+    @apply flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700;
+}
+
+.ihsan-campaign-tabs .fi-tabs-tab.fi-tabs-tab-active {
+    @apply bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200;
+}
+
+.ihsan-campaign-tabs .fi-tabs-tab-icon {
+    @apply size-4;
+}
+
+.ihsan-campaign-tabs .fi-tabs-content {
+    @apply p-6;
 }

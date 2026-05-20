@@ -13,16 +13,18 @@ class DonorForm
         return $schema
             ->components([
                 Section::make('Supporter Information')
-                    ->columns(2)
+                    ->columns(['md' => 2])
                     ->schema([
                         TextInput::make('name')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->columnSpan(['md' => 2]),
                         TextInput::make('email')
                             ->required()
                             ->email()
                             ->maxLength(255)
-                            ->unique(ignoreRecord: true),
+                            ->unique(ignoreRecord: true)
+                            ->columnSpan(['md' => 2]),
                         TextInput::make('phone')
                             ->tel()
                             ->maxLength(255),
