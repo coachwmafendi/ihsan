@@ -2,10 +2,14 @@
     <div class="space-y-6">
         <div class="mx-4 rounded-xl border border-amber-200 bg-amber-50/70 px-6 py-6 md:mx-6 lg:mx-8 dark:border-amber-800 dark:bg-amber-900/10">
             <div class="flex items-center justify-between gap-4">
-                <h2 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300">
-                    <x-heroicon-s-flag class="size-3.5" />
-                    Langkah Mudah untuk Bermula
-                </h2>
+                <div class="flex items-center gap-3">
+                    <h2 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                        <x-heroicon-s-flag class="size-3.5" />
+                        Langkah Mudah untuk Bermula
+                    </h2>
+                    <span class="hidden h-4 w-px bg-amber-300 md:block dark:bg-amber-700"></span>
+                    <span class="hidden text-sm font-medium text-amber-900 md:block dark:text-amber-200">{{ auth()->user()->organization?->name }}</span>
+                </div>
                 <p class="shrink-0 text-[11px] text-amber-600 dark:text-amber-400">Profil & pembayaran diuruskan oleh Pentadbir</p>
             </div>
             <div class="mt-5 flex items-start gap-0 max-md:flex-col max-md:gap-3">

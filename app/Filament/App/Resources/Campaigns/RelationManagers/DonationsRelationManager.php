@@ -4,13 +4,10 @@ namespace App\Filament\App\Resources\Campaigns\RelationManagers;
 
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
-use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\DissociateAction;
-use Filament\Actions\DissociateBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -78,59 +75,58 @@ class DonationsRelationManager extends RelationManager
             ->recordTitleAttribute('title')
             ->columns([
                 TextColumn::make('donor.name')
-                    ->searchable(),
-                TextColumn::make('subscription.id')
-                    ->searchable(),
-                TextColumn::make('stripe_payment_intent_id')
-                    ->searchable(),
-                TextColumn::make('stripe_charge_id')
-                    ->searchable(),
+                    ->label('Donor')
+                    ->searchable()
+                    ->limit(20),
                 TextColumn::make('gross_amount')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('stripe_fee')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('platform_fee')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('net_amount')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('currency')
-                    ->searchable(),
+                    ->label('Amount')
+                    ->money('MYR')
+                    ->sortable()
+                    ->weight('medium'),
                 TextColumn::make('status')
                     ->badge()
-                    ->searchable(),
+                    ->searchable()
+                    ->colors([
+                        'success' => 'succeeded',
+                        'warning' => 'pending',
+                        'danger' => 'failed',
+                        'gray' => 'refunded',
+                    ]),
                 TextColumn::make('type')
                     ->badge()
-                    ->searchable(),
-                IconColumn::make('is_anonymous')
-                    ->boolean(),
+                    ->searchable()
+                    ->colors([
+                        'primary' => 'recurring',
+                        'gray' => 'one_time',
+                    ]),
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Date')
+                    ->dateTime('d M Y')
                     ->sortable()
+                    ->toggleable(),
+                IconColumn::make('is_anonymous')
+                    ->label('Anonymous')
+                    ->boolean()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
+                TextColumn::make('net_amount')
+                    ->label('Net')
+                    ->money('MYR')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 //
             ])
             ->headerActions([
                 CreateAction::make(),
-                AssociateAction::make(),
             ])
             ->recordActions([
                 EditAction::make(),
-                DissociateAction::make(),
                 DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DissociateBulkAction::make(),
                     DeleteBulkAction::make(),
                 ]),
             ]);
