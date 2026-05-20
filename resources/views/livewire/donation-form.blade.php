@@ -92,7 +92,7 @@
                 style="background-color: {{ $backgroundColor }}; color: {{ $textColor }}; border: {{ $borderSize }}px solid {{ $borderColor }}; border-radius: {{ $isPopup ? $borderRadius : $borderRadius + 10 }}px;"
             >
                 <div x-data="donationForm()">
-                    <div x-show="!processing && !success && !error" x-cloak>
+                    <div x-show="!processing && !success && !error">
                         <form class="space-y-4" @submit.prevent="handleSubmit">
                             <div class="grid grid-cols-2 gap-2">
                                 <button
