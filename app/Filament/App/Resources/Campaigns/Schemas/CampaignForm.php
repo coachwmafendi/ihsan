@@ -25,10 +25,8 @@ class CampaignForm
             ->components([
                 Tabs::make('Campaign Tabs')
                     ->vertical()
-                    ->extraAttributes(['class' => 'ihsan-campaign-tabs'])
                     ->tabs([
                         Tab::make('Details')
-                            ->icon('heroicon-o-document-text')
                             ->columns(2)
                             ->schema([
                                 TextInput::make('title')
@@ -52,7 +50,6 @@ class CampaignForm
                                     ->maxLength(500),
                             ]),
                         Tab::make('Media')
-                            ->icon('heroicon-o-photo')
                             ->schema([
                                 Textarea::make('description')
                                     ->rows(5)
@@ -64,7 +61,6 @@ class CampaignForm
                                     ->columnSpanFull(),
                             ]),
                         Tab::make('Fundraising')
-                            ->icon('heroicon-o-currency-dollar')
                             ->columns(2)
                             ->schema([
                                 Toggle::make('has_target')
@@ -85,14 +81,12 @@ class CampaignForm
                                 DatePicker::make('end_date')
                                     ->label('Tarikh tamat'),
                             ]),
-                        Tab::make('Suggested Amounts')
-                            ->icon('heroicon-o-banknotes')
+                        Tab::make('Suggested')
                             ->schema([
                                 SuggestedAmounts::make('suggested_amounts')
                                     ->columnSpanFull(),
                             ]),
                         Tab::make('Settings')
-                            ->icon('heroicon-o-cog-6-tooth')
                             ->schema([
                                 Select::make('payment_gateway')
                                     ->label('Payment gateway')
@@ -107,7 +101,6 @@ class CampaignForm
                                     ->placeholder('https://'),
                             ]),
                         Tab::make('Stats')
-                            ->icon('heroicon-o-chart-bar')
                             ->visible(fn ($record) => $record !== null)
                             ->columns(3)
                             ->schema([
