@@ -118,11 +118,11 @@
 }
 
 .ihsan-campaign-tabs .fi-tabs-tabs {
-    @apply flex flex-col gap-1 border-r border-zinc-200 bg-zinc-50/60 p-3;
+    @apply flex flex-col gap-1 border-r border-zinc-200 bg-zinc-50/60 p-2 w-40;
 }
 
 .ihsan-campaign-tabs .fi-tabs-tab {
-    @apply flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700;
+    @apply flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700;
 }
 
 .ihsan-campaign-tabs .fi-tabs-tab.fi-tabs-tab-active {
