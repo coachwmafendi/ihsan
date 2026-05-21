@@ -29,7 +29,7 @@ Route::prefix('donorportal')->name('donorportal.')->group(function () {
     Route::get('/', fn () => redirect()->route('donorportal.dashboard'));
     Route::get('login', [DonorAuthController::class, 'showLoginForm'])->name('login');
     Route::post('login', [DonorAuthController::class, 'sendMagicLink'])
-        ->middleware('throttle:5,60')
+        ->middleware('throttle:donor-magic-link')
         ->name('send-magic-link');
     Route::get('login/{token}', [DonorAuthController::class, 'login'])
         ->middleware('throttle:10,60')

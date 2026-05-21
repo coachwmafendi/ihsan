@@ -3,8 +3,11 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -46,5 +49,12 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+
+        RateLimiter::for('donor-magic-link', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip())->response(function () {
+                return redirect()->route('donorportal.login')
+                    ->with('error', 'Too many login attempts. Please try again in a minute.');
+            });
+        });
     }
 }
