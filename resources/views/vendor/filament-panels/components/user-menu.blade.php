@@ -35,6 +35,7 @@
 <x-filament::dropdown
     :placement="($position === UserMenuPosition::Topbar) ? 'bottom-end' : 'top-end'"
     :teleport="$position === UserMenuPosition::Topbar"
+    :width="filament()->getId() === 'app' ? 'md' : null"
     :attributes="
         \Filament\Support\prepare_inherited_attributes($attributes)
             ->class(['fi-user-menu'])

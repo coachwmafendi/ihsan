@@ -9,6 +9,10 @@
                 "artisan",
                 "boost:mcp"
             ]
+        },
+        "browsermcp": {
+            "type": "local",
+            "command": ["npx", "@browsermcp/mcp@latest"]
         }
     }
 }

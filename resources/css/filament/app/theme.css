@@ -3,6 +3,7 @@
 @source '../../../../app/Filament/App/**/*';
 @source '../../../views/filament/app/**/*';
 @source '../../../views/filament/forms/components/**/*';
+@source '../../../views/vendor/filament-panels/**/*.blade.php';
 @source '../../../../vendor/filament/**/*.blade.php';
 
 /* === Sidebar Layout === */
@@ -11,14 +12,46 @@
 }
 
 /* === Theme Switcher === */
+.fi-theme-switcher {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: calc(var(--spacing) * 2) !important;
+    align-items: center !important;
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3) !important;
+}
+
+.fi-theme-switcher .fi-theme-switcher-btn {
+    display: flex !important;
+    min-height: calc(var(--spacing) * 12) !important;
+    width: 100% !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--radius-xl) !important;
+    background-color: transparent !important;
+    transition:
+        background-color 150ms ease,
+        border-color 150ms ease,
+        box-shadow 150ms ease,
+        color 150ms ease !important;
+}
+
 .fi-theme-switcher .fi-theme-switcher-btn.fi-active {
-    background-color: var(--color-zinc-200) !important;
+    background-color: color-mix(in oklab, var(--primary-500) 34%, transparent) !important;
+    border-color: color-mix(in oklab, var(--primary-500) 70%, transparent) !important;
     color: var(--primary-600) !important;
+    box-shadow:
+        0 1px 2px 0 rgb(0 0 0 / 0.05),
+        0 0 22px color-mix(in oklab, var(--primary-500) 26%, transparent) !important;
 }
 
 .fi-theme-switcher .fi-theme-switcher-btn.fi-active:where(.dark, .dark *) {
-    background-color: var(--color-zinc-700) !important;
+    background-color: color-mix(in oklab, var(--primary-400) 30%, transparent) !important;
+    border-color: color-mix(in oklab, var(--primary-400) 70%, transparent) !important;
     color: var(--primary-400) !important;
+    box-shadow:
+        0 1px 2px 0 rgb(0 0 0 / 0.35),
+        0 0 22px color-mix(in oklab, var(--primary-400) 28%, transparent) !important;
 }
 
 .fi-theme-switcher .fi-theme-switcher-btn:not(.fi-active) {
@@ -110,7 +143,7 @@
 }
 
 .dark .fi-sidebar-item.fi-active {
-    background-color: var(--primary-500 / 0.1) !important;
+    background-color: color-mix(in oklab, var(--primary-500) 10%, transparent) !important;
     border-left-color: var(--primary-400) !important;
 }
 
