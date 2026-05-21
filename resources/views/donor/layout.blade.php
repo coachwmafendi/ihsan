@@ -9,8 +9,8 @@
 <body class="min-h-screen bg-stone-50 antialiased">
     <header class="border-b border-stone-200/70 bg-white/90 backdrop-blur-sm">
         <div class="mx-auto flex max-w-4xl items-center justify-between px-6 py-5">
-            <a href="{{ route('donorportal.donations') }}" class="text-xl font-semibold tracking-tight text-emerald-700">
-                {{ config('app.name') }}
+            <a href="{{ route('donorportal.donations') }}">
+                <img src="{{ asset('logo-ihsan.png') }}" alt="{{ config('app.name') }}" class="h-8 w-auto" />
             </a>
             <a href="{{ route('donorportal.logout') }}" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-stone-500 transition hover:bg-stone-100 hover:text-stone-700">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -24,6 +24,11 @@
     <div class="mx-auto max-w-4xl px-6 py-10">
         <div class="mb-10">
             <nav class="flex gap-1 rounded-xl bg-stone-100/80 p-1.5">
+                <a href="{{ route('donorportal.dashboard') }}"
+                   class="flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-medium transition
+                   {{ request()->routeIs('donorportal.dashboard') ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700' }}">
+                    Dashboard
+                </a>
                 <a href="{{ route('donorportal.donations') }}"
                    class="flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-medium transition
                    {{ request()->routeIs('donorportal.donations') ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700' }}">
@@ -43,5 +48,6 @@
 
         @yield('content')
     </div>
+    @stack('scripts')
 </body>
 </html>

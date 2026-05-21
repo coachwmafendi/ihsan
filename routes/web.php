@@ -26,7 +26,7 @@ use App\Http\Controllers\DonorPortalController;
 
 // Donor portal
 Route::prefix('donorportal')->name('donorportal.')->group(function () {
-    Route::get('/', fn () => redirect()->route('donorportal.login'));
+    Route::get('/', fn () => redirect()->route('donorportal.dashboard'));
     Route::get('login', [DonorAuthController::class, 'showLoginForm'])->name('login');
     Route::post('login', [DonorAuthController::class, 'sendMagicLink'])
         ->middleware('throttle:5,60')
@@ -35,6 +35,7 @@ Route::prefix('donorportal')->name('donorportal.')->group(function () {
         ->middleware('throttle:10,60')
         ->name('magic-login');
     Route::post('logout', [DonorAuthController::class, 'logout'])->name('logout');
+    Route::get('dashboard', [DonorPortalController::class, 'dashboard'])->name('dashboard');
     Route::get('donations', [DonorPortalController::class, 'donations'])->name('donations');
     Route::get('subscriptions', [DonorPortalController::class, 'subscriptions'])->name('subscriptions');
     Route::post('subscriptions/{subscription}/cancel', [DonorPortalController::class, 'cancelSubscription'])->name('subscriptions.cancel');

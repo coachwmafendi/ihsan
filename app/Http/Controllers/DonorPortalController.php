@@ -18,6 +18,61 @@ class DonorPortalController extends Controller
         return Donor::query()->find($donorId);
     }
 
+    public function dashboard()
+    {
+        $donor = $this->getDonor();
+        if ($donor === null) {
+            return redirect()->route('donorportal.login');
+        }
+
+        $totalGiven = $donor->donations()
+            ->where('status', DonationStatus::Succeeded)
+            ->sum('gross_amount');
+
+        $activeSubscriptions = $donor->subscriptions()
+            ->where('status', SubscriptionStatus::Active)
+            ->count();
+
+        $monthlyRecurring = $donor->subscriptions()
+            ->where('status', SubscriptionStatus::Active)
+            ->sum('amount');
+
+        $monthlyDonations = $donor->donations()
+            ->where('status', DonationStatus::Succeeded)
+            ->selectRaw("strftime('%Y-%m', created_at) as month, SUM(gross_amount) as total")
+            ->groupBy('month')
+            ->orderBy('month', 'desc')
+            ->limit(12)
+            ->get()
+            ->reverse()
+            ->values();
+
+        $campaignBreakdown = $donor->donations()
+            ->where('donations.status', DonationStatus::Succeeded)
+            ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
+            ->selectRaw('campaigns.title as campaign, SUM(donations.gross_amount) as total')
+            ->groupBy('campaigns.title')
+            ->orderByDesc('total')
+            ->get();
+
+        $recentDonations = $donor->donations()
+            ->where('status', DonationStatus::Succeeded)
+            ->with('campaign.organization')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        return view('donor.dashboard', [
+            'donor' => $donor,
+            'totalGiven' => $totalGiven,
+            'activeSubscriptions' => $activeSubscriptions,
+            'monthlyRecurring' => $monthlyRecurring,
+            'monthlyDonations' => $monthlyDonations,
+            'campaignBreakdown' => $campaignBreakdown,
+            'recentDonations' => $recentDonations,
+        ]);
+    }
+
     public function donations()
     {
         $donor = $this->getDonor();

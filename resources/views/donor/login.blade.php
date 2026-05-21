@@ -9,8 +9,8 @@
 <body class="flex min-h-screen items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 px-4 antialiased">
     <div class="w-full max-w-sm">
         <div class="mb-8 text-center">
-            <a href="{{ route('home') }}" class="text-2xl font-semibold tracking-tight text-emerald-800">
-                <span class="inline-block bg-gradient-to-br from-emerald-700 to-emerald-600 bg-clip-text text-transparent">{{ config('app.name') }}</span>
+            <a href="{{ route('home') }}">
+                <img src="{{ asset('logo-ihsan.png') }}" alt="{{ config('app.name') }}" class="mx-auto h-10 w-auto" />
             </a>
             <p class="mt-1 text-sm text-stone-400">Your giving, your way.</p>
         </div>

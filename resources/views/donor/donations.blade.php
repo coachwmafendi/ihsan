@@ -41,7 +41,7 @@
                         @if ($donation->status === \App\Enums\DonationStatus::Succeeded)
                             <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                         @endif
-                        {{ $donation->status->value }}
+                        {{ str($donation->status->value)->headline() }}
                     </span>
                     <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 ring-1 ring-blue-200">
                         {{ $donation->type === \App\Enums\DonationType::Recurring ? 'Recurring' : 'One-time' }}

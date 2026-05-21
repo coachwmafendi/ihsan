@@ -32,7 +32,7 @@
                         @if ($subscription->status === \App\Enums\SubscriptionStatus::Active)
                             <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
                         @endif
-                        {{ $subscription->status->value }}
+                        {{ str($subscription->status->value)->headline() }}
                     </span>
 
                     @if ($subscription->status === \App\Enums\SubscriptionStatus::Active)
