@@ -2,12 +2,21 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\DonationStatus;
+use App\Enums\DonationType;
 use App\Models\Donation;
+use Carbon\Carbon;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class Transactions extends Page implements HasTable
 {
@@ -53,9 +62,11 @@ class Transactions extends Page implements HasTable
                     ->toggleable(),
                 TextColumn::make('type')
                     ->badge()
+                    ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString())
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge()
+                    ->formatStateUsing(fn (DonationStatus $state): string => str($state->value)->headline()->toString())
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->label('Date')
@@ -63,7 +74,107 @@ class Transactions extends Page implements HasTable
                     ->sortable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->options(DonationStatus::class),
+                SelectFilter::make('type')
+                    ->options(DonationType::class),
+                Filter::make('created_at')
+                    ->form([
+                        DatePicker::make('date_from')
+                            ->label('From'),
+                        DatePicker::make('date_to')
+                            ->label('To'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['date_from'] ?? null,
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['date_to'] ?? null,
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if ($data['date_from'] ?? null) {
+                            $indicators[] = 'From: '.Carbon::parse($data['date_from'])->toFormattedDateString();
+                        }
+
+                        if ($data['date_to'] ?? null) {
+                            $indicators[] = 'To: '.Carbon::parse($data['date_to'])->toFormattedDateString();
+                        }
+
+                        return $indicators;
+                    }),
+                Filter::make('amount_range')
+                    ->form([
+                        TextInput::make('min_amount')
+                            ->label('Min Amount')
+                            ->numeric()
+                            ->prefix('MYR'),
+                        TextInput::make('max_amount')
+                            ->label('Max Amount')
+                            ->numeric()
+                            ->prefix('MYR'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['min_amount'] ?? null,
+                                fn (Builder $query, $amount): Builder => $query->where('gross_amount', '>=', $amount),
+                            )
+                            ->when(
+                                $data['max_amount'] ?? null,
+                                fn (Builder $query, $amount): Builder => $query->where('gross_amount', '<=', $amount),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if ($data['min_amount'] ?? null) {
+                            $indicators[] = 'Min: MYR '.number_format((float) $data['min_amount'], 2);
+                        }
+
+                        if ($data['max_amount'] ?? null) {
+                            $indicators[] = 'Max: MYR '.number_format((float) $data['max_amount'], 2);
+                        }
+
+                        return $indicators;
+                    }),
+                Filter::make('is_anonymous')
+                    ->form([
+                        Toggle::make('is_anonymous')
+                            ->label('Anonymous only'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['is_anonymous'] ?? false,
+                            fn (Builder $query): Builder => $query->where('is_anonymous', true),
+                        );
+                    })
+                    ->indicateUsing(function (array $data): ?string {
+                        if ($data['is_anonymous'] ?? false) {
+                            return 'Anonymous';
+                        }
+
+                        return null;
+                    }),
+                SelectFilter::make('payment_method')
+                    ->label('Payment Method')
+                    ->options([
+                        'visa' => 'Visa',
+                        'mastercard' => 'Mastercard',
+                        'amex' => 'American Express',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'] ?? null,
+                            fn (Builder $query, $brand): Builder => $query->where('payment_method_brand', $brand),
+                        );
+                    }),
             ])
             ->defaultSort('created_at', 'desc');
     }
