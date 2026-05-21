@@ -8,6 +8,7 @@ use App\Filament\Forms\Components\SuggestedAmounts;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
@@ -61,8 +62,7 @@ class CampaignForm
                                 Section::make('Story and media')
                                     ->description('Campaign page content and main image.')
                                     ->schema([
-                                        Textarea::make('description')
-                                            ->rows(6)
+                                        RichEditor::make('description')
                                             ->columnSpanFull(),
                                         FileUpload::make('image_path')
                                             ->label('Gambar utama')
