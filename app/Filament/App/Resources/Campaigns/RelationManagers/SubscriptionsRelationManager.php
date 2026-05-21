@@ -76,9 +76,11 @@ class SubscriptionsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('interval')
                     ->badge()
+                    ->formatStateUsing(fn (SubscriptionInterval $state): string => str($state->value)->headline()->toString())
                     ->searchable(),
                 TextColumn::make('status')
                     ->badge()
+                    ->formatStateUsing(fn (SubscriptionStatus $state): string => str($state->value)->headline()->toString())
                     ->searchable(),
                 TextColumn::make('retry_count')
                     ->numeric()

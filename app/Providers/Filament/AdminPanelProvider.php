@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\PlatformOverview;
 use App\Filament\Pages\Revenue;
 use App\Filament\Pages\Transactions;
@@ -36,6 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('logo-ihsan.png'))
             ->brandLogoHeight('2rem')
             ->login()
+            ->profile(EditProfile::class)
             ->colors([
                 'primary' => Color::Amber,
             ])

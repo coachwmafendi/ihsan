@@ -4,7 +4,7 @@ use App\Enums\UserRole;
 use App\Models\Organization;
 use App\Models\User;
 
-it('allows ngo admins into the app panel', function () {
+it('redirects app panel dashboard to insights', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([
         'role' => UserRole::NgoAdmin,
@@ -12,7 +12,7 @@ it('allows ngo admins into the app panel', function () {
 
     $this->actingAs($user)
         ->get('/app')
-        ->assertSuccessful();
+        ->assertRedirect(route('filament.app.pages.insights'));
 });
 
 it('allows super admins into the admin panel', function () {

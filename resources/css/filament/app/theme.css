@@ -4,3 +4,35 @@
 @source '../../../views/filament/app/**/*';
 @source '../../../views/filament/forms/components/**/*';
 @source '../../../../vendor/filament/**/*.blade.php';
+
+.fi-sidebar-nav {
+    margin-top: 0;
+}
+
+.fi-theme-switcher .fi-theme-switcher-btn.fi-active {
+    background-color: var(--color-zinc-200) !important;
+    color: var(--primary-600) !important;
+}
+
+.fi-theme-switcher .fi-theme-switcher-btn.fi-active:where(.dark, .dark *) {
+    background-color: var(--color-zinc-700) !important;
+    color: var(--primary-400) !important;
+}
+
+.fi-theme-switcher .fi-theme-switcher-btn:not(.fi-active) {
+    color: var(--gray-400) !important;
+}
+
+.fi-theme-switcher .fi-theme-switcher-btn:not(.fi-active):where(.dark, .dark *) {
+    color: var(--gray-500) !important;
+}
+
+.fi-theme-switcher .fi-theme-switcher-btn:not(.fi-active):hover {
+    background-color: var(--gray-100) !important;
+    color: var(--gray-600) !important;
+}
+
+.fi-theme-switcher .fi-theme-switcher-btn:not(.fi-active):hover:where(.dark, .dark *) {
+    background-color: var(--color-zinc-800) !important;
+    color: var(--gray-300) !important;
+}

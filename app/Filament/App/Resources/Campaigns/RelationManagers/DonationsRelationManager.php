@@ -85,6 +85,7 @@ class DonationsRelationManager extends RelationManager
                     ->weight('medium'),
                 TextColumn::make('status')
                     ->badge()
+                    ->formatStateUsing(fn (DonationStatus $state): string => str($state->value)->headline()->toString())
                     ->searchable()
                     ->colors([
                         'success' => 'succeeded',
@@ -94,6 +95,7 @@ class DonationsRelationManager extends RelationManager
                     ]),
                 TextColumn::make('type')
                     ->badge()
+                    ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString())
                     ->searchable()
                     ->colors([
                         'primary' => 'recurring',

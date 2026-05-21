@@ -59,6 +59,7 @@ class ElementsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('type')
                     ->badge()
+                    ->formatStateUsing(fn (ElementType $state): string => ucfirst($state->value))
                     ->searchable(),
                 IconColumn::make('is_active')
                     ->boolean(),

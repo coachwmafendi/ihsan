@@ -2,6 +2,7 @@
 
 namespace App\Filament\App\Resources\Donors\RelationManagers;
 
+use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -33,6 +34,7 @@ class SubscriptionsRelationManager extends RelationManager
                 TextColumn::make('interval')
                     ->label('Frequency')
                     ->badge()
+                    ->formatStateUsing(fn (SubscriptionInterval $state): string => str($state->value)->headline()->toString())
                     ->sortable(),
                 BadgeColumn::make('status')
                     ->label('Status')

@@ -3,6 +3,7 @@
 namespace App\Filament\App\Pages;
 
 use Filament\Pages\Dashboard as BaseDashboard;
+use Filament\Support\Facades\FilamentView;
 
 class Dashboard extends BaseDashboard
 {
@@ -23,5 +24,12 @@ class Dashboard extends BaseDashboard
     public static function shouldRegisterNavigation(): bool
     {
         return false;
+    }
+
+    public function mount(): void
+    {
+        $url = route('filament.app.pages.insights');
+
+        $this->redirect($url, navigate: FilamentView::hasSpaMode($url));
     }
 }

@@ -24,6 +24,7 @@ class ElementsTable
                     ->sortable(),
                 TextColumn::make('type')
                     ->badge()
+                    ->formatStateUsing(fn (ElementType $state): string => ucfirst($state->value))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('campaign.title')

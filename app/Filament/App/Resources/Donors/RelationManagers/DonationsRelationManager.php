@@ -2,6 +2,7 @@
 
 namespace App\Filament\App\Resources\Donors\RelationManagers;
 
+use App\Enums\DonationType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
@@ -46,6 +47,7 @@ class DonationsRelationManager extends RelationManager
                     }),
                 TextColumn::make('type')
                     ->badge()
+                    ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

@@ -17,9 +17,7 @@ Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
-});
+Route::middleware(['auth', 'verified'])->group(function () {});
 
 use App\Http\Controllers\DonorAuthController;
 use App\Http\Controllers\DonorPortalController;
@@ -40,5 +38,3 @@ Route::prefix('donorportal')->name('donorportal.')->group(function () {
     Route::get('subscriptions', [DonorPortalController::class, 'subscriptions'])->name('subscriptions');
     Route::post('subscriptions/{subscription}/cancel', [DonorPortalController::class, 'cancelSubscription'])->name('subscriptions.cancel');
 });
-
-require __DIR__.'/settings.php';

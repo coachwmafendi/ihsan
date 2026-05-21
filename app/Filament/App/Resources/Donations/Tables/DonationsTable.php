@@ -2,6 +2,7 @@
 
 namespace App\Filament\App\Resources\Donations\Tables;
 
+use App\Enums\DonationType;
 use App\Models\Campaign;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -49,6 +50,7 @@ class DonationsTable
                     ->sortable(),
                 TextColumn::make('type')
                     ->badge()
+                    ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
@@ -118,7 +120,8 @@ class DonationsTable
                                         default => 'gray',
                                     }),
                                 TextEntry::make('type')
-                                    ->badge(),
+                                    ->badge()
+                                    ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString()),
                                 TextEntry::make('is_anonymous')
                                     ->label('Anonymous')
                                     ->formatStateUsing(fn ($state) => $state ? 'Yes' : 'No'),

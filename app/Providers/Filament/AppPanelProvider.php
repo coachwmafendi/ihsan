@@ -3,7 +3,9 @@
 namespace App\Providers\Filament;
 
 use App\Filament\App\Pages\StripeOnboarding;
+use App\Filament\Pages\Auth\EditProfile;
 use App\Http\Middleware\RedirectIfStripeNotOnboarded;
+use Filament\Enums\GlobalSearchPosition;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -32,6 +34,10 @@ class AppPanelProvider extends PanelProvider
             ->sidebarWidth('240px')
             ->brandLogo(asset('logo-ihsan.png'))
             ->brandLogoHeight('2rem')
+            ->globalSearch(position: GlobalSearchPosition::Sidebar)
+            ->profile(EditProfile::class, isSimple: false)
+            ->homeUrl(fn (): string => route('filament.app.pages.insights'))
+            ->darkMode()
             ->colors([
                 'primary' => Color::Teal,
             ])
