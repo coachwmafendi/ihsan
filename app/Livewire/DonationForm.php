@@ -40,6 +40,10 @@ class DonationForm extends Component
 
     public string $comment = '';
 
+    public bool $isEmbed = false;
+
+    public bool $isPopup = false;
+
     public function mount(Element $element): void
     {
         abort_if(
@@ -50,6 +54,8 @@ class DonationForm extends Component
         $this->element = $element->loadMissing(['campaign.organization']);
         $this->amount = $this->config('default_amount', $this->suggestedAmounts()[0] ?? 5);
         $this->frequency = $this->config('default_frequency', $this->config('allow_monthly', true) ? 'monthly' : 'one_time');
+        $this->isEmbed = request()->query('embed') !== null;
+        $this->isPopup = request()->query('popup') !== null || (bool) $this->config('display_as_popup', false);
     }
 
     public function selectAmount(int $amount): void
@@ -238,9 +244,7 @@ class DonationForm extends Component
 
     public function render()
     {
-        $usePopup = request()->query('popup') !== null || $this->config('display_as_popup', false);
-
         return view('livewire.donation-form')
-            ->layout(request()->query('embed') ? 'layouts.embed' : ($usePopup ? 'layouts.popup' : 'layouts.donation'));
+            ->layout($this->isEmbed ? 'layouts.embed' : ($this->isPopup ? 'layouts.popup' : 'layouts.donation'));
     }
 }

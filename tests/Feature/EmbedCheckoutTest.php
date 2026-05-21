@@ -10,7 +10,18 @@ it('serves the embed script as javascript', function () {
         ->assertHeader('content-type', 'application/javascript; charset=UTF-8')
         ->assertSee('IhsanCheckout', false)
         ->assertSee('data-ihsan-form', false)
+        ->assertSee('width:min(100%,520px)', false)
+        ->assertSee('height:min(94vh,820px)', false)
         ->assertSee('/checkout', false);
+});
+
+it('serves the codex embed smoke test page', function () {
+    $html = file_get_contents(public_path('codex-embed-test.html'));
+
+    expect($html)
+        ->toContain('Ihsan Embed Test')
+        ->toContain('https://ihsan.test/embed.js')
+        ->toContain('https://ihsan.test/donate/codex-qa-form-token?embed=1');
 });
 
 it('redirects an allowed embed checkout request to the hosted donation form', function () {

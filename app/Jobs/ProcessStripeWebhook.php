@@ -34,11 +34,23 @@ class ProcessStripeWebhook implements ShouldQueue
     {
         $event = StripeEvent::constructFrom(json_decode($this->payload, true));
 
-        $log = WebhookLog::query()->create([
+        $log = WebhookLog::query()->firstOrCreate([
             'stripe_event_id' => $event->id,
+        ], [
             'event_type' => $event->type,
             'payload' => $event->toArray(),
             'status' => 'processing',
+        ]);
+
+        if (! $log->wasRecentlyCreated && $log->status === 'completed') {
+            return;
+        }
+
+        $log->update([
+            'event_type' => $event->type,
+            'payload' => $event->toArray(),
+            'status' => 'processing',
+            'error_message' => null,
         ]);
 
         match ($event->type) {
@@ -52,7 +64,10 @@ class ProcessStripeWebhook implements ShouldQueue
             default => null,
         };
 
-        $log->update(['status' => 'completed']);
+        $log->update([
+            'status' => 'completed',
+            'processed_at' => now(),
+        ]);
     }
 
     private function handlePaymentIntentSucceeded(StripeEvent $event): void
@@ -64,7 +79,11 @@ class ProcessStripeWebhook implements ShouldQueue
             return;
         }
 
-        $donation = Donation::query()->find($donationId);
+        $donation = Donation::query()
+            ->whereKey($donationId)
+            ->where('status', DonationStatus::Pending)
+            ->first();
+
         if ($donation === null) {
             return;
         }

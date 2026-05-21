@@ -58,6 +58,40 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertSee('x-show="error" x-cloak', false);
 });
 
+it('renders the hosted donation form in a compact layout when embedded', function () {
+    $organization = Organization::factory()->create([
+        'name' => 'Maahad Tahfiz Mumtazatut Taqwa',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'title' => 'MTMT Development Fund',
+        'suggested_amounts' => [30, 50, 100],
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'form-token-compact',
+        'type' => ElementType::Form,
+    ]);
+
+    $this->get(route('donations.show', ['element' => $element, 'embed' => 1]))
+        ->assertOk()
+        ->assertSee('MTMT Development Fund')
+        ->assertSee('px-4 py-5 sm:px-5', false)
+        ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
+
+    Livewire::withQueryParams(['embed' => 1])
+        ->test(DonationForm::class, ['element' => $element])
+        ->set('amount', 30)
+        ->set('name', '')
+        ->set('email', '')
+        ->call('submit')
+        ->assertSet('isEmbed', true)
+        ->assertHasErrors([
+            'name' => 'required',
+            'email' => 'required',
+        ])
+        ->assertSee('px-4 py-5 sm:px-5', false)
+        ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
+});
+
 it('does not render inactive or non form elements', function () {
     $inactiveElement = Element::factory()->create([
         'is_active' => false,
@@ -107,6 +141,7 @@ it('creates a pending donation from the hosted form', function () {
         ->set('comment', 'Semoga dipermudahkan.')
         ->call('submit')
         ->assertHasNoErrors()
+        ->assertReturned('pi_test_mock_123_secret_abc')
         ->assertSee('Thank you');
 
     $donor = Donor::query()->where('email', 'wan@example.test')->firstOrFail();
@@ -125,6 +160,50 @@ it('creates a pending donation from the hosted form', function () {
             'frequency' => 'monthly',
             'dedicate' => true,
         ]);
+});
+
+it('creates a pending donation from the embedded form and keeps the compact layout', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'suggested_amounts' => [200, 100, 50, 30, 10, 5],
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'embedded-form-token',
+        'type' => ElementType::Form,
+        'config' => [
+            'default_amount' => 30,
+        ],
+    ]);
+
+    $paymentIntent = PaymentIntent::constructFrom([
+        'id' => 'pi_test_embed_123',
+        'client_secret' => 'pi_test_embed_123_secret_abc',
+    ]);
+
+    $this->mock(CreatePaymentIntent::class, function ($mock) use ($paymentIntent): void {
+        $mock->shouldReceive('create')->once()->andReturn($paymentIntent);
+    });
+
+    Livewire::withQueryParams(['embed' => 1])
+        ->test(DonationForm::class, ['element' => $element])
+        ->set('frequency', 'one_time')
+        ->set('amount', 30)
+        ->set('name', 'Embedded Donor')
+        ->set('email', 'embedded@example.test')
+        ->call('submit')
+        ->assertSet('isEmbed', true)
+        ->assertHasNoErrors()
+        ->assertReturned('pi_test_embed_123_secret_abc')
+        ->assertSee('px-4 py-5 sm:px-5', false)
+        ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
+
+    $donor = Donor::query()->where('email', 'embedded@example.test')->firstOrFail();
+    $donation = Donation::query()->whereBelongsTo($donor)->firstOrFail();
+
+    expect($donation->gross_amount)->toBe('30.00')
+        ->and($donation->status)->toBe(DonationStatus::Pending)
+        ->and($donation->type)->toBe(DonationType::OneTime)
+        ->and($donation->stripe_payment_intent_id)->toBe('pi_test_embed_123');
 });
 
 it('confirms a recurring payment and creates a subscription', function () {
