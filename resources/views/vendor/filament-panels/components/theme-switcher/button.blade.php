@@ -16,7 +16,7 @@
         theme: $store.theme,
     }"
     x-bind:aria-pressed="theme === @js($theme)"
-    x-bind:class="theme === @js($theme) ? 'bg-primary/15 ring-1 ring-primary/40 text-primary shadow-sm' : 'text-muted-foreground hover:bg-muted'"
+    x-bind:class="{ 'fi-active': theme === @js($theme) }"
     class="fi-theme-switcher-btn rounded-lg p-1.5 transition duration-150"
 >
     {{

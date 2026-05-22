@@ -22,7 +22,7 @@
 
 .fi-theme-switcher .fi-theme-switcher-btn {
     display: flex !important;
-    min-height: calc(var(--spacing) * 12) !important;
+    min-height: calc(var(--spacing) * 18) !important;
     width: 100% !important;
     align-items: center !important;
     justify-content: center !important;
@@ -37,21 +37,16 @@
 }
 
 .fi-theme-switcher .fi-theme-switcher-btn.fi-active {
-    background-color: color-mix(in oklab, var(--primary-500) 34%, transparent) !important;
-    border-color: color-mix(in oklab, var(--primary-500) 70%, transparent) !important;
-    color: var(--primary-600) !important;
-    box-shadow:
-        0 1px 2px 0 rgb(0 0 0 / 0.05),
-        0 0 22px color-mix(in oklab, var(--primary-500) 26%, transparent) !important;
+    background-color: var(--color-zinc-100) !important;
+    border-color: transparent !important;
+    color: var(--color-blue-600) !important;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.08) !important;
 }
 
 .fi-theme-switcher .fi-theme-switcher-btn.fi-active:where(.dark, .dark *) {
-    background-color: color-mix(in oklab, var(--primary-400) 30%, transparent) !important;
-    border-color: color-mix(in oklab, var(--primary-400) 70%, transparent) !important;
-    color: var(--primary-400) !important;
-    box-shadow:
-        0 1px 2px 0 rgb(0 0 0 / 0.35),
-        0 0 22px color-mix(in oklab, var(--primary-400) 28%, transparent) !important;
+    background-color: var(--color-zinc-800) !important;
+    color: var(--color-blue-400) !important;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.35) !important;
 }
 
 .fi-theme-switcher .fi-theme-switcher-btn:not(.fi-active) {
