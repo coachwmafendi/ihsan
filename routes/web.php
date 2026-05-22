@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\EmbedCheckoutController;
+use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Livewire\DonationForm;
@@ -17,7 +18,13 @@ Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
 
-Route::middleware(['auth', 'verified'])->group(function () {});
+Route::middleware('auth')->group(function () {
+    Route::get('/stripe/connect/redirect', [StripeConnectController::class, 'redirect'])
+        ->name('stripe.connect.redirect');
+});
+
+Route::get('/stripe/connect/callback', [StripeConnectController::class, 'callback'])
+    ->name('stripe.connect.callback');
 
 use App\Http\Controllers\DonorAuthController;
 use App\Http\Controllers\DonorPortalController;

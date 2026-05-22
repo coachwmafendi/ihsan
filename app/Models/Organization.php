@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'code', 'ros_rob_number', 'registration_type', 'description', 'logo_path', 'website_url', 'contact_email', 'contact_phone', 'status', 'stripe_account_id', 'stripe_onboarded', 'bank_account_name', 'bank_account_number', 'bank_name', 'settings', 'approved_at', 'approved_by'])]
+#[Fillable(['name', 'code', 'ros_rob_number', 'registration_type', 'description', 'logo_path', 'website_url', 'contact_email', 'contact_phone', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'sector', 'tax_exempt', 'status', 'stripe_account_id', 'stripe_onboarded', 'bank_account_name', 'bank_account_number', 'bank_name', 'settings', 'approved_at', 'approved_by'])]
 class Organization extends Model
 {
     /** @use HasFactory<OrganizationFactory> */
@@ -64,6 +64,7 @@ class Organization extends Model
         return [
             'settings' => 'array',
             'stripe_onboarded' => 'boolean',
+            'tax_exempt' => 'boolean',
             'approved_at' => 'datetime',
             'status' => OrganizationStatus::class,
         ];

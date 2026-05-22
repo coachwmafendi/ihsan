@@ -8,19 +8,20 @@
 
 /* Demo-style tabs for Organizations */
 .ihsan-org-tabs {
-    @apply overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm;
+    @apply overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-gray-900;
+    max-width: 100%;
 }
 
 .ihsan-org-tabs .fi-tabs-tabs {
-    @apply flex items-center gap-1 border-b border-zinc-200 bg-zinc-50/60 px-4 pt-3;
+    @apply flex items-center gap-1 border-b border-zinc-200 bg-zinc-50/60 px-4 pt-3 dark:border-zinc-700 dark:bg-gray-800/60;
 }
 
 .ihsan-org-tabs .fi-tabs-tab {
-    @apply flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700;
+    @apply flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300;
 }
 
 .ihsan-org-tabs .fi-tabs-tab.fi-tabs-tab-active {
-    @apply bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200;
+    @apply bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200 dark:bg-gray-900 dark:text-white dark:ring-zinc-700;
 }
 
 .ihsan-org-tabs .fi-tabs-tab-icon {

@@ -54,6 +54,11 @@ class UsersRelationManager extends RelationManager
                     ->label('Invited')
                     ->dateTime()
                     ->sortable(),
+                TextColumn::make('last_login_at')
+                    ->label('Last Login')
+                    ->dateTime()
+                    ->sortable()
+                    ->placeholder('Never'),
             ])
             ->filters([
                 //

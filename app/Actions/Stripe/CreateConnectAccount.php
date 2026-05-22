@@ -5,6 +5,7 @@ namespace App\Actions\Stripe;
 use App\Models\Organization;
 use Stripe\Account;
 use Stripe\AccountLink;
+use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 
 class CreateConnectAccount
@@ -14,10 +15,8 @@ class CreateConnectAccount
         Stripe::setApiKey(config('services.stripe.secret'));
 
         $account = Account::create([
-            'type' => 'express',
-            'country' => 'MY',
+            'type' => 'standard',
             'email' => $organization->contact_email,
-            'business_type' => 'non_profit',
             'business_profile' => [
                 'name' => $organization->name,
                 'url' => $organization->website_url,
@@ -44,5 +43,24 @@ class CreateConnectAccount
         ]);
 
         return $accountLink->url;
+    }
+
+    public function verifyAndConnect(string $accountId): array
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        try {
+            $account = Account::retrieve($accountId);
+        } catch (ApiErrorException) {
+            return [
+                'valid' => false,
+                'reason' => 'Akaun ini tidak disambungkan ke platform kami. Sila gunakan butang "Buat akaun Stripe baru" untuk mencipta akaun Connect yang serasi.',
+            ];
+        }
+
+        return [
+            'valid' => true,
+            'charges_enabled' => $account->charges_enabled ?? false,
+        ];
     }
 }
