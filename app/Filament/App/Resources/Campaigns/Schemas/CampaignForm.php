@@ -33,8 +33,8 @@ class CampaignForm
                         Tab::make('Overview')
                             ->icon('heroicon-o-document-text')
                             ->schema([
-                                Section::make('General')
-                                    ->description('Name, status and donor-facing campaign copy.')
+                                Section::make('Umum')
+                                    ->description('Nama, status dan salinan kempen untuk penderma.')
                                     ->columns(2)
                                     ->schema([
                                         TextInput::make('title')
@@ -45,11 +45,13 @@ class CampaignForm
                                             ->afterStateUpdated(fn ($state, $set) => $set('slug', str($state)->slug()))
                                             ->columnSpanFull(),
                                         TextInput::make('slug')
+                                            ->label('Pautan')
                                             ->required()
                                             ->maxLength(255)
                                             ->unique(ignoreRecord: true)
                                             ->columnSpanFull(),
                                         Select::make('status')
+                                            ->label('Status')
                                             ->required()
                                             ->options(CampaignStatus::class),
                                         TextInput::make('headline')
@@ -60,10 +62,11 @@ class CampaignForm
                                             ->maxLength(500)
                                             ->columnSpanFull(),
                                     ]),
-                                Section::make('Story and media')
-                                    ->description('Campaign page content and main image.')
+                                Section::make('Kisah & media')
+                                    ->description('Kandungan halaman kempen dan gambar utama.')
                                     ->schema([
                                         RichEditor::make('description')
+                                            ->label('Penerangan')
                                             ->columnSpanFull(),
                                         FileUpload::make('image_path')
                                             ->label('Gambar utama')
@@ -75,28 +78,28 @@ class CampaignForm
                         Tab::make('Settings')
                             ->icon('heroicon-o-cog-6-tooth')
                             ->schema([
-                                Section::make('Frequencies')
-                                    ->description('Control donation frequencies and custom amount behavior.')
+                                Section::make('Kekerapan')
+                                    ->description('Kawal kekerapan derma dan jumlah khas.')
                                     ->columns(2)
                                     ->schema([
                                         Toggle::make('allow_recurring')
-                                            ->label('Allow monthly donations'),
+                                            ->label('Benarkan derma bulanan'),
                                         Toggle::make('allow_custom_amount')
-                                            ->label('Allow custom amount'),
+                                            ->label('Benarkan jumlah khas'),
                                     ]),
-                                Section::make('Amounts')
-                                    ->description('Set campaign targets, minimum donation rules and timing.')
+                                Section::make('Jumlah')
+                                    ->description('Tetapkan sasaran, jumlah minimum dan tempoh kempen.')
                                     ->columns(2)
                                     ->schema([
                                         Toggle::make('has_target')
                                             ->label('Tetapkan sasaran kutipan'),
                                         TextInput::make('target_amount')
-                                            ->label('Target amount')
+                                            ->label('Jumlah sasaran')
                                             ->numeric()
                                             ->prefix('MYR')
                                             ->hidden(fn ($get) => ! $get('has_target')),
                                         TextInput::make('minimum_amount')
-                                            ->label('Minimum amount')
+                                            ->label('Jumlah minimum')
                                             ->numeric()
                                             ->prefix('MYR'),
                                         DatePicker::make('end_date')
@@ -104,31 +107,32 @@ class CampaignForm
                                             ->format('Y-m-d')
                                             ->displayFormat('d/m/Y'),
                                     ]),
-                                Section::make('Suggested Amounts')
-                                    ->description('Preset donation buttons shown in the checkout form.')
+                                Section::make('Jumlah disarankan')
+                                    ->description('Butang jumlah tersedia di halaman checkout.')
                                     ->schema([
                                         SuggestedAmounts::make('suggested_amounts')
+                                            ->label('Jumlah disarankan')
                                             ->columnSpanFull(),
                                     ]),
-                                Section::make('Payment')
-                                    ->description('Choose how this campaign processes donations.')
+                                Section::make('Pembayaran')
+                                    ->description('Pilih cara pemprosesan derma.')
                                     ->columns(2)
                                     ->schema([
                                         Select::make('payment_gateway')
-                                            ->label('Payment gateway')
+                                            ->label('Pemproses pembayaran')
                                             ->options(PaymentGateway::class)
                                             ->default(PaymentGateway::Stripe),
                                     ]),
-                                Section::make('Supporter experience')
-                                    ->description('Configure post-donation messaging and redirects.')
+                                Section::make('Pengalaman penyokong')
+                                    ->description('Konfigurasi mesej selepas derma dan redirect.')
                                     ->columns(2)
                                     ->schema([
                                         Textarea::make('thank_you_message')
-                                            ->label('Thank you message')
+                                            ->label('Mesej terima kasih')
                                             ->rows(3)
                                             ->columnSpanFull(),
                                         TextInput::make('redirect_url')
-                                            ->label('Redirect URL')
+                                            ->label('URL redirect')
                                             ->url()
                                             ->placeholder('https://')
                                             ->columnSpanFull(),
@@ -137,28 +141,28 @@ class CampaignForm
                         Tab::make('Checkout Modal')
                             ->icon('heroicon-o-credit-card')
                             ->schema([
-                                Section::make('Embed trigger')
-                                    ->description('Settings for script-based modal checkout on client websites.')
+                                Section::make('Benam modal')
+                                    ->description('Tetapan untuk daftar masuk modal berdasarkan skrip di laman web klien.')
                                     ->columns(2)
                                     ->schema([
                                         Toggle::make('checkout_modal_enabled')
-                                            ->label('Enable modal checkout')
-                                            ->helperText('Allow this campaign to open inside the Ihsan embed modal.')
+                                            ->label('Benarkan daftar masuk modal')
+                                            ->helperText('Benarkan kempen ini dibuka dalam modal Ihsan.')
                                             ->default(false)
                                             ->columnSpanFull(),
                                         TextInput::make('form_parameter')
-                                            ->label('Form parameter')
-                                            ->helperText('Example: MTMTDEVEFUND. Use ?form=THIS in URL to trigger modal checkout.')
+                                            ->label('Parameter borang')
+                                            ->helperText('Contoh: MTMTDEVEFUND. Guna ?form=THIS dalam URL untuk buka daftar masuk modal.')
                                             ->maxLength(255)
                                             ->unique(ignoreRecord: true)
                                             ->columnSpanFull(),
                                         TagsInput::make('checkout_allowed_domains')
-                                            ->label('Allowed domains')
-                                            ->helperText('Only these client website domains can open this campaign in the embed modal.')
-                                            ->placeholder('Add domain')
+                                            ->label('Domain dibenarkan')
+                                            ->helperText('Hanya domain ini boleh buka kempen dalam modal benam.')
+                                            ->placeholder('Tambah domain')
                                             ->columnSpanFull(),
                                         Placeholder::make('embed_modal_note')
-                                            ->label('Install script')
+                                            ->label('Pasang skrip')
                                             ->content(fn ($get) => new HtmlString(self::embedSnippetHtml($get('form_parameter'))))
                                             ->columnSpanFull(),
                                     ]),
@@ -166,15 +170,15 @@ class CampaignForm
                         Tab::make('Campaign Page')
                             ->icon('heroicon-o-globe-alt')
                             ->schema([
-                                Section::make('Hosted page')
-                                    ->description('Direct campaign page and hosted donation settings.')
+                                Section::make('Halaman dihoskan')
+                                    ->description('Halaman kempen terus dan tetapan derma.')
                                     ->schema([
                                         Placeholder::make('hosted_page_note')
-                                            ->label('Hosted donation page')
+                                            ->label('Halaman derma')
                                             ->content(fn ($record) => new HtmlString(
                                                 $record
-                                                    ? 'Direct page: <code>'.e(url('/donate/'.$record->slug)).'</code>'
-                                                    : 'Save the campaign to generate its hosted donation page URL.'
+                                                    ? 'Halaman terus: <code>'.e(url('/donate/'.$record->slug)).'</code>'
+                                                    : 'Simpan kempen untuk menjana URL halaman derma.'
                                             ))
                                             ->columnSpanFull(),
                                     ]),
@@ -185,21 +189,21 @@ class CampaignForm
                             ->columns(3)
                             ->schema([
                                 Placeholder::make('collected_amount')
-                                    ->label('Total Collected')
+                                    ->label('Jumlah terkumpul')
                                     ->content(fn ($record) => new HtmlString(
                                         '<span class="text-2xl font-bold text-emerald-600">RM '.number_format($record->collected_amount ?? 0, 2).'</span>'
                                     )),
                                 Placeholder::make('donation_count')
-                                    ->label('Total Donations')
+                                    ->label('Jumlah derma')
                                     ->content(fn ($record) => new HtmlString(
                                         '<span class="text-2xl font-bold text-zinc-900">'.$record->donations()->count().'</span>'
                                     )),
                                 Placeholder::make('campaign_url')
-                                    ->label('Campaign URL')
+                                    ->label('URL kempen')
                                     ->content(fn ($record) => new HtmlString(
                                         '<div x-data="{ copied: false, url: \''.e(url('/donate/'.$record->slug)).'\' }" class="flex items-center gap-2">'
                                         .'<code class="flex-1 truncate text-sm text-zinc-600" x-text="url"></code>'
-                                        .'<button type="button" x-on:click="navigator.clipboard.writeText(url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Copied!\' : \'Copy\'"></button>'
+                                        .'<button type="button" x-on:click="navigator.clipboard.writeText(url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
                                         .'</div>'
                                     ))
                                     ->columnSpan(2),
@@ -217,11 +221,11 @@ class CampaignForm
         $link = '<a href="?form='.$formParameter.'">Donate</a>';
 
         return '<div class="space-y-3">'
-            .'<p class="text-sm text-zinc-600">Add the script once on the client website, then use a button or link trigger to open this campaign as a modal checkout.</p>'
-            .self::copyableSnippet('Script tag', $script)
-            .self::copyableSnippet('Button trigger', $button)
-            .self::copyableSnippet('Link trigger', $link)
-            .'<p class="text-xs text-zinc-500">Domain allowlist will be enforced by Ihsan before the checkout form opens.</p>'
+            .'<p class="text-sm text-zinc-600">Letakkan skrip sekali di laman web klien, kemudian guna butang atau pautan untuk buka kempen ini sebagai daftar masuk modal.</p>'
+            .self::copyableSnippet('Skrip', $script)
+            .self::copyableSnippet('Butang', $button)
+            .self::copyableSnippet('Pautan', $link)
+            .'<p class="text-xs text-zinc-500">Senarai domain dibenarkan akan dikuatkuasakan oleh Ihsan sebelum borang checkout dibuka.</p>'
             .'</div>';
     }
 
@@ -230,7 +234,7 @@ class CampaignForm
         return '<div x-data="{ copied: false, code: '.Js::from($code).' }" class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">'
             .'<div class="mb-2 flex items-center justify-between gap-3">'
             .'<span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">'.e($label).'</span>'
-            .'<button type="button" x-on:click="navigator.clipboard.writeText(code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Copied\' : \'Copy\'"></button>'
+            .'<button type="button" x-on:click="navigator.clipboard.writeText(code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Disalin\' : \'Salin\'"></button>'
             .'</div>'
             .'<code class="block overflow-x-auto whitespace-pre rounded-md bg-white p-2 text-xs text-zinc-700 ring-1 ring-zinc-200">'.e($code).'</code>'
             .'</div>';

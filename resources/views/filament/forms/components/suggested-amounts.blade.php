@@ -63,9 +63,9 @@
         <div class="border-b border-zinc-200 bg-zinc-50/80 px-4 py-5 dark:border-white/10 dark:bg-white/5 sm:px-6">
             <div class="space-y-4">
                 <div class="mx-auto max-w-lg space-y-1 text-center">
-                    <p class="text-sm font-semibold text-zinc-950 dark:text-white">Frequency presets</p>
+                    <p class="text-sm font-semibold text-zinc-950 dark:text-white">Pra-set kekerapan</p>
                     <p class="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-                        Set the donation buttons supporters see for one-time and monthly giving.
+                        Tetapkan butang derma untuk sokongan satu masa dan bulanan.
                     </p>
                 </div>
 
@@ -82,7 +82,7 @@
                         :class="activeTab === 'one-time' ? 'bg-white text-zinc-950 shadow-sm dark:bg-zinc-950 dark:text-white' : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'"
                         class="rounded-md px-4 py-2 text-sm font-semibold transition"
                     >
-                        One-time
+                        Satu masa
                     </button>
                     <button
                         type="button"
@@ -92,7 +92,7 @@
                         :class="activeTab === 'monthly' ? 'bg-white text-zinc-950 shadow-sm dark:bg-zinc-950 dark:text-white' : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'"
                         class="rounded-md px-4 py-2 text-sm font-semibold transition"
                     >
-                        Monthly
+                        Bulanan
                     </button>
                 </div>
             </div>
@@ -102,10 +102,10 @@
             <div class="mx-auto max-w-xl space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h4 class="text-sm font-semibold text-zinc-950 dark:text-white">Preset amounts</h4>
-                        <p class="text-sm text-zinc-500 dark:text-zinc-400" x-text="activeTab === 'monthly' ? 'Shown when a supporter chooses monthly giving.' : 'Shown when a supporter chooses a one-time donation.'"></p>
+                        <h4 class="text-sm font-semibold text-zinc-950 dark:text-white">Jumlah pra-set</h4>
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400" x-text="activeTab === 'monthly' ? 'Dipaparkan apabila penyokong memilih derma bulanan.' : 'Dipaparkan apabila penyokong memilih derma satu masa.'"></p>
                     </div>
-                    <span class="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400" x-text="(activeTab === 'one-time' ? oneTimeAmounts.length : monthlyAmounts.length) + ' options'"></span>
+                    <span class="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400" x-text="(activeTab === 'one-time' ? oneTimeAmounts.length : monthlyAmounts.length) + ' pilihan'"></span>
                 </div>
 
                 <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
@@ -115,14 +115,14 @@
                                 type="button"
                                 @click="removeAmount(index)"
                                 class="absolute -right-1.5 -top-1.5 hidden size-5 items-center justify-center rounded-full bg-red-500 text-white shadow-sm transition hover:bg-red-600 group-hover:flex dark:bg-red-600 dark:hover:bg-red-500"
-                                aria-label="Remove amount"
+                                aria-label="Buang jumlah"
                             >
                                 <svg class="size-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
 
-                            <span class="mb-2 block text-xs font-medium text-zinc-500 dark:text-zinc-400" x-text="'Option ' + (index + 1)"></span>
+                            <span class="mb-2 block text-xs font-medium text-zinc-500 dark:text-zinc-400" x-text="'Pilihan ' + (index + 1)"></span>
                             <span class="flex min-h-11 items-center rounded-md border border-zinc-200 bg-white shadow-xs transition group-focus-within:border-primary-500 dark:border-white/10 dark:bg-zinc-900">
                                 <span class="flex h-full items-center border-r border-zinc-200 px-3 text-sm font-semibold text-zinc-500 dark:border-white/10 dark:text-zinc-400">RM</span>
                                 <input
@@ -147,7 +147,7 @@
                     <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                     </svg>
-                    Add amount
+                    Tambah jumlah
                 </button>
             </div>
 
@@ -158,12 +158,12 @@
             >
                 <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
                     <div class="space-y-1">
-                        <label class="text-sm font-semibold text-zinc-950 dark:text-white" for="suggested-amounts-default-monthly">
-                            Monthly default
-                        </label>
-                        <p class="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-                            Donors see this amount preselected when monthly giving is active.
-                        </p>
+                            <label class="text-sm font-semibold text-zinc-950 dark:text-white" for="suggested-amounts-default-monthly">
+                                Bulanan lalai
+                            </label>
+                            <p class="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+                                Penderma lihat jumlah ini sebagai pra-pilih untuk derma bulanan.
+                            </p>
                     </div>
 
                     <div class="flex min-h-11 w-full items-center rounded-md border border-primary-200 bg-white shadow-xs focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/20 dark:border-primary-500/30 dark:bg-zinc-950 lg:w-44">
