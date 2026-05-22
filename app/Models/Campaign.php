@@ -34,7 +34,7 @@ class Campaign extends Model
                     ->where('id', '!=', $campaign->id)
                     ->exists()
                 ) {
-                    $candidate = $base . $i;
+                    $candidate = $base.$i;
                     $i++;
                 }
 

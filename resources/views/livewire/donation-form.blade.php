@@ -352,74 +352,89 @@
 
 @script
 <script>
-    Alpine.data('donationForm', (initialFrequency, initialAmount) => ({
-        frequency: initialFrequency,
-        amount: initialAmount,
-        processing: false,
-        success: false,
-        error: false,
-        errorMessage: '',
-        cardError: '',
-        cardElement: null,
-        stripe: null,
+    Alpine.data('donationForm', (initialFrequency, initialAmount) => {
+        let stripe = null;
+        let cardElement = null;
 
-        async init() {
-            this.stripe = Stripe(window.stripePublishableKey);
-            const elements = this.stripe.elements({ locale: 'ms' });
-            this.cardElement = elements.create('card', {
-                hidePostalCode: true,
-                style: {
-                    base: { fontSize: '16px', color: '#212830', '::placeholder': { color: '#94a3b8' } },
-                },
-            });
-            this.cardElement.mount('#card-element');
-            this.cardElement.on('change', (event) => {
-                this.cardError = event.error ? event.error.message : '';
-            });
-        },
+        return {
+            frequency: initialFrequency,
+            amount: initialAmount,
+            processing: false,
+            success: false,
+            error: false,
+            errorMessage: '',
+            cardError: '',
 
-        async handleSubmit() {
-            this.processing = true;
-            $wire.$set('frequency', this.frequency, false);
-            $wire.$set('amount', this.amount, false);
+            async init() {
+                stripe = Stripe(window.stripePublishableKey);
+                const elements = stripe.elements({ locale: 'ms' });
+                cardElement = elements.create('card', {
+                    hidePostalCode: true,
+                    style: {
+                        base: { fontSize: '16px', color: '#212830', '::placeholder': { color: '#94a3b8' } },
+                    },
+                });
+                cardElement.mount('#card-element');
+                cardElement.on('change', (event) => {
+                    this.cardError = event.error ? event.error.message : '';
+                });
+            },
 
-            let clientSecret;
+            async handleSubmit() {
+                this.processing = true;
+                this.cardError = '';
 
-            try {
-                clientSecret = await $wire.submit();
-            } catch (e) {
-                this.processing = false;
-                return;
-            }
-
-            if (!clientSecret) {
-                this.processing = false;
-                return;
-            }
-
-            const { paymentIntent, error: confirmError } = await this.stripe.confirmCardPayment(clientSecret, {
-                payment_method: {
-                    card: this.cardElement,
+                const { paymentMethod, error: pmError } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardElement,
                     billing_details: {
                         name: $wire.name,
                         email: $wire.email,
                         phone: $wire.phone,
                     },
-                },
-            });
+                });
 
-            if (confirmError) {
-                this.processing = false;
-                this.error = true;
-                this.errorMessage = confirmError.message;
-                return;
-            }
+                if (pmError) {
+                    this.processing = false;
+                    this.error = true;
+                    this.errorMessage = pmError.message;
+                    return;
+                }
 
-            if (paymentIntent.status === 'succeeded') {
-                this.processing = false;
-                this.success = true;
-            }
-        },
-    }));
+                $wire.$set('frequency', this.frequency, false);
+                $wire.$set('amount', this.amount, false);
+
+                let clientSecret;
+
+                try {
+                    clientSecret = await $wire.submit();
+                } catch (e) {
+                    this.processing = false;
+                    return;
+                }
+
+                if (!clientSecret) {
+                    this.processing = false;
+                    return;
+                }
+
+                const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: paymentMethod.id,
+                });
+
+                if (confirmError) {
+                    this.processing = false;
+                    this.error = true;
+                    this.errorMessage = confirmError.message;
+                    return;
+                }
+
+                if (paymentIntent.status === 'succeeded') {
+                    this.processing = false;
+                    this.success = true;
+                }
+            },
+        };
+    });
 </script>
 @endscript

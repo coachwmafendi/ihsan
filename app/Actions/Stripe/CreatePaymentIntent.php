@@ -21,6 +21,10 @@ class CreatePaymentIntent
         $params = [
             'amount' => (int) ((float) $donation->gross_amount * 100),
             'currency' => strtolower($donation->currency),
+            'automatic_payment_methods' => [
+                'enabled' => true,
+                'allow_redirects' => 'never',
+            ],
             'metadata' => [
                 'donation_id' => (string) $donation->getKey(),
                 'donor_email' => $donation->donor?->email ?? '',
