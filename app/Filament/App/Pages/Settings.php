@@ -18,7 +18,7 @@ class Settings extends Page implements HasActions
 
     protected static ?string $navigationLabel = 'Settings';
 
-    protected static ?int $navigationSort = 99;
+    protected static ?int $navigationSort = 999;
 
     public function reconnectAction(): Action
     {
