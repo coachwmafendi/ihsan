@@ -1,8 +1,8 @@
 <x-filament::page>
     <div class="flex flex-col items-center justify-center py-16 text-center">
         <div class="mx-auto mb-8 flex items-center justify-center gap-4">
-            <div class="flex size-20 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-                <img src="https://www.kleer.se/wp-content/uploads/2025/10/Stripe-Emblem-scaled.png" alt="Stripe" class="size-10 object-contain">
+            <div class="flex size-20 items-center justify-center rounded-full bg-white p-3 ring-1 ring-amber-200 dark:bg-gray-800 dark:ring-amber-700">
+                <img src="https://www.kleer.se/wp-content/uploads/2025/10/Stripe-Emblem-scaled.png" alt="Stripe" class="h-full w-full object-contain">
             </div>
             <div class="flex size-20 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
                 <x-heroicon-o-link class="size-10 text-amber-600 dark:text-amber-400" />
