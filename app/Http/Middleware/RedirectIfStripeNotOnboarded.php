@@ -16,6 +16,10 @@ class RedirectIfStripeNotOnboarded
             return $next($request);
         }
 
+        if ($request->routeIs('filament.app.pages.stripe-onboarding')) {
+            return $next($request);
+        }
+
         $org = $user->organization;
 
         if ($org->stripe_account_id && ! $org->stripe_onboarded) {
