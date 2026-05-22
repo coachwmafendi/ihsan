@@ -166,7 +166,13 @@ JS;
 
         return collect($allowedDomains)
             ->filter()
-            ->map(fn (string $domain): string => Str::lower($domain))
+            ->map(function (string $domain): string {
+                $domain = Str::lower(trim($domain));
+
+                $parsed = parse_url($domain);
+
+                return $parsed['host'] ?? $domain;
+            })
             ->contains(fn (string $domain): bool => $host === $domain || Str::endsWith($host, '.'.$domain));
     }
 }
