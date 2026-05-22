@@ -45,15 +45,15 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertSee('RM 200')
         ->assertSee('RM 5')
         ->assertSee('Donate monthly')
-        ->assertSee('x-show="!processing && !success && !error"', false)
-        ->assertDontSee('x-show="!processing && !success && !error" x-cloak', false)
+        ->assertSee('x-show="!success && !error"', false)
+        ->assertDontSee('x-show="!processing && !success && !error"', false)
         ->assertSee("x-on:click=\"frequency = 'one_time'\"", false)
         ->assertSee("x-on:click=\"frequency = 'monthly'\"", false)
         ->assertDontSee("wire:click=\"selectFrequency('monthly')\"", false)
         ->assertDontSee('wire:click="selectAmount', false)
         ->assertSee('$wire.$set(&#039;frequency&#039;, this.frequency, false)', false)
         ->assertSee('$wire.$set(&#039;amount&#039;, this.amount, false)', false)
-        ->assertSee('x-show="processing" x-cloak', false)
+        ->assertSee('x-show="processing && !success && !error" x-cloak', false)
         ->assertSee('x-show="success" x-cloak', false)
         ->assertSee('x-show="error" x-cloak', false);
 });
@@ -197,6 +197,36 @@ it('renders the hosted donation form as an image-led popup', function () {
         ->assertSee('RM 30')
         ->assertSee('Donate monthly')
         ->assertDontSee('Your most generous donation');
+});
+
+it('passes current donor details to stripe billing details', function () {
+    $organization = Organization::factory()->create([
+        'name' => 'PUSAT TAHFIZ ANNUR',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'title' => 'Wakaf Pembangunan Pusat Tahfiz Annur',
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+
+    $this->get(route('donations.show', ['element' => $element, 'popup' => 1]))
+        ->assertOk()
+        ->assertSee('donorName', false)
+        ->assertSee('x-model="donorName"', false)
+        ->assertSee('donorEmail', false)
+        ->assertSee('x-model="donorEmail"', false)
+        ->assertSee('donorPhone', false)
+        ->assertSee('x-model="donorPhone"', false)
+        ->assertSee('$wire.$set(&#039;name&#039;, this.donorName, false)', false)
+        ->assertSee('$wire.$set(&#039;email&#039;, this.donorEmail, false)', false)
+        ->assertSee('$wire.$set(&#039;phone&#039;, this.donorPhone, false)', false)
+        ->assertSee('stripe.createPaymentMethod', false)
+        ->assertSee('name: this.donorName', false)
+        ->assertSee('email: this.donorEmail', false)
+        ->assertSee('phone: this.donorPhone || undefined', false)
+        ->assertSee('receipt_email: this.donorEmail', false)
+        ->assertSee('payment_method: paymentMethod.id', false);
 });
 
 it('does not render inactive or non form elements', function () {
@@ -360,6 +390,40 @@ it('confirms a recurring payment and creates a subscription', function () {
         ->and((float) $subscription->amount)->toBe(100.00)
         ->and($subscription->interval->value)->toBe('monthly')
         ->and($subscription->status->value)->toBe('active');
+});
+
+it('stores the latest charge id when confirming a payment', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => ['default_amount' => 5],
+    ]);
+
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'stripe_payment_intent_id' => 'pi_test_latest_charge',
+        'gross_amount' => 100.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::OneTime,
+    ]);
+
+    $paymentIntent = PaymentIntent::constructFrom([
+        'id' => 'pi_test_latest_charge',
+        'object' => 'payment_intent',
+        'payment_method' => null,
+        'latest_charge' => [
+            'id' => 'ch_latest_123',
+            'object' => 'charge',
+            'balance_transaction' => null,
+        ],
+    ]);
+
+    Livewire::test(DonationForm::class, ['element' => $element])
+        ->call('confirmPayment', 'pi_test_latest_charge', $paymentIntent);
+
+    expect($donation->refresh()->stripe_charge_id)->toBe('ch_latest_123');
 });
 
 it('does not create a subscription for one-time donations', function () {

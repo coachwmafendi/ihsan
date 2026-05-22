@@ -104,9 +104,10 @@ class ProcessStripeWebhook implements ShouldQueue
             }
         }
 
-        $chargeId = $paymentIntent->charges->data[0]->id ?? null;
+        $charge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
+        $chargeId = is_string($charge) ? $charge : ($charge->id ?? null);
         $stripeFee = 0;
-        $balanceTransaction = $paymentIntent->charges->data[0]->balance_transaction ?? null;
+        $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
 
         if ($balanceTransaction) {
             try {

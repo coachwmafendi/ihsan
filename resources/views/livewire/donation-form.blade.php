@@ -162,8 +162,8 @@
                         style="background-color: {{ $backgroundColor }}; color: {{ $textColor }}; border: {{ $borderSize }}px solid {{ $borderColor }}; border-radius: {{ $isCompact ? $borderRadius : $borderRadius + 10 }}px;"
                     @endif
                 >
-                    <div x-data="donationForm(@js($frequency), @js($amount))">
-                        <div x-show="!processing && !success && !error">
+                    <div x-data="donationForm(@js($frequency), @js($amount), @js($name), @js($email), @js($phone))">
+                        <div x-show="!success && !error">
                             <form class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}" @submit.prevent="handleSubmit">
                                 <div class="grid grid-cols-2 gap-2">
                                     <button
@@ -247,7 +247,7 @@
 
                                     <label class="block">
                                         <span class="mb-1 block text-sm font-medium text-slate-700">Name</span>
-                                        <input wire:model="name" type="text" autocomplete="name" class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" placeholder="Your full name" />
+                                        <input wire:model="name" x-model="donorName" type="text" autocomplete="name" class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" placeholder="Your full name" />
                                         @error('name')
                                             <span class="mt-1 block text-sm text-red-600">{{ $message }}</span>
                                         @enderror
@@ -255,7 +255,7 @@
 
                                     <label class="block">
                                         <span class="mb-1 block text-sm font-medium text-slate-700">Email</span>
-                                        <input wire:model="email" type="email" autocomplete="email" class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" placeholder="you@example.com" />
+                                        <input wire:model="email" x-model="donorEmail" type="email" autocomplete="email" class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" placeholder="you@example.com" />
                                         @error('email')
                                             <span class="mt-1 block text-sm text-red-600">{{ $message }}</span>
                                         @enderror
@@ -263,7 +263,7 @@
 
                                     <label class="block">
                                         <span class="mb-1 block text-sm font-medium text-slate-700">Phone <span class="text-slate-400 font-normal">(optional)</span></span>
-                                        <input wire:model="phone" type="tel" autocomplete="tel" class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" placeholder="012-345 6789" />
+                                        <input wire:model="phone" x-model="donorPhone" type="tel" autocomplete="tel" class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" placeholder="012-345 6789" />
                                     </label>
                                 </div>
 
@@ -303,7 +303,7 @@
                             </form>
                         </div>
 
-                        <div x-show="processing" x-cloak class="py-8 text-center">
+                        <div x-show="processing && !success && !error" x-cloak class="py-8 text-center">
                             <div class="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-teal-50">
                                 <svg class="size-5 animate-spin text-teal-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                             </div>
@@ -352,13 +352,16 @@
 
 @script
 <script>
-    Alpine.data('donationForm', (initialFrequency, initialAmount) => {
+    Alpine.data('donationForm', (initialFrequency, initialAmount, initialName = '', initialEmail = '', initialPhone = '') => {
         let stripe = null;
         let cardElement = null;
 
         return {
             frequency: initialFrequency,
             amount: initialAmount,
+            donorName: initialName,
+            donorEmail: initialEmail,
+            donorPhone: initialPhone,
             processing: false,
             success: false,
             error: false,
@@ -381,28 +384,30 @@
             },
 
             async handleSubmit() {
-                this.processing = true;
                 this.cardError = '';
 
-                const { paymentMethod, error: pmError } = await stripe.createPaymentMethod({
+                const { paymentMethod, error: paymentMethodError } = await stripe.createPaymentMethod({
                     type: 'card',
                     card: cardElement,
                     billing_details: {
-                        name: $wire.name,
-                        email: $wire.email,
-                        phone: $wire.phone,
+                        name: this.donorName,
+                        email: this.donorEmail,
+                        phone: this.donorPhone || undefined,
                     },
                 });
 
-                if (pmError) {
-                    this.processing = false;
+                if (paymentMethodError) {
                     this.error = true;
-                    this.errorMessage = pmError.message;
+                    this.errorMessage = paymentMethodError.message;
                     return;
                 }
 
+                this.processing = true;
                 $wire.$set('frequency', this.frequency, false);
                 $wire.$set('amount', this.amount, false);
+                $wire.$set('name', this.donorName, false);
+                $wire.$set('email', this.donorEmail, false);
+                $wire.$set('phone', this.donorPhone, false);
 
                 let clientSecret;
 
@@ -419,6 +424,7 @@
                 }
 
                 const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
+                    receipt_email: this.donorEmail,
                     payment_method: paymentMethod.id,
                 });
 

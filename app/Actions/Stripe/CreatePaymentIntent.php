@@ -25,9 +25,13 @@ class CreatePaymentIntent
                 'enabled' => true,
                 'allow_redirects' => 'never',
             ],
+            'receipt_email' => $donation->donor?->email,
+            'description' => (string) str($donation->campaign->title)->limit(200),
             'metadata' => [
                 'donation_id' => (string) $donation->getKey(),
+                'donor_name' => $donation->donor?->name ?? '',
                 'donor_email' => $donation->donor?->email ?? '',
+                'donor_phone' => $donation->donor?->phone ?? '',
                 'campaign_id' => (string) $donation->campaign_id,
                 'organization_id' => (string) $organization->getKey(),
             ],
