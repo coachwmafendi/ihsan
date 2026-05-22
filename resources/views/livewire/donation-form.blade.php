@@ -430,6 +430,7 @@
                 }
 
                 if (paymentIntent.status === 'succeeded') {
+                    await $wire.confirmPayment(paymentIntent.id);
                     this.processing = false;
                     this.success = true;
                 }
