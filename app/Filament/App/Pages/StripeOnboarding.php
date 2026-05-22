@@ -20,6 +20,15 @@ class StripeOnboarding extends Page
         return false;
     }
 
+    public function mount(): void
+    {
+        $org = auth()->user()->organization;
+
+        if ($org && $org->stripe_onboarded) {
+            $this->redirect(route('filament.app.pages.insights'), navigate: true);
+        }
+    }
+
     public function getOnboardingUrl(): ?string
     {
         $org = auth()->user()->organization;
