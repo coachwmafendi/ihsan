@@ -26,6 +26,7 @@ class EditProfile extends BaseEditProfile
             ->components([
                 FileUpload::make('avatar_url')
                     ->avatar()
+                    ->label('Avatar')
                     ->imageEditor()
                     ->circleCropper()
                     ->directory('avatars')
