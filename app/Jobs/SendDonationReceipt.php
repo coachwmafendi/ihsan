@@ -18,6 +18,8 @@ class SendDonationReceipt implements ShouldQueue
 
     public function handle(): void
     {
+        $this->donation->load(['donor', 'campaign.organization']);
+
         Mail::to($this->donation->donor->email)
             ->send(new DonationReceipt($this->donation));
     }

@@ -17,6 +17,9 @@ class DonorsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query
+                ->withAggregate('donations', 'created_at', 'min')
+                ->withAggregate('donations', 'created_at', 'max'))
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
@@ -29,16 +32,14 @@ class DonorsTable
                     ->sum('donations', 'gross_amount')
                     ->money('MYR')
                     ->sortable(),
-                TextColumn::make('first_donation')
+                TextColumn::make('donations_min_created_at')
                     ->label('First Donation')
-                    ->getStateUsing(fn ($record) => $record->donations()->oldest('created_at')->first()?->created_at)
                     ->date()
-                    ->sortable(query: fn ($query, $direction) => $query->withAggregate('donations', 'created_at', 'min')->orderBy('donations_min_created_at', $direction)),
-                TextColumn::make('last_donation')
+                    ->sortable(),
+                TextColumn::make('donations_max_created_at')
                     ->label('Last Donation')
-                    ->getStateUsing(fn ($record) => $record->donations()->latest('created_at')->first()?->created_at)
                     ->date()
-                    ->sortable(query: fn ($query, $direction) => $query->withAggregate('donations', 'created_at', 'max')->orderBy('donations_max_created_at', $direction)),
+                    ->sortable(),
             ])
             ->defaultSort('last_donation', 'desc')
             ->filters([

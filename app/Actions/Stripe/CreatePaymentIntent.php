@@ -14,6 +14,8 @@ class CreatePaymentIntent
     {
         Stripe::setApiKey(config('services.stripe.secret'));
 
+        $donation->load(['campaign.organization', 'donor']);
+
         $organization = $donation->campaign->organization;
 
         $params = [

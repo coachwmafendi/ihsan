@@ -48,23 +48,29 @@ class Revenue extends Page
                 ->avg('fee_amount'), 2, '.', '')
             : '0.00';
 
+        $succeededDonations = Donation::query()
+            ->selectRaw('campaigns.organization_id, COUNT(*) as donation_count, SUM(gross_amount) as volume')
+            ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
+            ->where('donations.status', DonationStatus::Succeeded)
+            ->groupBy('campaigns.organization_id')
+            ->get()
+            ->keyBy('organization_id');
+
+        $feesByOrg = PlatformFee::query()
+            ->selectRaw('organization_id, SUM(fee_amount) as total_fees')
+            ->where('status', 'transferred')
+            ->groupBy('organization_id')
+            ->get()
+            ->keyBy('organization_id');
+
         $organizations = Organization::query()->get();
 
         $this->revenueByOrganization = $organizations
             ->map(fn (Organization $org): array => [
                 'name' => $org->name,
-                'donations' => Donation::query()
-                    ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
-                    ->where('status', DonationStatus::Succeeded)
-                    ->count(),
-                'volume' => 'MYR '.number_format((float) Donation::query()
-                    ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
-                    ->where('status', DonationStatus::Succeeded)
-                    ->sum('gross_amount'), 2, '.', ''),
-                'fees' => 'MYR '.number_format((float) PlatformFee::query()
-                    ->where('organization_id', $org->id)
-                    ->where('status', 'transferred')
-                    ->sum('fee_amount'), 2, '.', ''),
+                'donations' => (int) ($succeededDonations->get($org->id)?->donation_count ?? 0),
+                'volume' => 'MYR '.number_format((float) ($succeededDonations->get($org->id)?->volume ?? 0), 2, '.', ''),
+                'fees' => 'MYR '.number_format((float) ($feesByOrg->get($org->id)?->total_fees ?? 0), 2, '.', ''),
             ])
             ->filter(fn (array $row) => $row['donations'] > 0)
             ->sortByDesc('donations')
