@@ -37,7 +37,6 @@ class AppPanelProvider extends PanelProvider
             ->globalSearch(position: GlobalSearchPosition::Sidebar)
             ->profile(EditProfile::class, isSimple: false)
             ->homeUrl(fn (): string => route('filament.app.pages.insights'))
-            ->darkMode()
             ->databaseNotifications()
             ->colors([
                 'primary' => Color::Teal,
