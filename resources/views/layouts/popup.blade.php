@@ -13,7 +13,7 @@
         >
             <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close()"></div>
 
-            <div class="relative w-full max-w-sm">
+            <div class="relative w-full max-w-2xl" style="transform: scale(0.75); transform-origin: center center;">
                 <button
                     type="button"
                     @click="close()"
