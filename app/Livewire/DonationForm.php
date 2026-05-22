@@ -3,16 +3,14 @@
 namespace App\Livewire;
 
 use App\Actions\Stripe\CreatePaymentIntent;
+use App\Actions\Stripe\CreateRecurringSubscription;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
-use App\Enums\SubscriptionInterval;
-use App\Enums\SubscriptionStatus;
 use App\Jobs\SendDonationReceipt;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
-use App\Models\Subscription;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -117,17 +115,7 @@ class DonationForm extends Component
             $donation->campaign()->increment('collected_amount', (float) $donation->gross_amount);
 
             if ($donation->type === DonationType::Recurring) {
-                $subscription = Subscription::query()->create([
-                    'campaign_id' => $donation->campaign_id,
-                    'donor_id' => $donation->donor_id,
-                    'amount' => (float) $donation->gross_amount,
-                    'currency' => $donation->currency,
-                    'interval' => SubscriptionInterval::Monthly,
-                    'status' => SubscriptionStatus::Active,
-                    'current_period_start' => now(),
-                    'current_period_end' => now()->addMonth(),
-                ]);
-
+                $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
                 $donation->update(['subscription_id' => $subscription->getKey()]);
             }
 

@@ -2,9 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Actions\Stripe\CreateRecurringSubscription;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
-use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Models\Donation;
 use App\Models\Organization;
@@ -13,14 +13,9 @@ use App\Models\WebhookLog;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Stripe\BalanceTransaction;
-use Stripe\Customer as StripeCustomer;
 use Stripe\Event as StripeEvent;
-use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\PaymentMethod;
-use Stripe\Price as StripePrice;
-use Stripe\Product as StripeProduct;
 use Stripe\Stripe;
-use Stripe\Subscription as StripeSubscription;
 
 class ProcessStripeWebhook implements ShouldQueue
 {
@@ -134,7 +129,8 @@ class ProcessStripeWebhook implements ShouldQueue
         $donation->campaign()->increment('collected_amount', (float) $donation->gross_amount);
 
         if ($donation->type === DonationType::Recurring) {
-            $this->createRecurringSubscription($donation, $paymentIntent, $stripeOptions);
+            $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
+            $donation->update(['subscription_id' => $subscription->getKey()]);
         }
 
         SendDonationReceipt::dispatch($donation);
@@ -250,83 +246,6 @@ class ProcessStripeWebhook implements ShouldQueue
         Subscription::query()
             ->where('stripe_subscription_id', $stripeSubscription->id)
             ->update(['status' => $status]);
-    }
-
-    /**
-     * @param  array<string, string>  $stripeOptions
-     */
-    private function createRecurringSubscription(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions = []): void
-    {
-        $paymentMethodId = $paymentIntent->payment_method;
-        if ($paymentMethodId === null) {
-            return;
-        }
-
-        $donorEmail = $paymentIntent->metadata->donor_email ?? $donation->donor?->email;
-        if ($donorEmail === null) {
-            return;
-        }
-
-        $customerId = is_string($paymentIntent->customer ?? null)
-            ? $paymentIntent->customer
-            : ($paymentIntent->customer->id ?? null);
-
-        if ($customerId === null) {
-            $customer = StripeCustomer::all(['email' => $donorEmail, 'limit' => 1], $stripeOptions)->first()
-                ?? StripeCustomer::create([
-                    'email' => $donorEmail,
-                    'name' => $donation->donor?->name,
-                    'metadata' => [
-                        'donor_id' => (string) $donation->donor_id,
-                    ],
-                ], $stripeOptions);
-
-            $customerId = $customer->id;
-
-            StripePaymentIntent::update($paymentIntent->id, [
-                'customer' => $customerId,
-            ], $stripeOptions);
-
-            $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
-            $paymentMethod->attach(['customer' => $customerId], $stripeOptions);
-        }
-
-        $product = StripeProduct::create([
-            'name' => $donation->campaign?->title ?? 'Donation',
-            'metadata' => ['campaign_id' => (string) $donation->campaign_id],
-        ], $stripeOptions);
-
-        $price = StripePrice::create([
-            'product' => $product->id,
-            'currency' => $donation->currency,
-            'unit_amount' => (int) ((float) $donation->gross_amount * 100),
-            'recurring' => ['interval' => 'month'],
-        ], $stripeOptions);
-
-        $stripeSubscription = StripeSubscription::create([
-            'customer' => $customerId,
-            'items' => [['price' => $price->id]],
-            'default_payment_method' => $paymentMethodId,
-            'metadata' => [
-                'campaign_id' => (string) $donation->campaign_id,
-                'donor_id' => (string) $donation->donor_id,
-            ],
-        ], $stripeOptions);
-
-        $subscription = Subscription::query()->create([
-            'campaign_id' => $donation->campaign_id,
-            'donor_id' => $donation->donor_id,
-            'stripe_subscription_id' => $stripeSubscription->id,
-            'stripe_price_id' => $price->id,
-            'amount' => (float) $donation->gross_amount,
-            'currency' => $donation->currency,
-            'interval' => SubscriptionInterval::Monthly,
-            'status' => SubscriptionStatus::Active,
-            'current_period_start' => now()->setTimestamp($stripeSubscription->current_period_start),
-            'current_period_end' => now()->setTimestamp($stripeSubscription->current_period_end),
-        ]);
-
-        $donation->update(['subscription_id' => $subscription->getKey()]);
     }
 
     private function handleAccountUpdated(StripeEvent $event): void

@@ -4,6 +4,7 @@ use App\Actions\Stripe\CreatePaymentIntent;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
+use App\Enums\SubscriptionStatus;
 use App\Livewire\DonationForm;
 use App\Models\Campaign;
 use App\Models\Donation;
@@ -11,6 +12,9 @@ use App\Models\Donor;
 use App\Models\Element;
 use App\Models\Organization;
 use Livewire\Livewire;
+use Stripe\ApiRequestor;
+use Stripe\HttpClient\ClientInterface;
+use Stripe\HttpClient\CurlClient;
 use Stripe\PaymentIntent;
 
 it('renders a hosted donation form for an active form element token', function () {
@@ -392,6 +396,123 @@ it('confirms a recurring payment and creates a subscription', function () {
         ->and((float) $subscription->amount)->toBe(100.00)
         ->and($subscription->interval->value)->toBe('monthly')
         ->and($subscription->status->value)->toBe('active');
+});
+
+it('creates a connected stripe billing subscription after a monthly payment succeeds', function () {
+    config(['services.stripe.secret' => 'sk_test_fake']);
+
+    $stripeClient = new class implements ClientInterface
+    {
+        /** @var array<int, array{method: string, url: string, headers: array<int, string>, params: array<string, mixed>}> */
+        public array $requests = [];
+
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $this->requests[] = [
+                'method' => $method,
+                'url' => $absUrl,
+                'headers' => $headers,
+                'params' => $params,
+            ];
+
+            $response = match (true) {
+                str_contains($absUrl, '/v1/payment_methods/') => [
+                    'id' => 'pm_connected_monthly',
+                    'object' => 'payment_method',
+                    'type' => 'card',
+                    'card' => [
+                        'brand' => 'visa',
+                        'last4' => '4242',
+                    ],
+                ],
+                str_ends_with($absUrl, '/v1/products') => [
+                    'id' => 'prod_connected_monthly',
+                    'object' => 'product',
+                ],
+                str_ends_with($absUrl, '/v1/prices') => [
+                    'id' => 'price_connected_monthly',
+                    'object' => 'price',
+                ],
+                str_ends_with($absUrl, '/v1/subscriptions') => [
+                    'id' => 'sub_connected_monthly',
+                    'object' => 'subscription',
+                    'status' => 'trialing',
+                    'current_period_start' => now()->timestamp,
+                    'current_period_end' => now()->addMonth()->timestamp,
+                ],
+                default => throw new RuntimeException('Unexpected Stripe request: '.$absUrl),
+            };
+
+            return [json_encode($response), 200, []];
+        }
+    };
+
+    ApiRequestor::setHttpClient($stripeClient);
+
+    $organization = Organization::factory()->create([
+        'stripe_account_id' => 'acct_connected_test',
+        'stripe_onboarded' => true,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'title' => 'Connected Monthly Campaign',
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'stripe_payment_intent_id' => 'pi_connected_monthly',
+        'gross_amount' => 30.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::Recurring,
+    ]);
+
+    $paymentIntent = PaymentIntent::constructFrom([
+        'id' => 'pi_connected_monthly',
+        'object' => 'payment_intent',
+        'customer' => 'cus_connected_monthly',
+        'payment_method' => 'pm_connected_monthly',
+        'latest_charge' => [
+            'id' => 'ch_connected_monthly',
+            'object' => 'charge',
+            'balance_transaction' => null,
+        ],
+    ]);
+
+    try {
+        Livewire::test(DonationForm::class, ['element' => $element])
+            ->call('confirmPayment', 'pi_connected_monthly', $paymentIntent);
+    } finally {
+        ApiRequestor::setHttpClient(CurlClient::instance());
+    }
+
+    $donation->refresh();
+    $subscription = $donation->subscription;
+
+    expect($subscription)->not->toBeNull()
+        ->and($subscription->stripe_subscription_id)->toBe('sub_connected_monthly')
+        ->and($subscription->stripe_price_id)->toBe('price_connected_monthly')
+        ->and($subscription->status)->toBe(SubscriptionStatus::Active);
+
+    $connectedRequests = collect($stripeClient->requests)
+        ->filter(fn (array $request): bool => str_contains($request['url'], '/v1/payment_methods/')
+            || str_ends_with($request['url'], '/v1/products')
+            || str_ends_with($request['url'], '/v1/prices')
+            || str_ends_with($request['url'], '/v1/subscriptions'));
+
+    expect($connectedRequests)->toHaveCount(4)
+        ->and($connectedRequests->every(fn (array $request): bool => in_array('Stripe-Account: acct_connected_test', $request['headers'], true)))->toBeTrue();
+
+    $subscriptionRequest = collect($stripeClient->requests)
+        ->first(fn (array $request): bool => str_ends_with($request['url'], '/v1/subscriptions'));
+
+    expect($subscriptionRequest['params'])->toMatchArray([
+        'customer' => 'cus_connected_monthly',
+        'default_payment_method' => 'pm_connected_monthly',
+        'application_fee_percent' => 5,
+    ])
+        ->and($subscriptionRequest['params']['trial_end'])->toBeGreaterThan(now()->timestamp);
 });
 
 it('stores the latest charge id when confirming a payment', function () {
