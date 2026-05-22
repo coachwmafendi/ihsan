@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Organizations\RelationManagers;
 
 use App\Enums\UserRole;
-use App\Notifications\InviteNgoAdmin;
+use App\Notifications\InviteOrganisationAdmin;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -21,7 +21,7 @@ class UsersRelationManager extends RelationManager
 {
     protected static string $relationship = 'users';
 
-    protected static ?string $title = 'NGO Admins';
+    protected static ?string $title = 'Organisation Admins';
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -65,10 +65,10 @@ class UsersRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('Invite NGO Admin')
+                    ->label('Invite Organisation Admin')
                     ->icon('heroicon-o-user-plus')
                     ->color('success')
-                    ->modalHeading('Invite NGO Admin')
+                    ->modalHeading('Invite Organisation Admin')
                     ->modalDescription('They will receive an email to set their password.')
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['role'] = UserRole::NgoAdmin;
@@ -77,7 +77,7 @@ class UsersRelationManager extends RelationManager
                         return $data;
                     })
                     ->after(function ($record) {
-                        $record->notify(new InviteNgoAdmin(
+                        $record->notify(new InviteOrganisationAdmin(
                             organizationName: $this->ownerRecord->name,
                         ));
 

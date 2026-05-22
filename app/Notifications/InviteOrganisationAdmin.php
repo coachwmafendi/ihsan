@@ -7,7 +7,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Password;
 
-class InviteNgoAdmin extends Notification
+class InviteOrganisationAdmin extends Notification
 {
     use Queueable;
 

@@ -7,7 +7,6 @@ use App\Enums\DonationType;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
 use App\Models\Donation;
-use App\Models\Element;
 use App\Models\Subscription;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Collection;
@@ -43,12 +42,6 @@ class Insights extends Page
     public int $pastDueSubscriptionsCount = 0;
 
     public string $successRate = '0';
-
-    public bool $hasCampaigns = false;
-
-    public bool $hasElements = false;
-
-    public bool $hasDonations = false;
 
     /**
      * @var array<int, array{label: string, amount: string, height: int}>
@@ -130,14 +123,6 @@ class Insights extends Page
         $this->frequencyBreakdown = $this->buildFrequencyBreakdown($campaignIds->all());
         $this->statusBreakdown = $this->buildStatusBreakdown($campaignIds->all());
         $this->recentDonations = $this->buildRecentDonations($campaignIds->all());
-
-        $this->hasCampaigns = $campaignIds->isNotEmpty();
-        $this->hasElements = Element::query()
-            ->where('organization_id', auth()->user()->organization_id)
-            ->exists();
-        $this->hasDonations = Donation::query()
-            ->whereIn('campaign_id', $campaignIds)
-            ->exists();
     }
 
     private function formatMoney(float $amount): string

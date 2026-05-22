@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organization;
+use Filament\Notifications\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Stripe\Account;
 use Stripe\OAuth;
 use Stripe\Stripe;
 
@@ -80,8 +82,30 @@ class StripeConnectController extends Controller
         $org->update([
             'stripe_account_id' => $stripeUserId,
             'stripe_onboarded' => true,
+            'stripe_onboarded_at' => now(),
         ]);
 
-        return redirect()->route('filament.app.pages.stripe-onboarding');
+        try {
+            $account = Account::retrieve($stripeUserId);
+
+            $stripeName = $account->business_profile->name
+                ?? $account->settings->dashboard->display_name
+                ?? null;
+
+            if ($stripeName) {
+                $org->update(['name' => $stripeName]);
+            }
+        } catch (\Throwable) {
+            // not critical
+        }
+
+        $notification = Notification::make()
+            ->title('Akaun Stripe berjaya disambung')
+            ->success()
+            ->toArray();
+
+        session()->flash('filament.notifications', [$notification]);
+
+        return redirect()->route('filament.app.pages.insights');
     }
 }

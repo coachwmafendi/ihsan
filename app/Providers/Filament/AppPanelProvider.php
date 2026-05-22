@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\App\Pages\StripeOnboarding;
 use App\Filament\Pages\Auth\EditProfile;
+use App\Http\Middleware\EnsureOrganizationIsActive;
 use App\Http\Middleware\RedirectIfStripeNotOnboarded;
 use Filament\Enums\GlobalSearchPosition;
 use Filament\Http\Middleware\Authenticate;
@@ -68,6 +69,7 @@ class AppPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                EnsureOrganizationIsActive::class,
                 RedirectIfStripeNotOnboarded::class,
             ]);
     }

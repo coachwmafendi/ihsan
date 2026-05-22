@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Organizations\Schemas;
 
+use Carbon\Carbon;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -84,8 +85,7 @@ class OrganizationForm
                                     ->required()
                                     ->url()
                                     ->maxLength(255)
-                                    ->prefix('https://')
-                                    ->placeholder('example.com'),
+                                    ->placeholder('https://example.com'),
                                 TextInput::make('contact_email')
                                     ->label('Contact Email')
                                     ->required()
@@ -204,12 +204,19 @@ class OrganizationForm
                             ->icon('heroicon-o-currency-dollar')
                             ->columns(2)
                             ->visible(fn ($record) => $record !== null)
+                            ->disabled()
                             ->schema([
                                 TextInput::make('stripe_account_id')
                                     ->label('Stripe Account ID')
                                     ->nullable()
                                     ->maxLength(255)
                                     ->helperText('Stripe Connect Express account ID (acct_xxx)')
+                                    ->dehydrated(),
+                                TextInput::make('stripe_onboarded_at')
+                                    ->label('Onboarded Date')
+                                    ->nullable()
+                                    ->formatStateUsing(fn ($state) => $state ? Carbon::parse($state)->format('d/m/Y H:i') : null)
+                                    ->helperText('When this organization completed Stripe onboarding')
                                     ->dehydrated(),
                                 Toggle::make('stripe_onboarded')
                                     ->label('Stripe Onboarded')
