@@ -54,7 +54,7 @@
             >
                 {{ $config['button_text'] ?? 'Donate Now' }}
             </button>
-        @elseif($type === 'form')
+        @elseif(in_array($type, ['form', 'popup'], true))
             <div
                 x-data="{
                     selectedAmount: @js($defaultAmount),
@@ -96,22 +96,32 @@
 
                         {{-- Form state --}}
                         <div x-show="! submitted" class="min-h-[610px] space-y-4 px-4 pb-5 pt-12 text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="flex size-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75 5.25 6v5.25c0 4.2 2.86 8.1 6.75 9 3.89-.9 6.75-4.8 6.75-9V6L12 3.75Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 12.25 1.5 1.5 3-3.5" />
+                                    </svg>
+                                </span>
+                                <h2 class="text-base font-bold tracking-normal text-zinc-950">Secure donation</h2>
+                            </div>
+
                             {{-- Frequency toggle --}}
                             @if($allowMonthly)
-                            <div data-preview-frequency class="flex rounded-xl bg-zinc-100 p-1">
+                            <div data-preview-frequency class="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
                                     x-on:click="frequency = 'one_time'; selectedAmount = @js($defaultAmount)"
-                                    x-bind:class="frequency === 'one_time' ? 'bg-white text-blue-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'"
-                                    class="flex-1 rounded-lg px-3 py-2.5 text-center font-semibold transition-all"
+                                    x-bind:class="frequency === 'one_time' ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-zinc-200 bg-white text-zinc-500 hover:text-zinc-700'"
+                                    class="rounded-lg border px-3 py-2.5 text-center font-semibold transition-all"
                                 >
-                                    One-time
+                                    Give once
                                 </button>
                                 <button
                                     type="button"
                                     x-on:click="frequency = 'monthly'; selectedAmount = @js($defaultAmount)"
-                                    x-bind:class="frequency === 'monthly' ? 'bg-white text-blue-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'"
-                                    class="flex-1 rounded-lg px-3 py-2.5 text-center font-semibold transition-all"
+                                    x-bind:class="frequency === 'monthly' ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-zinc-200 bg-white text-zinc-500 hover:text-zinc-700'"
+                                    class="rounded-lg border px-3 py-2.5 text-center font-semibold transition-all"
                                 >
                                     <span class="inline-flex items-center gap-1">
                                         <span class="text-red-400">&hearts;</span>
@@ -122,7 +132,7 @@
                             @endif
 
                             {{-- Title --}}
-                            <h2 class="text-center text-xs font-semibold text-zinc-800">{{ $title }}</h2>
+                            <p class="text-center text-xs font-semibold text-zinc-500">{{ $title }}</p>
 
                             {{-- Suggested amounts as pill buttons --}}
                             @if($showSuggested)
@@ -131,8 +141,8 @@
                                     <button
                                         type="button"
                                         x-on:click="selectedAmount = amount"
-                                        x-bind:class="Number(selectedAmount) === amount ? 'bg-blue-600 text-white shadow-sm shadow-blue-200' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800'"
-                                        class="rounded-lg px-1 py-2.5 text-center text-sm font-bold transition-all active:scale-95"
+                                        x-bind:class="Number(selectedAmount) === amount ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:text-zinc-800'"
+                                        class="rounded-lg border px-1 py-2.5 text-center text-sm font-bold transition-all active:scale-95"
                                     >
                                         <span x-text="'RM ' + Number(amount).toLocaleString('en-MY')"></span>
                                     </button>
@@ -142,14 +152,14 @@
 
                             {{-- Custom amount input --}}
                             @if($showAmountInput)
-                            <div data-preview-amount-input class="flex items-center rounded-xl border-2 border-zinc-200 bg-white px-4 py-3 transition focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100">
-                                <span class="text-sm font-semibold text-zinc-400">RM</span>
+                            <div data-preview-amount-input class="flex items-center rounded-xl border border-zinc-300 bg-white px-4 py-3 transition focus-within:border-teal-600 focus-within:ring-4 focus-within:ring-teal-100">
+                                <span class="text-lg font-semibold text-zinc-700">RM</span>
                                 <input
                                     x-model.number="selectedAmount"
                                     type="number"
                                     min="1"
                                     step="1"
-                                    class="min-w-0 flex-1 border-0 bg-transparent px-2 text-center text-2xl font-bold text-blue-600 outline-none placeholder:text-zinc-300 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                    class="min-w-0 flex-1 border-0 bg-transparent px-2 text-2xl font-bold text-zinc-950 outline-none placeholder:text-zinc-300 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                 />
                                 <span class="inline-flex items-center gap-1 text-sm font-semibold text-zinc-400">
                                     MYR
@@ -181,9 +191,14 @@
                             <button
                                 type="button"
                                 x-on:click="submitted = true"
-                                class="w-full rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-200 active:scale-[0.98]"
+                                class="w-full rounded-xl bg-teal-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-teal-100 transition-all hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-100 active:scale-[0.98]"
                             >
-                                {{ $config['submit_text'] ?? 'Donate and Support' }}
+                                @if(in_array($config['submit_text'] ?? 'Donate and Support', ['Donate and Support', 'Donate Now'], true))
+                                    <span x-show="frequency === 'monthly'">Donate monthly</span>
+                                    <span x-show="frequency !== 'monthly'">Donate once</span>
+                                @else
+                                    {{ $config['submit_text'] }}
+                                @endif
                             </button>
                         </div>
                     </div>
@@ -193,14 +208,6 @@
                         <div class="h-1.5 w-28 rounded-full bg-zinc-700"></div>
                     </div>
                 </div>
-            </div>
-        @elseif($type === 'popup')
-            <div class="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-lg ring-1 ring-zinc-200">
-                <div class="mb-4 flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-zinc-900">Popup Preview</h3>
-                    <button type="button" class="text-zinc-400 hover:text-zinc-600">&times;</button>
-                </div>
-                <p class="text-sm text-zinc-500">Popup configuration coming soon.</p>
             </div>
         @endif
     </div>

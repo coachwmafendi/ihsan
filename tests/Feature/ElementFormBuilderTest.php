@@ -48,8 +48,8 @@ it('shows donation form builder settings when creating a form element', function
         ->assertSee('Border color')
         ->assertSee('Show shadow')
         ->assertSee('Available after saving this element.')
-        ->assertSee('Your most generous donation')
-        ->assertSee('Donate and Support');
+        ->assertSee('Secure donation')
+        ->assertSee('Donate monthly');
 });
 
 it('shows a full page donation form workbench when editing a form element', function () {
@@ -158,6 +158,7 @@ it('creates a form element with organization, token, and builder configuration',
             'type' => 'form',
             'campaign_id' => $campaign->getKey(),
             'config' => [
+                'template' => 'secure-donation',
                 'title' => 'Your most generous donation',
                 'text_color' => '#212830',
                 'background_color' => '#FFFFFF',
@@ -191,6 +192,7 @@ it('creates a form element with organization, token, and builder configuration',
         ->and($element->token)->toBeString()
         ->and(Str::length($element->token))->toBe(32)
         ->and($element->config)->toMatchArray([
+            'template' => 'secure-donation',
             'title' => 'Your most generous donation',
             'text_color' => '#212830',
             'background_color' => '#FFFFFF',

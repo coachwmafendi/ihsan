@@ -47,7 +47,7 @@ class DonationForm extends Component
     public function mount(Element $element): void
     {
         abort_if(
-            ! $element->is_active || $element->type !== ElementType::Form || $element->campaign === null,
+            ! $element->is_active || ! in_array($element->type, [ElementType::Form, ElementType::Popup], true) || $element->campaign === null,
             404
         );
 
@@ -55,7 +55,7 @@ class DonationForm extends Component
         $this->amount = $this->config('default_amount', $this->suggestedAmounts()[0] ?? 5);
         $this->frequency = $this->config('default_frequency', $this->config('allow_monthly', true) ? 'monthly' : 'one_time');
         $this->isEmbed = request()->query('embed') !== null;
-        $this->isPopup = request()->query('popup') !== null || (bool) $this->config('display_as_popup', false);
+        $this->isPopup = $element->type === ElementType::Popup || request()->query('popup') !== null || (bool) $this->config('display_as_popup', false);
     }
 
     public function selectAmount(int $amount): void
@@ -217,12 +217,24 @@ class DonationForm extends Component
     /**
      * @return array<int, int>
      */
-    public function suggestedAmounts(): array
+    public function suggestedAmounts(?string $frequency = null): array
     {
-        $amounts = $this->config('suggested_amounts');
+        $frequency ??= $this->frequency;
+
+        $amounts = $this->element->campaign?->suggested_amounts;
+
+        if (is_array($amounts) && isset($amounts[$frequency])) {
+            $amounts = $amounts[$frequency];
+        } else {
+            $amounts = $this->element->campaign?->{'suggested_amounts_'.$frequency};
+        }
 
         if (! is_array($amounts) || $amounts === []) {
-            $amounts = $this->element->campaign?->suggested_amounts;
+            $amounts = $this->config('suggested_amounts_'.$frequency);
+        }
+
+        if (! is_array($amounts) || $amounts === []) {
+            $amounts = $this->config('suggested_amounts');
         }
 
         if (! is_array($amounts) || $amounts === []) {
@@ -230,7 +242,7 @@ class DonationForm extends Component
         }
 
         return collect($amounts)
-            ->map(fn (mixed $amount): int => (int) $amount)
+            ->map(fn (mixed $amount): int => (int) (is_array($amount) ? ($amount['amount'] ?? 0) : $amount))
             ->filter(fn (int $amount): bool => $amount > 0)
             ->unique()
             ->values()

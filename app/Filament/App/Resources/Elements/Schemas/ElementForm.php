@@ -31,7 +31,9 @@ class ElementForm
      */
     public static function defaultConfigForType(BackedEnum|string|null $type): array
     {
-        return match (self::selectedType($type)) {
+        $value = $type instanceof BackedEnum ? (string) $type->value : $type;
+
+        $config = match ($value) {
             ElementType::Button->value => [
                 'button_text' => 'Donate Now',
                 'button_color' => 'bg-blue-600 hover:bg-blue-700',
@@ -39,7 +41,9 @@ class ElementForm
                 'corner_radius' => 8,
                 'show_amount_input' => true,
             ],
-            ElementType::Form->value => [
+            ElementType::Form->value,
+            ElementType::Popup->value => [
+                'template' => 'secure-donation',
                 'title' => 'Your most generous donation',
                 'text_color' => '#212830',
                 'background_color' => '#FFFFFF',
@@ -58,10 +62,12 @@ class ElementForm
                 'show_dedication' => true,
                 'show_comment' => true,
                 'submit_text' => 'Donate and Support',
-                'display_as_popup' => false,
+                'display_as_popup' => $value === ElementType::Popup->value,
             ],
             default => [],
         };
+
+        return $config;
     }
 
     public static function configure(Schema $schema): Schema
@@ -146,6 +152,108 @@ class ElementForm
                             ->label('Show amount input')
                             ->default(true)
                             ->live(),
+                        View::make('filament.forms.components.element-form-submit')
+                            ->viewData(fn (?Element $record): array => [
+                                'label' => $record ? 'Save changes' : 'Create element',
+                                'cancelUrl' => ElementResource::getUrl('index'),
+                            ])
+                            ->columnSpanFull(),
+                    ]),
+                Section::make('Popup Configuration')
+                    ->columnSpanFull()
+                    ->statePath('config')
+                    ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::Popup->value)
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('title')
+                            ->label('Title')
+                            ->default('Your most generous donation')
+                            ->required()
+                            ->live(),
+                        TextInput::make('submit_text')
+                            ->label('Button label')
+                            ->default('Donate and Support')
+                            ->required()
+                            ->live(),
+                        TagsInput::make('suggested_amounts_one_time')
+                            ->label('One-time amounts')
+                            ->default([500, 200, 100, 50, 40, 30])
+                            ->placeholder('Add amount')
+                            ->live()
+                            ->columnSpanFull(),
+                        TagsInput::make('suggested_amounts_monthly')
+                            ->label('Monthly amounts')
+                            ->default([100, 50, 30, 20, 10, 5])
+                            ->placeholder('Add amount')
+                            ->live()
+                            ->columnSpanFull(),
+                        TextInput::make('default_amount')
+                            ->label('Default amount')
+                            ->numeric()
+                            ->default(5)
+                            ->minValue(1)
+                            ->live(),
+                        Select::make('default_frequency')
+                            ->label('Default frequency')
+                            ->options([
+                                'one_time' => 'One-time',
+                                'monthly' => 'Monthly',
+                            ])
+                            ->default('monthly')
+                            ->live(),
+                        Toggle::make('allow_monthly')
+                            ->label('Allow monthly donations')
+                            ->default(true)
+                            ->live(),
+                        Toggle::make('show_suggested')
+                            ->label('Show suggested amounts')
+                            ->default(true)
+                            ->live(),
+                        Toggle::make('show_amount_input')
+                            ->label('Show amount input')
+                            ->default(true)
+                            ->live(),
+                        Toggle::make('show_dedication')
+                            ->label('Show dedication option')
+                            ->default(true)
+                            ->live(),
+                        Toggle::make('show_comment')
+                            ->label('Show comment field')
+                            ->default(true)
+                            ->live(),
+                        Section::make('Design')
+                            ->columnSpanFull()
+                            ->columns(2)
+                            ->schema([
+                                ColorPicker::make('text_color')
+                                    ->label('Text color')
+                                    ->default('#212830')
+                                    ->live(),
+                                ColorPicker::make('background_color')
+                                    ->label('Background color')
+                                    ->default('#FFFFFF')
+                                    ->live(),
+                                ColorPicker::make('border_color')
+                                    ->label('Border color')
+                                    ->default('#DEDFF3')
+                                    ->live(),
+                                Slider::make('border_size')
+                                    ->label('Border size')
+                                    ->range(0, 8)
+                                    ->step(1)
+                                    ->default(2)
+                                    ->live(),
+                                Slider::make('border_radius')
+                                    ->label('Border radius')
+                                    ->range(0, 24)
+                                    ->step(1)
+                                    ->default(6)
+                                    ->live(),
+                                Toggle::make('show_shadow')
+                                    ->label('Show shadow')
+                                    ->default(false)
+                                    ->live(),
+                            ]),
                         View::make('filament.forms.components.element-form-submit')
                             ->viewData(fn (?Element $record): array => [
                                 'label' => $record ? 'Save changes' : 'Create element',
@@ -286,7 +394,8 @@ class ElementForm
                                             ->label('Display as popup')
                                             ->helperText('Show the donation form as a centered modal overlay instead of a full page.')
                                             ->default(false)
-                                            ->live(),
+                                            ->live()
+                                            ->hidden(fn (Get $get): bool => $get('type') === 'popup'),
                                         Select::make('success_action')
                                             ->label('After Donation')
                                             ->options([
@@ -357,7 +466,9 @@ class ElementForm
 
     private static function selectedType(BackedEnum|string|null $type): ?string
     {
-        return $type instanceof BackedEnum ? (string) $type->value : $type;
+        $value = $type instanceof BackedEnum ? (string) $type->value : $type;
+
+        return $value === ElementType::Popup->value ? ElementType::Form->value : $value;
     }
 
     private static function hostedUrl(?Element $record): string
@@ -377,7 +488,7 @@ class ElementForm
 
         $url = self::hostedUrl($record);
 
-        if ($record->config('display_as_popup')) {
+        if ($record->type === ElementType::Popup || $record->config('display_as_popup')) {
             $url .= '?popup=1';
         }
 
@@ -395,6 +506,7 @@ class ElementForm
             'button_size' => $get('config.button_size'),
             'corner_radius' => $get('config.corner_radius'),
             'show_amount_input' => $get('config.show_amount_input'),
+            'template' => $get('config.template'),
             'title' => $get('config.title'),
             'text_color' => $get('config.text_color'),
             'background_color' => $get('config.background_color'),

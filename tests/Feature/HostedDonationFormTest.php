@@ -39,12 +39,12 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertOk()
         ->assertSee('Maahad Tahfiz Mumtazatut Taqwa')
         ->assertSee('MTMT Development Fund')
-        ->assertSee('Your most generous donation')
-        ->assertSee('One-time')
+        ->assertSee('Secure donation')
+        ->assertSee('Give once')
         ->assertSee('Monthly')
         ->assertSee('RM 200')
         ->assertSee('RM 5')
-        ->assertSee('Donate and Support')
+        ->assertSee('Donate monthly')
         ->assertSee('x-show="!processing && !success && !error"', false)
         ->assertDontSee('x-show="!processing && !success && !error" x-cloak', false)
         ->assertSee("x-on:click=\"frequency = 'one_time'\"", false)
@@ -56,6 +56,68 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertSee('x-show="processing" x-cloak', false)
         ->assertSee('x-show="success" x-cloak', false)
         ->assertSee('x-show="error" x-cloak', false);
+});
+
+it('uses the saved secure donation template for standard form elements', function () {
+    $organization = Organization::factory()->create([
+        'name' => 'PUSAT TAHFIZ ANNUR',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'title' => 'Wakaf Pembangunan Pusat Tahfiz Annur',
+        'headline' => 'You Will Make a Difference',
+        'short_summary' => 'Your sincere contribution helps complete the development work.',
+        'image_path' => 'campaigns/form-hero.png',
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'standard-form-token',
+        'type' => ElementType::Form,
+        'config' => [
+            'template' => 'secure-donation',
+            'default_amount' => 30,
+            'default_frequency' => 'monthly',
+        ],
+    ]);
+
+    $this->get(route('donations.show', $element))
+        ->assertOk()
+        ->assertSee('You Will Make a Difference')
+        ->assertSee('Secure donation')
+        ->assertSee(route('donations.campaign-image', $element), false)
+        ->assertSee('Donate monthly')
+        ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
+});
+
+it('uses the saved secure donation template for popup elements', function () {
+    $organization = Organization::factory()->create([
+        'name' => 'PUSAT TAHFIZ ANNUR',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'title' => 'Wakaf Pembangunan Pusat Tahfiz Annur',
+        'headline' => 'You Will Make a Difference',
+        'short_summary' => 'Your sincere contribution helps complete the development work.',
+        'image_path' => 'campaigns/popup-hero.png',
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'popup-element-token',
+        'type' => ElementType::Popup,
+        'config' => [
+            'template' => 'secure-donation',
+            'default_amount' => 30,
+            'default_frequency' => 'monthly',
+        ],
+    ]);
+
+    $this->get(route('donations.show', $element))
+        ->assertOk()
+        ->assertSee('You Will Make a Difference')
+        ->assertSee('Secure donation')
+        ->assertSee(route('donations.campaign-image', $element), false)
+        ->assertSee('Donate monthly')
+        ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
+
+    Livewire::test(DonationForm::class, ['element' => $element])
+        ->assertSet('isPopup', true)
+        ->assertSee('Secure donation');
 });
 
 it('renders the hosted donation form in a compact layout when embedded', function () {
@@ -90,6 +152,51 @@ it('renders the hosted donation form in a compact layout when embedded', functio
         ])
         ->assertSee('px-4 py-5 sm:px-5', false)
         ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
+});
+
+it('renders the hosted donation form as an image-led popup', function () {
+    $organization = Organization::factory()->create([
+        'name' => 'PUSAT TAHFIZ ANNUR',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'title' => 'Wakaf Pembangunan Pusat Tahfiz Annur',
+        'headline' => 'You Will Make a Difference',
+        'short_summary' => 'Your sincere contribution helps complete the development work.',
+        'image_path' => 'campaigns/form-hero.png',
+        'suggested_amounts' => [
+            'one_time' => [
+                ['amount' => 500],
+                ['amount' => 200],
+                ['amount' => 100],
+            ],
+            'monthly' => [
+                ['amount' => 300],
+                ['amount' => 200],
+                ['amount' => 30],
+            ],
+        ],
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'popup-form-token',
+        'type' => ElementType::Form,
+        'config' => [
+            'default_amount' => 30,
+            'default_frequency' => 'monthly',
+            'allow_monthly' => true,
+        ],
+    ]);
+
+    $this->get(route('donations.show', ['element' => $element, 'popup' => 1]))
+        ->assertOk()
+        ->assertSee('You Will Make a Difference')
+        ->assertSee('Secure donation')
+        ->assertSee(route('donations.campaign-image', $element), false)
+        ->assertSee('Give once')
+        ->assertSee('Monthly')
+        ->assertSee('RM 300')
+        ->assertSee('RM 30')
+        ->assertSee('Donate monthly')
+        ->assertDontSee('Your most generous donation');
 });
 
 it('does not render inactive or non form elements', function () {

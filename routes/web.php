@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DonationCampaignImageController;
 use App\Http\Controllers\EmbedCheckoutController;
 use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\StripePaymentIntentController;
@@ -8,6 +9,7 @@ use App\Livewire\DonationForm;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::get('/donate/{element:token}/image', DonationCampaignImageController::class)->name('donations.campaign-image');
 Route::livewire('/donate/{element:token}', DonationForm::class)->name('donations.show');
 Route::get('/embed.js', [EmbedCheckoutController::class, 'script'])->name('embed.script');
 Route::get('/checkout/{form}', [EmbedCheckoutController::class, 'checkout'])->name('checkout.form');
