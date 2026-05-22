@@ -1,7 +1,7 @@
 <x-filament::page>
     <div class="flex flex-col items-center justify-center py-16 text-center">
         <div class="mx-auto mb-8 flex items-center justify-center gap-4">
-            <div class="flex h-10 w-24 items-center justify-center rounded-lg bg-white px-3 ring-1 ring-amber-200 dark:bg-gray-800 dark:ring-amber-700">
+            <div class="flex h-10 w-24 items-center justify-center rounded-lg bg-white px-3 dark:bg-gray-800">
                 <img src="https://www.kleer.se/wp-content/uploads/2025/10/Stripe-Emblem-scaled.png" alt="Stripe" class="h-full w-full object-contain">
             </div>
             <div class="flex size-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
