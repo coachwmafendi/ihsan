@@ -77,8 +77,24 @@ class StripeOnboarding extends Page
     public function connectManualAccount(): void
     {
         $this->validate([
-            'manual_account_id' => ['required', 'string', 'max:255', 'starts_with:acct_'],
+            'manual_account_id' => ['required', 'string', 'max:500'],
         ]);
+
+        $input = trim($this->manual_account_id);
+
+        $accountId = null;
+
+        if (str_starts_with($input, 'acct_')) {
+            $accountId = $input;
+        } elseif (preg_match('#/acct_([a-zA-Z0-9_]+)#', $input, $matches)) {
+            $accountId = 'acct_'.$matches[1];
+        }
+
+        if ($accountId === null) {
+            $this->addError('manual_account_id', 'Masukkan ID akaun Stripe yang sah (acct_xxx) atau pautan dashboard Stripe.');
+
+            return;
+        }
 
         $org = auth()->user()->organization;
 
@@ -86,7 +102,7 @@ class StripeOnboarding extends Page
             return;
         }
 
-        $org->update(['stripe_account_id' => $this->manual_account_id]);
+        $org->update(['stripe_account_id' => $accountId]);
 
         Notification::make()
             ->title('Akaun Stripe disambung')

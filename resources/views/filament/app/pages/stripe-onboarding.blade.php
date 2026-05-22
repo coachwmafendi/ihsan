@@ -54,9 +54,12 @@
                             <x-filament::input
                                 type="text"
                                 wire:model="manual_account_id"
-                                placeholder="acct_xxxxxxxxxxxxxx"
+                                placeholder="acct_xxxxxxxxxxxxxx atau https://dashboard.stripe.com/acct_..."
                             />
                         </x-filament::input.wrapper>
+                        @error('manual_account_id')
+                            <p class="text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                         <x-filament::button type="submit" color="gray">
                             Sambung akaun sedia ada
                         </x-filament::button>
