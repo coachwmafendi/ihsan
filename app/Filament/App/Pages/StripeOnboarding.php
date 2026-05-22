@@ -5,6 +5,7 @@ namespace App\Filament\App\Pages;
 use App\Actions\Stripe\CreateConnectAccount;
 use BackedEnum;
 use Filament\Pages\Page;
+use Stripe\Exception\ApiErrorException;
 
 class StripeOnboarding extends Page
 {
@@ -27,6 +28,10 @@ class StripeOnboarding extends Page
             return null;
         }
 
-        return app(CreateConnectAccount::class)->generateOnboardingLink($org);
+        try {
+            return app(CreateConnectAccount::class)->generateOnboardingLink($org);
+        } catch (ApiErrorException) {
+            return null;
+        }
     }
 }
