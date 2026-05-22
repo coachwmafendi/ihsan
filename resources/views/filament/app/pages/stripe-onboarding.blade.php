@@ -45,7 +45,7 @@
         @endif
 
         <div class="mt-12 w-full max-w-sm border-t border-gray-200 pt-6 dark:border-gray-700">
-            <form wire:submit="connectManualAccount">
+            <form>
                 <p class="mb-2 mt-8 text-left text-xs font-medium text-gray-400">
                     Atau masukkan ID akaun Stripe sedia ada:
                 </p>
@@ -57,7 +57,8 @@
                         class="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 shadow-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder-gray-500"
                     >
                     <button
-                        type="submit"
+                        type="button"
+                        wire:click="connectManualAccount"
                         class="shrink-0 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                     >
                         Sambung
