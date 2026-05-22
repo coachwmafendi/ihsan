@@ -31,6 +31,7 @@ class CampaignForm
                     ->columnSpanFull()
                     ->tabs([
                         Tab::make('Overview')
+                            ->icon('heroicon-o-document-text')
                             ->schema([
                                 Section::make('General')
                                     ->description('Name, status and donor-facing campaign copy.')
@@ -72,6 +73,7 @@ class CampaignForm
                                     ]),
                             ]),
                         Tab::make('Settings')
+                            ->icon('heroicon-o-cog-6-tooth')
                             ->schema([
                                 Section::make('Frequencies')
                                     ->description('Control donation frequencies and custom amount behavior.')
@@ -133,6 +135,7 @@ class CampaignForm
                                     ]),
                             ]),
                         Tab::make('Checkout Modal')
+                            ->icon('heroicon-o-credit-card')
                             ->schema([
                                 Section::make('Embed trigger')
                                     ->description('Settings for script-based modal checkout on client websites.')
@@ -161,6 +164,7 @@ class CampaignForm
                                     ]),
                             ]),
                         Tab::make('Campaign Page')
+                            ->icon('heroicon-o-globe-alt')
                             ->schema([
                                 Section::make('Hosted page')
                                     ->description('Direct campaign page and hosted donation settings.')
@@ -176,6 +180,7 @@ class CampaignForm
                                     ]),
                             ]),
                         Tab::make('Stats')
+                            ->icon('heroicon-o-chart-bar')
                             ->visible(fn ($record) => $record !== null)
                             ->columns(3)
                             ->schema([
