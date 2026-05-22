@@ -65,6 +65,11 @@
         </div>
 
         <p class="mt-6 text-sm text-gray-400">
+            Untuk info lanjut berkenaan Stripe account ID, lawati
+            <a href="https://docs.stripe.com/get-started/account" target="_blank" rel="noopener noreferrer" class="text-teal-600 underline hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300">docs.stripe.com</a>
+        </p>
+
+        <p class="mt-2 text-sm text-gray-400">
             Perlukan bantuan? Sila hubungi admin organisasi anda.
         </p>
     </div>
