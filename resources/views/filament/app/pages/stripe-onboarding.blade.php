@@ -28,47 +28,42 @@
                 </a>
             </div>
         @else
-            <div class="mt-10 flex flex-col items-center gap-6">
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                    Pilih cara untuk menyambung Stripe:
-                </p>
-
-                <div class="grid w-full max-w-lg gap-4">
-                    <button
-                        type="button"
-                        wire:click="createStripeAccount"
-                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-                    >
-                        <x-heroicon-o-sparkles class="size-5" />
-                        Buat akaun Stripe baru
-                    </button>
-
-                    <div class="relative flex items-center gap-3 py-2">
-                        <span class="h-px flex-1 bg-gray-200 dark:bg-gray-700"></span>
-                        <span class="text-xs font-medium text-gray-400">ATAU</span>
-                        <span class="h-px flex-1 bg-gray-200 dark:bg-gray-700"></span>
-                    </div>
-
-                    <form wire:submit="connectManualAccount" class="space-y-3">
-                        <x-filament::input.wrapper>
-                            <x-filament::input
-                                type="text"
-                                wire:model="manual_account_id"
-                                placeholder="acct_xxxxxxxxxxxxxx atau https://dashboard.stripe.com/acct_..."
-                            />
-                        </x-filament::input.wrapper>
-                        @error('manual_account_id')
-                            <p class="text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                        <x-filament::button type="submit" color="gray">
-                            Sambung akaun sedia ada
-                        </x-filament::button>
-                    </form>
-                </div>
-            </div>
+            <button
+                type="button"
+                wire:click="createStripeAccount"
+                class="mt-10 inline-flex items-center gap-2 rounded-lg bg-teal-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            >
+                <x-heroicon-o-sparkles class="size-5" />
+                Buat akaun Stripe baru
+            </button>
         @endif
 
-        <p class="mt-8 text-sm text-gray-400">
+        <div class="mt-12 w-full max-w-sm border-t border-gray-200 pt-6 dark:border-gray-700">
+            <form wire:submit="connectManualAccount">
+                <p class="mb-2 text-left text-xs font-medium text-gray-400">
+                    Atau masukkan ID akaun Stripe sedia ada:
+                </p>
+                <div class="flex gap-2">
+                    <input
+                        type="text"
+                        wire:model="manual_account_id"
+                        placeholder="acct_xxx atau https://dashboard.stripe.com/acct_..."
+                        class="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 shadow-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder-gray-500"
+                    >
+                    <button
+                        type="submit"
+                        class="shrink-0 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                    >
+                        Sambung
+                    </button>
+                </div>
+                @error('manual_account_id')
+                    <p class="mt-1 text-left text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </form>
+        </div>
+
+        <p class="mt-6 text-sm text-gray-400">
             Perlukan bantuan? Sila hubungi admin organisasi anda.
         </p>
     </div>
