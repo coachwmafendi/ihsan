@@ -28,14 +28,15 @@
                 </a>
             </div>
         @else
-            <button
-                type="button"
-                wire:click="createStripeAccount"
+            <a
+                href="https://dashboard.stripe.com/register"
+                target="_blank"
+                rel="noopener noreferrer"
                 class="mt-10 inline-flex items-center gap-2 rounded-lg bg-teal-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             >
                 <x-heroicon-o-sparkles class="size-5" />
                 Buat akaun Stripe baru
-            </button>
+            </a>
         @endif
 
         <div class="mt-12 w-full max-w-sm border-t border-gray-200 pt-6 dark:border-gray-700">

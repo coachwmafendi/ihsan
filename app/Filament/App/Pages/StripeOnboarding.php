@@ -47,33 +47,6 @@ class StripeOnboarding extends Page
         }
     }
 
-    public function createStripeAccount(): void
-    {
-        $org = auth()->user()->organization;
-
-        if ($org === null) {
-            return;
-        }
-
-        try {
-            app(CreateConnectAccount::class)->create($org);
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Gagal buat akaun Stripe')
-                ->body($e->getMessage())
-                ->warning()
-                ->send();
-
-            return;
-        }
-
-        Notification::make()
-            ->title('Akaun Stripe berjaya dibuat')
-            ->body('Sila sambung ke Stripe untuk melengkapkan KYC.')
-            ->success()
-            ->send();
-    }
-
     public function connectManualAccount(): void
     {
         $this->validate([
