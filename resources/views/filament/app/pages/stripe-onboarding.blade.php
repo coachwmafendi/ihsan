@@ -41,7 +41,7 @@
 
         <div class="mt-12 w-full max-w-sm border-t border-gray-200 pt-6 dark:border-gray-700">
             <form wire:submit="connectManualAccount">
-                <p class="mb-2 text-left text-xs font-medium text-gray-400">
+                <p class="mb-2 mt-8 text-left text-xs font-medium text-gray-400">
                     Atau masukkan ID akaun Stripe sedia ada:
                 </p>
                 <div class="flex gap-2">
