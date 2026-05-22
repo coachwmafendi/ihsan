@@ -4,7 +4,7 @@ namespace App\Actions\Stripe;
 
 use App\Enums\DonationType;
 use App\Models\Donation;
-use Stripe\Account;
+use Stripe\Customer;
 use Stripe\PaymentIntent;
 use Stripe\Stripe;
 
@@ -42,14 +42,26 @@ class CreatePaymentIntent
         }
 
         if ($organization->stripe_account_id && $organization->stripe_onboarded) {
-            $platformAccount = Account::retrieve();
+            $stripeOptions = ['stripe_account' => $organization->stripe_account_id];
+            $customerParams = [
+                'email' => $donation->donor?->email,
+                'name' => $donation->donor?->name,
+                'metadata' => [
+                    'donor_id' => (string) $donation->donor_id,
+                    'organization_id' => (string) $organization->getKey(),
+                ],
+            ];
 
-            if ($organization->stripe_account_id !== $platformAccount->id) {
-                $params['application_fee_amount'] = (int) ((float) $donation->gross_amount * 0.05 * 100);
-                $params['transfer_data'] = [
-                    'destination' => $organization->stripe_account_id,
-                ];
+            if (filled($donation->donor?->phone)) {
+                $customerParams['phone'] = $donation->donor->phone;
             }
+
+            $customer = Customer::create($customerParams, $stripeOptions);
+
+            $params['customer'] = $customer->id;
+            $params['application_fee_amount'] = (int) ((float) $donation->gross_amount * 0.05 * 100);
+
+            return PaymentIntent::create($params, $stripeOptions);
         }
 
         return PaymentIntent::create($params);

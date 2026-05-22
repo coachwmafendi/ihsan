@@ -86,12 +86,14 @@ class DonationForm extends Component
         }
 
         try {
+            $donation->loadMissing('campaign.organization');
+            $stripeOptions = $this->stripeOptionsFor($donation);
             $paymentIntent ??= StripePaymentIntent::retrieve([
                 'id' => $paymentIntentId,
                 'expand' => ['latest_charge'],
-            ]);
+            ], $stripeOptions);
 
-            [$cardBrand, $cardLast4] = $this->extractCardDetails($paymentIntent->payment_method);
+            [$cardBrand, $cardLast4] = $this->extractCardDetails($paymentIntent->payment_method, $stripeOptions);
 
             $charge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
             $chargeId = is_string($charge) ? $charge : ($charge->id ?? null);
@@ -99,7 +101,7 @@ class DonationForm extends Component
             $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
 
             if ($balanceTransaction) {
-                $bt = BalanceTransaction::retrieve($balanceTransaction);
+                $bt = BalanceTransaction::retrieve($balanceTransaction, $stripeOptions);
                 $stripeFee = (float) ($bt->fee / 100);
             }
 
@@ -135,14 +137,14 @@ class DonationForm extends Component
         }
     }
 
-    protected function extractCardDetails(?string $paymentMethodId): array
+    protected function extractCardDetails(?string $paymentMethodId, array $stripeOptions = []): array
     {
         if ($paymentMethodId === null) {
             return [null, null];
         }
 
         try {
-            $paymentMethod = PaymentMethod::retrieve($paymentMethodId);
+            $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
 
             if ($paymentMethod->type === 'card' && $paymentMethod->card !== null) {
                 return [$paymentMethod->card->brand, $paymentMethod->card->last4];
@@ -152,6 +154,20 @@ class DonationForm extends Component
         }
 
         return [null, null];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function stripeOptionsFor(Donation $donation): array
+    {
+        $organization = $donation->campaign?->organization;
+
+        if (! $organization?->stripe_account_id || ! $organization->stripe_onboarded) {
+            return [];
+        }
+
+        return ['stripe_account' => $organization->stripe_account_id];
     }
 
     public function submit(): string

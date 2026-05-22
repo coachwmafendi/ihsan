@@ -32,6 +32,8 @@ class ProcessStripeWebhook implements ShouldQueue
 
     public function handle(): void
     {
+        Stripe::setApiKey(config('services.stripe.secret'));
+
         $event = StripeEvent::constructFrom(json_decode($this->payload, true));
 
         $log = WebhookLog::query()->firstOrCreate([
@@ -90,10 +92,11 @@ class ProcessStripeWebhook implements ShouldQueue
 
         $cardBrand = null;
         $cardLast4 = null;
+        $stripeOptions = filled($event->account ?? null) ? ['stripe_account' => $event->account] : [];
 
         if ($paymentIntent->payment_method) {
             try {
-                $paymentMethod = PaymentMethod::retrieve($paymentIntent->payment_method);
+                $paymentMethod = PaymentMethod::retrieve($paymentIntent->payment_method, $stripeOptions);
 
                 if ($paymentMethod->type === 'card' && $paymentMethod->card !== null) {
                     $cardBrand = $paymentMethod->card->brand;
@@ -112,7 +115,7 @@ class ProcessStripeWebhook implements ShouldQueue
         if ($balanceTransaction) {
             try {
                 Stripe::setApiKey(config('services.stripe.secret'));
-                $bt = BalanceTransaction::retrieve($balanceTransaction);
+                $bt = BalanceTransaction::retrieve($balanceTransaction, $stripeOptions);
                 $stripeFee = (float) ($bt->fee / 100);
             } catch (\Exception $e) {
                 // If we can't retrieve the balance transaction, leave fee at 0
@@ -131,7 +134,7 @@ class ProcessStripeWebhook implements ShouldQueue
         $donation->campaign()->increment('collected_amount', (float) $donation->gross_amount);
 
         if ($donation->type === DonationType::Recurring) {
-            $this->createRecurringSubscription($donation, $paymentIntent);
+            $this->createRecurringSubscription($donation, $paymentIntent, $stripeOptions);
         }
 
         SendDonationReceipt::dispatch($donation);
@@ -249,7 +252,10 @@ class ProcessStripeWebhook implements ShouldQueue
             ->update(['status' => $status]);
     }
 
-    private function createRecurringSubscription(Donation $donation, StripePaymentIntent $paymentIntent): void
+    /**
+     * @param  array<string, string>  $stripeOptions
+     */
+    private function createRecurringSubscription(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions = []): void
     {
         $paymentMethodId = $paymentIntent->payment_method;
         if ($paymentMethodId === null) {
@@ -261,44 +267,51 @@ class ProcessStripeWebhook implements ShouldQueue
             return;
         }
 
-        $customer = StripeCustomer::all(['email' => $donorEmail, 'limit' => 1])->first()
-            ?? StripeCustomer::create([
-                'email' => $donorEmail,
-                'name' => $donation->donor?->name,
-                'metadata' => [
-                    'donor_id' => (string) $donation->donor_id,
-                ],
-            ]);
+        $customerId = is_string($paymentIntent->customer ?? null)
+            ? $paymentIntent->customer
+            : ($paymentIntent->customer->id ?? null);
 
-        StripePaymentIntent::update($paymentIntent->id, [
-            'customer' => $customer->id,
-        ]);
+        if ($customerId === null) {
+            $customer = StripeCustomer::all(['email' => $donorEmail, 'limit' => 1], $stripeOptions)->first()
+                ?? StripeCustomer::create([
+                    'email' => $donorEmail,
+                    'name' => $donation->donor?->name,
+                    'metadata' => [
+                        'donor_id' => (string) $donation->donor_id,
+                    ],
+                ], $stripeOptions);
 
-        $paymentMethod = PaymentMethod::retrieve($paymentMethodId);
-        $paymentMethod->attach(['customer' => $customer->id]);
-        $customer->invoice_settings = ['default_payment_method' => $paymentMethodId];
-        $customer->save();
+            $customerId = $customer->id;
+
+            StripePaymentIntent::update($paymentIntent->id, [
+                'customer' => $customerId,
+            ], $stripeOptions);
+
+            $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
+            $paymentMethod->attach(['customer' => $customerId], $stripeOptions);
+        }
 
         $product = StripeProduct::create([
             'name' => $donation->campaign?->title ?? 'Donation',
             'metadata' => ['campaign_id' => (string) $donation->campaign_id],
-        ]);
+        ], $stripeOptions);
 
         $price = StripePrice::create([
             'product' => $product->id,
             'currency' => $donation->currency,
             'unit_amount' => (int) ((float) $donation->gross_amount * 100),
             'recurring' => ['interval' => 'month'],
-        ]);
+        ], $stripeOptions);
 
         $stripeSubscription = StripeSubscription::create([
-            'customer' => $customer->id,
+            'customer' => $customerId,
             'items' => [['price' => $price->id]],
+            'default_payment_method' => $paymentMethodId,
             'metadata' => [
                 'campaign_id' => (string) $donation->campaign_id,
                 'donor_id' => (string) $donation->donor_id,
             ],
-        ]);
+        ], $stripeOptions);
 
         $subscription = Subscription::query()->create([
             'campaign_id' => $donation->campaign_id,

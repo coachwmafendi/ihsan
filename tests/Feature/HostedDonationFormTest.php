@@ -213,6 +213,8 @@ it('passes current donor details to stripe billing details', function () {
     $this->get(route('donations.show', ['element' => $element, 'popup' => 1]))
         ->assertOk()
         ->assertSee('donorName', false)
+        ->assertSee($organization->stripe_account_id, false)
+        ->assertSee('stripeAccount: connectedStripeAccountId', false)
         ->assertSee('x-model="donorName"', false)
         ->assertSee('donorEmail', false)
         ->assertSee('x-model="donorEmail"', false)

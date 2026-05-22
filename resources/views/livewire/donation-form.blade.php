@@ -23,6 +23,7 @@
     $campaignImageUrl = filled($campaign->image_path) ? route('donations.campaign-image', $element) : null;
     $introTitle = filled($campaign->headline) ? $campaign->headline : $campaign->title;
     $introText = filled($campaign->short_summary) ? $campaign->short_summary : strip_tags($campaign->description ?? '');
+    $connectedStripeAccountId = $organization->stripe_onboarded ? $organization->stripe_account_id : null;
 @endphp
 
 <div>
@@ -162,7 +163,7 @@
                         style="background-color: {{ $backgroundColor }}; color: {{ $textColor }}; border: {{ $borderSize }}px solid {{ $borderColor }}; border-radius: {{ $isCompact ? $borderRadius : $borderRadius + 10 }}px;"
                     @endif
                 >
-                    <div x-data="donationForm(@js($frequency), @js($amount), @js($name), @js($email), @js($phone))">
+                    <div x-data="donationForm(@js($frequency), @js($amount), @js($name), @js($email), @js($phone), @js($connectedStripeAccountId))">
                         <div x-show="!success && !error">
                             <form class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}" @submit.prevent="handleSubmit">
                                 <div class="grid grid-cols-2 gap-2">
@@ -352,7 +353,7 @@
 
 @script
 <script>
-    Alpine.data('donationForm', (initialFrequency, initialAmount, initialName = '', initialEmail = '', initialPhone = '') => {
+    Alpine.data('donationForm', (initialFrequency, initialAmount, initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null) => {
         let stripe = null;
         let cardElement = null;
 
@@ -369,7 +370,9 @@
             cardError: '',
 
             async init() {
-                stripe = Stripe(window.stripePublishableKey);
+                stripe = connectedStripeAccountId
+                    ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
+                    : Stripe(window.stripePublishableKey);
                 const elements = stripe.elements({ locale: 'ms' });
                 cardElement = elements.create('card', {
                     hidePostalCode: true,
