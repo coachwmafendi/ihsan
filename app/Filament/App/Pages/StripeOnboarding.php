@@ -4,9 +4,7 @@ namespace App\Filament\App\Pages;
 
 use App\Actions\Stripe\CreateConnectAccount;
 use BackedEnum;
-use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Stripe\Exception\ApiErrorException;
 
 class StripeOnboarding extends Page
 {
@@ -19,6 +17,11 @@ class StripeOnboarding extends Page
     public static function shouldRegisterNavigation(): bool
     {
         return false;
+    }
+
+    public function getLayout(): string
+    {
+        return 'filament-panels::components.layout.simple';
     }
 
     public ?string $manual_account_id = null;
@@ -42,7 +45,7 @@ class StripeOnboarding extends Page
 
         try {
             return app(CreateConnectAccount::class)->generateOnboardingLink($org);
-        } catch (ApiErrorException) {
+        } catch (\Throwable) {
             return null;
         }
     }
@@ -77,9 +80,6 @@ class StripeOnboarding extends Page
 
         $org->update(['stripe_account_id' => $accountId]);
 
-        Notification::make()
-            ->title('Akaun Stripe disambung')
-            ->success()
-            ->send();
+        $this->redirect(route('filament.app.pages.stripe-onboarding'), navigate: true);
     }
 }
