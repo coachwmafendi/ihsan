@@ -13,36 +13,12 @@
             Stripe digunakan untuk memproses derma dalam talian dengan selamat.
         </p>
 
-        <div class="mt-8 grid gap-4 text-left">
-            <div class="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-                <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-teal-100 text-sm font-semibold text-teal-600 dark:bg-teal-900/30 dark:text-teal-400">1</div>
-                <div>
-                    <p class="font-medium text-gray-900 dark:text-white">Daftar akaun Stripe</p>
-                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Masukkan maklumat organisasi dan bank anda.</p>
-                </div>
-            </div>
-            <div class="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-                <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-teal-100 text-sm font-semibold text-teal-600 dark:bg-teal-900/30 dark:text-teal-400">2</div>
-                <div>
-                    <p class="font-medium text-gray-900 dark:text-white">Sahkan maklumat</p>
-                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Stripe akan mengesahkan maklumat organisasi anda.</p>
-                </div>
-            </div>
-            <div class="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-                <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-teal-100 text-sm font-semibold text-teal-600 dark:bg-teal-900/30 dark:text-teal-400">3</div>
-                <div>
-                    <p class="font-medium text-gray-900 dark:text-white">Mula terima derma</p>
-                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Selepas selesai, anda boleh guna panel sepenuhnya.</p>
-                </div>
-            </div>
-        </div>
+        @php
+            $url = $this->getOnboardingUrl();
+        @endphp
 
-        <div class="mt-10">
-            @php
-                $url = $this->getOnboardingUrl();
-            @endphp
-
-            @if ($url)
+        @if ($url)
+            <div class="mt-10">
                 <a
                     href="{{ $url }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
@@ -50,15 +26,47 @@
                     <x-heroicon-o-arrow-right-circle class="size-5" />
                     Sambung Stripe
                 </a>
-            @else
-                <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
-                    Akaun Stripe belum disediakan. Sila hubungi admin.
-                </div>
-            @endif
-        </div>
+            </div>
+        @else
+            <div class="mt-10 flex flex-col items-center gap-6">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Pilih cara untuk menyambung Stripe:
+                </p>
 
-        <p class="mt-6 text-sm text-gray-400">
-            Arahkan admin organisasi anda jika anda tidak mempunyai maklumat yang diperlukan.
+                <div class="grid w-full max-w-lg gap-4">
+                    <button
+                        type="button"
+                        wire:click="createStripeAccount"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                    >
+                        <x-heroicon-o-sparkles class="size-5" />
+                        Buat akaun Stripe baru
+                    </button>
+
+                    <div class="relative flex items-center gap-3 py-2">
+                        <span class="h-px flex-1 bg-gray-200 dark:bg-gray-700"></span>
+                        <span class="text-xs font-medium text-gray-400">ATAU</span>
+                        <span class="h-px flex-1 bg-gray-200 dark:bg-gray-700"></span>
+                    </div>
+
+                    <form wire:submit="connectManualAccount" class="space-y-3">
+                        <x-filament::input.wrapper>
+                            <x-filament::input
+                                type="text"
+                                wire:model="manual_account_id"
+                                placeholder="acct_xxxxxxxxxxxxxx"
+                            />
+                        </x-filament::input.wrapper>
+                        <x-filament::button type="submit" color="gray">
+                            Sambung akaun sedia ada
+                        </x-filament::button>
+                    </form>
+                </div>
+            </div>
+        @endif
+
+        <p class="mt-8 text-sm text-gray-400">
+            Perlukan bantuan? Sila hubungi admin organisasi anda.
         </p>
     </div>
 </x-filament::page>

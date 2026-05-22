@@ -4,6 +4,7 @@ namespace App\Filament\App\Pages;
 
 use App\Actions\Stripe\CreateConnectAccount;
 use BackedEnum;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Stripe\Exception\ApiErrorException;
 
@@ -19,6 +20,8 @@ class StripeOnboarding extends Page
     {
         return false;
     }
+
+    public ?string $manual_account_id = null;
 
     public function mount(): void
     {
@@ -42,5 +45,52 @@ class StripeOnboarding extends Page
         } catch (ApiErrorException) {
             return null;
         }
+    }
+
+    public function createStripeAccount(): void
+    {
+        $org = auth()->user()->organization;
+
+        if ($org === null) {
+            return;
+        }
+
+        try {
+            app(CreateConnectAccount::class)->create($org);
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Gagal buat akaun Stripe')
+                ->body($e->getMessage())
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        Notification::make()
+            ->title('Akaun Stripe berjaya dibuat')
+            ->body('Sila sambung ke Stripe untuk melengkapkan KYC.')
+            ->success()
+            ->send();
+    }
+
+    public function connectManualAccount(): void
+    {
+        $this->validate([
+            'manual_account_id' => ['required', 'string', 'max:255', 'starts_with:acct_'],
+        ]);
+
+        $org = auth()->user()->organization;
+
+        if ($org === null) {
+            return;
+        }
+
+        $org->update(['stripe_account_id' => $this->manual_account_id]);
+
+        Notification::make()
+            ->title('Akaun Stripe disambung')
+            ->success()
+            ->send();
     }
 }

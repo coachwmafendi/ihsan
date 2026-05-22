@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Organizations\Pages;
 
-use App\Actions\Stripe\CreateConnectAccount;
 use App\Enums\OrganizationStatus;
 use App\Filament\Resources\Organizations\OrganizationResource;
 use Filament\Actions\Action;
@@ -17,49 +16,11 @@ class EditOrganization extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('reconnect_stripe')
-                ->label('Reconnect Stripe')
-                ->color('warning')
-                ->icon('heroicon-o-arrow-path')
-                ->action(function () {
-                    try {
-                        app(CreateConnectAccount::class)->create($this->record);
-                    } catch (\Exception $e) {
-                        Notification::make()
-                            ->title('Stripe account creation failed')
-                            ->body($e->getMessage())
-                            ->warning()
-                            ->send();
-
-                        return;
-                    }
-
-                    $this->refreshFormData(['stripe_account_id']);
-
-                    Notification::make()
-                        ->title('Stripe account created')
-                        ->success()
-                        ->send();
-                })
-                ->visible(fn () => $this->record->status === OrganizationStatus::Active && $this->record->stripe_account_id === null),
-
             Action::make('approve')
                 ->label('Approve')
                 ->color('success')
                 ->icon('heroicon-o-check-circle')
                 ->action(function () {
-                    try {
-                        app(CreateConnectAccount::class)->create($this->record);
-                    } catch (\Exception $e) {
-                        Notification::make()
-                            ->title('Stripe account creation failed')
-                            ->body($e->getMessage())
-                            ->warning()
-                            ->send();
-
-                        return;
-                    }
-
                     $this->record->update([
                         'status' => OrganizationStatus::Active,
                         'approved_at' => now(),
@@ -70,6 +31,7 @@ class EditOrganization extends EditRecord
 
                     Notification::make()
                         ->title('Organization approved')
+                        ->body('The NGO admin can now connect a Stripe account from the app panel.')
                         ->success()
                         ->send();
                 })
