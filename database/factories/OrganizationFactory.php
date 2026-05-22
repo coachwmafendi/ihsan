@@ -16,6 +16,14 @@ class OrganizationFactory extends Factory
      *
      * @return array<string, mixed>
      */
+    public function stripeConnected(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'stripe_account_id' => 'acct_'.fake()->regexify('[A-Za-z0-9]{24}'),
+            'stripe_onboarded' => true,
+        ]);
+    }
+
     public function definition(): array
     {
         return [
@@ -26,11 +34,28 @@ class OrganizationFactory extends Factory
             'contact_email' => fake()->safeEmail(),
             'contact_phone' => fake()->phoneNumber(),
             'status' => OrganizationStatus::Active,
-            'stripe_onboarded' => false,
+            'stripe_account_id' => 'acct_'.fake()->regexify('[A-Za-z0-9]{24}'),
+            'stripe_onboarded' => true,
             'settings' => [
                 'primary_color' => '#0f766e',
                 'suggested_amounts' => [30, 50, 100],
             ],
         ];
+    }
+
+    public function withoutStripe(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'stripe_account_id' => null,
+            'stripe_onboarded' => false,
+        ]);
+    }
+
+    public function stripePending(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'stripe_account_id' => 'acct_'.fake()->regexify('[A-Za-z0-9]{24}'),
+            'stripe_onboarded' => false,
+        ]);
     }
 }
