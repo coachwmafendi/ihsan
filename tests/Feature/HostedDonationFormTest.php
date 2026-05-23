@@ -742,9 +742,9 @@ it('renders step state variables in Alpine donationForm', function () {
         ->assertSee('stepErrors', false)
         ->assertSee('nextStep()', false)
         ->assertSee('prevStep()', false)
-        ->assertSee('get success()', false)
-        ->assertSee('get error()', false)
-        ->assertSee('get errorMessage()', false);
+        ->assertDontSee('get success()', false)
+        ->assertDontSee('get error()', false)
+        ->assertDontSee('get errorMessage()', false);
 });
 
 it('renders donor details fields for step 2', function () {
