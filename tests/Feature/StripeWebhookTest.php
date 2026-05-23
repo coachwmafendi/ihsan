@@ -8,7 +8,9 @@ use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\MonthlyInvoice;
 use App\Models\Organization;
+use App\Models\PlatformFee;
 use App\Models\Subscription;
 use App\Models\WebhookLog;
 use Illuminate\Support\Facades\Queue;
@@ -398,6 +400,65 @@ it('syncs stripe details for an already succeeded connected donation without dup
 
     Queue::assertNotPushed(SendDonationReceipt::class);
     Queue::assertPushed(SyncDonationStripeDetailsJob::class);
+});
+
+it('marks platform fee invoices as paid from stripe webhook', function () {
+    $organization = Organization::factory()->create(['contact_email' => 'ngo@example.com']);
+    $invoice = MonthlyInvoice::factory()->create([
+        'organization_id' => $organization->id,
+        'stripe_invoice_id' => 'in_platform_test',
+        'stripe_status' => 'open',
+        'total_fees' => 100.00,
+    ]);
+    $fee1 = PlatformFee::factory()->create([
+        'organization_id' => $organization->id,
+        'fee_amount' => 50.00,
+        'status' => 'invoiced',
+        'monthly_invoice_id' => $invoice->id,
+    ]);
+    $fee2 = PlatformFee::factory()->create([
+        'organization_id' => $organization->id,
+        'fee_amount' => 50.00,
+        'status' => 'invoiced',
+        'monthly_invoice_id' => $invoice->id,
+    ]);
+
+    $payload = json_encode([
+        'id' => 'evt_platform_invoice_paid',
+        'object' => 'event',
+        'type' => 'invoice.paid',
+        'data' => [
+            'object' => [
+                'id' => 'in_platform_test',
+                'object' => 'invoice',
+                'status' => 'paid',
+                'amount_paid' => 10000,
+                'subscription' => null,
+                'metadata' => [
+                    'organization_id' => (string) $organization->id,
+                    'period' => now()->subMonth()->format('Y-m-d'),
+                    'type' => 'platform_fees',
+                ],
+                'created' => now()->timestamp,
+                'period_start' => now()->subMonth()->timestamp,
+                'period_end' => now()->timestamp,
+                'payment_intent' => null,
+                'charge' => null,
+                'currency' => 'myr',
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+
+    (new ProcessStripeWebhook($payload))->handle();
+
+    $invoice->refresh();
+    $fee1->refresh();
+    $fee2->refresh();
+
+    expect($invoice->stripe_status)->toBe('paid')
+        ->and($invoice->paid_at)->not->toBeNull()
+        ->and($fee1->status)->toBe('paid')
+        ->and($fee2->status)->toBe('paid');
 });
 
 function paymentIntentSucceededPayload(Donation $donation, string $eventId): string

@@ -54,16 +54,7 @@ class ProcessStripeWebhook implements ShouldQueue
         match ($event->type) {
             'payment_intent.succeeded' => $this->handlePaymentIntentSucceeded($event),
             'payment_intent.payment_failed' => $this->handlePaymentIntentFailed($event),
-            'invoice.paid' => function () use ($event): void {
-                $invoice = $event->data->object;
-                $metadata = $invoice->metadata ?? [];
-
-                if (($metadata['type'] ?? null) === 'platform_fees') {
-                    $this->handlePlatformInvoicePaid($event);
-                } else {
-                    $this->handleDonorInvoicePaid($event);
-                }
-            },
+            'invoice.paid' => $this->handleInvoicePaid($event),
             'invoice.payment_failed' => $this->handleInvoicePaymentFailed($event),
             'customer.subscription.deleted' => $this->handleSubscriptionDeleted($event),
             'customer.subscription.updated' => $this->handleSubscriptionUpdated($event),
@@ -124,6 +115,18 @@ class ProcessStripeWebhook implements ShouldQueue
         }
 
         SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
+    }
+
+    private function handleInvoicePaid(StripeEvent $event): void
+    {
+        $invoice = $event->data->object;
+        $metadata = $invoice->metadata ?? [];
+
+        if (($metadata['type'] ?? null) === 'platform_fees') {
+            $this->handlePlatformInvoicePaid($event);
+        } else {
+            $this->handleDonorInvoicePaid($event);
+        }
     }
 
     private function handlePaymentIntentFailed(StripeEvent $event): void
