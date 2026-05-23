@@ -8,7 +8,9 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\SubscriptionStatus;
 use App\Models\Donation;
+use App\Models\MonthlyInvoice;
 use App\Models\Organization;
+use App\Models\PlatformFee;
 use App\Models\Subscription;
 use App\Models\WebhookLog;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -52,7 +54,16 @@ class ProcessStripeWebhook implements ShouldQueue
         match ($event->type) {
             'payment_intent.succeeded' => $this->handlePaymentIntentSucceeded($event),
             'payment_intent.payment_failed' => $this->handlePaymentIntentFailed($event),
-            'invoice.paid' => $this->handleInvoicePaid($event),
+            'invoice.paid' => function () use ($event): void {
+                $invoice = $event->data->object;
+                $metadata = $invoice->metadata ?? [];
+
+                if (($metadata['type'] ?? null) === 'platform_fees') {
+                    $this->handlePlatformInvoicePaid($event);
+                } else {
+                    $this->handleDonorInvoicePaid($event);
+                }
+            },
             'invoice.payment_failed' => $this->handleInvoicePaymentFailed($event),
             'customer.subscription.deleted' => $this->handleSubscriptionDeleted($event),
             'customer.subscription.updated' => $this->handleSubscriptionUpdated($event),
@@ -129,7 +140,7 @@ class ProcessStripeWebhook implements ShouldQueue
         ]);
     }
 
-    private function handleInvoicePaid(StripeEvent $event): void
+    private function handleDonorInvoicePaid(StripeEvent $event): void
     {
         $invoice = $event->data->object;
         $subscriptionId = $invoice->subscription;
@@ -179,6 +190,35 @@ class ProcessStripeWebhook implements ShouldQueue
 
         SendDonationReceipt::dispatch($donation);
         SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
+    }
+
+    private function handlePlatformInvoicePaid(StripeEvent $event): void
+    {
+        $invoice = $event->data->object;
+        $metadata = $invoice->metadata ?? [];
+
+        $organizationId = $metadata['organization_id'] ?? null;
+
+        if ($organizationId === null) {
+            return;
+        }
+
+        $monthlyInvoice = MonthlyInvoice::query()
+            ->where('stripe_invoice_id', $invoice->id)
+            ->first();
+
+        if ($monthlyInvoice === null) {
+            return;
+        }
+
+        $monthlyInvoice->update([
+            'stripe_status' => $invoice->status,
+            'paid_at' => now(),
+        ]);
+
+        PlatformFee::query()
+            ->where('monthly_invoice_id', $monthlyInvoice->id)
+            ->update(['status' => 'paid']);
     }
 
     private function handleInvoicePaymentFailed(StripeEvent $event): void
