@@ -81,8 +81,8 @@ it('marks a pending one time donation as succeeded from a payment intent webhook
 
     expect($donation->status)->toBe(DonationStatus::Succeeded)
         ->and($donation->stripe_charge_id)->toBe('ch_webhook_success_123')
-        ->and($donation->net_amount)->toBe('47.50')
-        ->and($donation->platform_fee)->toBe('2.50')
+        ->and($donation->net_amount)->toBe('48.75')
+        ->and($donation->platform_fee)->toBe('1.25')
         ->and($campaign->collected_amount)->toBe('75.00')
         ->and(WebhookLog::query()->where('stripe_event_id', 'evt_webhook_success_123')->first()?->status)->toBe('completed');
 

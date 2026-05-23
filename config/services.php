@@ -40,6 +40,7 @@ return [
         'secret' => env('STRIPE_SECRET'),
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
         'connect_client_id' => env('STRIPE_CONNECT_CLIENT_ID'),
+        'platform_fee_percent' => (float) env('STRIPE_PLATFORM_FEE_PERCENT', 2.5),
     ],
 
 ];

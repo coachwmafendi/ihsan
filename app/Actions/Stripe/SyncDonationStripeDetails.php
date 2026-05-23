@@ -76,7 +76,7 @@ class SyncDonationStripeDetails
         $charge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
         $charge = $this->retrieveCharge($charge, $stripeOptions);
         $chargeId = is_string($charge) ? $charge : ($charge->id ?? null);
-        $platformFee = round((float) $donation->gross_amount * 0.05, 2);
+        $platformFee = round((float) $donation->gross_amount * $this->platformFeePercent() / 100, 2);
         $stripeFee = 0.0;
         $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
 
@@ -155,5 +155,10 @@ class SyncDonationStripeDetails
         }
 
         return [$stripeFee, $platformFee];
+    }
+
+    private function platformFeePercent(): float
+    {
+        return (float) config('services.stripe.platform_fee_percent', 2.5);
     }
 }

@@ -510,7 +510,7 @@ it('creates a connected stripe billing subscription after a monthly payment succ
     expect($subscriptionRequest['params'])->toMatchArray([
         'customer' => 'cus_connected_monthly',
         'default_payment_method' => 'pm_connected_monthly',
-        'application_fee_percent' => 5,
+        'application_fee_percent' => 2.5,
     ])
         ->and($subscriptionRequest['params']['trial_end'])->toBeGreaterThan(now()->timestamp);
 });
