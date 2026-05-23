@@ -187,6 +187,96 @@
                     @endif
                 >
                     <div x-data="donationForm(@js($frequency), @js($amount), @js($name), @js($email), @js($phone), @js($connectedStripeAccountId))">
+
+                        {{-- Step progress indicator --}}
+                        <div x-show="typeof currentStep === 'number'" class="mb-4 text-sm text-slate-500">
+                            <span x-show="currentStep === 1">Step <strong class="text-slate-800">1</strong> of 3 — Choose Amount</span>
+                            <span x-show="currentStep === 2" x-cloak>Step <strong class="text-slate-800">2</strong> of 3 — Your Details</span>
+                            <span x-show="currentStep === 3" x-cloak>Step <strong class="text-slate-800">3</strong> of 3 — Payment</span>
+                        </div>
+
+                        {{-- Step 1: Amount & Frequency --}}
+                        <div x-show="currentStep === 1" class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
+                            <div class="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    x-on:click="frequency = 'one_time'"
+                                    x-bind:class="frequency === 'one_time' ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
+                                    class="min-h-10 rounded-lg border bg-white px-3 text-sm font-semibold transition"
+                                >
+                                    Give once
+                                </button>
+
+                                @if ($allowMonthly)
+                                    <button
+                                        type="button"
+                                        x-on:click="frequency = 'monthly'"
+                                        x-bind:class="frequency === 'monthly' ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
+                                        class="min-h-10 rounded-lg border bg-white px-3 text-sm font-semibold transition"
+                                    >
+                                        <span style="color: {{ $iconColor }};">&hearts;</span>
+                                        Monthly
+                                    </button>
+                                @endif
+                            </div>
+
+                            @if ($this->config('show_suggested', true))
+                                <div x-show="frequency === 'one_time'" class="grid grid-cols-3 gap-2">
+                                    @foreach ($oneTimeAmounts as $amount)
+                                        <button
+                                            type="button"
+                                            wire:key="one_time_{{ $amount }}"
+                                            x-on:click="amount = {{ $amount }}"
+                                            x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
+                                            class="min-h-12 rounded-lg border bg-white px-2 text-sm font-semibold transition"
+                                        >
+                                            RM {{ number_format($amount) }}
+                                        </button>
+                                    @endforeach
+                                </div>
+
+                                <div x-show="frequency === 'monthly'" class="grid grid-cols-3 gap-2">
+                                    @foreach ($monthlyAmounts as $amount)
+                                        <button
+                                            type="button"
+                                            wire:key="monthly_{{ $amount }}"
+                                            x-on:click="amount = {{ $amount }}"
+                                            x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
+                                            class="min-h-12 rounded-lg border bg-white px-2 text-sm font-semibold transition"
+                                        >
+                                            RM {{ number_format($amount) }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            @if ($this->config('show_amount_input', true))
+                                <label class="block">
+                                    <span class="sr-only">Donation amount</span>
+                                    <div class="flex min-h-14 items-center rounded-xl border border-slate-300 bg-white px-4 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/20">
+                                        <span class="{{ $usesSecureDonationShell ? 'text-2xl' : 'text-base' }} font-semibold text-slate-700">RM</span>
+                                        <input
+                                            x-model="amount"
+                                            type="number"
+                                            min="1"
+                                            step="1"
+                                            class="min-w-0 flex-1 border-0 bg-transparent px-2 text-3xl/none font-bold text-slate-950 outline-none placeholder:text-slate-300 sm:px-3 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                        />
+                                        <span class="text-sm font-medium text-slate-500">MYR</span>
+                                    </div>
+                                    <div x-show="stepErrors.amount" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.amount"></div>
+                                </label>
+                            @endif
+
+                            <button
+                                type="button"
+                                @click="nextStep()"
+                                class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
+                            >
+                                Continue &rarr;
+                            </button>
+                        </div>{{-- end Step 1 --}}
+
                         <div x-show="!success && !error">
                             <form class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}" @submit.prevent="handleSubmit">
                                 <div class="grid grid-cols-2 gap-2">
