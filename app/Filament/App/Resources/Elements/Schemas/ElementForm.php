@@ -10,7 +10,6 @@ use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Slider;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -54,10 +53,6 @@ class ElementForm
                 'show_shadow' => false,
                 'show_suggested' => true,
                 'show_amount_input' => true,
-                'suggested_amounts_one_time' => [500, 200, 100, 50, 40, 30],
-                'suggested_amounts_monthly' => [100, 50, 30, 20, 10, 5],
-                'default_amount' => 5,
-                'default_frequency' => 'monthly',
                 'allow_monthly' => true,
                 'show_dedication' => true,
                 'show_comment' => true,
@@ -104,6 +99,7 @@ class ElementForm
                             ->helperText('Enable or disable this element'),
                         View::make('filament.forms.components.embed-token')
                             ->viewData(fn (?Element $record): array => [
+                                'token' => $record?->token,
                                 'url' => $record?->token ? url('/donate/'.$record->token) : null,
                             ])
                             ->visible(fn ($record) => $record !== null)
@@ -175,32 +171,10 @@ class ElementForm
                             ->default('Donate and Support')
                             ->required()
                             ->live(),
-                        TagsInput::make('suggested_amounts_one_time')
-                            ->label('One-time amounts')
-                            ->default([500, 200, 100, 50, 40, 30])
-                            ->placeholder('Add amount')
-                            ->live()
+                        Placeholder::make('amounts_note')
+                            ->hiddenLabel()
+                            ->content(new HtmlString('<p class="text-sm text-zinc-500">Jumlah derma dicadangkan dan lalai dikawal dari <strong>tetapan kempen</strong>.</p>'))
                             ->columnSpanFull(),
-                        TagsInput::make('suggested_amounts_monthly')
-                            ->label('Monthly amounts')
-                            ->default([100, 50, 30, 20, 10, 5])
-                            ->placeholder('Add amount')
-                            ->live()
-                            ->columnSpanFull(),
-                        TextInput::make('default_amount')
-                            ->label('Default amount')
-                            ->numeric()
-                            ->default(5)
-                            ->minValue(1)
-                            ->live(),
-                        Select::make('default_frequency')
-                            ->label('Default frequency')
-                            ->options([
-                                'one_time' => 'One-time',
-                                'monthly' => 'Monthly',
-                            ])
-                            ->default('monthly')
-                            ->live(),
                         Toggle::make('allow_monthly')
                             ->label('Allow monthly donations')
                             ->default(true)
@@ -290,40 +264,10 @@ class ElementForm
                                             ->default('Donate and Support')
                                             ->required()
                                             ->live(),
-                                        Section::make('Suggested Amounts')
-                                            ->description('Configure donation amounts for each frequency type.')
-                                            ->columnSpanFull()
-                                            ->extraAttributes(['class' => 'border-t border-zinc-200 pt-4'])
-                                            ->schema([
-                                                TagsInput::make('suggested_amounts_one_time')
-                                                    ->label('One-time amounts')
-                                                    ->helperText('Amounts shown when donor selects one-time donation.')
-                                                    ->default([500, 200, 100, 50, 40, 30])
-                                                    ->placeholder('Add amount')
-                                                    ->live()
-                                                    ->columnSpanFull(),
-                                                TagsInput::make('suggested_amounts_monthly')
-                                                    ->label('Monthly amounts')
-                                                    ->helperText('Amounts shown when donor selects monthly donation.')
-                                                    ->default([100, 50, 30, 20, 10, 5])
-                                                    ->placeholder('Add amount')
-                                                    ->live()
-                                                    ->columnSpanFull(),
-                                            ]),
-                                        TextInput::make('default_amount')
-                                            ->label('Default amount')
-                                            ->numeric()
-                                            ->default(5)
-                                            ->minValue(1)
-                                            ->live(),
-                                        Select::make('default_frequency')
-                                            ->label('Default frequency')
-                                            ->options([
-                                                'one_time' => 'One-time',
-                                                'monthly' => 'Monthly',
-                                            ])
-                                            ->default('monthly')
-                                            ->live(),
+                                        Placeholder::make('amounts_note')
+                                            ->hiddenLabel()
+                                            ->content(new HtmlString('<p class="text-sm text-zinc-500">Jumlah derma dicadangkan dan lalai dikawal dari <strong>tetapan kempen</strong>.</p>'))
+                                            ->columnSpanFull(),
                                         Toggle::make('allow_monthly')
                                             ->label('Allow monthly donations')
                                             ->default(true)
@@ -426,24 +370,14 @@ class ElementForm
                                     ]),
                                 Tab::make('Embed')
                                     ->schema([
-                                        Placeholder::make('iframe_code')
-                                            ->label('Iframe Embed Code')
-                                            ->helperText('Embed this code into your website to display the donation form inline.')
-                                            ->extraAttributes(['class' => '[&_.fi-fo-placeholder-label]:font-normal [&_.fi-fo-placeholder-content]:items-start'])
+                                        Placeholder::make('embed_content')
+                                            ->hiddenLabel()
                                             ->content(fn (?Element $record): HtmlString => new HtmlString(
-                                                '<div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4">'
-                                                .'<div x-data="{ copied: false, copyText: \''.str_replace("'", "\\'", self::iframeCode($record)).'\', doCopy() { let t = document.createElement(\'textarea\'); t.value = this.copyText; document.body.appendChild(t); t.select(); document.execCommand(\'copy\'); document.body.removeChild(t); this.copied = true; setTimeout(() => this.copied = false, 2000) } }" class="flex items-start gap-3">'
-                                                .'<code class="flex-1 whitespace-pre-wrap break-all font-mono text-xs leading-relaxed text-zinc-700">'.e(self::iframeCode($record)).'</code>'
-                                                .'<div class="relative shrink-0">'
-                                                .'<button type="button" x-on:click="doCopy()" class="flex items-center justify-center rounded-lg bg-white px-3 py-2 text-xs font-medium text-zinc-600 shadow-sm ring-1 ring-zinc-200 transition hover:bg-zinc-50 hover:text-zinc-800" title="Copy code">'
-                                                .'<svg class="mr-1.5 size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
-                                                .'Copy'
-                                                .'</button>'
-                                                .'<span x-show="copied" x-cloak class="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white shadow-sm">Copied!</span>'
-                                                .'</div>'
-                                                .'</div>'
-                                                .'</div>'
-                                            )),
+                                                $record?->token
+                                                    ? static::embedTabHtml($record)
+                                                    : '<p class="text-sm text-zinc-500">Simpan element untuk mendapatkan kod benam.</p>'
+                                            ))
+                                            ->columnSpanFull(),
                                     ]),
                             ]),
                         Section::make('Live Preview')
@@ -471,28 +405,54 @@ class ElementForm
         return $value === ElementType::Popup->value ? ElementType::Form->value : $value;
     }
 
-    private static function hostedUrl(?Element $record): string
+    private static function embedTabHtml(Element $record): string
     {
-        if (! $record?->token) {
-            return 'Available after saving this element.';
-        }
+        $baseUrl = url('/donate/'.$record->token);
+        $embedUrl = $baseUrl.'?embed=1';
+        $urlEncoded = urlencode($baseUrl);
+        $waUrl = 'https://wa.me/?text='.$urlEncoded;
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data='.$urlEncoded.'&bgcolor=ffffff&color=0f172a&qzone=1';
+        $waIcon = '<svg class="size-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
 
-        return url('/donate/'.$record->token);
+        $iframe = implode("\n", [
+            '<iframe',
+            '  src="'.e($embedUrl).'"',
+            '  width="100%"',
+            '  height="700"',
+            '  frameborder="0"',
+            '  allow="payment *"',
+            '  style="border:0;border-radius:16px;"',
+            '></iframe>',
+        ]);
+
+        return '<div class="space-y-4">'
+            .'<p class="text-sm text-zinc-500">Letak kod berikut dalam mana-mana halaman web untuk benamkan borang derma terus tanpa pop-up.</p>'
+            .self::copyableSnippet('Kod benam', $iframe)
+            .'<div class="flex items-start gap-6 pt-2">'
+            .'<div class="shrink-0 text-center">'
+            .'<img src="'.e($qrUrl).'" width="140" height="140" loading="lazy" class="rounded-lg border border-zinc-200" alt="QR Code">'
+            .'<p class="mt-1.5 text-xs text-zinc-400">Imbas untuk derma</p>'
+            .'</div>'
+            .'<div class="flex-1 space-y-3 pt-1">'
+            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Kongsi</p>'
+            .'<a href="'.e($waUrl).'" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 transition">'
+            .$waIcon.'WhatsApp'
+            .'</a>'
+            .'</div>'
+            .'</div>'
+            .'<p class="text-xs text-zinc-400">Laraskan <code class="bg-zinc-100 px-1 rounded">height</code> mengikut keperluan. Nilai <code class="bg-zinc-100 px-1 rounded">700</code> sesuai untuk kebanyakan skrin.</p>'
+            .'</div>';
     }
 
-    private static function iframeCode(?Element $record): string
+    private static function copyableSnippet(string $label, string $code): string
     {
-        if (! $record?->token) {
-            return 'Available after saving this element.';
-        }
-
-        $url = self::hostedUrl($record);
-
-        if ($record->type === ElementType::Popup || $record->config('display_as_popup')) {
-            $url .= '?popup=1';
-        }
-
-        return '<iframe src="'.$url.'" width="100%" height="760" style="border:0;" loading="lazy"></iframe>';
+        return '<div x-data="{ copied: false }" data-code="'.e($code).'" class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">'
+            .'<div class="mb-2 flex items-center justify-between gap-3">'
+            .'<span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">'.e($label).'</span>'
+            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Disalin\' : \'Salin\'"></button>'
+            .'</div>'
+            .'<code class="block overflow-x-auto whitespace-pre rounded-md bg-white p-2 text-xs text-zinc-700 ring-1 ring-zinc-200">'.e($code).'</code>'
+            .'</div>';
     }
 
     /**

@@ -47,7 +47,7 @@ it('shows donation form builder settings when creating a form element', function
         ->assertSee('Border radius')
         ->assertSee('Border color')
         ->assertSee('Show shadow')
-        ->assertSee('Available after saving this element.')
+        ->assertSee('Simpan element untuk mendapatkan kod benam.')
         ->assertSee('Secure donation')
         ->assertSee('Donate monthly');
 });
@@ -77,13 +77,12 @@ it('shows a full page donation form workbench when editing a form element', func
         ->assertSee('Behavior')
         ->assertSee('Embed')
         ->assertSee('Live Preview')
-        ->assertSee('HTML Code')
         ->assertSee('ihsan-builder-shell')
         ->assertSee('ihsan-builder-editor')
         ->assertSee('ihsan-builder-preview')
         ->assertSee('--cols-xl: repeat(12, minmax(0, 1fr))')
         ->assertSee('https://ihsan.test/donate/form-token-123')
-        ->assertSee('<iframe src="https://ihsan.test/donate/form-token-123"')
+        ->assertSee('https://ihsan.test/donate/form-token-123?embed=1')
         ->assertSee('Your most generous donation')
         ->assertSee('max-w-[380px]', false)
         ->assertSee('min-h-[720px]', false)
@@ -167,10 +166,6 @@ it('creates a form element with organization, token, and builder configuration',
                 'border_radius' => 6,
                 'border_color' => '#DEDFF3',
                 'show_shadow' => false,
-                'suggested_amounts_one_time' => [500, 200, 100, 50, 40, 30],
-                'suggested_amounts_monthly' => [100, 50, 30, 20, 10, 5],
-                'default_amount' => 5,
-                'default_frequency' => 'monthly',
                 'allow_monthly' => true,
                 'show_dedication' => true,
                 'show_comment' => true,
@@ -201,10 +196,6 @@ it('creates a form element with organization, token, and builder configuration',
             'border_radius' => 6,
             'border_color' => '#DEDFF3',
             'show_shadow' => false,
-            'suggested_amounts_one_time' => [500, 200, 100, 50, 40, 30],
-            'suggested_amounts_monthly' => [100, 50, 30, 20, 10, 5],
-            'default_amount' => 5,
-            'default_frequency' => 'monthly',
             'allow_monthly' => true,
             'show_dedication' => true,
             'show_comment' => true,
