@@ -16,13 +16,15 @@ class SyncDonationStripeDetails
      */
     public function sync(Donation $donation, ?StripePaymentIntent $paymentIntent = null, array $stripeOptions = []): array
     {
+        $shouldRetrieveMissingChargeDetails = $paymentIntent === null;
+
         $paymentIntent ??= StripePaymentIntent::retrieve([
             'id' => $donation->stripe_payment_intent_id,
             'expand' => ['latest_charge.balance_transaction'],
         ], $stripeOptions);
 
         [$cardBrand, $paymentMethodType] = $this->paymentMethodDetails($paymentIntent, $stripeOptions);
-        [$chargeId, $stripeFee, $platformFee] = $this->chargeDetails($donation, $paymentIntent, $stripeOptions);
+        [$chargeId, $stripeFee, $platformFee] = $this->chargeDetails($donation, $paymentIntent, $stripeOptions, $shouldRetrieveMissingChargeDetails);
 
         $donation->update([
             'stripe_charge_id' => $chargeId,
@@ -71,10 +73,10 @@ class SyncDonationStripeDetails
      * @param  array<string, string>  $stripeOptions
      * @return array{0: string|null, 1: float, 2: float}
      */
-    private function chargeDetails(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions): array
+    private function chargeDetails(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions, bool $shouldRetrieveMissingChargeDetails): array
     {
         $charge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
-        $charge = $this->retrieveCharge($charge, $stripeOptions);
+        $charge = $this->retrieveCharge($charge, $stripeOptions, $shouldRetrieveMissingChargeDetails);
         $chargeId = is_string($charge) ? $charge : ($charge->id ?? null);
         $platformFee = round((float) $donation->gross_amount * $this->platformFeePercent() / 100, 2);
         $stripeFee = 0.0;
@@ -91,7 +93,7 @@ class SyncDonationStripeDetails
     /**
      * @param  array<string, string>  $stripeOptions
      */
-    private function retrieveCharge(mixed $charge, array $stripeOptions): mixed
+    private function retrieveCharge(mixed $charge, array $stripeOptions, bool $shouldRetrieveMissingChargeDetails): mixed
     {
         $chargeId = is_string($charge) ? $charge : ($charge->id ?? null);
 
@@ -99,7 +101,7 @@ class SyncDonationStripeDetails
             return $charge;
         }
 
-        if (! is_string($charge)) {
+        if (! is_string($charge) && (($charge->balance_transaction ?? null) !== null || ! $shouldRetrieveMissingChargeDetails)) {
             return $charge;
         }
 

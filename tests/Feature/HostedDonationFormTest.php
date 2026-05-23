@@ -117,7 +117,9 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertSee('Secure donation')
         ->assertSee(route('donations.campaign-image', $element), false)
         ->assertSee('Donate monthly')
-        ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
+        ->assertSee('lg:max-w-6xl', false)
+        ->assertSee('lg:grid-cols-[minmax(0,1fr)_440px]', false)
+        ->assertSee('lg:border-r lg:border-slate-200', false);
 
     Livewire::test(DonationForm::class, ['element' => $element])
         ->assertSet('isPopup', true)
@@ -200,6 +202,9 @@ it('renders the hosted donation form as an image-led popup', function () {
         ->assertSee('RM 300')
         ->assertSee('RM 30')
         ->assertSee('Donate monthly')
+        ->assertSee('lg:max-w-6xl', false)
+        ->assertSee('lg:grid-cols-[minmax(0,1fr)_440px]', false)
+        ->assertSee('lg:border-r lg:border-slate-200', false)
         ->assertDontSee('Your most generous donation');
 });
 
@@ -593,6 +598,15 @@ it('stores connected stripe fees and card details when confirming a payment', fu
                         ],
                     ],
                 ],
+                str_contains($absUrl, '/v1/charges/ch_connected_fee') => [
+                    'id' => 'ch_connected_fee',
+                    'object' => 'charge',
+                    'balance_transaction' => [
+                        'id' => 'txn_connected_fee',
+                        'object' => 'balance_transaction',
+                        'fee' => 1909,
+                    ],
+                ],
                 str_contains($absUrl, '/v1/payment_intents/pi_connected_fee') => [
                     'id' => 'pi_connected_fee',
                     'object' => 'payment_intent',
@@ -601,11 +615,7 @@ it('stores connected stripe fees and card details when confirming a payment', fu
                     'latest_charge' => [
                         'id' => 'ch_connected_fee',
                         'object' => 'charge',
-                        'balance_transaction' => [
-                            'id' => 'txn_connected_fee',
-                            'object' => 'balance_transaction',
-                            'fee' => 1909,
-                        ],
+                        'balance_transaction' => null,
                     ],
                     'charges' => [
                         'object' => 'list',

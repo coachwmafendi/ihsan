@@ -29,22 +29,24 @@
 <div>
     @if ($usesSecureDonationShell)
         @if ($isPopup)
-            <div class="bg-white">
+            <div class="bg-white lg:grid lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_440px] lg:items-stretch">
+                <section class="lg:flex lg:min-h-0 lg:flex-col lg:border-r lg:border-slate-200">
         @else
             <div class="min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8">
                 <main class="mx-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
         @endif
             @if ($campaignImageUrl)
-                <div class="p-2.5 pb-0 sm:p-3 sm:pb-0">
+                <div class="p-2.5 pb-0 sm:p-3 sm:pb-0 {{ $isPopup ? 'lg:p-4 lg:pb-0' : '' }}">
                     <img
                         src="{{ $campaignImageUrl }}"
                         alt="{{ $campaign->title }}"
-                        class="h-56 w-full rounded-2xl object-cover sm:h-64"
+                        class="h-56 w-full rounded-2xl object-cover sm:h-64 {{ $isPopup ? 'lg:h-[330px]' : '' }}"
                     />
                 </div>
             @endif
 
-            <div class="px-6 py-6">
+            <div class="px-6 py-6 {{ $isPopup ? 'lg:flex lg:flex-1 lg:flex-col lg:justify-between lg:px-8 lg:py-7' : '' }}">
+                <div>
                 <div class="mb-5 flex items-center gap-3">
                     <div class="flex size-10 items-center justify-center rounded-xl bg-teal-700 text-base font-bold text-white shadow-sm">
                         {{ str($organization->name)->substr(0, 1)->upper() }}
@@ -75,9 +77,14 @@
                         </div>
                     </div>
                 @endif
+                </div>
             </div>
 
-            <section class="border-t border-slate-200 px-6 py-6">
+            @if ($isPopup)
+                </section>
+            @endif
+
+            <section class="border-t border-slate-200 px-6 py-6 {{ $isPopup ? 'lg:border-t-0 lg:px-7 lg:py-7' : '' }}">
                 <div class="mb-5 flex items-center gap-3">
                     <span class="flex size-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">

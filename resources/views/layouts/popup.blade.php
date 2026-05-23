@@ -13,7 +13,7 @@
         >
             <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close()"></div>
 
-            <div class="relative w-full max-w-xl">
+            <div class="relative w-full max-w-xl lg:max-w-6xl">
                 <button
                     type="button"
                     @click="close()"
