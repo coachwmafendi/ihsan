@@ -60,7 +60,7 @@ class MonthlyInvoices extends Page implements HasTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('organization.name')
-                    ->label('NGO')
+                    ->label('Organisation')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('period')
@@ -98,7 +98,7 @@ class MonthlyInvoices extends Page implements HasTable
             ])
             ->filters([
                 SelectFilter::make('organization_id')
-                    ->label('NGO')
+                    ->label('Organisation')
                     ->options(Organization::pluck('name', 'id')->toArray()),
                 SelectFilter::make('stripe_status')
                     ->label('Status')

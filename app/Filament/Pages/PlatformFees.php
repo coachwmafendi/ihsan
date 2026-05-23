@@ -37,7 +37,7 @@ class PlatformFees extends Page implements HasTable
                     ->date()
                     ->sortable(),
                 TextColumn::make('organization.name')
-                    ->label('NGO')
+                    ->label('Organisation')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('donation.campaign.title')

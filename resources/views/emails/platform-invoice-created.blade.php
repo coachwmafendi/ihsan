@@ -7,7 +7,7 @@
 
         <p>Hi <strong>{{ $invoice->organization->name }}</strong>,</p>
 
-        <p>A new platform fee invoice has been generated for your organisation.</p>
+        <p>A new platform fee invoice has been generated for <strong>{{ \Carbon\Carbon::parse($invoice->period)->format('F Y') }}</strong>.</p>
 
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Invoice</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $invoice->invoice_number }}</td></tr>

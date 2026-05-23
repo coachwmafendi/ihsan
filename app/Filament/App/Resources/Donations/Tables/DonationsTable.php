@@ -54,8 +54,12 @@ class DonationsTable
                 TextColumn::make('type')
                     ->badge()
                     ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString())
+                    ->color(fn (DonationType $state): string => match ($state) {
+                        DonationType::Recurring => 'info',
+                        default => 'gray',
+                    })
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->badge()
                     ->sortable()
