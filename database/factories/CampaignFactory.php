@@ -22,7 +22,6 @@ class CampaignFactory extends Factory
         return [
             'organization_id' => Organization::factory(),
             'title' => fake()->sentence(4),
-            'slug' => fake()->unique()->slug(),
             'description' => fake()->paragraph(),
             'target_amount' => 10000.00,
             'collected_amount' => 0,

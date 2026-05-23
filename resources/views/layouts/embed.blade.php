@@ -14,10 +14,12 @@
 
         @livewireScripts
 
-        @env('local')
         <script>
             window.stripePublishableKey = '{{ config('services.stripe.key') }}';
+
+            window.addEventListener('close-popup', function () {
+                window.parent.postMessage({ type: 'donation-popup-close' }, '*');
+            });
         </script>
-        @endenv
     </body>
 </html>

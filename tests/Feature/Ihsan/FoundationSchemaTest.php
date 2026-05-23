@@ -29,7 +29,6 @@ it('has key columns for organization-scoped fundraising', function () {
     expect(Schema::hasColumns('campaigns', [
         'organization_id',
         'title',
-        'slug',
         'target_amount',
         'collected_amount',
         'allow_recurring',

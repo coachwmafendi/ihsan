@@ -1,0 +1,7 @@
+{"type":"server-started","port":51351,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:51351","screen_dir":"/Users/wmafendi/Herd/ihsan/.superpowers/brainstorm/39662-1779545461/content","state_dir":"/Users/wmafendi/Herd/ihsan/.superpowers/brainstorm/39662-1779545461/state"}
+{"type":"screen-added","file":"/Users/wmafendi/Herd/ihsan/.superpowers/brainstorm/39662-1779545461/content/step-structure.html"}
+{"source":"user-event","type":"click","text":"A\n    \n      3 Steps — Macam Fundraise Up\n      Step 1: Amount + Frequency\n      Step 2: Donor Details (nama, email, telefon)\n      Step 3: Payment (card) + Confirm\n      \n      ✦ Proven conversion pattern. Donor focus satu benda at a time. Best untuk mobile.","choice":"a","id":null,"timestamp":1779545575940}
+{"type":"screen-added","file":"/Users/wmafendi/Herd/ihsan/.superpowers/brainstorm/39662-1779545461/content/progress-indicator.html"}
+{"source":"user-event","type":"click","text":"Step 1 of 3\n      Choose Amount\n    \n    \n      Text only\n      Paling ringkas. Tak ada visual bar. Fokus pada step title sahaja. FU-style subtle.","choice":"c","id":null,"timestamp":1779545636535}
+{"type":"screen-added","file":"/Users/wmafendi/Herd/ihsan/.superpowers/brainstorm/39662-1779545461/content/waiting-1.html"}
+{"type":"server-stopped","reason":"idle timeout"}

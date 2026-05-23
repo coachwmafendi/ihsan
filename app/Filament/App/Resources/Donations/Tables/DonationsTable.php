@@ -129,6 +129,11 @@ class DonationsTable
                                     ->dateTime('d M Y, h:i A'),
                                 TextEntry::make('donor.name')
                                     ->label('Supporter'),
+                                TextEntry::make('donor.email')
+                                    ->label('Email'),
+                                TextEntry::make('donor.phone')
+                                    ->label('Phone')
+                                    ->placeholder('—'),
                                 TextEntry::make('campaign.title')
                                     ->label('Campaign'),
                                 TextEntry::make('gross_amount')
@@ -168,9 +173,11 @@ class DonationsTable
                                     ->copyable()
                                     ->copyMessage('Copied'),
                                 TextEntry::make('payment_method_brand')
-                                    ->label('Payment Method'),
+                                    ->label('Payment Method')
+                                    ->formatStateUsing(fn (?string $state): string => $state ? str($state)->headline()->toString() : '—'),
                                 TextEntry::make('payment_method_type')
-                                    ->label('Method Type'),
+                                    ->label('Method Type')
+                                    ->formatStateUsing(fn (?string $state): string => $state === 'fpx' ? 'FPX' : (str($state ?? '')->headline()->toString() ?: '—')),
                             ]),
                         Section::make('Financial Breakdown')
                             ->columns(3)

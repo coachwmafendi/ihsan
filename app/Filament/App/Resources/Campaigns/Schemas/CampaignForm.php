@@ -41,15 +41,6 @@ class CampaignForm
                                             ->label('Nama kempen')
                                             ->required()
                                             ->maxLength(255)
-                                            ->live(onBlur: true)
-                                            ->afterStateUpdated(fn ($state, $set) => $set('slug', str($state)->slug()))
-                                            ->columnSpanFull(),
-                                        TextInput::make('slug')
-                                            ->label('Slug kempen')
-                                            ->helperText('Pengenalan unik kempen. Bukan URL derma.')
-                                            ->required()
-                                            ->maxLength(255)
-                                            ->unique(ignoreRecord: true)
                                             ->columnSpanFull(),
                                         Select::make('status')
                                             ->label('Status')

@@ -67,7 +67,6 @@ class CampaignsTable
                     ->action(function ($record) {
                         $replica = $record->replicate();
                         $replica->title = $record->title.' (Copy)';
-                        $replica->slug = $record->slug.'-copy';
                         $replica->collected_amount = 0;
                         $replica->save();
                     }),

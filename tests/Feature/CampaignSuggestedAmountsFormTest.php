@@ -61,7 +61,6 @@ it('saves checkout modal settings on the campaign form', function () {
     Livewire::test(CreateCampaign::class)
         ->fillForm([
             'title' => 'Ramadan Relief Fund',
-            'slug' => 'ramadan-relief-fund',
             'status' => 'active',
             'checkout_modal_enabled' => true,
             'form_parameter' => 'RAMADAN2026',
@@ -76,7 +75,7 @@ it('saves checkout modal settings on the campaign form', function () {
         ->assertRedirect();
 
     $campaign = Campaign::query()
-        ->where('slug', 'ramadan-relief-fund')
+        ->where('form_parameter', 'RAMADAN2026')
         ->firstOrFail();
 
     expect($campaign->organization_id)->toBe($organization->getKey())

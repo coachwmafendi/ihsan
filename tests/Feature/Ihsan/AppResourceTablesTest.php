@@ -24,7 +24,6 @@ it('shows useful dummy data across ngo app resource tables', function () {
 
     $campaign = Campaign::factory()->for($organization)->create([
         'title' => 'Dana Makanan Pelajar',
-        'slug' => 'dana-makanan-pelajar',
         'status' => 'active',
         'collected_amount' => 1250.00,
     ]);
