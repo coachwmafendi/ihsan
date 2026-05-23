@@ -126,6 +126,21 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertSee('Secure donation');
 });
 
+it('hides the left panel on mobile in popup mode', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'image_path' => 'campaigns/test.jpg',
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Popup,
+        'config' => ['template' => 'secure-donation'],
+    ]);
+
+    $this->get(route('donations.show', $element))
+        ->assertOk()
+        ->assertSee('hidden lg:flex lg:min-h-0 lg:flex-col lg:border-r lg:border-slate-200', false);
+});
+
 it('renders the hosted donation form in a compact layout when embedded', function () {
     $organization = Organization::factory()->create([
         'name' => 'Maahad Tahfiz Mumtazatut Taqwa',

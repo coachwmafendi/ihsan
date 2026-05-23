@@ -33,7 +33,7 @@
     @if ($usesSecureDonationShell)
         @if ($isPopup)
             <div class="bg-white lg:grid lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_440px] lg:items-stretch">
-                <section class="lg:flex lg:min-h-0 lg:flex-col lg:border-r lg:border-slate-200">
+                <section class="hidden lg:flex lg:min-h-0 lg:flex-col lg:border-r lg:border-slate-200">
         @else
             <div class="min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8">
                 <main class="mx-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
