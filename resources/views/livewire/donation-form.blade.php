@@ -387,10 +387,48 @@
             donorEmail: initialEmail,
             donorPhone: initialPhone,
             processing: false,
-            success: false,
-            error: false,
-            errorMessage: '',
+            currentStep: 1,
+            stepErrors: {},
             cardError: '',
+
+            validateStep1() {
+                this.stepErrors = {};
+                const amt = parseFloat(this.amount);
+                if (!amt || amt < 1) {
+                    this.stepErrors.amount = 'Please enter a valid amount (minimum RM 1).';
+                    return false;
+                }
+                if (amt > 100000) {
+                    this.stepErrors.amount = 'Amount cannot exceed RM 100,000.';
+                    return false;
+                }
+                return true;
+            },
+
+            validateStep2() {
+                this.stepErrors = {};
+                let valid = true;
+                if (!this.donorName.trim()) {
+                    this.stepErrors.name = 'Name is required.';
+                    valid = false;
+                }
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(this.donorEmail)) {
+                    this.stepErrors.email = 'Please enter a valid email address.';
+                    valid = false;
+                }
+                return valid;
+            },
+
+            nextStep() {
+                if (this.currentStep === 1 && !this.validateStep1()) return;
+                if (this.currentStep === 2 && !this.validateStep2()) return;
+                this.currentStep++;
+            },
+
+            prevStep() {
+                if (this.currentStep > 1) this.currentStep--;
+            },
 
             async init() {
                 stripe = connectedStripeAccountId
@@ -423,8 +461,8 @@
                 });
 
                 if (paymentMethodError) {
-                    this.error = true;
-                    this.errorMessage = paymentMethodError.message;
+                    this.currentStep = 'error';
+                    this.cardError = paymentMethodError.message;
                     return;
                 }
 
@@ -436,7 +474,6 @@
                 $wire.$set('phone', this.donorPhone, false);
 
                 let clientSecret;
-
                 try {
                     clientSecret = await $wire.submit();
                 } catch (e) {
@@ -456,15 +493,15 @@
 
                 if (confirmError) {
                     this.processing = false;
-                    this.error = true;
-                    this.errorMessage = confirmError.message;
+                    this.currentStep = 'error';
+                    this.cardError = confirmError.message;
                     return;
                 }
 
                 if (paymentIntent.status === 'succeeded') {
                     await $wire.confirmPayment(paymentIntent.id);
                     this.processing = false;
-                    this.success = true;
+                    this.currentStep = 'success';
                 }
             },
         };

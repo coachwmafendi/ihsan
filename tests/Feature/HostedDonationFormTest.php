@@ -713,6 +713,22 @@ it('does not create a subscription for one-time donations', function () {
     expect($donation->subscription)->toBeNull();
 });
 
+it('renders step state variables in Alpine donationForm', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => ['default_amount' => 50],
+    ]);
+
+    $this->get(route('donations.show', $element))
+        ->assertOk()
+        ->assertSee('currentStep', false)
+        ->assertSee('stepErrors', false)
+        ->assertSee('nextStep()', false)
+        ->assertSee('prevStep()', false);
+});
+
 it('validates hosted donation input before creating records', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();
