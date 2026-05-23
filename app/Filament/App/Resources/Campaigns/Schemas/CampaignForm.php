@@ -226,16 +226,16 @@ class CampaignForm
         $collected = (float) $record->collected_amount;
         $target = (float) $record->target_amount;
         $percentage = min(round(($collected / $target) * 100, 1), 100);
-
-        $barColor = $percentage >= 100 ? 'bg-emerald-500' : ($percentage >= 50 ? 'bg-emerald-400' : 'bg-amber-400');
+        $barWidth = max($percentage, 2);
+        $barColor = $percentage >= 100 ? '#10b981' : ($percentage >= 50 ? '#34d399' : '#f59e0b');
 
         return '<div class="space-y-3">'
             .'<div class="flex items-center justify-between text-sm">'
             .'<span class="font-medium text-zinc-900">RM '.number_format($collected, 2).'</span>'
             .'<span class="text-zinc-500">daripada RM '.number_format($target, 2).'</span>'
             .'</div>'
-            .'<div class="h-3 w-full overflow-hidden rounded-full bg-zinc-100">'
-            .'<div class="h-full rounded-full '.$barColor.' transition-all duration-500" style="width: '.$percentage.'%"></div>'
+            .'<div class="h-3 w-full overflow-hidden rounded-full bg-zinc-200">'
+            .'<div class="h-full rounded-full transition-all duration-500" style="width: '.$barWidth.'%; background-color: '.$barColor.'"></div>'
             .'</div>'
             .'<div class="flex items-center justify-between text-xs">'
             .'<span class="font-semibold text-zinc-700">'.$percentage.'% terkumpul</span>'
