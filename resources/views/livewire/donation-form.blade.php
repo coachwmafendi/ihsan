@@ -354,7 +354,53 @@
                             </button>
                         </div>{{-- end Step 2 --}}
 
-                        <div x-show="currentStep === 3 && !success && !error">
+                        {{-- Step 3: Payment --}}
+                        <div x-show="currentStep === 3" x-cloak class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
+
+                            <button
+                                type="button"
+                                x-on:click="prevStep()"
+                                class="mb-1 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition"
+                            >
+                                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                Back
+                            </button>
+
+                            {{-- Summary bar --}}
+                            <div class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3 text-sm">
+                                <span class="font-semibold text-slate-800">
+                                    RM <span x-text="Number(amount).toLocaleString()"></span>
+                                </span>
+                                <span class="text-slate-500">
+                                    <span x-show="frequency === 'monthly'">Monthly</span>
+                                    <span x-show="frequency !== 'monthly'" x-cloak>One-time</span>
+                                </span>
+                            </div>
+
+                            <div wire:ignore>
+                                <label class="mb-0.5 block text-sm font-medium text-slate-700">Card details</label>
+                                <div id="card-element" class="min-h-10 rounded-lg border border-slate-200 px-3 py-2.5 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/10"></div>
+                                <div x-show="cardError" x-cloak class="mt-1 text-sm text-red-600" x-text="cardError"></div>
+                            </div>
+
+                            <form @submit.prevent="handleSubmit">
+                                <button
+                                    type="submit"
+                                    class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98] disabled:opacity-60"
+                                    x-bind:disabled="processing"
+                                >
+                                    @if ($usesSecureDonationShell && in_array($submitText, ['Donate and Support', 'Donate Now'], true))
+                                        <span x-show="!processing && frequency === 'monthly'">Donate monthly</span>
+                                        <span x-show="!processing && frequency !== 'monthly'" x-cloak>Donate once</span>
+                                    @else
+                                        <span x-show="!processing">{{ $submitText }}</span>
+                                    @endif
+                                    <span x-show="processing" x-cloak>Processing...</span>
+                                </button>
+                            </form>
+                        </div>{{-- end Step 3 --}}
+
+                        <div x-show="false">
                             <form class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}" @submit.prevent="handleSubmit">
                                 <div class="grid grid-cols-2 gap-2">
                                     <button
@@ -474,7 +520,7 @@
 
                                 <div wire:ignore>
                                     <label class="mb-0.5 block text-sm font-medium text-slate-700">Card details</label>
-                                    <div id="card-element" class="min-h-10 rounded-lg border border-slate-200 px-3 py-2.5 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/10"></div>
+                                    <div id="card-element-old" class="min-h-10 rounded-lg border border-slate-200 px-3 py-2.5 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/10"></div>
                                     <div x-show="cardError" x-cloak class="mt-1 text-sm text-red-600" x-text="cardError"></div>
                                 </div>
 

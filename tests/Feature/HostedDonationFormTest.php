@@ -49,7 +49,7 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertSee('RM 200')
         ->assertSee('RM 5')
         ->assertSee('Donate monthly')
-        ->assertSee('x-show="currentStep === 3 && !success && !error"', false)
+        ->assertSee('x-show="currentStep === 3"', false)
         ->assertDontSee('x-show="!processing && !success && !error"', false)
         ->assertSee("x-on:click=\"frequency = 'one_time'\"", false)
         ->assertSee("x-on:click=\"frequency = 'monthly'\"", false)
@@ -751,6 +751,26 @@ it('renders donor details fields for step 2', function () {
         ->assertSee('x-model="donorPhone"', false)
         ->assertSee('Dedicate this donation')
         ->assertSee('Leave a message...');
+});
+
+it('renders payment step with summary bar and card element', function () {
+    $organization = Organization::factory()->create([
+        'stripe_account_id' => 'acct_test_123',
+        'stripe_onboarded' => true,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => ['default_amount' => 50, 'default_frequency' => 'monthly'],
+    ]);
+
+    $this->get(route('donations.show', $element))
+        ->assertOk()
+        ->assertSee('x-show="currentStep === 3"', false)
+        ->assertSee('id="card-element"', false)
+        ->assertSee('Donate monthly')
+        ->assertSee('handleSubmit', false)
+        ->assertSee('stripe.createPaymentMethod', false);
 });
 
 it('validates hosted donation input before creating records', function () {
