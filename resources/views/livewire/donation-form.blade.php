@@ -420,7 +420,7 @@
                             @if ($isPopup)
                                 <button
                                     type="button"
-                                    x-on:click="$dispatch('popup-close')"
+                                    x-on:click="$dispatch('close-popup')"
                                     class="mt-4 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                                 >
                                     Close
