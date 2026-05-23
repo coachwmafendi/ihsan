@@ -220,7 +220,7 @@ class CampaignForm
     private static function progressBarHtml($record): string
     {
         if (! $record || ! $record->has_target || ! $record->target_amount) {
-            return '<p class="text-sm text-zinc-500">Tiada sasaran ditetapkan untuk kempen ini.</p>';
+            return '<p style="font-size: 0.875rem; color: #71717a;">Tiada sasaran ditetapkan untuk kempen ini.</p>';
         }
 
         $collected = (float) $record->collected_amount;
@@ -229,17 +229,17 @@ class CampaignForm
         $barWidth = max($percentage, 2);
         $barColor = $percentage >= 100 ? '#10b981' : ($percentage >= 50 ? '#34d399' : '#f59e0b');
 
-        return '<div class="space-y-3">'
-            .'<div class="flex items-center justify-between text-sm">'
-            .'<span class="font-medium text-zinc-900">RM '.number_format($collected, 2).'</span>'
-            .'<span class="text-zinc-500">daripada RM '.number_format($target, 2).'</span>'
+        return '<div style="display: flex; flex-direction: column; gap: 0.75rem;">'
+            .'<div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem;">'
+            .'<span style="font-weight: 500; color: #18181b;">RM '.number_format($collected, 2).'</span>'
+            .'<span style="color: #71717a;">daripada RM '.number_format($target, 2).'</span>'
             .'</div>'
-            .'<div class="h-3 w-full overflow-hidden rounded-full bg-zinc-200">'
-            .'<div class="h-full rounded-full transition-all duration-500" style="width: '.$barWidth.'%; background-color: '.$barColor.'"></div>'
+            .'<div style="height: 12px; width: 100%; overflow: hidden; border-radius: 9999px; background-color: #e4e4e7;">'
+            .'<div style="height: 100%; border-radius: 9999px; transition: all 0.5s; width: '.$barWidth.'%; background-color: '.$barColor.';"></div>'
             .'</div>'
-            .'<div class="flex items-center justify-between text-xs">'
-            .'<span class="font-semibold text-zinc-700">'.$percentage.'% terkumpul</span>'
-            .'<span class="text-zinc-500">'.($percentage >= 100 ? 'Sasaran tercapai!' : 'Baki: RM '.number_format(max($target - $collected, 0), 2)).'</span>'
+            .'<div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; line-height: 1rem;">'
+            .'<span style="font-weight: 600; color: #3f3f46;">'.$percentage.'% terkumpul</span>'
+            .'<span style="color: #71717a;">'.($percentage >= 100 ? 'Sasaran tercapai!' : 'Baki: RM '.number_format(max($target - $collected, 0), 2)).'</span>'
             .'</div>'
             .'</div>';
     }
