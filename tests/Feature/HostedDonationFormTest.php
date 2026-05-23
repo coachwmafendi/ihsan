@@ -49,7 +49,7 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertSee('RM 200')
         ->assertSee('RM 5')
         ->assertSee('Donate monthly')
-        ->assertSee('x-show="!success && !error"', false)
+        ->assertSee('x-show="currentStep > 1 && !success && !error"', false)
         ->assertDontSee('x-show="!processing && !success && !error"', false)
         ->assertSee("x-on:click=\"frequency = 'one_time'\"", false)
         ->assertSee("x-on:click=\"frequency = 'monthly'\"", false)

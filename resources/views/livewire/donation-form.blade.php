@@ -190,7 +190,7 @@
 
                         {{-- Step progress indicator --}}
                         <div x-show="typeof currentStep === 'number'" class="mb-4 text-sm text-slate-500">
-                            <span x-show="currentStep === 1">Step <strong class="text-slate-800">1</strong> of 3 — Choose Amount</span>
+                            <span x-show="currentStep === 1" x-cloak>Step <strong class="text-slate-800">1</strong> of 3 — Choose Amount</span>
                             <span x-show="currentStep === 2" x-cloak>Step <strong class="text-slate-800">2</strong> of 3 — Your Details</span>
                             <span x-show="currentStep === 3" x-cloak>Step <strong class="text-slate-800">3</strong> of 3 — Payment</span>
                         </div>
@@ -225,7 +225,6 @@
                                     @foreach ($oneTimeAmounts as $amount)
                                         <button
                                             type="button"
-                                            wire:key="one_time_{{ $amount }}"
                                             x-on:click="amount = {{ $amount }}"
                                             x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
                                             class="min-h-12 rounded-lg border bg-white px-2 text-sm font-semibold transition"
@@ -239,7 +238,6 @@
                                     @foreach ($monthlyAmounts as $amount)
                                         <button
                                             type="button"
-                                            wire:key="monthly_{{ $amount }}"
                                             x-on:click="amount = {{ $amount }}"
                                             x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
                                             class="min-h-12 rounded-lg border bg-white px-2 text-sm font-semibold transition"
@@ -270,14 +268,14 @@
 
                             <button
                                 type="button"
-                                @click="nextStep()"
+                                x-on:click="nextStep()"
                                 class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
                             >
                                 Continue &rarr;
                             </button>
                         </div>{{-- end Step 1 --}}
 
-                        <div x-show="!success && !error">
+                        <div x-show="currentStep > 1 && !success && !error">
                             <form class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}" @submit.prevent="handleSubmit">
                                 <div class="grid grid-cols-2 gap-2">
                                     <button
