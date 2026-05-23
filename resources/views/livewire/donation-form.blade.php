@@ -390,6 +390,9 @@
             currentStep: 1,
             stepErrors: {},
             cardError: '',
+            get success() { return this.currentStep === 'success'; },
+            get error() { return this.currentStep === 'error'; },
+            get errorMessage() { return this.cardError; },
 
             validateStep1() {
                 this.stepErrors = {};
@@ -423,6 +426,7 @@
             nextStep() {
                 if (this.currentStep === 1 && !this.validateStep1()) return;
                 if (this.currentStep === 2 && !this.validateStep2()) return;
+                if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
                 this.currentStep++;
             },
 

@@ -726,7 +726,10 @@ it('renders step state variables in Alpine donationForm', function () {
         ->assertSee('currentStep', false)
         ->assertSee('stepErrors', false)
         ->assertSee('nextStep()', false)
-        ->assertSee('prevStep()', false);
+        ->assertSee('prevStep()', false)
+        ->assertSee('get success()', false)
+        ->assertSee('get error()', false)
+        ->assertSee('get errorMessage()', false);
 });
 
 it('validates hosted donation input before creating records', function () {
