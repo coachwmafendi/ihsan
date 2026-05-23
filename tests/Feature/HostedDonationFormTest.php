@@ -549,6 +549,118 @@ it('stores the latest charge id when confirming a payment', function () {
     expect($donation->refresh()->stripe_charge_id)->toBe('ch_latest_123');
 });
 
+it('stores connected stripe fees and card details when confirming a payment', function () {
+    config(['services.stripe.secret' => 'sk_test_fake']);
+
+    $stripeClient = new class implements ClientInterface
+    {
+        /** @var array<int, array{method: string, url: string, headers: array<int, string>, params: array<string, mixed>}> */
+        public array $requests = [];
+
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $this->requests[] = [
+                'method' => $method,
+                'url' => $absUrl,
+                'headers' => $headers,
+                'params' => $params,
+            ];
+
+            $response = match (true) {
+                str_contains($absUrl, '/v1/payment_methods/') => [
+                    'id' => 'pm_connected_fee',
+                    'object' => 'payment_method',
+                    'type' => 'card',
+                    'card' => [
+                        'brand' => 'visa',
+                        'last4' => '4242',
+                    ],
+                ],
+                str_contains($absUrl, '/v1/balance_transactions/txn_connected_fee') => [
+                    'id' => 'txn_connected_fee',
+                    'object' => 'balance_transaction',
+                    'fee' => 1909,
+                    'fee_details' => [
+                        [
+                            'amount' => 904,
+                            'currency' => 'myr',
+                            'type' => 'stripe_fee',
+                        ],
+                        [
+                            'amount' => 1005,
+                            'currency' => 'myr',
+                            'type' => 'application_fee',
+                        ],
+                    ],
+                ],
+                str_contains($absUrl, '/v1/payment_intents/pi_connected_fee') => [
+                    'id' => 'pi_connected_fee',
+                    'object' => 'payment_intent',
+                    'customer' => 'cus_connected_fee',
+                    'payment_method' => 'pm_connected_fee',
+                    'latest_charge' => [
+                        'id' => 'ch_connected_fee',
+                        'object' => 'charge',
+                        'balance_transaction' => [
+                            'id' => 'txn_connected_fee',
+                            'object' => 'balance_transaction',
+                            'fee' => 1909,
+                        ],
+                    ],
+                    'charges' => [
+                        'object' => 'list',
+                        'data' => [],
+                    ],
+                ],
+                default => throw new RuntimeException('Unexpected Stripe request: '.$absUrl),
+            };
+
+            return [json_encode($response), 200, []];
+        }
+    };
+
+    ApiRequestor::setHttpClient($stripeClient);
+
+    $organization = Organization::factory()->create([
+        'stripe_account_id' => 'acct_connected_test',
+        'stripe_onboarded' => true,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => ['default_amount' => 5],
+    ]);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'stripe_payment_intent_id' => 'pi_connected_fee',
+        'gross_amount' => 201,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::OneTime,
+    ]);
+
+    try {
+        Livewire::test(DonationForm::class, ['element' => $element])
+            ->call('confirmPayment', 'pi_connected_fee');
+    } finally {
+        ApiRequestor::setHttpClient(CurlClient::instance());
+    }
+
+    $donation->refresh();
+
+    expect($donation->status)->toBe(DonationStatus::Succeeded)
+        ->and($donation->stripe_charge_id)->toBe('ch_connected_fee')
+        ->and($donation->payment_method_brand)->toBe('visa')
+        ->and($donation->payment_method_type)->toBe('card')
+        ->and($donation->stripe_fee)->toBe('9.04')
+        ->and($donation->platform_fee)->toBe('10.05')
+        ->and($donation->net_amount)->toBe('181.91');
+
+    expect(collect($stripeClient->requests)->every(
+        fn (array $request): bool => in_array('Stripe-Account: acct_connected_test', $request['headers'], true),
+    ))->toBeTrue();
+});
+
 it('does not create a subscription for one-time donations', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();

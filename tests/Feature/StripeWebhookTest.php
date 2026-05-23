@@ -152,7 +152,19 @@ it('creates recurring subscriptions in the connected account from payment intent
                 str_contains($absUrl, '/v1/balance_transactions/txn_connected_recurring_123') => [
                     'id' => 'txn_connected_recurring_123',
                     'object' => 'balance_transaction',
-                    'fee' => 150,
+                    'fee' => 275,
+                    'fee_details' => [
+                        [
+                            'amount' => 150,
+                            'currency' => 'myr',
+                            'type' => 'stripe_fee',
+                        ],
+                        [
+                            'amount' => 125,
+                            'currency' => 'myr',
+                            'type' => 'application_fee',
+                        ],
+                    ],
                 ],
                 str_contains($absUrl, '/v1/payment_intents/pi_connected_recurring_123') => [
                     'id' => 'pi_connected_recurring_123',
@@ -168,7 +180,19 @@ it('creates recurring subscriptions in the connected account from payment intent
                         'balance_transaction' => [
                             'id' => 'txn_connected_recurring_123',
                             'object' => 'balance_transaction',
-                            'fee' => 150, // in cents = RM 1.50
+                            'fee' => 275,
+                            'fee_details' => [
+                                [
+                                    'amount' => 150,
+                                    'currency' => 'myr',
+                                    'type' => 'stripe_fee',
+                                ],
+                                [
+                                    'amount' => 125,
+                                    'currency' => 'myr',
+                                    'type' => 'application_fee',
+                                ],
+                            ],
                         ],
                     ],
                     'charges' => [
@@ -256,6 +280,121 @@ it('creates recurring subscriptions in the connected account from payment intent
     Queue::assertPushed(SendDonationReceipt::class);
 });
 
+it('syncs stripe details for an already succeeded connected donation without duplicating fulfillment', function () {
+    Queue::fake([SendDonationReceipt::class]);
+    config(['services.stripe.secret' => 'sk_test_fake']);
+
+    $stripeClient = new class implements ClientInterface
+    {
+        /** @var array<int, array{method: string, url: string, headers: array<int, string>, params: array<string, mixed>}> */
+        public array $requests = [];
+
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $this->requests[] = [
+                'method' => $method,
+                'url' => $absUrl,
+                'headers' => $headers,
+                'params' => $params,
+            ];
+
+            $response = match (true) {
+                str_contains($absUrl, '/v1/payment_methods/') => [
+                    'id' => 'pm_synced_card',
+                    'object' => 'payment_method',
+                    'type' => 'card',
+                    'card' => [
+                        'brand' => 'visa',
+                        'last4' => '4242',
+                    ],
+                ],
+                str_contains($absUrl, '/v1/balance_transactions/txn_synced_fee_123') => [
+                    'id' => 'txn_synced_fee_123',
+                    'object' => 'balance_transaction',
+                    'fee' => 1909,
+                    'fee_details' => [
+                        [
+                            'amount' => 904,
+                            'currency' => 'myr',
+                            'type' => 'stripe_fee',
+                        ],
+                        [
+                            'amount' => 1005,
+                            'currency' => 'myr',
+                            'type' => 'application_fee',
+                        ],
+                    ],
+                ],
+                str_contains($absUrl, '/v1/payment_intents/pi_already_succeeded_123') => [
+                    'id' => 'pi_already_succeeded_123',
+                    'object' => 'payment_intent',
+                    'customer' => 'cus_synced_donor',
+                    'payment_method' => 'pm_synced_card',
+                    'metadata' => [
+                        'donation_id' => 'already-succeeded-donation',
+                    ],
+                    'latest_charge' => [
+                        'id' => 'ch_synced_fee_123',
+                        'object' => 'charge',
+                        'balance_transaction' => [
+                            'id' => 'txn_synced_fee_123',
+                            'object' => 'balance_transaction',
+                            'fee' => 1909,
+                        ],
+                    ],
+                    'charges' => [
+                        'object' => 'list',
+                        'data' => [],
+                    ],
+                ],
+                default => throw new RuntimeException('Unexpected Stripe request: '.$absUrl),
+            };
+
+            return [json_encode($response), 200, []];
+        }
+    };
+
+    ApiRequestor::setHttpClient($stripeClient);
+
+    $organization = Organization::factory()->create([
+        'stripe_account_id' => 'acct_connected_test',
+        'stripe_onboarded' => true,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'collected_amount' => 201,
+    ]);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 201,
+        'stripe_fee' => 0,
+        'platform_fee' => 0,
+        'net_amount' => 201,
+        'currency' => 'myr',
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::OneTime,
+        'stripe_payment_intent_id' => 'pi_already_succeeded_123',
+    ]);
+
+    try {
+        (new ProcessStripeWebhook(connectedPaymentIntentSucceededPayload($donation, 'evt_synced_fee_123')))->handle();
+    } finally {
+        ApiRequestor::setHttpClient(CurlClient::instance());
+    }
+
+    $donation->refresh();
+    $campaign->refresh();
+
+    expect($donation->stripe_charge_id)->toBe('ch_synced_fee_123')
+        ->and($donation->payment_method_brand)->toBe('visa')
+        ->and($donation->payment_method_type)->toBe('card')
+        ->and($donation->stripe_fee)->toBe('9.04')
+        ->and($donation->platform_fee)->toBe('10.05')
+        ->and($donation->net_amount)->toBe('181.91')
+        ->and($campaign->collected_amount)->toBe('201.00');
+
+    Queue::assertNotPushed(SendDonationReceipt::class);
+});
+
 function paymentIntentSucceededPayload(Donation $donation, string $eventId): string
 {
     return json_encode([
@@ -316,6 +455,28 @@ function connectedRecurringPaymentIntentSucceededPayload(Donation $donation): st
                             'balance_transaction' => null,
                         ],
                     ],
+                ],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+}
+
+function connectedPaymentIntentSucceededPayload(Donation $donation, string $eventId): string
+{
+    return json_encode([
+        'id' => $eventId,
+        'object' => 'event',
+        'account' => 'acct_connected_test',
+        'type' => 'payment_intent.succeeded',
+        'data' => [
+            'object' => [
+                'id' => $donation->stripe_payment_intent_id,
+                'object' => 'payment_intent',
+                'metadata' => [
+                    'donation_id' => (string) $donation->getKey(),
+                    'donor_email' => $donation->donor?->email ?? '',
+                    'campaign_id' => (string) $donation->campaign_id,
+                    'organization_id' => (string) $donation->campaign?->organization_id,
                 ],
             ],
         ],

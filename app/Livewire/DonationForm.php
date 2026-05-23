@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Actions\Stripe\CreatePaymentIntent;
 use App\Actions\Stripe\CreateRecurringSubscription;
+use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
@@ -14,9 +15,7 @@ use App\Models\Element;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Stripe\BalanceTransaction;
 use Stripe\PaymentIntent as StripePaymentIntent;
-use Stripe\PaymentMethod;
 use Stripe\Stripe;
 
 #[Title('Donation Form')]
@@ -86,34 +85,11 @@ class DonationForm extends Component
         try {
             $donation->loadMissing('campaign.organization');
             $stripeOptions = $this->stripeOptionsFor($donation);
-            $paymentIntent = StripePaymentIntent::retrieve([
-                'id' => $paymentIntentId,
-                'expand' => ['latest_charge', 'latest_charge.balance_transaction'],
-            ], $stripeOptions);
-
-            [$cardBrand, $paymentMethodType] = $this->extractCardDetails($paymentIntent->payment_method, $stripeOptions);
-
-            $charge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
-            $chargeId = is_string($charge) ? $charge : ($charge->id ?? null);
-            $stripeFee = 0;
-            $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
-
-            if ($balanceTransaction) {
-                $btId = is_string($balanceTransaction) ? $balanceTransaction : $balanceTransaction->id;
-                $bt = BalanceTransaction::retrieve($btId, $stripeOptions);
-                $stripeFee = (float) ($bt->fee / 100);
-            }
-
-            $platformFee = round((float) $donation->gross_amount * 0.05, 2);
+            $synced = app(SyncDonationStripeDetails::class)->sync($donation, $paymentIntent, $stripeOptions);
+            $paymentIntent = $synced['payment_intent'];
 
             $donation->update([
                 'status' => DonationStatus::Succeeded,
-                'stripe_charge_id' => $chargeId,
-                'stripe_fee' => $stripeFee,
-                'platform_fee' => $platformFee,
-                'payment_method_brand' => $cardBrand,
-                'payment_method_type' => $paymentMethodType,
-                'net_amount' => (float) $donation->gross_amount - $stripeFee - $platformFee,
             ]);
 
             $donation->campaign()->increment('collected_amount', (float) $donation->gross_amount);
@@ -128,28 +104,6 @@ class DonationForm extends Component
         } catch (\Exception $e) {
             // Log error silently
         }
-    }
-
-    protected function extractCardDetails(?string $paymentMethodId, array $stripeOptions = []): array
-    {
-        if ($paymentMethodId === null) {
-            return [null, null];
-        }
-
-        try {
-            $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
-            $type = $paymentMethod->type;
-
-            if ($type === 'card' && $paymentMethod->card !== null) {
-                return [$paymentMethod->card->brand, $type];
-            }
-
-            return [$type, $type];
-        } catch (\Exception $e) {
-            // Silently fail — payment method details are non-critical
-        }
-
-        return [null, null];
     }
 
     /**
