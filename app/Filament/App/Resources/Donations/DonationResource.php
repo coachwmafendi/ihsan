@@ -28,6 +28,7 @@ class DonationResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->with('subscription')
             ->whereHas('campaign', fn (Builder $query) => $query
                 ->where('organization_id', auth()->user()->organization_id));
     }

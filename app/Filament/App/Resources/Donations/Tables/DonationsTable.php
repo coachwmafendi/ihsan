@@ -52,14 +52,20 @@ class DonationsTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('type')
+                    ->label('Frequency')
                     ->badge()
                     ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString())
                     ->color(fn (DonationType $state): string => match ($state) {
                         DonationType::Recurring => 'info',
                         default => 'gray',
                     })
-                    ->sortable()
-                    ->toggleable(),
+                    ->sortable(),
+                TextColumn::make('payment_count')
+                    ->label('Payments')
+                    ->getStateUsing(fn ($record): string => $record->type === DonationType::Recurring
+                        ? (string) ($record->subscription?->payment_count ?? 0)
+                        : '—')
+                    ->sortable(),
                 TextColumn::make('status')
                     ->badge()
                     ->sortable()
