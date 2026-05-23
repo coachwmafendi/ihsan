@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Pages\MonthlyInvoices;
+use App\Filament\Pages\PlatformFees;
 use App\Filament\Pages\PlatformOverview;
 use App\Filament\Pages\Revenue;
 use App\Filament\Pages\Transactions;
@@ -49,6 +51,8 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
                 PlatformOverview::class,
                 Transactions::class,
+                PlatformFees::class,
+                MonthlyInvoices::class,
                 Revenue::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
