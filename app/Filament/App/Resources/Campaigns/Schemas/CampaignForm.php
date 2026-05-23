@@ -282,12 +282,38 @@ class CampaignForm
         $button = '<button data-ihsan-form="'.$formParameter.'">Derma</button>';
         $link = '<a href="?form='.$formParameter.'">Derma</a>';
 
-        return '<div class="space-y-3">'
-            .'<p class="text-sm text-zinc-600">Letakkan skrip sekali di laman web klien, kemudian guna butang atau pautan untuk buka kempen ini sebagai modal checkout.</p>'
-            .self::copyableSnippet('Skrip (letak sekali sahaja)', $script)
+        return '<div class="space-y-5">'
+
+            // Intro
+            .'<p class="text-sm text-zinc-700 font-medium">Cara benam borang derma di laman web organisasi</p>'
+            .'<p class="text-sm text-zinc-500">Penderma boleh klik butang di laman web organisasi dan borang derma akan terbuka sebagai tetingkap pop-up — tanpa meninggalkan halaman asal.</p>'
+
+            // Step 1
+            .'<div class="space-y-2">'
+            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Langkah 1 — Pasang skrip Ihsan</p>'
+            .'<p class="text-sm text-zinc-500">Salin kod berikut dan letak <strong>sekali sahaja</strong> dalam laman web organisasi, sebelum tag <code>&lt;/body&gt;</code>.</p>'
+            .self::copyableSnippet('Skrip', $script)
+            .'</div>'
+
+            // Step 2
+            .'<div class="space-y-2">'
+            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Langkah 2 — Tambah butang atau pautan derma</p>'
+            .'<p class="text-sm text-zinc-500">Letak salah satu kod ini di mana-mana tempat dalam laman web. Apabila diklik, borang derma akan terbuka secara automatik.</p>'
             .self::copyableSnippet('Butang', $button)
-            .self::copyableSnippet('Pautan (URL relatif — untuk laman web org sahaja)', $link)
-            .'<p class="text-xs text-zinc-500">Domain dibenarkan akan dikuatkuasakan sebelum modal dibuka. Pautan relatif hanya berfungsi apabila diletakkan pada laman web organisasi.</p>'
+            .self::copyableSnippet('Pautan', $link)
+            .'</div>'
+
+            // Step 3
+            .'<div class="space-y-2">'
+            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Langkah 3 — Daftarkan domain laman web</p>'
+            .'<p class="text-sm text-zinc-500">Di bahagian <strong>Domain dibenarkan</strong> di atas, masukkan domain laman web organisasi (contoh: <code>mumzatuttaqwa.com</code>). Borang derma tidak akan buka jika domain tidak didaftarkan.</p>'
+            .'</div>'
+
+            // Note
+            .'<div class="rounded-lg bg-amber-50 border border-amber-200 p-3">'
+            .'<p class="text-xs text-amber-700"><strong>Nota:</strong> Pastikan "Benarkan daftar masuk modal" diaktifkan dan domain laman web didaftarkan sebelum menggunakan kod ini.</p>'
+            .'</div>'
+
             .'</div>';
     }
 
