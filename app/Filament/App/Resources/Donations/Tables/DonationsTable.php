@@ -9,11 +9,12 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
-use Filament\Support\Enums\IconPosition;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\HtmlString;
 
 class DonationsTable
 {
@@ -28,20 +29,41 @@ class DonationsTable
                     ->label('Date'),
                 TextColumn::make('gross_amount')
                     ->label('Donation')
-                    ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
-                    ->icon(fn ($record): string => match ($record->payment_method_type) {
-                        'card' => 'heroicon-o-credit-card',
-                        'fpx' => 'heroicon-o-building-library',
-                        'grabpay' => 'heroicon-o-device-phone-mobile',
-                        'wallet' => 'heroicon-o-wallet',
-                        default => 'heroicon-o-credit-card',
+                    ->formatStateUsing(function ($state, $record): HtmlString {
+                        $amount = 'MYR '.number_format((float) $state, 2);
+
+                        $paymentIcon = match ($record->payment_method_type) {
+                            'card' => 'heroicon-o-credit-card',
+                            'fpx' => 'heroicon-o-building-library',
+                            'grabpay' => 'heroicon-o-device-phone-mobile',
+                            'wallet' => 'heroicon-o-wallet',
+                            default => 'heroicon-o-credit-card',
+                        };
+
+                        $paymentLabel = match ($record->payment_method_type) {
+                            'card' => 'Card',
+                            'fpx' => 'FPX',
+                            'grabpay' => 'GrabPay',
+                            'wallet' => 'Wallet',
+                            default => 'Card',
+                        };
+
+                        $iconColor = match ($record->payment_method_type) {
+                            'fpx' => 'text-blue-500',
+                            'grabpay' => 'text-green-500',
+                            default => 'text-gray-400',
+                        };
+
+                        $result = $amount;
+                        $result .= ' '.Blade::render('<x-'.$paymentIcon.' title="'.$paymentLabel.'" class="inline-block size-4 '.$iconColor.'" />');
+
+                        if ($record->type === DonationType::Recurring) {
+                            $result .= '&nbsp;&nbsp;&nbsp;&nbsp;'.Blade::render('<x-heroicon-o-arrow-path title="Recurring" class="inline-block size-4 text-blue-500" />');
+                            $result .= '&nbsp;'.($record->subscription?->payment_count ?? 0);
+                        }
+
+                        return new HtmlString($result);
                     })
-                    ->iconColor(fn ($record): string => match ($record->payment_method_type) {
-                        'fpx' => 'info',
-                        'grabpay' => 'success',
-                        default => 'gray',
-                    })
-                    ->iconPosition(IconPosition::After)
                     ->sortable(),
                 TextColumn::make('donor.name')
                     ->label('Supporter')
@@ -50,21 +72,6 @@ class DonationsTable
                 TextColumn::make('campaign.title')
                     ->label('Campaign')
                     ->searchable()
-                    ->sortable(),
-                TextColumn::make('type')
-                    ->label('Frequency')
-                    ->badge()
-                    ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString())
-                    ->color(fn (DonationType $state): string => match ($state) {
-                        DonationType::Recurring => 'info',
-                        default => 'gray',
-                    })
-                    ->sortable(),
-                TextColumn::make('payment_count')
-                    ->label('Payments')
-                    ->getStateUsing(fn ($record): string => $record->type === DonationType::Recurring
-                        ? (string) ($record->subscription?->payment_count ?? 0)
-                        : '—')
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge()
