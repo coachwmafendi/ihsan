@@ -234,7 +234,7 @@ class CampaignForm
             .'<span style="font-weight: 500; color: #18181b;">RM '.number_format($collected, 2).'</span>'
             .'<span style="color: #71717a;">daripada RM '.number_format($target, 2).'</span>'
             .'</div>'
-            .'<div style="height: 12px; width: 100%; overflow: hidden; border-radius: 9999px; background-color: #e4e4e7;">'
+            .'<div style="height: 20px; width: 100%; overflow: hidden; border-radius: 9999px; background-color: #e4e4e7;">'
             .'<div style="height: 100%; border-radius: 9999px; transition: all 0.5s; width: '.$barWidth.'%; background-color: '.$barColor.';"></div>'
             .'</div>'
             .'<div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; line-height: 1rem;">'
