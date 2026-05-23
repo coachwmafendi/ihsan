@@ -275,7 +275,86 @@
                             </button>
                         </div>{{-- end Step 1 --}}
 
-                        <div x-show="currentStep > 1 && !success && !error">
+                        {{-- Step 2: Donor Details --}}
+                        <div x-show="currentStep === 2" x-cloak class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
+
+                            <button
+                                type="button"
+                                x-on:click="prevStep()"
+                                class="mb-1 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition"
+                            >
+                                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                Back
+                            </button>
+
+                            <div class="space-y-3">
+                                <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Your details</p>
+
+                                <label class="block">
+                                    <span class="mb-1 block text-sm font-medium text-slate-700">Name</span>
+                                    <input
+                                        wire:model="name"
+                                        x-model="donorName"
+                                        type="text"
+                                        autocomplete="name"
+                                        class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
+                                        placeholder="Your full name"
+                                    />
+                                    <div x-show="stepErrors.name" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.name"></div>
+                                    @error('name')<span class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
+                                </label>
+
+                                <label class="block">
+                                    <span class="mb-1 block text-sm font-medium text-slate-700">Email</span>
+                                    <input
+                                        wire:model="email"
+                                        x-model="donorEmail"
+                                        type="email"
+                                        autocomplete="email"
+                                        class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
+                                        placeholder="you@example.com"
+                                    />
+                                    <div x-show="stepErrors.email" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.email"></div>
+                                    @error('email')<span class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
+                                </label>
+
+                                <label class="block">
+                                    <span class="mb-1 block text-sm font-medium text-slate-700">Phone <span class="font-normal text-slate-400">(optional)</span></span>
+                                    <input
+                                        wire:model="phone"
+                                        x-model="donorPhone"
+                                        type="tel"
+                                        autocomplete="tel"
+                                        class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
+                                        placeholder="012-345 6789"
+                                    />
+                                </label>
+                            </div>
+
+                            @if ($showDedication)
+                                <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                                    <input wire:model="dedicate" type="checkbox" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600" />
+                                    Dedicate this donation
+                                </label>
+                            @endif
+
+                            @if ($showComment)
+                                <label class="block">
+                                    <span class="mb-0.5 block text-sm font-medium text-slate-700">Comment <span class="font-normal text-slate-400">(optional)</span></span>
+                                    <textarea wire:model="comment" rows="2" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/10" placeholder="Leave a message..."></textarea>
+                                </label>
+                            @endif
+
+                            <button
+                                type="button"
+                                x-on:click="nextStep()"
+                                class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
+                            >
+                                Continue &rarr;
+                            </button>
+                        </div>{{-- end Step 2 --}}
+
+                        <div x-show="currentStep === 3 && !success && !error">
                             <form class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}" @submit.prevent="handleSubmit">
                                 <div class="grid grid-cols-2 gap-2">
                                     <button

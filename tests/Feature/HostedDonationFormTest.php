@@ -49,7 +49,7 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertSee('RM 200')
         ->assertSee('RM 5')
         ->assertSee('Donate monthly')
-        ->assertSee('x-show="currentStep > 1 && !success && !error"', false)
+        ->assertSee('x-show="currentStep === 3 && !success && !error"', false)
         ->assertDontSee('x-show="!processing && !success && !error"', false)
         ->assertSee("x-on:click=\"frequency = 'one_time'\"", false)
         ->assertSee("x-on:click=\"frequency = 'monthly'\"", false)
@@ -730,6 +730,27 @@ it('renders step state variables in Alpine donationForm', function () {
         ->assertSee('get success()', false)
         ->assertSee('get error()', false)
         ->assertSee('get errorMessage()', false);
+});
+
+it('renders donor details fields for step 2', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => [
+            'show_dedication' => true,
+            'show_comment' => true,
+        ],
+    ]);
+
+    $this->get(route('donations.show', $element))
+        ->assertOk()
+        ->assertSee('x-show="currentStep === 2"', false)
+        ->assertSee('x-model="donorName"', false)
+        ->assertSee('x-model="donorEmail"', false)
+        ->assertSee('x-model="donorPhone"', false)
+        ->assertSee('Dedicate this donation')
+        ->assertSee('Leave a message...');
 });
 
 it('validates hosted donation input before creating records', function () {
