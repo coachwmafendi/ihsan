@@ -5,7 +5,6 @@ namespace App\Filament\App\Resources\Subscriptions\Tables;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -61,9 +60,7 @@ class SubscriptionsTable
                 EditAction::make(),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                BulkActionGroup::make([]),
             ]);
     }
 }

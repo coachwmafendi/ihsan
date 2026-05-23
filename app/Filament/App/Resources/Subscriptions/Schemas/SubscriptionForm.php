@@ -49,7 +49,11 @@ class SubscriptionForm
                             ->prefix('MYR'),
                         Select::make('interval')
                             ->required()
-                            ->options(SubscriptionInterval::class),
+                            ->options(SubscriptionInterval::class)
+                            ->disabled()
+                            ->dehydrated()
+                            ->hintIcon('heroicon-o-information-circle')
+                            ->hint('Managed by Stripe'),
                         Select::make('status')
                             ->required()
                             ->options(SubscriptionStatus::class),
@@ -71,13 +75,25 @@ class SubscriptionForm
                             ->columns(2)
                             ->schema([
                                 DatePicker::make('current_period_start')
-                                    ->label('Period Start'),
+                                    ->label('Period Start')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->hintIcon('heroicon-o-information-circle')
+                                    ->hint('Managed by Stripe'),
                                 DatePicker::make('current_period_end')
-                                    ->label('Period End'),
+                                    ->label('Period End')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->hintIcon('heroicon-o-information-circle')
+                                    ->hint('Managed by Stripe'),
                                 DatePicker::make('paused_until')
-                                    ->label('Paused Until'),
+                                    ->label('Paused Until')
+                                    ->disabled()
+                                    ->dehydrated(),
                                 DatePicker::make('cancelled_at')
-                                    ->label('Cancelled At'),
+                                    ->label('Cancelled At')
+                                    ->disabled()
+                                    ->dehydrated(),
                             ])
                             ->columnSpanFull(),
                     ]),
