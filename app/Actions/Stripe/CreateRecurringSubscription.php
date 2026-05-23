@@ -132,17 +132,8 @@ class CreateRecurringSubscription
             ],
         ];
 
-        if ($stripeOptions !== []) {
-            $params['application_fee_percent'] = $this->platformFeePercent();
-        }
-
         $subscription = StripeSubscription::create($params, $stripeOptions);
 
         return [$subscription->id, $price->id];
-    }
-
-    private function platformFeePercent(): float
-    {
-        return (float) config('services.stripe.platform_fee_percent', 2.5);
     }
 }

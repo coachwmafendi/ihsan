@@ -59,16 +59,10 @@ class CreatePaymentIntent
             $customer = Customer::create($customerParams, $stripeOptions);
 
             $params['customer'] = $customer->id;
-            $params['application_fee_amount'] = (int) round((float) $donation->gross_amount * $this->platformFeePercent() / 100 * 100);
 
             return PaymentIntent::create($params, $stripeOptions);
         }
 
         return PaymentIntent::create($params);
-    }
-
-    private function platformFeePercent(): float
-    {
-        return (float) config('services.stripe.platform_fee_percent', 2.5);
     }
 }
