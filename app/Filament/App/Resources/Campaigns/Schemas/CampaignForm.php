@@ -64,13 +64,14 @@ class CampaignForm
                                         RichEditor::make('description')
                                             ->label('Penerangan')
                                             ->columnSpanFull()
-                                            ->extraInputAttributes(['style' => 'min-height: 500px;'])
+                                            ->extraInputAttributes(['style' => 'min-height: 300px;'])
                                             ->live(debounce: 1500)
                                             ->hint(fn ($state): HtmlString => new HtmlString(static::wordCountHint($state))),
                                         FileUpload::make('image_path')
                                             ->label('Gambar utama')
                                             ->image()
                                             ->directory('campaigns')
+                                            ->helperText('Saiz disyorkan: 1920 × 1060 px')
                                             ->columnSpanFull(),
                                     ]),
                             ]),

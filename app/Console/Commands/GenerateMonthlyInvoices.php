@@ -2,12 +2,15 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\PlatformInvoiceCreated;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
 use App\Models\PlatformFee;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Stripe\Customer as StripeCustomer;
 use Stripe\Invoice as StripeInvoice;
 use Stripe\InvoiceItem;
@@ -22,7 +25,7 @@ class GenerateMonthlyInvoices extends Command
         Stripe::setApiKey(config('services.stripe.secret'));
 
         $period = $this->option('period')
-            ? carbon($this->option('period'))->startOfMonth()
+            ? Carbon::parse($this->option('period'))->startOfMonth()
             : now()->subMonth()->startOfMonth();
 
         $this->info("Generating invoices for period: {$period->format('Y-m')}");
@@ -74,23 +77,25 @@ class GenerateMonthlyInvoices extends Command
                 $customers = StripeCustomer::all(['email' => $organization->contact_email, 'limit' => 1]);
                 $customer = $customers->first() ?? StripeCustomer::create($customerParams);
 
-                InvoiceItem::create([
-                    'customer' => $customer->id,
-                    'amount' => (int) ($totalFees * 100),
-                    'currency' => 'myr',
-                    'description' => "Ihsan Platform Fees — {$period->format('F Y')}",
-                ]);
-
                 $stripeInvoice = StripeInvoice::create([
                     'customer' => $customer->id,
                     'collection_method' => 'send_invoice',
                     'days_until_due' => 14,
+                    'pending_invoice_items_behavior' => 'exclude',
                     'description' => "Ihsan Platform Fees for {$period->format('F Y')} — {$organization->name}",
                     'metadata' => [
                         'organization_id' => (string) $organization->id,
                         'period' => $period->format('Y-m-d'),
                         'type' => 'platform_fees',
                     ],
+                ]);
+
+                InvoiceItem::create([
+                    'customer' => $customer->id,
+                    'invoice' => $stripeInvoice->id,
+                    'amount' => (int) ($totalFees * 100),
+                    'currency' => 'myr',
+                    'description' => "Ihsan Platform Fees — {$period->format('F Y')}",
                 ]);
 
                 $stripeInvoice->finalizeInvoice();
@@ -113,6 +118,9 @@ class GenerateMonthlyInvoices extends Command
                     'monthly_invoice_id' => $monthlyInvoice->id,
                 ]);
 
+                Mail::to($organization->contact_email)
+                    ->send(new PlatformInvoiceCreated($monthlyInvoice));
+
                 $this->info("Invoice {$invoiceNumber} sent to {$organization->name}: MYR {$totalFees}");
 
                 $generated++;
@@ -122,6 +130,10 @@ class GenerateMonthlyInvoices extends Command
         }
 
         $this->info("Done. Generated: {$generated}, Skipped: {$skipped}");
+
+        if ($generated === 0 && $feesByOrg->count() > $skipped) {
+            return Command::FAILURE;
+        }
 
         return Command::SUCCESS;
     }

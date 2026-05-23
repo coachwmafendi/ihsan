@@ -7,6 +7,8 @@ use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\SubscriptionStatus;
+use App\Mail\PlatformInvoicePaid;
+use App\Mail\PlatformInvoicePaid;
 use App\Models\Donation;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
@@ -15,6 +17,7 @@ use App\Models\Subscription;
 use App\Models\WebhookLog;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Mail;
 use Stripe\Event as StripeEvent;
 use Stripe\Stripe;
 
@@ -207,6 +210,7 @@ class ProcessStripeWebhook implements ShouldQueue
         }
 
         $monthlyInvoice = MonthlyInvoice::query()
+            ->with('organization')
             ->where('stripe_invoice_id', $invoice->id)
             ->first();
 
@@ -222,6 +226,11 @@ class ProcessStripeWebhook implements ShouldQueue
         PlatformFee::query()
             ->where('monthly_invoice_id', $monthlyInvoice->id)
             ->update(['status' => 'paid']);
+
+        if ($monthlyInvoice->organization?->contact_email) {
+            Mail::to($monthlyInvoice->organization->contact_email)
+                ->send(new PlatformInvoicePaid($monthlyInvoice));
+        }
     }
 
     private function handleInvoicePaymentFailed(StripeEvent $event): void
