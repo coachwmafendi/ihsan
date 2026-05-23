@@ -1,0 +1,139 @@
+<h2>Platform Fees &amp; Monthly Invoicing — UI Design</h2>
+<p class="subtitle">Two new navigation items dalam admin panel: <strong>Platform Fees</strong> &amp; <strong>Monthly Invoices</strong></p>
+
+<div class="section">
+  <h3>📋 1. Platform Fees Page</h3>
+  <p>Senarai semua fees dengan filter &amp; actions. <em>Letakkan antara "Transactions" &amp; "Revenue".</em></p>
+
+  <div class="mockup" style="margin-top:0.5rem">
+    <div class="mockup-header">🟡 /admin/platform-fees</div>
+    <div class="mockup-body" style="text-align:left;padding:0.75rem">
+      <div style="background:#2a2a2a;padding:0.5rem;border-radius:6px;font-size:0.75rem">
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
+          <span class="mock-input" style="display:inline-block;padding:0.2rem 0.5rem">Filter by NGO ▼</span>
+          <span class="mock-input" style="display:inline-block;padding:0.2rem 0.5rem">Status: All ▼</span>
+          <span class="mock-input" style="display:inline-block;padding:0.2rem 0.5rem">Date Range: 📅 — 📅</span>
+          <span style="margin-left:auto;background:#4f46e5;padding:0.2rem 0.6rem;border-radius:4px">Export CSV</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;color:#ccc">
+          <tr style="border-bottom:1px solid #444">
+            <th style="padding:0.3rem 0.5rem;text-align:left">Date</th>
+            <th style="padding:0.3rem 0.5rem;text-align:left">NGO</th>
+            <th style="padding:0.3rem 0.5rem;text-align:left">Campaign</th>
+            <th style="padding:0.3rem 0.5rem;text-align:left">Donor</th>
+            <th style="padding:0.3rem 0.5rem;text-align:right">Donation</th>
+            <th style="padding:0.3rem 0.5rem;text-align:right">Fee (2.5%)</th>
+            <th style="padding:0.3rem 0.5rem;text-align:center">Status</th>
+          </tr>
+          <tr style="border-bottom:1px solid #333">
+            <td style="padding:0.3rem 0.5rem">22 May</td>
+            <td style="padding:0.3rem 0.5rem">Yayasan Harapan</td>
+            <td style="padding:0.3rem 0.5rem">Bantuan Banjir</td>
+            <td style="padding:0.3rem 0.5rem">Ali bin...</td>
+            <td style="padding:0.3rem 0.5rem;text-align:right">RM 100</td>
+            <td style="padding:0.3rem 0.5rem;text-align:right">RM 2.50</td>
+            <td style="padding:0.3rem 0.5rem;text-align:center"><span style="background:#eab308;color:#000;padding:0.1rem 0.5rem;border-radius:99px;font-size:0.7rem">Pending</span></td>
+          </tr>
+          <tr style="border-bottom:1px solid #333">
+            <td style="padding:0.3rem 0.5rem">21 May</td>
+            <td style="padding:0.3rem 0.5rem">Pertubuhan Ihsan</td>
+            <td style="padding:0.3rem 0.5rem">Kutipan Zakat</td>
+            <td style="padding:0.3rem 0.5rem">Siti bt...</td>
+            <td style="padding:0.3rem 0.5rem;text-align:right">RM 500</td>
+            <td style="padding:0.3rem 0.5rem;text-align:right">RM 12.50</td>
+            <td style="padding:0.3rem 0.5rem;text-align:center"><span style="background:#16a34a;color:#fff;padding:0.1rem 0.5rem;border-radius:99px;font-size:0.7rem">Transferred</span></td>
+          </tr>
+          <tr>
+            <td style="padding:0.3rem 0.5rem">20 May</td>
+            <td style="padding:0.3rem 0.5rem">Yayasan Harapan</td>
+            <td style="padding:0.3rem 0.5rem">Bantuan Banjir</td>
+            <td style="padding:0.3rem 0.5rem">Raj...</td>
+            <td style="padding:0.3rem 0.5rem;text-align:right">RM 250</td>
+            <td style="padding:0.3rem 0.5rem;text-align:right">RM 6.25</td>
+            <td style="padding:0.3rem 0.5rem;text-align:center"><span style="background:#6b7280;color:#fff;padding:0.1rem 0.5rem;border-radius:99px;font-size:0.7rem">Invoiced</span></td>
+          </tr>
+        </table>
+        <div style="margin-top:0.5rem;font-size:0.7rem;color:#888">Showing 10 of 234 • Page 1 of 24</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>📄 2. Monthly Invoices Page</h3>
+  <p>Senarai invoice bulanan yang dihantar ke NGO.</p>
+
+  <div class="mockup" style="margin-top:0.5rem">
+    <div class="mockup-header">🟡 /admin/monthly-invoices</div>
+    <div class="mockup-body" style="text-align:left;padding:0.75rem">
+      <div style="display:flex;gap:0.75rem;margin-bottom:1rem">
+        <div style="background:#2a2a2a;padding:0.5rem 1rem;border-radius:8px;flex:1;text-align:center">
+          <div style="font-size:1.5rem;font-weight:bold">RM 1,250.00</div>
+          <div style="font-size:0.7rem;color:#888">Outstanding (Unpaid)</div>
+        </div>
+        <div style="background:#2a2a2a;padding:0.5rem 1rem;border-radius:8px;flex:1;text-align:center">
+          <div style="font-size:1.5rem;font-weight:bold">RM 8,430.00</div>
+          <div style="font-size:0.7rem;color:#888">Collected (Paid)</div>
+        </div>
+        <div style="background:#2a2a2a;padding:0.5rem 1rem;border-radius:8px;flex:1;text-align:center">
+          <div style="font-size:1.5rem;font-weight:bold">12</div>
+          <div style="font-size:0.7rem;color:#888">Invoices Sent</div>
+        </div>
+      </div>
+      <div style="background:#2a2a2a;padding:0.5rem;border-radius:6px;font-size:0.75rem">
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
+          <span class="mock-input" style="display:inline-block;padding:0.2rem 0.5rem">Month: May 2026 ▼</span>
+          <span class="mock-input" style="display:inline-block;padding:0.2rem 0.5rem">Status: All ▼</span>
+          <span style="margin-left:auto;background:#4f46e5;padding:0.2rem 0.6rem;border-radius:4px">Generate Invoice</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;color:#ccc">
+          <tr style="border-bottom:1px solid #444">
+            <th style="padding:0.3rem 0.5rem;text-align:left">Invoice #</th>
+            <th style="padding:0.3rem 0.5rem;text-align:left">NGO</th>
+            <th style="padding:0.3rem 0.5rem;text-align:left">Period</th>
+            <th style="padding:0.3rem 0.5rem;text-align:right">Amount</th>
+            <th style="padding:0.3rem 0.5rem;text-align:center">Stripe Status</th>
+            <th style="padding:0.3rem 0.5rem;text-align:center">Actions</th>
+          </tr>
+          <tr style="border-bottom:1px solid #333">
+            <td style="padding:0.3rem 0.5rem;font-family:monospace">INV-202605-001</td>
+            <td style="padding:0.3rem 0.5rem">Yayasan Harapan</td>
+            <td style="padding:0.3rem 0.5rem">May 2026</td>
+            <td style="padding:0.3rem 0.5rem;text-align:right">RM 250.00</td>
+            <td style="padding:0.3rem 0.5rem;text-align:center"><span style="background:#16a34a;color:#fff;padding:0.1rem 0.5rem;border-radius:99px;font-size:0.7rem">Paid</span></td>
+            <td style="padding:0.3rem 0.5rem;text-align:center;color:#4f46e5">View</td>
+          </tr>
+          <tr style="border-bottom:1px solid #333">
+            <td style="padding:0.3rem 0.5rem;font-family:monospace">INV-202605-002</td>
+            <td style="padding:0.3rem 0.5rem">Pertubuhan Ihsan</td>
+            <td style="padding:0.3rem 0.5rem">May 2026</td>
+            <td style="padding:0.3rem 0.5rem;text-align:right">RM 1,000.00</td>
+            <td style="padding:0.3rem 0.5rem;text-align:center"><span style="background:#eab308;color:#000;padding:0.1rem 0.5rem;border-radius:99px;font-size:0.7rem">Open</span></td>
+            <td style="padding:0.3rem 0.5rem;text-align:center">
+              <span style="color:#4f46e5">View</span>
+              <span style="color:#eab308;margin-left:0.3rem">Resend</span>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🔄 3. Monthly Invoice Flow (Auto)</h3>
+  <div style="background:#2a2a2a;padding:1rem;border-radius:8px;font-size:0.8rem">
+    <pre style="margin:0;color:#ccc">
+  Every 1st of the month:
+    ┌─ php artisan ihsan:generate-monthly-invoices
+    │
+    ├─ 1. Kumpul semua PlatformFee status "pending" (bulan lepas)
+    ├─ 2. Group by NGO
+    ├─ 3. Untuk setiap NGO:
+    │     ├─ Create Stripe Invoice
+    │     ├─ Send invoice email ke NGO
+    │     └─ Update fees → "invoiced"
+    └─ 4. Log results
+    </pre>
+  </div>
+</div>

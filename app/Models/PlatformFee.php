@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['donation_id', 'organization_id', 'fee_amount', 'fee_percentage', 'stripe_transfer_id', 'status'])]
+#[Fillable(['donation_id', 'organization_id', 'fee_amount', 'fee_percentage', 'stripe_transfer_id', 'status', 'monthly_invoice_id'])]
 class PlatformFee extends Model
 {
     /** @use HasFactory<PlatformFeeFactory> */
@@ -22,6 +22,11 @@ class PlatformFee extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function monthlyInvoice(): BelongsTo
+    {
+        return $this->belongsTo(MonthlyInvoice::class);
     }
 
     protected function casts(): array

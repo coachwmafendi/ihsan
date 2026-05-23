@@ -8,19 +8,14 @@
                     <x-filament::button type="submit">
                         {{ __('Save') }}
                     </x-filament::button>
-
-                    <x-filament::button color="gray" wire:click="sendTestEmail">
-                        {{ __('Send Test Email') }}
-                    </x-filament::button>
                 </div>
             </form>
         </div>
 
         <div class="rounded-xl bg-white p-6 dark:bg-gray-900">
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">SPF / DKIM / DMARC</h3>
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Stripe API Mode</h3>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Untuk elak email masuk spam, pastikan DNS domain dah setup SPF, DKIM, dan DMARC records.
-                Rujuk documentation mail provider untuk panduan.
+                Current mode: <span class="font-medium">{{ $this->getApiMode() }}</span>
             </p>
         </div>
     </div>

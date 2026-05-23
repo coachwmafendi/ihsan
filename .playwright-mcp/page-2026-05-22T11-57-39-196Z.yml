@@ -1,0 +1,176 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e3]:
+    - generic [ref=e4]:
+      - button "Collapse sidebar" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - link "Ihsan logo" [ref=e9] [cursor=pointer]:
+        - /url: https://ihsan.test/admin
+        - img "Ihsan logo" [ref=e10]
+    - button "User menu" [ref=e14] [cursor=pointer]:
+      - img "Avatar of Ihsan Admin" [ref=e15]
+  - generic [ref=e16]:
+    - complementary [ref=e18]:
+      - navigation [ref=e19]:
+        - list [ref=e20]:
+          - listitem [ref=e21]:
+            - list [ref=e22]:
+              - listitem [ref=e23]:
+                - link "Dashboard" [ref=e24] [cursor=pointer]:
+                  - /url: https://ihsan.test/admin
+                  - img [ref=e25]
+                  - generic [ref=e27]: Dashboard
+              - listitem [ref=e28]:
+                - link "Overview" [ref=e29] [cursor=pointer]:
+                  - /url: https://ihsan.test/admin/platform-overview
+                  - img [ref=e30]
+                  - generic [ref=e32]: Overview
+              - listitem [ref=e33]:
+                - link "Organizations" [ref=e34] [cursor=pointer]:
+                  - /url: https://ihsan.test/admin/organizations
+                  - img [ref=e35]
+                  - generic [ref=e37]: Organizations
+              - listitem [ref=e38]:
+                - link "Transactions" [ref=e39] [cursor=pointer]:
+                  - /url: https://ihsan.test/admin/transactions
+                  - img [ref=e40]
+                  - generic [ref=e42]: Transactions
+              - listitem [ref=e43]:
+                - link "Revenue" [ref=e44] [cursor=pointer]:
+                  - /url: https://ihsan.test/admin/revenue
+                  - img [ref=e45]
+                  - generic [ref=e47]: Revenue
+    - main [ref=e49]:
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - navigation [ref=e54]:
+              - list [ref=e55]:
+                - listitem [ref=e56]:
+                  - link "Organizations" [ref=e57] [cursor=pointer]:
+                    - /url: https://ihsan.test/admin/organizations
+                - listitem [ref=e58]:
+                  - img [ref=e59]
+                  - generic [ref=e61]: Edit
+            - heading "Edit Organization" [level=1] [ref=e62]
+          - generic [ref=e64]:
+            - button "Suspend" [ref=e65] [cursor=pointer]:
+              - img [ref=e66]
+              - text: Suspend
+            - button "Delete" [ref=e68] [cursor=pointer]
+        - generic [ref=e74]:
+          - generic [ref=e81]:
+            - tablist "Organization Tabs" [ref=e82]:
+              - tab "Details" [ref=e83] [cursor=pointer]:
+                - img [ref=e84]
+                - generic [ref=e86]: Details
+              - tab "Contact" [ref=e87] [cursor=pointer]:
+                - img [ref=e88]
+                - generic [ref=e90]: Contact
+              - tab "Address" [ref=e91] [cursor=pointer]:
+                - img [ref=e92]
+                - generic [ref=e95]: Address
+              - tab "Social" [ref=e96] [cursor=pointer]:
+                - img [ref=e97]
+                - generic [ref=e99]: Social
+              - tab "Bank & Payment" [ref=e100] [cursor=pointer]:
+                - img [ref=e101]
+                - generic [ref=e103]: Bank & Payment
+              - tab "Stripe" [ref=e104] [cursor=pointer]:
+                - img [ref=e105]
+                - generic [ref=e107]: Stripe
+            - tabpanel "Name* PUSAT TAHFIZ ANNUR MARANG Organization Code 6PWGBKHY Auto-generated on creation Registration type* ROS ROS/ROB Number 4587845398 Sector Select an option Description Bold Italic Underline Strikethrough Subscript Superscript Link Heading 2 Heading 3 Align start Align center Align end Blockquote Code block Bullet list Numbered list Table Attach files Undo Redo Pusat Tahfiz An Nur merupakan salah satu pusat pengajian Al-Quran dan asas fardhu ain. Pengajian Al-Quran yang ditawarkan adalah percuma bagi membantu anak-anak yatim dan asnaf fakir miskin dari kawasan sekitar mendapat sinar Al-Quran seperti pelajar lain. Status* Active" [ref=e108]:
+              - generic [ref=e109]:
+                - generic [ref=e112]:
+                  - generic [ref=e116]:
+                    - text: Name
+                    - superscript [ref=e117]: "*"
+                  - textbox "Name*" [ref=e121]: PUSAT TAHFIZ ANNUR MARANG
+                - generic [ref=e124]:
+                  - generic [ref=e128]: Organization Code
+                  - generic [ref=e129]:
+                    - textbox "Organization Code" [disabled] [ref=e132]: 6PWGBKHY
+                    - generic [ref=e136]: Auto-generated on creation
+                - generic [ref=e139]:
+                  - generic [ref=e143]:
+                    - text: Registration type
+                    - superscript [ref=e144]: "*"
+                  - combobox "Registration type*" [ref=e148]:
+                    - option "Select an option"
+                    - option "ROS" [selected]
+                    - option "ROB"
+                    - option "Others"
+                - generic [ref=e151]:
+                  - generic [ref=e155]: ROS/ROB Number
+                  - textbox "ROS/ROB Number" [ref=e159]: "4587845398"
+                - generic [ref=e162]:
+                  - generic [ref=e166]: Sector
+                  - button "Select an option" [ref=e173] [cursor=pointer]:
+                    - generic [ref=e175]: Select an option
+                - generic [ref=e178]:
+                  - generic [ref=e182]: Description
+                  - generic [ref=e186]:
+                    - generic [ref=e187]:
+                      - generic [ref=e188]:
+                        - button "Bold" [ref=e189] [cursor=pointer]:
+                          - img [ref=e190]
+                        - button "Italic" [ref=e192] [cursor=pointer]:
+                          - img [ref=e193]
+                        - button "Underline" [ref=e195] [cursor=pointer]:
+                          - img [ref=e196]
+                        - button "Strikethrough" [ref=e198] [cursor=pointer]:
+                          - img [ref=e199]
+                        - button "Subscript" [ref=e201] [cursor=pointer]:
+                          - img [ref=e202]
+                        - button "Superscript" [ref=e206] [cursor=pointer]:
+                          - img [ref=e207]
+                        - button "Link" [ref=e211] [cursor=pointer]:
+                          - img [ref=e212]
+                      - generic [ref=e215]:
+                        - button "Heading 2" [ref=e216] [cursor=pointer]:
+                          - img [ref=e217]
+                        - button "Heading 3" [ref=e220] [cursor=pointer]:
+                          - img [ref=e221]
+                      - generic [ref=e225]:
+                        - button "Align start" [ref=e226] [cursor=pointer]:
+                          - img [ref=e227]
+                        - button "Align center" [ref=e228] [cursor=pointer]:
+                          - img [ref=e229]
+                        - button "Align end" [ref=e230] [cursor=pointer]:
+                          - img [ref=e231]
+                      - generic [ref=e232]:
+                        - button "Blockquote" [ref=e233] [cursor=pointer]:
+                          - img [ref=e234]
+                        - button "Code block" [ref=e236] [cursor=pointer]:
+                          - img [ref=e237]
+                        - button "Bullet list" [ref=e241] [cursor=pointer]:
+                          - img [ref=e242]
+                        - button "Numbered list" [ref=e244] [cursor=pointer]:
+                          - img [ref=e245]
+                      - generic [ref=e247]:
+                        - button "Table" [ref=e248] [cursor=pointer]:
+                          - img [ref=e249]
+                        - button "Attach files" [ref=e251] [cursor=pointer]:
+                          - img [ref=e252]
+                      - generic [ref=e254]:
+                        - button "Undo" [ref=e255] [cursor=pointer]:
+                          - img [ref=e256]
+                        - button "Redo" [ref=e258] [cursor=pointer]:
+                          - img [ref=e259]
+                    - textbox "Description" [ref=e263]:
+                      - paragraph [ref=e264]: Pusat Tahfiz An Nur merupakan salah satu pusat pengajian Al-Quran dan asas fardhu ain. Pengajian Al-Quran yang ditawarkan adalah percuma bagi membantu anak-anak yatim dan asnaf fakir miskin dari kawasan sekitar mendapat sinar Al-Quran seperti pelajar lain.
+                - generic [ref=e267]:
+                  - generic [ref=e271]:
+                    - text: Status
+                    - superscript [ref=e272]: "*"
+                  - combobox "Status*" [ref=e276]:
+                    - option "Select an option"
+                    - option "Pending"
+                    - option "Active" [selected]
+                    - option "Suspended"
+                    - option "Rejected"
+          - generic [ref=e281]:
+            - button "Save changes" [ref=e282] [cursor=pointer]:
+              - generic [ref=e283]: Save changes
+            - button "Cancel" [ref=e284] [cursor=pointer]
+  - generic:
+    - status

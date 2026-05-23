@@ -195,6 +195,7 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 
 | Feature | Fasa |
 |---------|------|
+| Donor cover processing fee (opt-in checkbox untuk absorb Stripe fee) | V2 |
 | FPX / DuitNow / TNG eWallet | V2 |
 | Zakat & Sedekah module | V2 |
 | LHDN tax-exempt receipt automation | V2 |

@@ -37,11 +37,27 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $this->applyMailConfig();
+        $this->applyStripeConfig();
 
         Event::listen(
             Login::class,
             UpdateLastLoginAt::class,
         );
+    }
+
+    protected function applyStripeConfig(): void
+    {
+        try {
+            $fee = Setting::get('stripe_platform_fee_percent');
+
+            if (blank($fee)) {
+                return;
+            }
+
+            config(['services.stripe.platform_fee_percent' => (float) $fee]);
+        } catch (\Throwable $e) {
+            // Settings table might not exist yet
+        }
     }
 
     protected function applyMailConfig(): void

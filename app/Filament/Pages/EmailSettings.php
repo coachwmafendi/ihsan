@@ -27,15 +27,15 @@ class EmailSettings extends Page
     public function mount(): void
     {
         $this->form->fill([
-            'mail_driver' => Setting::get('mail_driver', 'log'),
-            'mail_host' => Setting::get('mail_host'),
-            'mail_port' => Setting::get('mail_port'),
-            'mail_username' => Setting::get('mail_username'),
-            'mail_password' => Setting::get('mail_password'),
-            'mail_encryption' => Setting::get('mail_encryption'),
-            'mail_from_address' => Setting::get('mail_from_address'),
-            'mail_from_name' => Setting::get('mail_from_name', config('app.name')),
-            'sendmail_path' => Setting::get('sendmail_path'),
+            'mail_driver' => Setting::get('mail_driver', config('mail.default', 'log')),
+            'mail_host' => Setting::get('mail_host', config('mail.mailers.smtp.host')),
+            'mail_port' => Setting::get('mail_port', config('mail.mailers.smtp.port')),
+            'mail_username' => Setting::get('mail_username', config('mail.mailers.smtp.username')),
+            'mail_password' => Setting::get('mail_password', config('mail.mailers.smtp.password')),
+            'mail_encryption' => Setting::get('mail_encryption', env('MAIL_ENCRYPTION')),
+            'mail_from_address' => Setting::get('mail_from_address', config('mail.from.address')),
+            'mail_from_name' => Setting::get('mail_from_name', config('mail.from.name', config('app.name'))),
+            'sendmail_path' => Setting::get('sendmail_path', config('mail.mailers.sendmail.path')),
         ]);
     }
 
@@ -47,6 +47,7 @@ class EmailSettings extends Page
     public function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(2)
             ->schema([
                 Select::make('mail_driver')
                     ->label('Mail Driver')
@@ -56,9 +57,24 @@ class EmailSettings extends Page
                         'ses' => 'Amazon SES',
                         'postmark' => 'Postmark',
                         'sendmail' => 'Sendmail',
-                        'log' => 'Log (for testing)',
+                        'log' => 'Log',
                     ])
                     ->required(),
+                TextInput::make('mail_from_address')
+                    ->label('From Email')
+                    ->email()
+                    ->required(),
+                TextInput::make('mail_from_name')
+                    ->label('From Name')
+                    ->required(),
+                Select::make('mail_encryption')
+                    ->label('SMTP Encryption')
+                    ->options([
+                        'tls' => 'TLS',
+                        'ssl' => 'SSL',
+                        '' => 'None',
+                    ])
+                    ->visible(fn ($get) => $get('mail_driver') === 'smtp'),
                 TextInput::make('mail_host')
                     ->label('SMTP Host')
                     ->visible(fn ($get) => $get('mail_driver') === 'smtp'),
@@ -73,25 +89,11 @@ class EmailSettings extends Page
                     ->label('SMTP Password')
                     ->password()
                     ->visible(fn ($get) => $get('mail_driver') === 'smtp'),
-                Select::make('mail_encryption')
-                    ->label('SMTP Encryption')
-                    ->options([
-                        'tls' => 'TLS',
-                        'ssl' => 'SSL',
-                        '' => 'None',
-                    ])
-                    ->visible(fn ($get) => $get('mail_driver') === 'smtp'),
                 TextInput::make('sendmail_path')
                     ->label('Sendmail Path')
                     ->default('/usr/sbin/sendmail -bs')
+                    ->columnSpan(2)
                     ->visible(fn ($get) => $get('mail_driver') === 'sendmail'),
-                TextInput::make('mail_from_address')
-                    ->label('From Email')
-                    ->email()
-                    ->required(),
-                TextInput::make('mail_from_name')
-                    ->label('From Name')
-                    ->required(),
             ]);
     }
 
@@ -121,7 +123,7 @@ class EmailSettings extends Page
             Setting::set('sendmail_path', null);
         }
 
-        $this->applyMailConfig();
+        $this->applyMailConfig($data);
 
         Notification::make()
             ->title('Email settings saved.')
@@ -142,7 +144,7 @@ class EmailSettings extends Page
             return;
         }
 
-        $this->applyMailConfig();
+        $this->applyMailConfig($data);
 
         try {
             Mail::raw('This is a test email from '.config('app.name').'. Your email configuration is working correctly.', function ($message) use ($data) {
@@ -162,18 +164,30 @@ class EmailSettings extends Page
         }
     }
 
-    protected function applyMailConfig(): void
+    protected function applyMailConfig(?array $data = null): void
     {
+        $data ??= [
+            'mail_driver' => Setting::get('mail_driver', 'log'),
+            'mail_host' => Setting::get('mail_host'),
+            'mail_port' => Setting::get('mail_port'),
+            'mail_username' => Setting::get('mail_username'),
+            'mail_password' => Setting::get('mail_password'),
+            'mail_encryption' => Setting::get('mail_encryption'),
+            'mail_from_address' => Setting::get('mail_from_address'),
+            'mail_from_name' => Setting::get('mail_from_name'),
+            'sendmail_path' => Setting::get('sendmail_path'),
+        ];
+
         config([
-            'mail.default' => Setting::get('mail_driver', 'log'),
-            'mail.from.address' => Setting::get('mail_from_address'),
-            'mail.from.name' => Setting::get('mail_from_name'),
-            'mail.mailers.smtp.host' => Setting::get('mail_host'),
-            'mail.mailers.smtp.port' => Setting::get('mail_port'),
-            'mail.mailers.smtp.username' => Setting::get('mail_username'),
-            'mail.mailers.smtp.password' => Setting::get('mail_password'),
-            'mail.mailers.smtp.encryption' => Setting::get('mail_encryption'),
-            'mail.mailers.sendmail.path' => Setting::get('sendmail_path', '/usr/sbin/sendmail -bs'),
+            'mail.default' => $data['mail_driver'] ?? 'log',
+            'mail.from.address' => $data['mail_from_address'] ?? null,
+            'mail.from.name' => $data['mail_from_name'] ?? null,
+            'mail.mailers.smtp.host' => $data['mail_host'] ?? null,
+            'mail.mailers.smtp.port' => $data['mail_port'] ?? null,
+            'mail.mailers.smtp.username' => $data['mail_username'] ?? null,
+            'mail.mailers.smtp.password' => $data['mail_password'] ?? null,
+            'mail.mailers.smtp.encryption' => $data['mail_encryption'] ?? null,
+            'mail.mailers.sendmail.path' => $data['sendmail_path'] ?? null,
         ]);
     }
 }
