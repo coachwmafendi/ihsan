@@ -133,28 +133,31 @@ class CampaignForm
                         Tab::make('Checkout Modal')
                             ->icon('heroicon-o-credit-card')
                             ->schema([
-                                Section::make('Benam modal')
-                                    ->description('Tetapan untuk daftar masuk modal berdasarkan skrip di laman web klien.')
-                                    ->columns(2)
+                                Section::make('Konfigurasi')
+                                    ->description('Aktifkan modal derma dan hadkan domain yang dibenarkan.')
                                     ->schema([
                                         Toggle::make('checkout_modal_enabled')
-                                            ->label('Benarkan daftar masuk modal')
-                                            ->helperText('Benarkan kempen ini dibuka dalam modal Ihsan.')
+                                            ->label('Aktifkan modal derma')
+                                            ->helperText('Penderma boleh buka borang ini sebagai pop-up terus dari laman web organisasi.')
                                             ->default(false)
                                             ->columnSpanFull(),
                                         TextInput::make('form_parameter')
-                                            ->label('Parameter borang')
-                                            ->helperText('Contoh: MTMTDEVEFUND. Guna ?form=THIS dalam URL untuk buka daftar masuk modal.')
+                                            ->label('Kod kempen')
+                                            ->helperText('Kod unik untuk kempen ini. Dijana secara automatik — boleh ditukar.')
                                             ->maxLength(255)
                                             ->unique(ignoreRecord: true)
                                             ->columnSpanFull(),
                                         TagsInput::make('checkout_allowed_domains')
                                             ->label('Domain dibenarkan')
-                                            ->helperText('Hanya domain ini boleh buka kempen dalam modal benam.')
+                                            ->helperText('Masukkan domain laman web organisasi, contoh: mumzatuttaqwa.com — Borang tidak akan dibuka dari domain lain.')
                                             ->placeholder('Tambah domain')
                                             ->columnSpanFull(),
+                                    ]),
+                                Section::make('Cara pasang di laman web')
+                                    ->description('Ikuti langkah di bawah untuk benamkan borang derma di laman web organisasi.')
+                                    ->schema([
                                         Placeholder::make('embed_modal_note')
-                                            ->label('Pasang skrip')
+                                            ->hiddenLabel()
                                             ->content(fn ($get) => new HtmlString(self::embedSnippetHtml($get('form_parameter'))))
                                             ->columnSpanFull(),
                                     ]),
@@ -282,36 +285,37 @@ class CampaignForm
         $button = '<button data-ihsan-form="'.$formParameter.'">Derma</button>';
         $link = '<a href="?form='.$formParameter.'">Derma</a>';
 
-        return '<div class="space-y-5">'
+        $step = fn (int $n, string $title, string $body) => '<div class="flex gap-4">'
+            .'<div class="shrink-0 flex size-7 items-center justify-center rounded-full bg-teal-600 text-white text-xs font-bold">'.$n.'</div>'
+            .'<div class="space-y-2 flex-1 pb-5">'
+            .'<p class="text-sm font-semibold text-zinc-800">'.$title.'</p>'
+            .'<p class="text-sm text-zinc-500">'.$body.'</p>';
 
-            // Intro
-            .'<p class="text-sm text-zinc-700 font-medium">Cara benam borang derma di laman web organisasi</p>'
-            .'<p class="text-sm text-zinc-500">Penderma boleh klik butang di laman web organisasi dan borang derma akan terbuka sebagai tetingkap pop-up — tanpa meninggalkan halaman asal.</p>'
+        return '<div class="space-y-0">'
 
-            // Step 1
-            .'<div class="space-y-2">'
-            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Langkah 1 — Pasang skrip Ihsan</p>'
-            .'<p class="text-sm text-zinc-500">Salin kod berikut dan letak <strong>sekali sahaja</strong> dalam laman web organisasi, sebelum tag <code>&lt;/body&gt;</code>.</p>'
+            .($step)(1,
+                'Pasang skrip Ihsan (sekali sahaja)',
+                'Salin kod berikut dan letak dalam laman web organisasi, sebelum penutup tag <code class="text-xs bg-zinc-100 px-1 rounded">&lt;/body&gt;</code>.'
+            )
             .self::copyableSnippet('Skrip', $script)
-            .'</div>'
+            .'</div></div>'
 
-            // Step 2
-            .'<div class="space-y-2">'
-            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Langkah 2 — Tambah butang atau pautan derma</p>'
-            .'<p class="text-sm text-zinc-500">Letak salah satu kod ini di mana-mana tempat dalam laman web. Apabila diklik, borang derma akan terbuka secara automatik.</p>'
+            .($step)(2,
+                'Tambah butang atau pautan derma',
+                'Letak mana-mana satu kod ini di laman web. Apabila diklik, borang derma terbuka sebagai pop-up secara automatik.'
+            )
             .self::copyableSnippet('Butang', $button)
             .self::copyableSnippet('Pautan', $link)
-            .'</div>'
+            .'</div></div>'
 
-            // Step 3
-            .'<div class="space-y-2">'
-            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Langkah 3 — Daftarkan domain laman web</p>'
-            .'<p class="text-sm text-zinc-500">Di bahagian <strong>Domain dibenarkan</strong> di atas, masukkan domain laman web organisasi (contoh: <code>mumzatuttaqwa.com</code>). Borang derma tidak akan buka jika domain tidak didaftarkan.</p>'
-            .'</div>'
+            .($step)(3,
+                'Daftarkan domain laman web',
+                'Dalam bahagian <strong>Domain dibenarkan</strong> di atas, masukkan domain laman web organisasi (contoh: <code class="text-xs bg-zinc-100 px-1 rounded">mumzatuttaqwa.com</code>). Borang tidak akan buka dari domain yang tidak didaftarkan.'
+            )
+            .'</div></div>'
 
-            // Note
-            .'<div class="rounded-lg bg-amber-50 border border-amber-200 p-3">'
-            .'<p class="text-xs text-amber-700"><strong>Nota:</strong> Pastikan "Benarkan daftar masuk modal" diaktifkan dan domain laman web didaftarkan sebelum menggunakan kod ini.</p>'
+            .'<div class="ml-11 rounded-lg bg-amber-50 border border-amber-200 p-3">'
+            .'<p class="text-sm text-amber-700"><strong>Penting:</strong> Pastikan "Aktifkan modal derma" dihidupkan dan domain sudah didaftarkan sebelum menggunakan kod ini.</p>'
             .'</div>'
 
             .'</div>';
