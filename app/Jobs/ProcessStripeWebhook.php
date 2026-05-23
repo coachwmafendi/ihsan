@@ -15,6 +15,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Stripe\BalanceTransaction;
 use Stripe\Charge;
 use Stripe\Event as StripeEvent;
+use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\PaymentMethod;
 use Stripe\Stripe;
 
@@ -70,8 +71,8 @@ class ProcessStripeWebhook implements ShouldQueue
 
     private function handlePaymentIntentSucceeded(StripeEvent $event): void
     {
-        $paymentIntent = $event->data->object;
-        $donationId = $paymentIntent->metadata->donation_id ?? null;
+        $eventPaymentIntent = $event->data->object;
+        $donationId = $eventPaymentIntent->metadata->donation_id ?? null;
 
         if ($donationId === null) {
             return;
@@ -89,6 +90,15 @@ class ProcessStripeWebhook implements ShouldQueue
         $cardBrand = null;
         $paymentMethodType = null;
         $stripeOptions = filled($event->account ?? null) ? ['stripe_account' => $event->account] : [];
+
+        try {
+            $paymentIntent = StripePaymentIntent::retrieve([
+                'id' => $eventPaymentIntent->id,
+                'expand' => ['latest_charge', 'latest_charge.balance_transaction'],
+            ], $stripeOptions);
+        } catch (\Exception $e) {
+            $paymentIntent = $eventPaymentIntent;
+        }
 
         if ($paymentIntent->payment_method) {
             try {
@@ -111,9 +121,10 @@ class ProcessStripeWebhook implements ShouldQueue
         $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
 
         if ($balanceTransaction) {
+            $btId = is_string($balanceTransaction) ? $balanceTransaction : $balanceTransaction->id;
+
             try {
-                Stripe::setApiKey(config('services.stripe.secret'));
-                $bt = BalanceTransaction::retrieve($balanceTransaction, $stripeOptions);
+                $bt = BalanceTransaction::retrieve($btId, $stripeOptions);
                 $stripeFee = (float) ($bt->fee / 100);
             } catch (\Exception $e) {
                 // If we can't retrieve the balance transaction, leave fee at 0

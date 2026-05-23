@@ -86,9 +86,9 @@ class DonationForm extends Component
         try {
             $donation->loadMissing('campaign.organization');
             $stripeOptions = $this->stripeOptionsFor($donation);
-            $paymentIntent ??= StripePaymentIntent::retrieve([
+            $paymentIntent = StripePaymentIntent::retrieve([
                 'id' => $paymentIntentId,
-                'expand' => ['latest_charge'],
+                'expand' => ['latest_charge', 'latest_charge.balance_transaction'],
             ], $stripeOptions);
 
             [$cardBrand, $paymentMethodType] = $this->extractCardDetails($paymentIntent->payment_method, $stripeOptions);
@@ -99,7 +99,8 @@ class DonationForm extends Component
             $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
 
             if ($balanceTransaction) {
-                $bt = BalanceTransaction::retrieve($balanceTransaction, $stripeOptions);
+                $btId = is_string($balanceTransaction) ? $balanceTransaction : $balanceTransaction->id;
+                $bt = BalanceTransaction::retrieve($btId, $stripeOptions);
                 $stripeFee = (float) ($bt->fee / 100);
             }
 

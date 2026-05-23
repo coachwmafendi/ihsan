@@ -9,6 +9,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
+use Filament\Support\Enums\IconPosition;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -40,6 +41,7 @@ class DonationsTable
                         'grabpay' => 'success',
                         default => 'gray',
                     })
+                    ->iconPosition(IconPosition::After)
                     ->sortable(),
                 TextColumn::make('donor.name')
                     ->label('Supporter')

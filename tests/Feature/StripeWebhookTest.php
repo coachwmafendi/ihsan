@@ -149,6 +149,33 @@ it('creates recurring subscriptions in the connected account from payment intent
                         'last4' => '4242',
                     ],
                 ],
+                str_contains($absUrl, '/v1/balance_transactions/txn_connected_recurring_123') => [
+                    'id' => 'txn_connected_recurring_123',
+                    'object' => 'balance_transaction',
+                    'fee' => 150,
+                ],
+                str_contains($absUrl, '/v1/payment_intents/pi_connected_recurring_123') => [
+                    'id' => 'pi_connected_recurring_123',
+                    'object' => 'payment_intent',
+                    'customer' => 'cus_connected_donor',
+                    'payment_method' => 'pm_connected_card',
+                    'metadata' => [
+                        'donor_email' => 'connected-recurring@example.test',
+                    ],
+                    'latest_charge' => [
+                        'id' => 'ch_connected_recurring_123',
+                        'object' => 'charge',
+                        'balance_transaction' => [
+                            'id' => 'txn_connected_recurring_123',
+                            'object' => 'balance_transaction',
+                            'fee' => 150, // in cents = RM 1.50
+                        ],
+                    ],
+                    'charges' => [
+                        'object' => 'list',
+                        'data' => [],
+                    ],
+                ],
                 str_ends_with($absUrl, '/v1/products') => [
                     'id' => 'prod_connected_campaign',
                     'object' => 'product',
@@ -203,6 +230,9 @@ it('creates recurring subscriptions in the connected account from payment intent
     expect($donation->status)->toBe(DonationStatus::Succeeded)
         ->and($donation->payment_method_brand)->toBe('visa')
         ->and($donation->payment_method_type)->toBe('card')
+        ->and($donation->stripe_fee)->toBe('1.50')
+        ->and($donation->platform_fee)->toBe('1.25')
+        ->and($donation->net_amount)->toBe('22.25')
         ->and($subscription)->not->toBeNull()
         ->and($subscription->campaign_id)->toBe($campaign->getKey());
 
