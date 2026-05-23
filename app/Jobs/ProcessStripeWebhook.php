@@ -13,6 +13,7 @@ use App\Models\WebhookLog;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Stripe\BalanceTransaction;
+use Stripe\Charge;
 use Stripe\Event as StripeEvent;
 use Stripe\PaymentMethod;
 use Stripe\Stripe;
@@ -86,19 +87,21 @@ class ProcessStripeWebhook implements ShouldQueue
         }
 
         $cardBrand = null;
-        $cardLast4 = null;
+        $paymentMethodType = null;
         $stripeOptions = filled($event->account ?? null) ? ['stripe_account' => $event->account] : [];
 
         if ($paymentIntent->payment_method) {
             try {
                 $paymentMethod = PaymentMethod::retrieve($paymentIntent->payment_method, $stripeOptions);
+                $paymentMethodType = $paymentMethod->type;
 
                 if ($paymentMethod->type === 'card' && $paymentMethod->card !== null) {
                     $cardBrand = $paymentMethod->card->brand;
-                    $cardLast4 = $paymentMethod->card->last4;
+                } else {
+                    $cardBrand = $paymentMethodType;
                 }
             } catch (\Exception $e) {
-                // Card details are non-critical
+                // Payment method details are non-critical
             }
         }
 
@@ -117,13 +120,16 @@ class ProcessStripeWebhook implements ShouldQueue
             }
         }
 
+        $platformFee = round((float) $donation->gross_amount * 0.05, 2);
+
         $donation->update([
             'status' => DonationStatus::Succeeded,
             'stripe_charge_id' => $chargeId,
             'stripe_fee' => $stripeFee,
+            'platform_fee' => $platformFee,
             'payment_method_brand' => $cardBrand,
-            'payment_method_last4' => $cardLast4,
-            'net_amount' => (float) $donation->gross_amount - $stripeFee - (float) $donation->platform_fee,
+            'payment_method_type' => $paymentMethodType,
+            'net_amount' => (float) $donation->gross_amount - $stripeFee - $platformFee,
         ]);
 
         $donation->campaign()->increment('collected_amount', (float) $donation->gross_amount);
@@ -131,6 +137,7 @@ class ProcessStripeWebhook implements ShouldQueue
         if ($donation->type === DonationType::Recurring) {
             $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
             $donation->update(['subscription_id' => $subscription->getKey()]);
+            $subscription->increment('payment_count');
         }
 
         SendDonationReceipt::dispatch($donation);
@@ -174,14 +181,39 @@ class ProcessStripeWebhook implements ShouldQueue
             'current_period_end' => now()->setTimestamp($invoice->period_end),
         ]);
 
+        $subscription->increment('payment_count');
+
+        $grossAmount = (float) ($invoice->amount_paid / 100);
+        $stripeFee = 0;
+        $stripeOptions = filled($event->account ?? null) ? ['stripe_account' => $event->account] : [];
+
+        if ($invoice->charge) {
+            try {
+                $chargeId = is_string($invoice->charge) ? $invoice->charge : $invoice->charge->id;
+                $chargeObj = Charge::retrieve($chargeId, $stripeOptions);
+                $balanceTransaction = $chargeObj->balance_transaction;
+
+                if ($balanceTransaction) {
+                    $btId = is_string($balanceTransaction) ? $balanceTransaction : $balanceTransaction->id;
+                    $bt = BalanceTransaction::retrieve($btId, $stripeOptions);
+                    $stripeFee = (float) ($bt->fee / 100);
+                }
+            } catch (\Exception $e) {
+                // Fee retrieval is non-critical
+            }
+        }
+
+        $platformFee = round($grossAmount * 0.05, 2);
+        $netAmount = $grossAmount - $stripeFee - $platformFee;
+
         $donation = Donation::query()->create([
             'campaign_id' => $subscription->campaign_id,
             'donor_id' => $subscription->donor_id,
             'subscription_id' => $subscription->getKey(),
-            'gross_amount' => (float) ($invoice->amount_paid / 100),
-            'stripe_fee' => 0,
-            'platform_fee' => 0,
-            'net_amount' => (float) ($invoice->amount_paid / 100),
+            'gross_amount' => $grossAmount,
+            'stripe_fee' => $stripeFee,
+            'platform_fee' => $platformFee,
+            'net_amount' => $netAmount,
             'currency' => $invoice->currency,
             'status' => DonationStatus::Succeeded,
             'type' => DonationType::Recurring,
@@ -189,7 +221,7 @@ class ProcessStripeWebhook implements ShouldQueue
             'stripe_charge_id' => $invoice->charge,
         ]);
 
-        $donation->campaign()->increment('collected_amount', (float) $donation->gross_amount);
+        $donation->campaign()->increment('collected_amount', $grossAmount);
 
         SendDonationReceipt::dispatch($donation);
     }

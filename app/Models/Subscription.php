@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['campaign_id', 'donor_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at'])]
+#[Fillable(['campaign_id', 'donor_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */
@@ -37,6 +37,7 @@ class Subscription extends Model
         return [
             'amount' => 'decimal:2',
             'retry_count' => 'integer',
+            'payment_count' => 'integer',
             'current_period_start' => 'datetime',
             'current_period_end' => 'datetime',
             'paused_until' => 'datetime',

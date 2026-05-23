@@ -28,23 +28,23 @@ class DonationsTable
                 TextColumn::make('gross_amount')
                     ->label('Donation')
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
+                    ->icon(fn ($record): string => match ($record->payment_method_type) {
+                        'card' => 'heroicon-o-credit-card',
+                        'fpx' => 'heroicon-o-building-library',
+                        'grabpay' => 'heroicon-o-device-phone-mobile',
+                        'wallet' => 'heroicon-o-wallet',
+                        default => 'heroicon-o-credit-card',
+                    })
+                    ->iconColor(fn ($record): string => match ($record->payment_method_type) {
+                        'fpx' => 'info',
+                        'grabpay' => 'success',
+                        default => 'gray',
+                    })
                     ->sortable(),
                 TextColumn::make('donor.name')
                     ->label('Supporter')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('payment_method_brand')
-                    ->label('Payment Method')
-                    ->formatStateUsing(function ($state, $record) {
-                        if ($state === null || $record->payment_method_last4 === null) {
-                            return '—';
-                        }
-
-                        return view('filament.tables.columns.payment-method', [
-                            'brand' => $state,
-                            'last4' => $record->payment_method_last4,
-                        ])->render();
-                    })->html(),
                 TextColumn::make('campaign.title')
                     ->label('Campaign')
                     ->searchable()
@@ -103,6 +103,11 @@ class DonationsTable
                         Section::make()
                             ->columns(2)
                             ->schema([
+                                TextEntry::make('id')
+                                    ->label('Donation ID'),
+                                TextEntry::make('created_at')
+                                    ->label('Date')
+                                    ->dateTime('d M Y, h:i A'),
                                 TextEntry::make('donor.name')
                                     ->label('Supporter'),
                                 TextEntry::make('campaign.title')
@@ -121,6 +126,7 @@ class DonationsTable
                                         default => 'gray',
                                     }),
                                 TextEntry::make('type')
+                                    ->label('Frequency')
                                     ->badge()
                                     ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString()),
                                 TextEntry::make('is_anonymous')
@@ -130,6 +136,22 @@ class DonationsTable
                                     ->label('Message')
                                     ->columnSpanFull()
                                     ->visible(fn ($record) => $record->donor_message !== null),
+                            ]),
+                        Section::make('Stripe Transaction')
+                            ->columns(2)
+                            ->schema([
+                                TextEntry::make('stripe_payment_intent_id')
+                                    ->label('Payment Intent ID')
+                                    ->copyable()
+                                    ->copyMessage('Copied'),
+                                TextEntry::make('stripe_charge_id')
+                                    ->label('Charge ID')
+                                    ->copyable()
+                                    ->copyMessage('Copied'),
+                                TextEntry::make('payment_method_brand')
+                                    ->label('Payment Method'),
+                                TextEntry::make('payment_method_type')
+                                    ->label('Method Type'),
                             ]),
                         Section::make('Financial Breakdown')
                             ->columns(3)

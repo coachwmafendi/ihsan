@@ -81,7 +81,8 @@ it('marks a pending one time donation as succeeded from a payment intent webhook
 
     expect($donation->status)->toBe(DonationStatus::Succeeded)
         ->and($donation->stripe_charge_id)->toBe('ch_webhook_success_123')
-        ->and($donation->net_amount)->toBe('50.00')
+        ->and($donation->net_amount)->toBe('47.50')
+        ->and($donation->platform_fee)->toBe('2.50')
         ->and($campaign->collected_amount)->toBe('75.00')
         ->and(WebhookLog::query()->where('stripe_event_id', 'evt_webhook_success_123')->first()?->status)->toBe('completed');
 
@@ -201,7 +202,7 @@ it('creates recurring subscriptions in the connected account from payment intent
 
     expect($donation->status)->toBe(DonationStatus::Succeeded)
         ->and($donation->payment_method_brand)->toBe('visa')
-        ->and($donation->payment_method_last4)->toBe('4242')
+        ->and($donation->payment_method_type)->toBe('card')
         ->and($subscription)->not->toBeNull()
         ->and($subscription->campaign_id)->toBe($campaign->getKey());
 

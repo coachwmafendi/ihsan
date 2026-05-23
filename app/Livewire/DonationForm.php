@@ -91,7 +91,7 @@ class DonationForm extends Component
                 'expand' => ['latest_charge'],
             ], $stripeOptions);
 
-            [$cardBrand, $cardLast4] = $this->extractCardDetails($paymentIntent->payment_method, $stripeOptions);
+            [$cardBrand, $paymentMethodType] = $this->extractCardDetails($paymentIntent->payment_method, $stripeOptions);
 
             $charge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
             $chargeId = is_string($charge) ? $charge : ($charge->id ?? null);
@@ -103,13 +103,16 @@ class DonationForm extends Component
                 $stripeFee = (float) ($bt->fee / 100);
             }
 
+            $platformFee = round((float) $donation->gross_amount * 0.05, 2);
+
             $donation->update([
                 'status' => DonationStatus::Succeeded,
                 'stripe_charge_id' => $chargeId,
                 'stripe_fee' => $stripeFee,
+                'platform_fee' => $platformFee,
                 'payment_method_brand' => $cardBrand,
-                'payment_method_last4' => $cardLast4,
-                'net_amount' => (float) $donation->gross_amount - $stripeFee - (float) $donation->platform_fee,
+                'payment_method_type' => $paymentMethodType,
+                'net_amount' => (float) $donation->gross_amount - $stripeFee - $platformFee,
             ]);
 
             $donation->campaign()->increment('collected_amount', (float) $donation->gross_amount);
@@ -117,6 +120,7 @@ class DonationForm extends Component
             if ($donation->type === DonationType::Recurring) {
                 $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
                 $donation->update(['subscription_id' => $subscription->getKey()]);
+                $subscription->increment('payment_count');
             }
 
             SendDonationReceipt::dispatch($donation);
@@ -133,12 +137,15 @@ class DonationForm extends Component
 
         try {
             $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
+            $type = $paymentMethod->type;
 
-            if ($paymentMethod->type === 'card' && $paymentMethod->card !== null) {
-                return [$paymentMethod->card->brand, $paymentMethod->card->last4];
+            if ($type === 'card' && $paymentMethod->card !== null) {
+                return [$paymentMethod->card->brand, $type];
             }
+
+            return [$type, $type];
         } catch (\Exception $e) {
-            // Silently fail — card details are non-critical
+            // Silently fail — payment method details are non-critical
         }
 
         return [null, null];
