@@ -1,8 +1,8 @@
 # Entity Relationship Diagram (ERD)
 ## Ihsan — MVP Database Design
 
-**Version:** 1.3  
-**Tarikh:** 18 Mei 2026  
+**Version:** 1.4  
+**Tarikh:** 23 Mei 2026  
 **Database:** SQLite untuk local dev, MySQL 8/PostgreSQL untuk production  
 **Framework:** Laravel 13  
 
@@ -126,6 +126,8 @@ erDiagram
         text donor_message "nullable"
         boolean is_anonymous
         json utm_params "nullable"
+        string payment_method_brand "nullable - visa|mastercard|fpx|etc"
+        string payment_method_type "nullable - card|fpx|grabpay|wallet|etc"
         timestamps created_at updated_at
     }
 
@@ -140,6 +142,7 @@ erDiagram
         enum interval "weekly|monthly|yearly"
         enum status "active|paused|cancelled|past_due|incomplete"
         tinyint retry_count "default 0 max 3"
+        tinyint payment_count "default 0 - berapa kali dah bayar"
         timestamp current_period_start "nullable"
         timestamp current_period_end "nullable"
         timestamp paused_until "nullable"
@@ -259,9 +262,11 @@ Rekod setiap transaksi tunggal — sama ada one-time atau satu bayaran daripada 
 | `subscription_id` | FK nullable | NULL = one-time; ada nilai = dijana oleh subscription |
 | `type` | enum | `one_time` atau `recurring` |
 | `gross_amount` | decimal | Jumlah yang donor bayar |
-| `stripe_fee` | decimal | Fee Stripe (2.2% + RM 1.30) |
-| `platform_fee` | decimal | Fee Ihsan (3%) |
+| `stripe_fee` | decimal | Fee Stripe yang sebenar dari BalanceTransaction |
+| `platform_fee` | decimal | Fee Ihsan (5%) — dikira sendiri, bukan dari Stripe |
 | `net_amount` | decimal | Yang masuk ke NGO (`gross - stripe_fee - platform_fee`) |
+| `payment_method_brand` | string | Jenama kad: `visa`, `mastercard`, atau type method untuk non-card |
+| `payment_method_type` | string | Method type dari Stripe: `card`, `fpx`, `grabpay`, `wallet` |
 | `utm_params` | json | Track sumber traffic: `{source, medium, campaign}` |
 | `is_anonymous` | boolean | TRUE = nama donor tidak dipaparkan di halaman kempen |
 
@@ -275,6 +280,7 @@ Rekod recurring subscription. Satu subscription = satu donor → satu campaign d
 | `stripe_subscription_id` | string unique | ID dari Stripe untuk sync status |
 | `status` | enum | Sync dengan Stripe Subscription status |
 | `retry_count` | tinyint | Bilangan kali bayaran gagal dicuba (max 3, dunning logic) |
+| `payment_count` | tinyint | Bilangan kali bayaran berjaya — dikira dari `invoice.paid` webhook |
 | `paused_until` | timestamp | Set bila donor pause — resume otomatik selepas tarikh ini |
 | `current_period_start/end` | timestamp | Kitaran billing semasa dari Stripe |
 
@@ -364,10 +370,10 @@ Stripe memproses bayaran
         │
         ├─► Stripe fee: RM 3.50 (2.2% + RM 1.30)
         │
-        ├─► Ihsan platform fee: RM 3.00 (3%)
-        │   └─► Masuk ke Stripe account IHSAN (application_fee_amount)
+        ├─► Ihsan platform fee: RM 5.00 (5%)
+        │   └─► Stripe Connect application_fee
         │
-        └─► NGO terima: RM 93.50
+        └─► NGO terima: RM 91.50
             └─► Payout ke bank NGO setiap 7 hari (Stripe Connect)
 ```
 
@@ -404,6 +410,7 @@ CREATE INDEX idx_donation_subscription ON donations(subscription_id);
 CREATE INDEX idx_donation_status ON donations(status);
 CREATE INDEX idx_donation_type ON donations(type);
 CREATE INDEX idx_donation_created ON donations(created_at);
+CREATE INDEX idx_donation_payment_method ON donations(payment_method_type);
 
 -- subscriptions
 CREATE INDEX idx_sub_donor ON subscriptions(donor_id);
