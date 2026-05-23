@@ -265,9 +265,9 @@ class CampaignForm
         $parts = [];
         foreach ($elements as $element) {
             $url = route('donations.show', $element);
-            $parts[] = '<div x-data="{ copied: false, url: \''.e($url).'\' }" class="flex items-center gap-2 py-1">'
-                .'<code class="flex-1 truncate text-sm text-zinc-600" x-text="url"></code>'
-                .'<button type="button" x-on:click="navigator.clipboard.writeText(url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
+            $parts[] = '<div x-data="{ copied: false }" data-url=\''.e($url).'\' class="flex items-center gap-2 py-1">'
+                .'<code class="flex-1 truncate text-sm text-zinc-600">'.e($url).'</code>'
+                .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
                 .'</div>';
         }
 
@@ -319,10 +319,10 @@ class CampaignForm
 
     private static function copyableSnippet(string $label, string $code): string
     {
-        return '<div x-data="{ copied: false, code: '.Js::from($code).' }" class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">'
+        return '<div x-data="{ copied: false }" data-code='.Js::from($code).' class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">'
             .'<div class="mb-2 flex items-center justify-between gap-3">'
             .'<span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">'.e($label).'</span>'
-            .'<button type="button" x-on:click="navigator.clipboard.writeText(code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Disalin\' : \'Salin\'"></button>'
+            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Disalin\' : \'Salin\'"></button>'
             .'</div>'
             .'<code class="block overflow-x-auto whitespace-pre rounded-md bg-white p-2 text-xs text-zinc-700 ring-1 ring-zinc-200">'.e($code).'</code>'
             .'</div>';
