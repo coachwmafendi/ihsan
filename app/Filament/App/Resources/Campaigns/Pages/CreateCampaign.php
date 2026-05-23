@@ -18,4 +18,42 @@ class CreateCampaign extends CreateRecord
 
         return $data;
     }
+
+    protected function beforeValidate(): void
+    {
+        $description = $this->data['description'] ?? '';
+
+        $text = static::extractText($description);
+        $wordCount = str_word_count(strip_tags($text));
+
+        if ($wordCount > 100) {
+            $this->addError('data.description', 'Penerangan tidak boleh melebihi 100 patah perkataan.');
+            $this->halt();
+        }
+    }
+
+    private static function extractText(mixed $content): string
+    {
+        if (is_string($content)) {
+            return $content;
+        }
+
+        if (! is_array($content)) {
+            return '';
+        }
+
+        if (isset($content['text'])) {
+            return $content['text'];
+        }
+
+        $texts = [];
+
+        if (isset($content['content'])) {
+            foreach ($content['content'] as $node) {
+                $texts[] = static::extractText($node);
+            }
+        }
+
+        return implode(' ', $texts);
+    }
 }

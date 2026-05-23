@@ -9,6 +9,7 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
 use App\Jobs\SendDonationReceipt;
+use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
@@ -101,6 +102,7 @@ class DonationForm extends Component
             }
 
             SendDonationReceipt::dispatch($donation);
+            SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
         } catch (\Exception $e) {
             // Log error silently
         }

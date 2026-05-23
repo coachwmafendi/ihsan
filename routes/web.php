@@ -9,6 +9,15 @@ use App\Livewire\DonationForm;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+
+Route::get('/language/{locale}', function (string $locale) {
+    if (in_array($locale, ['en', 'ms'])) {
+        session(['locale' => $locale]);
+        app()->setLocale($locale);
+    }
+
+    return redirect()->back();
+})->name('language.switch');
 Route::get('/donate/{element:token}/image', DonationCampaignImageController::class)->name('donations.campaign-image');
 Route::livewire('/donate/{element:token}', DonationForm::class)->name('donations.show');
 Route::get('/embed.js', [EmbedCheckoutController::class, 'script'])->name('embed.script');

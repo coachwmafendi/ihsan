@@ -22,7 +22,10 @@
     $usesSecureDonationShell = $usesSecureDonationTemplate && ! $isEmbed;
     $campaignImageUrl = filled($campaign->image_path) ? route('donations.campaign-image', $element) : null;
     $introTitle = filled($campaign->headline) ? $campaign->headline : $campaign->title;
-    $introText = filled($campaign->short_summary) ? $campaign->short_summary : strip_tags($campaign->description ?? '');
+    $introText = $campaign->description ?? '';
+    $introTextPlain = strip_tags($introText);
+    $introTruncated = str($introTextPlain)->limit(300)->toString();
+    $isLongIntro = strlen($introTextPlain) > 300;
     $connectedStripeAccountId = $organization->stripe_onboarded ? $organization->stripe_account_id : null;
 @endphp
 
@@ -57,7 +60,20 @@
                 <h1 class="text-2xl font-bold tracking-normal text-slate-950">{{ $introTitle }}</h1>
 
                 @if (filled($introText))
-                    <p class="mt-3 text-base/7 text-slate-600">{{ $introText }}</p>
+                    <div x-data="{ expanded: false }" class="mt-3 text-base/7 text-slate-600 text-justify">
+                        <div x-show="! expanded" class="[&amp;>*]:inline [&amp;>p]:inline">
+                            {{ $introTruncated }}{{ $isLongIntro ? '...' : '' }}
+                        </div>
+                        <div x-show="expanded" x-cloak>
+                            {!! $introText !!}
+                        </div>
+                        @if ($isLongIntro)
+                            <button type="button" x-on:click="expanded = ! expanded" class="mt-1 text-sm font-semibold text-teal-700 hover:text-teal-800">
+                                <span x-show="! expanded">Baca selengkapnya &darr;</span>
+                                <span x-show="expanded" x-cloak>Tutup &uarr;</span>
+                            </button>
+                        @endif
+                    </div>
                 @endif
 
                 @if ($campaign->has_target)

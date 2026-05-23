@@ -111,6 +111,8 @@ class ProcessStripeWebhook implements ShouldQueue
         if ($wasPending) {
             SendDonationReceipt::dispatch($donation);
         }
+
+        SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
     }
 
     private function handlePaymentIntentFailed(StripeEvent $event): void
@@ -176,6 +178,7 @@ class ProcessStripeWebhook implements ShouldQueue
         $donation->campaign()->increment('collected_amount', $grossAmount);
 
         SendDonationReceipt::dispatch($donation);
+        SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
     }
 
     private function handleInvoicePaymentFailed(StripeEvent $event): void

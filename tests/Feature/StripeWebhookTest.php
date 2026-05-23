@@ -4,6 +4,7 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Jobs\ProcessStripeWebhook;
 use App\Jobs\SendDonationReceipt;
+use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -57,7 +58,7 @@ it('accepts a valid stripe webhook signature and dispatches the processor job', 
 });
 
 it('marks a pending one time donation as succeeded from a payment intent webhook', function () {
-    Queue::fake([SendDonationReceipt::class]);
+    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class]);
 
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create([
@@ -87,10 +88,11 @@ it('marks a pending one time donation as succeeded from a payment intent webhook
         ->and(WebhookLog::query()->where('stripe_event_id', 'evt_webhook_success_123')->first()?->status)->toBe('completed');
 
     Queue::assertPushed(SendDonationReceipt::class);
+    Queue::assertPushed(SyncDonationStripeDetailsJob::class);
 });
 
 it('does not process the same completed payment intent webhook twice', function () {
-    Queue::fake([SendDonationReceipt::class]);
+    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class]);
 
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create([
@@ -119,10 +121,11 @@ it('does not process the same completed payment intent webhook twice', function 
         ->and(WebhookLog::query()->where('stripe_event_id', 'evt_webhook_duplicate_123')->count())->toBe(1);
 
     Queue::assertPushedTimes(SendDonationReceipt::class, 1);
+    Queue::assertPushedTimes(SyncDonationStripeDetailsJob::class, 1);
 });
 
 it('creates recurring subscriptions in the connected account from payment intent webhooks', function () {
-    Queue::fake([SendDonationReceipt::class]);
+    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class]);
     config(['services.stripe.secret' => 'sk_test_fake']);
 
     $stripeClient = new class implements ClientInterface
@@ -278,10 +281,11 @@ it('creates recurring subscriptions in the connected account from payment intent
     ]);
 
     Queue::assertPushed(SendDonationReceipt::class);
+    Queue::assertPushed(SyncDonationStripeDetailsJob::class);
 });
 
 it('syncs stripe details for an already succeeded connected donation without duplicating fulfillment', function () {
-    Queue::fake([SendDonationReceipt::class]);
+    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class]);
     config(['services.stripe.secret' => 'sk_test_fake']);
 
     $stripeClient = new class implements ClientInterface
@@ -393,6 +397,7 @@ it('syncs stripe details for an already succeeded connected donation without dup
         ->and($campaign->collected_amount)->toBe('201.00');
 
     Queue::assertNotPushed(SendDonationReceipt::class);
+    Queue::assertPushed(SyncDonationStripeDetailsJob::class);
 });
 
 function paymentIntentSucceededPayload(Donation $donation, string $eventId): string

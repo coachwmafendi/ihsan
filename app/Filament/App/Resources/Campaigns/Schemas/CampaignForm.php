@@ -57,17 +57,16 @@ class CampaignForm
                                         TextInput::make('headline')
                                             ->label('Tajuk utama')
                                             ->maxLength(255),
-                                        TextInput::make('short_summary')
-                                            ->label('Ringkasan pendek')
-                                            ->maxLength(500)
-                                            ->columnSpanFull(),
                                     ]),
                                 Section::make('Kisah & media')
                                     ->description('Kandungan halaman kempen dan gambar utama.')
                                     ->schema([
                                         RichEditor::make('description')
                                             ->label('Penerangan')
-                                            ->columnSpanFull(),
+                                            ->columnSpanFull()
+                                            ->extraInputAttributes(['style' => 'min-height: 500px;'])
+                                            ->live(debounce: 1500)
+                                            ->hint(fn ($state): HtmlString => new HtmlString(static::wordCountHint($state))),
                                         FileUpload::make('image_path')
                                             ->label('Gambar utama')
                                             ->image()
@@ -238,5 +237,48 @@ class CampaignForm
             .'</div>'
             .'<code class="block overflow-x-auto whitespace-pre rounded-md bg-white p-2 text-xs text-zinc-700 ring-1 ring-zinc-200">'.e($code).'</code>'
             .'</div>';
+    }
+
+    private static function wordCountHint(mixed $state): string
+    {
+        $text = static::extractTextContent($state);
+        $wordCount = str_word_count(strip_tags($text));
+        $remaining = 100 - $wordCount;
+
+        $color = $remaining >= 0 ? 'text-zinc-500' : 'text-danger-600';
+        $weight = $remaining < 0 ? 'font-bold' : '';
+
+        $label = "{$wordCount} / 100 patah perkataan";
+
+        if ($remaining < 0) {
+            $label .= " (lebih {$remaining} patah perkataan)";
+        }
+
+        return "<span class=\"{$color} {$weight} text-sm\">{$label}</span>";
+    }
+
+    private static function extractTextContent(mixed $content): string
+    {
+        if (is_string($content)) {
+            return $content;
+        }
+
+        if (! is_array($content)) {
+            return '';
+        }
+
+        if (isset($content['text'])) {
+            return $content['text'];
+        }
+
+        $texts = [];
+
+        if (isset($content['content'])) {
+            foreach ($content['content'] as $node) {
+                $texts[] = static::extractTextContent($node);
+            }
+        }
+
+        return implode(' ', $texts);
     }
 }

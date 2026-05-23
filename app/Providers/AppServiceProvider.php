@@ -31,6 +31,10 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
+        if (session()->has('locale')) {
+            app()->setLocale(session('locale'));
+        }
+
         Event::listen(
             Login::class,
             UpdateLastLoginAt::class,
