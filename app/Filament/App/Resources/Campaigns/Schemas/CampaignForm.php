@@ -303,7 +303,16 @@ class CampaignForm
 
         foreach ($elements as $element) {
             $url = route('donations.show', $element);
-            $iframe = '<iframe src="'.e($url).'?embed=1" width="100%" height="700" frameborder="0" allow="payment *" style="border:0;border-radius:16px;"></iframe>';
+            $iframe = implode("\n", [
+                '<iframe',
+                '  src="'.e($url).'?embed=1"',
+                '  width="100%"',
+                '  height="700"',
+                '  frameborder="0"',
+                '  allow="payment *"',
+                '  style="border:0;border-radius:16px;"',
+                '></iframe>',
+            ]);
             $parts[] = self::copyableSnippet('Kod benam', $iframe);
         }
 
