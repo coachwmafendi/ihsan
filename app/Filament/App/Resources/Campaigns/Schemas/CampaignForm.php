@@ -206,9 +206,42 @@ class CampaignForm
                                         .'</div>'
                                     ))
                                     ->columnSpan(2),
+                                Placeholder::make('progress_bar')
+                                    ->label('Prestasi kempen')
+                                    ->columnSpanFull()
+                                    ->content(fn ($record) => new HtmlString(
+                                        static::progressBarHtml($record)
+                                    )),
                             ]),
                     ]),
             ]);
+    }
+
+    private static function progressBarHtml($record): string
+    {
+        if (! $record || ! $record->has_target || ! $record->target_amount) {
+            return '<p class="text-sm text-zinc-500">Tiada sasaran ditetapkan untuk kempen ini.</p>';
+        }
+
+        $collected = (float) $record->collected_amount;
+        $target = (float) $record->target_amount;
+        $percentage = min(round(($collected / $target) * 100, 1), 100);
+
+        $barColor = $percentage >= 100 ? 'bg-emerald-500' : ($percentage >= 50 ? 'bg-emerald-400' : 'bg-amber-400');
+
+        return '<div class="space-y-3">'
+            .'<div class="flex items-center justify-between text-sm">'
+            .'<span class="font-medium text-zinc-900">RM '.number_format($collected, 2).'</span>'
+            .'<span class="text-zinc-500">daripada RM '.number_format($target, 2).'</span>'
+            .'</div>'
+            .'<div class="h-3 w-full overflow-hidden rounded-full bg-zinc-100">'
+            .'<div class="h-full rounded-full '.$barColor.' transition-all duration-500" style="width: '.$percentage.'%"></div>'
+            .'</div>'
+            .'<div class="flex items-center justify-between text-xs">'
+            .'<span class="font-semibold text-zinc-700">'.$percentage.'% terkumpul</span>'
+            .'<span class="text-zinc-500">'.($percentage >= 100 ? 'Sasaran tercapai!' : 'Baki: RM '.number_format(max($target - $collected, 0), 2)).'</span>'
+            .'</div>'
+            .'</div>';
     }
 
     private static function embedSnippetHtml(?string $formParameter): string
