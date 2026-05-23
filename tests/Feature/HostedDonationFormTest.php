@@ -57,9 +57,9 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertDontSee('wire:click="selectAmount', false)
         ->assertSee('$wire.$set(&#039;frequency&#039;, this.frequency, false)', false)
         ->assertSee('$wire.$set(&#039;amount&#039;, this.amount, false)', false)
-        ->assertSee('x-show="processing && !success && !error" x-cloak', false)
-        ->assertSee('x-show="success" x-cloak', false)
-        ->assertSee('x-show="error" x-cloak', false);
+        ->assertSee('x-show="processing"', false)
+        ->assertSee('x-show="currentStep === \'success\'"', false)
+        ->assertSee('x-show="currentStep === \'error\'"', false);
 });
 
 it('uses the saved secure donation template for standard form elements', function () {

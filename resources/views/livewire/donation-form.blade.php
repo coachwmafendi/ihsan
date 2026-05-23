@@ -540,7 +540,8 @@
                             </form>
                         </div>
 
-                        <div x-show="processing && !success && !error" x-cloak class="py-8 text-center">
+                        {{-- Processing --}}
+                        <div x-show="processing" x-cloak class="py-8 text-center">
                             <div class="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-teal-50">
                                 <svg class="size-5 animate-spin text-teal-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                             </div>
@@ -548,21 +549,37 @@
                             <p class="mt-1 text-sm text-slate-500">Please wait while we process your donation.</p>
                         </div>
 
-                        <div x-show="success" x-cloak class="py-8 text-center">
+                        {{-- Success --}}
+                        <div x-show="currentStep === 'success'" x-cloak class="py-8 text-center">
                             <div class="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-emerald-50">
                                 <svg class="size-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                             </div>
-                            <h2 class="text-base font-semibold text-slate-900">Thank you!</h2>
+                            <h2 class="text-base font-semibold text-slate-900">Thank you, <span x-text="donorName"></span>!</h2>
+                            <p class="mt-1 text-sm text-slate-500">Receipt sent to <span x-text="donorEmail"></span>.</p>
                             <p class="mt-1 text-sm text-slate-500">{{ $this->config('success_message', 'Thank you for your donation!') }}</p>
+                            @if ($isPopup)
+                                <button
+                                    type="button"
+                                    x-on:click="$dispatch('popup-close')"
+                                    class="mt-4 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                                >
+                                    Close
+                                </button>
+                            @endif
                         </div>
 
-                        <div x-show="error" x-cloak class="py-8 text-center">
+                        {{-- Error --}}
+                        <div x-show="currentStep === 'error'" x-cloak class="py-8 text-center">
                             <div class="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-red-50">
                                 <svg class="size-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                             </div>
                             <h2 class="text-base font-semibold text-slate-900">Payment failed</h2>
-                            <p class="mt-1 text-sm text-slate-500" x-text="errorMessage"></p>
-                            <button type="button" @click="window.location.reload()" class="mt-4 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-700">
+                            <p class="mt-1 text-sm text-slate-500" x-text="cardError"></p>
+                            <button
+                                type="button"
+                                x-on:click="currentStep = 3"
+                                class="mt-4 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-700"
+                            >
                                 Try again
                             </button>
                         </div>
