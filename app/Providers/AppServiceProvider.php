@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Listeners\UpdateLastLoginAt;
+use App\Models\Setting;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -35,10 +36,37 @@ class AppServiceProvider extends ServiceProvider
             app()->setLocale(session('locale'));
         }
 
+        $this->applyMailConfig();
+
         Event::listen(
             Login::class,
             UpdateLastLoginAt::class,
         );
+    }
+
+    protected function applyMailConfig(): void
+    {
+        try {
+            $driver = Setting::get('mail_driver');
+
+            if (blank($driver)) {
+                return;
+            }
+
+            config([
+                'mail.default' => $driver,
+                'mail.from.address' => Setting::get('mail_from_address'),
+                'mail.from.name' => Setting::get('mail_from_name'),
+                'mail.mailers.smtp.host' => Setting::get('mail_host'),
+                'mail.mailers.smtp.port' => Setting::get('mail_port'),
+                'mail.mailers.smtp.username' => Setting::get('mail_username'),
+                'mail.mailers.smtp.password' => Setting::get('mail_password'),
+                'mail.mailers.smtp.encryption' => Setting::get('mail_encryption'),
+                'mail.mailers.sendmail.path' => Setting::get('sendmail_path', '/usr/sbin/sendmail -bs'),
+            ]);
+        } catch (\Throwable $e) {
+            // Settings table might not exist yet (first deploy)
+        }
     }
 
     /**

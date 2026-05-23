@@ -5,9 +5,9 @@ namespace App\Filament\Pages;
 use App\Models\Setting;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Mail;
 
 class EmailSettings extends Page
@@ -39,9 +39,14 @@ class EmailSettings extends Page
         ]);
     }
 
-    public function form(Form $form): Form
+    protected function defaultForm(Schema $schema): Schema
     {
-        return $form
+        return $schema->statePath('data');
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema
             ->schema([
                 Select::make('mail_driver')
                     ->label('Mail Driver')
