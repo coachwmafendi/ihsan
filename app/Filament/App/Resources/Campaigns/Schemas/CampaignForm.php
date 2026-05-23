@@ -19,7 +19,6 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Illuminate\Support\HtmlString;
-use Illuminate\Support\Js;
 
 class CampaignForm
 {
@@ -323,7 +322,7 @@ class CampaignForm
 
     private static function copyableSnippet(string $label, string $code): string
     {
-        return '<div x-data="{ copied: false }" data-code='.Js::from($code).' class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">'
+        return '<div x-data="{ copied: false }" data-code="'.e($code).'" class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">'
             .'<div class="mb-2 flex items-center justify-between gap-3">'
             .'<span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">'.e($label).'</span>'
             .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Disalin\' : \'Salin\'"></button>'
