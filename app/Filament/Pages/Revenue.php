@@ -34,7 +34,7 @@ class Revenue extends Page
     public function mount(): void
     {
         $this->totalPlatformFees = number_format((float) PlatformFee::query()
-            ->where('status', 'transferred')
+            ->where('status', 'paid')
             ->sum('fee_amount'), 2, '.', '');
 
         $succeeded = Donation::query()->where('status', DonationStatus::Succeeded);
@@ -44,7 +44,7 @@ class Revenue extends Page
 
         $this->averageFeePerTransaction = $this->totalTransactions > 0
             ? number_format((float) PlatformFee::query()
-                ->where('status', 'transferred')
+                ->where('status', 'paid')
                 ->avg('fee_amount'), 2, '.', '')
             : '0.00';
 
@@ -58,7 +58,7 @@ class Revenue extends Page
 
         $feesByOrg = PlatformFee::query()
             ->selectRaw('organization_id, SUM(fee_amount) as total_fees')
-            ->where('status', 'transferred')
+            ->where('status', 'paid')
             ->groupBy('organization_id')
             ->get()
             ->keyBy('organization_id');

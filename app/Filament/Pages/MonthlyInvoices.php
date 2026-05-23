@@ -4,10 +4,10 @@ namespace App\Filament\Pages;
 
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Artisan;
 class MonthlyInvoices extends Page implements HasTable
 {
     use InteractsWithTable;
+
+    protected string $view = 'filament.admin.pages.monthly-invoices';
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 

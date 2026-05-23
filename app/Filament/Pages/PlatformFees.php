@@ -4,9 +4,9 @@ namespace App\Filament\Pages;
 
 use App\Models\Organization;
 use App\Models\PlatformFee;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Pages\Page;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Builder;
 class PlatformFees extends Page implements HasTable
 {
     use InteractsWithTable;
+
+    protected string $view = 'filament.admin.pages.platform-fees';
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-banknotes';
 

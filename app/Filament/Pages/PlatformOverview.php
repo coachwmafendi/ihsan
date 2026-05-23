@@ -62,7 +62,7 @@ class PlatformOverview extends Page
         $this->totalDonationsCount = Donation::query()->count();
 
         $this->totalPlatformFees = number_format((float) PlatformFee::query()
-            ->where('status', 'transferred')
+            ->where('status', 'paid')
             ->sum('fee_amount'), 2, '.', '');
 
         $this->activeSubscriptions = Subscription::query()

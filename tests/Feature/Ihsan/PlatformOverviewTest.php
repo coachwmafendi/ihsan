@@ -61,7 +61,7 @@ it('calculates correct platform-wide metrics', function () {
         'donation_id' => $donation->id,
         'organization_id' => $org->id,
         'fee_amount' => 3.00,
-        'status' => 'transferred',
+        'status' => 'paid',
     ]);
 
     Subscription::factory()->for($campaign)->for($donor)->create([

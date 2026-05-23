@@ -26,7 +26,7 @@ it('shows revenue metrics to super admins', function () {
         'donation_id' => $donation->id,
         'organization_id' => $org->id,
         'fee_amount' => 3.00,
-        'status' => 'transferred',
+        'status' => 'paid',
     ]);
 
     $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
