@@ -32,8 +32,22 @@ class SyncDonationStripeDetails
             'platform_fee' => $platformFee,
             'payment_method_brand' => $cardBrand,
             'payment_method_type' => $paymentMethodType,
-            'net_amount' => (float) $donation->gross_amount - $stripeFee - $platformFee,
+            'net_amount' => (float) $donation->gross_amount - $stripeFee,
         ]);
+
+        if ($platformFee > 0) {
+            $donation->loadMissing('campaign.organization');
+            $organizationId = $donation->campaign?->organization_id;
+
+            if ($organizationId !== null) {
+                $donation->platformFee()->create([
+                    'organization_id' => $organizationId,
+                    'fee_amount' => $platformFee,
+                    'fee_percentage' => $this->platformFeePercent(),
+                    'status' => 'pending',
+                ]);
+            }
+        }
 
         return [
             'payment_intent' => $paymentIntent,
