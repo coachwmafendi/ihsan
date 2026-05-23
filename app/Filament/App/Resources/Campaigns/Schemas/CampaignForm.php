@@ -45,7 +45,8 @@ class CampaignForm
                                             ->afterStateUpdated(fn ($state, $set) => $set('slug', str($state)->slug()))
                                             ->columnSpanFull(),
                                         TextInput::make('slug')
-                                            ->label('Pautan')
+                                            ->label('Slug kempen')
+                                            ->helperText('Pengenalan unik kempen. Bukan URL derma.')
                                             ->required()
                                             ->maxLength(255)
                                             ->unique(ignoreRecord: true)
@@ -177,7 +178,7 @@ class CampaignForm
                                             ->label('Halaman derma')
                                             ->content(fn ($record) => new HtmlString(
                                                 $record
-                                                    ? 'Halaman terus: <code>'.e(url('/donate/'.$record->slug)).'</code>'
+                                                    ? static::donateUrlsHtml($record)
                                                     : 'Simpan kempen untuk menjana URL halaman derma.'
                                             ))
                                             ->columnSpanFull(),
@@ -201,10 +202,7 @@ class CampaignForm
                                 Placeholder::make('campaign_url')
                                     ->label('URL kempen')
                                     ->content(fn ($record) => new HtmlString(
-                                        '<div x-data="{ copied: false, url: \''.e(url('/donate/'.$record->slug)).'\' }" class="flex items-center gap-2">'
-                                        .'<code class="flex-1 truncate text-sm text-zinc-600" x-text="url"></code>'
-                                        .'<button type="button" x-on:click="navigator.clipboard.writeText(url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
-                                        .'</div>'
+                                        static::donateUrlsCopyableHtml($record)
                                     ))
                                     ->columnSpan(2),
                                 Placeholder::make('progress_bar')
@@ -245,20 +243,60 @@ class CampaignForm
             .'</div>';
     }
 
+    private static function donateUrlsHtml($record): string
+    {
+        $elements = $record->elements;
+
+        if ($elements->isEmpty()) {
+            return '<p class="text-sm text-zinc-500">Tiada element dikaitkan dengan kempen ini. Cipta element terlebih dahulu.</p>';
+        }
+
+        $parts = [];
+        foreach ($elements as $element) {
+            $url = e(route('donations.show', $element));
+            $parts[] = '<div class="flex items-center gap-2 py-1">'
+                .'<code class="flex-1 truncate text-sm text-zinc-600">'.$url.'</code>'
+                .'<a href="'.$url.'" target="_blank" rel="noopener" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200">Buka →</a>'
+                .'</div>';
+        }
+
+        return implode('', $parts);
+    }
+
+    private static function donateUrlsCopyableHtml($record): string
+    {
+        $elements = $record->elements;
+
+        if ($elements->isEmpty()) {
+            return '<p class="text-sm text-zinc-500">Tiada URL — kempen belum ada element.</p>';
+        }
+
+        $parts = [];
+        foreach ($elements as $element) {
+            $url = route('donations.show', $element);
+            $parts[] = '<div x-data="{ copied: false, url: \''.e($url).'\' }" class="flex items-center gap-2 py-1">'
+                .'<code class="flex-1 truncate text-sm text-zinc-600" x-text="url"></code>'
+                .'<button type="button" x-on:click="navigator.clipboard.writeText(url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
+                .'</div>';
+        }
+
+        return implode('', $parts);
+    }
+
     private static function embedSnippetHtml(?string $formParameter): string
     {
         $formParameter = filled($formParameter) ? $formParameter : 'FORM_PARAMETER';
 
         $script = '<script src="'.url('/embed.js').'" async></script>';
-        $button = '<button data-ihsan-form="'.$formParameter.'">Donate</button>';
-        $link = '<a href="?form='.$formParameter.'">Donate</a>';
+        $button = '<button data-ihsan-form="'.$formParameter.'">Derma</button>';
+        $link = '<a href="?form='.$formParameter.'">Derma</a>';
 
         return '<div class="space-y-3">'
-            .'<p class="text-sm text-zinc-600">Letakkan skrip sekali di laman web klien, kemudian guna butang atau pautan untuk buka kempen ini sebagai daftar masuk modal.</p>'
-            .self::copyableSnippet('Skrip', $script)
+            .'<p class="text-sm text-zinc-600">Letakkan skrip sekali di laman web klien, kemudian guna butang atau pautan untuk buka kempen ini sebagai modal checkout.</p>'
+            .self::copyableSnippet('Skrip (letak sekali sahaja)', $script)
             .self::copyableSnippet('Butang', $button)
-            .self::copyableSnippet('Pautan', $link)
-            .'<p class="text-xs text-zinc-500">Senarai domain dibenarkan akan dikuatkuasakan oleh Ihsan sebelum borang checkout dibuka.</p>'
+            .self::copyableSnippet('Pautan (URL relatif — untuk laman web org sahaja)', $link)
+            .'<p class="text-xs text-zinc-500">Domain dibenarkan akan dikuatkuasakan sebelum modal dibuka. Pautan relatif hanya berfungsi apabila diletakkan pada laman web organisasi.</p>'
             .'</div>';
     }
 
