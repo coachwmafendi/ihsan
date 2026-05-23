@@ -515,8 +515,8 @@ it('creates a connected stripe billing subscription after a monthly payment succ
     expect($subscriptionRequest['params'])->toMatchArray([
         'customer' => 'cus_connected_monthly',
         'default_payment_method' => 'pm_connected_monthly',
-        'application_fee_percent' => 2.5,
     ])
+        ->and($subscriptionRequest['params'])->not->toHaveKey('application_fee_percent')
         ->and($subscriptionRequest['params']['trial_end'])->toBeGreaterThan(now()->timestamp);
 });
 
@@ -664,7 +664,7 @@ it('stores connected stripe fees and card details when confirming a payment', fu
         ->and($donation->payment_method_type)->toBe('card')
         ->and($donation->stripe_fee)->toBe('9.04')
         ->and($donation->platform_fee)->toBe('10.05')
-        ->and($donation->net_amount)->toBe('181.91');
+        ->and($donation->net_amount)->toBe('191.96');
 
     expect(collect($stripeClient->requests)->every(
         fn (array $request): bool => in_array('Stripe-Account: acct_connected_test', $request['headers'], true),

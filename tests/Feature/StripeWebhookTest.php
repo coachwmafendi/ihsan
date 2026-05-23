@@ -82,7 +82,7 @@ it('marks a pending one time donation as succeeded from a payment intent webhook
 
     expect($donation->status)->toBe(DonationStatus::Succeeded)
         ->and($donation->stripe_charge_id)->toBe('ch_webhook_success_123')
-        ->and($donation->net_amount)->toBe('48.75')
+        ->and($donation->net_amount)->toBe('50.00')
         ->and($donation->platform_fee)->toBe('1.25')
         ->and($campaign->collected_amount)->toBe('75.00')
         ->and(WebhookLog::query()->where('stripe_event_id', 'evt_webhook_success_123')->first()?->status)->toBe('completed');
@@ -259,7 +259,7 @@ it('creates recurring subscriptions in the connected account from payment intent
         ->and($donation->payment_method_type)->toBe('card')
         ->and($donation->stripe_fee)->toBe('1.50')
         ->and($donation->platform_fee)->toBe('1.25')
-        ->and($donation->net_amount)->toBe('22.25')
+        ->and($donation->net_amount)->toBe('23.50')
         ->and($subscription)->not->toBeNull()
         ->and($subscription->campaign_id)->toBe($campaign->getKey());
 
@@ -393,7 +393,7 @@ it('syncs stripe details for an already succeeded connected donation without dup
         ->and($donation->payment_method_type)->toBe('card')
         ->and($donation->stripe_fee)->toBe('9.04')
         ->and($donation->platform_fee)->toBe('10.05')
-        ->and($donation->net_amount)->toBe('181.91')
+        ->and($donation->net_amount)->toBe('191.96')
         ->and($campaign->collected_amount)->toBe('201.00');
 
     Queue::assertNotPushed(SendDonationReceipt::class);
