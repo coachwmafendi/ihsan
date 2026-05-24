@@ -89,7 +89,7 @@
                     ['label' => 'Ringkasan derma harian', 'desc' => 'Terima ringkasan semua derma yang diterima setiap hari', 'prop' => 'dailyDonationSummary', 'active' => $dailyDonationSummary],
                     ['label' => 'Notifikasi bayaran bulanan gagal', 'desc' => 'Amaran apabila bayaran berulang penderma gagal diproses', 'prop' => 'failedPaymentNotification', 'active' => $failedPaymentNotification],
                 ] as $row)
-                    <div class="flex items-center justify-between gap-4 px-5 py-4">
+                    <div class="flex items-center gap-6 px-5 py-4">
                         <div>
                             <p class="text-sm font-medium text-gray-950 dark:text-white">{{ $row['label'] }}</p>
                             <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $row['desc'] }}</p>
