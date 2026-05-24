@@ -83,28 +83,26 @@
 
     <x-filament::section heading="Notifikasi" icon="heroicon-o-bell-alert">
         <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-            <div class="divide-y divide-gray-200 dark:divide-gray-700">
+            <div class="divide-y divide-gray-200 dark:divide-gray-700 max-w-lg">
                 @foreach ([
                     ['label' => 'Notifikasi derma baharu', 'desc' => 'Terima e-mel untuk setiap derma berjaya', 'prop' => 'notifyNewDonation', 'active' => $notifyNewDonation],
                     ['label' => 'Ringkasan derma harian', 'desc' => 'Terima ringkasan semua derma yang diterima setiap hari', 'prop' => 'dailyDonationSummary', 'active' => $dailyDonationSummary],
                     ['label' => 'Notifikasi bayaran bulanan gagal', 'desc' => 'Amaran apabila bayaran berulang penderma gagal diproses', 'prop' => 'failedPaymentNotification', 'active' => $failedPaymentNotification],
                 ] as $row)
-                    <div class="grid grid-cols-[1fr_3rem] items-center gap-4 px-5 py-4">
+                    <div class="flex items-center justify-between gap-4 px-5 py-4">
                         <div>
                             <p class="text-sm font-medium text-gray-950 dark:text-white">{{ $row['label'] }}</p>
                             <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $row['desc'] }}</p>
                         </div>
-                        <div class="flex justify-center">
-                            <button
-                                type="button"
-                                role="switch"
-                                aria-checked="{{ $row['active'] ? 'true' : 'false' }}"
-                                wire:click="$toggle('{{ $row['prop'] }}')"
-                                class="relative inline-flex h-6 w-10 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 {{ $row['active'] ? 'bg-teal-600' : 'bg-gray-200 dark:bg-gray-600' }}"
-                            >
-                                <span class="pointer-events-none inline-block size-4 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $row['active'] ? 'translate-x-[18px]' : 'translate-x-0.5' }}"></span>
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked="{{ $row['active'] ? 'true' : 'false' }}"
+                            wire:click="$toggle('{{ $row['prop'] }}')"
+                            class="relative shrink-0 inline-flex h-6 w-10 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 {{ $row['active'] ? 'bg-teal-600' : 'bg-gray-200 dark:bg-gray-600' }}"
+                        >
+                            <span class="pointer-events-none inline-block size-4 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $row['active'] ? 'translate-x-[18px]' : 'translate-x-0.5' }}"></span>
+                        </button>
                     </div>
                 @endforeach
             </div>
