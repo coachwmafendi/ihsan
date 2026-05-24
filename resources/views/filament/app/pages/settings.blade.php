@@ -89,11 +89,7 @@
                     ['label' => 'Ringkasan derma harian', 'desc' => 'Terima ringkasan semua derma yang diterima setiap hari', 'prop' => 'dailyDonationSummary', 'active' => $dailyDonationSummary],
                     ['label' => 'Notifikasi bayaran bulanan gagal', 'desc' => 'Amaran apabila bayaran berulang penderma gagal diproses', 'prop' => 'failedPaymentNotification', 'active' => $failedPaymentNotification],
                 ] as $row)
-                    <div class="flex items-center justify-between gap-6 px-5 py-4">
-                        <div>
-                            <p class="text-sm font-medium text-gray-950 dark:text-white">{{ $row['label'] }}</p>
-                            <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $row['desc'] }}</p>
-                        </div>
+                    <div class="flex items-center gap-4 px-5 py-4">
                         <button
                             type="button"
                             role="switch"
@@ -103,6 +99,10 @@
                         >
                             <span class="pointer-events-none inline-block size-4 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $row['active'] ? 'translate-x-[18px]' : 'translate-x-0.5' }}"></span>
                         </button>
+                        <div>
+                            <p class="text-sm font-medium text-gray-950 dark:text-white">{{ $row['label'] }}</p>
+                            <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $row['desc'] }}</p>
+                        </div>
                     </div>
                 @endforeach
             </div>
