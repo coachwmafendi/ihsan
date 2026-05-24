@@ -1,5 +1,5 @@
 @php
-    $campaign = $element->campaign;
+    $campaign = $element?->campaign ?? $this->campaign;
     $organization = $campaign->organization;
     $oneTimeAmounts = $this->suggestedAmounts('one_time');
     $monthlyAmounts = $this->suggestedAmounts('monthly');
@@ -20,7 +20,11 @@
     $isCompact = $isPopup || $isEmbed;
     $usesSecureDonationTemplate = $this->config('template', 'secure-donation') === 'secure-donation';
     $usesSecureDonationShell = $usesSecureDonationTemplate && ! $isEmbed;
-    $campaignImageUrl = filled($campaign->image_path) ? route('donations.campaign-image', $element) : null;
+    $campaignImageUrl = filled($campaign->image_path)
+        ? ($element
+            ? route('donations.campaign-image', $element)
+            : route('donations.campaign-image-campaign', $campaign))
+        : null;
     $introTitle = filled($campaign->headline) ? $campaign->headline : $campaign->title;
     $introText = $campaign->description ?? '';
     $introTextPlain = strip_tags($introText);

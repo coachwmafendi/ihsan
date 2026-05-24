@@ -6,10 +6,8 @@ use App\Enums\ElementType;
 use App\Filament\App\Resources\Elements\ElementResource;
 use App\Models\Element;
 use BackedEnum;
-use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Slider;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -40,8 +38,18 @@ class ElementForm
                 'corner_radius' => 8,
                 'show_amount_input' => true,
             ],
-            ElementType::Form->value,
-            ElementType::Popup->value => [
+            ElementType::FloatingButton->value => [
+                'button_text' => 'Derma Sekarang',
+                'action' => 'checkout_modal',
+                'position' => 'bottom-right',
+                'color' => 'campaign',
+                'icon' => 'heart',
+                'shape' => 'pill',
+                'size' => 'medium',
+                'visible_desktop' => true,
+                'visible_mobile' => true,
+            ],
+            ElementType::Form->value => [
                 'template' => 'secure-donation',
                 'title' => 'Your most generous donation',
                 'text_color' => '#212830',
@@ -57,7 +65,19 @@ class ElementForm
                 'show_dedication' => true,
                 'show_comment' => true,
                 'submit_text' => 'Donate and Support',
-                'display_as_popup' => $value === ElementType::Popup->value,
+            ],
+            ElementType::Popup->value => [
+                'title' => 'Bantu Anak Tahfiz Hari Ini',
+                'message' => null,
+                'button_text' => 'Derma Sekarang',
+                'action' => 'checkout_modal',
+                'trigger' => 'after_delay',
+                'delay' => 8,
+                'frequency' => 'once_per_day',
+                'visibility' => 'desktop_mobile',
+                'layout' => 'simple',
+                'image' => 'campaign',
+                'color' => 'campaign',
             ],
             default => [],
         };
@@ -65,8 +85,14 @@ class ElementForm
         return $config;
     }
 
-    public static function configure(Schema $schema): Schema
+    /**
+     * @param  array<string, mixed>  $options
+     */
+    public static function configure(Schema $schema, array $options = []): Schema
     {
+        $hideCampaign = $options['hide_campaign'] ?? false;
+        $hideSubmit = $options['hide_submit'] ?? false;
+
         return $schema
             ->components([
                 Section::make('Element Details')
@@ -91,7 +117,8 @@ class ElementForm
                             ->nullable()
                             ->searchable()
                             ->preload()
-                            ->placeholder('Optional: link to a campaign'),
+                            ->placeholder('Optional: link to a campaign')
+                            ->hidden($hideCampaign),
                         Toggle::make('is_active')
                             ->label('Active')
                             ->default(true)
@@ -153,87 +180,217 @@ class ElementForm
                                 'label' => $record ? 'Save changes' : 'Create element',
                                 'cancelUrl' => ElementResource::getUrl('index'),
                             ])
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->visible(! $hideSubmit),
                     ]),
-                Section::make('Popup Configuration')
+                Section::make('Floating Button Settings')
                     ->columnSpanFull()
                     ->statePath('config')
-                    ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::Popup->value)
+                    ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::FloatingButton->value)
                     ->columns(2)
                     ->schema([
-                        TextInput::make('title')
-                            ->label('Title')
-                            ->default('Your most generous donation')
+                        TextInput::make('button_text')
+                            ->label('Button text')
+                            ->default('Derma Sekarang')
                             ->required()
-                            ->live(),
-                        TextInput::make('submit_text')
-                            ->label('Button label')
-                            ->default('Donate and Support')
-                            ->required()
-                            ->live(),
-                        Placeholder::make('amounts_note')
-                            ->hiddenLabel()
-                            ->content(new HtmlString('<p class="text-sm text-zinc-500">Jumlah derma dicadangkan dan lalai dikawal dari <strong>tetapan kempen</strong>.</p>'))
+                            ->live()
                             ->columnSpanFull(),
-                        Toggle::make('allow_monthly')
-                            ->label('Allow monthly donations')
+                        Select::make('action')
+                            ->label('Action')
+                            ->options([
+                                'campaign_page' => 'Open campaign page',
+                                'checkout_modal' => 'Open checkout modal',
+                            ])
+                            ->default('checkout_modal')
+                            ->live()
+                            ->native(false)
+                            ->columnSpanFull(),
+                        Placeholder::make('appearance_heading')
+                            ->hiddenLabel()
+                            ->content(new HtmlString('<h4 class="text-sm font-semibold text-zinc-900">Appearance</h4>'))
+                            ->columnSpanFull(),
+                        Select::make('position')
+                            ->label('Position')
+                            ->options([
+                                'bottom-right' => 'Bottom right',
+                                'bottom-left' => 'Bottom left',
+                                'top-right' => 'Top right',
+                                'top-left' => 'Top left',
+                            ])
+                            ->default('bottom-right')
+                            ->live(),
+                        Select::make('color')
+                            ->label('Color')
+                            ->options([
+                                'campaign' => 'Use campaign color',
+                                'blue' => 'Blue',
+                                'teal' => 'Teal',
+                                'green' => 'Green',
+                                'orange' => 'Orange',
+                                'red' => 'Red',
+                                'purple' => 'Purple',
+                                'dark' => 'Dark',
+                            ])
+                            ->default('campaign')
+                            ->live(),
+                        Select::make('icon')
+                            ->label('Icon')
+                            ->options([
+                                'heart' => 'Heart',
+                                'hand' => 'Hand',
+                                'star' => 'Star',
+                                'gift' => 'Gift',
+                                'plus' => 'Plus',
+                            ])
+                            ->default('heart')
+                            ->live(),
+                        Select::make('shape')
+                            ->label('Shape')
+                            ->options([
+                                'pill' => 'Pill',
+                                'circle' => 'Circle',
+                                'square' => 'Square',
+                                'rounded' => 'Rounded',
+                            ])
+                            ->default('pill')
+                            ->live(),
+                        Select::make('size')
+                            ->label('Size')
+                            ->options([
+                                'small' => 'Small',
+                                'medium' => 'Medium',
+                                'large' => 'Large',
+                            ])
+                            ->default('medium')
+                            ->live(),
+                        Placeholder::make('visibility_heading')
+                            ->hiddenLabel()
+                            ->content(new HtmlString('<h4 class="text-sm font-semibold text-zinc-900">Visibility</h4>'))
+                            ->columnSpanFull(),
+                        Toggle::make('visible_desktop')
+                            ->label('Desktop')
                             ->default(true)
                             ->live(),
-                        Toggle::make('show_suggested')
-                            ->label('Show suggested amounts')
+                        Toggle::make('visible_mobile')
+                            ->label('Mobile')
                             ->default(true)
                             ->live(),
-                        Toggle::make('show_amount_input')
-                            ->label('Show amount input')
-                            ->default(true)
-                            ->live(),
-                        Toggle::make('show_dedication')
-                            ->label('Show dedication option')
-                            ->default(true)
-                            ->live(),
-                        Toggle::make('show_comment')
-                            ->label('Show comment field')
-                            ->default(true)
-                            ->live(),
-                        Section::make('Design')
-                            ->columnSpanFull()
-                            ->columns(2)
-                            ->schema([
-                                ColorPicker::make('text_color')
-                                    ->label('Text color')
-                                    ->default('#212830')
-                                    ->live(),
-                                ColorPicker::make('background_color')
-                                    ->label('Background color')
-                                    ->default('#FFFFFF')
-                                    ->live(),
-                                ColorPicker::make('border_color')
-                                    ->label('Border color')
-                                    ->default('#DEDFF3')
-                                    ->live(),
-                                Slider::make('border_size')
-                                    ->label('Border size')
-                                    ->range(0, 8)
-                                    ->step(1)
-                                    ->default(2)
-                                    ->live(),
-                                Slider::make('border_radius')
-                                    ->label('Border radius')
-                                    ->range(0, 24)
-                                    ->step(1)
-                                    ->default(6)
-                                    ->live(),
-                                Toggle::make('show_shadow')
-                                    ->label('Show shadow')
-                                    ->default(false)
-                                    ->live(),
-                            ]),
                         View::make('filament.forms.components.element-form-submit')
                             ->viewData(fn (?Element $record): array => [
                                 'label' => $record ? 'Save changes' : 'Create element',
                                 'cancelUrl' => ElementResource::getUrl('index'),
                             ])
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->visible(! $hideSubmit),
+                    ]),
+                Grid::make()
+                    ->columnSpanFull()
+                    ->statePath('config')
+                    ->visible(fn (Get $get): bool => $get('type')?->value === ElementType::Popup->value)
+                    ->schema([
+                        Section::make('Content')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('title')
+                                    ->label('Title')
+                                    ->required()
+                                    ->live(),
+                                Textarea::make('message')
+                                    ->label('Message')
+                                    ->rows(3)
+                                    ->live()
+                                    ->columnSpanFull(),
+                                TextInput::make('button_text')
+                                    ->label('Button text')
+                                    ->required()
+                                    ->live(),
+                            ]),
+                        Section::make('Action')
+                            ->schema([
+                                Select::make('action')
+                                    ->label('Action')
+                                    ->options([
+                                        'campaign_page' => 'Open campaign page',
+                                        'checkout_modal' => 'Open checkout modal',
+                                    ])
+                                    ->default('checkout_modal')
+                                    ->live()
+                                    ->native(false),
+                            ]),
+                        Section::make('Display Rules')
+                            ->columns(2)
+                            ->schema([
+                                Select::make('trigger')
+                                    ->label('Trigger')
+                                    ->options([
+                                        'immediately' => 'Immediately',
+                                        'after_delay' => 'After delay',
+                                        'on_scroll' => 'On scroll',
+                                        'exit_intent' => 'Exit intent',
+                                    ])
+                                    ->default('after_delay')
+                                    ->live(),
+                                TextInput::make('delay')
+                                    ->label('Delay (seconds)')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(8)
+                                    ->live()
+                                    ->visible(fn (Get $get): bool => $get('trigger') === 'after_delay'),
+                                Select::make('frequency')
+                                    ->label('Frequency')
+                                    ->options([
+                                        'once' => 'Once only',
+                                        'once_per_session' => 'Once per session',
+                                        'once_per_day' => 'Once per day',
+                                        'every_visit' => 'Every visit',
+                                    ])
+                                    ->default('once_per_day')
+                                    ->live(),
+                                Select::make('visibility')
+                                    ->label('Visibility')
+                                    ->options([
+                                        'desktop_mobile' => 'Desktop & mobile',
+                                        'desktop_only' => 'Desktop only',
+                                        'mobile_only' => 'Mobile only',
+                                    ])
+                                    ->default('desktop_mobile')
+                                    ->live(),
+                            ]),
+                        Section::make('Appearance')
+                            ->columns(2)
+                            ->schema([
+                                Select::make('layout')
+                                    ->label('Layout')
+                                    ->options([
+                                        'simple' => 'Simple',
+                                        'full' => 'Full',
+                                    ])
+                                    ->default('simple')
+                                    ->live(),
+                                Select::make('image')
+                                    ->label('Image')
+                                    ->options([
+                                        'campaign' => 'Use campaign image',
+                                        'none' => 'No image',
+                                    ])
+                                    ->default('campaign')
+                                    ->live(),
+                                Select::make('color')
+                                    ->label('Color')
+                                    ->options([
+                                        'campaign' => 'Use campaign color',
+                                        'blue' => 'Blue',
+                                        'teal' => 'Teal',
+                                        'green' => 'Green',
+                                        'orange' => 'Orange',
+                                        'red' => 'Red',
+                                        'purple' => 'Purple',
+                                        'dark' => 'Dark',
+                                    ])
+                                    ->default('campaign')
+                                    ->live(),
+                            ]),
                     ]),
                 Grid::make([
                     'default' => 1,
@@ -243,13 +400,17 @@ class ElementForm
                     ->extraAttributes(['class' => 'ihsan-builder-shell'])
                     ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::Form->value)
                     ->schema([
+                        Placeholder::make('form_config_header')
+                            ->hiddenLabel()
+                            ->content(new HtmlString('<h3 class="text-base font-semibold text-zinc-900">Form Configuration</h3>'))
+                            ->columnSpanFull(),
                         Tabs::make('Donation Form Workbench')
-                            ->statePath('config')
                             ->columnSpan([
                                 'default' => 1,
                                 'xl' => 7,
                             ])
                             ->extraAttributes(['class' => 'ihsan-builder-editor'])
+                            ->statePath('config')
                             ->tabs([
                                 Tab::make('Form')
                                     ->columns(2)
@@ -264,9 +425,25 @@ class ElementForm
                                             ->default('Donate and Support')
                                             ->required()
                                             ->live(),
+                                        Select::make('default_frequency')
+                                            ->label('Pra-set kekerapan')
+                                            ->options([
+                                                'one_time' => 'One-time',
+                                                'monthly' => 'Monthly',
+                                            ])
+                                            ->default('monthly')
+                                            ->live()
+                                            ->columnSpan(1),
+                                        TextInput::make('default_amount')
+                                            ->label('Jumlah lalai (RM)')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->default(30)
+                                            ->live()
+                                            ->columnSpan(1),
                                         Placeholder::make('amounts_note')
                                             ->hiddenLabel()
-                                            ->content(new HtmlString('<p class="text-sm text-zinc-500">Jumlah derma dicadangkan dan lalai dikawal dari <strong>tetapan kempen</strong>.</p>'))
+                                            ->content(new HtmlString('<p class="text-sm text-zinc-500">Jumlah derma dicadangkan dikawal dari <strong>tetapan kempen</strong>.</p>'))
                                             ->columnSpanFull(),
                                         Toggle::make('allow_monthly')
                                             ->label('Allow monthly donations')
@@ -293,43 +470,8 @@ class ElementForm
                                                 'label' => $record ? 'Save changes' : 'Create element',
                                                 'cancelUrl' => ElementResource::getUrl('index'),
                                             ])
-                                            ->columnSpanFull(),
-                                    ]),
-                                Tab::make('Design')
-                                    ->columns(2)
-                                    ->schema([
-                                        ColorPicker::make('text_color')
-                                            ->label('Text color')
-                                            ->default('#212830')
-                                            ->live(),
-                                        ColorPicker::make('background_color')
-                                            ->label('Background color')
-                                            ->default('#FFFFFF')
-                                            ->live(),
-                                        ColorPicker::make('icon_color')
-                                            ->label('Icon color')
-                                            ->default('#FF435A')
-                                            ->live(),
-                                        ColorPicker::make('border_color')
-                                            ->label('Border color')
-                                            ->default('#DEDFF3')
-                                            ->live(),
-                                        Slider::make('border_size')
-                                            ->label('Border size')
-                                            ->range(0, 8)
-                                            ->step(1)
-                                            ->default(2)
-                                            ->live(),
-                                        Slider::make('border_radius')
-                                            ->label('Border radius')
-                                            ->range(0, 24)
-                                            ->step(1)
-                                            ->default(6)
-                                            ->live(),
-                                        Toggle::make('show_shadow')
-                                            ->label('Show shadow')
-                                            ->default(false)
-                                            ->live(),
+                                            ->columnSpanFull()
+                                            ->visible(! $hideSubmit),
                                     ]),
                                 Tab::make('Behavior')
                                     ->columns(2)
@@ -338,8 +480,7 @@ class ElementForm
                                             ->label('Display as popup')
                                             ->helperText('Show the donation form as a centered modal overlay instead of a full page.')
                                             ->default(false)
-                                            ->live()
-                                            ->hidden(fn (Get $get): bool => $get('type') === 'popup'),
+                                            ->live(),
                                         Select::make('success_action')
                                             ->label('After Donation')
                                             ->options([
@@ -460,38 +601,52 @@ class ElementForm
      */
     private static function previewConfig(Get $get): array
     {
+        $type = $get('type');
+        $type = $type instanceof BackedEnum ? $type->value : $type;
+
+        if ($type === ElementType::Popup->value) {
+            return [
+                'title' => $get('config.title'),
+                'message' => $get('config.message'),
+                'button_text' => $get('config.button_text'),
+                'action' => $get('config.action'),
+                'trigger' => $get('config.trigger'),
+                'delay' => $get('config.delay'),
+                'frequency' => $get('config.frequency'),
+                'visibility' => $get('config.visibility'),
+                'layout' => $get('config.layout'),
+                'image' => $get('config.image'),
+                'color' => $get('config.color'),
+            ];
+        }
+
+        if (in_array($type, [ElementType::Form->value, ElementType::Popup->value], true)) {
+            $config = [];
+            foreach ([
+                'button_text', 'button_color', 'button_size', 'corner_radius',
+                'show_amount_input', 'template', 'title', 'text_color',
+                'background_color', 'icon_color', 'border_size', 'border_radius',
+                'border_color', 'show_shadow', 'suggested_amounts', 'default_amount',
+                'default_frequency', 'allow_monthly', 'show_dedication', 'show_comment',
+                'heading', 'description', 'submit_text', 'show_name', 'show_email',
+                'show_phone', 'show_message', 'suggested_amounts_one_time',
+                'suggested_amounts_monthly', 'show_suggested', 'display_as_popup',
+                'position', 'vertical_offset', 'horizontal_offset', 'popup_trigger',
+                'popup_delay', 'popup_scroll_percentage', 'popup_frequency',
+                'popup_allow_close', 'popup_close_on_backdrop', 'popup_max_width',
+            ] as $key) {
+                $config[$key] = $get('config.'.$key);
+            }
+
+            return $config;
+        }
+
         return [
             'button_text' => $get('config.button_text'),
             'button_color' => $get('config.button_color'),
             'button_size' => $get('config.button_size'),
             'corner_radius' => $get('config.corner_radius'),
             'show_amount_input' => $get('config.show_amount_input'),
-            'template' => $get('config.template'),
-            'title' => $get('config.title'),
-            'text_color' => $get('config.text_color'),
-            'background_color' => $get('config.background_color'),
-            'icon_color' => $get('config.icon_color'),
-            'border_size' => $get('config.border_size'),
-            'border_radius' => $get('config.border_radius'),
-            'border_color' => $get('config.border_color'),
-            'show_shadow' => $get('config.show_shadow'),
-            'suggested_amounts' => $get('config.suggested_amounts'),
-            'default_amount' => $get('config.default_amount'),
-            'default_frequency' => $get('config.default_frequency'),
-            'allow_monthly' => $get('config.allow_monthly'),
-            'show_dedication' => $get('config.show_dedication'),
-            'show_comment' => $get('config.show_comment'),
-            'heading' => $get('config.heading'),
-            'description' => $get('config.description'),
-            'submit_text' => $get('config.submit_text'),
-            'show_name' => $get('config.show_name'),
-            'show_email' => $get('config.show_email'),
-            'show_phone' => $get('config.show_phone'),
-            'show_message' => $get('config.show_message'),
-            'suggested_amounts_one_time' => $get('config.suggested_amounts_one_time'),
-            'suggested_amounts_monthly' => $get('config.suggested_amounts_monthly'),
-            'show_suggested' => $get('config.show_suggested'),
-            'display_as_popup' => $get('config.display_as_popup'),
         ];
     }
 }

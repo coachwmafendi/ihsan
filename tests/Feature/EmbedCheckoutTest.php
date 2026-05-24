@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Models\Element;
 use App\Models\Organization;
@@ -55,6 +56,51 @@ it('rejects embed checkout requests from domains outside the campaign allowlist'
     $this->withHeader('referer', 'https://example.com/?form=RAMADAN2026')
         ->get(route('checkout.form', ['form' => 'RAMADAN2026', 'embed' => 1]))
         ->assertForbidden();
+});
+
+it('redirects campaign-direct checkout to the campaign donation form when no element exists', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'form_parameter' => 'RAMADAN2026',
+        'checkout_modal_enabled' => true,
+        'status' => CampaignStatus::Active,
+        'checkout_allowed_domains' => ['mumzatuttaqwa.com'],
+    ]);
+
+    $this->withHeader('referer', 'https://mumzatuttaqwa.com/?form=RAMADAN2026')
+        ->get(route('checkout.form', ['form' => 'RAMADAN2026', 'embed' => 1]))
+        ->assertRedirect(route('donations.campaign-show', ['campaign' => $campaign->form_parameter, 'embed' => 1]));
+});
+
+it('prefers element checkout over campaign-direct when both exist', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'form_parameter' => 'RAMADAN2026',
+        'checkout_modal_enabled' => true,
+        'status' => CampaignStatus::Active,
+        'checkout_allowed_domains' => ['mumzatuttaqwa.com'],
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'form-token-123',
+        'is_active' => true,
+    ]);
+
+    $this->withHeader('referer', 'https://mumzatuttaqwa.com/?form=RAMADAN2026')
+        ->get(route('checkout.form', ['form' => 'RAMADAN2026', 'embed' => 1]))
+        ->assertRedirect(route('donations.show', ['element' => $element->token, 'embed' => 1]));
+});
+
+it('rejects campaign-direct checkout when modal checkout is disabled', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'form_parameter' => 'RAMADAN2026',
+        'checkout_modal_enabled' => false,
+        'status' => CampaignStatus::Active,
+    ]);
+
+    $this->withHeader('referer', 'https://mumzatuttaqwa.com/?form=RAMADAN2026')
+        ->get(route('checkout.form', ['form' => 'RAMADAN2026', 'embed' => 1]))
+        ->assertNotFound();
 });
 
 it('rejects checkout requests when modal checkout is disabled', function () {

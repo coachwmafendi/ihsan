@@ -28,7 +28,7 @@
 
         <x-filament::section>
             <x-slot name="heading">
-                Revenue by NGO
+                Revenue by Organization
             </x-slot>
 
             <div class="mt-2">

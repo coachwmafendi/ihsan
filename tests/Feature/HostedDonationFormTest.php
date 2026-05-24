@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Stripe\CreatePaymentIntent;
+use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
@@ -786,6 +787,25 @@ it('renders payment step with summary bar and card element', function () {
         ->assertSee('Donate monthly')
         ->assertSee('handleSubmit', false)
         ->assertSee('stripe.createPaymentMethod', false);
+});
+
+it('renders a hosted donation form for an active campaign without element', function () {
+    $organization = Organization::factory()->create([
+        'name' => 'Maahad Tahfiz Mumtazatut Taqwa',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'title' => 'Campaign Direct Fund',
+        'status' => CampaignStatus::Active,
+        'checkout_modal_enabled' => true,
+        'form_parameter' => 'CAMPAIGN2026',
+        'suggested_amounts' => [30, 50, 100],
+    ]);
+
+    $this->get(route('donations.campaign-show', ['campaign' => $campaign->form_parameter]))
+        ->assertOk()
+        ->assertSee('Maahad Tahfiz Mumtazatut Taqwa')
+        ->assertSee('Campaign Direct Fund')
+        ->assertSee('RM 30');
 });
 
 it('validates hosted donation input before creating records', function () {

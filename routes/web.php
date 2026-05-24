@@ -19,7 +19,9 @@ Route::get('/language/{locale}', function (string $locale) {
     return redirect()->back();
 })->name('language.switch');
 Route::get('/donate/{element:token}/image', DonationCampaignImageController::class)->name('donations.campaign-image');
+Route::get('/donate/campaign/{campaign:form_parameter}/image', [DonationCampaignImageController::class, 'campaignImage'])->name('donations.campaign-image-campaign');
 Route::livewire('/donate/{element:token}', DonationForm::class)->name('donations.show');
+Route::livewire('/donate/campaign/{campaign:form_parameter}', DonationForm::class)->name('donations.campaign-show');
 Route::get('/embed.js', [EmbedCheckoutController::class, 'script'])->name('embed.script');
 Route::get('/checkout/{form}', [EmbedCheckoutController::class, 'checkout'])->name('checkout.form');
 

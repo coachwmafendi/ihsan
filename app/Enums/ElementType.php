@@ -7,4 +7,5 @@ enum ElementType: string
     case Button = 'button';
     case Form = 'form';
     case Popup = 'popup';
+    case FloatingButton = 'floating_button';
 }

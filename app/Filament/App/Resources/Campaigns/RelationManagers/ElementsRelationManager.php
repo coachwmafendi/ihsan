@@ -2,7 +2,7 @@
 
 namespace App\Filament\App\Resources\Campaigns\RelationManagers;
 
-use App\Enums\ElementType;
+use App\Filament\App\Resources\Elements\Schemas\ElementForm;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -11,10 +11,6 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DissociateAction;
 use Filament\Actions\DissociateBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
@@ -27,23 +23,10 @@ class ElementsRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                Select::make('organization_id')
-                    ->relationship('organization', 'name')
-                    ->required(),
-                TextInput::make('name')
-                    ->required(),
-                TextInput::make('token')
-                    ->required(),
-                Select::make('type')
-                    ->options(ElementType::class)
-                    ->required(),
-                Textarea::make('config')
-                    ->columnSpanFull(),
-                Toggle::make('is_active')
-                    ->required(),
-            ]);
+        return ElementForm::configure($schema, [
+            'hide_campaign' => true,
+            'hide_submit' => true,
+        ]);
     }
 
     public function table(Table $table): Table

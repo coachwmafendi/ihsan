@@ -23,7 +23,7 @@ class SyncDonationStripeDetails
             'expand' => ['latest_charge.balance_transaction'],
         ], $stripeOptions);
 
-        [$cardBrand, $paymentMethodType] = $this->paymentMethodDetails($paymentIntent, $stripeOptions);
+        [$cardBrand, $paymentMethodType, $donorCountry] = $this->paymentMethodDetails($paymentIntent, $stripeOptions);
         [$chargeId, $stripeFee, $processingFee] = $this->chargeDetails($donation, $paymentIntent, $stripeOptions, $shouldRetrieveMissingChargeDetails);
 
         $donation->update([
@@ -32,6 +32,7 @@ class SyncDonationStripeDetails
             'processing_fee' => $processingFee,
             'payment_method_brand' => $cardBrand,
             'payment_method_type' => $paymentMethodType,
+            'donor_country' => $donorCountry,
             'net_amount' => (float) $donation->gross_amount - $stripeFee,
         ]);
 
@@ -57,7 +58,7 @@ class SyncDonationStripeDetails
 
     /**
      * @param  array<string, string>  $stripeOptions
-     * @return array{0: string|null, 1: string|null}
+     * @return array{0: string|null, 1: string|null, 2: string|null}
      */
     private function paymentMethodDetails(StripePaymentIntent $paymentIntent, array $stripeOptions): array
     {
@@ -66,7 +67,7 @@ class SyncDonationStripeDetails
             : ($paymentIntent->payment_method->id ?? null);
 
         if ($paymentMethodId === null) {
-            return [null, null];
+            return [null, null, null];
         }
 
         try {
@@ -74,12 +75,12 @@ class SyncDonationStripeDetails
             $type = $paymentMethod->type;
 
             if ($type === 'card' && $paymentMethod->card !== null) {
-                return [$paymentMethod->card->brand, $type];
+                return [$paymentMethod->card->brand, $type, $paymentMethod->card->country];
             }
 
-            return [$type, $type];
+            return [$type, $type, null];
         } catch (\Exception $e) {
-            return [null, null];
+            return [null, null, null];
         }
     }
 

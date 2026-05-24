@@ -113,29 +113,6 @@ class DonationsTable
                         'recurring' => 'Recurring',
                     ])
                     ->attribute('type'),
-                SelectFilter::make('period')
-                    ->label('Period')
-                    ->options([
-                        'today' => 'Today',
-                        'yesterday' => 'Yesterday',
-                        '7_days' => '7 Days',
-                        '14_days' => '14 Days',
-                        '30_days' => '30 Days',
-                        'this_month' => 'This Month',
-                        'last_month' => 'Last Month',
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return match ($data['value'] ?? null) {
-                            'today' => $query->whereDate('created_at', today()),
-                            'yesterday' => $query->whereDate('created_at', today()->subDay()),
-                            '7_days' => $query->whereDate('created_at', '>=', today()->subDays(7)),
-                            '14_days' => $query->whereDate('created_at', '>=', today()->subDays(14)),
-                            '30_days' => $query->whereDate('created_at', '>=', today()->subDays(30)),
-                            'this_month' => $query->whereMonth('created_at', today()->month)->whereYear('created_at', today()->year),
-                            'last_month' => $query->whereMonth('created_at', today()->subMonth()->month)->whereYear('created_at', today()->subMonth()->year),
-                            default => $query,
-                        };
-                    }),
                 Filter::make('created_at')
                     ->label('Date Range')
                     ->form([

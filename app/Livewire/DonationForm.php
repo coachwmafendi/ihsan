@@ -5,12 +5,14 @@ namespace App\Livewire;
 use App\Actions\Stripe\CreatePaymentIntent;
 use App\Actions\Stripe\CreateRecurringSubscription;
 use App\Actions\Stripe\SyncDonationStripeDetails;
+use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendNewDonationNotification;
 use App\Jobs\SyncDonationStripeDetailsJob;
+use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
@@ -23,7 +25,9 @@ use Stripe\Stripe;
 #[Title('Donation Form')]
 class DonationForm extends Component
 {
-    public Element $element;
+    public ?Element $element = null;
+
+    public ?Campaign $campaign = null;
 
     public int|float|string $amount = 5;
 
@@ -43,18 +47,69 @@ class DonationForm extends Component
 
     public bool $isPopup = false;
 
-    public function mount(Element $element): void
+    public function mount(?Element $element = null, ?Campaign $campaign = null): void
     {
-        abort_if(
-            ! $element->is_active || ! in_array($element->type, [ElementType::Form, ElementType::Popup], true) || $element->campaign === null,
-            404
-        );
+        $route = request()->route();
 
-        $this->element = $element->loadMissing(['campaign.organization']);
-        $this->amount = $this->config('default_amount', $this->suggestedAmounts()[0] ?? 5);
-        $this->frequency = $this->config('default_frequency', $this->config('allow_monthly', true) ? 'monthly' : 'one_time');
-        $this->isEmbed = request()->query('embed') !== null;
-        $this->isPopup = $element->type === ElementType::Popup || request()->query('popup') !== null || (bool) $this->config('display_as_popup', false);
+        if ($element === null && $route !== null) {
+            $element = $route->parameter('element');
+        }
+
+        if ($campaign === null && $route !== null) {
+            $campaign = $route->parameter('campaign');
+        }
+
+        if ($element instanceof Element) {
+            abort_if(
+                ! $element->is_active || ! in_array($element->type, [ElementType::Form, ElementType::Popup], true) || $element->campaign === null,
+                404
+            );
+
+            $this->element = $element->loadMissing(['campaign.organization']);
+            $this->amount = $this->config('default_amount', $this->suggestedAmounts()[0] ?? 5);
+            $this->frequency = $this->config('default_frequency', $this->config('allow_monthly', true) ? 'monthly' : 'one_time');
+            $this->isEmbed = request()->query('embed') !== null;
+            $this->isPopup = $element->type === ElementType::Popup || request()->query('popup') !== null || (bool) $this->config('display_as_popup', false);
+        } elseif ($campaign instanceof Campaign) {
+            abort_if(
+                $campaign->status !== CampaignStatus::Active || ! $campaign->checkout_modal_enabled,
+                404
+            );
+
+            $this->campaign = $campaign->loadMissing(['organization']);
+            $this->amount = $this->suggestedAmounts()[0] ?? 5;
+            $this->frequency = $this->config('allow_monthly', true) ? 'monthly' : 'one_time';
+            $this->isEmbed = request()->query('embed') !== null;
+            $this->isPopup = request()->query('popup') !== null;
+        } elseif ($this->element !== null) {
+            // Direct initialization (tests) via pre-set property
+            $element = $this->element;
+            abort_if(
+                ! $element->is_active || ! in_array($element->type, [ElementType::Form, ElementType::Popup], true) || $element->campaign === null,
+                404
+            );
+
+            $this->element = $element->loadMissing(['campaign.organization']);
+            $this->amount = $this->config('default_amount', $this->suggestedAmounts()[0] ?? 5);
+            $this->frequency = $this->config('default_frequency', $this->config('allow_monthly', true) ? 'monthly' : 'one_time');
+            $this->isEmbed = request()->query('embed') !== null;
+            $this->isPopup = $element->type === ElementType::Popup || request()->query('popup') !== null || (bool) $this->config('display_as_popup', false);
+        } elseif ($this->campaign !== null) {
+            // Direct initialization (tests) via pre-set property
+            $campaign = $this->campaign;
+            abort_if(
+                $campaign->status !== CampaignStatus::Active || ! $campaign->checkout_modal_enabled,
+                404
+            );
+
+            $this->campaign = $campaign->loadMissing(['organization']);
+            $this->amount = $this->suggestedAmounts()[0] ?? 5;
+            $this->frequency = $this->config('allow_monthly', true) ? 'monthly' : 'one_time';
+            $this->isEmbed = request()->query('embed') !== null;
+            $this->isPopup = request()->query('popup') !== null;
+        } else {
+            abort(404);
+        }
     }
 
     public function selectAmount(int $amount): void
@@ -137,8 +192,20 @@ class DonationForm extends Component
             ],
         );
 
+        $campaignId = $this->element?->campaign_id ?? $this->campaign?->getKey();
+
+        $utmParams = [
+            'frequency' => $validated['frequency'],
+            'dedicate' => (bool) ($validated['dedicate'] ?? false),
+        ];
+
+        if ($this->element) {
+            $utmParams['element_id'] = $this->element->getKey();
+            $utmParams['element_token'] = $this->element->token;
+        }
+
         $donation = Donation::query()->create([
-            'campaign_id' => $this->element->campaign_id,
+            'campaign_id' => $campaignId,
             'donor_id' => $donor->getKey(),
             'gross_amount' => $validated['amount'],
             'stripe_fee' => 0,
@@ -149,12 +216,7 @@ class DonationForm extends Component
             'type' => $validated['frequency'] === 'monthly' ? DonationType::Recurring : DonationType::OneTime,
             'donor_message' => filled($validated['comment'] ?? null) ? $validated['comment'] : null,
             'is_anonymous' => false,
-            'utm_params' => [
-                'element_id' => $this->element->getKey(),
-                'element_token' => $this->element->token,
-                'frequency' => $validated['frequency'],
-                'dedicate' => (bool) ($validated['dedicate'] ?? false),
-            ],
+            'utm_params' => $utmParams,
         ]);
 
         try {
@@ -195,12 +257,18 @@ class DonationForm extends Component
     {
         $frequency ??= $this->frequency;
 
-        $amounts = $this->element->campaign?->suggested_amounts;
+        $campaign = $this->element?->campaign ?? $this->campaign;
+
+        if (! $campaign) {
+            return [];
+        }
+
+        $amounts = $campaign->suggested_amounts;
 
         if (is_array($amounts) && isset($amounts[$frequency])) {
             $amounts = $amounts[$frequency];
         } else {
-            $amounts = $this->element->campaign?->{'suggested_amounts_'.$frequency};
+            $amounts = $campaign->{'suggested_amounts_'.$frequency};
         }
 
         if (! is_array($amounts) || $amounts === []) {
@@ -225,7 +293,11 @@ class DonationForm extends Component
 
     public function config(string $key, mixed $default = null): mixed
     {
-        return data_get($this->element->config ?? [], $key, $default);
+        if ($this->element) {
+            return data_get($this->element->config ?? [], $key, $default);
+        }
+
+        return $default;
     }
 
     public function render()

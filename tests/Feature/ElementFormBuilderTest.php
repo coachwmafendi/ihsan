@@ -30,8 +30,8 @@ it('shows donation form builder settings when creating a form element', function
         ->assertSee('Create element')
         ->assertSee('Cancel')
         ->assertSeeInOrder(['Show comment field', 'Cancel', 'Create element'])
+        ->assertSee('Form Configuration')
         ->assertSee('Form')
-        ->assertSee('Design')
         ->assertSee('Behavior')
         ->assertSee('Embed')
         ->assertSee('Live Preview')
@@ -40,13 +40,6 @@ it('shows donation form builder settings when creating a form element', function
         ->assertSee('ihsan-builder-preview')
         ->assertSee('--cols-xl: repeat(12, minmax(0, 1fr))')
         ->assertSee('Title')
-        ->assertSee('Text color')
-        ->assertSee('Background color')
-        ->assertSee('Icon color')
-        ->assertSee('Border size')
-        ->assertSee('Border radius')
-        ->assertSee('Border color')
-        ->assertSee('Show shadow')
         ->assertSee('Simpan element untuk mendapatkan kod benam.')
         ->assertSee('Secure donation')
         ->assertSee('Donate monthly');
@@ -72,8 +65,8 @@ it('shows a full page donation form workbench when editing a form element', func
         ->assertSee('Save changes')
         ->assertSee('Cancel')
         ->assertSeeInOrder(['Show comment field', 'Cancel', 'Save changes'])
+        ->assertSee('Form Configuration')
         ->assertSee('Form')
-        ->assertSee('Design')
         ->assertSee('Behavior')
         ->assertSee('Embed')
         ->assertSee('Live Preview')
@@ -141,6 +134,94 @@ it('reflects form builder controls in the live preview', function () {
         ->assertDontSee('data-preview-frequency', false);
 });
 
+it('shows floating button configuration settings when creating a floating button element', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+
+    $this->actingAs($user);
+    Filament::setCurrentPanel(Filament::getPanel('app'));
+
+    Livewire::test(CreateElement::class)
+        ->fillForm([
+            'name' => 'Floating CTA',
+            'type' => 'floating_button',
+        ])
+        ->assertSee('Floating Button Settings')
+        ->assertSee('Button text')
+        ->assertSee('Action')
+        ->assertSee('Open campaign page')
+        ->assertSee('Open checkout modal')
+        ->assertSee('Appearance')
+        ->assertSee('Position')
+        ->assertSee('Bottom right')
+        ->assertSee('Color')
+        ->assertSee('Icon')
+        ->assertSee('Shape')
+        ->assertSee('Size')
+        ->assertSee('Visibility')
+        ->assertSee('Desktop')
+        ->assertSee('Mobile')
+        ->assertDontSee('Popup Configuration')
+        ->assertDontSee('Form Configuration')
+        ->assertDontSee('Button Configuration');
+});
+
+it('creates a floating button element with organization and token', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+
+    $this->actingAs($user);
+    Filament::setCurrentPanel(Filament::getPanel('app'));
+
+    Livewire::test(CreateElement::class)
+        ->fillForm([
+            'name' => 'Floating CTA',
+            'type' => 'floating_button',
+            'campaign_id' => $campaign->getKey(),
+        ])
+        ->set('data.config', [
+            'button_text' => 'Derma Sekarang',
+            'action' => 'checkout_modal',
+            'position' => 'bottom-left',
+            'color' => 'teal',
+            'icon' => 'star',
+            'shape' => 'circle',
+            'size' => 'large',
+            'visible_desktop' => false,
+            'visible_mobile' => true,
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors()
+        ->assertNotified()
+        ->assertRedirect();
+
+    $element = Element::query()
+        ->where('name', 'Floating CTA')
+        ->firstOrFail();
+
+    expect($element->organization_id)->toBe($organization->getKey())
+        ->and($element->campaign_id)->toBe($campaign->getKey())
+        ->and($element->type->value)->toBe('floating_button')
+        ->and($element->token)->toBeString()
+        ->and(Str::length($element->token))->toBe(32)
+        ->and($element->config)->toMatchArray([
+            'button_text' => 'Derma Sekarang',
+            'action' => 'checkout_modal',
+            'position' => 'bottom-left',
+            'color' => 'teal',
+            'icon' => 'star',
+            'shape' => 'circle',
+            'size' => 'large',
+            'visible_desktop' => false,
+            'visible_mobile' => true,
+        ]);
+});
+
 it('creates a form element with organization, token, and builder configuration', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();
@@ -156,21 +237,21 @@ it('creates a form element with organization, token, and builder configuration',
             'name' => 'Donation Form #9',
             'type' => 'form',
             'campaign_id' => $campaign->getKey(),
-            'config' => [
-                'template' => 'secure-donation',
-                'title' => 'Your most generous donation',
-                'text_color' => '#212830',
-                'background_color' => '#FFFFFF',
-                'icon_color' => '#FF435A',
-                'border_size' => 2,
-                'border_radius' => 6,
-                'border_color' => '#DEDFF3',
-                'show_shadow' => false,
-                'allow_monthly' => true,
-                'show_dedication' => true,
-                'show_comment' => true,
-                'submit_text' => 'Donate and Support',
-            ],
+        ])
+        ->set('data.config', [
+            'template' => 'secure-donation',
+            'title' => 'Your most generous donation',
+            'text_color' => '#212830',
+            'background_color' => '#FFFFFF',
+            'icon_color' => '#FF435A',
+            'border_size' => 2,
+            'border_radius' => 6,
+            'border_color' => '#DEDFF3',
+            'show_shadow' => false,
+            'allow_monthly' => true,
+            'show_dedication' => true,
+            'show_comment' => true,
+            'submit_text' => 'Donate and Support',
         ])
         ->call('create')
         ->assertHasNoFormErrors()

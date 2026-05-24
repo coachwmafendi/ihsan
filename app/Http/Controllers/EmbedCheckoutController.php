@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CampaignStatus;
+use App\Models\Campaign;
 use App\Models\Element;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -136,15 +138,29 @@ JS;
             ->with('campaign')
             ->first();
 
-        if (! $element) {
+        if ($element) {
+            if (! $this->isAllowedReferer($request, $element->campaign->checkout_allowed_domains ?? [])) {
+                abort(403);
+            }
+
+            return redirect()->route('donations.show', ['element' => $element->token, 'embed' => 1]);
+        }
+
+        $campaign = Campaign::query()
+            ->where('form_parameter', $form)
+            ->where('checkout_modal_enabled', true)
+            ->where('status', CampaignStatus::Active)
+            ->first();
+
+        if (! $campaign) {
             abort(404);
         }
 
-        if (! $this->isAllowedReferer($request, $element->campaign->checkout_allowed_domains ?? [])) {
+        if (! $this->isAllowedReferer($request, $campaign->checkout_allowed_domains ?? [])) {
             abort(403);
         }
 
-        return redirect()->route('donations.show', ['element' => $element->token, 'embed' => 1]);
+        return redirect()->route('donations.campaign-show', ['campaign' => $campaign->form_parameter, 'embed' => 1]);
     }
 
     /**
