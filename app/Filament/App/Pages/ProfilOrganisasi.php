@@ -4,6 +4,7 @@ namespace App\Filament\App\Pages;
 
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -115,10 +116,28 @@ class ProfilOrganisasi extends Page
                                     ->label('Bandar')
                                     ->nullable()
                                     ->maxLength(255),
-                                TextInput::make('state')
+                                Select::make('state')
                                     ->label('Negeri')
                                     ->nullable()
-                                    ->maxLength(255),
+                                    ->options([
+                                        'Johor' => 'Johor',
+                                        'Kedah' => 'Kedah',
+                                        'Kelantan' => 'Kelantan',
+                                        'Melaka' => 'Melaka',
+                                        'Negeri Sembilan' => 'Negeri Sembilan',
+                                        'Pahang' => 'Pahang',
+                                        'Perak' => 'Perak',
+                                        'Perlis' => 'Perlis',
+                                        'Pulau Pinang' => 'Pulau Pinang',
+                                        'Sabah' => 'Sabah',
+                                        'Sarawak' => 'Sarawak',
+                                        'Selangor' => 'Selangor',
+                                        'Terengganu' => 'Terengganu',
+                                        'Wilayah Persekutuan (Kuala Lumpur)' => 'Wilayah Persekutuan (Kuala Lumpur)',
+                                        'Wilayah Persekutuan (Labuan)' => 'Wilayah Persekutuan (Labuan)',
+                                        'Wilayah Persekutuan (Putrajaya)' => 'Wilayah Persekutuan (Putrajaya)',
+                                    ])
+                                    ->searchable(),
                                 TextInput::make('postcode')
                                     ->label('Poskod')
                                     ->nullable()
@@ -164,6 +183,24 @@ class ProfilOrganisasi extends Page
                                     ->maxLength(255)
                                     ->prefix('youtube.com/@')
                                     ->placeholder('channel'),
+                            ]),
+
+                        Tab::make('Bank')
+                            ->icon('heroicon-o-building-library')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('bank_name')
+                                    ->label('Nama bank')
+                                    ->nullable()
+                                    ->maxLength(255),
+                                TextInput::make('bank_account_name')
+                                    ->label('Nama akaun')
+                                    ->nullable()
+                                    ->maxLength(255),
+                                TextInput::make('bank_account_number')
+                                    ->label('Nombor akaun')
+                                    ->nullable()
+                                    ->maxLength(255),
                             ]),
                     ]),
             ]);

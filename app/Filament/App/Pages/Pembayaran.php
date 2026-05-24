@@ -8,6 +8,7 @@ use Filament\Actions\Contracts\HasActions;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Stripe\Account as StripeAccount;
+use Stripe\Stripe;
 
 class Pembayaran extends Page implements HasActions
 {
@@ -33,7 +34,7 @@ class Pembayaran extends Page implements HasActions
             return null;
         }
 
-        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+        Stripe::setApiKey(config('services.stripe.secret'));
 
         return StripeAccount::retrieve($org->stripe_account_id);
     }

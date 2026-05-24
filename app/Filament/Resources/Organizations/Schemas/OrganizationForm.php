@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Tabs;
@@ -125,9 +126,28 @@ class OrganizationForm
                                 TextInput::make('city')
                                     ->nullable()
                                     ->maxLength(255),
-                                TextInput::make('state')
+                                Select::make('state')
+                                    ->label('State')
                                     ->nullable()
-                                    ->maxLength(255),
+                                    ->options([
+                                        'Johor' => 'Johor',
+                                        'Kedah' => 'Kedah',
+                                        'Kelantan' => 'Kelantan',
+                                        'Melaka' => 'Melaka',
+                                        'Negeri Sembilan' => 'Negeri Sembilan',
+                                        'Pahang' => 'Pahang',
+                                        'Perak' => 'Perak',
+                                        'Perlis' => 'Perlis',
+                                        'Pulau Pinang' => 'Pulau Pinang',
+                                        'Sabah' => 'Sabah',
+                                        'Sarawak' => 'Sarawak',
+                                        'Selangor' => 'Selangor',
+                                        'Terengganu' => 'Terengganu',
+                                        'Wilayah Persekutuan (Kuala Lumpur)' => 'Wilayah Persekutuan (Kuala Lumpur)',
+                                        'Wilayah Persekutuan (Labuan)' => 'Wilayah Persekutuan (Labuan)',
+                                        'Wilayah Persekutuan (Putrajaya)' => 'Wilayah Persekutuan (Putrajaya)',
+                                    ])
+                                    ->searchable(),
                                 TextInput::make('postcode')
                                     ->nullable()
                                     ->maxLength(20),
@@ -223,6 +243,27 @@ class OrganizationForm
                                     ->disabled()
                                     ->dehydrated()
                                     ->helperText('Updated automatically after successful Stripe onboarding'),
+                            ]),
+
+                        Tab::make('Admin')
+                            ->icon('heroicon-o-shield-check')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('platform_fee_override')
+                                    ->label('Platform Fee Override (%)')
+                                    ->numeric()
+                                    ->nullable()
+                                    ->minValue(0)
+                                    ->maxValue(100)
+                                    ->step(0.1)
+                                    ->placeholder('Leave blank to use global default')
+                                    ->helperText('Override global platform fee for this org. Global default used if blank.'),
+                                Textarea::make('admin_notes')
+                                    ->label('Internal Notes')
+                                    ->nullable()
+                                    ->rows(4)
+                                    ->columnSpanFull()
+                                    ->helperText('Internal notes — not visible to organization.'),
                             ]),
                     ]),
             ]);
