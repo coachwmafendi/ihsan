@@ -80,4 +80,44 @@
             </div>
         </div>
     </x-filament::section>
+
+    <x-filament::section heading="Notifications" icon="heroicon-o-bell-alert">
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-950 dark:text-white">Notify new donation by email</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Receive an email for every successful donation</p>
+                </div>
+                <flux:switch wire:model.live="notifyNewDonation" />
+            </div>
+
+            <hr class="border-gray-200 dark:border-gray-700">
+
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-950 dark:text-white">Daily donation summary</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Get a daily summary of all donations received</p>
+                </div>
+                <flux:switch wire:model.live="dailyDonationSummary" />
+            </div>
+
+            <hr class="border-gray-200 dark:border-gray-700">
+
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-950 dark:text-white">Failed monthly payment notification</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Alert when a recurring payment fails</p>
+                </div>
+                <flux:switch wire:model.live="failedPaymentNotification" />
+            </div>
+
+            <hr class="border-gray-200 dark:border-gray-700">
+
+            <div class="flex justify-end">
+                <flux:button wire:click="saveNotificationSettings" variant="primary">
+                    Save settings
+                </flux:button>
+            </div>
+        </div>
+    </x-filament::section>
 </x-filament::page>

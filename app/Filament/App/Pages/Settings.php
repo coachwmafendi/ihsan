@@ -22,6 +22,43 @@ class Settings extends Page implements HasActions
 
     protected static ?int $navigationSort = 999;
 
+    public bool $notifyNewDonation = false;
+
+    public bool $dailyDonationSummary = false;
+
+    public bool $failedPaymentNotification = false;
+
+    public function mount(): void
+    {
+        $settings = auth()->user()->organization?->settings ?? [];
+
+        $this->notifyNewDonation = (bool) ($settings['notify_new_donation'] ?? true);
+        $this->dailyDonationSummary = (bool) ($settings['daily_donation_summary'] ?? false);
+        $this->failedPaymentNotification = (bool) ($settings['failed_payment_notification'] ?? true);
+    }
+
+    public function saveNotificationSettings(): void
+    {
+        $org = auth()->user()->organization;
+
+        if ($org === null) {
+            return;
+        }
+
+        $settings = array_merge($org->settings ?? [], [
+            'notify_new_donation' => $this->notifyNewDonation,
+            'daily_donation_summary' => $this->dailyDonationSummary,
+            'failed_payment_notification' => $this->failedPaymentNotification,
+        ]);
+
+        $org->update(['settings' => $settings]);
+
+        Notification::make()
+            ->title('Notification preferences saved.')
+            ->success()
+            ->send();
+    }
+
     public function stripeAccount(): ?StripeAccount
     {
         $org = auth()->user()->organization;
