@@ -1,0 +1,3 @@
+[     882ms] Uncaught TypeError: Cannot read properties of undefined (reading 'payload')
+    at value (https://js.stripe.com/v3/buy-button.js:0:7739)
+[    2076ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: https://ihsan.test/_boost/browser-logs @ https://ihsan.test/donate/s1PkRUgQSfnqsY71t5pXwhQnaXnM2yQe?popup=1:176

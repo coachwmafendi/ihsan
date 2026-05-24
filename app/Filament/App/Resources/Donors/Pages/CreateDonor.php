@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateDonor extends CreateRecord
 {
     protected static string $resource = DonorResource::class;
+
+    public function getBreadcrumbs(): array
+    {
+        return [];
+    }
 }

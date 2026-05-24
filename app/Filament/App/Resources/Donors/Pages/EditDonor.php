@@ -16,4 +16,9 @@ class EditDonor extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    public function getBreadcrumbs(): array
+    {
+        return [];
+    }
 }

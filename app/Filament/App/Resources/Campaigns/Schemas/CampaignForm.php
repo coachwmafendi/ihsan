@@ -79,7 +79,7 @@ class CampaignForm
                                             ->label('Benarkan jumlah khas'),
                                     ]),
                                 Section::make('Jumlah')
-                                    ->description('Tetapkan sasaran, jumlah minimum dan tempoh kempen.')
+                                    ->description('Tetapkan sasaran dan tempoh kempen.')
                                     ->columns(2)
                                     ->schema([
                                         Toggle::make('has_target')
@@ -89,10 +89,6 @@ class CampaignForm
                                             ->numeric()
                                             ->prefix('MYR')
                                             ->hidden(fn ($get) => ! $get('has_target')),
-                                        TextInput::make('minimum_amount')
-                                            ->label('Jumlah minimum')
-                                            ->numeric()
-                                            ->prefix('MYR'),
                                         DatePicker::make('end_date')
                                             ->label('Tarikh tamat')
                                             ->format('Y-m-d')
@@ -346,8 +342,8 @@ class CampaignForm
         $formParameter = filled($formParameter) ? $formParameter : 'FORM_PARAMETER';
 
         $script = '<script src="'.url('/embed.js').'" async></script>';
-        $button = '<button data-ihsan-form="'.$formParameter.'">Derma</button>';
-        $link = '<a href="?form='.$formParameter.'">Derma</a>';
+        $button = '<button data-ihsan-form="'.$formParameter.'" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#0d9488;color:#fff;font:600 15px/1 system-ui,sans-serif;border:0;border-radius:10px;cursor:pointer;box-shadow:0 2px 6px rgba(13,148,136,.3);transition:background .15s,transform .15s;letter-spacing:.01em" onmouseover="this.style.background=\'#0f766e\'" onmouseout="this.style.background=\'#0d9488\'" onmousedown="this.style.transform=\'scale(.97)\'" onmouseup="this.style.transform=\'\'">Derma</button>';
+        $link = '<a href="?form='.$formParameter.'" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#0d9488;color:#fff;font:600 15px/1 system-ui,sans-serif;border-radius:10px;text-decoration:none;box-shadow:0 2px 6px rgba(13,148,136,.3);transition:background .15s,transform .15s;letter-spacing:.01em" onmouseover="this.style.background=\'#0f766e\'" onmouseout="this.style.background=\'#0d9488\'" onmousedown="this.style.transform=\'scale(.97)\'" onmouseup="this.style.transform=\'\'">Derma</a>';
 
         $step = fn (int $n, string $title, string $body) => '<div class="flex gap-4">'
             .'<div class="shrink-0 flex size-7 items-center justify-center rounded-full bg-teal-600 text-white text-xs font-bold">'.$n.'</div>'
@@ -392,7 +388,7 @@ class CampaignForm
             .'<span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">'.e($label).'</span>'
             .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Disalin\' : \'Salin\'"></button>'
             .'</div>'
-            .'<code class="block overflow-x-auto whitespace-pre rounded-md bg-white p-2 text-xs text-zinc-700 ring-1 ring-zinc-200">'.e($code).'</code>'
+            .'<code class="block whitespace-pre-wrap break-all rounded-md bg-white p-2 text-xs text-zinc-700 ring-1 ring-zinc-200">'.e($code).'</code>'
             .'</div>';
     }
 

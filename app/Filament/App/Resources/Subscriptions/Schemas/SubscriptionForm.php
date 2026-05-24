@@ -51,9 +51,7 @@ class SubscriptionForm
                             ->required()
                             ->options(SubscriptionInterval::class)
                             ->disabled()
-                            ->dehydrated()
-                            ->hintIcon('heroicon-o-information-circle')
-                            ->hint('Managed by Stripe'),
+                            ->dehydrated(),
                         Select::make('status')
                             ->required()
                             ->options(SubscriptionStatus::class),
@@ -77,15 +75,11 @@ class SubscriptionForm
                                 DatePicker::make('current_period_start')
                                     ->label('Period Start')
                                     ->disabled()
-                                    ->dehydrated()
-                                    ->hintIcon('heroicon-o-information-circle')
-                                    ->hint('Managed by Stripe'),
+                                    ->dehydrated(),
                                 DatePicker::make('current_period_end')
                                     ->label('Period End')
                                     ->disabled()
-                                    ->dehydrated()
-                                    ->hintIcon('heroicon-o-information-circle')
-                                    ->hint('Managed by Stripe'),
+                                    ->dehydrated(),
                                 DatePicker::make('paused_until')
                                     ->label('Paused Until')
                                     ->disabled()

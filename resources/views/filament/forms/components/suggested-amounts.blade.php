@@ -82,7 +82,7 @@
                         :class="activeTab === 'one-time' ? 'bg-white text-zinc-950 shadow-sm dark:bg-zinc-950 dark:text-white' : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'"
                         class="rounded-md px-4 py-2 text-sm font-semibold transition"
                     >
-                        Satu masa
+                        Sekali sahaja
                     </button>
                     <button
                         type="button"

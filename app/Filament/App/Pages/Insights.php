@@ -4,6 +4,7 @@ namespace App\Filament\App\Pages;
 
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
+use Carbon\Carbon;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
@@ -268,34 +269,36 @@ class Insights extends Page
      */
     private function buildMonthlyRevenue(array $campaignIds): array
     {
-        $raw = Donation::query()
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month")
-            ->selectRaw('SUM(CASE WHEN status = ? THEN gross_amount ELSE 0 END) as total', [DonationStatus::Succeeded->value])
-            ->selectRaw('COUNT(*) as total_count')
-            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as success_count', [DonationStatus::Succeeded->value])
+        $donations = Donation::query()
             ->whereIn('campaign_id', $campaignIds)
             ->where('created_at', '>=', now()->subMonths(12)->startOfMonth())
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get()
-            ->keyBy('month');
+            ->get(['created_at', 'gross_amount', 'status']);
 
-        return collect(range(11, 0))
-            ->map(fn (int $i) => now()->subMonthsNoOverflow($i)->format('Y-m'))
+        $months = collect(range(11, 0))
+            ->map(fn (int $i) => now()->subMonthsNoOverflow($i)->format('Y-m'));
+
+        $grouped = $donations->groupBy(fn (Donation $d) => $d->created_at->format('Y-m'));
+
+        return $months
             ->reverse()
             ->values()
-            ->map(fn (string $month) => [
-                'month' => now()->parse($month.'-01')->format('M Y'),
-                'amount' => $this->formatMoney((float) ($raw[$month]->total ?? 0)),
-                'successRate' => isset($raw[$month]) && $raw[$month]->total_count > 0
-                    ? round(($raw[$month]->success_count / $raw[$month]->total_count) * 100).'%'
-                    : '0%',
-                'averageAmount' => $this->formatMoney(
-                    isset($raw[$month]) && $raw[$month]->success_count > 0
-                        ? (float) $raw[$month]->total / $raw[$month]->success_count
-                        : 0
-                ),
-            ])
+            ->map(function (string $month) use ($grouped) {
+                $monthDonations = $grouped->get($month, collect());
+                $total = (float) $monthDonations->where('status', DonationStatus::Succeeded)->sum('gross_amount');
+                $totalCount = $monthDonations->count();
+                $successCount = $monthDonations->where('status', DonationStatus::Succeeded)->count();
+
+                return [
+                    'month' => now()->parse($month.'-01')->format('M Y'),
+                    'amount' => $this->formatMoney($total),
+                    'successRate' => $totalCount > 0
+                        ? round(($successCount / $totalCount) * 100).'%'
+                        : '0%',
+                    'averageAmount' => $this->formatMoney(
+                        $successCount > 0 ? $total / $successCount : 0
+                    ),
+                ];
+            })
             ->all();
     }
 
@@ -305,6 +308,8 @@ class Insights extends Page
      */
     private function buildCampaignPerformance(array $campaignIds): array
     {
+        $campaigns = Campaign::whereIn('id', $campaignIds)->get()->keyBy('id');
+
         return Donation::query()
             ->selectRaw('campaign_id')
             ->selectRaw('SUM(CASE WHEN status = ? THEN gross_amount ELSE 0 END) as total', [DonationStatus::Succeeded->value])
@@ -316,7 +321,7 @@ class Insights extends Page
             ->limit(10)
             ->get()
             ->map(fn ($row) => [
-                'campaign' => Campaign::find($row->campaign_id)?->title ?? 'Unknown',
+                'campaign' => $campaigns[$row->campaign_id]?->title ?? 'Unknown',
                 'total' => 'MYR '.$this->formatMoney((float) $row->total),
                 'donationCount' => (int) $row->success_count,
                 'successRate' => $row->total_count > 0
@@ -332,13 +337,16 @@ class Insights extends Page
      */
     private function buildSubscriptionStatusDistribution(array $campaignIds): array
     {
+        $counts = Subscription::query()
+            ->selectRaw('status, COUNT(*) as count')
+            ->whereIn('campaign_id', $campaignIds)
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
         return collect(SubscriptionStatus::cases())
             ->map(fn (SubscriptionStatus $status) => [
                 'status' => $status->value,
-                'count' => Subscription::query()
-                    ->whereIn('campaign_id', $campaignIds)
-                    ->where('status', $status)
-                    ->count(),
+                'count' => (int) ($counts[$status->value] ?? 0),
                 'label' => str($status->value)->headline()->toString(),
             ])
             ->all();
@@ -350,19 +358,19 @@ class Insights extends Page
      */
     private function buildSubscriptionIntervalBreakdown(array $campaignIds): array
     {
+        $aggregated = Subscription::query()
+            ->selectRaw('interval, COUNT(*) as count, SUM(amount) as total')
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('status', SubscriptionStatus::Active)
+            ->groupBy('interval')
+            ->get()
+            ->keyBy('interval');
+
         return collect(SubscriptionInterval::cases())
             ->map(fn (SubscriptionInterval $interval) => [
                 'interval' => str($interval->value)->headline()->toString(),
-                'count' => Subscription::query()
-                    ->whereIn('campaign_id', $campaignIds)
-                    ->where('status', SubscriptionStatus::Active)
-                    ->where('interval', $interval)
-                    ->count(),
-                'total' => 'MYR '.$this->formatMoney((float) Subscription::query()
-                    ->whereIn('campaign_id', $campaignIds)
-                    ->where('status', SubscriptionStatus::Active)
-                    ->where('interval', $interval)
-                    ->sum('amount')),
+                'count' => (int) ($aggregated[$interval->value]?->count ?? 0),
+                'total' => 'MYR '.$this->formatMoney((float) ($aggregated[$interval->value]?->total ?? 0)),
             ])
             ->all();
     }
@@ -379,6 +387,7 @@ class Insights extends Page
 
         $newThisMonth = Subscription::query()
             ->whereIn('campaign_id', $campaignIds)
+            ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::PastDue, SubscriptionStatus::Paused])
             ->where('created_at', '>=', now()->startOfMonth())
             ->count();
 
@@ -404,31 +413,25 @@ class Insights extends Page
     {
         $subscriptions = Subscription::query()
             ->whereIn('campaign_id', $campaignIds)
-            ->get();
+            ->get(['created_at', 'cancelled_at', 'status']);
+
+        $totalActive = $subscriptions->where('status', SubscriptionStatus::Active)->count();
 
         return collect(range(5, 0))
             ->map(fn (int $i) => now()->subMonthsNoOverflow($i)->startOfMonth())
             ->reverse()
             ->values()
-            ->map(function ($monthStart) use ($subscriptions) {
+            ->map(function (Carbon $monthStart) use ($subscriptions, $totalActive) {
                 $monthEnd = (clone $monthStart)->endOfMonth();
-
-                $newSubs = $subscriptions
-                    ->filter(fn (Subscription $s) => $s->created_at->between($monthStart, $monthEnd))
-                    ->count();
-
-                $cancelledSubs = $subscriptions
-                    ->filter(fn (Subscription $s) => $s->cancelled_at !== null && $s->cancelled_at->between($monthStart, $monthEnd))
-                    ->count();
-
-                $totalActive = $subscriptions
-                    ->filter(fn (Subscription $s) => $s->status === SubscriptionStatus::Active && $s->created_at <= $monthEnd)
-                    ->count();
 
                 return [
                     'month' => $monthStart->format('M Y'),
-                    'newSubs' => $newSubs,
-                    'cancelledSubs' => $cancelledSubs,
+                    'newSubs' => $subscriptions
+                        ->filter(fn (Subscription $s) => $s->created_at->between($monthStart, $monthEnd))
+                        ->count(),
+                    'cancelledSubs' => $subscriptions
+                        ->filter(fn (Subscription $s) => $s->cancelled_at !== null && $s->cancelled_at->between($monthStart, $monthEnd))
+                        ->count(),
                     'totalActive' => $totalActive,
                 ];
             })
@@ -567,6 +570,8 @@ class Insights extends Page
      */
     private function buildCampaignUrlPerformance(array $campaignIds): array
     {
+        $campaigns = Campaign::whereIn('id', $campaignIds)->get()->keyBy('id');
+
         return Donation::query()
             ->selectRaw('campaign_id')
             ->selectRaw('COUNT(*) as total_donations')
@@ -578,7 +583,7 @@ class Insights extends Page
             ->limit(10)
             ->get()
             ->map(fn ($row) => [
-                'campaign' => Campaign::find($row->campaign_id)?->title ?? 'Unknown',
+                'campaign' => $campaigns[$row->campaign_id]?->title ?? 'Unknown',
                 'totalDonations' => (int) $row->total_donations,
                 'totalAmount' => 'MYR '.$this->formatMoney((float) $row->total_amount),
                 'donationCount' => (int) $row->successful_count,

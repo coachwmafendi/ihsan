@@ -38,7 +38,7 @@ it('renders a polished suggested amounts editor on the campaign form', function 
         ->assertSee('<script src="https://ihsan.test/embed.js" async></script>')
         ->assertSee('data-ihsan-form="FORM_PARAMETER"')
         ->assertSee('Pra-set kekerapan')
-        ->assertSee('Satu masa')
+        ->assertSee('Sekali sahaja')
         ->assertSee('Bulanan')
         ->assertSee('Jumlah pra-set')
         ->assertSee('get sortedAmounts()', false)

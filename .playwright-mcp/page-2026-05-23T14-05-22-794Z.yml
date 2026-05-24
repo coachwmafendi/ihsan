@@ -1,0 +1,328 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - generic [ref=e3]:
+    - banner:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - generic [ref=e12]:
+            - link "Facebook" [ref=e13] [cursor=pointer]:
+              - /url: https://www.facebook.com/maahadtahfizmumtazatuttaqwa
+              - img [ref=e15]
+            - link "Instagram" [ref=e17] [cursor=pointer]:
+              - /url: https://www.instagram.com/maahadtahfizmumtaza/
+              - img [ref=e19]
+          - navigation "Menu 1" [ref=e23]:
+            - list [ref=e24]:
+              - listitem [ref=e25]:
+                - link "Home" [ref=e26] [cursor=pointer]:
+                  - /url: https://mumzatuttaqwa.com/ms/
+              - listitem [ref=e27]:
+                - link "About" [ref=e28] [cursor=pointer]:
+                  - /url: https://mumzatuttaqwa.com/ms/about/
+        - link "Maahad Tahfiz Mumtazatut Taqwa" [ref=e32] [cursor=pointer]:
+          - /url: https://mumzatuttaqwa.com/ms/
+          - img "Maahad Tahfiz Mumtazatut Taqwa" [ref=e33]
+        - generic [ref=e34]:
+          - navigation "Menu 2" [ref=e36]:
+            - list [ref=e37]:
+              - listitem [ref=e38]:
+                - link "News" [ref=e39] [cursor=pointer]:
+                  - /url: https://mumzatuttaqwa.com/ms/news/
+              - listitem [ref=e40]:
+                - link "More" [ref=e41] [cursor=pointer]:
+                  - /url: "#"
+                  - text: More
+                  - img [ref=e43]
+                - button "Expand dropdown menu"
+          - link "Donate Now" [ref=e47] [cursor=pointer]:
+            - /url: https://mumzatuttaqwa.com/ms/my-maahad-tahfiz-development-fund/
+    - main [ref=e48]:
+      - article [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e56]:
+            - heading "Rayuan Sumbangan Untuk Pembangunan" [level=2] [ref=e57]
+            - generic [ref=e58]:
+              - link "Infaq Ramadan Sekarang" [ref=e60] [cursor=pointer]:
+                - /url: https://mumzatuttaqwa.com/maahad-tahfiz-development-fund-ramadan-2026/
+                - generic [ref=e61]: Infaq Ramadan Sekarang
+              - link "Mengenai Kami" [ref=e63] [cursor=pointer]:
+                - /url: " #details"
+                - generic [ref=e64]: Mengenai Kami
+          - heading "Jom Menyumbang dan Berwakaf! Ikuti Penerangan Dari Pengerusi Maahad" [level=2] [ref=e68]:
+            - text: Jom Menyumbang dan Berwakaf!
+            - text: Ikuti Penerangan Dari Pengerusi Maahad
+          - button "Play" [ref=e73] [cursor=pointer]:
+            - img [ref=e75]
+          - generic [ref=e82]:
+            - generic [ref=e85]:
+              - heading "Sasaran Kutipan ialah RM8,000,000" [level=2] [ref=e86]
+              - paragraph [ref=e87]: 📣 Jumlah kutipan semasa ialah RM 5,070852.62 (dikemaskini pada 28hb Jun 2024)
+            - generic [ref=e90]:
+              - generic [ref=e91]:
+                - img "Healthy Food" [ref=e93]
+                - generic [ref=e94]:
+                  - heading "Pembelian Tanah" [level=5] [ref=e95]
+                  - paragraph [ref=e96]: Pembelian tanah seluas 1 ekar sebagai tapak bangunan baru
+              - generic [ref=e97]:
+                - img "Education" [ref=e99]
+                - generic [ref=e100]:
+                  - heading "Bangunan Baru" [level=5] [ref=e101]
+                  - paragraph [ref=e102]: Bangunan meliputi bilik kuliah, pejabat, asrama dan sebagainya untuk menjalankan aktiviti pembelajaran dan pendidikan.
+              - generic [ref=e103]:
+                - img "Medical" [ref=e105]
+                - generic [ref=e106]:
+                  - heading "Pusat Islam" [level=5] [ref=e107]
+                  - paragraph [ref=e108]: Menjalankan kegiatan pendidikan kerohanian dan aktiviti keagamaan kepada pelajar dan staf bagi melahirkan persefahaman di samping mewujudkan perasaan muhibbah di antara satu sama lain.
+            - separator [ref=e112]
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - img "Pure Water" [ref=e118]
+                - generic [ref=e119]:
+                  - heading "Alat Bantu Mengajar" [level=5] [ref=e120]
+                  - paragraph [ref=e121]: Alat bantu mengajar dan penggunaan teknologi terkini dalam proses pendidikan
+              - generic [ref=e122]:
+                - img "Love & Care" [ref=e124]
+                - generic [ref=e125]:
+                  - heading "Peralatan/Perabot" [level=5] [ref=e126]
+                  - paragraph [ref=e127]: Peralatan dan perabot asas bagi keceriaan dan membantu proses pendidikan dan kemudahan pelajar
+              - generic [ref=e128]:
+                - img "Travel Activities" [ref=e130]
+                - generic [ref=e131]:
+                  - heading "Pengurusan" [level=5] [ref=e132]
+                  - paragraph [ref=e133]: Servis penyelenggaraan dan pengurusan bagi melancarkan proses pendidikan dan kecemerlangan pelajar
+          - heading "MEMPERKASA JIIL AL-QURAN" [level=2] [ref=e137]:
+            - strong [ref=e138]: MEMPERKASA JIIL AL-QURAN
+          - generic [ref=e142]:
+            - figure [ref=e148]
+            - generic [ref=e153]:
+              - paragraph [ref=e154]: Usaha-usaha untuk mewujudkan satu sistem pendidikan Islam yang tulin yang berteraskan Al–Quran dan As–Sunnah memerlukan satu penggembelingan tenaga daripada semua lapisan masyarakat Islam sama ada ahli ekonomi mahupun para cendikiawan ke arah mendokong cita–cita dan semangat Islam.
+              - paragraph [ref=e155]: Maahad Tahfiz Mumtazatut Taqwa ditubuhkan pada tahun 2013 atas usaha dan inisiatif oleh Persatuan Institusi Tahfiz Al-Quran Negeri Selangor(PITAS).
+              - generic [ref=e164]:
+                - paragraph
+                - generic [ref=e167]:
+                  - link "Info Lanjut" [ref=e169] [cursor=pointer]:
+                    - /url: https://mumzatuttaqwa.com/about/
+                    - generic [ref=e170]: Info Lanjut
+                  - link "Hubungi Kami" [ref=e172] [cursor=pointer]:
+                    - /url: https://mumzatuttaqwa.com/contact/
+                    - generic [ref=e173]: Hubungi Kami
+              - paragraph
+          - heading "SISTEM PENDIDIKAN" [level=2] [ref=e177]:
+            - strong [ref=e178]: SISTEM PENDIDIKAN
+          - generic [ref=e182]:
+            - figure [ref=e188]
+            - generic [ref=e193]:
+              - paragraph [ref=e194]: Maahad ini menawarkan pendidikan hafazan Al Quran sepenuh masa dan asas-asas Fardhu Ain, Bahasa Arab, Tajwid dan Akhlak. Tempoh pengajian ialah selama 3 tahun.
+              - paragraph [ref=e195]: Mutu kualiti hafazan pelajar amat di tekankan. Bagi menjaga kualiti hafazan, program ithbat (tasmik bacaan) hafazan 10 juzuk – 30 juzuk dijalankan secara berkala bersama program panel Persatuan Institusi Tahfiz Al Quran Negeri Selangor (PITAS). Program ini dijalankan 3 kali setahun.
+              - generic [ref=e204]:
+                - generic [ref=e207]:
+                  - link "Info Lanjut" [ref=e209] [cursor=pointer]:
+                    - /url: https://mumzatuttaqwa.com/program/
+                    - generic [ref=e210]: Info Lanjut
+                  - link "Hubungi Kami" [ref=e212] [cursor=pointer]:
+                    - /url: https://mumzatuttaqwa.com/contact/
+                    - generic [ref=e213]: Hubungi Kami
+                - paragraph
+          - heading "Sumbangan Online Memudahkan Urusan" [level=2] [ref=e214]
+          - generic [ref=e215]:
+            - generic [ref=e216]:
+              - paragraph [ref=e217]:
+                - text: Kami menyediakan kemudahan untuk membuat
+                - strong [ref=e218]: sumbangan secara sekali sahaja(one time off) atau secara bulanan menggunakan kad debit/kad kredit, Apple Pay, Google Pay dan GrabPay.
+              - paragraph [ref=e219]: Ayuh. Marilah kita menyumbang sekarang!
+            - figure [ref=e221]
+            - iframe [ref=e223]:
+              - generic [ref=f3e4]:
+                - generic [ref=f3e5]:
+                  - img "INFAQ PEMBINAAN DAN PEMBANGUNAN MAAHAD TAHFIZ MUMTAZATUT TAQWA" [ref=f3e8]
+                  - generic "INFAQ PEMBINAAN DAN PEMBANGUNAN MAAHAD TAHFIZ MUMTAZATUT TAQWA" [ref=f3e11]
+                - generic [ref=f3e13]: MYR 50
+                - button "Donate" [ref=f3e14] [cursor=pointer]:
+                  - generic [ref=f3e15]: Donate
+                - generic [ref=f3e18]: "Supported payment methods:"
+          - generic [ref=e227]:
+            - figure [ref=e233]:
+              - blockquote [ref=e234]:
+                - paragraph [ref=e235]: Di antara amal kebajikan yang sangat dianjurkan dilakukan di bulan Ramadhan adalah tadarus Al-Qur’an. Tadarus Al-Qur’an berarti membaca, merenungkan, menelaah, dan memahami wahyu-wahyu Allah SWT yang turun pertama kali pada malam bulan Ramadhan.” (QS. Al Baqarah ayat 185)
+            - generic [ref=e240]:
+              - iframe [ref=e241]:
+                - generic [ref=f1e6]:
+                  - generic [ref=f1e7]:
+                    - link "Puchong, Malaysia" [ref=f1e8] [cursor=pointer]:
+                      - /url: https://www.islamicfinder.org/world/malaysia/1749822/puchong-prayer-times/
+                    - generic [ref=f1e9]: 6th Dhul Hijjah, 1447h
+                  - generic [ref=f1e10]:
+                    - paragraph [ref=f1e11]: Saturday, May 23, 2026
+                    - paragraph
+                  - generic [ref=f1e12]:
+                    - generic [ref=f1e13]:
+                      - paragraph [ref=f1e14]: Fajr
+                      - paragraph
+                      - paragraph [ref=f1e15]: 05:49 AM
+                    - generic [ref=f1e17]:
+                      - paragraph [ref=f1e18]: Sunrise
+                      - paragraph
+                      - paragraph [ref=f1e19]: 07:02 AM
+                    - generic [ref=f1e21]:
+                      - paragraph [ref=f1e22]: Dhuhr
+                      - paragraph
+                      - paragraph [ref=f1e23]: 01:11 PM
+                    - generic [ref=f1e25]:
+                      - paragraph [ref=f1e26]: Asr
+                      - paragraph
+                      - paragraph [ref=f1e27]: 04:35 PM
+                    - generic [ref=f1e29]:
+                      - paragraph [ref=f1e30]: Maghrib
+                      - paragraph
+                      - paragraph [ref=f1e31]: 07:19 PM
+                    - generic [ref=f1e33]:
+                      - paragraph [ref=f1e34]: Isha
+                      - paragraph
+                      - paragraph [ref=f1e35]: 08:33 PM
+                    - generic [ref=f1e38]:
+                      - text: "Powered By:"
+                      - link "www.islamicfinder.org" [ref=f1e39] [cursor=pointer]:
+                        - /url: https://www.islamicfinder.org/
+              - paragraph
+          - generic [ref=e243]:
+            - heading "Post Terbaru" [level=2] [ref=e244]
+            - paragraph [ref=e245]: Jom baca post/berita terbaru nukilan kami
+            - generic [ref=e246]:
+              - article [ref=e247]:
+                - generic [ref=e248]:
+                  - figure [ref=e249]:
+                    - link [ref=e250] [cursor=pointer]:
+                      - /url: https://mumzatuttaqwa.com/ms/mulut-hanya-dipenuh-tanah-nanti/
+                  - generic [ref=e251]:
+                    - link "Pendidikan" [ref=e252] [cursor=pointer]:
+                      - /url: https://mumzatuttaqwa.com/ms/category/pendidikan/
+                    - text: ","
+                    - link "Umum" [ref=e253] [cursor=pointer]:
+                      - /url: https://mumzatuttaqwa.com/ms/category/umum/
+                  - heading "Mulut Hanya Dipenuh Tanah Nanti" [level=5] [ref=e254]:
+                    - link "Mulut Hanya Dipenuh Tanah Nanti" [ref=e255] [cursor=pointer]:
+                      - /url: https://mumzatuttaqwa.com/ms/mulut-hanya-dipenuh-tanah-nanti/
+                  - complementary [ref=e256]:
+                    - time [ref=e257]: April 7, 2026
+                  - paragraph [ref=e259]: Ustazah ingin berkongsi pasal mulut hanya dipenuh tanah nanti. 1. Rasulullah ﷺ mengingatkan kepada kita tentang kesungguhan manusia mengejar…
+              - article [ref=e260]:
+                - generic [ref=e261]:
+                  - figure [ref=e262]:
+                    - link [ref=e263] [cursor=pointer]:
+                      - /url: https://mumzatuttaqwa.com/ms/pemurahnya-nabi-muhammad-saw-pada-bulan-ramadan/
+                  - link "Umum" [ref=e265] [cursor=pointer]:
+                    - /url: https://mumzatuttaqwa.com/ms/category/umum/
+                  - heading "Pemurahnya Nabi Muhammad SAW Pada Bulan Ramadan" [level=5] [ref=e266]:
+                    - link "Pemurahnya Nabi Muhammad SAW Pada Bulan Ramadan" [ref=e267] [cursor=pointer]:
+                      - /url: https://mumzatuttaqwa.com/ms/pemurahnya-nabi-muhammad-saw-pada-bulan-ramadan/
+                  - complementary [ref=e268]:
+                    - time [ref=e269]: Mac 7, 2026
+                  - paragraph [ref=e271]: Ustazah nak berkongsi pasal pemurahnya Nabi Muhammad SAW pada bulan Ramadan. Sesungguhnya telah tertulis dalam Al-Quran bahawa seindah-indah akhlak…
+              - article [ref=e272]:
+                - generic [ref=e273]:
+                  - figure [ref=e274]:
+                    - link [ref=e275] [cursor=pointer]:
+                      - /url: https://mumzatuttaqwa.com/ms/takwa-dan-berakhlak-baik/
+                  - generic [ref=e276]:
+                    - link "Pendidikan" [ref=e277] [cursor=pointer]:
+                      - /url: https://mumzatuttaqwa.com/ms/category/pendidikan/
+                    - text: ","
+                    - link "Umum" [ref=e278] [cursor=pointer]:
+                      - /url: https://mumzatuttaqwa.com/ms/category/umum/
+                  - heading "Takwa dan Berakhlak Baik" [level=5] [ref=e279]:
+                    - link "Takwa dan Berakhlak Baik" [ref=e280] [cursor=pointer]:
+                      - /url: https://mumzatuttaqwa.com/ms/takwa-dan-berakhlak-baik/
+                  - complementary [ref=e281]:
+                    - time [ref=e282]: Februari 9, 2026
+                  - paragraph [ref=e284]: عَنْ أَبِي ذَرٍّ قَالَ قَالَ لِي رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ اتَّقِ اللَّهِ حَيْثُمَا كُنْتَ وَأَتْبِعْ السَّيِّئَةَ…
+          - generic [ref=e287]:
+            - heading "Pelajar" [level=4] [ref=e289]
+            - heading "Hafizah" [level=4] [ref=e291]
+            - heading "Program" [level=4] [ref=e293]
+            - heading "Tahun" [level=4] [ref=e295]
+          - paragraph
+    - contentinfo [ref=e296]:
+      - generic [ref=e298]:
+        - generic [ref=e299]:
+          - generic [ref=e300]:
+            - heading "About Us" [level=3] [ref=e301]
+            - generic [ref=e302]:
+              - paragraph [ref=e303]: Maahad Tahfiz Mumtazatut Taqwa adalah organisasi maahad yang tidak berorentasikan keuntungan. Ianya lebih kepada menawarkan perkhidmatan kepada masyarakat.
+              - paragraph [ref=e304]:
+                - text: "Untuk sumbangan secara manual/bank transfer/CDM, boleh bank in ke akaun di bawah :"
+                - text: "Nama : MAAHAD TAHFIZ MUMTAZATUT TAQWA"
+                - text: "Bank : MAYBANK"
+                - text: "No Akaun : 562058077540"
+              - paragraph [ref=e305]
+          - generic [ref=e307]:
+            - heading "Follow Us On Media Social" [level=3] [ref=e308]
+            - generic [ref=e310]:
+              - link "Facebook" [ref=e311] [cursor=pointer]:
+                - /url: https://www.facebook.com/maahadtahfizmumtazatuttaqwa
+                - img [ref=e313]
+              - link "Instagram" [ref=e315] [cursor=pointer]:
+                - /url: https://www.instagram.com/maahadtahfizmumtaza/
+                - img [ref=e317]
+        - generic [ref=e321]:
+          - heading "Pautan" [level=3] [ref=e322]
+          - list [ref=e324]:
+            - listitem [ref=e325]:
+              - link "News" [ref=e326] [cursor=pointer]:
+                - /url: https://mumzatuttaqwa.com/ms/news/
+            - listitem [ref=e327]:
+              - link "About" [ref=e328] [cursor=pointer]:
+                - /url: https://mumzatuttaqwa.com/ms/about/
+            - listitem [ref=e329]:
+              - link "Contact" [ref=e330] [cursor=pointer]:
+                - /url: https://mumzatuttaqwa.com/ms/contact/
+            - listitem [ref=e331]:
+              - link "Sumbangan MTMT" [ref=e332] [cursor=pointer]:
+                - /url: https://mumzatuttaqwa.com/ms/dana-pembangunan-maahad-tahfiz/
+            - listitem [ref=e333]:
+              - link "Donation" [ref=e334] [cursor=pointer]:
+                - /url: https://mumzatuttaqwa.com/ms/maahad-tahfiz-development-fund-eng-v1/
+            - listitem [ref=e335]:
+              - link "Servis Sumbangan Automatik" [ref=e336] [cursor=pointer]:
+                - /url: https://mumzatuttaqwa.com/ms/servis-sumbangan-automatik-dari-mtmt/
+            - listitem [ref=e337]:
+              - link "Privacy Policy" [ref=e338] [cursor=pointer]:
+                - /url: https://mumzatuttaqwa.com/ms/privacy-policy/
+        - generic [ref=e341]:
+          - heading "Info" [level=3] [ref=e342]
+          - paragraph
+          - list [ref=e344]:
+            - listitem [ref=e345]:
+              - img [ref=e347]
+              - generic [ref=e350]: Maahad Tahfiz Mumtazatut Taqwa Lot 3234, Jalan Dengkil, Kg Boundry Bukit Changgang, 42700 Banting, Selangor, Malaysia
+            - listitem [ref=e351]:
+              - img [ref=e353]
+              - generic [ref=e355]:
+                - generic [ref=e356]: "No Mobile 1:"
+                - link "60123244895" [ref=e358] [cursor=pointer]:
+                  - /url: tel:60123244895
+            - listitem [ref=e359]:
+              - img [ref=e361]
+              - generic [ref=e365]:
+                - generic [ref=e366]: "No Mobile 2:"
+                - link "+6012-4392604" [ref=e368] [cursor=pointer]:
+                  - /url: tel:6012-4392604
+            - listitem [ref=e369]:
+              - img [ref=e371]
+              - generic [ref=e373]:
+                - generic [ref=e374]: "Email:"
+                - link "mumtazatuttaqwa@gmail.com" [ref=e376] [cursor=pointer]:
+                  - /url: mailto:%20mumtazatuttaqwa@gmail.com
+      - paragraph [ref=e381]:
+        - text: Copyright © 2026 Maahad Tahfiz Mumtazatut Taqwa - Diuruskan oleh
+        - link "Barakah Digital" [ref=e382] [cursor=pointer]:
+          - /url: https://barakahdigital.com.my/
+  - generic [ref=e384]:
+    - link "ms_MY MS":
+      - /url: "#"
+      - img "ms_MY"
+      - text: MS
+  - iframe [ref=e408]:
+    - button "Donate" [ref=f6e4] [cursor=pointer]:
+      - img [ref=f6e7]
+      - generic [ref=f6e9]: Donate
