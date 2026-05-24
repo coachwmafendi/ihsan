@@ -37,6 +37,15 @@ class Settings extends Page implements HasActions
         $this->failedPaymentNotification = (bool) ($settings['failed_payment_notification'] ?? true);
     }
 
+    public function updated(string $property): void
+    {
+        if (! str_starts_with($property, 'notify') && ! str_starts_with($property, 'daily') && ! str_starts_with($property, 'failed')) {
+            return;
+        }
+
+        $this->saveNotificationSettings();
+    }
+
     public function saveNotificationSettings(): void
     {
         $org = auth()->user()->organization;
@@ -52,11 +61,6 @@ class Settings extends Page implements HasActions
         ]);
 
         $org->update(['settings' => $settings]);
-
-        Notification::make()
-            ->title('Notification preferences saved.')
-            ->success()
-            ->send();
     }
 
     public function stripeAccount(): ?StripeAccount
