@@ -24,3 +24,4 @@ yarn-error.log
 /.zed
 node_modules
 public/icons/
+.playwright-mcp/

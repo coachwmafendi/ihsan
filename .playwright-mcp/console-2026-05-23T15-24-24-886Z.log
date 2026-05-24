@@ -1,5 +1,0 @@
-[     637ms] Uncaught TypeError: Cannot read properties of undefined (reading 'payload')
-    at value (https://js.stripe.com/v3/buy-button.js:0:7739)
-[    2622ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: https://ihsan.test/_boost/browser-logs @ https://ihsan.test/login:174
-[   25232ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: https://ihsan.test/_boost/browser-logs @ https://ihsan.test/login:174
-[   43163ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://ihsan.test/app/campaigns/1/edit:0
