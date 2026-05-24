@@ -81,42 +81,34 @@
         </div>
     </x-filament::section>
 
-    <x-filament::section heading="Notifications" icon="heroicon-o-bell-alert">
-        <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+    <x-filament::section heading="Notifikasi" icon="heroicon-o-bell-alert">
+        <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
             <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                <div class="flex items-center gap-2 bg-white px-4 py-3 dark:bg-gray-900">
-                    <div class="grow">
-                        <p class="text-sm font-medium text-gray-950 dark:text-white">Notify new donation by email</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Receive an email for every successful donation</p>
+                @foreach ([
+                    ['label' => 'Notifikasi derma baharu', 'desc' => 'Terima e-mel untuk setiap derma berjaya', 'prop' => 'notifyNewDonation', 'active' => $notifyNewDonation],
+                    ['label' => 'Ringkasan derma harian', 'desc' => 'Terima ringkasan semua derma yang diterima setiap hari', 'prop' => 'dailyDonationSummary', 'active' => $dailyDonationSummary],
+                    ['label' => 'Notifikasi bayaran bulanan gagal', 'desc' => 'Amaran apabila bayaran berulang penderma gagal diproses', 'prop' => 'failedPaymentNotification', 'active' => $failedPaymentNotification],
+                ] as $row)
+                    <div class="flex items-center justify-between gap-6 px-5 py-4">
+                        <div>
+                            <p class="text-sm font-medium text-gray-950 dark:text-white">{{ $row['label'] }}</p>
+                            <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ $row['desc'] }}</p>
+                        </div>
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked="{{ $row['active'] ? 'true' : 'false' }}"
+                            wire:click="$toggle('{{ $row['prop'] }}')"
+                            class="relative shrink-0 inline-flex h-6 w-10 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 {{ $row['active'] ? 'bg-teal-600' : 'bg-gray-200 dark:bg-gray-600' }}"
+                        >
+                            <span class="pointer-events-none inline-block size-4 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $row['active'] ? 'translate-x-[18px]' : 'translate-x-0.5' }}"></span>
+                        </button>
                     </div>
-                    <button type="button" role="switch" aria-checked="{{ $notifyNewDonation ? 'true' : 'false' }}" wire:click="$toggle('notifyNewDonation')" class="shrink-0 relative inline-flex h-5 w-8 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 {{ $notifyNewDonation ? 'bg-teal-600' : 'bg-gray-200' }}">
-                        <span class="pointer-events-none inline-block size-3.5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $notifyNewDonation ? 'translate-x-3' : 'translate-x-0' }}"></span>
-                    </button>
-                </div>
-
-                <div class="flex items-center gap-2 bg-white px-4 py-3 dark:bg-gray-900">
-                    <div class="grow">
-                        <p class="text-sm font-medium text-gray-950 dark:text-white">Daily donation summary</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Get a daily summary of all donations received</p>
-                    </div>
-                    <button type="button" role="switch" aria-checked="{{ $dailyDonationSummary ? 'true' : 'false' }}" wire:click="$toggle('dailyDonationSummary')" class="shrink-0 relative inline-flex h-5 w-8 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 {{ $dailyDonationSummary ? 'bg-teal-600' : 'bg-gray-200' }}">
-                        <span class="pointer-events-none inline-block size-3.5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $dailyDonationSummary ? 'translate-x-3' : 'translate-x-0' }}"></span>
-                    </button>
-                </div>
-
-                <div class="flex items-center gap-2 bg-white px-4 py-3 dark:bg-gray-900">
-                    <div class="grow">
-                        <p class="text-sm font-medium text-gray-950 dark:text-white">Failed monthly payment notification</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Alert when a recurring payment fails</p>
-                    </div>
-                    <button type="button" role="switch" aria-checked="{{ $failedPaymentNotification ? 'true' : 'false' }}" wire:click="$toggle('failedPaymentNotification')" class="shrink-0 relative inline-flex h-5 w-8 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 {{ $failedPaymentNotification ? 'bg-teal-600' : 'bg-gray-200' }}">
-                        <span class="pointer-events-none inline-block size-3.5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $failedPaymentNotification ? 'translate-x-3' : 'translate-x-0' }}></span>
-                    </button>
-                </div>
+                @endforeach
             </div>
 
-            <div class="border-t border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-700 dark:bg-gray-800">
-                <p class="text-xs text-gray-400">Changes are saved automatically.</p>
+            <div class="border-t border-gray-200 bg-gray-50 px-5 py-2.5 dark:border-gray-700 dark:bg-gray-800/50">
+                <p class="text-xs text-gray-400">Perubahan disimpan secara automatik.</p>
             </div>
         </div>
     </x-filament::section>
