@@ -61,6 +61,7 @@ class ProcessStripeWebhook implements ShouldQueue
             'invoice.payment_failed' => $this->handleInvoicePaymentFailed($event),
             'customer.subscription.deleted' => $this->handleSubscriptionDeleted($event),
             'customer.subscription.updated' => $this->handleSubscriptionUpdated($event),
+            'charge.refunded' => $this->handleChargeRefunded($event),
             'account.updated' => $this->handleAccountUpdated($event),
             default => null,
         };
@@ -111,11 +112,14 @@ class ProcessStripeWebhook implements ShouldQueue
             if ($wasPending) {
                 $subscription->increment('payment_count');
             }
+
+            SendNewSubscriptionNotification::dispatch($donation);
         }
 
         if ($wasPending) {
             SendDonationReceipt::dispatch($donation);
             SendNewDonationNotification::dispatch($donation);
+            SendLargeDonationNotification::dispatch($donation);
         }
 
         SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
@@ -276,9 +280,44 @@ class ProcessStripeWebhook implements ShouldQueue
     {
         $stripeSubscription = $event->data->object;
 
-        Subscription::query()
+        $subscription = Subscription::query()
             ->where('stripe_subscription_id', $stripeSubscription->id)
-            ->update(['status' => SubscriptionStatus::Cancelled, 'cancelled_at' => now()]);
+            ->first();
+
+        if ($subscription === null) {
+            return;
+        }
+
+        $subscription->update([
+            'status' => SubscriptionStatus::Cancelled,
+            'cancelled_at' => now(),
+        ]);
+
+        SendSubscriptionCancelledNotification::dispatch($subscription);
+    }
+
+    private function handleChargeRefunded(StripeEvent $event): void
+    {
+        $charge = $event->data->object;
+        $paymentIntentId = $charge->payment_intent;
+
+        if ($paymentIntentId === null) {
+            return;
+        }
+
+        $donation = Donation::query()
+            ->where('stripe_payment_intent_id', $paymentIntentId)
+            ->first();
+
+        if ($donation === null) {
+            return;
+        }
+
+        $donation->update([
+            'status' => DonationStatus::Refunded,
+        ]);
+
+        SendRefundNotification::dispatch($donation);
     }
 
     private function handleSubscriptionUpdated(StripeEvent $event): void
