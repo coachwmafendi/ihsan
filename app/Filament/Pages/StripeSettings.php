@@ -25,7 +25,7 @@ class StripeSettings extends Page
     public function mount(): void
     {
         $this->form->fill([
-            'platform_fee_percent' => Setting::get('stripe_platform_fee_percent', config('services.stripe.platform_fee_percent', 2.5)),
+            'processing_fee_percent' => Setting::get('payment_processing_fee_percent', config('services.stripe.processing_fee_percent', 2.5)),
         ]);
     }
 
@@ -39,8 +39,8 @@ class StripeSettings extends Page
         return $schema
             ->columns(2)
             ->schema([
-                TextInput::make('platform_fee_percent')
-                    ->label('Platform Fee (%)')
+                TextInput::make('processing_fee_percent')
+                    ->label('Processing Fee (%)')
                     ->numeric()
                     ->minValue(0)
                     ->maxValue(100)
@@ -54,9 +54,9 @@ class StripeSettings extends Page
     {
         $data = $this->form->getState();
 
-        Setting::set('stripe_platform_fee_percent', (float) $data['platform_fee_percent']);
+        Setting::set('payment_processing_fee_percent', (float) $data['processing_fee_percent']);
 
-        config(['services.stripe.platform_fee_percent' => (float) $data['platform_fee_percent']]);
+        config(['services.stripe.processing_fee_percent' => (float) $data['processing_fee_percent']]);
 
         Notification::make()
             ->title('Stripe settings saved.')

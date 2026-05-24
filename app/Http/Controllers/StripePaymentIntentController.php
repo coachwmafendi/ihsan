@@ -42,7 +42,7 @@ class StripePaymentIntentController extends Controller
             'donor_id' => $donor->getKey(),
             'gross_amount' => $validated['amount'],
             'stripe_fee' => 0,
-            'platform_fee' => 0,
+            'processing_fee' => 0,
             'net_amount' => $validated['amount'],
             'currency' => $validated['currency'],
             'status' => DonationStatus::Pending,

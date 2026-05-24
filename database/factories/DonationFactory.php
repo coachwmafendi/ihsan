@@ -27,7 +27,7 @@ class DonationFactory extends Factory
             'subscription_id' => null,
             'gross_amount' => 100.00,
             'stripe_fee' => 3.50,
-            'platform_fee' => 3.00,
+            'processing_fee' => 3.00,
             'net_amount' => 93.50,
             'currency' => 'myr',
             'status' => DonationStatus::Succeeded,

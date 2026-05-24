@@ -202,8 +202,8 @@ class DonationsTable
                                 TextEntry::make('stripe_fee')
                                     ->label('Stripe Fee')
                                     ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),
-                                TextEntry::make('platform_fee')
-                                    ->label('Platform Fee')
+                                TextEntry::make('processing_fee')
+                                    ->label('Processing Fee')
                                     ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),
                                 TextEntry::make('net_amount')
                                     ->label('Net')

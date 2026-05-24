@@ -11,7 +11,7 @@ it('has the ihsan foundation tables', function () {
         'donations',
         'subscriptions',
         'elements',
-        'platform_fees',
+        'processing_fees',
         'webhook_logs',
     ] as $table) {
         expect(Schema::hasTable($table))->toBeTrue("Missing table [{$table}]");
@@ -41,7 +41,7 @@ it('has key columns for organization-scoped fundraising', function () {
         'donor_id',
         'subscription_id',
         'gross_amount',
-        'platform_fee',
+        'processing_fee',
         'net_amount',
         'status',
         'type',

@@ -5,7 +5,7 @@ namespace App\Filament\Pages;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\Organization;
-use App\Models\PlatformFee;
+use App\Models\ProcessingFee;
 use Filament\Pages\Page;
 
 class Revenue extends Page
@@ -18,7 +18,7 @@ class Revenue extends Page
 
     protected static ?int $navigationSort = 20;
 
-    public string $totalPlatformFees = '0.00';
+    public string $totalProcessingFees = '0.00';
 
     public int $totalTransactions = 0;
 
@@ -33,7 +33,7 @@ class Revenue extends Page
 
     public function mount(): void
     {
-        $this->totalPlatformFees = number_format((float) PlatformFee::query()
+        $this->totalProcessingFees = number_format((float) ProcessingFee::query()
             ->where('status', 'paid')
             ->sum('fee_amount'), 2, '.', '');
 
@@ -43,7 +43,7 @@ class Revenue extends Page
         $this->totalTransactions = (clone $succeeded)->count();
 
         $this->averageFeePerTransaction = $this->totalTransactions > 0
-            ? number_format((float) PlatformFee::query()
+            ? number_format((float) ProcessingFee::query()
                 ->where('status', 'paid')
                 ->avg('fee_amount'), 2, '.', '')
             : '0.00';
@@ -56,7 +56,7 @@ class Revenue extends Page
             ->get()
             ->keyBy('organization_id');
 
-        $feesByOrg = PlatformFee::query()
+        $feesByOrg = ProcessingFee::query()
             ->selectRaw('organization_id, SUM(fee_amount) as total_fees')
             ->where('status', 'paid')
             ->groupBy('organization_id')

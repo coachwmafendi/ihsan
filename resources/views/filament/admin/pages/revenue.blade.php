@@ -2,8 +2,8 @@
     <div class="space-y-6">
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <x-filament::section>
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total platform fees</div>
-                <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $totalPlatformFees }}</div>
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total processing fees</div>
+                <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $totalProcessingFees }}</div>
                 <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">All time transferred</div>
             </x-filament::section>
 
@@ -16,7 +16,7 @@
             <x-filament::section>
                 <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Average fee per transaction</div>
                 <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $averageFeePerTransaction }}</div>
-                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">3% platform fee</div>
+                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">3% processing fee</div>
             </x-filament::section>
 
             <x-filament::section>
@@ -38,7 +38,7 @@
                             <th class="pb-3 pr-4">Organization</th>
                             <th class="pb-3 pr-4">Donations</th>
                             <th class="pb-3 pr-4">Volume</th>
-                            <th class="pb-3">Platform fees</th>
+                            <th class="pb-3">Processing fees</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">

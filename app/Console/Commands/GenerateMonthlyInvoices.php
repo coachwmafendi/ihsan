@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use App\Mail\PlatformInvoiceCreated;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
-use App\Models\PlatformFee;
+use App\Models\ProcessingFee;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -30,7 +30,7 @@ class GenerateMonthlyInvoices extends Command
 
         $this->info("Generating invoices for period: {$period->format('Y-m')}");
 
-        $pendingFees = PlatformFee::query()
+        $pendingFees = ProcessingFee::query()
             ->where('status', 'pending')
             ->where('created_at', '>=', $period->copy()->startOfMonth())
             ->where('created_at', '<', $period->copy()->addMonth()->startOfMonth())
@@ -86,7 +86,7 @@ class GenerateMonthlyInvoices extends Command
                     'metadata' => [
                         'organization_id' => (string) $organization->id,
                         'period' => $period->format('Y-m-d'),
-                        'type' => 'platform_fees',
+                        'type' => 'processing_fees',
                     ],
                 ]);
 
@@ -113,7 +113,7 @@ class GenerateMonthlyInvoices extends Command
                     'stripe_invoice_pdf' => $stripeInvoice->invoice_pdf,
                 ]);
 
-                PlatformFee::whereIn('id', $fees->pluck('id'))->update([
+                ProcessingFee::whereIn('id', $fees->pluck('id'))->update([
                     'status' => 'invoiced',
                     'monthly_invoice_id' => $monthlyInvoice->id,
                 ]);

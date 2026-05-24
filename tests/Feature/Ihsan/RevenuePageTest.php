@@ -7,7 +7,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
-use App\Models\PlatformFee;
+use App\Models\ProcessingFee;
 use App\Models\User;
 
 it('shows revenue metrics to super admins', function () {
@@ -17,12 +17,12 @@ it('shows revenue metrics to super admins', function () {
 
     $donation = Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 100.00,
-        'platform_fee' => 3.00,
+        'processing_fee' => 3.00,
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::OneTime,
     ]);
 
-    PlatformFee::factory()->create([
+    ProcessingFee::factory()->create([
         'donation_id' => $donation->id,
         'organization_id' => $org->id,
         'fee_amount' => 3.00,

@@ -28,9 +28,9 @@ class MonthlyInvoice extends Model
         return $this->belongsTo(Organization::class);
     }
 
-    public function platformFees(): HasMany
+    public function processingFees(): HasMany
     {
-        return $this->hasMany(PlatformFee::class);
+        return $this->hasMany(ProcessingFee::class);
     }
 
     protected function casts(): array

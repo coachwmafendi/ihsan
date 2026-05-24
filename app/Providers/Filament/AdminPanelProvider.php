@@ -4,8 +4,8 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\MonthlyInvoices;
-use App\Filament\Pages\PlatformFees;
 use App\Filament\Pages\PlatformOverview;
+use App\Filament\Pages\ProcessingFees;
 use App\Filament\Pages\Revenue;
 use App\Filament\Pages\Transactions;
 use Filament\Http\Middleware\Authenticate;
@@ -51,7 +51,7 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
                 PlatformOverview::class,
                 Transactions::class,
-                PlatformFees::class,
+                ProcessingFees::class,
                 MonthlyInvoices::class,
                 Revenue::class,
             ])

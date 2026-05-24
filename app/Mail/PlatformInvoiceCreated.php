@@ -24,7 +24,7 @@ class PlatformInvoiceCreated extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Platform Fee Invoice — '.Carbon::parse($this->invoice->period)->format('F Y'),
+            subject: 'Processing Fee Invoice — '.Carbon::parse($this->invoice->period)->format('F Y'),
         );
     }
 

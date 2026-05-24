@@ -9,7 +9,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
-use App\Models\PlatformFee;
+use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\User;
 use Livewire\Livewire;
@@ -57,7 +57,7 @@ it('calculates correct platform-wide metrics', function () {
         'type' => DonationType::OneTime,
     ]);
 
-    PlatformFee::factory()->create([
+    ProcessingFee::factory()->create([
         'donation_id' => $donation->id,
         'organization_id' => $org->id,
         'fee_amount' => 3.00,
@@ -81,7 +81,7 @@ it('calculates correct platform-wide metrics', function () {
         ->assertSet('activeOrganizations', 1)
         ->assertSet('totalDonationsVolume', '150.00')
         ->assertSet('totalDonationsCount', 3)
-        ->assertSet('totalPlatformFees', '3.00')
+        ->assertSet('totalProcessingFees', '3.00')
         ->assertSet('activeSubscriptions', 1)
         ->assertSet('totalDonors', 1);
 });

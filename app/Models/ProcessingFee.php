@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
-use Database\Factories\PlatformFeeFactory;
+use Database\Factories\ProcessingFeeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable(['donation_id', 'organization_id', 'fee_amount', 'fee_percentage', 'stripe_transfer_id', 'status', 'monthly_invoice_id'])]
-class PlatformFee extends Model
+class ProcessingFee extends Model
 {
-    /** @use HasFactory<PlatformFeeFactory> */
+    /** @use HasFactory<ProcessingFeeFactory> */
     use HasFactory;
 
     public function donation(): BelongsTo

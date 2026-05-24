@@ -12,7 +12,7 @@ use App\Mail\PlatformInvoicePaid;
 use App\Models\Donation;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
-use App\Models\PlatformFee;
+use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\WebhookLog;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -125,7 +125,7 @@ class ProcessStripeWebhook implements ShouldQueue
         $invoice = $event->data->object;
         $metadata = $invoice->metadata ?? [];
 
-        if (($metadata['type'] ?? null) === 'platform_fees') {
+        if (($metadata['type'] ?? null) === 'processing_fees') {
             $this->handlePlatformInvoicePaid($event);
         } else {
             $this->handleDonorInvoicePaid($event);
@@ -181,7 +181,7 @@ class ProcessStripeWebhook implements ShouldQueue
             'subscription_id' => $subscription->getKey(),
             'gross_amount' => $grossAmount,
             'stripe_fee' => 0,
-            'platform_fee' => 0,
+            'processing_fee' => 0,
             'net_amount' => $grossAmount,
             'currency' => $invoice->currency,
             'status' => DonationStatus::Succeeded,
@@ -223,7 +223,7 @@ class ProcessStripeWebhook implements ShouldQueue
             'paid_at' => now(),
         ]);
 
-        PlatformFee::query()
+        ProcessingFee::query()
             ->where('monthly_invoice_id', $monthlyInvoice->id)
             ->update(['status' => 'paid']);
 

@@ -7,7 +7,7 @@ use App\Enums\SubscriptionStatus;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
-use App\Models\PlatformFee;
+use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use Filament\Pages\Page;
 
@@ -33,7 +33,7 @@ class PlatformOverview extends Page
 
     public int $totalDonationsCount = 0;
 
-    public string $totalPlatformFees = '0.00';
+    public string $totalProcessingFees = '0.00';
 
     public int $activeSubscriptions = 0;
 
@@ -61,7 +61,7 @@ class PlatformOverview extends Page
         $this->totalDonationsVolume = number_format((float) (clone $succeededDonations)->sum('gross_amount'), 2, '.', '');
         $this->totalDonationsCount = Donation::query()->count();
 
-        $this->totalPlatformFees = number_format((float) PlatformFee::query()
+        $this->totalProcessingFees = number_format((float) ProcessingFee::query()
             ->where('status', 'paid')
             ->sum('fee_amount'), 2, '.', '');
 

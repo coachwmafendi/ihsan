@@ -50,7 +50,7 @@ function makeDonation(float $amount, DonationType $type, int $index, string $fre
         'donor_id' => $donor->getKey(),
         'gross_amount' => $amount,
         'stripe_fee' => 0,
-        'platform_fee' => 0,
+        'processing_fee' => 0,
         'net_amount' => $amount,
         'currency' => 'myr',
         'status' => DonationStatus::Pending,

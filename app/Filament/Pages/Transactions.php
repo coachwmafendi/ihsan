@@ -52,7 +52,7 @@ class Transactions extends Page implements HasTable
                     ->label('Amount')
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
                     ->sortable(),
-                TextColumn::make('platform_fee')
+                TextColumn::make('processing_fee')
                     ->label('Fee')
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
                     ->toggleable(),

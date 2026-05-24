@@ -10,7 +10,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
-use App\Models\PlatformFee;
+use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\WebhookLog;
 use Illuminate\Support\Facades\Queue;
@@ -70,7 +70,7 @@ it('marks a pending one time donation as succeeded from a payment intent webhook
     $donation = Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 50,
         'net_amount' => 50,
-        'platform_fee' => 0,
+        'processing_fee' => 0,
         'currency' => 'myr',
         'status' => DonationStatus::Pending,
         'type' => DonationType::OneTime,
@@ -85,7 +85,7 @@ it('marks a pending one time donation as succeeded from a payment intent webhook
     expect($donation->status)->toBe(DonationStatus::Succeeded)
         ->and($donation->stripe_charge_id)->toBe('ch_webhook_success_123')
         ->and($donation->net_amount)->toBe('50.00')
-        ->and($donation->platform_fee)->toBe('1.25')
+        ->and($donation->processing_fee)->toBe('1.25')
         ->and($campaign->collected_amount)->toBe('75.00')
         ->and(WebhookLog::query()->where('stripe_event_id', 'evt_webhook_success_123')->first()?->status)->toBe('completed');
 
@@ -104,7 +104,7 @@ it('does not process the same completed payment intent webhook twice', function 
     $donation = Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 50,
         'net_amount' => 50,
-        'platform_fee' => 0,
+        'processing_fee' => 0,
         'currency' => 'myr',
         'status' => DonationStatus::Pending,
         'type' => DonationType::OneTime,
@@ -240,7 +240,7 @@ it('creates recurring subscriptions in the connected account from payment intent
     $donation = Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 25,
         'net_amount' => 25,
-        'platform_fee' => 0,
+        'processing_fee' => 0,
         'currency' => 'myr',
         'status' => DonationStatus::Pending,
         'type' => DonationType::Recurring,
@@ -260,7 +260,7 @@ it('creates recurring subscriptions in the connected account from payment intent
         ->and($donation->payment_method_brand)->toBe('visa')
         ->and($donation->payment_method_type)->toBe('card')
         ->and($donation->stripe_fee)->toBe('1.50')
-        ->and($donation->platform_fee)->toBe('1.25')
+        ->and($donation->processing_fee)->toBe('1.25')
         ->and($donation->net_amount)->toBe('23.50')
         ->and($subscription)->not->toBeNull()
         ->and($subscription->campaign_id)->toBe($campaign->getKey());
@@ -373,7 +373,7 @@ it('syncs stripe details for an already succeeded connected donation without dup
     $donation = Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 201,
         'stripe_fee' => 0,
-        'platform_fee' => 0,
+        'processing_fee' => 0,
         'net_amount' => 201,
         'currency' => 'myr',
         'status' => DonationStatus::Succeeded,
@@ -394,7 +394,7 @@ it('syncs stripe details for an already succeeded connected donation without dup
         ->and($donation->payment_method_brand)->toBe('visa')
         ->and($donation->payment_method_type)->toBe('card')
         ->and($donation->stripe_fee)->toBe('9.04')
-        ->and($donation->platform_fee)->toBe('10.05')
+        ->and($donation->processing_fee)->toBe('10.05')
         ->and($donation->net_amount)->toBe('191.96')
         ->and($campaign->collected_amount)->toBe('201.00');
 
@@ -410,13 +410,13 @@ it('marks platform fee invoices as paid from stripe webhook', function () {
         'stripe_status' => 'open',
         'total_fees' => 100.00,
     ]);
-    $fee1 = PlatformFee::factory()->create([
+    $fee1 = ProcessingFee::factory()->create([
         'organization_id' => $organization->id,
         'fee_amount' => 50.00,
         'status' => 'invoiced',
         'monthly_invoice_id' => $invoice->id,
     ]);
-    $fee2 = PlatformFee::factory()->create([
+    $fee2 = ProcessingFee::factory()->create([
         'organization_id' => $organization->id,
         'fee_amount' => 50.00,
         'status' => 'invoiced',
@@ -437,7 +437,7 @@ it('marks platform fee invoices as paid from stripe webhook', function () {
                 'metadata' => [
                     'organization_id' => (string) $organization->id,
                     'period' => now()->subMonth()->format('Y-m-d'),
-                    'type' => 'platform_fees',
+                    'type' => 'processing_fees',
                 ],
                 'created' => now()->timestamp,
                 'period_start' => now()->subMonth()->timestamp,

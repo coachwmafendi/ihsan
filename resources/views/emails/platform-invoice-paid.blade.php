@@ -7,7 +7,7 @@
 
         <p>Hi <strong>{{ $invoice->organization->name }}</strong>,</p>
 
-        <p>Your platform fee payment for <strong>{{ \Carbon\Carbon::parse($invoice->period)->format('F Y') }}</strong> has been received successfully.</p>
+        <p>Your processing fee payment for <strong>{{ \Carbon\Carbon::parse($invoice->period)->format('F Y') }}</strong> has been received successfully.</p>
 
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Invoice</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $invoice->invoice_number }}</td></tr>

@@ -24,26 +24,26 @@ class SyncDonationStripeDetails
         ], $stripeOptions);
 
         [$cardBrand, $paymentMethodType] = $this->paymentMethodDetails($paymentIntent, $stripeOptions);
-        [$chargeId, $stripeFee, $platformFee] = $this->chargeDetails($donation, $paymentIntent, $stripeOptions, $shouldRetrieveMissingChargeDetails);
+        [$chargeId, $stripeFee, $processingFee] = $this->chargeDetails($donation, $paymentIntent, $stripeOptions, $shouldRetrieveMissingChargeDetails);
 
         $donation->update([
             'stripe_charge_id' => $chargeId,
             'stripe_fee' => $stripeFee,
-            'platform_fee' => $platformFee,
+            'processing_fee' => $processingFee,
             'payment_method_brand' => $cardBrand,
             'payment_method_type' => $paymentMethodType,
             'net_amount' => (float) $donation->gross_amount - $stripeFee,
         ]);
 
-        if ($platformFee > 0) {
+        if ($processingFee > 0) {
             $donation->loadMissing('campaign.organization');
             $organizationId = $donation->campaign?->organization_id;
 
             if ($organizationId !== null) {
-                $donation->platformFee()->create([
+                $donation->processingFee()->create([
                     'organization_id' => $organizationId,
-                    'fee_amount' => $platformFee,
-                    'fee_percentage' => $this->platformFeePercent(),
+                    'fee_amount' => $processingFee,
+                    'fee_percentage' => $this->processingFeePercent(),
                     'status' => 'pending',
                 ]);
             }
@@ -92,16 +92,16 @@ class SyncDonationStripeDetails
         $charge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
         $charge = $this->retrieveCharge($charge, $stripeOptions, $shouldRetrieveMissingChargeDetails);
         $chargeId = is_string($charge) ? $charge : ($charge->id ?? null);
-        $platformFee = round((float) $donation->gross_amount * $this->platformFeePercent() / 100, 2);
+        $processingFee = round((float) $donation->gross_amount * $this->processingFeePercent() / 100, 2);
         $stripeFee = 0.0;
         $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
 
         if ($balanceTransaction !== null) {
             $balanceTransaction = $this->retrieveBalanceTransaction($balanceTransaction, $stripeOptions);
-            [$stripeFee, $platformFee] = $this->feesFromBalanceTransaction($balanceTransaction, $platformFee);
+            [$stripeFee, $processingFee] = $this->feesFromBalanceTransaction($balanceTransaction, $processingFee);
         }
 
-        return [$chargeId, $stripeFee, $platformFee];
+        return [$chargeId, $stripeFee, $processingFee];
     }
 
     /**
@@ -152,29 +152,29 @@ class SyncDonationStripeDetails
     /**
      * @return array{0: float, 1: float}
      */
-    private function feesFromBalanceTransaction(mixed $balanceTransaction, float $fallbackPlatformFee): array
+    private function feesFromBalanceTransaction(mixed $balanceTransaction, float $fallbackProcessingFee): array
     {
         $feeDetails = collect($balanceTransaction->fee_details ?? []);
         $stripeFee = (float) ($feeDetails
             ->filter(fn (mixed $fee): bool => in_array(data_get($fee, 'type'), ['stripe_fee', 'stripe_processing_fee'], true))
             ->sum(fn (mixed $fee): int => (int) data_get($fee, 'amount', 0)) / 100);
-        $platformFee = (float) ($feeDetails
+        $processingFee = (float) ($feeDetails
             ->filter(fn (mixed $fee): bool => data_get($fee, 'type') === 'application_fee')
             ->sum(fn (mixed $fee): int => (int) data_get($fee, 'amount', 0)) / 100);
 
-        if ($platformFee <= 0) {
-            $platformFee = $fallbackPlatformFee;
+        if ($processingFee <= 0) {
+            $processingFee = $fallbackProcessingFee;
         }
 
         if ($stripeFee <= 0 && ($balanceTransaction->fee ?? 0) > 0) {
-            $stripeFee = max((float) ($balanceTransaction->fee / 100) - $platformFee, 0);
+            $stripeFee = max((float) ($balanceTransaction->fee / 100) - $processingFee, 0);
         }
 
-        return [$stripeFee, $platformFee];
+        return [$stripeFee, $processingFee];
     }
 
-    private function platformFeePercent(): float
+    private function processingFeePercent(): float
     {
-        return (float) config('services.stripe.platform_fee_percent', 2.5);
+        return (float) config('services.stripe.processing_fee_percent', 2.5);
     }
 }

@@ -48,13 +48,13 @@ class AppServiceProvider extends ServiceProvider
     protected function applyStripeConfig(): void
     {
         try {
-            $fee = Setting::get('stripe_platform_fee_percent');
+            $fee = Setting::get('payment_processing_fee_percent');
 
             if (blank($fee)) {
                 return;
             }
 
-            config(['services.stripe.platform_fee_percent' => (float) $fee]);
+            config(['services.stripe.processing_fee_percent' => (float) $fee]);
         } catch (\Throwable $e) {
             // Settings table might not exist yet
         }

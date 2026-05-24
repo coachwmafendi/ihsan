@@ -5,15 +5,15 @@ namespace Database\Factories;
 use App\Models\Donation;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
-use App\Models\PlatformFee;
+use App\Models\ProcessingFee;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<PlatformFee>
+ * @extends Factory<ProcessingFee>
  */
-class PlatformFeeFactory extends Factory
+class ProcessingFeeFactory extends Factory
 {
-    protected $model = PlatformFee::class;
+    protected $model = ProcessingFee::class;
 
     public function definition(): array
     {

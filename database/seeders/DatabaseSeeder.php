@@ -14,7 +14,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
 use App\Models\Organization;
-use App\Models\PlatformFee;
+use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -189,7 +189,7 @@ class DatabaseSeeder extends Seeder
         foreach ($donationRows as [$campaign, $donor, $amount, $type, $status, $daysAgo]) {
             $donation = Donation::factory()->for($campaign)->for($donor)->create([
                 'gross_amount' => $amount,
-                'platform_fee' => round($amount * 0.03, 2),
+                'processing_fee' => round($amount * 0.03, 2),
                 'net_amount' => round($amount * 0.935, 2),
                 'stripe_fee' => round($amount * 0.022 + 1.30, 2),
                 'status' => $status,
@@ -198,7 +198,7 @@ class DatabaseSeeder extends Seeder
             ]);
 
             if ($status === DonationStatus::Succeeded) {
-                PlatformFee::factory()->create([
+                ProcessingFee::factory()->create([
                     'donation_id' => $donation->id,
                     'organization_id' => $campaign->organization_id,
                     'fee_amount' => round($amount * 0.03, 2),

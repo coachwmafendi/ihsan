@@ -28,7 +28,7 @@ class Organization extends Model
             $organization->users()->delete();
             $organization->campaigns()->delete();
             $organization->elements()->delete();
-            $organization->platformFees()->delete();
+            $organization->processingFees()->delete();
             $organization->documents()->delete();
         });
     }
@@ -62,9 +62,9 @@ class Organization extends Model
         return $this->hasMany(Element::class);
     }
 
-    public function platformFees(): HasMany
+    public function processingFees(): HasMany
     {
-        return $this->hasMany(PlatformFee::class);
+        return $this->hasMany(ProcessingFee::class);
     }
 
     protected function casts(): array

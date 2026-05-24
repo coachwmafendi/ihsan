@@ -140,7 +140,7 @@ class DonationForm extends Component
             'donor_id' => $donor->getKey(),
             'gross_amount' => $validated['amount'],
             'stripe_fee' => 0,
-            'platform_fee' => 0,
+            'processing_fee' => 0,
             'net_amount' => $validated['amount'],
             'currency' => 'myr',
             'status' => DonationStatus::Pending,

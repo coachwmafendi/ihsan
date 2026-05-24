@@ -8,8 +8,8 @@
             </x-filament::section>
 
             <x-filament::section>
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Platform fees</div>
-                <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $totalPlatformFees }}</div>
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Processing fees</div>
+                <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $totalProcessingFees }}</div>
                 <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">Transferred to platform</div>
             </x-filament::section>
 

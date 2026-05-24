@@ -7,6 +7,8 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Stripe\Account as StripeAccount;
+use Stripe\Stripe;
 
 class Settings extends Page implements HasActions
 {
@@ -19,6 +21,19 @@ class Settings extends Page implements HasActions
     protected static ?string $navigationLabel = 'Settings';
 
     protected static ?int $navigationSort = 999;
+
+    public function stripeAccount(): ?StripeAccount
+    {
+        $org = auth()->user()->organization;
+
+        if ($org === null || $org->stripe_account_id === null) {
+            return null;
+        }
+
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        return StripeAccount::retrieve($org->stripe_account_id);
+    }
 
     public function reconnectAction(): Action
     {

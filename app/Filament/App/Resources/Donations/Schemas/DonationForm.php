@@ -38,7 +38,7 @@ class DonationForm
                             ->numeric()
                             ->prefix('MYR')
                             ->disabled(),
-                        TextInput::make('platform_fee')
+                        TextInput::make('processing_fee')
                             ->numeric()
                             ->prefix('MYR')
                             ->disabled(),

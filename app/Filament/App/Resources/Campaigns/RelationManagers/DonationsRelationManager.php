@@ -41,7 +41,7 @@ class DonationsRelationManager extends RelationManager
                     ->required()
                     ->numeric()
                     ->default(0),
-                TextInput::make('platform_fee')
+                TextInput::make('processing_fee')
                     ->required()
                     ->numeric()
                     ->default(0),

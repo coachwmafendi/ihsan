@@ -117,7 +117,7 @@
         </tr>
         <tr>
             <td class="label">Payment Method</td>
-            <td class="value">{{ $donation->payment_method_brand ?? 'Card' }}</td>
+            <td class="value">{{ $donation->payment_method_brand ? ucfirst($donation->payment_method_brand) : 'Card' }}</td>
         </tr>
         <tr>
             <td class="label">Status</td>
