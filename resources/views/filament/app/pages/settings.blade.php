@@ -83,8 +83,8 @@
 
     <x-filament::section heading="Notifications" icon="heroicon-o-bell-alert">
         <div class="grid grid-cols-1 divide-y divide-gray-200 dark:divide-gray-700">
-            <div class="flex items-center gap-4 py-3">
-                <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-3 py-3">
+                <div>
                     <p class="text-sm font-medium text-gray-950 dark:text-white">Notify new donation by email</p>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Receive an email for every successful donation</p>
                 </div>
@@ -93,8 +93,8 @@
                 </button>
             </div>
 
-            <div class="flex items-center gap-4 py-3">
-                <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-3 py-3">
+                <div>
                     <p class="text-sm font-medium text-gray-950 dark:text-white">Daily donation summary</p>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Get a daily summary of all donations received</p>
                 </div>
@@ -103,8 +103,8 @@
                 </button>
             </div>
 
-            <div class="flex items-center gap-4 py-3">
-                <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-3 py-3">
+                <div>
                     <p class="text-sm font-medium text-gray-950 dark:text-white">Failed monthly payment notification</p>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Alert when a recurring payment fails</p>
                 </div>
