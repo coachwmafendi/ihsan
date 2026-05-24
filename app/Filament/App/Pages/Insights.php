@@ -10,6 +10,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Element;
 use App\Models\Subscription;
+use Carbon\Carbon;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -89,15 +90,111 @@ class Insights extends Page
      */
     public array $recentDonations = [];
 
+    public string $dateRange = '7_days';
+
+    public ?int $selectedCampaignId = null;
+
+    public string $selectedCampaignLabel = 'All';
+
+    public string $frequencyFilter = 'all';
+
+    public string $aggregation = 'daily';
+
+    public bool $hasCampaigns = false;
+
+    public array $filterCampaigns = [];
+
     public function mount(): void
     {
-        $campaignIds = Campaign::query()
+        $this->filterCampaigns = Campaign::query()
             ->where('organization_id', auth()->user()->organization_id)
-            ->pluck('id');
+            ->pluck('title', 'id')
+            ->all();
+
+        $this->hasCampaigns = count($this->filterCampaigns) > 0;
+
+        $this->loadData();
+    }
+
+    public function setActiveTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+    }
+
+    public function cycleDateRange(): void
+    {
+        $options = ['7_days', '30_days', '90_days', 'all'];
+        $index = array_search($this->dateRange, $options);
+        $this->dateRange = $options[($index + 1) % count($options)];
+        $this->loadData();
+    }
+
+    public function cycleCampaign(): void
+    {
+        $campaignIds = array_keys($this->filterCampaigns);
+
+        if (empty($campaignIds)) {
+            return;
+        }
+
+        if ($this->selectedCampaignId === null) {
+            $this->selectedCampaignId = $campaignIds[0];
+        } else {
+            $index = array_search($this->selectedCampaignId, $campaignIds);
+
+            if ($index === false || $index === count($campaignIds) - 1) {
+                $this->selectedCampaignId = null;
+            } else {
+                $this->selectedCampaignId = $campaignIds[$index + 1];
+            }
+        }
+
+        $this->selectedCampaignLabel = $this->selectedCampaignId !== null
+            ? ($this->filterCampaigns[$this->selectedCampaignId] ?? 'All')
+            : 'All';
+
+        $this->loadData();
+    }
+
+    public function cycleFrequency(): void
+    {
+        $options = ['all', 'one_time', 'recurring'];
+        $index = array_search($this->frequencyFilter, $options);
+        $this->frequencyFilter = $options[($index + 1) % count($options)];
+        $this->loadData();
+    }
+
+    private function getDateStart()
+    {
+        return match ($this->dateRange) {
+            '7_days' => Carbon::now()->subDays(7)->startOfDay(),
+            '30_days' => Carbon::now()->subDays(30)->startOfDay(),
+            '90_days' => Carbon::now()->subDays(90)->startOfDay(),
+            default => null,
+        };
+    }
+
+    private function loadData(): void
+    {
+        $campaignIdsQuery = Campaign::query()
+            ->where('organization_id', auth()->user()->organization_id);
+
+        if ($this->selectedCampaignId !== null) {
+            $campaignIdsQuery->where('id', $this->selectedCampaignId);
+        }
+
+        $campaignIds = $campaignIdsQuery->pluck('id');
+        $dateStart = $this->getDateStart();
 
         $successfulDonations = Donation::query()
             ->whereIn('campaign_id', $campaignIds)
             ->where('status', DonationStatus::Succeeded);
+
+        $this->applyDateFilter($successfulDonations, $dateStart);
+
+        if ($this->frequencyFilter !== 'all') {
+            $successfulDonations->where('type', $this->frequencyFilter === 'one_time' ? DonationType::OneTime : DonationType::Recurring);
+        }
 
         $this->totalRaised = $this->formatMoney((float) (clone $successfulDonations)->sum('gross_amount'));
 
@@ -123,9 +220,16 @@ class Insights extends Page
 
         $this->successfulDonationsCount = (clone $successfulDonations)->count();
 
-        $this->totalDonationsCount = Donation::query()
-            ->whereIn('campaign_id', $campaignIds)
-            ->count();
+        $totalDonationsQuery = Donation::query()
+            ->whereIn('campaign_id', $campaignIds);
+
+        $this->applyDateFilter($totalDonationsQuery, $dateStart);
+
+        if ($this->frequencyFilter !== 'all') {
+            $totalDonationsQuery->where('type', $this->frequencyFilter === 'one_time' ? DonationType::OneTime : DonationType::Recurring);
+        }
+
+        $this->totalDonationsCount = $totalDonationsQuery->count();
 
         $this->averageDonationAmount = $this->formatMoney($this->successfulDonationsCount === 0
             ? 0
@@ -146,26 +250,28 @@ class Insights extends Page
             : round(($this->successfulDonationsCount / $this->totalDonationsCount) * 100));
 
         $this->dailyRevenue = $this->buildDailyRevenue((clone $successfulDonations)->get());
-        $this->frequencyBreakdown = $this->buildFrequencyBreakdown($campaignIds->all());
-        $this->statusBreakdown = $this->buildStatusBreakdown($campaignIds->all());
-        $this->recentDonations = $this->buildRecentDonations($campaignIds->all());
+        $this->frequencyBreakdown = $this->buildFrequencyBreakdown($campaignIds->all(), $dateStart);
+        $this->statusBreakdown = $this->buildStatusBreakdown($campaignIds->all(), $dateStart);
+        $this->recentDonations = $this->buildRecentDonations($campaignIds->all(), $dateStart);
 
         $this->monthlyRevenue = $this->buildMonthlyRevenue($campaignIds->all());
-        $this->campaignPerformance = $this->buildCampaignPerformance($campaignIds->all());
+        $this->campaignPerformance = $this->buildCampaignPerformance($campaignIds->all(), $dateStart);
         $this->subscriptionStatusDistribution = $this->buildSubscriptionStatusDistribution($campaignIds->all());
         $this->subscriptionIntervalBreakdown = $this->buildSubscriptionIntervalBreakdown($campaignIds->all());
         $this->mrrOverview = $this->buildMrrOverview($campaignIds->all());
         $this->subscriptionTrend = $this->buildSubscriptionTrend($campaignIds->all());
-        $this->retentionOverview = $this->buildRetentionOverview($campaignIds->all());
-        $this->paymentBrandBreakdown = $this->buildPaymentBrandBreakdown($campaignIds->all());
-        $this->paymentTypeBreakdown = $this->buildPaymentTypeBreakdown($campaignIds->all());
+        $this->retentionOverview = $this->buildRetentionOverview($campaignIds->all(), $dateStart);
+        $this->paymentBrandBreakdown = $this->buildPaymentBrandBreakdown($campaignIds->all(), $dateStart);
+        $this->paymentTypeBreakdown = $this->buildPaymentTypeBreakdown($campaignIds->all(), $dateStart);
         $this->elementsList = $this->buildElementsList();
-        $this->campaignUrlPerformance = $this->buildCampaignUrlPerformance($campaignIds->all());
+        $this->campaignUrlPerformance = $this->buildCampaignUrlPerformance($campaignIds->all(), $dateStart);
     }
 
-    public function setActiveTab(string $tab): void
+    private function applyDateFilter($query, $dateStart): void
     {
-        $this->activeTab = $tab;
+        if ($dateStart !== null) {
+            $query->where('created_at', '>=', $dateStart);
+        }
     }
 
     private function formatMoney(float $amount): string
@@ -204,23 +310,24 @@ class Insights extends Page
      * @param  array<int, int>  $campaignIds
      * @return array<int, array{label: string, value: string}>
      */
-    private function buildFrequencyBreakdown(array $campaignIds): array
+    private function buildFrequencyBreakdown(array $campaignIds, $dateStart = null): array
     {
-        $oneTimeTotal = Donation::query()
+        $oneTimeQuery = Donation::query()
             ->whereIn('campaign_id', $campaignIds)
             ->where('status', DonationStatus::Succeeded)
-            ->where('type', DonationType::OneTime)
-            ->sum('gross_amount');
+            ->where('type', DonationType::OneTime);
 
-        $recurringTotal = Donation::query()
+        $recurringQuery = Donation::query()
             ->whereIn('campaign_id', $campaignIds)
             ->where('status', DonationStatus::Succeeded)
-            ->where('type', DonationType::Recurring)
-            ->sum('gross_amount');
+            ->where('type', DonationType::Recurring);
+
+        $this->applyDateFilter($oneTimeQuery, $dateStart);
+        $this->applyDateFilter($recurringQuery, $dateStart);
 
         return [
-            ['label' => 'One-time', 'value' => 'MYR '.$this->formatMoney((float) $oneTimeTotal)],
-            ['label' => 'Recurring', 'value' => 'MYR '.$this->formatMoney((float) $recurringTotal)],
+            ['label' => 'One-time', 'value' => 'MYR '.$this->formatMoney((float) $oneTimeQuery->sum('gross_amount'))],
+            ['label' => 'Recurring', 'value' => 'MYR '.$this->formatMoney((float) $recurringQuery->sum('gross_amount'))],
         ];
     }
 
@@ -228,7 +335,7 @@ class Insights extends Page
      * @param  array<int, int>  $campaignIds
      * @return array<int, array{label: string, value: string}>
      */
-    private function buildStatusBreakdown(array $campaignIds): array
+    private function buildStatusBreakdown(array $campaignIds, $dateStart = null): array
     {
         return collect(DonationStatus::cases())
             ->map(fn (DonationStatus $status): array => [
@@ -236,6 +343,7 @@ class Insights extends Page
                 'value' => (string) Donation::query()
                     ->whereIn('campaign_id', $campaignIds)
                     ->where('status', $status)
+                    ->when($dateStart !== null, fn ($q) => $q->where('created_at', '>=', $dateStart))
                     ->count(),
             ])
             ->all();
@@ -245,11 +353,12 @@ class Insights extends Page
      * @param  array<int, int>  $campaignIds
      * @return array<int, array{donor: string, campaign: string, amount: string, type: string}>
      */
-    private function buildRecentDonations(array $campaignIds): array
+    private function buildRecentDonations(array $campaignIds, $dateStart = null): array
     {
         return Donation::query()
             ->with(['campaign:id,title', 'donor:id,name'])
             ->whereIn('campaign_id', $campaignIds)
+            ->when($dateStart !== null, fn ($q) => $q->where('created_at', '>=', $dateStart))
             ->latest()
             ->limit(5)
             ->get()
@@ -305,7 +414,7 @@ class Insights extends Page
      * @param  array<int, int>  $campaignIds
      * @return array<int, array{campaign: string, total: string, donationCount: int, successRate: string}>
      */
-    private function buildCampaignPerformance(array $campaignIds): array
+    private function buildCampaignPerformance(array $campaignIds, $dateStart = null): array
     {
         $campaigns = Campaign::whereIn('id', $campaignIds)->get()->keyBy('id');
 
@@ -315,6 +424,7 @@ class Insights extends Page
             ->selectRaw('COUNT(*) as total_count')
             ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as success_count', [DonationStatus::Succeeded->value])
             ->whereIn('campaign_id', $campaignIds)
+            ->when($dateStart !== null, fn ($q) => $q->where('created_at', '>=', $dateStart))
             ->groupBy('campaign_id')
             ->orderByDesc('total')
             ->limit(10)
@@ -441,7 +551,7 @@ class Insights extends Page
      * @param  array<int, int>  $campaignIds
      * @return array{totalDonors: int, repeatDonors: int, repeatRate: string, newThisMonth: int, returningThisMonth: int}
      */
-    private function buildRetentionOverview(array $campaignIds): array
+    private function buildRetentionOverview(array $campaignIds, $dateStart = null): array
     {
         $donorDonationCounts = Donation::query()
             ->selectRaw('donor_id')
@@ -449,6 +559,7 @@ class Insights extends Page
             ->selectRaw('MIN(created_at) as first_donation')
             ->whereIn('campaign_id', $campaignIds)
             ->where('status', DonationStatus::Succeeded)
+            ->when($dateStart !== null, fn ($q) => $q->where('created_at', '>=', $dateStart))
             ->groupBy('donor_id')
             ->get();
 
@@ -463,6 +574,7 @@ class Insights extends Page
             ->whereIn('campaign_id', $campaignIds)
             ->where('status', DonationStatus::Succeeded)
             ->where('created_at', '>=', now()->startOfMonth())
+            ->when($dateStart !== null, fn ($q) => $q->where('created_at', '>=', $dateStart))
             ->whereIn('donor_id', function ($q) use ($campaignIds) {
                 $q->select('donor_id')
                     ->from('donations')
@@ -487,12 +599,13 @@ class Insights extends Page
      * @param  array<int, int>  $campaignIds
      * @return array<int, array{brand: string, count: int, percentage: float}>
      */
-    private function buildPaymentBrandBreakdown(array $campaignIds): array
+    private function buildPaymentBrandBreakdown(array $campaignIds, $dateStart = null): array
     {
         $total = Donation::query()
             ->whereIn('campaign_id', $campaignIds)
             ->where('status', DonationStatus::Succeeded)
             ->whereNotNull('payment_method_brand')
+            ->when($dateStart !== null, fn ($q) => $q->where('created_at', '>=', $dateStart))
             ->count();
 
         $rows = Donation::query()
@@ -501,6 +614,7 @@ class Insights extends Page
             ->whereIn('campaign_id', $campaignIds)
             ->where('status', DonationStatus::Succeeded)
             ->whereNotNull('payment_method_brand')
+            ->when($dateStart !== null, fn ($q) => $q->where('created_at', '>=', $dateStart))
             ->groupBy('payment_method_brand')
             ->orderByDesc('count')
             ->get()
@@ -518,12 +632,13 @@ class Insights extends Page
      * @param  array<int, int>  $campaignIds
      * @return array<int, array{type: string, count: int, total: string, percentage: float}>
      */
-    private function buildPaymentTypeBreakdown(array $campaignIds): array
+    private function buildPaymentTypeBreakdown(array $campaignIds, $dateStart = null): array
     {
         $total = Donation::query()
             ->whereIn('campaign_id', $campaignIds)
             ->where('status', DonationStatus::Succeeded)
             ->whereNotNull('payment_method_type')
+            ->when($dateStart !== null, fn ($q) => $q->where('created_at', '>=', $dateStart))
             ->count();
 
         return Donation::query()
@@ -533,6 +648,7 @@ class Insights extends Page
             ->whereIn('campaign_id', $campaignIds)
             ->where('status', DonationStatus::Succeeded)
             ->whereNotNull('payment_method_type')
+            ->when($dateStart !== null, fn ($q) => $q->where('created_at', '>=', $dateStart))
             ->groupBy('payment_method_type')
             ->orderByDesc('count')
             ->get()
@@ -567,7 +683,7 @@ class Insights extends Page
      * @param  array<int, int>  $campaignIds
      * @return array<int, array{campaign: string, totalDonations: int, totalAmount: string, donationCount: int}>
      */
-    private function buildCampaignUrlPerformance(array $campaignIds): array
+    private function buildCampaignUrlPerformance(array $campaignIds, $dateStart = null): array
     {
         $campaigns = Campaign::whereIn('id', $campaignIds)->get()->keyBy('id');
 
@@ -577,6 +693,7 @@ class Insights extends Page
             ->selectRaw('COUNT(CASE WHEN status = ? THEN 1 END) as successful_count', [DonationStatus::Succeeded->value])
             ->selectRaw('SUM(CASE WHEN status = ? THEN gross_amount ELSE 0 END) as total_amount', [DonationStatus::Succeeded->value])
             ->whereIn('campaign_id', $campaignIds)
+            ->when($dateStart !== null, fn ($q) => $q->where('created_at', '>=', $dateStart))
             ->groupBy('campaign_id')
             ->orderByDesc('total_amount')
             ->limit(10)

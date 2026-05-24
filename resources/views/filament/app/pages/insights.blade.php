@@ -1,20 +1,32 @@
 <x-filament-panels::page>
     <div class="space-y-6">
         <div class="flex flex-wrap items-center gap-2">
-            <span class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
-                Date Last 7 days
+            <span
+                wire:click="cycleDateRange"
+                class="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+                title="Click to change date range"
+            >
+                Date {{ str_replace('_', ' ', ucfirst($dateRange)) }}
             </span>
             <span class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
                 Aggregation Daily
             </span>
-            <span class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
-                Campaign All
+            <span
+                wire:click="cycleCampaign"
+                class="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+                title="Click to change campaign"
+            >
+                Campaign {{ $selectedCampaignLabel }}
             </span>
             <span class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
                 Source Direct + UTM
             </span>
-            <span class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
-                Frequency All
+            <span
+                wire:click="cycleFrequency"
+                class="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+                title="Click to change frequency"
+            >
+                Frequency {{ $frequencyFilter === 'all' ? 'All' : ucfirst(str_replace('_', ' ', $frequencyFilter)) }}
             </span>
         </div>
 
