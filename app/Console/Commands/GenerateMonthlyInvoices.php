@@ -17,7 +17,7 @@ use Stripe\InvoiceItem;
 use Stripe\Stripe;
 
 #[Signature('ihsan:generate-monthly-invoices {--period= : The period to invoice for (Y-m-d format, defaults to previous month)}')]
-#[Description('Generate Stripe Invoices for accumulated platform fees')]
+#[Description('Generate Stripe Invoices for accumulated processing fees')]
 class GenerateMonthlyInvoices extends Command
 {
     public function handle(): int
@@ -82,7 +82,7 @@ class GenerateMonthlyInvoices extends Command
                     'collection_method' => 'send_invoice',
                     'days_until_due' => 14,
                     'pending_invoice_items_behavior' => 'exclude',
-                    'description' => "Ihsan Platform Fees for {$period->format('F Y')} — {$organization->name}",
+                    'description' => "Ihsan Processing Fees for {$period->format('F Y')} — {$organization->name}",
                     'metadata' => [
                         'organization_id' => (string) $organization->id,
                         'period' => $period->format('Y-m-d'),
@@ -95,7 +95,7 @@ class GenerateMonthlyInvoices extends Command
                     'invoice' => $stripeInvoice->id,
                     'amount' => (int) ($totalFees * 100),
                     'currency' => 'myr',
-                    'description' => "Ihsan Platform Fees — {$period->format('F Y')}",
+                    'description' => "Ihsan Processing Fees — {$period->format('F Y')}",
                 ]);
 
                 $stripeInvoice->finalizeInvoice();

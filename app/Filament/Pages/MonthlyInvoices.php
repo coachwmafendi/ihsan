@@ -141,7 +141,7 @@ class MonthlyInvoices extends Page implements HasTable
                     })
                     ->requiresConfirmation()
                     ->modalHeading('Generate Monthly Invoices')
-                    ->modalDescription('This will create Stripe Invoices for all pending platform fees from the previous month. Continue?'),
+                    ->modalDescription('This will create Stripe Invoices for all pending processing fees from the previous month. Continue?'),
             ]);
     }
 }
