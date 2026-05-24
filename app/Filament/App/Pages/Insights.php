@@ -4,9 +4,11 @@ namespace App\Filament\App\Pages;
 
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
+use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
 use App\Models\Donation;
+use App\Models\Element;
 use App\Models\Subscription;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Collection;
@@ -42,6 +44,30 @@ class Insights extends Page
     public int $pastDueSubscriptionsCount = 0;
 
     public string $successRate = '0';
+
+    public string $activeTab = 'overview';
+
+    public array $monthlyRevenue = [];
+
+    public array $campaignPerformance = [];
+
+    public array $subscriptionStatusDistribution = [];
+
+    public array $subscriptionIntervalBreakdown = [];
+
+    public array $mrrOverview = [];
+
+    public array $subscriptionTrend = [];
+
+    public array $retentionOverview = [];
+
+    public array $paymentBrandBreakdown = [];
+
+    public array $paymentTypeBreakdown = [];
+
+    public array $elementsList = [];
+
+    public array $campaignUrlPerformance = [];
 
     /**
      * @var array<int, array{label: string, amount: string, height: int}>
@@ -123,6 +149,23 @@ class Insights extends Page
         $this->frequencyBreakdown = $this->buildFrequencyBreakdown($campaignIds->all());
         $this->statusBreakdown = $this->buildStatusBreakdown($campaignIds->all());
         $this->recentDonations = $this->buildRecentDonations($campaignIds->all());
+
+        $this->monthlyRevenue = $this->buildMonthlyRevenue($campaignIds->all());
+        $this->campaignPerformance = $this->buildCampaignPerformance($campaignIds->all());
+        $this->subscriptionStatusDistribution = $this->buildSubscriptionStatusDistribution($campaignIds->all());
+        $this->subscriptionIntervalBreakdown = $this->buildSubscriptionIntervalBreakdown($campaignIds->all());
+        $this->mrrOverview = $this->buildMrrOverview($campaignIds->all());
+        $this->subscriptionTrend = $this->buildSubscriptionTrend($campaignIds->all());
+        $this->retentionOverview = $this->buildRetentionOverview($campaignIds->all());
+        $this->paymentBrandBreakdown = $this->buildPaymentBrandBreakdown($campaignIds->all());
+        $this->paymentTypeBreakdown = $this->buildPaymentTypeBreakdown($campaignIds->all());
+        $this->elementsList = $this->buildElementsList();
+        $this->campaignUrlPerformance = $this->buildCampaignUrlPerformance($campaignIds->all());
+    }
+
+    public function setActiveTab(string $tab): void
+    {
+        $this->activeTab = $tab;
     }
 
     private function formatMoney(float $amount): string
@@ -215,6 +258,330 @@ class Insights extends Page
                 'campaign' => $donation->campaign->title,
                 'amount' => 'MYR '.$this->formatMoney((float) $donation->gross_amount),
                 'type' => str($donation->type->value)->headline()->toString(),
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  array<int, int>  $campaignIds
+     * @return array<int, array{month: string, amount: string, successRate: string, averageAmount: string}>
+     */
+    private function buildMonthlyRevenue(array $campaignIds): array
+    {
+        $raw = Donation::query()
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month")
+            ->selectRaw('SUM(CASE WHEN status = ? THEN gross_amount ELSE 0 END) as total', [DonationStatus::Succeeded->value])
+            ->selectRaw('COUNT(*) as total_count')
+            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as success_count', [DonationStatus::Succeeded->value])
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('created_at', '>=', now()->subMonths(12)->startOfMonth())
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get()
+            ->keyBy('month');
+
+        return collect(range(11, 0))
+            ->map(fn (int $i) => now()->subMonthsNoOverflow($i)->format('Y-m'))
+            ->reverse()
+            ->values()
+            ->map(fn (string $month) => [
+                'month' => now()->parse($month.'-01')->format('M Y'),
+                'amount' => $this->formatMoney((float) ($raw[$month]->total ?? 0)),
+                'successRate' => isset($raw[$month]) && $raw[$month]->total_count > 0
+                    ? round(($raw[$month]->success_count / $raw[$month]->total_count) * 100).'%'
+                    : '0%',
+                'averageAmount' => $this->formatMoney(
+                    isset($raw[$month]) && $raw[$month]->success_count > 0
+                        ? (float) $raw[$month]->total / $raw[$month]->success_count
+                        : 0
+                ),
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  array<int, int>  $campaignIds
+     * @return array<int, array{campaign: string, total: string, donationCount: int, successRate: string}>
+     */
+    private function buildCampaignPerformance(array $campaignIds): array
+    {
+        return Donation::query()
+            ->selectRaw('campaign_id')
+            ->selectRaw('SUM(CASE WHEN status = ? THEN gross_amount ELSE 0 END) as total', [DonationStatus::Succeeded->value])
+            ->selectRaw('COUNT(*) as total_count')
+            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as success_count', [DonationStatus::Succeeded->value])
+            ->whereIn('campaign_id', $campaignIds)
+            ->groupBy('campaign_id')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get()
+            ->map(fn ($row) => [
+                'campaign' => Campaign::find($row->campaign_id)?->title ?? 'Unknown',
+                'total' => 'MYR '.$this->formatMoney((float) $row->total),
+                'donationCount' => (int) $row->success_count,
+                'successRate' => $row->total_count > 0
+                    ? round(($row->success_count / $row->total_count) * 100).'%'
+                    : '0%',
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  array<int, int>  $campaignIds
+     * @return array<int, array{status: string, count: int, label: string}>
+     */
+    private function buildSubscriptionStatusDistribution(array $campaignIds): array
+    {
+        return collect(SubscriptionStatus::cases())
+            ->map(fn (SubscriptionStatus $status) => [
+                'status' => $status->value,
+                'count' => Subscription::query()
+                    ->whereIn('campaign_id', $campaignIds)
+                    ->where('status', $status)
+                    ->count(),
+                'label' => str($status->value)->headline()->toString(),
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  array<int, int>  $campaignIds
+     * @return array<int, array{interval: string, count: int, total: string}>
+     */
+    private function buildSubscriptionIntervalBreakdown(array $campaignIds): array
+    {
+        return collect(SubscriptionInterval::cases())
+            ->map(fn (SubscriptionInterval $interval) => [
+                'interval' => str($interval->value)->headline()->toString(),
+                'count' => Subscription::query()
+                    ->whereIn('campaign_id', $campaignIds)
+                    ->where('status', SubscriptionStatus::Active)
+                    ->where('interval', $interval)
+                    ->count(),
+                'total' => 'MYR '.$this->formatMoney((float) Subscription::query()
+                    ->whereIn('campaign_id', $campaignIds)
+                    ->where('status', SubscriptionStatus::Active)
+                    ->where('interval', $interval)
+                    ->sum('amount')),
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  array<int, int>  $campaignIds
+     * @return array{currentMrr: string, activeCount: int, newThisMonth: int, cancelledThisMonth: int}
+     */
+    private function buildMrrOverview(array $campaignIds): array
+    {
+        $activeSubs = Subscription::query()->whereIn('campaign_id', $campaignIds)->where('status', SubscriptionStatus::Active);
+
+        $mrr = (float) (clone $activeSubs)->where('interval', 'monthly')->sum('amount');
+
+        $newThisMonth = Subscription::query()
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->count();
+
+        $cancelledThisMonth = Subscription::query()
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('status', SubscriptionStatus::Cancelled)
+            ->where('cancelled_at', '>=', now()->startOfMonth())
+            ->count();
+
+        return [
+            'currentMrr' => 'MYR '.$this->formatMoney($mrr),
+            'activeCount' => (clone $activeSubs)->count(),
+            'newThisMonth' => $newThisMonth,
+            'cancelledThisMonth' => $cancelledThisMonth,
+        ];
+    }
+
+    /**
+     * @param  array<int, int>  $campaignIds
+     * @return array<int, array{month: string, newSubs: int, cancelledSubs: int, totalActive: int}>
+     */
+    private function buildSubscriptionTrend(array $campaignIds): array
+    {
+        $subscriptions = Subscription::query()
+            ->whereIn('campaign_id', $campaignIds)
+            ->get();
+
+        return collect(range(5, 0))
+            ->map(fn (int $i) => now()->subMonthsNoOverflow($i)->startOfMonth())
+            ->reverse()
+            ->values()
+            ->map(function ($monthStart) use ($subscriptions) {
+                $monthEnd = (clone $monthStart)->endOfMonth();
+
+                $newSubs = $subscriptions
+                    ->filter(fn (Subscription $s) => $s->created_at->between($monthStart, $monthEnd))
+                    ->count();
+
+                $cancelledSubs = $subscriptions
+                    ->filter(fn (Subscription $s) => $s->cancelled_at !== null && $s->cancelled_at->between($monthStart, $monthEnd))
+                    ->count();
+
+                $totalActive = $subscriptions
+                    ->filter(fn (Subscription $s) => $s->status === SubscriptionStatus::Active && $s->created_at <= $monthEnd)
+                    ->count();
+
+                return [
+                    'month' => $monthStart->format('M Y'),
+                    'newSubs' => $newSubs,
+                    'cancelledSubs' => $cancelledSubs,
+                    'totalActive' => $totalActive,
+                ];
+            })
+            ->all();
+    }
+
+    /**
+     * @param  array<int, int>  $campaignIds
+     * @return array{totalDonors: int, repeatDonors: int, repeatRate: string, newThisMonth: int, returningThisMonth: int}
+     */
+    private function buildRetentionOverview(array $campaignIds): array
+    {
+        $donorDonationCounts = Donation::query()
+            ->selectRaw('donor_id')
+            ->selectRaw('COUNT(*) as donation_count')
+            ->selectRaw('MIN(created_at) as first_donation')
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('status', DonationStatus::Succeeded)
+            ->groupBy('donor_id')
+            ->get();
+
+        $totalDonors = $donorDonationCounts->count();
+        $repeatDonors = $donorDonationCounts->filter(fn ($d) => $d->donation_count > 1)->count();
+
+        $newThisMonth = $donorDonationCounts
+            ->filter(fn ($d) => $d->first_donation >= now()->startOfMonth())
+            ->count();
+
+        $returningThisMonth = Donation::query()
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('status', DonationStatus::Succeeded)
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->whereIn('donor_id', function ($q) use ($campaignIds) {
+                $q->select('donor_id')
+                    ->from('donations')
+                    ->whereIn('campaign_id', $campaignIds)
+                    ->where('status', DonationStatus::Succeeded)
+                    ->where('created_at', '<', now()->startOfMonth())
+                    ->groupBy('donor_id');
+            })
+            ->distinct('donor_id')
+            ->count('donor_id');
+
+        return [
+            'totalDonors' => $totalDonors,
+            'repeatDonors' => $repeatDonors,
+            'repeatRate' => $totalDonors > 0 ? round(($repeatDonors / $totalDonors) * 100).'%' : '0%',
+            'newThisMonth' => $newThisMonth,
+            'returningThisMonth' => $returningThisMonth,
+        ];
+    }
+
+    /**
+     * @param  array<int, int>  $campaignIds
+     * @return array<int, array{brand: string, count: int, percentage: float}>
+     */
+    private function buildPaymentBrandBreakdown(array $campaignIds): array
+    {
+        $total = Donation::query()
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('status', DonationStatus::Succeeded)
+            ->whereNotNull('payment_method_brand')
+            ->count();
+
+        $rows = Donation::query()
+            ->selectRaw('payment_method_brand')
+            ->selectRaw('COUNT(*) as count')
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('status', DonationStatus::Succeeded)
+            ->whereNotNull('payment_method_brand')
+            ->groupBy('payment_method_brand')
+            ->orderByDesc('count')
+            ->get()
+            ->map(fn ($row) => [
+                'brand' => str($row->payment_method_brand)->headline()->toString(),
+                'count' => (int) $row->count,
+                'percentage' => $total > 0 ? round(((int) $row->count / $total) * 100, 1) : 0,
+            ])
+            ->all();
+
+        return $rows;
+    }
+
+    /**
+     * @param  array<int, int>  $campaignIds
+     * @return array<int, array{type: string, count: int, total: string, percentage: float}>
+     */
+    private function buildPaymentTypeBreakdown(array $campaignIds): array
+    {
+        $total = Donation::query()
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('status', DonationStatus::Succeeded)
+            ->whereNotNull('payment_method_type')
+            ->count();
+
+        return Donation::query()
+            ->selectRaw('payment_method_type')
+            ->selectRaw('COUNT(*) as count')
+            ->selectRaw('SUM(gross_amount) as total_amount')
+            ->whereIn('campaign_id', $campaignIds)
+            ->where('status', DonationStatus::Succeeded)
+            ->whereNotNull('payment_method_type')
+            ->groupBy('payment_method_type')
+            ->orderByDesc('count')
+            ->get()
+            ->map(fn ($row) => [
+                'type' => str($row->payment_method_type)->headline()->toString(),
+                'count' => (int) $row->count,
+                'total' => 'MYR '.$this->formatMoney((float) $row->total_amount),
+                'percentage' => $total > 0 ? round(((int) $row->count / $total) * 100, 1) : 0,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{name: string, type: string, campaign: string, isActive: bool}>
+     */
+    private function buildElementsList(): array
+    {
+        return Element::query()
+            ->with('campaign:id,title')
+            ->where('organization_id', auth()->user()->organization_id)
+            ->get()
+            ->map(fn (Element $element) => [
+                'name' => $element->name,
+                'type' => str($element->type->value)->headline()->toString(),
+                'campaign' => $element->campaign?->title ?? '-',
+                'isActive' => $element->is_active,
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  array<int, int>  $campaignIds
+     * @return array<int, array{campaign: string, totalDonations: int, totalAmount: string, donationCount: int}>
+     */
+    private function buildCampaignUrlPerformance(array $campaignIds): array
+    {
+        return Donation::query()
+            ->selectRaw('campaign_id')
+            ->selectRaw('COUNT(*) as total_donations')
+            ->selectRaw('COUNT(CASE WHEN status = ? THEN 1 END) as successful_count', [DonationStatus::Succeeded->value])
+            ->selectRaw('SUM(CASE WHEN status = ? THEN gross_amount ELSE 0 END) as total_amount', [DonationStatus::Succeeded->value])
+            ->whereIn('campaign_id', $campaignIds)
+            ->groupBy('campaign_id')
+            ->orderByDesc('total_amount')
+            ->limit(10)
+            ->get()
+            ->map(fn ($row) => [
+                'campaign' => Campaign::find($row->campaign_id)?->title ?? 'Unknown',
+                'totalDonations' => (int) $row->total_donations,
+                'totalAmount' => 'MYR '.$this->formatMoney((float) $row->total_amount),
+                'donationCount' => (int) $row->successful_count,
             ])
             ->all();
     }
