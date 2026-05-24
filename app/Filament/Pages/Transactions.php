@@ -57,7 +57,7 @@ class Transactions extends Page implements HasTable
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
                     ->toggleable(),
                 TextColumn::make('net_amount')
-                    ->label('NGO receives')
+                    ->label('Org receives')
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
                     ->toggleable(),
                 TextColumn::make('type')
@@ -74,10 +74,15 @@ class Transactions extends Page implements HasTable
                     ->sortable(),
             ])
             ->filters([
+                SelectFilter::make('organization')
+                    ->label('Organisation')
+                    ->relationship('campaign.organization', 'name')
+                    ->searchable(),
                 SelectFilter::make('period')
                     ->label('Period')
                     ->options([
                         'today' => 'Today',
+                        'yesterday' => 'Yesterday',
                         '7_days' => '7 Days',
                         '14_days' => '14 Days',
                         '30_days' => '30 Days',
@@ -87,6 +92,7 @@ class Transactions extends Page implements HasTable
                     ->query(function (Builder $query, array $data): Builder {
                         return match ($data['value'] ?? null) {
                             'today' => $query->whereDate('created_at', today()),
+                            'yesterday' => $query->whereDate('created_at', today()->subDay()),
                             '7_days' => $query->whereDate('created_at', '>=', today()->subDays(7)),
                             '14_days' => $query->whereDate('created_at', '>=', today()->subDays(14)),
                             '30_days' => $query->whereDate('created_at', '>=', today()->subDays(30)),

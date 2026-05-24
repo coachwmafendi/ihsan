@@ -52,7 +52,11 @@ class SubscriptionsTable
             ])
             ->filters([
                 SelectFilter::make('status')
-                    ->options(SubscriptionStatus::class),
+                    ->options(collect(SubscriptionStatus::cases())
+                        ->mapWithKeys(fn (SubscriptionStatus $case) => [
+                            $case->value => str($case->value)->headline()->toString(),
+                        ])
+                        ->toArray()),
                 SelectFilter::make('interval')
                     ->options(SubscriptionInterval::class),
             ])
