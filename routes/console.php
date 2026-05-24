@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('ihsan:generate-monthly-invoices')->monthlyOn(1, '08:00');
+Schedule::command('ihsan:send-daily-summary')->dailyAt('09:00');

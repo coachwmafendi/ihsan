@@ -115,6 +115,7 @@ class ProcessStripeWebhook implements ShouldQueue
 
         if ($wasPending) {
             SendDonationReceipt::dispatch($donation);
+            SendNewDonationNotification::dispatch($donation);
         }
 
         SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
@@ -141,9 +142,21 @@ class ProcessStripeWebhook implements ShouldQueue
             return;
         }
 
-        Donation::query()->whereKey($donationId)->update([
+        $donation = Donation::query()->whereKey($donationId)->first();
+
+        if ($donation === null) {
+            return;
+        }
+
+        $donation->update([
             'status' => DonationStatus::Failed,
         ]);
+
+        $donation->loadMissing('subscription.donor', 'subscription.campaign.organization');
+
+        if ($donation->subscription !== null) {
+            SendFailedPaymentNotification::dispatch($donation->subscription);
+        }
     }
 
     private function handleDonorInvoicePaid(StripeEvent $event): void
@@ -195,6 +208,7 @@ class ProcessStripeWebhook implements ShouldQueue
         $donation->campaign()->increment('collected_amount', $grossAmount);
 
         SendDonationReceipt::dispatch($donation);
+        SendNewDonationNotification::dispatch($donation);
         SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
     }
 
@@ -254,6 +268,8 @@ class ProcessStripeWebhook implements ShouldQueue
             'status' => SubscriptionStatus::PastDue,
             'retry_count' => $subscription->retry_count + 1,
         ]);
+
+        SendFailedPaymentNotification::dispatch($subscription);
     }
 
     private function handleSubscriptionDeleted(StripeEvent $event): void
