@@ -68,3 +68,57 @@ it('calculates ngo insights from organization-scoped records', function () {
         ->assertSee('One-time donations')
         ->assertSee('First installments');
 });
+
+it('switches tabs and exposes data arrays', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 100.00,
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::OneTime,
+    ]);
+
+    Subscription::factory()->for($campaign)->for($donor)->create([
+        'amount' => 30.00,
+        'status' => SubscriptionStatus::Active,
+        'interval' => 'monthly',
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(Insights::class);
+
+    // Default tab
+    $component->assertSet('activeTab', 'overview');
+
+    // Tab switching
+    $component->call('setActiveTab', 'performance')->assertSet('activeTab', 'performance');
+    $component->call('setActiveTab', 'recurring-plans')->assertSet('activeTab', 'recurring-plans');
+    $component->call('setActiveTab', 'recurring-revenue')->assertSet('activeTab', 'recurring-revenue');
+    $component->call('setActiveTab', 'retention')->assertSet('activeTab', 'retention');
+    $component->call('setActiveTab', 'payment-methods')->assertSet('activeTab', 'payment-methods');
+    $component->call('setActiveTab', 'frequencies')->assertSet('activeTab', 'frequencies');
+    $component->call('setActiveTab', 'elements')->assertSet('activeTab', 'elements');
+    $component->call('setActiveTab', 'url')->assertSet('activeTab', 'url');
+
+    // Verify data arrays are populated
+    expect($component->monthlyRevenue)->toBeArray();
+    expect($component->campaignPerformance)->toBeArray();
+    expect($component->subscriptionStatusDistribution)->toBeArray();
+    expect($component->subscriptionIntervalBreakdown)->toBeArray();
+    expect($component->retentionOverview)->toBeArray();
+    expect($component->paymentBrandBreakdown)->toBeArray();
+    expect($component->paymentTypeBreakdown)->toBeArray();
+    expect($component->elementsList)->toBeArray();
+    expect($component->campaignUrlPerformance)->toBeArray();
+
+    // Verify specific computed values
+    expect($component->mrrOverview['currentMrr'])->toBeString();
+    expect($component->mrrOverview['newThisMonth'])->toBeInt();
+    expect($component->mrrOverview['activeCount'])->toBeInt();
+    expect($component->retentionOverview['totalDonors'])->toBe(1);
+    expect($component->retentionOverview['repeatDonors'])->toBe(0);
+});
