@@ -7,7 +7,7 @@
     <x-filament::section icon="heroicon-o-currency-dollar">
         <x-slot name="heading">
             <div class="flex items-center gap-2">
-                <span>Sambungan Stripe</span>
+                <span>Sambungan Stripe Connect</span>
                 @if ($org && $org->stripe_onboarded)
                     <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-400/10 dark:text-teal-400">
                         <x-heroicon-o-check-circle class="size-3.5" />
@@ -71,7 +71,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Sambung Semula</p>
                         <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-                            Putuskan sambungan Stripe semasa dan sambung semula dengan akaun lain.
+                            Putuskan sambungan Stripe Connect semasa dan sambung semula dengan akaun lain.
                         </p>
                     </div>
                     {{ $this->reconnectAction }}

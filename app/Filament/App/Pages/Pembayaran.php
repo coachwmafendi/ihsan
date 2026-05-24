@@ -18,13 +18,13 @@ class Pembayaran extends Page implements HasActions
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-currency-dollar';
 
-    protected static ?string $navigationLabel = 'Pembayaran';
+    protected static ?string $navigationLabel = 'Stripe';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $slug = 'pembayaran';
+    protected static ?string $slug = 'stripe-conn';
 
     public function stripeAccount(): ?StripeAccount
     {
@@ -46,8 +46,8 @@ class Pembayaran extends Page implements HasActions
             ->icon('heroicon-o-arrow-path')
             ->color('danger')
             ->requiresConfirmation()
-            ->modalHeading('Sambung Semula Stripe?')
-            ->modalDescription('Tindakan ini akan memutuskan sambungan Stripe semasa. Anda perlu menyambung semula akaun Stripe untuk terus menggunakan panel.')
+            ->modalHeading('Sambung Semula Stripe Connect?')
+            ->modalDescription('Tindakan ini akan memutuskan sambungan Stripe Connect semasa. Anda perlu menyambung semula akaun Stripe untuk terus menggunakan panel.')
             ->modalSubmitActionLabel('Ya, sambung semula')
             ->action(function () {
                 $org = auth()->user()->organization;

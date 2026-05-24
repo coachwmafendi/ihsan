@@ -10,7 +10,7 @@
         </div>
 
         <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Selesaikan Onboarding Stripe
+            Selesaikan Onboarding Stripe Connect
         </h1>
 
         @php
@@ -21,11 +21,11 @@
 
         @if ($hasAccountPending)
             <p class="mt-3 max-w-md text-base text-amber-600 dark:text-amber-400">
-                Akaun Stripe telah disimpan tetapi belum lengkap.
+                Akaun Stripe Connect telah disimpan tetapi belum lengkap.
             </p>
 
             <p class="mt-2 max-w-md text-sm text-gray-500 dark:text-gray-400">
-                Sila selesaikan proses pengesahan (KYC) di dashboard Stripe, kemudian semak semula.
+                Sila selesaikan proses pengesahan (KYC) di dashboard Stripe Connect, kemudian semak semula.
             </p>
 
             <div class="mt-8">
@@ -39,18 +39,18 @@
                         class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
                     >
                         <x-heroicon-o-arrow-right-circle class="size-5" />
-                        Sambung Stripe
+                        Sambung Stripe Connect
                     </a>
                 @else
                     <p class="text-sm text-gray-400">
-                        Muat semula halaman ini selepas melengkapkan KYC di Stripe.
+                        Muat semula halaman ini selepas melengkapkan KYC di Stripe Connect.
                     </p>
                 @endif
             </div>
         @else
             <p class="mt-3 max-w-md text-base text-gray-500 dark:text-gray-400">
                 Anda perlu menyambung akaun Stripe sebelum boleh menggunakan panel ini.
-                Stripe digunakan untuk memproses derma dalam talian dengan selamat.
+                Stripe Connect digunakan untuk memproses derma dalam talian dengan selamat.
             </p>
 
             <a
@@ -58,7 +58,7 @@
                 class="mt-10 inline-flex items-center gap-2 rounded-lg bg-teal-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             >
                 <x-heroicon-o-link class="size-5" />
-                Sambung Akaun Stripe
+                Sambung Akaun Stripe Connect
             </a>
         @endif
 

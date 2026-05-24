@@ -10,7 +10,7 @@ class StripeOnboarding extends Page
 {
     protected static BackedEnum|string|null $navigationIcon = null;
 
-    protected static ?string $title = 'Stripe Onboarding';
+    protected static ?string $title = 'Stripe Connect Onboarding';
 
     protected string $view = 'filament.app.pages.stripe-onboarding';
 

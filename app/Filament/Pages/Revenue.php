@@ -26,6 +26,10 @@ class Revenue extends Page
 
     public string $averageFeePerTransaction = '0.00';
 
+    public string $effectiveFeeRate = '0.00';
+
+    public string $nominalFeeRate = '2.5';
+
     /**
      * @var array<int, array{name: string, donations: int, volume: string, fees: string}>
      */
@@ -33,19 +37,23 @@ class Revenue extends Page
 
     public function mount(): void
     {
-        $this->totalProcessingFees = number_format((float) ProcessingFee::query()
-            ->where('status', 'paid')
-            ->sum('fee_amount'), 2, '.', '');
+        $this->nominalFeeRate = number_format($this->processingFeePercent(), 1);
 
         $succeeded = Donation::query()->where('status', DonationStatus::Succeeded);
 
-        $this->totalDonationVolume = number_format((float) (clone $succeeded)->sum('gross_amount'), 2, '.', '');
+        $totalVolume = (float) (clone $succeeded)->sum('gross_amount');
+        $this->totalDonationVolume = number_format($totalVolume, 2, '.', '');
         $this->totalTransactions = (clone $succeeded)->count();
 
+        $totalFeeAmount = (float) ProcessingFee::query()->sum('fee_amount');
+        $this->totalProcessingFees = number_format($totalFeeAmount, 2, '.', '');
+
         $this->averageFeePerTransaction = $this->totalTransactions > 0
-            ? number_format((float) ProcessingFee::query()
-                ->where('status', 'paid')
-                ->avg('fee_amount'), 2, '.', '')
+            ? number_format($totalFeeAmount / $this->totalTransactions, 2, '.', '')
+            : '0.00';
+
+        $this->effectiveFeeRate = $totalVolume > 0
+            ? number_format(($totalFeeAmount / $totalVolume) * 100, 2, '.', '')
             : '0.00';
 
         $succeededDonations = Donation::query()
@@ -58,7 +66,6 @@ class Revenue extends Page
 
         $feesByOrg = ProcessingFee::query()
             ->selectRaw('organization_id, SUM(fee_amount) as total_fees')
-            ->where('status', 'paid')
             ->groupBy('organization_id')
             ->get()
             ->keyBy('organization_id');
@@ -76,5 +83,10 @@ class Revenue extends Page
             ->sortByDesc('donations')
             ->values()
             ->all();
+    }
+
+    private function processingFeePercent(): float
+    {
+        return (float) config('services.stripe.processing_fee_percent', 2.5);
     }
 }

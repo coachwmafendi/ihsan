@@ -4,25 +4,25 @@
             <x-filament::section>
                 <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total processing fees</div>
                 <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $totalProcessingFees }}</div>
-                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">All time transferred</div>
+                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ $totalTransactions }} successful transactions</div>
             </x-filament::section>
 
             <x-filament::section>
                 <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Donation volume</div>
                 <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $totalDonationVolume }}</div>
-                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ $totalTransactions }} successful transactions</div>
+                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">Gross amount from all succeeded donations</div>
             </x-filament::section>
 
             <x-filament::section>
                 <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Average fee per transaction</div>
                 <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $averageFeePerTransaction }}</div>
-                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">3% processing fee</div>
+                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ $nominalFeeRate }}% nominal processing fee</div>
             </x-filament::section>
 
             <x-filament::section>
                 <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Effective fee rate</div>
-                <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">3%</div>
-                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">Per donation</div>
+                <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">{{ $effectiveFeeRate }}%</div>
+                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">Fees collected ÷ donation volume</div>
             </x-filament::section>
         </div>
 

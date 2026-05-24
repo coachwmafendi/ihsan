@@ -142,11 +142,34 @@ class ProfilOrganisasi extends Page
                                     ->label('Poskod')
                                     ->nullable()
                                     ->maxLength(20),
-                                TextInput::make('country')
+                                Select::make('country')
                                     ->label('Negara')
                                     ->nullable()
                                     ->default('Malaysia')
-                                    ->maxLength(100),
+                                    ->options([
+                                        'Malaysia' => 'Malaysia',
+                                        'Brunei' => 'Brunei',
+                                        'Cambodia' => 'Cambodia',
+                                        'Indonesia' => 'Indonesia',
+                                        'Myanmar' => 'Myanmar',
+                                        'Philippines' => 'Philippines',
+                                        'Singapore' => 'Singapore',
+                                        'Thailand' => 'Thailand',
+                                        'Vietnam' => 'Vietnam',
+                                        'Bangladesh' => 'Bangladesh',
+                                        'India' => 'India',
+                                        'Pakistan' => 'Pakistan',
+                                        'Sri Lanka' => 'Sri Lanka',
+                                        'Australia' => 'Australia',
+                                        'China' => 'China',
+                                        'Japan' => 'Japan',
+                                        'South Korea' => 'South Korea',
+                                        'Taiwan' => 'Taiwan',
+                                        'United Kingdom' => 'United Kingdom',
+                                        'United States' => 'United States',
+                                        'Other' => 'Other',
+                                    ])
+                                    ->searchable(),
                             ]),
 
                         Tab::make('Sosial')
