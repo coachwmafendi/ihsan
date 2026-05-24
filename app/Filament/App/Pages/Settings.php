@@ -26,6 +26,8 @@ class Settings extends Page implements HasActions
 
     public bool $dailyDonationSummary = false;
 
+    public string $dailySummaryTime = '08:00';
+
     public bool $failedPaymentNotification = false;
 
     public function mount(): void
@@ -34,6 +36,7 @@ class Settings extends Page implements HasActions
 
         $this->notifyNewDonation = (bool) ($settings['notify_new_donation'] ?? true);
         $this->dailyDonationSummary = (bool) ($settings['daily_donation_summary'] ?? false);
+        $this->dailySummaryTime = $settings['daily_summary_time'] ?? '08:00';
         $this->failedPaymentNotification = (bool) ($settings['failed_payment_notification'] ?? true);
     }
 
@@ -57,6 +60,7 @@ class Settings extends Page implements HasActions
         $settings = array_merge($org->settings ?? [], [
             'notify_new_donation' => $this->notifyNewDonation,
             'daily_donation_summary' => $this->dailyDonationSummary,
+            'daily_summary_time' => $this->dailySummaryTime,
             'failed_payment_notification' => $this->failedPaymentNotification,
         ]);
 
