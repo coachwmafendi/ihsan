@@ -4,6 +4,8 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Jobs\ProcessStripeWebhook;
 use App\Jobs\SendDonationReceipt;
+use App\Jobs\SendLargeDonationNotification;
+use App\Jobs\SendNewSubscriptionNotification;
 use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
 use App\Models\Donation;
@@ -60,7 +62,7 @@ it('accepts a valid stripe webhook signature and dispatches the processor job', 
 });
 
 it('marks a pending one time donation as succeeded from a payment intent webhook', function () {
-    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class]);
+    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendLargeDonationNotification::class]);
 
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create([
@@ -94,7 +96,7 @@ it('marks a pending one time donation as succeeded from a payment intent webhook
 });
 
 it('does not process the same completed payment intent webhook twice', function () {
-    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class]);
+    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendLargeDonationNotification::class]);
 
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create([
@@ -127,7 +129,7 @@ it('does not process the same completed payment intent webhook twice', function 
 });
 
 it('creates recurring subscriptions in the connected account from payment intent webhooks', function () {
-    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class]);
+    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendNewSubscriptionNotification::class, SendLargeDonationNotification::class]);
     config(['services.stripe.secret' => 'sk_test_fake']);
 
     $stripeClient = new class implements ClientInterface

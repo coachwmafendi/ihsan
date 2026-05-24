@@ -26,6 +26,8 @@ class Settings extends Page implements HasActions
 
     protected static ?string $navigationLabel = 'Settings';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+
     protected static ?int $navigationSort = 999;
 
     /** @var array<string, mixed>|null */
