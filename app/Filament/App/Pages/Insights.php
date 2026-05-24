@@ -4,7 +4,6 @@ namespace App\Filament\App\Pages;
 
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
-use Carbon\Carbon;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
@@ -421,7 +420,7 @@ class Insights extends Page
             ->map(fn (int $i) => now()->subMonthsNoOverflow($i)->startOfMonth())
             ->reverse()
             ->values()
-            ->map(function (Carbon $monthStart) use ($subscriptions, $totalActive) {
+            ->map(function ($monthStart) use ($subscriptions, $totalActive) {
                 $monthEnd = (clone $monthStart)->endOfMonth();
 
                 return [
