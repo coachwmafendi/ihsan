@@ -37,7 +37,7 @@
                             <label class="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-400">Masa hantar ringkasan</label>
                             <input
                                 type="time"
-                                wire:model.blur="dailySummaryTime"
+                                wire:model.live.blur="dailySummaryTime"
                                 class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
                             >
                             <p class="mt-1 text-xs text-gray-400">Waktu Malaysia (MYT)</p>
@@ -48,7 +48,7 @@
                             <label class="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-400">Ambang derma besar (RM)</label>
                             <input
                                 type="number"
-                                wire:model.blur="largeDonationThreshold"
+                                wire:model.live.blur="largeDonationThreshold"
                                 min="100"
                                 step="100"
                                 class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"

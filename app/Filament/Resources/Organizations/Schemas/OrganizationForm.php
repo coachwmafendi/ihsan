@@ -249,15 +249,15 @@ class OrganizationForm
                             ->icon('heroicon-o-shield-check')
                             ->columns(2)
                             ->schema([
-                                TextInput::make('platform_fee_override')
-                                    ->label('Platform Fee Override (%)')
+                                TextInput::make('processing_fee_override')
+                                    ->label('Processing Fee Override (%)')
                                     ->numeric()
                                     ->nullable()
                                     ->minValue(0)
                                     ->maxValue(100)
                                     ->step(0.1)
                                     ->placeholder('Leave blank to use global default')
-                                    ->helperText('Override global platform fee for this org. Global default used if blank.'),
+                                    ->helperText('Override global processing fee for this org. Global default used if blank.'),
                                 Textarea::make('admin_notes')
                                     ->label('Internal Notes')
                                     ->nullable()
