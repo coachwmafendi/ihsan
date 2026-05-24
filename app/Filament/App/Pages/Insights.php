@@ -121,9 +121,15 @@ class Insights extends Page
         $this->activeTab = $tab;
     }
 
+    public function setDateRange(string $range): void
+    {
+        $this->dateRange = $range;
+        $this->loadData();
+    }
+
     public function cycleDateRange(): void
     {
-        $options = ['7_days', '30_days', '90_days', 'all'];
+        $options = ['7_days', '30_days', '90_days', 'this_month', 'all'];
         $index = array_search($this->dateRange, $options);
         $this->dateRange = $options[($index + 1) % count($options)];
         $this->loadData();
@@ -170,6 +176,7 @@ class Insights extends Page
             '7_days' => Carbon::now()->subDays(7)->startOfDay(),
             '30_days' => Carbon::now()->subDays(30)->startOfDay(),
             '90_days' => Carbon::now()->subDays(90)->startOfDay(),
+            'this_month' => Carbon::now()->startOfMonth(),
             default => null,
         };
     }
