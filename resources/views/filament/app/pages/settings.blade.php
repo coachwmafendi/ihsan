@@ -82,8 +82,8 @@
     </x-filament::section>
 
     <x-filament::section heading="Notifications" icon="heroicon-o-bell-alert">
-        <div class="divide-y divide-gray-200 dark:divide-gray-700">
-            <div class="grid grid-cols-[1fr_auto] items-center gap-3 py-3">
+        <div class="space-y-3">
+            <div class="grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-6">
                 <div>
                     <p class="text-sm font-medium text-gray-950 dark:text-white">Notify new donation by email</p>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Receive an email for every successful donation</p>
@@ -91,9 +91,7 @@
                 <button type="button" role="switch" aria-checked="{{ $notifyNewDonation ? 'true' : 'false' }}" wire:click="$toggle('notifyNewDonation')" class="relative inline-flex h-5 w-8 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 {{ $notifyNewDonation ? 'bg-teal-600' : 'bg-gray-200' }}">
                     <span class="pointer-events-none inline-block size-3.5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $notifyNewDonation ? 'translate-x-3' : 'translate-x-0' }}"></span>
                 </button>
-            </div>
 
-            <div class="grid grid-cols-[1fr_auto] items-center gap-3 py-3">
                 <div>
                     <p class="text-sm font-medium text-gray-950 dark:text-white">Daily donation summary</p>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Get a daily summary of all donations received</p>
@@ -101,9 +99,7 @@
                 <button type="button" role="switch" aria-checked="{{ $dailyDonationSummary ? 'true' : 'false' }}" wire:click="$toggle('dailyDonationSummary')" class="relative inline-flex h-5 w-8 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 {{ $dailyDonationSummary ? 'bg-teal-600' : 'bg-gray-200' }}">
                     <span class="pointer-events-none inline-block size-3.5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $dailyDonationSummary ? 'translate-x-3' : 'translate-x-0' }}"></span>
                 </button>
-            </div>
 
-            <div class="grid grid-cols-[1fr_auto] items-center gap-3 py-3">
                 <div>
                     <p class="text-sm font-medium text-gray-950 dark:text-white">Failed monthly payment notification</p>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Alert when a recurring payment fails</p>
@@ -113,9 +109,7 @@
                 </button>
             </div>
 
-            <div class="py-3">
-                <p class="text-xs text-gray-400">Changes are saved automatically.</p>
-            </div>
+            <p class="text-xs text-gray-400">Changes are saved automatically.</p>
         </div>
     </x-filament::section>
 </x-filament::page>
