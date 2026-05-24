@@ -23,6 +23,8 @@ class OrganisasiProfile extends Page
 
     protected static ?string $navigationLabel = 'Profil Organisasi';
 
+    protected static ?string $title = 'Profil Organisasi';
+
     protected static ?int $navigationSort = 998;
 
     /** @var array<string, mixed>|null */
@@ -177,8 +179,6 @@ class OrganisasiProfile extends Page
                 ->livewireSubmitHandler('save')
                 ->footer([
                     Actions::make($this->getFormActions())
-                        ->alignment($this->getFormActionsAlignment())
-                        ->fullWidth($this->hasFullWidthFormActions())
                         ->key('form-actions'),
                 ]),
         ]);
