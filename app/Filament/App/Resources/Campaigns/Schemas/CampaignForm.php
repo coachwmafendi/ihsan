@@ -14,6 +14,7 @@ use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -69,31 +70,39 @@ class CampaignForm
                         Tab::make('Settings')
                             ->icon('heroicon-o-cog-6-tooth')
                             ->schema([
-                                Section::make('Kekerapan')
-                                    ->description('Kawal kekerapan derma dan jumlah khas.')
+                                Grid::make()
                                     ->columns(2)
                                     ->schema([
-                                        Toggle::make('allow_recurring')
-                                            ->label('Benarkan derma bulanan'),
-                                        Toggle::make('allow_custom_amount')
-                                            ->label('Benarkan jumlah khas'),
-                                    ]),
-                                Section::make('Jumlah')
-                                    ->description('Tetapkan sasaran dan tempoh kempen.')
-                                    ->columns(2)
-                                    ->schema([
-                                        Toggle::make('has_target')
-                                            ->label('Tetapkan sasaran kutipan')
-                                            ->live(),
-                                        TextInput::make('target_amount')
-                                            ->label('Jumlah sasaran')
-                                            ->numeric()
-                                            ->prefix('MYR')
-                                            ->hidden(fn ($get) => ! $get('has_target')),
-                                        DatePicker::make('end_date')
-                                            ->label('Tarikh tamat')
-                                            ->format('Y-m-d')
-                                            ->displayFormat('d/m/Y'),
+                                        Section::make('Kekerapan')
+                                            ->description('Kawal kekerapan derma dan jumlah khas.')
+                                            ->columnSpan(1)
+                                            ->columns(2)
+                                            ->schema([
+                                                Toggle::make('allow_recurring')
+                                                    ->label('Benarkan derma bulanan'),
+                                                Toggle::make('allow_custom_amount')
+                                                    ->label('Benarkan jumlah khas'),
+                                            ]),
+                                        Section::make('Jumlah')
+                                            ->description('Tetapkan sasaran dan tempoh kempen.')
+                                            ->columnSpan(1)
+                                            ->columns(2)
+                                            ->schema([
+                                                Toggle::make('has_target')
+                                                    ->label('Tetapkan sasaran kutipan')
+                                                    ->live()
+                                                    ->columnSpanFull(),
+                                                TextInput::make('target_amount')
+                                                    ->label('Jumlah sasaran')
+                                                    ->numeric()
+                                                    ->prefix('MYR')
+                                                    ->disabled(fn ($get) => ! $get('has_target'))
+                                                    ->columnSpan(1),
+                                                DatePicker::make('end_date')
+                                                    ->label('Tarikh tamat')
+                                                    ->format('Y-m-d')
+                                                    ->displayFormat('d/m/Y'),
+                                            ]),
                                     ]),
                                 Section::make('Jumlah disarankan')
                                     ->description('Butang jumlah tersedia di halaman checkout.')
@@ -161,29 +170,35 @@ class CampaignForm
                         Tab::make('Campaign Page')
                             ->icon('heroicon-o-globe-alt')
                             ->schema([
-                                Section::make('Pautan kempen')
-                                    ->description('URL terus, QR code dan pautan kongsi untuk kempen ini.')
+                                Grid::make()
+                                    ->columns(2)
                                     ->schema([
-                                        Placeholder::make('hosted_page_note')
-                                            ->hiddenLabel()
-                                            ->content(fn ($record) => new HtmlString(
-                                                $record
-                                                    ? static::campaignPageShareHtml($record)
-                                                    : '<p class="text-sm text-zinc-500">Simpan kempen untuk menjana URL halaman derma.</p>'
-                                            ))
-                                            ->columnSpanFull(),
-                                    ]),
-                                Section::make('Benam dalam laman web')
-                                    ->description('Borang derma terus dalam halaman — tanpa pop-up.')
-                                    ->schema([
-                                        Placeholder::make('inline_embed_note')
-                                            ->hiddenLabel()
-                                            ->content(fn ($record) => new HtmlString(
-                                                $record
-                                                    ? static::inlineEmbedHtml($record)
-                                                    : '<p class="text-sm text-zinc-500">Simpan kempen untuk mendapatkan kod benam.</p>'
-                                            ))
-                                            ->columnSpanFull(),
+                                        Section::make('Pautan kempen')
+                                            ->description('URL terus, QR code dan pautan kongsi untuk kempen ini.')
+                                            ->columnSpan(1)
+                                            ->schema([
+                                                Placeholder::make('hosted_page_note')
+                                                    ->hiddenLabel()
+                                                    ->content(fn ($record) => new HtmlString(
+                                                        $record
+                                                            ? static::campaignPageShareHtml($record)
+                                                            : '<p class="text-sm text-zinc-500">Simpan kempen untuk menjana URL halaman derma.</p>'
+                                                    ))
+                                                    ->columnSpanFull(),
+                                            ]),
+                                        Section::make('Benam dalam laman web')
+                                            ->description('Borang derma terus dalam halaman — tanpa pop-up.')
+                                            ->columnSpan(1)
+                                            ->schema([
+                                                Placeholder::make('inline_embed_note')
+                                                    ->hiddenLabel()
+                                                    ->content(fn ($record) => new HtmlString(
+                                                        $record
+                                                            ? static::inlineEmbedHtml($record)
+                                                            : '<p class="text-sm text-zinc-500">Simpan kempen untuk mendapatkan kod benam.</p>'
+                                                    ))
+                                                    ->columnSpanFull(),
+                                            ]),
                                     ]),
                             ]),
                         Tab::make('Stats')
@@ -293,6 +308,28 @@ class CampaignForm
             .'</div>';
     }
 
+    private static function embedIframeHtml(string $url, string $id): string
+    {
+        $safeId = 'ihsan-'.e($id);
+
+        return implode("\n", [
+            '<style>',
+            '@media(min-width:768px){#'.$safeId.'{max-width:50%;margin:0 auto}}',
+            '#'.$safeId.'{width:100%}',
+            '</style>',
+            '<div id="'.$safeId.'">',
+            '<iframe',
+            '  src="'.e($url).'?embed=1"',
+            '  width="100%"',
+            '  height="700"',
+            '  frameborder="0"',
+            '  allow="payment *"',
+            '  style="border:0;border-radius:16px;"',
+            '></iframe>',
+            '</div>',
+        ]);
+    }
+
     private static function inlineEmbedHtml($record): string
     {
         $elements = $record->elements;
@@ -303,16 +340,7 @@ class CampaignForm
             }
 
             $url = route('donations.campaign-show', ['campaign' => $record->form_parameter]);
-            $iframe = implode("\n", [
-                '<iframe',
-                '  src="'.e($url).'?embed=1"',
-                '  width="100%"',
-                '  height="700"',
-                '  frameborder="0"',
-                '  allow="payment *"',
-                '  style="border:0;border-radius:16px;"',
-                '></iframe>',
-            ]);
+            $iframe = self::embedIframeHtml($url, $record->form_parameter);
 
             return '<p class="text-sm text-zinc-500 mb-4">Letak kod berikut dalam mana-mana halaman web untuk benamkan borang derma terus tanpa pop-up.</p>'
                 .self::copyableSnippet('Kod benam', $iframe)
@@ -323,16 +351,7 @@ class CampaignForm
 
         foreach ($elements as $element) {
             $url = route('donations.show', $element);
-            $iframe = implode("\n", [
-                '<iframe',
-                '  src="'.e($url).'?embed=1"',
-                '  width="100%"',
-                '  height="700"',
-                '  frameborder="0"',
-                '  allow="payment *"',
-                '  style="border:0;border-radius:16px;"',
-                '></iframe>',
-            ]);
+            $iframe = self::embedIframeHtml($url, $element->token);
             $parts[] = self::copyableSnippet('Kod benam', $iframe);
         }
 
