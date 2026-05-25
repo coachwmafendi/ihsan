@@ -83,8 +83,8 @@ it('charges gross_amount plus fee to stripe when donor covers fee', function () 
         ->shouldReceive('create')
         ->once()
         ->withArgs(function (Donation $donation) {
-            return $donation->gross_amount == 200
-                && $donation->donor_fee_covered == 6.50;
+            return $donation->gross_amount === '200.00'
+                && $donation->donor_fee_covered === '6.50';
         })
         ->andReturn($mockPaymentIntent);
 

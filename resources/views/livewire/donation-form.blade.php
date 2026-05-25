@@ -33,6 +33,7 @@
     $connectedStripeAccountId = $organization->stripe_onboarded ? $organization->stripe_account_id : null;
     $currencyLabels = ['myr' => 'RM', 'usd' => '$', 'sgd' => 'S$'];
     $currencySymbol = $currencyLabels[$this->currency] ?? 'RM';
+    $totalAmount = (float) $this->amount + $this->estimatedFee;
 @endphp
 
 <div>
@@ -397,7 +398,7 @@
                             {{-- Summary bar --}}
                             <div class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3 text-sm">
                                 <span class="font-semibold text-slate-800">
-                                    {{ $currencySymbol }} <span x-text="Number(amount).toLocaleString()"></span>
+                                    {{ $currencySymbol }} {{ number_format($totalAmount, 2) }}
                                 </span>
                                 <span class="text-slate-500">
                                     <span x-show="frequency === 'monthly'">Monthly</span>

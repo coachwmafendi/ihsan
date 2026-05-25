@@ -280,6 +280,7 @@ class DonationForm extends Component
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:40'],
+            'coverFee' => ['boolean'],
             'dedicate' => ['boolean'],
             'comment' => ['nullable', 'string', 'max:500'],
         ];
