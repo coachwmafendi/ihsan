@@ -18,6 +18,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Stripe\PaymentIntent as StripePaymentIntent;
@@ -49,6 +50,8 @@ class DonationForm extends Component
     public bool $isPopup = false;
 
     public string $currency = 'myr';
+
+    public bool $coverFee = true;
 
     /**
      * @return array<int, string>
@@ -239,6 +242,7 @@ class DonationForm extends Component
             'donor_id' => $donor->getKey(),
             'gross_amount' => $validated['amount'],
             'stripe_fee' => 0,
+            'donor_fee_covered' => $this->estimatedFee,
             'processing_fee' => 0,
             'net_amount' => $validated['amount'],
             'currency' => $this->currency,
@@ -338,6 +342,16 @@ class DonationForm extends Component
         }
 
         return $default;
+    }
+
+    #[Computed]
+    public function estimatedFee(): float
+    {
+        if (! $this->coverFee || ! $this->config('allow_cover_fee', true)) {
+            return 0.0;
+        }
+
+        return round((float) $this->amount * 0.03 + 0.50, 2);
     }
 
     public function render()
