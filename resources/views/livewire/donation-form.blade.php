@@ -274,6 +274,22 @@
                                         />
                                         <span class="text-sm font-medium text-slate-500">{{ strtoupper($this->currency) }}</span>
                                     </div>
+                                    @if ($this->config('allow_cover_fee', true))
+                                        <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-slate-300 hover:bg-slate-100">
+                                            <input
+                                                type="checkbox"
+                                                wire:model.live="coverFee"
+                                                class="mt-0.5 size-4 cursor-pointer rounded border-slate-300 text-teal-600 accent-teal-600"
+                                            />
+                                            <span class="flex flex-col gap-0.5">
+                                                <span class="text-sm font-medium text-slate-700">
+                                                    I'll cover the processing fee
+                                                    <span class="text-teal-700">(+{{ $currencySymbol }}{{ number_format($this->estimatedFee, 2) }})</span>
+                                                </span>
+                                                <span class="text-xs text-slate-400">Help ensure 100% of your donation reaches us.</span>
+                                            </span>
+                                        </label>
+                                    @endif
                                     <div x-show="stepErrors.amount" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.amount"></div>
                                 </label>
                             @endif
