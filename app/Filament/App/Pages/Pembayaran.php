@@ -20,11 +20,52 @@ class Pembayaran extends Page implements HasActions
 
     protected static ?string $navigationLabel = 'Stripe';
 
+    protected static ?string $title = 'Stripe';
+
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 
     protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'stripe-conn';
+
+    public array $currencies = ['myr' => true, 'usd' => false, 'sgd' => false];
+
+    public function mount(): void
+    {
+        $org = auth()->user()->organization;
+        $settings = $org?->settings ?? [];
+        $accepted = $settings['accepted_currencies'] ?? ['myr'];
+
+        $this->currencies = [
+            'myr' => true,
+            'usd' => in_array('usd', $accepted),
+            'sgd' => in_array('sgd', $accepted),
+        ];
+    }
+
+    public function updatedCurrencies(): void
+    {
+        $org = auth()->user()->organization;
+        if ($org === null) {
+            return;
+        }
+
+        $accepted = ['myr'];
+        if ($this->currencies['usd']) {
+            $accepted[] = 'usd';
+        }
+        if ($this->currencies['sgd']) {
+            $accepted[] = 'sgd';
+        }
+
+        $settings = array_merge($org->settings ?? [], ['accepted_currencies' => $accepted]);
+        $org->update(['settings' => $settings]);
+
+        Notification::make()
+            ->title('Mata wang diterima dikemas kini')
+            ->success()
+            ->send();
+    }
 
     public function stripeAccount(): ?StripeAccount
     {

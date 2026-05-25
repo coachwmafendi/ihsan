@@ -19,7 +19,8 @@ class SubscriptionsTable
                 TextColumn::make('created_at')
                     ->date('d M Y')
                     ->sortable()
-                    ->label('Date'),
+                    ->label('Date')
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -31,24 +32,34 @@ class SubscriptionsTable
                         SubscriptionStatus::PastDue => 'danger',
                         SubscriptionStatus::Incomplete => 'info',
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('amount')
                     ->label('Amount')
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('donations_count')
                     ->label('Installments')
                     ->counts('donations')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('donations_sum_gross_amount')
                     ->label('Total')
                     ->formatStateUsing(fn ($state): string => 'MYR '.number_format((float) ($state ?? 0), 2))
                     ->sum('donations', 'gross_amount')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('campaign.title')
+                    ->label('Campaign')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('donor.name')
                     ->label('Supporter')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('status')

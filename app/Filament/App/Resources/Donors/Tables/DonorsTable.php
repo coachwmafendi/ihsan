@@ -23,23 +23,28 @@ class DonorsTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('email')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('donations_sum_gross_amount')
                     ->label('Lifetime Donated')
                     ->sum('donations', 'gross_amount')
                     ->money('MYR')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('donations_min_created_at')
                     ->label('First Donation')
                     ->date()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('donations_max_created_at')
                     ->label('Last Donation')
                     ->date()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
             ])
             ->defaultSort('last_donation', 'desc')
             ->filters([

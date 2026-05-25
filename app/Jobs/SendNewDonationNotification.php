@@ -34,6 +34,15 @@ class SendNewDonationNotification implements ShouldQueue
             return;
         }
 
+        // If large donation notification is enabled and amount meets threshold,
+        // skip this normal notification — the large one will handle it
+        $largeDonationEnabled = $settings['notify_large_donation'] ?? false;
+        $largeThreshold = (int) ($settings['large_donation_threshold'] ?? 1000);
+
+        if ($largeDonationEnabled && (float) $this->donation->gross_amount >= $largeThreshold) {
+            return;
+        }
+
         $admins = User::query()
             ->where('organization_id', $org->getKey())
             ->where('role', UserRole::NgoAdmin)

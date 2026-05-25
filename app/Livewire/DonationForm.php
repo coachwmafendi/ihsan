@@ -10,6 +10,7 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
 use App\Jobs\SendDonationReceipt;
+use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendNewDonationNotification;
 use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
@@ -46,6 +47,34 @@ class DonationForm extends Component
     public bool $isEmbed = false;
 
     public bool $isPopup = false;
+
+    public string $currency = 'myr';
+
+    /**
+     * @return array<int, string>
+     */
+    public function getAcceptedCurrencies(): array
+    {
+        $organization = $this->element?->campaign?->organization ?? $this->campaign?->organization;
+
+        if ($organization === null) {
+            return ['myr'];
+        }
+
+        return $organization->settings['accepted_currencies'] ?? ['myr'];
+    }
+
+    public function selectCurrency(string $currency): void
+    {
+        $accepted = $this->getAcceptedCurrencies();
+        if (! in_array($currency, $accepted, true)) {
+            return;
+        }
+
+        $this->currency = $currency;
+        $amounts = $this->suggestedAmounts();
+        $this->amount = $amounts[0] ?? 5;
+    }
 
     public function mount(?Element $element = null, ?Campaign $campaign = null): void
     {
@@ -159,6 +188,7 @@ class DonationForm extends Component
 
             SendDonationReceipt::dispatch($donation);
             SendNewDonationNotification::dispatch($donation);
+            SendLargeDonationNotification::dispatch($donation);
             SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
         } catch (\Exception $e) {
             // Log error silently
@@ -211,7 +241,7 @@ class DonationForm extends Component
             'stripe_fee' => 0,
             'processing_fee' => 0,
             'net_amount' => $validated['amount'],
-            'currency' => 'myr',
+            'currency' => $this->currency,
             'status' => DonationStatus::Pending,
             'type' => $validated['frequency'] === 'monthly' ? DonationType::Recurring : DonationType::OneTime,
             'donor_message' => filled($validated['comment'] ?? null) ? $validated['comment'] : null,
@@ -238,6 +268,7 @@ class DonationForm extends Component
     {
         return [
             'amount' => ['required', 'numeric', 'min:1', 'max:100000'],
+            'currency' => ['required', 'string', 'in:myr,usd,sgd'],
             'frequency' => [
                 'required',
                 Rule::in($this->config('allow_monthly', true) ? ['one_time', 'monthly'] : ['one_time']),
@@ -265,7 +296,16 @@ class DonationForm extends Component
 
         $amounts = $campaign->suggested_amounts;
 
-        if (is_array($amounts) && isset($amounts[$frequency])) {
+        // New per-currency format: {myr: {one_time: [...], monthly: [...]}}
+        if (is_array($amounts) && isset($amounts[$this->currency])) {
+            $currencyAmounts = $amounts[$this->currency];
+            if (is_array($currencyAmounts) && isset($currencyAmounts[$frequency])) {
+                $amounts = $currencyAmounts[$frequency];
+            } else {
+                $amounts = [];
+            }
+        } elseif (is_array($amounts) && isset($amounts[$frequency])) {
+            // Old format {one_time: [...], monthly: [...]} — backward compat
             $amounts = $amounts[$frequency];
         } else {
             $amounts = $campaign->{'suggested_amounts_'.$frequency};

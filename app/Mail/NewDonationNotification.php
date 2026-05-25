@@ -20,7 +20,7 @@ class NewDonationNotification extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'New Donation Received — '.config('app.name'),
+            subject: 'Derma Baru Diterima — '.config('app.name'),
         );
     }
 

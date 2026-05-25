@@ -79,4 +79,65 @@
             @endif
         </div>
     </x-filament::section>
+
+    <x-filament::section icon="heroicon-o-banknotes">
+        <x-slot name="heading">
+            <div class="flex items-center gap-2">
+                <span>Mata Wang Diterima</span>
+            </div>
+        </x-slot>
+
+        <div class="space-y-4">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Pilih mata wang yang boleh digunakan penderma untuk membuat derma.
+                Ringgit Malaysia (MYR) sentiasa diaktifkan.
+            </p>
+
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+                        <input
+                            type="checkbox"
+                            wire:model.live="currencies.myr"
+                            checked
+                            disabled
+                            class="size-4 rounded border-gray-300 text-teal-600 focus:ring-teal-600 dark:border-gray-600 dark:bg-gray-800"
+                        />
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white">MYR</p>
+                            <p class="text-xs text-gray-500">Ringgit Malaysia</p>
+                        </div>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+                        <input
+                            type="checkbox"
+                            wire:model.live="currencies.usd"
+                            class="size-4 rounded border-gray-300 text-teal-600 focus:ring-teal-600 dark:border-gray-600 dark:bg-gray-800"
+                        />
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white">USD</p>
+                            <p class="text-xs text-gray-500">US Dollar</p>
+                        </div>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+                        <input
+                            type="checkbox"
+                            wire:model.live="currencies.sgd"
+                            class="size-4 rounded border-gray-300 text-teal-600 focus:ring-teal-600 dark:border-gray-600 dark:bg-gray-800"
+                        />
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white">SGD</p>
+                            <p class="text-xs text-gray-500">Singapore Dollar</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </x-filament::section>
 </x-filament::page>

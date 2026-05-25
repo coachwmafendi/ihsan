@@ -1,0 +1,159 @@
+<h2>Navigation Layout</h2>
+<p class="subtitle">How should the donor portal be structured? Same Bold Minimal style across all 3.</p>
+
+<div class="cards">
+
+  <!-- Option A: Left Sidebar -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;padding:0;border-radius:8px 8px 0 0;overflow:hidden;display:flex;min-height:200px;">
+      <!-- Sidebar -->
+      <div style="width:80px;background:#0f172a;padding:14px 10px;display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+        <div style="color:#10b981;font-size:11px;font-weight:800;text-align:center;margin-bottom:12px;">i</div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:7px;padding:7px 6px;text-align:center;">
+          <div style="color:#fff;font-size:8px;font-weight:600;">Home</div>
+        </div>
+        <div style="border-radius:7px;padding:7px 6px;text-align:center;">
+          <div style="color:rgba(255,255,255,0.4);font-size:8px;">History</div>
+        </div>
+        <div style="border-radius:7px;padding:7px 6px;text-align:center;">
+          <div style="color:rgba(255,255,255,0.4);font-size:8px;">Plans</div>
+        </div>
+        <div style="margin-top:auto;border-radius:7px;padding:7px 6px;text-align:center;">
+          <div style="color:rgba(255,255,255,0.3);font-size:8px;">Out</div>
+        </div>
+      </div>
+      <!-- Main content -->
+      <div style="flex:1;padding:14px;overflow:hidden;">
+        <div style="color:#64748b;font-size:8px;text-transform:uppercase;letter-spacing:0.12em;font-weight:600;margin-bottom:2px;">Lifetime giving</div>
+        <div style="color:#0f172a;font-size:22px;font-weight:900;line-height:1;margin-bottom:10px;">RM 4,200</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+          <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+            <div style="color:#64748b;font-size:7px;font-weight:600;text-transform:uppercase;margin-bottom:2px;">Active Plans</div>
+            <div style="color:#0f172a;font-size:14px;font-weight:800;">2</div>
+          </div>
+          <div style="background:#ecfdf5;border:1.5px solid #d1fae5;border-radius:8px;padding:8px;">
+            <div style="color:#065f46;font-size:7px;font-weight:600;text-transform:uppercase;margin-bottom:2px;">Monthly</div>
+            <div style="color:#047857;font-size:14px;font-weight:800;">RM 200</div>
+          </div>
+        </div>
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px;padding-bottom:5px;border-bottom:1px solid #f1f5f9;">
+            <span style="font-size:9px;font-weight:700;color:#0f172a;">Aman Palestine</span>
+            <span style="font-size:9px;font-weight:700;color:#0f172a;">RM 100</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:9px;font-weight:700;color:#0f172a;">Wakaf Ilmu</span>
+            <span style="font-size:9px;font-weight:700;color:#0f172a;">RM 50</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Left Sidebar</h3>
+      <p>Dark sidebar, wide content area. More room for data. Desktop-first feel.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Top Header + Content (current improved) -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;padding:0;border-radius:8px 8px 0 0;overflow:hidden;">
+      <!-- Top nav -->
+      <div style="background:#0f172a;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="color:#10b981;font-size:12px;font-weight:800;letter-spacing:-0.02em;">ihsan</div>
+        <div style="display:flex;gap:4px;">
+          <div style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:4px 10px;font-size:9px;color:#10b981;font-weight:600;">Dashboard</div>
+          <div style="border-radius:6px;padding:4px 10px;font-size:9px;color:rgba(255,255,255,0.4);font-weight:500;">Donations</div>
+          <div style="border-radius:6px;padding:4px 10px;font-size:9px;color:rgba(255,255,255,0.4);font-weight:500;">Plans</div>
+        </div>
+        <div style="color:rgba(255,255,255,0.3);font-size:9px;">Ahmad F.</div>
+      </div>
+      <!-- Content -->
+      <div style="padding:14px;">
+        <!-- Hero row -->
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:12px;">
+          <div>
+            <div style="color:#64748b;font-size:8px;text-transform:uppercase;letter-spacing:0.12em;font-weight:600;">Lifetime giving</div>
+            <div style="color:#0f172a;font-size:24px;font-weight:900;line-height:1;">RM 4,200</div>
+            <div style="color:#10b981;font-size:10px;font-weight:600;">↑ RM 200 this month</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="color:#64748b;font-size:8px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Monthly</div>
+            <div style="color:#047857;font-size:16px;font-weight:800;">RM 200</div>
+          </div>
+        </div>
+        <!-- Cards -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
+          <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;grid-column:span 2;">
+            <div style="color:#64748b;font-size:7px;font-weight:600;text-transform:uppercase;margin-bottom:2px;">Recent</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+              <span style="font-size:9px;font-weight:600;color:#0f172a;">Aman Palestine</span>
+              <span style="font-size:9px;font-weight:700;color:#0f172a;">RM 100</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="font-size:9px;font-weight:600;color:#0f172a;">Wakaf Ilmu</span>
+              <span style="font-size:9px;font-weight:700;color:#0f172a;">RM 50</span>
+            </div>
+          </div>
+          <div style="background:#0f172a;border-radius:8px;padding:8px;display:flex;flex-direction:column;justify-content:center;">
+            <div style="color:rgba(255,255,255,0.5);font-size:7px;text-transform:uppercase;font-weight:600;margin-bottom:2px;">Plans</div>
+            <div style="color:#fff;font-size:20px;font-weight:900;">2</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Dark Top Nav</h3>
+      <p>Dark header bar, white content. Clean split. Works great on mobile too.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Floating header, full-bleed -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#fff;padding:0;border-radius:8px 8px 0 0;overflow:hidden;">
+      <!-- Minimal white header -->
+      <div style="padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #0f172a;">
+        <div style="color:#0f172a;font-size:12px;font-weight:900;letter-spacing:-0.03em;">ihsan.</div>
+        <div style="display:flex;gap:0px;">
+          <div style="padding:4px 12px;font-size:9px;color:#0f172a;font-weight:700;border-bottom:2px solid #10b981;margin-bottom:-2px;">Dashboard</div>
+          <div style="padding:4px 12px;font-size:9px;color:#94a3b8;font-weight:500;">Donations</div>
+          <div style="padding:4px 12px;font-size:9px;color:#94a3b8;font-weight:500;">Plans</div>
+        </div>
+        <div style="width:28px;height:28px;background:#0f172a;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+          <div style="color:#fff;font-size:10px;font-weight:700;">AF</div>
+        </div>
+      </div>
+      <!-- Hero banner -->
+      <div style="background:#0f172a;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="color:rgba(255,255,255,0.5);font-size:9px;font-weight:500;margin-bottom:2px;">Ahmad Fauzi · your giving</div>
+          <div style="color:#fff;font-size:22px;font-weight:900;line-height:1;">RM 4,200</div>
+          <div style="color:#10b981;font-size:10px;font-weight:600;margin-top:2px;">↑ RM 200 this month</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="color:rgba(255,255,255,0.4);font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Monthly</div>
+          <div style="color:#10b981;font-size:16px;font-weight:800;">RM 200/mo</div>
+        </div>
+      </div>
+      <!-- Content cards -->
+      <div style="padding:10px 16px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+          <div style="color:#64748b;font-size:7px;font-weight:600;text-transform:uppercase;margin-bottom:3px;">Active Plans</div>
+          <div style="color:#0f172a;font-size:16px;font-weight:900;">2</div>
+        </div>
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+            <span style="color:#64748b;font-size:7px;font-weight:600;text-transform:uppercase;">Recent</span>
+          </div>
+          <div style="color:#0f172a;font-size:9px;font-weight:700;">Aman Palestine — RM 100</div>
+          <div style="color:#0f172a;font-size:9px;font-weight:700;">Wakaf Ilmu — RM 50</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — White + Hero Banner</h3>
+      <p>White header, dark hero band with key stats, light cards below. High contrast, editorial feel.</p>
+    </div>
+  </div>
+
+</div>
+<p class="subtitle" style="text-align:center;margin-top:16px;">Click or reply in terminal</p>

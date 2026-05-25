@@ -31,6 +31,8 @@
     $introTruncated = str($introTextPlain)->limit(300)->toString();
     $isLongIntro = strlen($introTextPlain) > 300;
     $connectedStripeAccountId = $organization->stripe_onboarded ? $organization->stripe_account_id : null;
+    $currencyLabels = ['myr' => 'RM', 'usd' => '$', 'sgd' => 'S$'];
+    $currencySymbol = $currencyLabels[$this->currency] ?? 'RM';
 @endphp
 
 <div>
@@ -54,10 +56,7 @@
 
             <div class="px-6 py-6 {{ $isPopup ? 'lg:flex lg:flex-1 lg:flex-col lg:justify-between lg:px-8 lg:py-7' : '' }}">
                 <div>
-                <div class="mb-5 flex items-center gap-3">
-                    <div class="flex size-10 items-center justify-center rounded-xl bg-teal-700 text-base font-bold text-white shadow-sm">
-                        {{ str($organization->name)->substr(0, 1)->upper() }}
-                    </div>
+                <div class="mb-5">
                     <p class="min-w-0 truncate text-xs font-bold uppercase tracking-[0.18em] text-slate-400">{{ $organization->name }}</p>
                 </div>
 
@@ -89,11 +88,11 @@
 
                     <div class="mt-5">
                         <div class="mb-1.5 flex items-end justify-between gap-4 text-xs">
-                            <span class="font-semibold text-slate-950">RM {{ number_format($collectedAmount, 2) }} raised</span>
-                            <span class="text-slate-500">Goal RM {{ number_format($targetAmount, 2) }}</span>
+                            <span class="font-semibold text-slate-950">{{ $currencySymbol }} {{ number_format($collectedAmount, 2) }} raised</span>
+                            <span class="text-slate-500">Goal {{ $currencySymbol }} {{ number_format($targetAmount, 2) }}</span>
                         </div>
-                        <div class="h-1.5 rounded-full bg-slate-200">
-                            <div class="h-1.5 rounded-full bg-teal-600" style="width: {{ $progress }}%"></div>
+                        <div class="h-3 rounded-full bg-slate-200">
+                            <div class="h-3 rounded-full bg-teal-600" style="width: {{ $progress }}%"></div>
                         </div>
                     </div>
                 @endif
@@ -116,10 +115,7 @@
                 </div>
     @elseif ($isEmbed)
         <div class="px-4 py-5 sm:px-5">
-            <div class="mb-3 flex items-center gap-2.5">
-                <div class="flex size-8 items-center justify-center rounded-md bg-teal-700 text-sm font-bold text-white">
-                    {{ str($organization->name)->substr(0, 1)->upper() }}
-                </div>
+            <div class="mb-3">
                 <div class="min-w-0">
                     <p class="truncate text-xs font-medium text-slate-500">{{ $organization->name }}</p>
                     <h1 class="text-sm font-semibold text-slate-950">{{ $campaign->title }}</h1>
@@ -135,11 +131,11 @@
 
                 <div class="mb-3">
                     <div class="mb-1 flex items-end justify-between gap-4 text-xs">
-                        <span class="font-semibold text-slate-950">RM {{ number_format($collectedAmount, 2) }} raised</span>
-                        <span class="text-slate-500">Goal RM {{ number_format($targetAmount, 2) }}</span>
+                        <span class="font-semibold text-slate-950">{{ $currencySymbol }} {{ number_format($collectedAmount, 2) }} raised</span>
+                        <span class="text-slate-500">Goal {{ $currencySymbol }} {{ number_format($targetAmount, 2) }}</span>
                     </div>
-                    <div class="h-1.5 rounded-full bg-slate-200">
-                        <div class="h-1.5 rounded-full bg-teal-700" style="width: {{ $progress }}%"></div>
+                    <div class="h-3 rounded-full bg-slate-200">
+                        <div class="h-3 rounded-full bg-teal-700" style="width: {{ $progress }}%"></div>
                     </div>
                 </div>
             @endif
@@ -147,14 +143,9 @@
         <div class="min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8">
             <main class="mx-auto grid max-w-6xl items-center gap-8 lg:grid-cols-[minmax(0,1fr)_440px]">
                 <section class="rounded-xl border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur sm:p-8">
-                    <div class="mb-6 flex items-center gap-4">
-                        <div class="flex size-14 items-center justify-center rounded-xl bg-teal-700 text-xl font-bold text-white shadow-sm">
-                            {{ str($organization->name)->substr(0, 1)->upper() }}
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-slate-500">{{ $organization->name }}</p>
-                            <h1 class="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{{ $campaign->title }}</h1>
-                        </div>
+                    <div class="mb-6">
+                        <p class="text-sm font-medium text-slate-500">{{ $organization->name }}</p>
+                        <h1 class="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{{ $campaign->title }}</h1>
                     </div>
 
                     @if ($campaign->description)
@@ -170,11 +161,11 @@
 
                         <div class="mt-6 max-w-2xl">
                             <div class="mb-2 flex items-end justify-between gap-4 text-sm">
-                                <span class="font-semibold text-slate-950">RM {{ number_format($collectedAmount, 2) }} raised</span>
-                                <span class="text-slate-500">Goal RM {{ number_format($targetAmount, 2) }}</span>
+                                <span class="font-semibold text-slate-950">{{ $currencySymbol }} {{ number_format($collectedAmount, 2) }} raised</span>
+                                <span class="text-slate-500">Goal {{ $currencySymbol }} {{ number_format($targetAmount, 2) }}</span>
                             </div>
-                            <div class="h-2 rounded-full bg-slate-200">
-                                <div class="h-2 rounded-full bg-teal-700" style="width: {{ $progress }}%"></div>
+                            <div class="h-3 rounded-full bg-slate-200">
+                                <div class="h-3 rounded-full bg-teal-700" style="width: {{ $progress }}%"></div>
                             </div>
                         </div>
                     @endif
@@ -224,6 +215,22 @@
                                 @endif
                             </div>
 
+                            @if (count($this->getAcceptedCurrencies()) > 1)
+                                <div class="flex gap-1 rounded-lg bg-slate-100 p-0.5">
+                                    @php $currencySelectLabels = ['myr' => 'RM', 'usd' => '$', 'sgd' => 'S$']; @endphp
+                                    @foreach ($this->getAcceptedCurrencies() as $code)
+                                        <button
+                                            type="button"
+                                            wire:click="selectCurrency('{{ $code }}')"
+                                            class="flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition"
+                                            style="{{ $this->currency === $code ? 'background-color: white; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.1);' : 'color: #64748b;' }}"
+                                        >
+                                            {{ $currencySelectLabels[$code] ?? strtoupper($code) }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @endif
+
                             @if ($this->config('show_suggested', true))
                                 <div x-show="frequency === 'one_time'" class="grid grid-cols-3 gap-2">
                                     @foreach ($oneTimeAmounts as $amount)
@@ -233,7 +240,7 @@
                                             x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
                                             class="min-h-12 rounded-lg border bg-white px-2 text-sm font-semibold transition"
                                         >
-                                            RM {{ number_format($amount) }}
+                                            {{ $currencySymbol }} {{ number_format($amount) }}
                                         </button>
                                     @endforeach
                                 </div>
@@ -246,7 +253,7 @@
                                             x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
                                             class="min-h-12 rounded-lg border bg-white px-2 text-sm font-semibold transition"
                                         >
-                                            RM {{ number_format($amount) }}
+                                            {{ $currencySymbol }} {{ number_format($amount) }}
                                         </button>
                                     @endforeach
                                 </div>
@@ -256,7 +263,7 @@
                                 <label class="block">
                                     <span class="sr-only">Donation amount</span>
                                     <div class="flex min-h-14 items-center rounded-xl border border-slate-300 bg-white px-4 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/20">
-                                        <span class="{{ $usesSecureDonationShell ? 'text-2xl' : 'text-base' }} font-semibold text-slate-700">RM</span>
+                                        <span class="{{ $usesSecureDonationShell ? 'text-2xl' : 'text-base' }} font-semibold text-slate-700">{{ $currencySymbol }}</span>
                                         <input
                                             x-model="amount"
                                             type="number"
@@ -264,7 +271,7 @@
                                             step="1"
                                             class="min-w-0 flex-1 border-0 bg-transparent px-2 text-3xl/none font-bold text-slate-950 outline-none placeholder:text-slate-300 sm:px-3 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                         />
-                                        <span class="text-sm font-medium text-slate-500">MYR</span>
+                                        <span class="text-sm font-medium text-slate-500">{{ strtoupper($this->currency) }}</span>
                                     </div>
                                     <div x-show="stepErrors.amount" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.amount"></div>
                                 </label>
@@ -373,7 +380,7 @@
                             {{-- Summary bar --}}
                             <div class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3 text-sm">
                                 <span class="font-semibold text-slate-800">
-                                    RM <span x-text="Number(amount).toLocaleString()"></span>
+                                    {{ $currencySymbol }} <span x-text="Number(amount).toLocaleString()"></span>
                                 </span>
                                 <span class="text-slate-500">
                                     <span x-show="frequency === 'monthly'">Monthly</span>
@@ -489,11 +496,11 @@
                 this.stepErrors = {};
                 const amt = parseFloat(this.amount);
                 if (!amt || amt < 1) {
-                    this.stepErrors.amount = 'Please enter a valid amount (minimum RM 1).';
+                    this.stepErrors.amount = 'Please enter a valid amount (minimum 1).';
                     return false;
                 }
                 if (amt > 100000) {
-                    this.stepErrors.amount = 'Amount cannot exceed RM 100,000.';
+                    this.stepErrors.amount = 'Amount cannot exceed 100,000.';
                     return false;
                 }
                 return true;
@@ -526,6 +533,16 @@
             },
 
             async init() {
+                // Detect currency from browser locale
+                const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+                const detectedCountry = locale.split('-')[1]?.toLowerCase();
+                const currencyMap = { my: 'myr', us: 'usd', sg: 'sgd' };
+                const detectedCurrency = currencyMap[detectedCountry] || 'myr';
+                const acceptedCurrencies = @json($this->getAcceptedCurrencies());
+                if (acceptedCurrencies.includes(detectedCurrency) && detectedCurrency !== 'myr') {
+                    $wire.selectCurrency(detectedCurrency);
+                }
+
                 stripe = connectedStripeAccountId
                     ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
                     : Stripe(window.stripePublishableKey);

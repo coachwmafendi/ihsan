@@ -13,24 +13,64 @@ class SuggestedAmounts extends Field
         parent::setUp();
 
         $this->default([
-            'one_time' => [
-                ['amount' => '30', 'label' => ''],
-                ['amount' => '50', 'label' => ''],
-                ['amount' => '100', 'label' => ''],
-                ['amount' => '200', 'label' => ''],
-                ['amount' => '500', 'label' => ''],
-                ['amount' => '1000', 'label' => ''],
+            'myr' => [
+                'one_time' => [
+                    ['amount' => '30', 'label' => ''],
+                    ['amount' => '50', 'label' => ''],
+                    ['amount' => '100', 'label' => ''],
+                    ['amount' => '200', 'label' => ''],
+                    ['amount' => '500', 'label' => ''],
+                    ['amount' => '1000', 'label' => ''],
+                ],
+                'monthly' => [
+                    ['amount' => '200', 'label' => ''],
+                    ['amount' => '100', 'label' => ''],
+                    ['amount' => '50', 'label' => ''],
+                    ['amount' => '30', 'label' => ''],
+                    ['amount' => '10', 'label' => ''],
+                    ['amount' => '5', 'label' => ''],
+                ],
+                'default_monthly' => '25',
             ],
-            'monthly' => [
-                ['amount' => '200', 'label' => ''],
-                ['amount' => '100', 'label' => ''],
-                ['amount' => '50', 'label' => ''],
-                ['amount' => '30', 'label' => ''],
-                ['amount' => '10', 'label' => ''],
-                ['amount' => '5', 'label' => ''],
+            'usd' => [
+                'one_time' => [
+                    ['amount' => '10', 'label' => ''],
+                    ['amount' => '20', 'label' => ''],
+                    ['amount' => '50', 'label' => ''],
+                    ['amount' => '100', 'label' => ''],
+                    ['amount' => '250', 'label' => ''],
+                    ['amount' => '500', 'label' => ''],
+                ],
+                'monthly' => [
+                    ['amount' => '50', 'label' => ''],
+                    ['amount' => '25', 'label' => ''],
+                    ['amount' => '10', 'label' => ''],
+                    ['amount' => '5', 'label' => ''],
+                    ['amount' => '2', 'label' => ''],
+                    ['amount' => '1', 'label' => ''],
+                ],
+                'default_monthly' => '10',
+            ],
+            'sgd' => [
+                'one_time' => [
+                    ['amount' => '10', 'label' => ''],
+                    ['amount' => '20', 'label' => ''],
+                    ['amount' => '50', 'label' => ''],
+                    ['amount' => '100', 'label' => ''],
+                    ['amount' => '250', 'label' => ''],
+                    ['amount' => '500', 'label' => ''],
+                ],
+                'monthly' => [
+                    ['amount' => '50', 'label' => ''],
+                    ['amount' => '25', 'label' => ''],
+                    ['amount' => '10', 'label' => ''],
+                    ['amount' => '5', 'label' => ''],
+                    ['amount' => '2', 'label' => ''],
+                    ['amount' => '1', 'label' => ''],
+                ],
+                'default_monthly' => '10',
             ],
             'impact_enabled' => false,
-            'default_monthly' => '25',
         ]);
 
         $this->afterStateHydrated(function (SuggestedAmounts $component, $state) {
@@ -38,59 +78,40 @@ class SuggestedAmounts extends Field
                 return;
             }
 
-            $needsNormalization = false;
+            // If old format {one_time: [...], monthly: [...]} — wrap into myr key
+            if (isset($state['one_time']) && ! isset($state['myr'])) {
+                $state = [
+                    'myr' => [
+                        'one_time' => $state['one_time'],
+                        'monthly' => $state['monthly'],
+                        'default_monthly' => $state['default_monthly'] ?? '25',
+                    ],
+                    'usd' => null,
+                    'sgd' => null,
+                    'impact_enabled' => $state['impact_enabled'] ?? false,
+                ];
+                $component->state($state);
 
-            if (isset($state['one_time']) && isset($state['monthly'])) {
-                if (! is_array($state['one_time']) || ! is_array($state['monthly'])) {
-                    $needsNormalization = true;
-                } else {
-                    $oneTimeKeys = array_keys($state['one_time']);
-                    $monthlyKeys = array_keys($state['monthly']);
-                    if ($oneTimeKeys !== array_keys(array_values($oneTimeKeys)) || $monthlyKeys !== array_keys(array_values($monthlyKeys))) {
-                        $needsNormalization = true;
-                    }
-                }
-            } else {
-                $flatAmounts = array_filter(array_values($state), fn ($v) => is_numeric($v) && $v > 0);
-                if (! empty($flatAmounts)) {
-                    $needsNormalization = true;
-                }
+                return;
             }
 
-            if ($needsNormalization) {
-                $oneTime = isset($state['one_time']) && is_array($state['one_time'])
-                    ? array_values($state['one_time'])
-                    : (isset($flatAmounts) ? array_map(fn ($v) => ['amount' => (string) $v, 'label' => ''], $flatAmounts) : []);
-
-                $monthly = isset($state['monthly']) && is_array($state['monthly'])
-                    ? array_values($state['monthly'])
-                    : (isset($flatAmounts) ? array_map(fn ($v) => ['amount' => (string) $v, 'label' => ''], $flatAmounts) : []);
-
-                if (empty($oneTime) && empty($monthly)) {
-                    $oneTime = [
-                        ['amount' => '30', 'label' => ''],
-                        ['amount' => '50', 'label' => ''],
-                        ['amount' => '100', 'label' => ''],
-                        ['amount' => '200', 'label' => ''],
-                        ['amount' => '500', 'label' => ''],
-                        ['amount' => '1000', 'label' => ''],
+            // If legacy flat array — wrap into myr key
+            if (! isset($state['myr'])) {
+                $flatAmounts = array_filter(array_values($state), fn ($v) => is_numeric($v) && $v > 0);
+                if (! empty($flatAmounts)) {
+                    $oneTime = array_map(fn ($v) => ['amount' => (string) $v, 'label' => ''], $flatAmounts);
+                    $state = [
+                        'myr' => [
+                            'one_time' => $oneTime,
+                            'monthly' => $oneTime,
+                            'default_monthly' => '25',
+                        ],
+                        'usd' => null,
+                        'sgd' => null,
+                        'impact_enabled' => false,
                     ];
-                    $monthly = [
-                        ['amount' => '200', 'label' => ''],
-                        ['amount' => '100', 'label' => ''],
-                        ['amount' => '50', 'label' => ''],
-                        ['amount' => '30', 'label' => ''],
-                        ['amount' => '10', 'label' => ''],
-                        ['amount' => '5', 'label' => ''],
-                    ];
+                    $component->state($state);
                 }
-
-                $component->state([
-                    'one_time' => $oneTime,
-                    'monthly' => $monthly,
-                    'default_monthly' => $state['default_monthly'] ?? '25',
-                    'impact_enabled' => $state['impact_enabled'] ?? false,
-                ]);
             }
         });
     }

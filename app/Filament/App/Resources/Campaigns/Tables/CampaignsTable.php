@@ -41,13 +41,37 @@ class CampaignsTable
                     ->label('Raised')
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
                     ->sortable(),
-                TextColumn::make('target_amount')
-                    ->label('Target')
-                    ->formatStateUsing(fn (?string $state): string => $state === null ? 'No target' : 'MYR '.number_format((float) $state, 2))
+                TextColumn::make('progress')
+                    ->label('Progress')
+                    ->html()
+                    ->getStateUsing(function ($record): string {
+                        if (! $record->has_target || ! $record->target_amount > 0) {
+                            return '<span class="text-xs text-gray-400">No target</span>';
+                        }
+
+                        $pct = min(100, (int) round(($record->collected_amount / $record->target_amount) * 100));
+                        $barColor = $pct >= 100 ? 'bg-emerald-600' : ($pct >= 50 ? 'bg-teal-600' : 'bg-amber-500');
+
+                        return '<div class="flex items-center gap-2 w-44"><div class="flex-1 h-2.5 rounded-full bg-gray-200"><div class="h-2.5 rounded-full '.$barColor.'" style="width: '.$pct.'%"></div></div><span class="text-xs font-medium tabular-nums text-gray-600">'.$pct.'%<br><span class="text-gray-400 font-normal">of MYR '.number_format((float) $record->target_amount, 2).'</span></span></div>';
+                    }),
+                TextColumn::make('donations_count')
+                    ->label('Donors')
+                    ->counts('donations')
+                    ->sortable()
+                    ->alignCenter(),
+                TextColumn::make('latestDonation.created_at')
+                    ->label('Last Donation')
+                    ->formatStateUsing(fn ($state): string => $state?->diffForHumans() ?? 'No donations yet')
                     ->sortable(),
+                TextColumn::make('created_at')
+                    ->label('Created')
+                    ->date()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('allow_recurring')
                     ->boolean()
-                    ->label('Recurring'),
+                    ->label('Recurring')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('end_date')
                     ->date()
                     ->sortable()

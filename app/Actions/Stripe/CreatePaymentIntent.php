@@ -18,6 +18,20 @@ class CreatePaymentIntent
 
         $organization = $donation->campaign->organization;
 
+        $supportedCurrencies = ['myr', 'usd', 'sgd'];
+        $currency = strtolower($donation->currency);
+
+        if (! in_array($currency, $supportedCurrencies, true)) {
+            throw new \InvalidArgumentException("Unsupported currency: {$currency}");
+        }
+
+        $orgSettings = $organization->settings ?? [];
+        $acceptedCurrencies = $orgSettings['accepted_currencies'] ?? ['myr'];
+
+        if (! in_array($currency, $acceptedCurrencies, true)) {
+            throw new \InvalidArgumentException("Currency {$currency} is not accepted by this organization.");
+        }
+
         $params = [
             'amount' => (int) ((float) $donation->gross_amount * 100),
             'currency' => strtolower($donation->currency),

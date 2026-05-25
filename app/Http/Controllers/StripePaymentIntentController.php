@@ -23,7 +23,7 @@ class StripePaymentIntentController extends Controller
             'donor_email' => ['required', 'email', 'max:255'],
             'donor_phone' => ['nullable', 'string', 'max:40'],
             'amount' => ['required', 'numeric', 'min:1', 'max:100000'],
-            'currency' => ['required', 'string', 'size:3'],
+            'currency' => ['required', 'string', 'in:myr,usd,sgd'],
             'type' => ['required', 'in:one_time,monthly'],
         ]);
 

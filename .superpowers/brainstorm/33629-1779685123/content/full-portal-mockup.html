@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ihsan Donor Portal — Full Mockup</title>
+<script>
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = '#64748b';
+    b.style.fontWeight = '500';
+  });
+  document.getElementById(id).style.display = 'block';
+  const btn = document.getElementById('btn-' + id);
+  btn.style.background = '#0f172a';
+  btn.style.color = '#fff';
+  btn.style.fontWeight = '700';
+}
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; background: #f1f5f9; padding: 20px; color: #0f172a; }
+  h1 { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+
+  /* Page tabs */
+  .page-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab-btn {
+    padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 500;
+    border: 1.5px solid #e2e8f0; cursor: pointer; background: #fff; color: #64748b;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { border-color: #0f172a; color: #0f172a; }
+
+  /* Phone frame */
+  .phone { background: #fff; border-radius: 16px; overflow: hidden; max-width: 360px; box-shadow: 0 8px 40px rgba(15,23,42,0.15); border: 1px solid #e2e8f0; }
+  .page { display: none; }
+
+  /* NAV */
+  .portal-nav { background: #0f172a; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-logo { color: #10b981; font-size: 14px; font-weight: 900; letter-spacing: -0.02em; }
+  .nav-links { display: flex; gap: 2px; }
+  .nav-link { padding: 5px 10px; border-radius: 6px; font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500; cursor: pointer; }
+  .nav-link.active { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #10b981; font-weight: 700; }
+  .nav-avatar { width: 26px; height: 26px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 9px; font-weight: 700; }
+
+  /* Content area */
+  .content { padding: 16px; background: #f8fafc; min-height: 460px; }
+
+  /* Stat cards */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .stats-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .stat-card { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px; }
+  .stat-label { color: #64748b; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .stat-value { color: #0f172a; font-size: 18px; font-weight: 900; line-height: 1; }
+  .stat-value.green { color: #047857; }
+
+  /* Chart area */
+  .chart-card { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 14px; }
+  .chart-title { color: #0f172a; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 4px; height: 60px; }
+  .bar { flex: 1; border-radius: 4px 4px 0 0; }
+  .bar-label { display: flex; justify-content: space-between; margin-top: 4px; }
+  .bar-label span { font-size: 7px; color: #94a3b8; }
+
+  /* Two col grid */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .info-card { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px; }
+  .card-title { color: #0f172a; font-size: 11px; font-weight: 700; margin-bottom: 8px; }
+
+  /* Campaign rows */
+  .campaign-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .campaign-name { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; flex-shrink: 0; }
+  .dot.blue { background: #0ea5e9; }
+  .dot.purple { background: #8b5cf6; }
+  .campaign-label { font-size: 9px; font-weight: 600; color: #374151; }
+  .campaign-amount { font-size: 9px; font-weight: 800; color: #0f172a; }
+
+  /* Activity rows */
+  .activity-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-top: 1px solid #f1f5f9; }
+  .activity-row:first-child { border-top: none; padding-top: 0; }
+  .activity-name { font-size: 9px; font-weight: 700; color: #0f172a; }
+  .activity-time { font-size: 7px; color: #94a3b8; margin-top: 1px; }
+  .activity-amount { font-size: 10px; font-weight: 900; color: #0f172a; }
+
+  /* Donation list */
+  .donation-item { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 8px; transition: box-shadow 0.15s; }
+  .donation-item:hover { box-shadow: 0 2px 12px rgba(15,23,42,0.08); }
+  .donation-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .donation-campaign { font-size: 11px; font-weight: 700; color: #0f172a; }
+  .donation-org { font-size: 9px; color: #64748b; margin-top: 1px; }
+  .donation-amount { font-size: 14px; font-weight: 900; color: #0f172a; text-align: right; }
+  .donation-date { font-size: 8px; color: #94a3b8; text-align: right; margin-top: 1px; }
+  .badge { display: inline-flex; align-items: center; gap: 3px; border-radius: 20px; padding: 3px 8px; font-size: 8px; font-weight: 700; }
+  .badge.green { background: #ecfdf5; color: #047857; border: 1px solid #d1fae5; }
+  .badge.blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
+  .badge.amber { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+  /* Subscription item */
+  .sub-item { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+  .sub-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .sub-campaign { font-size: 11px; font-weight: 700; color: #0f172a; }
+  .sub-org { font-size: 9px; color: #64748b; margin-top: 1px; }
+  .sub-amount { font-size: 14px; font-weight: 900; color: #0f172a; text-align: right; }
+  .sub-interval { font-size: 10px; font-weight: 400; color: #94a3b8; }
+  .sub-footer { display: flex; justify-content: space-between; align-items: center; }
+  .cancel-btn { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 700; color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 4px 8px; }
+
+  /* Login page */
+  .login-wrap { min-height: 100vh; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .login-card { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 28px; width: 100%; max-width: 320px; box-shadow: 0 4px 24px rgba(15,23,42,0.08); }
+  .login-logo { color: #0f172a; font-size: 22px; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 4px; }
+  .login-tagline { color: #94a3b8; font-size: 11px; margin-bottom: 20px; }
+  .login-title { font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+  .login-desc { font-size: 11px; color: #64748b; line-height: 1.5; margin-bottom: 20px; }
+  .input-label { font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 5px; display: block; }
+  .input-field { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #0f172a; outline: none; }
+  .input-field:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.12); }
+  .submit-btn { width: 100%; background: #0f172a; color: #fff; border: none; border-radius: 8px; padding: 10px; font-size: 12px; font-weight: 700; margin-top: 14px; cursor: pointer; }
+  .submit-btn:hover { background: #1e293b; }
+</style>
+</head>
+<body>
+<h1>ihsan Donor Portal — Full Redesign Preview</h1>
+<p class="subtitle">Bold Minimal · Dark top nav · Click tabs to see all pages</p>
+
+<div class="page-tabs">
+  <button class="tab-btn" id="btn-login" onclick="showPage('login')">Login</button>
+  <button class="tab-btn" id="btn-dashboard" onclick="showPage('dashboard')">Dashboard</button>
+  <button class="tab-btn" id="btn-donations" onclick="showPage('donations')">Donations</button>
+  <button class="tab-btn" id="btn-subscriptions" onclick="showPage('subscriptions')">Subscriptions</button>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="page">
+  <div class="login-wrap" style="min-height:auto;padding:0;background:transparent;">
+    <div style="max-width:360px;width:100%;">
+      <div class="login-card">
+        <div class="login-logo">ihsan.</div>
+        <div class="login-tagline">Your giving, your way.</div>
+        <div class="login-title">Welcome back</div>
+        <div class="login-desc">Enter your email and we'll send a magic link — no password needed.</div>
+        <label class="input-label">Email address</label>
+        <input class="input-field" type="email" placeholder="donor@example.com" />
+        <button class="submit-btn">Send Login Link →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="page">
+  <div class="phone">
+    <div class="portal-nav">
+      <div class="nav-logo">ihsan.</div>
+      <div class="nav-links">
+        <div class="nav-link active">Dashboard</div>
+        <div class="nav-link">Donations</div>
+        <div class="nav-link">Plans</div>
+      </div>
+      <div class="nav-avatar">AF</div>
+    </div>
+    <div class="content">
+      <div style="margin-bottom:12px;">
+        <div style="color:#0f172a;font-size:17px;font-weight:900;letter-spacing:-0.02em;">Dashboard</div>
+        <div style="color:#64748b;font-size:11px;margin-top:1px;">Hi Ahmad, here's your giving overview.</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Given</div>
+          <div class="stat-value green" style="font-size:14px;">RM 4,200</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Plans</div>
+          <div class="stat-value" style="font-size:14px;">2</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Monthly</div>
+          <div class="stat-value green" style="font-size:14px;">RM 200</div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Monthly Giving</div>
+        <div class="chart-bars">
+          <div class="bar" style="height:25%;background:#f1f5f9;"></div>
+          <div class="bar" style="height:40%;background:#f1f5f9;"></div>
+          <div class="bar" style="height:35%;background:#f1f5f9;"></div>
+          <div class="bar" style="height:55%;background:#f1f5f9;"></div>
+          <div class="bar" style="height:45%;background:#f1f5f9;"></div>
+          <div class="bar" style="height:70%;background:#f1f5f9;"></div>
+          <div class="bar" style="height:50%;background:#f1f5f9;"></div>
+          <div class="bar" style="height:80%;background:#f1f5f9;"></div>
+          <div class="bar" style="height:60%;background:#f1f5f9;"></div>
+          <div class="bar" style="height:85%;background:#f1f5f9;"></div>
+          <div class="bar" style="height:75%;background:#f1f5f9;"></div>
+          <div class="bar" style="height:100%;background:#10b981;"></div>
+        </div>
+        <div class="bar-label">
+          <span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span style="color:#047857;font-weight:700;">May</span>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="info-card">
+          <div class="card-title">By Campaign</div>
+          <div class="campaign-row"><div class="campaign-name"><div class="dot"></div><span class="campaign-label">Palestine</span></div><span class="campaign-amount">RM 2,100</span></div>
+          <div class="campaign-row"><div class="campaign-name"><div class="dot blue"></div><span class="campaign-label">Wakaf Ilmu</span></div><span class="campaign-amount">RM 900</span></div>
+          <div class="campaign-row"><div class="campaign-name"><div class="dot purple"></div><span class="campaign-label">Zakat</span></div><span class="campaign-amount">RM 700</span></div>
+        </div>
+        <div class="info-card">
+          <div class="card-title">Recent</div>
+          <div class="activity-row"><div><div class="activity-name">Palestine Fund</div><div class="activity-time">2 days ago</div></div><div class="activity-amount">RM 100</div></div>
+          <div class="activity-row"><div><div class="activity-name">Wakaf Ilmu</div><div class="activity-time">1 week ago</div></div><div class="activity-amount">RM 50</div></div>
+          <div class="activity-row"><div><div class="activity-name">Zakat Fund</div><div class="activity-time">2 weeks ago</div></div><div class="activity-amount">RM 200</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DONATIONS -->
+<div id="donations" class="page">
+  <div class="phone">
+    <div class="portal-nav">
+      <div class="nav-logo">ihsan.</div>
+      <div class="nav-links">
+        <div class="nav-link">Dashboard</div>
+        <div class="nav-link active">Donations</div>
+        <div class="nav-link">Plans</div>
+      </div>
+      <div class="nav-avatar">AF</div>
+    </div>
+    <div class="content">
+      <div style="margin-bottom:12px;">
+        <div style="color:#0f172a;font-size:17px;font-weight:900;letter-spacing:-0.02em;">Donations</div>
+        <div style="color:#64748b;font-size:11px;margin-top:1px;">Your complete giving history.</div>
+      </div>
+      <div class="stats-grid-2" style="margin-bottom:14px;">
+        <div class="stat-card">
+          <div class="stat-label">Total Given</div>
+          <div class="stat-value green">RM 4,200</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Donations</div>
+          <div class="stat-value">24</div>
+        </div>
+      </div>
+      <div class="donation-item">
+        <div class="donation-header">
+          <div><div class="donation-campaign">Palestine Emergency Fund</div><div class="donation-org">Aman Palestine</div></div>
+          <div><div class="donation-amount">RM 100</div><div class="donation-date">23 May 2026</div></div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <span class="badge green">✓ Succeeded</span>
+          <span class="badge blue">Recurring</span>
+        </div>
+      </div>
+      <div class="donation-item">
+        <div class="donation-header">
+          <div><div class="donation-campaign">Wakaf Ilmu</div><div class="donation-org">Yayasan Ilmu</div></div>
+          <div><div class="donation-amount">RM 50</div><div class="donation-date">16 May 2026</div></div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <span class="badge green">✓ Succeeded</span>
+          <span class="badge blue">Recurring</span>
+        </div>
+      </div>
+      <div class="donation-item">
+        <div class="donation-header">
+          <div><div class="donation-campaign">Zakat Al-Mal</div><div class="donation-org">MAIS</div></div>
+          <div><div class="donation-amount">RM 200</div><div class="donation-date">1 May 2026</div></div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <span class="badge green">✓ Succeeded</span>
+          <span class="badge amber">One-time</span>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:10px;color:#94a3b8;font-size:10px;font-weight:600;">Showing 3 of 24</div>
+    </div>
+  </div>
+</div>
+
+<!-- SUBSCRIPTIONS -->
+<div id="subscriptions" class="page">
+  <div class="phone">
+    <div class="portal-nav">
+      <div class="nav-logo">ihsan.</div>
+      <div class="nav-links">
+        <div class="nav-link">Dashboard</div>
+        <div class="nav-link">Donations</div>
+        <div class="nav-link active">Plans</div>
+      </div>
+      <div class="nav-avatar">AF</div>
+    </div>
+    <div class="content">
+      <div style="margin-bottom:14px;">
+        <div style="color:#0f172a;font-size:17px;font-weight:900;letter-spacing:-0.02em;">Recurring Plans</div>
+        <div style="color:#64748b;font-size:11px;margin-top:1px;">Manage your recurring donations.</div>
+      </div>
+      <div class="sub-item">
+        <div class="sub-header">
+          <div><div class="sub-campaign">Palestine Emergency Fund</div><div class="sub-org">Aman Palestine</div></div>
+          <div><div class="sub-amount">RM 100<span class="sub-interval">/mo</span></div><div style="font-size:8px;color:#94a3b8;text-align:right;margin-top:2px;">Next: 23 Jun</div></div>
+        </div>
+        <div class="sub-footer">
+          <span class="badge green">● Active</span>
+          <button class="cancel-btn">✕ Cancel</button>
+        </div>
+      </div>
+      <div class="sub-item">
+        <div class="sub-header">
+          <div><div class="sub-campaign">Wakaf Ilmu</div><div class="sub-org">Yayasan Ilmu</div></div>
+          <div><div class="sub-amount">RM 50<span class="sub-interval">/mo</span></div><div style="font-size:8px;color:#94a3b8;text-align:right;margin-top:2px;">Next: 16 Jun</div></div>
+        </div>
+        <div class="sub-footer">
+          <span class="badge green">● Active</span>
+          <button class="cancel-btn">✕ Cancel</button>
+        </div>
+      </div>
+      <div class="sub-item" style="opacity:0.6;">
+        <div class="sub-header">
+          <div><div class="sub-campaign">Zakat Fund</div><div class="sub-org">MAIS</div></div>
+          <div><div class="sub-amount">RM 200<span class="sub-interval">/mo</span></div></div>
+        </div>
+        <div class="sub-footer">
+          <span class="badge" style="background:#f8fafc;color:#64748b;border:1px solid #e2e8f0;">Cancelled</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>showPage('dashboard');</script>
+</body>
+</html>

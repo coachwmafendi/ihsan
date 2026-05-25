@@ -181,3 +181,93 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+## Anchored Summary
+
+### Goal
+- Build notification settings UI and email sending logic, set up Stripe Connect payment page, add period/donor filters, redesign Popup element form, and generate embed codes per element type
+
+### Constraints & Preferences
+- Use Livewire/Filament pages for settings (not standalone form)
+- Save preferences to `organizations.settings` JSON column
+- Toggles auto-save on change (Livewire `$toggle` + `updated()` hook)
+- Send emails via queue jobs; check org setting before sending
+- All queries must be DB-agnostic (SQLite in tests)
+- Popup element form uses simplified config fields (title, message, button_text, action, trigger, delay, frequency, visibility, layout, image, color) — removed old donation-form config
+- Embed scripts all point to single `/e/widget.js` with `data-type` attribute, not separate JS files per type
+- Embed code copied via Alpine `@js()` + `navigator.clipboard.writeText()` — not stored in `data-*` HTML attributes (avoids HTML entity encoding)
+
+### Progress
+#### Done
+- **Settings refactored**: `Settings.php` split into 3 pages under Settings group — `ProfilOrganisasi`, `Pembayaran`, `Pemberitahuan`
+- **Notification toggles**: 9 toggles (new donation, daily summary, failed payment, new subscription, subscription cancelled, large donation + threshold, refund, campaign milestone, monthly report)
+- **Livewire 4 fix**: `wire:model.blur` → `wire:model.live.blur` so field changes actually send a network request to the server
+- **Mail classes**: `NewDonationNotification`, `DailyDonationSummary`, `FailedPaymentNotification`, `NewSubscriptionNotification`, `SubscriptionCancelledNotification`, `LargeDonationNotification`, `RefundNotification`
+- **Jobs**: `SendNewDonationNotification`, `SendFailedPaymentNotification`, `SendNewSubscriptionNotification`, `SendSubscriptionCancelledNotification`, `SendLargeDonationNotification`, `SendRefundNotification`, `SendDailyDonationSummary`
+- **Dispatch points in ProcessStripeWebhook**: `handlePaymentIntentSucceeded` (new sub + large donation), `handleSubscriptionDeleted` (cancelled), `handleChargeRefunded` (new handler)
+- **Revenue page fixed**: hardcoded "3%" replaced with config-driven 2.5%, effective fee rate from actual data, all processing fees counted (not just `paid`)
+- **Negeri (state)**: `TextInput` → `Select` with 16 Malaysia states, searchable
+- **Negara (country)**: `TextInput` → `Select` with 21 common countries, searchable
+- **StripePaymentIntentController**: stashed off-platform premium payment endpoint — disabled in Filament route registration, accessible only via direct URL
+- **Stripe Connect text**: Pembayaran page headings, button labels, modal text — renamed "Stripe" → "Stripe Connect"
+- **Period filter (donations table)**: Insights-style Alpine dropdown with All Time, Today, Yesterday, Last 7 days, Last 30 days, Last 90 days, This month — replaces old `SelectFilter` and `getTabs()` approaches
+- **Donor country**: added `donor_country` VARCHAR(2) column to `donations`, extracted from `$paymentMethod->card->country` in `SyncDonationStripeDetails`, saved on webhook sync
+- **Popup element form redesigned**: removed old donation-form config (template, colors, amounts, popup triggers etc.) with simplified sections: Content (title, message, button_text), Action (campaign_page/checkout_modal), Display Rules (trigger, delay, frequency, visibility), Appearance (layout, image, color), Status toggle
+- **PDF receipt redesigned**: formal receipt document with header, donor info, table (amount, campaign, type, payment method, status), tax-exempt footer — removed promotional language
+- **Element type options**: explicit proper case labels (`Button`, `Floating Button`, `Form`, `Popup`) instead of `ElementType::class` enum auto-generation, fixed `->value` on string error
+- **Embed code generation**: per-type embed snippet shown after element is saved — Floating Button (script with all data attrs), Button (script), Popup (script), Form (iframe) — all point to `/e/widget.js` with `data-type` attribute
+- **Embed code copy fix**: uses Alpine `@js()` directive + `x-text` rendering instead of `data-code` attribute — avoids HTML entity encoding (`&lt;`/`&gt;`) on paste
+- **Embed token visibility**: donation page URL + QR + WhatsApp share only shown for Form/Popup types, hidden for Button/FloatingButton
+- **Route + controller for `/e/widget.js`**: `EmbedCheckoutController@widget` returns widget JS that renders floating buttons, inline buttons, and popups from `data-*` attributes on the script tag
+
+#### In Progress
+- *(none)*
+
+#### Blocked
+- *(none)*
+
+### Key Decisions
+- Custom HTML toggle buttons (`wire:click="$toggle()"`) instead of `<flux:switch>` — Flux JS not loaded in Filament pages
+- Mail sent to all `NgoAdmin` users in the org, not just primary contact
+- Defaults: `notify_new_donation` ON, `daily_donation_summary` OFF, `failed_payment_notification` ON, `notify_new_subscription` ON, `notify_subscription_cancelled` ON, `notify_large_donation` OFF, `notify_refund` ON, `notify_campaign_milestone` OFF, `monthly_report` OFF
+- Revenue page counts all `ProcessingFee` records (not only `paid`) — pending fees are legitimate collections
+- Period filter uses Alpine dropdown button (not Filament tabs) to match Insights UX
+- Donor country stored on donation record (not donor) — available at charge sync time without additional API calls
+- Popup element no longer shares config with Form type — separate `defaultConfigForType` case with its own defaults
+- Embed code uses `@js()` for Alpine data binding instead of HTML `data-*` attributes — avoids HTML entity corruption on copy
+
+### Next Steps
+1. Create widget JS file `/e/widget.js` route + controller that serves the widget JavaScript dynamically based on element token/config — **DONE**
+2. Build the JS widget that renders floating button/popup/button elements from data attributes — **DONE**
+3. Verify embed code renders correctly on external sites
+
+### Critical Context
+- `php artisan test` exit code 0 — 111 passed, 2 skipped (pre-existing cURL timeout in `PlatformInvoicePaid` mail test from factory-generated fake URLs)
+- Livewire 4: `wire:model.blur` without `.live` only syncs client-side (Alpine `$wire` proxy), does not send a network request — `updated()` hook never fires
+- `Pemberitahuan.php` slug is `pemberitahuan`, which doesn't match the old Settings page — any deep links to `/app/settings` will 404
+- `selectedType()` helper converts Popup → Form for visibility logic; use `$get('type') === 'popup'` directly for Popup-specific sections
+
+### Relevant Files
+- `app/Filament/App/Pages/Pemberitahuan.php`: Page class with all 9 notification toggles, auto-save, mount
+- `resources/views/filament/app/pages/pemberitahuan.blade.php`: Notifications view with toggle cards + daily summary time input + large donation threshold input
+- `app/Filament/Pages/Revenue.php`: Updated to use config-driven fee rate, all processing fees, effective rate from actual data
+- `resources/views/filament/admin/pages/revenue.blade.php`: Updated cards showing dynamic values
+- `app/Filament/App/Pages/ProfilOrganisasi.php`: Profile page with state/country `Select` fields
+- `app/Filament/App/Pages/Pembayaran.php`: Stripe connection page with Stripe Connect text/labels
+- `app/Filament/Resources/Organizations/Schemas/OrganizationForm.php`: Admin org form with state/country `Select` fields
+- `app/Jobs/ProcessStripeWebhook.php`: Dispatch points for all new notification types + `handleChargeRefunded`
+- `app/Jobs/Send{NewSubscription,SubscriptionCancelled,LargeDonation,Refund}Notification.php`: 4 new notification jobs
+- `app/Mail/{NewSubscription,SubscriptionCancelled,LargeDonation,Refund}Notification.php`: 4 new mailables
+- `resources/views/emails/{new-subscription,subscription-cancelled,large-donation,refund}-notification.blade.php`: 4 new email views
+- `app/Console/Commands/SendDailyDonationSummary.php`: Scheduled command for daily summary
+- `app/Livewire/DonationForm.php`: Dispatch `SendNewDonationNotification` on success
+- `routes/console.php`: Daily summary schedule
+- `app/Filament/App/Resources/Donations/Pages/ListDonations.php`: Period filter with Alpine dropdown, `getTableQuery()` override for date range
+- `resources/views/filament/app/resources/donations/pages/period-filter.blade.php`: Alpine dropdown for period filter
+- `app/Actions/Stripe/SyncDonationStripeDetails.php`: Extracts and saves `donor_country` from PaymentMethod card
+- `database/migrations/2026_05_24_121101_add_donor_country_to_donations_table.php`: Adds `donor_country` VARCHAR(2) column
+- `app/Filament/App/Resources/Elements/Schemas/ElementForm.php`: Popup form redesign + embed-token visibility per type
+- `resources/views/emails/donation-receipt-pdf.blade.php`: Formal PDF receipt template
+- `resources/views/filament/forms/components/element-embed-snippet.blade.php`: Per-type embed code display with copy button, uses `/e/widget.js`
+- `app/Http/Controllers/EmbedCheckoutController.php`: Added `widget()` method serving `/e/widget.js` with floating button/button/popup renderers
+- `routes/web.php`: Added `Route::get('/e/widget.js', ...)`

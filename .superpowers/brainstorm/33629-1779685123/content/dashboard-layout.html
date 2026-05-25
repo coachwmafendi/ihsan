@@ -1,0 +1,147 @@
+<h2>Dashboard Content Layout</h2>
+<p class="subtitle">Dark top nav confirmed. How should the dashboard cards be arranged?</p>
+
+<div class="cards">
+
+  <!-- Option A: Stats row + chart full width + 2-col bottom -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;padding:0;border-radius:8px 8px 0 0;overflow:hidden;">
+      <div style="background:#0f172a;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="color:#10b981;font-size:11px;font-weight:800;">ihsan</div>
+        <div style="display:flex;gap:3px;">
+          <div style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:5px;padding:3px 8px;font-size:8px;color:#10b981;font-weight:600;">Dashboard</div>
+          <div style="border-radius:5px;padding:3px 8px;font-size:8px;color:rgba(255,255,255,0.35);">Donations</div>
+          <div style="border-radius:5px;padding:3px 8px;font-size:8px;color:rgba(255,255,255,0.35);">Plans</div>
+        </div>
+        <div style="width:22px;height:22px;background:rgba(255,255,255,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-size:8px;font-weight:700;">AF</span></div>
+      </div>
+      <div style="padding:12px 14px;">
+        <!-- 3-stat row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
+          <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+            <div style="color:#64748b;font-size:7px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Total Given</div>
+            <div style="color:#047857;font-size:15px;font-weight:900;margin-top:2px;">RM 4,200</div>
+          </div>
+          <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+            <div style="color:#64748b;font-size:7px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Active Plans</div>
+            <div style="color:#0f172a;font-size:15px;font-weight:900;margin-top:2px;">2</div>
+          </div>
+          <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+            <div style="color:#64748b;font-size:7px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Monthly</div>
+            <div style="color:#047857;font-size:15px;font-weight:900;margin-top:2px;">RM 200</div>
+          </div>
+        </div>
+        <!-- Chart full width -->
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;margin-bottom:8px;">
+          <div style="color:#0f172a;font-size:9px;font-weight:700;margin-bottom:6px;">Monthly Giving</div>
+          <div style="display:flex;align-items:flex-end;gap:3px;height:40px;">
+            <div style="flex:1;background:#e2e8f0;border-radius:3px 3px 0 0;height:30%;"></div>
+            <div style="flex:1;background:#e2e8f0;border-radius:3px 3px 0 0;height:50%;"></div>
+            <div style="flex:1;background:#e2e8f0;border-radius:3px 3px 0 0;height:40%;"></div>
+            <div style="flex:1;background:#e2e8f0;border-radius:3px 3px 0 0;height:70%;"></div>
+            <div style="flex:1;background:#e2e8f0;border-radius:3px 3px 0 0;height:55%;"></div>
+            <div style="flex:1;background:#e2e8f0;border-radius:3px 3px 0 0;height:80%;"></div>
+            <div style="flex:1;background:#10b981;border-radius:3px 3px 0 0;height:100%;"></div>
+          </div>
+        </div>
+        <!-- 2-col bottom -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+            <div style="color:#0f172a;font-size:8px;font-weight:700;margin-bottom:5px;">By Campaign</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:8px;color:#475569;">Palestine</span><span style="font-size:8px;font-weight:700;color:#0f172a;">RM 2,100</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="font-size:8px;color:#475569;">Wakaf Ilmu</span><span style="font-size:8px;font-weight:700;color:#0f172a;">RM 900</span></div>
+          </div>
+          <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+            <div style="color:#0f172a;font-size:8px;font-weight:700;margin-bottom:5px;">Recent Activity</div>
+            <div style="margin-bottom:3px;"><div style="font-size:8px;font-weight:600;color:#0f172a;">Palestine Fund</div><div style="font-size:7px;color:#94a3b8;">2 days ago · RM 100</div></div>
+            <div><div style="font-size:8px;font-weight:600;color:#0f172a;">Wakaf Ilmu</div><div style="font-size:7px;color:#94a3b8;">1 week ago · RM 50</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Classic Grid</h3>
+      <p>3 stats → full-width chart → 2-col breakdown. Familiar dashboard pattern.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Big hero stat + asymmetric grid -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;padding:0;border-radius:8px 8px 0 0;overflow:hidden;">
+      <div style="background:#0f172a;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="color:#10b981;font-size:11px;font-weight:800;">ihsan</div>
+        <div style="display:flex;gap:3px;">
+          <div style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:5px;padding:3px 8px;font-size:8px;color:#10b981;font-weight:600;">Dashboard</div>
+          <div style="border-radius:5px;padding:3px 8px;font-size:8px;color:rgba(255,255,255,0.35);">Donations</div>
+          <div style="border-radius:5px;padding:3px 8px;font-size:8px;color:rgba(255,255,255,0.35);">Plans</div>
+        </div>
+        <div style="width:22px;height:22px;background:rgba(255,255,255,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-size:8px;font-weight:700;">AF</span></div>
+      </div>
+      <!-- Sub-header greeting bar -->
+      <div style="background:#fff;border-bottom:1.5px solid #e2e8f0;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="color:#94a3b8;font-size:8px;">Hi Ahmad · </span>
+          <span style="color:#0f172a;font-size:8px;font-weight:700;">Sunday, 25 May</span>
+        </div>
+        <div style="color:#10b981;font-size:8px;font-weight:700;">Jazakallah Khayr ✓</div>
+      </div>
+      <div style="padding:10px 14px;">
+        <!-- Big hero stat -->
+        <div style="background:#0f172a;border-radius:10px;padding:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="color:rgba(255,255,255,0.4);font-size:7px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Lifetime Giving</div>
+            <div style="color:#fff;font-size:26px;font-weight:900;line-height:1;margin-top:2px;">RM 4,200</div>
+            <div style="color:#10b981;font-size:9px;font-weight:600;margin-top:3px;">↑ RM 200 this month</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="color:rgba(255,255,255,0.4);font-size:7px;font-weight:600;text-transform:uppercase;">Monthly</div>
+            <div style="color:#10b981;font-size:14px;font-weight:800;">RM 200</div>
+            <div style="color:rgba(255,255,255,0.3);font-size:7px;margin-top:1px;">2 active plans</div>
+          </div>
+        </div>
+        <!-- Asymmetric grid -->
+        <div style="display:grid;grid-template-columns:3fr 2fr;gap:6px;margin-bottom:6px;">
+          <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+            <div style="color:#0f172a;font-size:8px;font-weight:700;margin-bottom:5px;">Monthly Giving</div>
+            <div style="display:flex;align-items:flex-end;gap:2px;height:35px;">
+              <div style="flex:1;background:#f1f5f9;border-radius:2px 2px 0 0;height:30%;"></div>
+              <div style="flex:1;background:#f1f5f9;border-radius:2px 2px 0 0;height:50%;"></div>
+              <div style="flex:1;background:#f1f5f9;border-radius:2px 2px 0 0;height:45%;"></div>
+              <div style="flex:1;background:#f1f5f9;border-radius:2px 2px 0 0;height:75%;"></div>
+              <div style="flex:1;background:#f1f5f9;border-radius:2px 2px 0 0;height:60%;"></div>
+              <div style="flex:1;background:#10b981;border-radius:2px 2px 0 0;height:100%;"></div>
+            </div>
+          </div>
+          <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+            <div style="color:#0f172a;font-size:8px;font-weight:700;margin-bottom:5px;">By Campaign</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:7px;color:#64748b;">Palestine</span><span style="font-size:7px;font-weight:700;">50%</span></div>
+            <div style="background:#f1f5f9;border-radius:4px;overflow:hidden;height:5px;margin-bottom:5px;"><div style="background:#10b981;height:100%;width:50%;border-radius:4px;"></div></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:7px;color:#64748b;">Wakaf</span><span style="font-size:7px;font-weight:700;">21%</span></div>
+            <div style="background:#f1f5f9;border-radius:4px;overflow:hidden;height:5px;"><div style="background:#0ea5e9;height:100%;width:21%;border-radius:4px;"></div></div>
+          </div>
+        </div>
+        <!-- Recent feed -->
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <span style="font-size:8px;font-weight:700;color:#0f172a;">Recent Activity</span>
+            <span style="font-size:7px;color:#10b981;font-weight:600;">View all →</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid #f1f5f9;">
+            <div><div style="font-size:8px;font-weight:600;color:#0f172a;">Palestine Fund</div><div style="font-size:7px;color:#94a3b8;">2d ago</div></div>
+            <span style="font-size:9px;font-weight:800;color:#0f172a;">RM 100</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid #f1f5f9;">
+            <div><div style="font-size:8px;font-weight:600;color:#0f172a;">Wakaf Ilmu</div><div style="font-size:7px;color:#94a3b8;">1w ago</div></div>
+            <span style="font-size:9px;font-weight:800;color:#0f172a;">RM 50</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Hero Card + Asymmetric</h3>
+      <p>Dark hero card with big lifetime stat → asymmetric chart/breakdown grid → activity feed. More visual punch.</p>
+    </div>
+  </div>
+
+</div>
+<p class="subtitle" style="text-align:center;margin-top:16px;">A = familiar grid &nbsp;|&nbsp; B = modern hero layout</p>

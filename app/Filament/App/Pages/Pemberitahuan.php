@@ -12,6 +12,8 @@ class Pemberitahuan extends Page
 
     protected static ?string $navigationLabel = 'Pemberitahuan';
 
+    protected static ?string $title = 'Pemberitahuan Email';
+
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 
     protected static ?int $navigationSort = 3;
