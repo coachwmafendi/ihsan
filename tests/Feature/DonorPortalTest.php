@@ -75,3 +75,18 @@ it('renders login page with new design', function () {
         ->assertSee('Your giving, your way.')
         ->assertSee('Send Login Link');
 });
+
+it('renders dashboard with stats and activity sections', function () {
+    $donor = Donor::factory()->create();
+
+    $this->withSession(['donor_id' => $donor->getKey()])
+        ->get(route('donorportal.dashboard'))
+        ->assertOk()
+        ->assertSee('Dashboard')
+        ->assertSee('Total Given')
+        ->assertSee('Active Plans')
+        ->assertSee('Monthly')
+        ->assertSee('Monthly Giving')
+        ->assertSee('By Campaign')
+        ->assertSee('Recent Activity');
+});
