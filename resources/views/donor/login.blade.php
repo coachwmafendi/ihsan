@@ -8,9 +8,9 @@
 </head>
 <body class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4 antialiased">
     <div class="w-full max-w-xs">
-        <div class="mb-8">
-            <p class="text-2xl font-black text-slate-900 [letter-spacing:-0.03em]">Ihsan.</p>
-            <p class="mt-1 text-xs text-slate-400">Your giving, your way.</p>
+        <div class="mb-8 text-center">
+            <img src="{{ asset('logo-ihsan.png') }}" alt="{{ config('app.name') }}" class="mx-auto h-10 w-auto" />
+            <p class="mt-2 text-xs text-slate-400">Your giving, your way.</p>
         </div>
 
         <div class="rounded-2xl bg-white p-8 shadow-[0_4px_24px_rgba(15,23,42,0.08)]"

@@ -70,7 +70,7 @@ it('logs out donor and redirects to login', function () {
 it('renders login page with new design', function () {
     $this->get(route('donorportal.login'))
         ->assertOk()
-        ->assertSee('Ihsan.')
+        ->assertSee('logo-ihsan.png', false)
         ->assertSee('Your giving, your way.')
         ->assertSee('Send Login Link');
 });
