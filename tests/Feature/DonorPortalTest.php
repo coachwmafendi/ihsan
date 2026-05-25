@@ -100,3 +100,13 @@ it('renders donations page with stats and card list', function () {
         ->assertSee('Donations')
         ->assertSee('Your complete giving history.');
 });
+
+it('renders subscriptions page with manage subtitle', function () {
+    $donor = Donor::factory()->create();
+
+    $this->withSession(['donor_id' => $donor->getKey()])
+        ->get(route('donorportal.subscriptions'))
+        ->assertOk()
+        ->assertSee('Subscriptions')
+        ->assertSee('Manage your recurring donations.');
+});
