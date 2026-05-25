@@ -33,7 +33,7 @@ class CreatePaymentIntent
         }
 
         $params = [
-            'amount' => (int) ((float) $donation->gross_amount * 100),
+            'amount' => (int) (((float) $donation->gross_amount + (float) $donation->donor_fee_covered) * 100),
             'currency' => strtolower($donation->currency),
             'automatic_payment_methods' => [
                 'enabled' => true,
