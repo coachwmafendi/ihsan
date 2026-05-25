@@ -61,7 +61,7 @@ class DonationForm extends Component
 
         if ($element instanceof Element) {
             abort_if(
-                ! $element->is_active || ! in_array($element->type, [ElementType::Form, ElementType::Popup], true) || $element->campaign === null,
+                ! $element->is_active || $element->campaign === null,
                 404
             );
 
@@ -85,7 +85,7 @@ class DonationForm extends Component
             // Direct initialization (tests) via pre-set property
             $element = $this->element;
             abort_if(
-                ! $element->is_active || ! in_array($element->type, [ElementType::Form, ElementType::Popup], true) || $element->campaign === null,
+                ! $element->is_active || $element->campaign === null,
                 404
             );
 

@@ -23,7 +23,7 @@ class CreateElement extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['organization_id'] = auth()->user()->organization_id;
-        $data['token'] = $data['token'] ?? Str::random(32);
+        $data['token'] = $data['token'] ?? Str::random(6);
         $data['config'] = [
             ...ElementForm::defaultConfigForType($data['type'] ?? null),
             ...($data['config'] ?? []),

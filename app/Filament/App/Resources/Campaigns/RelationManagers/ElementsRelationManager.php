@@ -2,6 +2,7 @@
 
 namespace App\Filament\App\Resources\Campaigns\RelationManagers;
 
+use App\Enums\ElementType;
 use App\Filament\App\Resources\Elements\Schemas\ElementForm;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
@@ -42,7 +43,7 @@ class ElementsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('type')
                     ->badge()
-                    ->formatStateUsing(fn (ElementType $state): string => ucfirst($state->value))
+                    ->formatStateUsing(fn (ElementType $state): string => str($state->value)->replace('_', ' ')->title())
                     ->searchable(),
                 IconColumn::make('is_active')
                     ->boolean(),

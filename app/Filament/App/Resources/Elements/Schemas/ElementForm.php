@@ -97,7 +97,6 @@ class ElementForm
             ->components([
                 Section::make('Element Details')
                     ->columnSpanFull()
-                    ->extraAttributes(['class' => 'ihsan-builder-header'])
                     ->columns(2)
                     ->schema([
                         TextInput::make('name')
@@ -108,7 +107,12 @@ class ElementForm
                         Select::make('type')
                             ->required()
                             ->live()
-                            ->options(ElementType::class)
+                            ->options([
+                                'button' => 'Button',
+                                'floating_button' => 'Floating Button',
+                                'form' => 'Form',
+                                'popup' => 'Popup',
+                            ])
                             ->placeholder('Select type'),
                         Select::make('campaign_id')
                             ->label('Campaign')
@@ -129,12 +133,29 @@ class ElementForm
                                 'token' => $record?->token,
                                 'url' => $record?->token ? url('/donate/'.$record->token) : null,
                             ])
+                            ->visible(fn (Get $get, ?Element $record): bool => $record !== null && in_array($get('type') ?? $record->type->value, ['form', 'popup'], true))
+                            ->columnSpanFull(),
+                        View::make('filament.forms.components.element-embed-snippet')
+                            ->viewData(function (Get $get, ?Element $record): array {
+                                $recordConfig = $record?->config ?? [];
+                                $liveConfig = $get('config') ?? [];
+                                $type = $get('type') ?? $record?->type?->value;
+
+                                return [
+                                    'element' => $record,
+                                    'liveConfig' => array_merge($recordConfig, $liveConfig),
+                                    'liveType' => $type,
+                                ];
+                            })
                             ->visible(fn ($record) => $record !== null)
+                            ->reactive()
                             ->columnSpanFull(),
                     ]),
-                Section::make('Button Configuration')
+                Section::make('Button')
+                    ->description('Configure your inline donate button')
                     ->columnSpanFull()
                     ->statePath('config')
+                    ->icon('heroicon-m-hand-raised')
                     ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::Button->value)
                     ->columns(2)
                     ->schema([
@@ -155,7 +176,8 @@ class ElementForm
                                 'bg-gray-900 hover:bg-gray-800' => 'Dark',
                             ])
                             ->default('bg-blue-600 hover:bg-blue-700')
-                            ->live(),
+                            ->live()
+                            ->native(false),
                         Select::make('button_size')
                             ->label('Button Size')
                             ->options([
@@ -164,7 +186,8 @@ class ElementForm
                                 'text-lg px-8 py-4' => 'Large',
                             ])
                             ->default('text-base px-6 py-3')
-                            ->live(),
+                            ->live()
+                            ->native(false),
                         TextInput::make('corner_radius')
                             ->label('Corner Radius')
                             ->numeric()
@@ -175,121 +198,134 @@ class ElementForm
                             ->label('Show amount input')
                             ->default(true)
                             ->live(),
-                        View::make('filament.forms.components.element-form-submit')
-                            ->viewData(fn (?Element $record): array => [
-                                'label' => $record ? 'Save changes' : 'Create element',
-                                'cancelUrl' => ElementResource::getUrl('index'),
-                            ])
+                        View::make('filament.forms.components.element-preview')
                             ->columnSpanFull()
-                            ->visible(! $hideSubmit),
+                            ->viewData(fn (Get $get): array => [
+                                'type' => $get('type'),
+                                'config' => self::previewConfig($get),
+                            ]),
                     ]),
-                Section::make('Floating Button Settings')
+                Section::make('Floating Button')
+                    ->description('A fixed-position button on the edge of the page')
                     ->columnSpanFull()
                     ->statePath('config')
+                    ->icon('heroicon-m-arrows-pointing-out')
                     ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::FloatingButton->value)
-                    ->columns(2)
                     ->schema([
-                        TextInput::make('button_text')
-                            ->label('Button text')
-                            ->default('Derma Sekarang')
-                            ->required()
-                            ->live()
-                            ->columnSpanFull(),
-                        Select::make('action')
-                            ->label('Action')
-                            ->options([
-                                'campaign_page' => 'Open campaign page',
-                                'checkout_modal' => 'Open checkout modal',
-                            ])
-                            ->default('checkout_modal')
-                            ->live()
-                            ->native(false)
-                            ->columnSpanFull(),
-                        Placeholder::make('appearance_heading')
-                            ->hiddenLabel()
-                            ->content(new HtmlString('<h4 class="text-sm font-semibold text-zinc-900">Appearance</h4>'))
-                            ->columnSpanFull(),
-                        Select::make('position')
-                            ->label('Position')
-                            ->options([
-                                'bottom-right' => 'Bottom right',
-                                'bottom-left' => 'Bottom left',
-                                'top-right' => 'Top right',
-                                'top-left' => 'Top left',
-                            ])
-                            ->default('bottom-right')
-                            ->live(),
-                        Select::make('color')
-                            ->label('Color')
-                            ->options([
-                                'campaign' => 'Use campaign color',
-                                'blue' => 'Blue',
-                                'teal' => 'Teal',
-                                'green' => 'Green',
-                                'orange' => 'Orange',
-                                'red' => 'Red',
-                                'purple' => 'Purple',
-                                'dark' => 'Dark',
-                            ])
-                            ->default('campaign')
-                            ->live(),
-                        Select::make('icon')
-                            ->label('Icon')
-                            ->options([
-                                'heart' => 'Heart',
-                                'hand' => 'Hand',
-                                'star' => 'Star',
-                                'gift' => 'Gift',
-                                'plus' => 'Plus',
-                            ])
-                            ->default('heart')
-                            ->live(),
-                        Select::make('shape')
-                            ->label('Shape')
-                            ->options([
-                                'pill' => 'Pill',
-                                'circle' => 'Circle',
-                                'square' => 'Square',
-                                'rounded' => 'Rounded',
-                            ])
-                            ->default('pill')
-                            ->live(),
-                        Select::make('size')
-                            ->label('Size')
-                            ->options([
-                                'small' => 'Small',
-                                'medium' => 'Medium',
-                                'large' => 'Large',
-                            ])
-                            ->default('medium')
-                            ->live(),
-                        Placeholder::make('visibility_heading')
-                            ->hiddenLabel()
-                            ->content(new HtmlString('<h4 class="text-sm font-semibold text-zinc-900">Visibility</h4>'))
-                            ->columnSpanFull(),
-                        Toggle::make('visible_desktop')
-                            ->label('Desktop')
-                            ->default(true)
-                            ->live(),
-                        Toggle::make('visible_mobile')
-                            ->label('Mobile')
-                            ->default(true)
-                            ->live(),
-                        View::make('filament.forms.components.element-form-submit')
-                            ->viewData(fn (?Element $record): array => [
-                                'label' => $record ? 'Save changes' : 'Create element',
-                                'cancelUrl' => ElementResource::getUrl('index'),
-                            ])
+                        Grid::make()
+                            ->columns(2)
+                            ->schema([
+                                Section::make('Content')
+                                    ->compact()
+                                    ->schema([
+                                        TextInput::make('button_text')
+                                            ->label('Button text')
+                                            ->default('Derma Sekarang')
+                                            ->required()
+                                            ->live(),
+                                        Select::make('action')
+                                            ->label('Action')
+                                            ->options([
+                                                'campaign_page' => 'Open campaign page',
+                                                'checkout_modal' => 'Open checkout modal',
+                                            ])
+                                            ->default('checkout_modal')
+                                            ->live()
+                                            ->native(false),
+                                        Select::make('icon')
+                                            ->label('Icon')
+                                            ->options([
+                                                'heart' => 'Heart',
+                                                'hand' => 'Hand',
+                                                'star' => 'Star',
+                                                'gift' => 'Gift',
+                                                'plus' => 'Plus',
+                                            ])
+                                            ->default('heart')
+                                            ->live()
+                                            ->native(false),
+                                    ]),
+                                Section::make('Position & Size')
+                                    ->compact()
+                                    ->schema([
+                                        Select::make('position')
+                                            ->label('Position')
+                                            ->options([
+                                                'bottom-right' => 'Bottom right',
+                                                'bottom-left' => 'Bottom left',
+                                                'top-right' => 'Top right',
+                                                'top-left' => 'Top left',
+                                                'vertical-left-center' => 'Vertical left center',
+                                                'vertical-right-center' => 'Vertical right center',
+                                            ])
+                                            ->default('bottom-right')
+                                            ->live()
+                                            ->native(false),
+                                        Select::make('size')
+                                            ->label('Size')
+                                            ->options([
+                                                'small' => 'Small',
+                                                'medium' => 'Medium',
+                                                'large' => 'Large',
+                                            ])
+                                            ->default('medium')
+                                            ->live()
+                                            ->native(false),
+                                        Select::make('shape')
+                                            ->label('Shape')
+                                            ->options([
+                                                'pill' => 'Pill',
+                                                'circle' => 'Circle',
+                                                'square' => 'Square',
+                                                'rounded' => 'Rounded',
+                                            ])
+                                            ->default('pill')
+                                            ->live()
+                                            ->native(false),
+                                    ]),
+                                Section::make('Color')
+                                    ->compact()
+                                    ->schema([
+                                        Select::make('color')
+                                            ->label('Color scheme')
+                                            ->options([
+                                                'campaign' => 'Use campaign color',
+                                                'blue' => 'Blue',
+                                                'teal' => 'Teal',
+                                                'green' => 'Green',
+                                                'orange' => 'Orange',
+                                                'red' => 'Red',
+                                                'purple' => 'Purple',
+                                                'dark' => 'Dark',
+                                            ])
+                                            ->default('campaign')
+                                            ->live()
+                                            ->native(false),
+                                        Toggle::make('visible_desktop')
+                                            ->label('Show on desktop')
+                                            ->default(true)
+                                            ->live(),
+                                        Toggle::make('visible_mobile')
+                                            ->label('Show on mobile')
+                                            ->default(true)
+                                            ->live(),
+                                    ]),
+                            ]),
+                        View::make('filament.forms.components.element-preview')
                             ->columnSpanFull()
-                            ->visible(! $hideSubmit),
+                            ->viewData(fn (Get $get): array => [
+                                'type' => $get('type'),
+                                'config' => self::previewConfig($get),
+                            ]),
                     ]),
                 Grid::make()
                     ->columnSpanFull()
                     ->statePath('config')
-                    ->visible(fn (Get $get): bool => $get('type')?->value === ElementType::Popup->value)
+                    ->visible(fn (Get $get): bool => $get('type') === ElementType::Popup->value)
                     ->schema([
                         Section::make('Content')
                             ->columns(2)
+                            ->icon('heroicon-m-document-text')
                             ->schema([
                                 TextInput::make('title')
                                     ->label('Title')
@@ -306,6 +342,7 @@ class ElementForm
                                     ->live(),
                             ]),
                         Section::make('Action')
+                            ->icon('heroicon-m-cursor-arrow-rays')
                             ->schema([
                                 Select::make('action')
                                     ->label('Action')
@@ -319,6 +356,7 @@ class ElementForm
                             ]),
                         Section::make('Display Rules')
                             ->columns(2)
+                            ->icon('heroicon-m-eye')
                             ->schema([
                                 Select::make('trigger')
                                     ->label('Trigger')
@@ -329,7 +367,8 @@ class ElementForm
                                         'exit_intent' => 'Exit intent',
                                     ])
                                     ->default('after_delay')
-                                    ->live(),
+                                    ->live()
+                                    ->native(false),
                                 TextInput::make('delay')
                                     ->label('Delay (seconds)')
                                     ->numeric()
@@ -346,7 +385,8 @@ class ElementForm
                                         'every_visit' => 'Every visit',
                                     ])
                                     ->default('once_per_day')
-                                    ->live(),
+                                    ->live()
+                                    ->native(false),
                                 Select::make('visibility')
                                     ->label('Visibility')
                                     ->options([
@@ -355,10 +395,12 @@ class ElementForm
                                         'mobile_only' => 'Mobile only',
                                     ])
                                     ->default('desktop_mobile')
-                                    ->live(),
+                                    ->live()
+                                    ->native(false),
                             ]),
                         Section::make('Appearance')
                             ->columns(2)
+                            ->icon('heroicon-m-paint-brush')
                             ->schema([
                                 Select::make('layout')
                                     ->label('Layout')
@@ -367,7 +409,8 @@ class ElementForm
                                         'full' => 'Full',
                                     ])
                                     ->default('simple')
-                                    ->live(),
+                                    ->live()
+                                    ->native(false),
                                 Select::make('image')
                                     ->label('Image')
                                     ->options([
@@ -375,7 +418,8 @@ class ElementForm
                                         'none' => 'No image',
                                     ])
                                     ->default('campaign')
-                                    ->live(),
+                                    ->live()
+                                    ->native(false),
                                 Select::make('color')
                                     ->label('Color')
                                     ->options([
@@ -389,7 +433,14 @@ class ElementForm
                                         'dark' => 'Dark',
                                     ])
                                     ->default('campaign')
-                                    ->live(),
+                                    ->live()
+                                    ->native(false),
+                            ]),
+                        View::make('filament.forms.components.element-preview')
+                            ->columnSpanFull()
+                            ->viewData(fn (Get $get): array => [
+                                'type' => $get('type'),
+                                'config' => self::previewConfig($get),
                             ]),
                     ]),
                 Grid::make([
@@ -400,10 +451,6 @@ class ElementForm
                     ->extraAttributes(['class' => 'ihsan-builder-shell'])
                     ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::Form->value)
                     ->schema([
-                        Placeholder::make('form_config_header')
-                            ->hiddenLabel()
-                            ->content(new HtmlString('<h3 class="text-base font-semibold text-zinc-900">Form Configuration</h3>'))
-                            ->columnSpanFull(),
                         Tabs::make('Donation Form Workbench')
                             ->columnSpan([
                                 'default' => 1,
@@ -465,13 +512,6 @@ class ElementForm
                                             ->label('Show comment field')
                                             ->default(true)
                                             ->live(),
-                                        View::make('filament.forms.components.element-form-submit')
-                                            ->viewData(fn (?Element $record): array => [
-                                                'label' => $record ? 'Save changes' : 'Create element',
-                                                'cancelUrl' => ElementResource::getUrl('index'),
-                                            ])
-                                            ->columnSpanFull()
-                                            ->visible(! $hideSubmit),
                                     ]),
                                 Tab::make('Behavior')
                                     ->columns(2)
@@ -535,6 +575,13 @@ class ElementForm
                                         'config' => self::previewConfig($get),
                                     ]),
                             ]),
+                    ]),
+                View::make('filament.forms.components.element-form-submit')
+                    ->visible(! $hideSubmit)
+                    ->columnSpanFull()
+                    ->viewData(fn (?Element $record): array => [
+                        'label' => $record ? 'Save changes' : 'Create element',
+                        'cancelUrl' => ElementResource::getUrl('index'),
                     ]),
             ]);
     }
@@ -604,6 +651,20 @@ class ElementForm
         $type = $get('type');
         $type = $type instanceof BackedEnum ? $type->value : $type;
 
+        if ($type === ElementType::FloatingButton->value) {
+            return [
+                'button_text' => $get('config.button_text'),
+                'action' => $get('config.action'),
+                'icon' => $get('config.icon'),
+                'position' => $get('config.position'),
+                'size' => $get('config.size'),
+                'shape' => $get('config.shape'),
+                'color' => $get('config.color'),
+                'visible_desktop' => $get('config.visible_desktop'),
+                'visible_mobile' => $get('config.visible_mobile'),
+            ];
+        }
+
         if ($type === ElementType::Popup->value) {
             return [
                 'title' => $get('config.title'),
@@ -620,7 +681,7 @@ class ElementForm
             ];
         }
 
-        if (in_array($type, [ElementType::Form->value, ElementType::Popup->value], true)) {
+        if ($type === ElementType::Form->value) {
             $config = [];
             foreach ([
                 'button_text', 'button_color', 'button_size', 'corner_radius',

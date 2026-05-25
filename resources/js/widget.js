@@ -1,0 +1,440 @@
+(function () {
+  "use strict";
+
+  var script = document.currentScript;
+  if (!script) return;
+
+  var token = script.getAttribute("data-token") || "";
+  if (!token) return;
+
+  var baseUrl = (function () {
+    var src = script.src || "";
+    var m = src.match(/^(https?:\/\/[^\/]+)/);
+    return m ? m[1] : window.location.origin;
+  })();
+
+  var colors = {
+    campaign: "#16a34a",
+    campaign_color: "#16a34a",
+    blue: "#2563eb",
+    teal: "#0d9488",
+    green: "#16a34a",
+    orange: "#ea580c",
+    red: "#dc2626",
+    purple: "#9333ea",
+    dark: "#1e293b",
+  };
+
+  function hexColor(raw) {
+    if (!raw) return "#16a34a";
+    if (raw[0] === "#") return raw;
+    return colors[raw] || colors.campaign;
+  }
+
+  function esc(str) {
+    var d = document.createElement("div");
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  function fadeIn(el) {
+    requestAnimationFrame(function () {
+      el.style.opacity = "1";
+    });
+  }
+
+  function isVisible(settings) {
+    var v = settings.visibility || "desktop_mobile";
+    if (v === "desktop_only" && window.innerWidth < 768) return false;
+    if (v === "mobile_only" && window.innerWidth >= 768) return false;
+    return true;
+  }
+
+  function checkoutUrl(el) {
+    return el.campaign_form_parameter
+      ? baseUrl + "/donate/campaign/" + el.campaign_form_parameter + "?embed=1"
+      : baseUrl + "/donate/" + el.token + "?embed=1";
+  }
+
+  function handleClick(el) {
+    var action = el.settings.action || "open_campaign_page";
+    if (action === "checkout_modal" || action === "open_checkout_modal") {
+      showCheckoutModal(el);
+      return;
+    }
+    window.open(el.campaign_url || checkoutUrl(el), "_blank", "noopener");
+  }
+
+  function showCheckoutModal(el) {
+    var overlay = document.createElement("div");
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.style.cssText = [
+      "position:fixed",
+      "inset:0",
+      "z-index:2147483647",
+      "display:flex",
+      "align-items:center",
+      "justify-content:center",
+      "background:rgba(15,23,42,.5)",
+      "padding:16px",
+      "opacity:0",
+      "transition:opacity .2s",
+    ].join(";");
+
+    var checkUrl = checkoutUrl(el);
+    var iframe = document.createElement("iframe");
+    iframe.src = checkUrl;
+    iframe.setAttribute("allow", "payment *");
+    iframe.style.cssText = [
+      "width:100%",
+      "max-width:480px",
+      "height:90vh",
+      "max-height:700px",
+      "border:0",
+      "border-radius:16px",
+      "background:#fff",
+      "box-shadow:0 24px 80px rgba(15,23,42,.35)",
+    ].join(";");
+
+    var closeBtn = document.createElement("button");
+    closeBtn.setAttribute("aria-label", "Close");
+    closeBtn.innerHTML = "&times;";
+    closeBtn.style.cssText = [
+      "position:absolute",
+      "top:12px",
+      "right:12px",
+      "width:32px",
+      "height:32px",
+      "border:0",
+      "border-radius:50%",
+      "background:rgba(15,23,42,.08)",
+      "color:#475569",
+      "font-size:20px",
+      "line-height:1",
+      "cursor:pointer",
+      "display:flex",
+      "align-items:center",
+      "justify-content:center",
+      "transition:background .15s",
+      "z-index:1",
+    ].join(";");
+
+    closeBtn.addEventListener("mouseenter", function () {
+      closeBtn.style.background = "rgba(15,23,42,.14)";
+    });
+    closeBtn.addEventListener("mouseleave", function () {
+      closeBtn.style.background = "rgba(15,23,42,.08)";
+    });
+    closeBtn.addEventListener("click", function () {
+      overlay.remove();
+    });
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) overlay.remove();
+    });
+
+    overlay.appendChild(closeBtn);
+    overlay.appendChild(iframe);
+    document.body.appendChild(overlay);
+    fadeIn(overlay);
+  }
+
+  function renderFloatingButton(el) {
+    var s = el.settings;
+    if (!isVisible(s)) return;
+
+    var posKey = (s.position || "bottom-right").replace(/-/g, "_");
+    var positions = {
+      bottom_right: { bottom: "20px", right: "20px" },
+      bottom_left: { bottom: "20px", left: "20px" },
+      top_right: { top: "20px", right: "20px" },
+      top_left: { top: "20px", left: "20px" },
+      vertical_left_center: { top: "50%", left: "20px", transform: "translateY(-50%)" },
+      vertical_right_center: { top: "50%", right: "20px", transform: "translateY(-50%)" },
+    };
+
+    var pos = positions[posKey] || positions.bottom_right;
+    var color = hexColor(s.color || s.custom_color || "campaign");
+    var isVertical = posKey.indexOf("vertical_") === 0;
+
+    var icons = {
+      heart: '<svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
+      hand: '<svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M23 12.22V15c0 4.97-4.03 9-9 9H9.17c-1.59 0-3.11-.63-4.24-1.76L0 17.5l1.5-1.5c.47-.47 1.08-.73 1.77-.73.46 0 .9.12 1.28.35L7 17.34V4.5C7 3.67 7.67 3 8.5 3S10 3.67 10 4.5v4h1V3.5C11 2.67 11.67 2 12.5 2S14 2.67 14 3.5V8.5h1V4c0-.83.67-1.5 1.5-1.5S18 3.17 18 4v5.5h1V6c0-.83.67-1.5 1.5-1.5S22 5.17 22 6v6.22z"/></svg>',
+      star: '<svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>',
+      gift: '<svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 12 7.01l3.38 4.99L17 10.83 14.92 8H20v6z"/></svg>',
+      plus: '<svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>',
+    };
+
+    var sizes = {
+      small: { w: "48px", h: "48px", fs: "12px", pad: "0 14px" },
+      medium: { w: "56px", h: "56px", fs: "14px", pad: "0 20px" },
+      large: { w: "64px", h: "64px", fs: "16px", pad: "0 24px" },
+    };
+
+    var sz = sizes[s.size] || sizes.medium;
+
+    var shapeStyles = {
+      pill: "border-radius: 9999px",
+      circle: "border-radius: 50%",
+      square: "border-radius: 0",
+      rounded: "border-radius: 12px",
+    };
+
+    var shapeStyle = shapeStyles[s.shape] || shapeStyles.pill;
+    var iconHtml = icons[s.icon] || icons.heart;
+
+    var inner = s.shape === "circle"
+      ? iconHtml
+      : iconHtml + '<span style="font-weight:600;white-space:' + (isVertical ? "normal" : "nowrap") + ';">' + esc(s.text || s.button_text || "Derma Sekarang") + "</span>";
+
+    var gap = isVertical ? "4px" : "6px";
+    var fontSize = isVertical ? "11px" : sz.fs;
+    var flexDirection = isVertical ? "column" : "row";
+    var heightStyle = isVertical ? "min-height:" + sz.h : "height:" + sz.h;
+    var widthStyle = isVertical ? "width:" + sz.w : "min-width:" + sz.w;
+    var padding = s.shape === "circle" ? "0" : sz.pad;
+    var posTransform = pos.transform || "";
+    var hoverScale = "scale(1.06)";
+    var combinedEnterTransform = posTransform
+      ? posTransform + " " + hoverScale
+      : hoverScale;
+
+    var btn = document.createElement("div");
+    btn.setAttribute("role", "button");
+    btn.setAttribute("tabindex", "0");
+    btn.style.cssText = [
+      "position:fixed",
+      "z-index:2147483646",
+      "display:inline-flex",
+      "flex-direction:" + flexDirection,
+      "align-items:center",
+      "justify-content:center",
+      "gap:" + gap,
+      "cursor:pointer",
+      "border:0",
+      "outline:none",
+      "box-shadow:0 4px 16px rgba(0,0,0,.18)",
+      "transition:transform .2s,box-shadow .2s",
+      "color:#fff",
+      "background:" + color,
+      widthStyle,
+      heightStyle,
+      "font-size:" + fontSize,
+      "font-weight:600",
+      "line-height:1.2",
+      "padding:" + padding,
+      shapeStyle,
+      pos.top ? "top:" + pos.top : "",
+      pos.bottom ? "bottom:" + pos.bottom : "",
+      pos.left ? "left:" + pos.left : "",
+      pos.right ? "right:" + pos.right : "",
+      posTransform ? "transform:" + posTransform : "",
+    ].filter(Boolean).join(";");
+
+    btn.innerHTML = inner;
+
+    btn.addEventListener("mouseenter", function () {
+      btn.style.transform = combinedEnterTransform;
+      btn.style.boxShadow = "0 6px 24px rgba(0,0,0,.24)";
+    });
+    btn.addEventListener("mouseleave", function () {
+      btn.style.transform = posTransform || "";
+      btn.style.boxShadow = "0 4px 16px rgba(0,0,0,.18)";
+    });
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      handleClick(el);
+    });
+
+    document.body.appendChild(btn);
+  }
+
+  function renderButton(el) {
+    var s = el.settings;
+    var btn = document.createElement("div");
+    btn.setAttribute("role", "button");
+    btn.setAttribute("tabindex", "0");
+    btn.style.cssText = [
+      "display:inline-flex",
+      "align-items:center",
+      "justify-content:center",
+      "gap:6px",
+      "cursor:pointer",
+      "border:0",
+      "outline:none",
+      "box-shadow:0 2px 8px rgba(0,0,0,.14)",
+      "transition:transform .2s,box-shadow .2s",
+      "color:#fff",
+      "background:" + hexColor(s.color || "campaign"),
+      "padding:12px 28px",
+      "font-size:15px",
+      "font-weight:600",
+      "border-radius:9999px",
+      "min-width:100px",
+      "line-height:1.4",
+    ].join(";");
+    btn.textContent = s.text || s.button_text || "Donate Now";
+
+    btn.addEventListener("mouseenter", function () {
+      btn.style.transform = "scale(1.04)";
+      btn.style.boxShadow = "0 4px 14px rgba(0,0,0,.18)";
+    });
+    btn.addEventListener("mouseleave", function () {
+      btn.style.transform = "";
+      btn.style.boxShadow = "0 2px 8px rgba(0,0,0,.14)";
+    });
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      handleClick(el);
+    });
+
+    if (script.parentNode) {
+      script.parentNode.replaceChild(btn, script);
+    }
+  }
+
+  function renderPopup(el) {
+    var s = el.settings;
+    var token = el.token;
+    var trigger = s.trigger || "after_delay";
+    var delay = parseInt(s.delay || s.delay_seconds || 8, 10);
+    var frequency = s.frequency || "once_per_day";
+
+    function shouldShow() {
+      if (frequency === "once") return !sessionStorage.getItem("ihsan-popup-" + token);
+      if (frequency === "once_per_day") {
+        var last = localStorage.getItem("ihsan-popup-" + token);
+        if (last && Date.now() - parseInt(last, 10) < 86400000) return false;
+      }
+      if (frequency === "once_per_session") return !sessionStorage.getItem("ihsan-popup-" + token);
+      return true;
+    }
+
+    function markShown() {
+      if (frequency === "once" || frequency === "once_per_session") {
+        sessionStorage.setItem("ihsan-popup-" + token, "1");
+      }
+      if (frequency === "once_per_day") {
+        localStorage.setItem("ihsan-popup-" + token, String(Date.now()));
+      }
+    }
+
+    function show() {
+      if (!shouldShow()) return;
+      markShown();
+
+      var overlay = document.createElement("div");
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.style.cssText = [
+        "position:fixed",
+        "inset:0",
+        "z-index:2147483647",
+        "display:flex",
+        "align-items:center",
+        "justify-content:center",
+        "background:rgba(15,23,42,.5)",
+        "padding:16px",
+        "opacity:0",
+        "transition:opacity .25s",
+      ].join(";");
+
+      var color = hexColor(s.color || "campaign");
+      var heading = s.title
+        ? '<h3 style="margin:0 0 6px;font-size:18px;font-weight:700;color:#0f172a;">' + esc(s.title) + "</h3>"
+        : "";
+      var msg = s.message
+        ? '<p style="margin:0 0 20px;color:#475569;font-size:14px;line-height:1.6;">' + esc(s.message) + "</p>"
+        : "";
+      var btnText = esc(s.button_text || s.text || "Derma Sekarang");
+
+      overlay.innerHTML =
+        '<div style="background:#fff;border-radius:16px;padding:32px;max-width:420px;width:100%;box-shadow:0 24px 80px rgba(15,23,42,.28);text-align:center;position:relative;">' +
+        '<button data-close style="position:absolute;top:12px;right:12px;width:32px;height:32px;border:0;border-radius:50%;background:rgba(15,23,42,.06);color:#64748b;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;">&times;</button>' +
+        heading +
+        msg +
+        '<button data-cta style="display:inline-block;background:' + color + ";color:#fff;padding:12px 32px;border:0;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.14);" + '">' + btnText + "</button>" +
+        "</div>";
+
+      overlay.addEventListener("click", function (e) {
+        var target = e.target;
+        if (target === overlay || target.closest("[data-close]")) { overlay.remove(); return; }
+        if (target.closest("[data-cta]")) { overlay.remove(); handleClick(el); }
+      });
+
+      document.body.appendChild(overlay);
+      fadeIn(overlay);
+    }
+
+    function schedule() {
+      if (trigger === "after_delay") { setTimeout(show, delay * 1000); }
+      else if (trigger === "immediately") { show(); }
+      else if (trigger === "on_scroll") {
+        var fired = false;
+        window.addEventListener("scroll", function () { if (!fired && window.scrollY > 300) { fired = true; show(); } });
+      }
+      else if (trigger === "on_exit") {
+        var fired = false;
+        document.addEventListener("mouseleave", function (e) { if (e.clientY <= 0 && !fired) { fired = true; show(); } });
+      }
+    }
+
+    schedule();
+  }
+
+  var renderers = {
+    "floating-button": renderFloatingButton,
+    floating_button: renderFloatingButton,
+    button: renderButton,
+    popup: renderPopup,
+  };
+
+  function renderFromData(el) {
+    var renderer = renderers[el.type] || renderers[el.type.replace(/-/g, "_")];
+    if (renderer) renderer(el);
+  }
+
+  function ready(fn) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", fn);
+    } else {
+      fn();
+    }
+  }
+
+  fetch(baseUrl + "/api/public/elements/" + encodeURIComponent(token))
+    .then(function (res) {
+      if (!res.ok) throw new Error("API returned " + res.status);
+      return res.json();
+    })
+    .then(function (data) {
+      ready(function () { renderFromData(data); });
+    })
+    .catch(function () {
+      // Fallback: render from data-attributes (backward compat)
+      var el = {
+        type: script.getAttribute("data-type") || "",
+        token: token,
+        is_active: true,
+        campaign_url: script.getAttribute("data-campaign-url") || baseUrl + "/donate/" + token,
+        campaign_form_parameter: script.getAttribute("data-campaign-form-parameter") || "",
+        settings: {
+          text: script.getAttribute("data-text") || "Derma Sekarang",
+          button_text: script.getAttribute("data-button-text") || "Derma Sekarang",
+          title: script.getAttribute("data-title") || "Jom Menyumbang",
+          message: script.getAttribute("data-message") || "",
+          action: script.getAttribute("data-action") || "open_campaign_page",
+          position: script.getAttribute("data-position") || "bottom-right",
+          color: script.getAttribute("data-color") || "campaign",
+          icon: script.getAttribute("data-icon") || "heart",
+          shape: script.getAttribute("data-shape") || "pill",
+          size: script.getAttribute("data-size") || "medium",
+          visibility: script.getAttribute("data-visibility") || "desktop_mobile",
+          trigger: script.getAttribute("data-trigger") || "after_delay",
+          delay_seconds: parseFloat(script.getAttribute("data-delay-seconds")) || 8,
+          frequency: script.getAttribute("data-frequency") || "once_per_day",
+        },
+      };
+      ready(function () { renderFromData(el); });
+    });
+})();

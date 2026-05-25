@@ -30,7 +30,6 @@ it('shows donation form builder settings when creating a form element', function
         ->assertSee('Create element')
         ->assertSee('Cancel')
         ->assertSeeInOrder(['Show comment field', 'Cancel', 'Create element'])
-        ->assertSee('Form Configuration')
         ->assertSee('Form')
         ->assertSee('Behavior')
         ->assertSee('Embed')
@@ -65,7 +64,6 @@ it('shows a full page donation form workbench when editing a form element', func
         ->assertSee('Save changes')
         ->assertSee('Cancel')
         ->assertSeeInOrder(['Show comment field', 'Cancel', 'Save changes'])
-        ->assertSee('Form Configuration')
         ->assertSee('Form')
         ->assertSee('Behavior')
         ->assertSee('Embed')
@@ -78,11 +76,9 @@ it('shows a full page donation form workbench when editing a form element', func
         ->assertSee('https://ihsan.test/donate/form-token-123?embed=1')
         ->assertSee('Your most generous donation')
         ->assertSee('max-w-[380px]', false)
-        ->assertSee('min-h-[720px]', false)
         ->assertSee('min-h-[690px]', false)
         ->assertSee('min-h-[610px]', false)
         ->assertSee('rounded-[42px]', false)
-        ->assertSee('data-preview-phone', false)
         ->assertSee('x-model.number="selectedAmount"', false)
         ->assertSee("frequency = 'one_time'", false)
         ->assertSee('x-on:click="submitted = true"', false)
@@ -117,21 +113,21 @@ it('reflects form builder controls in the live preview', function () {
         ->assertSee('[300,90,30]', false)
         ->assertSee('selectedAmount: 90', false)
         ->assertSee("frequency: 'one_time'", false)
-        ->assertSee('data-preview-frequency', false)
-        ->assertSee('data-preview-suggested', false)
-        ->assertSee('data-preview-amount-input', false)
-        ->assertSee('data-preview-dedication', false)
-        ->assertSee('data-preview-comment', false)
+        ->assertSee('grid grid-cols-2 gap-2', false)
+        ->assertSee('grid grid-cols-3 gap-2', false)
+        ->assertSee('x-model.number="selectedAmount"', false)
+        ->assertSee('Dedicate this donation')
+        ->assertSee('Add comment')
         ->set('data.config.show_suggested', false)
-        ->assertDontSee('data-preview-suggested', false)
+        ->assertDontSee('grid grid-cols-3 gap-2', false)
         ->set('data.config.show_amount_input', false)
-        ->assertDontSee('data-preview-amount-input', false)
+        ->assertDontSee('x-model.number="selectedAmount"', false)
         ->set('data.config.show_dedication', false)
-        ->assertDontSee('data-preview-dedication', false)
+        ->assertDontSee('Dedicate this donation')
         ->set('data.config.show_comment', false)
-        ->assertDontSee('data-preview-comment', false)
+        ->assertDontSee('Add comment')
         ->set('data.config.allow_monthly', false)
-        ->assertDontSee('data-preview-frequency', false);
+        ->assertDontSee('grid grid-cols-2 gap-2', false);
 });
 
 it('shows floating button configuration settings when creating a floating button element', function () {
@@ -148,24 +144,24 @@ it('shows floating button configuration settings when creating a floating button
             'name' => 'Floating CTA',
             'type' => 'floating_button',
         ])
-        ->assertSee('Floating Button Settings')
+        ->assertSee('Floating Button')
         ->assertSee('Button text')
         ->assertSee('Action')
         ->assertSee('Open campaign page')
         ->assertSee('Open checkout modal')
-        ->assertSee('Appearance')
+        ->assertSee('Position & Size')
         ->assertSee('Position')
         ->assertSee('Bottom right')
         ->assertSee('Color')
+        ->assertSee('Color scheme')
+        ->assertSee('Show on desktop')
+        ->assertSee('Show on mobile')
         ->assertSee('Icon')
         ->assertSee('Shape')
         ->assertSee('Size')
-        ->assertSee('Visibility')
-        ->assertSee('Desktop')
-        ->assertSee('Mobile')
-        ->assertDontSee('Popup Configuration')
-        ->assertDontSee('Form Configuration')
-        ->assertDontSee('Button Configuration');
+        ->assertSee('Preview')
+        ->assertDontSee('Display Rules')
+        ->assertDontSee('Donation Form Workbench');
 });
 
 it('creates a floating button element with organization and token', function () {
@@ -208,7 +204,8 @@ it('creates a floating button element with organization and token', function () 
         ->and($element->campaign_id)->toBe($campaign->getKey())
         ->and($element->type->value)->toBe('floating_button')
         ->and($element->token)->toBeString()
-        ->and(Str::length($element->token))->toBe(32)
+        ->and(Str::length($element->token))->toBe(6)
+
         ->and($element->config)->toMatchArray([
             'button_text' => 'Derma Sekarang',
             'action' => 'checkout_modal',
@@ -266,7 +263,7 @@ it('creates a form element with organization, token, and builder configuration',
         ->and($element->campaign_id)->toBe($campaign->getKey())
         ->and($element->type->value)->toBe('form')
         ->and($element->token)->toBeString()
-        ->and(Str::length($element->token))->toBe(32)
+        ->and(Str::length($element->token))->toBe(6)
         ->and($element->config)->toMatchArray([
             'template' => 'secure-donation',
             'title' => 'Your most generous donation',

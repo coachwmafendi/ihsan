@@ -24,7 +24,7 @@ class ElementsTable
                     ->sortable(),
                 TextColumn::make('type')
                     ->badge()
-                    ->formatStateUsing(fn (ElementType $state): string => ucfirst($state->value))
+                    ->formatStateUsing(fn (ElementType $state): string => str($state->value)->replace('_', ' ')->title())
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('campaign.title')
@@ -41,7 +41,12 @@ class ElementsTable
             ])
             ->filters([
                 SelectFilter::make('type')
-                    ->options(ElementType::class),
+                    ->options([
+                        'button' => 'Button',
+                        'floating_button' => 'Floating Button',
+                        'form' => 'Form',
+                        'popup' => 'Popup',
+                    ]),
                 Filter::make('is_active')
                     ->label('Active only')
                     ->query(fn ($query) => $query->where('is_active', true)),

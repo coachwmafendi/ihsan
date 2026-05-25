@@ -42,7 +42,7 @@ class DonationReceipt extends Mailable
         return [
             Attachment::fromData(
                 fn () => $pdf->output(),
-                'donation-receipt-'.$this->donation->id.'.pdf',
+                config('app.name').'-'.$this->donation->campaign->organization->code.'-'.$this->donation->invoice_number.'.pdf',
             )->withMime('application/pdf'),
         ];
     }

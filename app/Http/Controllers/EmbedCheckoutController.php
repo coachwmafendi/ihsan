@@ -12,6 +12,20 @@ use Illuminate\Support\Str;
 
 class EmbedCheckoutController extends Controller
 {
+    public function widget(): Response
+    {
+        $path = resource_path('js/widget.js');
+
+        $script = file_exists($path) ? file_get_contents($path) : '';
+
+        return response($script, 200, [
+            'Content-Type' => 'application/javascript',
+            'Cache-Control' => 'no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
+    }
+
     public function script(Request $request): Response
     {
         $checkoutBaseUrl = url('/checkout');

@@ -83,7 +83,8 @@ class CampaignForm
                                     ->columns(2)
                                     ->schema([
                                         Toggle::make('has_target')
-                                            ->label('Tetapkan sasaran kutipan'),
+                                            ->label('Tetapkan sasaran kutipan')
+                                            ->live(),
                                         TextInput::make('target_amount')
                                             ->label('Jumlah sasaran')
                                             ->numeric()
@@ -249,42 +250,47 @@ class CampaignForm
         $elements = $record->elements;
 
         if ($elements->isEmpty()) {
-            return '<p class="text-sm text-zinc-500">Tiada element dikaitkan. Cipta element terlebih dahulu.</p>';
+            if (! $record->checkout_modal_enabled) {
+                return '<p class="text-sm text-zinc-500">Tiada element dikaitkan. Cipta element terlebih dahulu, atau aktifkan modal derma untuk pautan terus.</p>';
+            }
+
+            return self::shareableUrlHtml(route('donations.campaign-show', ['campaign' => $record->form_parameter]));
         }
 
         $parts = [];
         foreach ($elements as $element) {
-            $url = route('donations.show', $element);
-            $urlEncoded = urlencode($url);
-            $waUrl = 'https://wa.me/?text='.$urlEncoded;
-            $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data='.$urlEncoded.'&bgcolor=ffffff&color=0f172a&qzone=1';
-            $waIcon = '<svg class="size-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
-
-            $parts[] =
-                '<div class="space-y-4">'
-                // URL row
-                .'<div x-data="{ copied: false }" data-url="'.e($url).'" class="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">'
-                .'<code class="flex-1 truncate text-sm text-zinc-700">'.e($url).'</code>'
-                .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100 transition" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
-                .'<a href="'.e($url).'" target="_blank" rel="noopener" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100 transition">Buka →</a>'
-                .'</div>'
-                // QR + Share
-                .'<div class="flex items-start gap-6">'
-                .'<div class="shrink-0 text-center">'
-                .'<img src="'.e($qrUrl).'" width="140" height="140" loading="lazy" class="rounded-lg border border-zinc-200" alt="QR Code">'
-                .'<p class="mt-1.5 text-xs text-zinc-400">Imbas untuk derma</p>'
-                .'</div>'
-                .'<div class="flex-1 space-y-3 pt-1">'
-                .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Kongsi</p>'
-                .'<a href="'.e($waUrl).'" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 transition">'
-                .$waIcon.'WhatsApp'
-                .'</a>'
-                .'</div>'
-                .'</div>'
-                .'</div>';
+            $parts[] = self::shareableUrlHtml(route('donations.show', $element));
         }
 
         return implode('<hr class="my-6 border-zinc-100">', $parts);
+    }
+
+    private static function shareableUrlHtml(string $url): string
+    {
+        $urlEncoded = urlencode($url);
+        $waUrl = 'https://wa.me/?text='.$urlEncoded;
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data='.$urlEncoded.'&bgcolor=ffffff&color=0f172a&qzone=1';
+        $waIcon = '<svg class="size-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
+
+        return '<div class="space-y-4">'
+            .'<div x-data="{ copied: false }" data-url="'.e($url).'" class="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">'
+            .'<code class="flex-1 truncate text-sm text-zinc-700">'.e($url).'</code>'
+            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100 transition" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
+            .'<a href="'.e($url).'" target="_blank" rel="noopener" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100 transition">Buka →</a>'
+            .'</div>'
+            .'<div class="flex items-start gap-6">'
+            .'<div class="shrink-0 text-center">'
+            .'<img src="'.e($qrUrl).'" width="140" height="140" loading="lazy" class="rounded-lg border border-zinc-200" alt="QR Code">'
+            .'<p class="mt-1.5 text-xs text-zinc-400">Imbas untuk derma</p>'
+            .'</div>'
+            .'<div class="flex-1 space-y-3 pt-1">'
+            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Kongsi</p>'
+            .'<a href="'.e($waUrl).'" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 transition">'
+            .$waIcon.'WhatsApp'
+            .'</a>'
+            .'</div>'
+            .'</div>'
+            .'</div>';
     }
 
     private static function inlineEmbedHtml($record): string
@@ -292,7 +298,25 @@ class CampaignForm
         $elements = $record->elements;
 
         if ($elements->isEmpty()) {
-            return '<p class="text-sm text-zinc-500">Tiada element — cipta element terlebih dahulu.</p>';
+            if (! $record->checkout_modal_enabled) {
+                return '<p class="text-sm text-zinc-500">Tiada element — cipta element terlebih dahulu, atau aktifkan modal derma untuk benaman.</p>';
+            }
+
+            $url = route('donations.campaign-show', ['campaign' => $record->form_parameter]);
+            $iframe = implode("\n", [
+                '<iframe',
+                '  src="'.e($url).'?embed=1"',
+                '  width="100%"',
+                '  height="700"',
+                '  frameborder="0"',
+                '  allow="payment *"',
+                '  style="border:0;border-radius:16px;"',
+                '></iframe>',
+            ]);
+
+            return '<p class="text-sm text-zinc-500 mb-4">Letak kod berikut dalam mana-mana halaman web untuk benamkan borang derma terus tanpa pop-up.</p>'
+                .self::copyableSnippet('Kod benam', $iframe)
+                .'<p class="text-xs text-zinc-400 mt-3">Laraskan <code class="bg-zinc-100 px-1 rounded">height</code> mengikut keperluan. Nilai <code class="bg-zinc-100 px-1 rounded">700</code> sesuai untuk kebanyakan skrin.</p>';
         }
 
         $parts = ['<p class="text-sm text-zinc-500 mb-4">Letak kod berikut dalam mana-mana halaman web untuk benamkan borang derma terus tanpa pop-up.</p>'];
@@ -322,7 +346,16 @@ class CampaignForm
         $elements = $record->elements;
 
         if ($elements->isEmpty()) {
-            return '<p class="text-sm text-zinc-500">Tiada URL — kempen belum ada element.</p>';
+            if (! $record->checkout_modal_enabled) {
+                return '<p class="text-sm text-zinc-500">Tiada URL — kempen belum ada element atau modal derma tidak diaktifkan.</p>';
+            }
+
+            $url = route('donations.campaign-show', ['campaign' => $record->form_parameter]);
+
+            return '<div x-data="{ copied: false }" data-url=\''.e($url).'\' class="flex items-center gap-2 py-1">'
+                .'<code class="flex-1 truncate text-sm text-zinc-600">'.e($url).'</code>'
+                .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
+                .'</div>';
         }
 
         $parts = [];

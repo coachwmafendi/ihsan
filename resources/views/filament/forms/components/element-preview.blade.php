@@ -13,13 +13,6 @@
         ->values()
         ->all();
     $title = $config['title'] ?? $config['heading'] ?? 'Your most generous donation';
-    $textColor = $config['text_color'] ?? '#212830';
-    $backgroundColor = $config['background_color'] ?? '#FFFFFF';
-    $iconColor = $config['icon_color'] ?? '#FF435A';
-    $borderSize = $config['border_size'] ?? 2;
-    $borderRadius = $config['border_radius'] ?? 6;
-    $borderColor = $config['border_color'] ?? '#DEDFF3';
-    $showShadow = $config['show_shadow'] ?? false;
     $defaultAmount = (int) ($config['default_amount'] ?? ($defaultAmountsOneTime[0] ?? 5));
     $defaultFrequency = $config['default_frequency'] ?? 'monthly';
     $allowMonthly = $config['allow_monthly'] ?? true;
@@ -32,28 +25,80 @@
 
 <div
     wire:key="element-preview-{{ md5(json_encode([$type, $config])) }}"
-    class="rounded-xl border border-zinc-200 bg-white p-6"
+    class="rounded-xl border border-zinc-200 bg-white"
 >
-    <div class="mb-4 flex items-center justify-between">
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Live Preview</h3>
-        @if($type)
-            <span class="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
-                {{ ucfirst($type) }}
-            </span>
-        @endif
+    <div class="border-b border-zinc-100 px-5 py-3.5">
+        <div class="flex items-center justify-between">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Preview</h3>
+            @if($type)
+                <span class="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
+                    {{ ucwords(str_replace('_', ' ', $type)) }}
+                </span>
+            @endif
+        </div>
     </div>
 
-    <div class="flex min-h-[720px] items-center justify-center rounded-xl bg-zinc-50 px-6 py-8">
+    <div class="flex min-h-[400px] items-center justify-center bg-zinc-50 px-6 py-10">
         @if(! $type)
-            <p class="text-sm text-zinc-400">Select a type to preview</p>
+            <div class="text-center">
+                <svg class="mx-auto size-10 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+                </svg>
+                <p class="mt-3 text-sm text-zinc-400">Select a type to preview</p>
+            </div>
+
         @elseif($type === 'button')
-            <button
-                type="button"
-                class="{{ $config['button_size'] ?? 'text-base px-6 py-3' }} {{ $config['button_color'] ?? 'bg-blue-600 hover:bg-blue-700' }} inline-flex items-center justify-center font-semibold text-white shadow-sm transition-all duration-150 focus:outline-none"
-                style="border-radius: {{ ($config['corner_radius'] ?? 8) }}px"
-            >
-                {{ $config['button_text'] ?? 'Donate Now' }}
-            </button>
+            <div class="flex min-h-[200px] items-center justify-center">
+                <button
+                    type="button"
+                    class="{{ $config['button_size'] ?? 'text-base px-6 py-3' }} {{ $config['button_color'] ?? 'bg-blue-600 hover:bg-blue-700' }} inline-flex items-center justify-center font-semibold text-white shadow-sm transition-all duration-150 focus:outline-none"
+                    style="border-radius: {{ ($config['corner_radius'] ?? 8) }}px"
+                >
+                    {{ $config['button_text'] ?? 'Donate Now' }}
+                </button>
+            </div>
+
+        @elseif($type === 'floating_button')
+            @php
+                $colors = [
+                    'campaign' => '#16a34a',
+                    'blue' => '#2563eb', 'teal' => '#0d9488', 'green' => '#16a34a',
+                    'orange' => '#ea580c', 'red' => '#dc2626', 'purple' => '#9333ea', 'dark' => '#1e293b',
+                ];
+                $previewColor = $colors[$config['color'] ?? 'campaign'] ?? '#16a34a';
+                $sizes = [
+                    'small' => ['size' => '48px', 'font' => '12px'],
+                    'medium' => ['size' => '56px', 'font' => '14px'],
+                    'large' => ['size' => '64px', 'font' => '16px'],
+                ];
+                $sz = $sizes[$config['size'] ?? 'medium'] ?? $sizes['medium'];
+                $shapes = ['pill' => '9999px', 'circle' => '50%', 'square' => '0', 'rounded' => '12px'];
+                $radius = $shapes[$config['shape'] ?? 'pill'] ?? '9999px';
+                $isPill = ($config['shape'] ?? 'pill') === 'pill';
+                $icons = [
+                    'heart' => '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
+                    'hand' => '<path d="M23 12.22V15c0 4.97-4.03 9-9 9H9.17c-1.59 0-3.11-.63-4.24-1.76L0 17.5l1.5-1.5c.47-.47 1.08-.73 1.77-.73.46 0 .9.12 1.28.35L7 17.34V4.5C7 3.67 7.67 3 8.5 3S10 3.67 10 4.5v4h1V3.5C11 2.67 11.67 2 12.5 2S14 2.67 14 3.5V8.5h1V4c0-.83.67-1.5 1.5-1.5S18 3.17 18 4v5.5h1V6c0-.83.67-1.5 1.5-1.5S22 5.17 22 6v6.22z"/>',
+                    'star' => '<path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>',
+                    'gift' => '<path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 12 7.01l3.38 4.99L17 10.83 14.92 8H20v6z"/>',
+                    'plus' => '<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>',
+                ];
+                $iconPath = $icons[$config['icon'] ?? 'heart'] ?? $icons['heart'];
+            @endphp
+            <div class="relative flex min-h-[300px] w-full items-center justify-center rounded-lg border-2 border-dashed border-zinc-200 bg-white/60">
+                <div
+                    class="inline-flex items-center justify-center gap-2 text-white shadow-lg"
+                    style="background:{{ $previewColor }};width:{{ $sz['size'] }};height:{{ $sz['size'] }};font-size:{{ $sz['font'] }};border-radius:{{ $radius }};{{ $isPill ? 'padding:0 20px;width:auto;min-width:'.$sz['size'] : '' }}"
+                >
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">{!! $iconPath !!}</svg>
+                    @if(($config['shape'] ?? 'pill') !== 'circle')
+                        <span style="font-weight:600;white-space:nowrap;font-size:{{ $sz['font'] }}">
+                            {{ $config['button_text'] ?? 'Derma Sekarang' }}
+                        </span>
+                    @endif
+                </div>
+                <span class="absolute bottom-2 text-xs text-zinc-300">Preview shown centered — on site it floats at configured position</span>
+            </div>
+
         @elseif(in_array($type, ['form', 'popup'], true))
             <div
                 x-data="{
@@ -68,15 +113,11 @@
                 }"
                 class="relative mx-auto w-full max-w-[380px]"
             >
-                {{-- Phone frame --}}
-                <div data-preview-phone class="min-h-[690px] rounded-[42px] bg-zinc-900 p-2.5 shadow-xl shadow-zinc-800/20 ring-1 ring-zinc-800">
-                    {{-- Screen --}}
+                <div class="min-h-[690px] rounded-[42px] bg-zinc-900 p-2.5 shadow-xl shadow-zinc-800/20 ring-1 ring-zinc-800">
                     <div class="relative min-h-[610px] overflow-hidden rounded-[30px] bg-white shadow-inner">
-                        {{-- Dynamic Island (inside screen) --}}
                         <div class="absolute left-1/2 top-3 z-10 flex h-7 w-24 -translate-x-1/2 items-center justify-center rounded-full bg-zinc-950">
                             <div class="size-2.5 rounded-full bg-zinc-900 ring-2 ring-zinc-800"></div>
                         </div>
-                        {{-- Submitted state --}}
                         <div x-show="submitted" x-cloak class="flex min-h-[610px] flex-col items-center px-6 pb-20 pt-24 text-center">
                             <div class="mb-6 flex size-16 items-center justify-center rounded-full bg-emerald-50">
                                 <svg class="size-7 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -93,12 +134,10 @@
                                 Back to form
                             </button>
                         </div>
-
-                        {{-- Form state --}}
                         <div x-show="! submitted" class="min-h-[610px] space-y-4 px-4 pb-5 pt-12 text-sm">
                             <div class="flex items-center gap-2">
                                 <span class="flex size-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-                                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75 5.25 6v5.25c0 4.2 2.86 8.1 6.75 9 3.89-.9 6.75-4.8 6.75-9V6L12 3.75Z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 12.25 1.5 1.5 3-3.5" />
                                     </svg>
@@ -106,9 +145,8 @@
                                 <h2 class="text-base font-bold tracking-normal text-zinc-950">Secure donation</h2>
                             </div>
 
-                            {{-- Frequency toggle --}}
                             @if($allowMonthly)
-                            <div data-preview-frequency class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
                                     x-on:click="frequency = 'one_time'; selectedAmount = @js($defaultAmount)"
@@ -131,12 +169,10 @@
                             </div>
                             @endif
 
-                            {{-- Title --}}
                             <p class="text-center text-xs font-semibold text-zinc-500">{{ $title }}</p>
 
-                            {{-- Suggested amounts as pill buttons --}}
                             @if($showSuggested)
-                            <div data-preview-suggested class="grid grid-cols-3 gap-2">
+                            <div class="grid grid-cols-3 gap-2">
                                 <template x-for="amount in amounts" :key="amount">
                                     <button
                                         type="button"
@@ -150,9 +186,8 @@
                             </div>
                             @endif
 
-                            {{-- Custom amount input --}}
                             @if($showAmountInput)
-                            <div data-preview-amount-input class="flex items-center rounded-xl border border-zinc-300 bg-white px-4 py-3 transition focus-within:border-teal-600 focus-within:ring-4 focus-within:ring-teal-100">
+                            <div class="flex items-center rounded-xl border border-zinc-300 bg-white px-4 py-3 transition focus-within:border-teal-600 focus-within:ring-4 focus-within:ring-teal-100">
                                 <span class="text-lg font-semibold text-zinc-700">RM</span>
                                 <input
                                     x-model.number="selectedAmount"
@@ -171,23 +206,18 @@
                             @endif
 
                             @if($showDedication)
-                            <label data-preview-dedication class="flex items-center gap-2 text-sm text-zinc-600">
+                            <label class="flex items-center gap-2 text-sm text-zinc-600">
                                 <span class="size-5 rounded border border-zinc-300 bg-white"></span>
                                 <span>Dedicate this donation</span>
                             </label>
                             @endif
 
                             @if($showComment)
-                            <button
-                                type="button"
-                                data-preview-comment
-                                class="text-sm font-medium text-zinc-600 underline underline-offset-2"
-                            >
+                            <button type="button" class="text-sm font-medium text-zinc-600 underline underline-offset-2">
                                 Add comment
                             </button>
                             @endif
 
-                            {{-- CTA Button --}}
                             <button
                                 type="button"
                                 x-on:click="submitted = true"
@@ -202,8 +232,6 @@
                             </button>
                         </div>
                     </div>
-
-                    {{-- Home indicator --}}
                     <div class="flex justify-center pb-1.5 pt-5">
                         <div class="h-1.5 w-28 rounded-full bg-zinc-700"></div>
                     </div>

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DonationCampaignImageController;
 use App\Http\Controllers\EmbedCheckoutController;
+use App\Http\Controllers\PublicElementController;
 use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
@@ -22,8 +23,12 @@ Route::get('/donate/{element:token}/image', DonationCampaignImageController::cla
 Route::get('/donate/campaign/{campaign:form_parameter}/image', [DonationCampaignImageController::class, 'campaignImage'])->name('donations.campaign-image-campaign');
 Route::livewire('/donate/{element:token}', DonationForm::class)->name('donations.show');
 Route::livewire('/donate/campaign/{campaign:form_parameter}', DonationForm::class)->name('donations.campaign-show');
+Route::get('/e/widget.js', [EmbedCheckoutController::class, 'widget'])->name('widget.script');
 Route::get('/embed.js', [EmbedCheckoutController::class, 'script'])->name('embed.script');
 Route::get('/checkout/{form}', [EmbedCheckoutController::class, 'checkout'])->name('checkout.form');
+
+Route::get('/api/public/elements/{token}', [PublicElementController::class, 'show'])
+    ->name('api.public.elements.show');
 
 Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
     ->middleware('throttle:10,1')

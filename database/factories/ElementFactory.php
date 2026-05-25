@@ -24,7 +24,7 @@ class ElementFactory extends Factory
             'organization_id' => Organization::factory(),
             'campaign_id' => null,
             'name' => fake()->words(2, true),
-            'token' => Str::random(32),
+            'token' => Str::random(6),
             'type' => ElementType::Form,
             'config' => [
                 'title' => 'Your most generous donation',

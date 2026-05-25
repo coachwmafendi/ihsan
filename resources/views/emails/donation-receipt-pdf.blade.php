@@ -5,7 +5,7 @@
     <style>
         body {
             font-family: 'Manrope', 'DejaVu Sans', sans-serif;
-            font-size: 12px;
+            font-size: 11px;
             line-height: 1.5;
             color: #1a1a2e;
             margin: 0;
@@ -13,74 +13,76 @@
         }
         .header {
             text-align: center;
-            padding-bottom: 20px;
+            padding-bottom: 16px;
             border-bottom: 2px solid #0d9488;
             margin-bottom: 24px;
         }
         .header h1 {
             color: #0d9488;
-            font-size: 20px;
-            margin: 0 0 4px;
-        }
-        .header p {
-            color: #64748b;
-            font-size: 11px;
-            margin: 0;
+            font-size: 18px;
+            margin: 0 0 2px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         .org-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-            margin-top: 4px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-top: 2px;
         }
-        .greeting {
-            font-size: 13px;
-            margin-bottom: 16px;
+        .receipt-number {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .info-row {
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+        .info-row strong {
+            display: inline-block;
+            min-width: 100px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 16px 0;
+            margin: 20px 0;
         }
         th, td {
             padding: 8px 10px;
             text-align: left;
             border-bottom: 1px solid #e2e8f0;
-            font-size: 12px;
+            font-size: 11px;
         }
         th {
-            background: #f1f5f9;
+            background: #f8fafc;
             font-weight: 600;
-            color: #334155;
-        }
-        .label {
-            color: #64748b;
-            width: 30%;
-        }
-        .value {
-            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.5px;
         }
         .amount {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: #0d9488;
         }
-        .footer {
-            margin-top: 24px;
-            padding-top: 16px;
-            border-top: 1px solid #e2e8f0;
-            text-align: center;
-            font-size: 10px;
-            color: #94a3b8;
-        }
         .badge {
             display: inline-block;
-            padding: 2px 10px;
+            padding: 2px 8px;
             background: #dcfce7;
             color: #16a34a;
-            border-radius: 10px;
-            font-size: 11px;
+            border-radius: 8px;
+            font-size: 10px;
             font-weight: 600;
+        }
+        .footer {
+            margin-top: 32px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 9px;
+            color: #94a3b8;
         }
     </style>
 </head>
@@ -88,52 +90,47 @@
     <div class="header">
         <h1>Donation Receipt</h1>
         <div class="org-name">{{ $donation->campaign->organization->name }}</div>
-        <p>Receipt #{{ $donation->id }} &middot; {{ $donation->created_at->format('d M Y') }}</p>
+        <div class="receipt-number">{{ $donation->invoice_number }} &middot; {{ $donation->created_at->format('d M Y') }}</div>
     </div>
 
-    <p class="greeting">Dear <strong>{{ $donation->donor->name }}</strong>,</p>
-    <p>Thank you for your generous donation. Your contribution has been received successfully.</p>
+    <div class="info-row"><strong>Donor</strong> {{ $donation->donor->name }}</div>
+    <div class="info-row"><strong>Email</strong> {{ $donation->donor->email }}</div>
+    <div class="info-row"><strong>Date</strong> {{ $donation->created_at->format('d M Y, h:i A') }}</div>
 
     <table>
         <tr>
-            <td class="label">Amount</td>
-            <td class="value amount">RM {{ number_format($donation->gross_amount, 2) }}</td>
+            <th>Description</th>
+            <th>Details</th>
         </tr>
         <tr>
-            <td class="label">Campaign</td>
-            <td class="value">{{ $donation->campaign->title }}</td>
+            <td>Amount</td>
+            <td class="amount">RM {{ number_format($donation->gross_amount, 2) }}</td>
         </tr>
         <tr>
-            <td class="label">Organization</td>
-            <td class="value">{{ $donation->campaign->organization->name }}</td>
+            <td>Campaign</td>
+            <td>{{ $donation->campaign->title }}</td>
         </tr>
         <tr>
-            <td class="label">Donation Type</td>
-            <td class="value">{{ $donation->type === \App\Enums\DonationType::Recurring ? 'Recurring' : 'One-time' }}</td>
+            <td>Type</td>
+            <td>{{ $donation->type === \App\Enums\DonationType::Recurring ? 'Recurring' : 'One-time' }}</td>
         </tr>
         <tr>
-            <td class="label">Date</td>
-            <td class="value">{{ $donation->created_at->format('d M Y, h:i A') }}</td>
+            <td>Payment Method</td>
+            <td>{{ $donation->payment_method_brand ? ucfirst($donation->payment_method_brand) : 'Card' }}</td>
         </tr>
         <tr>
-            <td class="label">Payment Method</td>
-            <td class="value">{{ $donation->payment_method_brand ? ucfirst($donation->payment_method_brand) : 'Card' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Status</td>
-            <td class="value"><span class="badge">Successful</span></td>
+            <td>Status</td>
+            <td><span class="badge">Paid</span></td>
         </tr>
     </table>
 
     @if ($donation->type === \App\Enums\DonationType::Recurring)
-        <p style="font-size: 11px; color: #64748b; font-style: italic;">
-            This is a recurring donation. You will receive a receipt for each successful payment.
-        </p>
+        <p style="font-size: 10px; color: #64748b;">This is a recurring donation. A receipt is issued for each successful payment.</p>
     @endif
 
     <div class="footer">
-        <p>{{ config('app.name') }} &mdash; Tax-exempt receipts are available upon request from the organization.</p>
-        <p>If you have any questions, please contact the organization directly.</p>
+        <p>{{ config('app.name') }} &mdash; Tax-exempt receipts available upon request.</p>
+        <p>For inquiries, contact {{ $donation->campaign->organization->name }}.</p>
     </div>
 </body>
 </html>
