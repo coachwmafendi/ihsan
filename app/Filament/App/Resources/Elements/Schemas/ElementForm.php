@@ -503,6 +503,11 @@ class ElementForm
                                             ->label('Allow monthly donations')
                                             ->default(true)
                                             ->live(),
+                                        Toggle::make('allow_cover_fee')
+                                            ->label('Allow donors to cover processing fee')
+                                            ->helperText('Donors will see a pre-checked option to cover the Stripe processing fee (~3% + RM 0.50).')
+                                            ->default(true)
+                                            ->live(),
                                         Toggle::make('show_suggested')
                                             ->label('Show suggested amounts')
                                             ->default(true)
@@ -705,7 +710,7 @@ class ElementForm
                 'default_frequency', 'allow_monthly', 'show_dedication', 'show_comment',
                 'heading', 'description', 'submit_text', 'show_name', 'show_email',
                 'show_phone', 'show_message', 'suggested_amounts_one_time',
-                'suggested_amounts_monthly', 'show_suggested', 'display_as_popup',
+                'suggested_amounts_monthly', 'show_suggested', 'display_as_popup', 'allow_cover_fee',
                 'position', 'vertical_offset', 'horizontal_offset', 'popup_trigger',
                 'popup_delay', 'popup_scroll_percentage', 'popup_frequency',
                 'popup_allow_close', 'popup_close_on_backdrop', 'popup_max_width',
