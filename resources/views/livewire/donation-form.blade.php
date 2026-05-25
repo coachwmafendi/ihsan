@@ -205,9 +205,9 @@
                                 @if ($allowMonthly)
                                     <button
                                         type="button"
-                                        x-on:click="frequency = 'monthly'"
+                                        x-on:click="frequency = 'monthly'; launchHearts($event)"
                                         x-bind:class="frequency === 'monthly' ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
-                                        class="min-h-10 rounded-lg border bg-white px-3 text-sm font-semibold transition"
+                                        class="relative min-h-10 rounded-lg border bg-white px-3 text-sm font-semibold transition overflow-visible"
                                     >
                                         <span style="color: {{ $iconColor }};">&hearts;</span>
                                         Monthly
@@ -268,7 +268,8 @@
                                             x-model="amount"
                                             type="number"
                                             min="1"
-                                            step="1"
+                                            step="0.01"
+                                            @input="amount = amount.toString().replace(/(\.\d{2})\d+/, '$1')"
                                             class="min-w-0 flex-1 border-0 bg-transparent px-2 text-3xl/none font-bold text-slate-950 outline-none placeholder:text-slate-300 sm:px-3 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                         />
                                         <span class="text-sm font-medium text-slate-500">{{ strtoupper($this->currency) }}</span>
@@ -491,6 +492,42 @@
             currentStep: 1,
             stepErrors: {},
             cardError: '',
+
+            launchHearts(event) {
+                const btn = event.currentTarget;
+                const rect = btn.getBoundingClientRect();
+                const color = btn.querySelector('span') ? getComputedStyle(btn.querySelector('span')).color : '#e11d48';
+                const colors = [color, '#f43f5e', '#fb7185', '#fda4af'];
+                const count = 5;
+                for (let i = 0; i < count; i++) {
+                    setTimeout(() => {
+                        const el = document.createElement('span');
+                        el.textContent = '♥';
+                        const size = 12 + Math.random() * 10;
+                        const startX = rect.left + rect.width * 0.2 + Math.random() * rect.width * 0.6;
+                        const startY = rect.top;
+                        const driftX = (Math.random() - 0.5) * 50;
+                        const riseY = 60 + Math.random() * 60;
+                        const duration = 1000 + Math.random() * 600;
+                        el.style.cssText = `
+                            position: fixed;
+                            left: ${startX}px;
+                            top: ${startY}px;
+                            color: ${colors[Math.floor(Math.random() * colors.length)]};
+                            font-size: ${size}px;
+                            pointer-events: none;
+                            z-index: 9999;
+                            user-select: none;
+                        `;
+                        document.body.appendChild(el);
+                        el.animate([
+                            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                            { transform: `translate(${driftX * 0.5}px, ${-riseY * 0.5}px) scale(1.1)`, opacity: 0.8, offset: 0.4 },
+                            { transform: `translate(${driftX}px, ${-riseY}px) scale(0.5)`, opacity: 0 },
+                        ], { duration, easing: 'ease-out', fill: 'forwards' }).onfinish = () => el.remove();
+                    }, i * 80);
+                }
+            },
 
             validateStep1() {
                 this.stepErrors = {};
