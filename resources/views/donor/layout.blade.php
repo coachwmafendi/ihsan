@@ -30,15 +30,23 @@
                     Subscriptions
                 </a>
             </nav>
-            @php
-                $nameParts = array_values(array_filter(explode(' ', trim($donor->name))));
-                $initials = strtoupper(substr($nameParts[0] ?? '?', 0, 1));
-                if (count($nameParts) > 1) {
-                    $initials .= strtoupper(substr(end($nameParts), 0, 1));
-                }
-            @endphp
-            <div class="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-white">
-                {{ $initials }}
+            <div class="flex items-center gap-3">
+                @php
+                    $nameParts = array_values(array_filter(explode(' ', trim($donor->name))));
+                    $initials = strtoupper(substr($nameParts[0] ?? '?', 0, 1));
+                    if (count($nameParts) > 1) {
+                        $initials .= strtoupper(substr(end($nameParts), 0, 1));
+                    }
+                @endphp
+                <div class="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-white">
+                    {{ $initials }}
+                </div>
+                <form method="POST" action="{{ route('donorportal.logout') }}">
+                    @csrf
+                    <button type="submit" class="text-xs font-medium text-white/30 transition hover:text-white/60">
+                        Sign out
+                    </button>
+                </form>
             </div>
         </div>
     </header>
