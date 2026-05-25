@@ -38,7 +38,10 @@ it('shows donation history for authenticated donor', function () {
     $this->withSession(['donor_id' => $donor->getKey()])
         ->get(route('donorportal.donations'))
         ->assertOk()
+        ->assertSee('Ihsan.')
+        ->assertSee('Dashboard')
         ->assertSee('Donations')
+        ->assertSee('Subscriptions')
         ->assertSee($donor->name);
 });
 
@@ -51,6 +54,7 @@ it('shows subscriptions for authenticated donor', function () {
     $this->withSession(['donor_id' => $donor->getKey()])
         ->get(route('donorportal.subscriptions'))
         ->assertOk()
+        ->assertSee('Ihsan.')
         ->assertSee('Subscriptions');
 });
 

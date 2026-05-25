@@ -6,51 +6,52 @@
     <title>@yield('title', 'Donor Portal') — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-stone-50 antialiased">
-    <header class="border-b border-stone-200/70 bg-white/90 backdrop-blur-sm">
-        <div class="mx-auto flex max-w-4xl items-center justify-between px-6 py-5">
-            <a href="{{ route('donorportal.donations') }}">
-                <img src="{{ asset('logo-ihsan.png') }}" alt="{{ config('app.name') }}" class="h-8 w-auto" />
+<body class="min-h-screen bg-slate-50 antialiased">
+    <header class="bg-slate-900">
+        <div class="mx-auto flex max-w-3xl items-center justify-between px-6 py-3">
+            <a href="{{ route('donorportal.dashboard') }}"
+               class="text-sm font-black text-white [letter-spacing:-0.02em]">
+                Ihsan.
             </a>
-            <form method="POST" action="{{ route('donorportal.logout') }}">
-                @csrf
-                <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-stone-500 transition hover:bg-stone-100 hover:text-stone-700">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-                    </svg>
-                    Logout
-                </button>
-            </form>
-        </div>
-    </header>
-
-    <div class="mx-auto max-w-4xl px-6 py-10">
-        <div class="mb-10">
-            <nav class="flex gap-1 rounded-xl bg-stone-100/80 p-1.5">
+            <nav class="flex gap-1">
                 <a href="{{ route('donorportal.dashboard') }}"
-                   class="flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-medium transition
-                   {{ request()->routeIs('donorportal.dashboard') ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700' }}">
+                   class="rounded-md px-3 py-1.5 text-xs font-medium transition
+                   {{ request()->routeIs('donorportal.dashboard') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Dashboard
                 </a>
                 <a href="{{ route('donorportal.donations') }}"
-                   class="flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-medium transition
-                   {{ request()->routeIs('donorportal.donations') ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700' }}">
+                   class="rounded-md px-3 py-1.5 text-xs font-medium transition
+                   {{ request()->routeIs('donorportal.donations') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Donations
                 </a>
                 <a href="{{ route('donorportal.subscriptions') }}"
-                   class="flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-medium transition
-                   {{ request()->routeIs('donorportal.subscriptions') ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700' }}">
+                   class="rounded-md px-3 py-1.5 text-xs font-medium transition
+                   {{ request()->routeIs('donorportal.subscriptions') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Subscriptions
                 </a>
             </nav>
+            @php
+                $nameParts = array_values(array_filter(explode(' ', trim($donor->name))));
+                $initials = strtoupper(substr($nameParts[0] ?? '?', 0, 1));
+                if (count($nameParts) > 1) {
+                    $initials .= strtoupper(substr(end($nameParts), 0, 1));
+                }
+            @endphp
+            <div class="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-white">
+                {{ $initials }}
+            </div>
         </div>
+    </header>
 
+    <main class="mx-auto max-w-3xl px-6 py-8">
         @if (session('success'))
-            <div class="mb-8 rounded-xl bg-emerald-50 px-5 py-4 text-sm text-emerald-700 ring-1 ring-emerald-100">{{ session('success') }}</div>
+            <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700">
+                {{ session('success') }}
+            </div>
         @endif
 
         @yield('content')
-    </div>
+    </main>
     @stack('scripts')
 </body>
 </html>
