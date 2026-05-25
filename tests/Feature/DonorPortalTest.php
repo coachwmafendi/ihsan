@@ -67,3 +67,11 @@ it('logs out donor and redirects to login', function () {
 
     $this->assertNull(session('donor_id'));
 });
+
+it('renders login page with new design', function () {
+    $this->get(route('donorportal.login'))
+        ->assertOk()
+        ->assertSee('Ihsan.')
+        ->assertSee('Your giving, your way.')
+        ->assertSee('Send Login Link');
+});
