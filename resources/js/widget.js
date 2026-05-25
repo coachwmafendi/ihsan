@@ -183,16 +183,16 @@
     var shapeStyle = shapeStyles[s.shape] || shapeStyles.pill;
     var iconHtml = icons[s.icon] || icons.heart;
 
-    var inner = s.shape === "circle"
-      ? iconHtml
-      : iconHtml + '<span style="font-weight:600;white-space:' + (isVertical ? "normal" : "nowrap") + ';">' + esc(s.text || s.button_text || "Derma Sekarang") + "</span>";
+    var inner = s.shape === "pill"
+      ? iconHtml + '<span style="font-weight:600;white-space:' + (isVertical ? "normal" : "nowrap") + ';">' + esc(s.text || s.button_text || "Derma Sekarang") + "</span>"
+      : iconHtml;
 
     var gap = isVertical ? "4px" : "6px";
     var fontSize = isVertical ? "11px" : sz.fs;
     var flexDirection = isVertical ? "column" : "row";
     var heightStyle = isVertical ? "min-height:" + sz.h : "height:" + sz.h;
     var widthStyle = isVertical ? "width:" + sz.w : "min-width:" + sz.w;
-    var padding = s.shape === "circle" ? "0" : sz.pad;
+    var padding = s.shape === "pill" ? sz.pad : "0";
     var posTransform = pos.transform || "";
     var hoverScale = "scale(1.06)";
     var combinedEnterTransform = posTransform

@@ -161,7 +161,21 @@ it('shows floating button configuration settings when creating a floating button
         ->assertSee('Size')
         ->assertSee('Preview')
         ->assertDontSee('Display Rules')
-        ->assertDontSee('Donation Form Workbench');
+        ->assertDontSee('Donation Form Workbench')
+        ->assertDontSee('Select a type to preview')
+        ->set('data.config', [
+            'button_text' => 'Derma Sekarang',
+            'action' => 'checkout_modal',
+            'icon' => 'heart',
+            'position' => 'bottom-right',
+            'size' => 'medium',
+            'shape' => 'pill',
+            'color' => 'campaign',
+            'visible_desktop' => true,
+            'visible_mobile' => true,
+        ])
+        ->assertDontSee('Donate Now')
+        ->assertSee('Derma Sekarang');
 });
 
 it('creates a floating button element with organization and token', function () {

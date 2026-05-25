@@ -90,7 +90,7 @@
                     style="background:{{ $previewColor }};width:{{ $sz['size'] }};height:{{ $sz['size'] }};font-size:{{ $sz['font'] }};border-radius:{{ $radius }};{{ $isPill ? 'padding:0 20px;width:auto;min-width:'.$sz['size'] : '' }}"
                 >
                     <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">{!! $iconPath !!}</svg>
-                    @if(($config['shape'] ?? 'pill') !== 'circle')
+                    @if(($config['shape'] ?? 'pill') === 'pill')
                         <span style="font-weight:600;white-space:nowrap;font-size:{{ $sz['font'] }}">
                             {{ $config['button_text'] ?? 'Derma Sekarang' }}
                         </span>

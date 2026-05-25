@@ -154,50 +154,53 @@ class ElementForm
                 Section::make('Button')
                     ->description('Configure your inline donate button')
                     ->columnSpanFull()
-                    ->statePath('config')
                     ->icon('heroicon-m-hand-raised')
                     ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::Button->value)
-                    ->columns(2)
                     ->schema([
-                        TextInput::make('button_text')
-                            ->label('Button Text')
-                            ->default('Donate Now')
-                            ->required()
-                            ->live(),
-                        Select::make('button_color')
-                            ->label('Button Color')
-                            ->options([
-                                'bg-blue-600 hover:bg-blue-700' => 'Blue',
-                                'bg-teal-600 hover:bg-teal-700' => 'Teal',
-                                'bg-green-600 hover:bg-green-700' => 'Green',
-                                'bg-orange-600 hover:bg-orange-700' => 'Orange',
-                                'bg-red-600 hover:bg-red-700' => 'Red',
-                                'bg-purple-600 hover:bg-purple-700' => 'Purple',
-                                'bg-gray-900 hover:bg-gray-800' => 'Dark',
-                            ])
-                            ->default('bg-blue-600 hover:bg-blue-700')
-                            ->live()
-                            ->native(false),
-                        Select::make('button_size')
-                            ->label('Button Size')
-                            ->options([
-                                'text-sm px-4 py-2' => 'Small',
-                                'text-base px-6 py-3' => 'Medium',
-                                'text-lg px-8 py-4' => 'Large',
-                            ])
-                            ->default('text-base px-6 py-3')
-                            ->live()
-                            ->native(false),
-                        TextInput::make('corner_radius')
-                            ->label('Corner Radius')
-                            ->numeric()
-                            ->default(8)
-                            ->suffix('px')
-                            ->live(),
-                        Toggle::make('show_amount_input')
-                            ->label('Show amount input')
-                            ->default(true)
-                            ->live(),
+                        Grid::make()
+                            ->statePath('config')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('button_text')
+                                    ->label('Button Text')
+                                    ->default('Donate Now')
+                                    ->required()
+                                    ->live(),
+                                Select::make('button_color')
+                                    ->label('Button Color')
+                                    ->options([
+                                        'bg-blue-600 hover:bg-blue-700' => 'Blue',
+                                        'bg-teal-600 hover:bg-teal-700' => 'Teal',
+                                        'bg-green-600 hover:bg-green-700' => 'Green',
+                                        'bg-orange-600 hover:bg-orange-700' => 'Orange',
+                                        'bg-red-600 hover:bg-red-700' => 'Red',
+                                        'bg-purple-600 hover:bg-purple-700' => 'Purple',
+                                        'bg-gray-900 hover:bg-gray-800' => 'Dark',
+                                    ])
+                                    ->default('bg-blue-600 hover:bg-blue-700')
+                                    ->live()
+                                    ->native(false),
+                                Select::make('button_size')
+                                    ->label('Button Size')
+                                    ->options([
+                                        'text-sm px-4 py-2' => 'Small',
+                                        'text-base px-6 py-3' => 'Medium',
+                                        'text-lg px-8 py-4' => 'Large',
+                                    ])
+                                    ->default('text-base px-6 py-3')
+                                    ->live()
+                                    ->native(false),
+                                TextInput::make('corner_radius')
+                                    ->label('Corner Radius')
+                                    ->numeric()
+                                    ->default(8)
+                                    ->suffix('px')
+                                    ->live(),
+                                Toggle::make('show_amount_input')
+                                    ->label('Show amount input')
+                                    ->default(true)
+                                    ->live(),
+                            ]),
                         View::make('filament.forms.components.element-preview')
                             ->columnSpanFull()
                             ->viewData(fn (Get $get): array => [
@@ -208,11 +211,11 @@ class ElementForm
                 Section::make('Floating Button')
                     ->description('A fixed-position button on the edge of the page')
                     ->columnSpanFull()
-                    ->statePath('config')
                     ->icon('heroicon-m-arrows-pointing-out')
                     ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::FloatingButton->value)
                     ->schema([
                         Grid::make()
+                            ->statePath('config')
                             ->columns(2)
                             ->schema([
                                 Section::make('Content')
@@ -320,121 +323,125 @@ class ElementForm
                     ]),
                 Grid::make()
                     ->columnSpanFull()
-                    ->statePath('config')
                     ->visible(fn (Get $get): bool => $get('type') === ElementType::Popup->value)
                     ->schema([
-                        Section::make('Content')
-                            ->columns(2)
-                            ->icon('heroicon-m-document-text')
+                        Grid::make()
+                            ->statePath('config')
+                            ->columnSpanFull()
                             ->schema([
-                                TextInput::make('title')
-                                    ->label('Title')
-                                    ->required()
-                                    ->live(),
-                                Textarea::make('message')
-                                    ->label('Message')
-                                    ->rows(3)
-                                    ->live()
-                                    ->columnSpanFull(),
-                                TextInput::make('button_text')
-                                    ->label('Button text')
-                                    ->required()
-                                    ->live(),
-                            ]),
-                        Section::make('Action')
-                            ->icon('heroicon-m-cursor-arrow-rays')
-                            ->schema([
-                                Select::make('action')
-                                    ->label('Action')
-                                    ->options([
-                                        'campaign_page' => 'Open campaign page',
-                                        'checkout_modal' => 'Open checkout modal',
-                                    ])
-                                    ->default('checkout_modal')
-                                    ->live()
-                                    ->native(false),
-                            ]),
-                        Section::make('Display Rules')
-                            ->columns(2)
-                            ->icon('heroicon-m-eye')
-                            ->schema([
-                                Select::make('trigger')
-                                    ->label('Trigger')
-                                    ->options([
-                                        'immediately' => 'Immediately',
-                                        'after_delay' => 'After delay',
-                                        'on_scroll' => 'On scroll',
-                                        'exit_intent' => 'Exit intent',
-                                    ])
-                                    ->default('after_delay')
-                                    ->live()
-                                    ->native(false),
-                                TextInput::make('delay')
-                                    ->label('Delay (seconds)')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->default(8)
-                                    ->live()
-                                    ->visible(fn (Get $get): bool => $get('trigger') === 'after_delay'),
-                                Select::make('frequency')
-                                    ->label('Frequency')
-                                    ->options([
-                                        'once' => 'Once only',
-                                        'once_per_session' => 'Once per session',
-                                        'once_per_day' => 'Once per day',
-                                        'every_visit' => 'Every visit',
-                                    ])
-                                    ->default('once_per_day')
-                                    ->live()
-                                    ->native(false),
-                                Select::make('visibility')
-                                    ->label('Visibility')
-                                    ->options([
-                                        'desktop_mobile' => 'Desktop & mobile',
-                                        'desktop_only' => 'Desktop only',
-                                        'mobile_only' => 'Mobile only',
-                                    ])
-                                    ->default('desktop_mobile')
-                                    ->live()
-                                    ->native(false),
-                            ]),
-                        Section::make('Appearance')
-                            ->columns(2)
-                            ->icon('heroicon-m-paint-brush')
-                            ->schema([
-                                Select::make('layout')
-                                    ->label('Layout')
-                                    ->options([
-                                        'simple' => 'Simple',
-                                        'full' => 'Full',
-                                    ])
-                                    ->default('simple')
-                                    ->live()
-                                    ->native(false),
-                                Select::make('image')
-                                    ->label('Image')
-                                    ->options([
-                                        'campaign' => 'Use campaign image',
-                                        'none' => 'No image',
-                                    ])
-                                    ->default('campaign')
-                                    ->live()
-                                    ->native(false),
-                                Select::make('color')
-                                    ->label('Color')
-                                    ->options([
-                                        'campaign' => 'Use campaign color',
-                                        'blue' => 'Blue',
-                                        'teal' => 'Teal',
-                                        'green' => 'Green',
-                                        'orange' => 'Orange',
-                                        'red' => 'Red',
-                                        'purple' => 'Purple',
-                                        'dark' => 'Dark',
-                                    ])
-                                    ->default('campaign')
-                                    ->live()
-                                    ->native(false),
+                                Section::make('Content')
+                                    ->columns(2)
+                                    ->icon('heroicon-m-document-text')
+                                    ->schema([
+                                        TextInput::make('title')
+                                            ->label('Title')
+                                            ->required()
+                                            ->live(),
+                                        Textarea::make('message')
+                                            ->label('Message')
+                                            ->rows(3)
+                                            ->live()
+                                            ->columnSpanFull(),
+                                        TextInput::make('button_text')
+                                            ->label('Button text')
+                                            ->required()
+                                            ->live(),
+                                    ]),
+                                Section::make('Action')
+                                    ->icon('heroicon-m-cursor-arrow-rays')
+                                    ->schema([
+                                        Select::make('action')
+                                            ->label('Action')
+                                            ->options([
+                                                'campaign_page' => 'Open campaign page',
+                                                'checkout_modal' => 'Open checkout modal',
+                                            ])
+                                            ->default('checkout_modal')
+                                            ->live()
+                                            ->native(false),
+                                    ]),
+                                Section::make('Display Rules')
+                                    ->columns(2)
+                                    ->icon('heroicon-m-eye')
+                                    ->schema([
+                                        Select::make('trigger')
+                                            ->label('Trigger')
+                                            ->options([
+                                                'immediately' => 'Immediately',
+                                                'after_delay' => 'After delay',
+                                                'on_scroll' => 'On scroll',
+                                                'exit_intent' => 'Exit intent',
+                                            ])
+                                            ->default('after_delay')
+                                            ->live()
+                                            ->native(false),
+                                        TextInput::make('delay')
+                                            ->label('Delay (seconds)')
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->default(8)
+                                            ->live()
+                                            ->visible(fn (Get $get): bool => $get('trigger') === 'after_delay'),
+                                        Select::make('frequency')
+                                            ->label('Frequency')
+                                            ->options([
+                                                'once' => 'Once only',
+                                                'once_per_session' => 'Once per session',
+                                                'once_per_day' => 'Once per day',
+                                                'every_visit' => 'Every visit',
+                                            ])
+                                            ->default('once_per_day')
+                                            ->live()
+                                            ->native(false),
+                                        Select::make('visibility')
+                                            ->label('Visibility')
+                                            ->options([
+                                                'desktop_mobile' => 'Desktop & mobile',
+                                                'desktop_only' => 'Desktop only',
+                                                'mobile_only' => 'Mobile only',
+                                            ])
+                                            ->default('desktop_mobile')
+                                            ->live()
+                                            ->native(false),
+                                    ]),
+                                Section::make('Appearance')
+                                    ->columns(2)
+                                    ->icon('heroicon-m-paint-brush')
+                                    ->schema([
+                                        Select::make('layout')
+                                            ->label('Layout')
+                                            ->options([
+                                                'simple' => 'Simple',
+                                                'full' => 'Full',
+                                            ])
+                                            ->default('simple')
+                                            ->live()
+                                            ->native(false),
+                                        Select::make('image')
+                                            ->label('Image')
+                                            ->options([
+                                                'campaign' => 'Use campaign image',
+                                                'none' => 'No image',
+                                            ])
+                                            ->default('campaign')
+                                            ->live()
+                                            ->native(false),
+                                        Select::make('color')
+                                            ->label('Color')
+                                            ->options([
+                                                'campaign' => 'Use campaign color',
+                                                'blue' => 'Blue',
+                                                'teal' => 'Teal',
+                                                'green' => 'Green',
+                                                'orange' => 'Orange',
+                                                'red' => 'Red',
+                                                'purple' => 'Purple',
+                                                'dark' => 'Dark',
+                                            ])
+                                            ->default('campaign')
+                                            ->live()
+                                            ->native(false),
+                                    ]),
                             ]),
                         View::make('filament.forms.components.element-preview')
                             ->columnSpanFull()
