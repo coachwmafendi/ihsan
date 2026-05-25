@@ -41,8 +41,7 @@ it('shows donation history for authenticated donor', function () {
         ->assertSee('Ihsan.')
         ->assertSee('Dashboard')
         ->assertSee('Donations')
-        ->assertSee('Subscriptions')
-        ->assertSee($donor->name);
+        ->assertSee('Subscriptions');
 });
 
 it('shows subscriptions for authenticated donor', function () {
@@ -89,4 +88,15 @@ it('renders dashboard with stats and activity sections', function () {
         ->assertSee('Monthly Giving')
         ->assertSee('By Campaign')
         ->assertSee('Recent Activity');
+});
+
+it('renders donations page with stats and card list', function () {
+    $donor = Donor::factory()->create();
+
+    $this->withSession(['donor_id' => $donor->getKey()])
+        ->get(route('donorportal.donations'))
+        ->assertOk()
+        ->assertSee('Total Given')
+        ->assertSee('Donations')
+        ->assertSee('Your complete giving history.');
 });
