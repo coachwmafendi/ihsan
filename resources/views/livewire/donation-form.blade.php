@@ -269,7 +269,7 @@
                                             type="number"
                                             min="1"
                                             step="1"
-                                            class="min-w-0 flex-1 border-0 bg-transparent px-2 text-3xl/none font-bold text-slate-950 outline-none placeholder:text-slate-300 sm:px-3 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                            class="min-w-0 flex-1 border-0 bg-transparent px-2 text-3xl/none font-bold text-slate-950 outline-none placeholder:text-slate-300 sm:px-3 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                         />
                                         <span class="text-sm font-medium text-slate-500">{{ strtoupper($this->currency) }}</span>
                                     </div>
