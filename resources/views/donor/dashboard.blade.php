@@ -42,16 +42,18 @@
             <h2 class="mb-4 text-sm font-bold text-slate-900">By Campaign</h2>
             @if ($campaignBreakdown->isNotEmpty())
                 @php $dotColors = ['#10b981', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444']; @endphp
+                @php $campaignIndex = 0; @endphp
                 <div class="space-y-3">
-                    @foreach ($campaignBreakdown as $i => $item)
+                    @foreach ($campaignBreakdown as $campaign => $currencies)
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="h-2 w-2 flex-shrink-0 rounded-full"
-                                      style="background:{{ $dotColors[$i % count($dotColors)] }};"></span>
-                                <p class="text-xs font-semibold text-slate-700">{{ $item->campaign }}</p>
+                                      style="background:{{ $dotColors[$campaignIndex % count($dotColors)] }};"></span>
+                                <p class="text-xs font-semibold text-slate-700">{{ $campaign }}</p>
                             </div>
-                            <p class="text-xs font-black text-slate-900">≈ MYR {{ number_format($item->total, 2) }}</p>
+                            <p class="text-xs font-black text-slate-900">{{ implode(' + ', $currencies->toArray()) }}</p>
                         </div>
+                        @php $campaignIndex++; @endphp
                     @endforeach
                 </div>
             @else

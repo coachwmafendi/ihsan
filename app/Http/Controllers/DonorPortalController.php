@@ -81,10 +81,22 @@ class DonorPortalController extends Controller
         $campaignBreakdown = $donor->donations()
             ->where('donations.status', DonationStatus::Succeeded)
             ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
-            ->selectRaw('campaigns.title as campaign, SUM(COALESCE(donations.base_amount, donations.gross_amount)) as total')
-            ->groupBy('campaigns.title')
+            ->selectRaw('campaigns.title as campaign, donations.currency, SUM(donations.gross_amount) as total')
+            ->groupBy('campaigns.title', 'donations.currency')
             ->orderByDesc('total')
-            ->get();
+            ->get()
+            ->groupBy('campaign')
+            ->map(function ($items) {
+                return $items->mapWithKeys(function ($item) {
+                    $symbol = match ($item->currency) {
+                        'usd' => '$',
+                        'sgd' => 'S$',
+                        default => 'RM',
+                    };
+
+                    return [$item->currency => $symbol.' '.number_format((float) $item->total, 2)];
+                });
+            });
 
         $recentDonations = $donor->donations()
             ->where('status', DonationStatus::Succeeded)
