@@ -208,7 +208,7 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
-                                    x-on:click="frequency = 'one_time'"
+                                    x-on:click="frequency = 'one_time'; amount = oneTimeAmounts[0]"
                                     x-bind:class="frequency === 'one_time' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                                     class="min-h-10 rounded-lg border px-3 text-sm font-semibold transition"
                                 >
@@ -218,7 +218,7 @@
                                 @if ($allowMonthly)
                                     <button
                                         type="button"
-                                        x-on:click="frequency = 'monthly'; launchHearts($event)"
+                                        x-on:click="frequency = 'monthly'; amount = monthlyAmounts[0]; launchHearts($event)"
                                         x-bind:class="frequency === 'monthly' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                                         class="relative min-h-10 rounded-lg border px-3 text-sm font-semibold transition overflow-visible"
                                     >
