@@ -59,6 +59,11 @@ class Donation extends Model
 
     public function formattedAmount(): Attribute
     {
+        return Attribute::get(fn () => $this->currency_symbol.' '.number_format((float) $this->gross_amount, 2));
+    }
+
+    public function amountWithConversion(): Attribute
+    {
         return Attribute::get(function () {
             $symbol = $this->currency_symbol;
             $amount = number_format((float) $this->gross_amount, 2);
@@ -66,7 +71,7 @@ class Donation extends Model
             if ($this->currency !== 'myr' && $this->base_amount !== null) {
                 $base = number_format((float) $this->base_amount, 2);
 
-                return "≈ MYR {$base} - {$symbol} {$amount}";
+                return "≈ MYR {$base} ({$symbol} {$amount})";
             }
 
             return "{$symbol} {$amount}";
