@@ -13,10 +13,13 @@
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Given</p>
             @if (count($currencyBreakdown) > 1)
                 <p class="mt-1.5 text-xl font-black text-emerald-700">{{ implode(' + ', $currencyBreakdown) }}</p>
+                <p class="mt-1 text-[10px] text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
             @else
                 <p class="mt-1.5 text-xl font-black text-emerald-700">{{ reset($currencyBreakdown) ?? 'RM 0.00' }}</p>
+                @if (count($currencyBreakdown) === 1 && array_key_first($currencyBreakdown) !== 'myr')
+                    <p class="mt-1 text-[10px] text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
+                @endif
             @endif
-            <p class="mt-1 text-[10px] text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
         </div>
         <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active Plans</p>
