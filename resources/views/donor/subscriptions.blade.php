@@ -19,7 +19,7 @@
                     </div>
                     <div class="flex-shrink-0 text-right">
                         <p class="text-base font-black text-slate-900">
-                            RM {{ number_format($subscription->amount, 2) }}<span class="text-xs font-normal text-slate-400">/{{ $subscription->interval->value }}</span>
+                            {{ $subscription->currency_symbol }} {{ number_format($subscription->amount, 2) }}<span class="text-xs font-normal text-slate-400">/{{ $subscription->interval->value }}</span>
                         </p>
                         @if ($subscription->current_period_end)
                             <p class="mt-0.5 text-[11px] text-slate-400">

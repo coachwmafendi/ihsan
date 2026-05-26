@@ -39,7 +39,7 @@ it('shows donation form builder settings when creating a form element', function
         ->assertSee('ihsan-builder-preview')
         ->assertSee('--cols-xl: repeat(12, minmax(0, 1fr))')
         ->assertSee('Title')
-        ->assertSee('Simpan element untuk mendapatkan kod benam.')
+        ->assertSee('Save the element to get the embed code.')
         ->assertSee('Secure donation')
         ->assertSee('Donate monthly');
 });

@@ -86,6 +86,7 @@ class Campaign extends Model
             'suggested_amounts_one_time' => 'array',
             'suggested_amounts_monthly' => 'array',
             'checkout_allowed_domains' => 'array',
+            'milestones_notified' => 'array',
             'status' => CampaignStatus::class,
             'payment_gateway' => PaymentGateway::class,
         ];

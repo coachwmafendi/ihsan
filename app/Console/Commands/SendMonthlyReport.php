@@ -4,55 +4,46 @@ namespace App\Console\Commands;
 
 use App\Enums\DonationStatus;
 use App\Enums\UserRole;
-use App\Mail\DailyDonationSummary;
+use App\Mail\MonthlyReport;
 use App\Models\Donation;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 
-class SendDailyDonationSummary extends Command
+class SendMonthlyReport extends Command
 {
-    protected $signature = 'ihsan:send-daily-summary';
+    protected $signature = 'ihsan:send-monthly-report {--period= : The period to report for (Y-m-d format, defaults to previous month)}';
 
-    protected $description = 'Send daily donation summary to organizations at their configured time';
+    protected $description = 'Send monthly donation report to organizations that have it enabled';
 
     public function handle(): void
     {
+        $period = $this->option('period')
+            ? now()->parse($this->option('period'))
+            : now()->subMonthNoOverflow();
+
+        $periodLabel = $period->format('F Y');
+        $startOfMonth = $period->copy()->startOfMonth();
+        $endOfMonth = $period->copy()->endOfMonth();
+
         $organizations = Organization::query()
-            ->where('settings->daily_donation_summary', true)
+            ->where('settings->monthly_report', true)
             ->whereNotNull('settings')
             ->get();
 
         foreach ($organizations as $org) {
-            $orgTime = $org->settings['daily_summary_time'] ?? '09:00';
-            $lastSent = $org->settings['daily_summary_last_sent'] ?? null;
+            $lastSent = $org->settings['monthly_report_last_sent'] ?? null;
 
-            if ($lastSent === today()->toDateString()) {
-                continue;
-            }
-
-            $orgDateTime = today()->setTimeFromTimeString($orgTime);
-            $windowEnd = $orgDateTime->copy()->addMinutes(30);
-            $now = now();
-
-            if (! $now->between($orgDateTime, $windowEnd)) {
+            if ($lastSent === $period->toDateString()) {
                 continue;
             }
 
             $donations = Donation::query()
                 ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->getKey()))
                 ->where('status', DonationStatus::Succeeded)
-                ->whereDate('created_at', today())
+                ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
                 ->get();
-
-            if ($donations->isEmpty()) {
-                $settings = $org->settings;
-                $settings['daily_summary_last_sent'] = today()->toDateString();
-                $org->update(['settings' => $settings]);
-
-                continue;
-            }
 
             $campaigns = $donations->groupBy('campaign_id')->map(function ($items) {
                 $campaign = $items->first()->campaign;
@@ -71,17 +62,18 @@ class SendDailyDonationSummary extends Command
 
             foreach ($admins as $admin) {
                 Mail::to($admin->email)->queue(
-                    new DailyDonationSummary(
+                    new MonthlyReport(
                         organization: $org,
                         donationCount: $donations->count(),
                         totalAmount: number_format($donations->sum('gross_amount'), 2),
                         campaigns: $campaigns,
+                        period: $periodLabel,
                     )
                 );
             }
 
             $settings = $org->settings;
-            $settings['daily_summary_last_sent'] = today()->toDateString();
+            $settings['monthly_report_last_sent'] = $period->toDateString();
             $org->update(['settings' => $settings]);
         }
     }

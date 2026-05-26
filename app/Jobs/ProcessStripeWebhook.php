@@ -7,6 +7,7 @@ use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\SubscriptionStatus;
+use App\Jobs\SendCampaignMilestoneNotification;
 use App\Mail\PlatformInvoicePaid;
 use App\Models\Donation;
 use App\Models\MonthlyInvoice;
@@ -101,7 +102,12 @@ class ProcessStripeWebhook implements ShouldQueue
         ]);
 
         if ($wasPending) {
-            $donation->campaign()->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
+            $campaign = $donation->campaign;
+            $previousCollected = (float) $campaign->collected_amount;
+            $campaign->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
+            $campaign->refresh();
+
+            SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
         }
 
         if ($donation->type === DonationType::Recurring && ($wasPending || $donation->subscription_id === null)) {
@@ -206,7 +212,12 @@ class ProcessStripeWebhook implements ShouldQueue
 
         app(SyncDonationStripeDetails::class)->sync($donation, null, $stripeOptions);
 
-        $donation->campaign()->increment('collected_amount', (float) ($donation->base_amount ?? $grossAmount));
+        $campaign = $donation->campaign;
+        $previousCollected = (float) $campaign->collected_amount;
+        $campaign->increment('collected_amount', (float) ($donation->base_amount ?? $grossAmount));
+        $campaign->refresh();
+
+        SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
 
         SendDonationReceipt::dispatch($donation);
         SendNewDonationNotification::dispatch($donation);

@@ -11,6 +11,7 @@ use App\Enums\DonationType;
 use App\Enums\ElementType;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendLargeDonationNotification;
+use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendNewDonationNotification;
 use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
@@ -198,7 +199,12 @@ class DonationForm extends Component
                 'status' => DonationStatus::Succeeded,
             ]);
 
-            $donation->campaign()->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
+            $campaign = $donation->campaign;
+            $previousCollected = (float) $campaign->collected_amount;
+            $campaign->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
+            $campaign->refresh();
+
+            SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
 
             if ($donation->type === DonationType::Recurring) {
                 $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);

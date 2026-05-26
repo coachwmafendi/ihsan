@@ -11,7 +11,7 @@
     <div class="mb-6 grid grid-cols-2 gap-3">
         <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Given</p>
-            <p class="mt-1.5 text-xl font-black text-emerald-700">RM {{ number_format($totalGiven, 2) }}</p>
+            <p class="mt-1.5 text-xl font-black text-emerald-700">{{ $totalGivenFormatted }}</p>
         </div>
         <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Donations</p>
@@ -28,7 +28,7 @@
                         <p class="mt-0.5 text-xs text-slate-500">{{ $donation->campaign->organization->name }}</p>
                     </div>
                     <div class="flex-shrink-0 text-right">
-                        <p class="text-base font-black text-slate-900">RM {{ number_format($donation->gross_amount, 2) }}</p>
+                        <p class="text-base font-black text-slate-900">{{ $donation->formatted_amount }}</p>
                         <p class="mt-0.5 text-[11px] text-slate-400">{{ $donation->created_at->format('d M Y') }}</p>
                     </div>
                 </div>

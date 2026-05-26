@@ -18,6 +18,37 @@ class DonorPortalController extends Controller
         return Donor::query()->find($donorId);
     }
 
+    private function getTotalGiven(Donor $donor): float
+    {
+        return (float) $donor->donations()
+            ->where('status', DonationStatus::Succeeded)
+            ->sum(\DB::raw('COALESCE(base_amount, gross_amount)'));
+    }
+
+    private function getCurrencyBreakdown(Donor $donor): array
+    {
+        return $donor->donations()
+            ->where('status', DonationStatus::Succeeded)
+            ->selectRaw('currency, SUM(gross_amount) as total')
+            ->groupBy('currency')
+            ->pluck('total', 'currency')
+            ->mapWithKeys(function ($total, $currency) {
+                $symbol = match ($currency) {
+                    'usd' => '$',
+                    'sgd' => 'S$',
+                    default => 'RM',
+                };
+
+                return [$currency => $symbol.' '.number_format((float) $total, 2)];
+            })
+            ->toArray();
+    }
+
+    private function formatAmount(float $amount): string
+    {
+        return '≈ MYR '.number_format($amount, 2);
+    }
+
     public function dashboard()
     {
         $donor = $this->getDonor();
@@ -25,9 +56,9 @@ class DonorPortalController extends Controller
             return redirect()->route('donorportal.login');
         }
 
-        $totalGiven = $donor->donations()
-            ->where('status', DonationStatus::Succeeded)
-            ->sum('gross_amount');
+        $totalGiven = $this->getTotalGiven($donor);
+        $currencyBreakdown = $this->getCurrencyBreakdown($donor);
+        $hasMultipleCurrencies = count($currencyBreakdown) > 1;
 
         $activeSubscriptions = $donor->subscriptions()
             ->where('status', SubscriptionStatus::Active)
@@ -39,7 +70,7 @@ class DonorPortalController extends Controller
 
         $monthlyDonations = $donor->donations()
             ->where('status', DonationStatus::Succeeded)
-            ->selectRaw("strftime('%Y-%m', created_at) as month, SUM(gross_amount) as total")
+            ->selectRaw("strftime('%Y-%m', created_at) as month, SUM(COALESCE(base_amount, gross_amount)) as total")
             ->groupBy('month')
             ->orderBy('month', 'desc')
             ->limit(12)
@@ -50,7 +81,7 @@ class DonorPortalController extends Controller
         $campaignBreakdown = $donor->donations()
             ->where('donations.status', DonationStatus::Succeeded)
             ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
-            ->selectRaw('campaigns.title as campaign, SUM(donations.gross_amount) as total')
+            ->selectRaw('campaigns.title as campaign, SUM(COALESCE(donations.base_amount, donations.gross_amount)) as total')
             ->groupBy('campaigns.title')
             ->orderByDesc('total')
             ->get();
@@ -62,11 +93,33 @@ class DonorPortalController extends Controller
             ->limit(5)
             ->get();
 
+        $activeSubscriptionsList = $donor->subscriptions()
+            ->where('status', SubscriptionStatus::Active)
+            ->get();
+
+        $monthlyRecurringByCurrency = $activeSubscriptionsList
+            ->groupBy('currency')
+            ->map(function ($subs, $currency) {
+                $symbol = match ($currency) {
+                    'usd' => '$',
+                    'sgd' => 'S$',
+                    default => 'RM',
+                };
+                $total = $subs->sum('amount');
+
+                return $symbol.' '.number_format((float) $total, 2);
+            })
+            ->toArray();
+
         return view('donor.dashboard', [
             'donor' => $donor,
             'totalGiven' => $totalGiven,
+            'totalGivenFormatted' => $this->formatAmount($totalGiven),
+            'currencyBreakdown' => $currencyBreakdown,
+            'hasMultipleCurrencies' => $hasMultipleCurrencies,
             'activeSubscriptions' => $activeSubscriptions,
             'monthlyRecurring' => $monthlyRecurring,
+            'monthlyRecurringFormatted' => $monthlyRecurringByCurrency,
             'monthlyDonations' => $monthlyDonations,
             'campaignBreakdown' => $campaignBreakdown,
             'recentDonations' => $recentDonations,
@@ -80,9 +133,15 @@ class DonorPortalController extends Controller
             return redirect()->route('donorportal.login');
         }
 
+        $totalGiven = $this->getTotalGiven($donor);
+        $currencyBreakdown = $this->getCurrencyBreakdown($donor);
+
         return view('donor.donations', [
             'donor' => $donor,
-            'totalGiven' => $donor->donations()->where('status', DonationStatus::Succeeded)->sum('gross_amount'),
+            'totalGiven' => $totalGiven,
+            'totalGivenFormatted' => $this->formatAmount($totalGiven),
+            'currencyBreakdown' => $currencyBreakdown,
+            'hasMultipleCurrencies' => count($currencyBreakdown) > 1,
             'donationCount' => $donor->donations()->where('status', DonationStatus::Succeeded)->count(),
             'donations' => $donor->donations()->with('campaign.organization')->latest()->paginate(10),
         ]);
