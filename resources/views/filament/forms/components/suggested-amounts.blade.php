@@ -1,5 +1,6 @@
 @php
     $statePath = $getStatePath();
+    $acceptedCurrencies = $getAcceptedCurrencies();
 @endphp
 
 <div
@@ -7,6 +8,7 @@
         activeCurrency: 'myr',
         activeTab: 'monthly',
         state: $wire.$entangle('{{ $statePath }}'),
+        acceptedCurrencies: @js($acceptedCurrencies),
         get currencyData() {
             return this.state?.[this.activeCurrency] || { one_time: [], monthly: [], default_monthly: '' };
         },
@@ -48,14 +50,28 @@
                 this.currentAmounts = amounts;
             }
         },
+        get minAmounts() {
+            return 3;
+        },
+        get maxAmounts() {
+            return 6;
+        },
         addAmount() {
+            if (this.currentAmounts.length >= this.maxAmounts) return;
             const amounts = [...this.currentAmounts, { amount: '', label: '' }];
             this.currentAmounts = amounts;
         },
         removeAmount(index) {
+            if (this.currentAmounts.length <= this.minAmounts) return;
             const amounts = [...this.currentAmounts];
             amounts.splice(index, 1);
             this.currentAmounts = amounts;
+        },
+        get canAdd() {
+            return this.currentAmounts.length < this.maxAmounts;
+        },
+        get canRemove() {
+            return this.currentAmounts.length > this.minAmounts;
         },
         symbolFor(currency) {
             return currency === 'myr' ? 'RM' : (currency === 'usd' ? '$' : 'S$');
@@ -77,10 +93,16 @@
                     @foreach (['myr' => 'RM (MYR)', 'usd' => '$ (USD)', 'sgd' => 'S$ (SGD)'] as $code => $label)
                         <button
                             type="button" role="tab"
-                            @click="activeCurrency = '{{ $code }}'"
+                            @click="if (acceptedCurrencies.includes('{{ $code }}')) activeCurrency = '{{ $code }}'"
                             :aria-selected="activeCurrency === '{{ $code }}'"
-                            :class="activeCurrency === '{{ $code }}' ? 'bg-white text-zinc-950 shadow-sm dark:bg-zinc-950 dark:text-white' : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'"
-                            class="rounded-md px-4 py-2 text-sm font-semibold transition"
+                            :class="[
+                                'rounded-md px-4 py-2 text-sm font-semibold transition',
+                                activeCurrency === '{{ $code }}'
+                                    ? 'bg-white text-zinc-950 shadow-sm dark:bg-zinc-950 dark:text-white'
+                                    : acceptedCurrencies.includes('{{ $code }}')
+                                        ? 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'
+                                        : 'text-zinc-300 dark:text-zinc-600 cursor-default',
+                            ]"
                         >
                             {{ $label }}
                         </button>
@@ -115,15 +137,18 @@
                     </div>
                     <span class="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400" x-text="(activeTab === 'one-time' ? oneTimeAmounts.length : monthlyAmounts.length) + ' pilihan'"></span>
                 </div>
+                <p class="text-xs text-zinc-400 dark:text-zinc-500">Minimum <span x-text="minAmounts"></span> pilihan dan maksimum <span x-text="maxAmounts"></span> pilihan.</p>
 
                 <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
                     <template x-for="(amount, index) in currentAmounts" :key="`${activeCurrency}-${activeTab}-${index}`">
                         <div class="group relative rounded-lg border border-zinc-200 bg-zinc-50/60 p-3 transition hover:border-zinc-300 focus-within:border-primary-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/20 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:focus-within:bg-zinc-950">
                             <button
                                 type="button"
-                                @click="removeAmount(index)"
-                                class="absolute -right-1.5 -top-1.5 hidden size-5 items-center justify-center rounded-full bg-red-500 text-white shadow-sm transition hover:bg-red-600 group-hover:flex dark:bg-red-600 dark:hover:bg-red-500"
-                                aria-label="Buang jumlah"
+                                @click="if (canRemove) removeAmount(index)"
+                                :class="canRemove ? 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500' : 'bg-zinc-300 dark:bg-zinc-600 cursor-not-allowed'"
+                                class="absolute -right-1.5 -top-1.5 hidden size-5 items-center justify-center rounded-full text-white shadow-sm transition group-hover:flex"
+                                :aria-label="canRemove ? 'Buang jumlah' : 'Minimum 3 pilihan diperlukan'"
+                                :title="canRemove ? '' : 'Minimum 3 pilihan diperlukan'"
                             >
                                 <svg class="size-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
@@ -149,8 +174,10 @@
 
                 <button
                     type="button"
-                    @click="addAmount()"
-                    class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-zinc-300 px-4 py-3 text-sm font-medium text-zinc-600 transition hover:border-primary-400 hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-white/20 dark:text-zinc-400 dark:hover:border-primary-500 dark:hover:text-primary-400"
+                    @click="if (canAdd) addAmount()"
+                    :class="canAdd ? 'border-zinc-300 hover:border-primary-400 hover:text-primary-600 dark:border-white/20 dark:hover:border-primary-500 dark:hover:text-primary-400' : 'border-zinc-200 text-zinc-400 dark:border-white/5 dark:text-zinc-600 cursor-not-allowed'"
+                    class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-3 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                    :title="canAdd ? '' : 'Maksimum 6 pilihan'"
                 >
                     <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                     Tambah jumlah

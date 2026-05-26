@@ -6,6 +6,7 @@ use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +31,15 @@ class Subscription extends Model
     public function donations(): HasMany
     {
         return $this->hasMany(Donation::class);
+    }
+
+    public function currencySymbol(): Attribute
+    {
+        return Attribute::get(fn () => match ($this->currency) {
+            'usd' => '$',
+            'sgd' => 'S$',
+            default => 'RM',
+        });
     }
 
     protected function casts(): array

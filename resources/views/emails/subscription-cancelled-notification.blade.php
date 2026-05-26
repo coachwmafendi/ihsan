@@ -11,7 +11,7 @@
 
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Subscriber</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $subscription->donor->name }}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Amount</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">RM {{ number_format($subscription->amount, 2) }}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Amount</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $subscription->currency_symbol }} {{ number_format($subscription->amount, 2) }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Campaign</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $subscription->campaign->title }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Total Payments</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $subscription->payment_count ?? 0 }}</td></tr>
             <tr><td style="padding: 8px; color: #64748b;">Cancelled At</td><td style="padding: 8px;">{{ $subscription->cancelled_at?->format('d M Y, h:i A') ?? now()->format('d M Y, h:i A') }}</td></tr>

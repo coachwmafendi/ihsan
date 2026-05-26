@@ -2,11 +2,26 @@
 
 namespace App\Filament\Forms\Components;
 
+use Closure;
 use Filament\Forms\Components\Field;
 
 class SuggestedAmounts extends Field
 {
     protected string $view = 'filament.forms.components.suggested-amounts';
+
+    protected array|Closure $acceptedCurrencies = ['myr'];
+
+    public function acceptedCurrencies(array|Closure $currencies): static
+    {
+        $this->acceptedCurrencies = $currencies;
+
+        return $this;
+    }
+
+    public function getAcceptedCurrencies(): array
+    {
+        return $this->evaluate($this->acceptedCurrencies);
+    }
 
     protected function setUp(): void
     {

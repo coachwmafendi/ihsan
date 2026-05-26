@@ -116,6 +116,11 @@ class CampaignForm
                                     ->schema([
                                         SuggestedAmounts::make('suggested_amounts')
                                             ->label('Jumlah disarankan')
+                                            ->acceptedCurrencies(fn ($record): array => (
+                                                $record?->organization?->settings['accepted_currencies']
+                                                ?? auth()->user()?->organization?->settings['accepted_currencies']
+                                                ?? ['myr']
+                                            ))
                                             ->columnSpanFull(),
                                     ]),
                                 Section::make('Pembayaran')

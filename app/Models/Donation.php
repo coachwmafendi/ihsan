@@ -6,6 +6,7 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use Database\Factories\DonationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,6 +46,15 @@ class Donation extends Model
     public function processingFee(): HasOne
     {
         return $this->hasOne(ProcessingFee::class);
+    }
+
+    public function currencySymbol(): Attribute
+    {
+        return Attribute::get(fn () => match ($this->currency) {
+            'usd' => '$',
+            'sgd' => 'S$',
+            default => 'RM',
+        });
     }
 
     protected function casts(): array

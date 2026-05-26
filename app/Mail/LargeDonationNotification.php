@@ -20,7 +20,7 @@ class LargeDonationNotification extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '🚨 Derma Besar Diterima — RM '.number_format($this->donation->gross_amount).' — '.config('app.name'),
+            subject: '🚨 Large Donation Received — '.$this->donation->currency_symbol.' '.number_format($this->donation->gross_amount).' — '.config('app.name'),
         );
     }
 
