@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
-<body style="font-family: Manrope, sans-serif; line-height: 1.6; color: #1a1a2e;">
+<body style="font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; color: #1a1a2e;">
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #7c3aed, #a855f7); border-radius: 12px; padding: 24px; margin-bottom: 24px; text-align: center;">
             <h1 style="color: #fff; margin: 0 0 4px; font-size: 1.5rem;">Derma Besar Diterima</h1>

@@ -53,18 +53,18 @@ class CampaignForm
                                 Section::make('Kisah & media')
                                     ->description('Kandungan halaman kempen dan gambar utama.')
                                     ->schema([
-                                        RichEditor::make('description')
-                                            ->label('Penerangan')
-                                            ->columnSpanFull()
-                                            ->extraInputAttributes(['style' => 'min-height: 300px;'])
-                                            ->live(debounce: 1500)
-                                            ->hint(fn ($state): HtmlString => new HtmlString(static::wordCountHint($state))),
                                         FileUpload::make('image_path')
                                             ->label('Gambar utama')
                                             ->image()
                                             ->directory('campaigns')
                                             ->helperText('Saiz disyorkan: 1920 × 1060 px')
                                             ->columnSpanFull(),
+                                        RichEditor::make('description')
+                                            ->label('Penerangan')
+                                            ->columnSpanFull()
+                                            ->extraInputAttributes(['style' => 'min-height: 300px;'])
+                                            ->live(debounce: 1500)
+                                            ->hint(fn ($state): HtmlString => new HtmlString(static::wordCountHint($state))),
                                     ]),
                             ]),
                         Tab::make('Settings')
@@ -140,6 +140,7 @@ class CampaignForm
                             ->schema([
                                 Section::make('Konfigurasi')
                                     ->description('Aktifkan modal derma dan hadkan domain yang dibenarkan.')
+                                    ->columns(2)
                                     ->schema([
                                         Toggle::make('checkout_modal_enabled')
                                             ->label('Aktifkan modal derma')
@@ -150,13 +151,28 @@ class CampaignForm
                                             ->label('Kod kempen')
                                             ->helperText('Kod unik untuk kempen ini. Dijana secara automatik — boleh ditukar.')
                                             ->maxLength(255)
-                                            ->unique(ignoreRecord: true)
-                                            ->columnSpanFull(),
+                                            ->unique(ignoreRecord: true),
                                         TagsInput::make('checkout_allowed_domains')
                                             ->label('Domain dibenarkan')
-                                            ->helperText('Masukkan domain laman web organisasi, contoh: mumzatuttaqwa.com — Borang tidak akan dibuka dari domain lain.')
+                                            ->helperText('Masukkan domain laman web organisasi, contoh: abc.com — Borang tidak akan dibuka dari domain lain.')
                                             ->placeholder('Tambah domain')
-                                            ->columnSpanFull(),
+                                            ->default(function (): array {
+                                                $org = auth()->user()->organization;
+                                                $domains = $org?->settings['allowed_domains'] ?? [];
+
+                                                if (! empty($domains)) {
+                                                    return $domains;
+                                                }
+
+                                                if ($org?->website_url) {
+                                                    $host = parse_url($org->website_url, PHP_URL_HOST);
+                                                    if ($host) {
+                                                        return [$host];
+                                                    }
+                                                }
+
+                                                return [];
+                                            }),
                                     ]),
                                 Section::make('Cara pasang di laman web')
                                     ->description('Ikuti langkah di bawah untuk benamkan borang derma di laman web organisasi.')
@@ -169,6 +185,7 @@ class CampaignForm
                             ]),
                         Tab::make('Campaign Page')
                             ->icon('heroicon-o-globe-alt')
+                            ->visible(fn ($record) => $record !== null)
                             ->schema([
                                 Grid::make()
                                     ->columns(2)
@@ -369,24 +386,30 @@ class CampaignForm
                 return '<p class="text-sm text-zinc-500">Tiada URL — kempen belum ada element atau modal derma tidak diaktifkan.</p>';
             }
 
-            $url = route('donations.campaign-show', ['campaign' => $record->form_parameter]);
+            $base = route('donations.campaign-show', ['campaign' => $record->form_parameter]);
 
-            return '<div x-data="{ copied: false }" data-url=\''.e($url).'\' class="flex items-center gap-2 py-1">'
-                .'<code class="flex-1 truncate text-sm text-zinc-600">'.e($url).'</code>'
-                .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
-                .'</div>';
+            return self::labeledUrlRow('Wide', $base.'?popup=1')
+                .self::labeledUrlRow('Compact', $base);
         }
 
         $parts = [];
         foreach ($elements as $element) {
-            $url = route('donations.show', $element);
-            $parts[] = '<div x-data="{ copied: false }" data-url=\''.e($url).'\' class="flex items-center gap-2 py-1">'
-                .'<code class="flex-1 truncate text-sm text-zinc-600">'.e($url).'</code>'
-                .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
-                .'</div>';
+            $base = route('donations.show', $element);
+            $parts[] = self::labeledUrlRow('Wide', $base.'?popup=1')
+                .self::labeledUrlRow('Compact', $base);
         }
 
         return implode('', $parts);
+    }
+
+    private static function labeledUrlRow(string $label, string $url): string
+    {
+        return '<div class="flex items-center gap-2 py-1" x-data="{ copied: false }" data-url=\''.e($url).'\'>'
+            .'<span class="w-14 shrink-0 text-xs font-medium text-zinc-400">'.$label.'</span>'
+            .'<code class="flex-1 truncate text-sm text-zinc-600">'.e($url).'</code>'
+            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
+            .'<a href="'.e($url).'" target="_blank" rel="noopener" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200">Buka →</a>'
+            .'</div>';
     }
 
     private static function embedSnippetHtml(?string $formParameter): string

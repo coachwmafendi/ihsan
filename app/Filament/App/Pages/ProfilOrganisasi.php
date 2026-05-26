@@ -5,6 +5,7 @@ namespace App\Filament\App\Pages;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -76,6 +77,10 @@ class ProfilOrganisasi extends Page
                                     ->nullable()
                                     ->maxLength(255)
                                     ->placeholder('https://example.com'),
+                                TagsInput::make('settings.allowed_domains')
+                                    ->label('Domain dibenarkan')
+                                    ->helperText('Domain laman web organisasi. Akan diguna sebagai domain lalai untuk kempen baharu.')
+                                    ->placeholder('Tambah domain'),
                                 TextInput::make('contact_email')
                                     ->label('E-mel hubungi')
                                     ->email()

@@ -24,7 +24,6 @@ class SubscriptionsTable
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->formatStateUsing(fn (SubscriptionStatus $state): string => str($state->value)->headline()->toString())
                     ->color(fn (SubscriptionStatus $state): string => match ($state) {
                         SubscriptionStatus::Active => 'success',
                         SubscriptionStatus::Paused => 'warning',
@@ -63,11 +62,7 @@ class SubscriptionsTable
             ])
             ->filters([
                 SelectFilter::make('status')
-                    ->options(collect(SubscriptionStatus::cases())
-                        ->mapWithKeys(fn (SubscriptionStatus $case) => [
-                            $case->value => str($case->value)->headline()->toString(),
-                        ])
-                        ->toArray()),
+                    ->options(SubscriptionStatus::class),
                 SelectFilter::make('interval')
                     ->options(SubscriptionInterval::class),
             ])

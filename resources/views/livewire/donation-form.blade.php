@@ -105,6 +105,15 @@
             @endif
 
             <section class="border-t border-slate-200 px-6 py-6 {{ $isPopup ? 'lg:border-t-0 lg:px-7 lg:py-7' : '' }}">
+                @if ($isPopup && $campaignImageUrl)
+                    <div class="mb-5 -mx-6 -mt-6 lg:hidden">
+                        <img
+                            src="{{ $campaignImageUrl }}"
+                            alt="{{ $campaign->title }}"
+                            class="h-48 w-full object-cover"
+                        />
+                    </div>
+                @endif
                 <div class="mb-5 flex items-center gap-3">
                     <span class="flex size-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -182,7 +191,10 @@
                         style="background-color: {{ $backgroundColor }}; color: {{ $textColor }}; border: {{ $borderSize }}px solid {{ $borderColor }}; border-radius: {{ $isCompact ? $borderRadius : $borderRadius + 10 }}px;"
                     @endif
                 >
-                    <div x-data="donationForm(@js($frequency), @js($amount), @js($name), @js($email), @js($phone), @js($connectedStripeAccountId))">
+                    <div
+                        x-data="donationForm(@js($frequency), @js($amount), @js($name), @js($email), @js($phone), @js($connectedStripeAccountId))"
+                        x-on:currency-changed.window="amount = $event.detail.amount"
+                    >
 
                         {{-- Step progress indicator --}}
                         <div x-show="typeof currentStep === 'number'" class="mb-4 text-sm text-slate-500">
@@ -197,8 +209,8 @@
                                 <button
                                     type="button"
                                     x-on:click="frequency = 'one_time'"
-                                    x-bind:class="frequency === 'one_time' ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
-                                    class="min-h-10 rounded-lg border bg-white px-3 text-sm font-semibold transition"
+                                    x-bind:class="frequency === 'one_time' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
+                                    class="min-h-10 rounded-lg border px-3 text-sm font-semibold transition"
                                 >
                                     Give once
                                 </button>
@@ -207,8 +219,8 @@
                                     <button
                                         type="button"
                                         x-on:click="frequency = 'monthly'; launchHearts($event)"
-                                        x-bind:class="frequency === 'monthly' ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
-                                        class="relative min-h-10 rounded-lg border bg-white px-3 text-sm font-semibold transition overflow-visible"
+                                        x-bind:class="frequency === 'monthly' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
+                                        class="relative min-h-10 rounded-lg border px-3 text-sm font-semibold transition overflow-visible"
                                     >
                                         <span style="color: {{ $iconColor }};">&hearts;</span>
                                         Monthly
@@ -216,21 +228,6 @@
                                 @endif
                             </div>
 
-                            @if (count($this->getAcceptedCurrencies()) > 1)
-                                <div class="flex gap-1 rounded-lg bg-slate-100 p-0.5">
-                                    @php $currencySelectLabels = ['myr' => 'RM', 'usd' => '$', 'sgd' => 'S$']; @endphp
-                                    @foreach ($this->getAcceptedCurrencies() as $code)
-                                        <button
-                                            type="button"
-                                            wire:click="selectCurrency('{{ $code }}')"
-                                            class="flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition"
-                                            style="{{ $this->currency === $code ? 'background-color: white; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.1);' : 'color: #64748b;' }}"
-                                        >
-                                            {{ $currencySelectLabels[$code] ?? strtoupper($code) }}
-                                        </button>
-                                    @endforeach
-                                </div>
-                            @endif
 
                             @if ($this->config('show_suggested', true))
                                 <div x-show="frequency === 'one_time'" class="grid grid-cols-3 gap-2">
@@ -238,8 +235,8 @@
                                         <button
                                             type="button"
                                             x-on:click="amount = {{ $amount }}"
-                                            x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
-                                            class="min-h-12 rounded-lg border bg-white px-2 text-sm font-semibold transition"
+                                            x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
+                                            class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
                                         >
                                             {{ $currencySymbol }} {{ number_format($amount) }}
                                         </button>
@@ -251,8 +248,8 @@
                                         <button
                                             type="button"
                                             x-on:click="amount = {{ $amount }}"
-                                            x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-50 text-teal-700 shadow-sm' : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
-                                            class="min-h-12 rounded-lg border bg-white px-2 text-sm font-semibold transition"
+                                            x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
+                                            class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
                                         >
                                             {{ $currencySymbol }} {{ number_format($amount) }}
                                         </button>
@@ -267,16 +264,63 @@
                                         <span class="{{ $usesSecureDonationShell ? 'text-2xl' : 'text-base' }} font-semibold text-slate-700">{{ $currencySymbol }}</span>
                                         <input
                                             x-model="amount"
-                                            type="number"
-                                            min="1"
-                                            step="0.01"
-                                            @input="amount = amount.toString().replace(/(\.\d{2})\d+/, '$1')"
-                                            class="min-w-0 flex-1 border-0 bg-transparent px-2 text-3xl/none font-bold text-slate-950 outline-none placeholder:text-slate-300 sm:px-3 [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                            type="text"
+                                            inputmode="decimal"
+                                            @keydown="
+                                                const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab','Home','End'];
+                                                if (allowed.includes($event.key)) return;
+                                                if ($event.key === '.' && !$el.value.includes('.')) return;
+                                                if (!/^\d$/.test($event.key)) { $event.preventDefault(); return; }
+                                                const intPart = $el.value.split('.')[0];
+                                                if (intPart.length >= 6 && ($el.selectionStart <= intPart.length)) $event.preventDefault();
+                                            "
+                                            @input="
+                                                let v = $el.value.replace(/[^\d.]/g, '');
+                                                const p = v.split('.');
+                                                if (p.length > 2) v = p[0] + '.' + p.slice(1).join('');
+                                                if (p[1] !== undefined && p[1].length > 2) v = p[0] + '.' + p[1].slice(0, 2);
+                                                if ($el.value !== v) { $el.value = v; amount = v; }
+                                            "
+                                            class="min-w-0 flex-1 border-0 bg-transparent px-2 text-3xl/none font-bold text-slate-950 outline-none placeholder:text-slate-300 sm:px-3"
                                         />
-                                        <span class="text-sm font-medium text-slate-500">{{ strtoupper($this->currency) }}</span>
+                                        @if (count($this->getAcceptedCurrencies()) > 1)
+                                            @php $currencyDropdownLabels = ['myr' => 'RM', 'usd' => '$', 'sgd' => 'S$']; @endphp
+                                            <div x-data="{ open: false }" class="relative flex items-center">
+                                                <button
+                                                    type="button"
+                                                    x-on:click.stop="open = !open"
+                                                    class="flex cursor-pointer select-none items-center gap-0.5"
+                                                >
+                                                    <span class="text-sm font-medium text-slate-500">{{ strtoupper($this->currency) }}</span>
+                                                    <svg class="mt-0.5 size-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                                    </svg>
+                                                </button>
+                                                <div
+                                                    x-show="open"
+                                                    x-cloak
+                                                    x-on:click.outside="open = false"
+                                                    class="absolute bottom-full right-0 z-20 mb-2 min-w-[90px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+                                                >
+                                                    @foreach ($this->getAcceptedCurrencies() as $code)
+                                                        <button
+                                                            type="button"
+                                                            wire:click="selectCurrency('{{ $code }}')"
+                                                            x-on:click="open = false"
+                                                            class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-semibold transition hover:bg-slate-50 {{ $this->currency === $code ? 'text-teal-700' : 'text-slate-700' }}"
+                                                        >
+                                                            <span>{{ $currencyDropdownLabels[$code] ?? strtoupper($code) }}</span>
+                                                            <span class="text-xs font-normal text-slate-400">{{ strtoupper($code) }}</span>
+                                                        </button>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @else
+                                            <span class="text-sm font-medium text-slate-500">{{ strtoupper($this->currency) }}</span>
+                                        @endif
                                     </div>
                                     @if ($this->config('allow_cover_fee', true))
-                                        <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-slate-300 hover:bg-slate-100">
+                                        <label class="mt-2 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-slate-300 hover:bg-slate-100">
                                             <input
                                                 type="checkbox"
                                                 wire:model.live="coverFee"
@@ -285,7 +329,7 @@
                                             <span class="flex flex-col gap-0.5">
                                                 <span class="text-sm font-medium text-slate-700">
                                                     I'll cover the processing fee
-                                                    <span class="text-teal-700">(+{{ $currencySymbol }}{{ number_format($this->estimatedFee, 2) }})</span>
+                                                    <span class="text-teal-700" x-text="'(+{{ $currencySymbol }}' + (parseFloat(amount) > 0 ? (parseFloat(amount) * 0.03 + 0.50).toFixed(2) : '0.00') + ')'"></span>
                                                 </span>
                                                 <span class="text-xs text-slate-400">Help ensure 100% of your donation reaches us.</span>
                                             </span>

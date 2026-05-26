@@ -77,6 +77,8 @@ class DonationForm extends Component
         $this->currency = $currency;
         $amounts = $this->suggestedAmounts();
         $this->amount = $amounts[0] ?? 5;
+
+        $this->dispatch('currency-changed', amount: $this->amount);
     }
 
     public function mount(?Element $element = null, ?Campaign $campaign = null): void

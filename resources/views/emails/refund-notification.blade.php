@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
-<body style="font-family: Manrope, sans-serif; line-height: 1.6; color: #1a1a2e;">
+<body style="font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; color: #1a1a2e;">
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #dc2626;">Donation Refunded</h1>
 

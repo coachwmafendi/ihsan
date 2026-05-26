@@ -24,7 +24,9 @@ class CampaignsTable
             ->columns([
                 TextColumn::make('title')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->limit(40)
+                    ->tooltip(fn ($record) => $record->title),
                 TextColumn::make('status')
                     ->badge()
                     ->searchable()

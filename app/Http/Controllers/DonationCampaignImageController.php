@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\CampaignStatus;
-use App\Enums\ElementType;
 use App\Models\Campaign;
 use App\Models\Element;
 use Illuminate\Support\Facades\Storage;
@@ -13,10 +12,7 @@ class DonationCampaignImageController extends Controller
 {
     public function __invoke(Element $element): StreamedResponse
     {
-        abort_if(
-            ! $element->is_active || ! in_array($element->type, [ElementType::Form, ElementType::Popup], true),
-            404
-        );
+        abort_if(! $element->is_active, 404);
 
         $element->loadMissing('campaign');
 

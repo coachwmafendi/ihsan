@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <style>
         body {
-            font-family: 'Manrope', 'DejaVu Sans', sans-serif;
+            font-family: 'Plus Jakarta Sans', 'DejaVu Sans', sans-serif;
             font-size: 11px;
             line-height: 1.5;
             color: #1a1a2e;
