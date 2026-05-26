@@ -88,8 +88,7 @@ class CampaignForm
                                                     ->numeric()
                                                     ->minValue(0)
                                                     ->step(1)
-                                                    ->default(5)
-                                                    ->columnSpanFull(),
+                                                    ->default(5),
                                             ]),
                                         Section::make('Jumlah')
                                             ->description('Tetapkan sasaran dan tempoh kempen.')

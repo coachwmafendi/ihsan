@@ -8,6 +8,7 @@ use App\Enums\DonationType;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Support\ClientInfo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -37,6 +38,8 @@ class StripePaymentIntentController extends Controller
             ],
         );
 
+        $clientInfo = ClientInfo::fromRequest($request);
+
         $donation = Donation::query()->create([
             'campaign_id' => $campaign->getKey(),
             'donor_id' => $donor->getKey(),
@@ -47,6 +50,7 @@ class StripePaymentIntentController extends Controller
             'currency' => $validated['currency'],
             'status' => DonationStatus::Pending,
             'type' => $validated['type'] === 'monthly' ? DonationType::Recurring : DonationType::OneTime,
+            ...$clientInfo,
         ]);
 
         try {

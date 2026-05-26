@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['campaign_id', 'donor_id', 'subscription_id', 'stripe_payment_intent_id', 'stripe_charge_id', 'payment_method_brand', 'payment_method_type', 'donor_country', 'gross_amount', 'stripe_fee', 'donor_fee_covered', 'processing_fee', 'net_amount', 'currency', 'base_currency', 'base_amount', 'status', 'type', 'donor_message', 'is_anonymous', 'utm_params', 'invoice_number'])]
+#[Fillable(['campaign_id', 'donor_id', 'subscription_id', 'stripe_payment_intent_id', 'stripe_charge_id', 'payment_method_brand', 'payment_method_type', 'donor_country', 'gross_amount', 'stripe_fee', 'donor_fee_covered', 'processing_fee', 'net_amount', 'currency', 'base_currency', 'base_amount', 'status', 'type', 'donor_message', 'is_anonymous', 'utm_params', 'invoice_number', 'device_type', 'ip_address', 'browser', 'os', 'page_url', 'geo_city', 'geo_region'])]
 class Donation extends Model
 {
     /** @use HasFactory<DonationFactory> */

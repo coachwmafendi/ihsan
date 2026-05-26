@@ -36,7 +36,6 @@ class ElementForm
                 'button_color' => 'bg-blue-600 hover:bg-blue-700',
                 'button_size' => 'text-base px-6 py-3',
                 'corner_radius' => 8,
-                'show_amount_input' => true,
             ],
             ElementType::FloatingButton->value => [
                 'button_text' => 'Derma Sekarang',
@@ -195,10 +194,6 @@ class ElementForm
                                     ->numeric()
                                     ->default(8)
                                     ->suffix('px')
-                                    ->live(),
-                                Toggle::make('show_amount_input')
-                                    ->label('Show amount input')
-                                    ->default(true)
                                     ->live(),
                             ]),
                         View::make('filament.forms.components.element-preview')
@@ -726,7 +721,6 @@ class ElementForm
             'button_color' => $get('config.button_color'),
             'button_size' => $get('config.button_size'),
             'corner_radius' => $get('config.corner_radius'),
-            'show_amount_input' => $get('config.show_amount_input'),
         ];
     }
 }

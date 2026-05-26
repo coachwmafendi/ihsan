@@ -3,6 +3,7 @@
 use App\Http\Controllers\DonationCampaignImageController;
 use App\Http\Controllers\EmbedCheckoutController;
 use App\Http\Controllers\PublicElementController;
+use App\Http\Controllers\ReceiptDownloadController;
 use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
@@ -39,6 +40,9 @@ Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.web
 Route::middleware('auth')->group(function () {
     Route::get('/stripe/connect/redirect', [StripeConnectController::class, 'redirect'])
         ->name('stripe.connect.redirect');
+
+    Route::get('/donations/{donation}/receipt', ReceiptDownloadController::class)
+        ->name('donations.receipt.download');
 });
 
 Route::get('/stripe/connect/callback', [StripeConnectController::class, 'callback'])

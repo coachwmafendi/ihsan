@@ -101,7 +101,7 @@ class ProcessStripeWebhook implements ShouldQueue
         ]);
 
         if ($wasPending) {
-            $donation->campaign()->increment('collected_amount', (float) $donation->gross_amount);
+            $donation->campaign()->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
         }
 
         if ($donation->type === DonationType::Recurring && ($wasPending || $donation->subscription_id === null)) {
@@ -206,7 +206,7 @@ class ProcessStripeWebhook implements ShouldQueue
 
         app(SyncDonationStripeDetails::class)->sync($donation, null, $stripeOptions);
 
-        $donation->campaign()->increment('collected_amount', $grossAmount);
+        $donation->campaign()->increment('collected_amount', (float) ($donation->base_amount ?? $grossAmount));
 
         SendDonationReceipt::dispatch($donation);
         SendNewDonationNotification::dispatch($donation);

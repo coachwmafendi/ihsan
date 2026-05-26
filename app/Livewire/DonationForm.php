@@ -17,6 +17,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
+use App\Support\ClientInfo;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -183,7 +184,7 @@ class DonationForm extends Component
                 'status' => DonationStatus::Succeeded,
             ]);
 
-            $donation->campaign()->increment('collected_amount', (float) $donation->gross_amount);
+            $donation->campaign()->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
 
             if ($donation->type === DonationType::Recurring) {
                 $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
@@ -232,12 +233,17 @@ class DonationForm extends Component
         $utmParams = [
             'frequency' => $validated['frequency'],
             'dedicate' => (bool) ($validated['dedicate'] ?? false),
+            'source' => $this->element ? 'element' : 'direct',
         ];
 
         if ($this->element) {
             $utmParams['element_id'] = $this->element->getKey();
             $utmParams['element_token'] = $this->element->token;
+            $utmParams['element_type'] = $this->element->type->value;
+            $utmParams['element_name'] = $this->element->name;
         }
+
+        $clientInfo = ClientInfo::fromRequest(request());
 
         $donation = Donation::query()->create([
             'campaign_id' => $campaignId,
@@ -253,6 +259,7 @@ class DonationForm extends Component
             'donor_message' => filled($validated['comment'] ?? null) ? $validated['comment'] : null,
             'is_anonymous' => false,
             'utm_params' => $utmParams,
+            ...$clientInfo,
         ]);
 
         try {

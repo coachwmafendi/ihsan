@@ -621,31 +621,9 @@
                 return valid;
             },
 
-            nextStep() {
-                if (this.currentStep === 1 && !this.validateStep1()) return;
-                if (this.currentStep === 2 && !this.validateStep2()) return;
-                if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
-                this.currentStep++;
-            },
-
-            prevStep() {
-                if (this.currentStep > 1) this.currentStep--;
-            },
-
-            async init() {
-                // Detect currency from browser locale
-                const locale = Intl.DateTimeFormat().resolvedOptions().locale;
-                const detectedCountry = locale.split('-')[1]?.toLowerCase();
-                const currencyMap = { my: 'myr', us: 'usd', sg: 'sgd' };
-                const detectedCurrency = currencyMap[detectedCountry] || 'myr';
-                const acceptedCurrencies = @json($this->getAcceptedCurrencies());
-                if (acceptedCurrencies.includes(detectedCurrency) && detectedCurrency !== 'myr') {
-                    $wire.selectCurrency(detectedCurrency);
-                }
-
-                stripe = connectedStripeAccountId
-                    ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
-                    : Stripe(window.stripePublishableKey);
+            mountCardElement() {
+                const container = document.getElementById('card-element');
+                if (!container || container.hasChildNodes()) return;
                 const elements = stripe.elements({ locale: 'ms' });
                 cardElement = elements.create('card', {
                     hidePostalCode: true,
@@ -659,8 +637,39 @@
                 });
             },
 
+            nextStep() {
+                if (this.currentStep === 1 && !this.validateStep1()) return;
+                if (this.currentStep === 2 && !this.validateStep2()) return;
+                if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
+                this.currentStep++;
+                if (this.currentStep === 3) {
+                    this.$nextTick(() => this.mountCardElement());
+                }
+            },
+
+            prevStep() {
+                if (this.currentStep > 1) this.currentStep--;
+            },
+
+            async init() {
+                const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+                const detectedCountry = locale.split('-')[1]?.toLowerCase();
+                const currencyMap = { my: 'myr', us: 'usd', sg: 'sgd' };
+                const detectedCurrency = currencyMap[detectedCountry] || 'myr';
+                const acceptedCurrencies = @json($this->getAcceptedCurrencies());
+                if (acceptedCurrencies.includes(detectedCurrency) && detectedCurrency !== 'myr') {
+                    $wire.selectCurrency(detectedCurrency);
+                }
+
+                stripe = connectedStripeAccountId
+                    ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
+                    : Stripe(window.stripePublishableKey);
+            },
+
             async handleSubmit() {
                 this.cardError = '';
+
+                this.mountCardElement();
 
                 const { paymentMethod, error: paymentMethodError } = await stripe.createPaymentMethod({
                     type: 'card',
