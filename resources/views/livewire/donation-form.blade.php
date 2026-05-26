@@ -194,7 +194,6 @@
                 >
                     <div
                         x-data="donationForm(@js($frequency), @js($amount), @js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount))"
-                        x-on:currency-changed.window="amount = $event.detail.amount"
                     >
 
                         {{-- Step progress indicator --}}

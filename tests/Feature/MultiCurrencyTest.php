@@ -67,7 +67,7 @@ it('selects currency and updates suggested amounts', function () {
         ->set('amount', 30)
         ->call('selectCurrency', 'usd')
         ->assertSet('currency', 'usd')
-        ->assertSet('amount', 10);
+        ->assertSet('amount', 30);
 });
 
 it('rejects unsupported currency selection', function () {
