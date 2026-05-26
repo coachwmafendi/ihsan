@@ -327,8 +327,17 @@
                                             <input
                                                 type="checkbox"
                                                 wire:model.live="coverFee"
-                                                class="mt-0.5 size-4 cursor-pointer rounded border-slate-300 text-teal-600 accent-teal-600"
+                                                class="sr-only"
                                             />
+                                            <span
+                                                wire:ignore
+                                                x-data="{ checked: false }"
+                                                x-init="$watch('$wire.coverFee', v => checked = v); checked = $wire.coverFee"
+                                                :class="checked ? 'border-teal-600 bg-teal-600' : 'border-slate-500 bg-white'"
+                                                class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded border-2 transition"
+                                            >
+                                                <svg x-show="checked" class="size-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            </span>
                                             <span class="flex flex-col gap-0.5">
                                                     <span class="text-sm font-medium text-slate-700">
                                                         I'll cover the processing fee
