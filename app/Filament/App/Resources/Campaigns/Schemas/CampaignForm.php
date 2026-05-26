@@ -73,8 +73,8 @@ class CampaignForm
                                 Grid::make()
                                     ->columns(2)
                                     ->schema([
-                                        Section::make('Kekerapan')
-                                            ->description('Kawal kekerapan derma dan jumlah khas.')
+                                        Section::make('Tetapan Derma')
+                                            ->description('Kawal kekerapan derma, jumlah khas dan jumlah minima.')
                                             ->columnSpan(1)
                                             ->columns(2)
                                             ->schema([
@@ -86,7 +86,7 @@ class CampaignForm
                                                     ->label('Jumlah minima')
                                                     ->helperText('Jumlah minimum untuk setiap derma.')
                                                     ->numeric()
-                                                    ->min(0)
+                                                    ->minValue(0)
                                                     ->step(1)
                                                     ->default(5)
                                                     ->columnSpanFull(),

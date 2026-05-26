@@ -33,6 +33,7 @@
     $connectedStripeAccountId = $organization->stripe_onboarded ? $organization->stripe_account_id : null;
     $currencyLabels = ['myr' => 'RM', 'usd' => '$', 'sgd' => 'S$'];
     $currencySymbol = $currencyLabels[$this->currency] ?? 'RM';
+    $minimumAmount = (float) ($campaign->minimum_amount ?? 5);
     $totalAmount = (float) $this->amount + $this->estimatedFee;
 @endphp
 
@@ -192,7 +193,7 @@
                     @endif
                 >
                     <div
-                        x-data="donationForm(@js($frequency), @js($amount), @js($name), @js($email), @js($phone), @js($connectedStripeAccountId))"
+                        x-data="donationForm(@js($frequency), @js($amount), @js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount))"
                         x-on:currency-changed.window="amount = $event.detail.amount"
                     >
 
@@ -539,7 +540,7 @@
 
 @script
 <script>
-    Alpine.data('donationForm', (initialFrequency, initialAmount, initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null) => {
+    Alpine.data('donationForm', (initialFrequency, initialAmount, initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5) => {
         let stripe = null;
         let cardElement = null;
 
@@ -549,6 +550,7 @@
             donorName: initialName,
             donorEmail: initialEmail,
             donorPhone: initialPhone,
+            minimumAmount: initialMinimumAmount,
             processing: false,
             currentStep: 1,
             stepErrors: {},
@@ -593,8 +595,8 @@
             validateStep1() {
                 this.stepErrors = {};
                 const amt = parseFloat(this.amount);
-                if (!amt || amt < 1) {
-                    this.stepErrors.amount = 'Please enter a valid amount (minimum 1).';
+                if (!amt || amt < this.minimumAmount) {
+                    this.stepErrors.amount = 'Minimum amount is ' + this.minimumAmount + '.';
                     return false;
                 }
                 if (amt > 100000) {
