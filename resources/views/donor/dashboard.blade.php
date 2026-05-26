@@ -11,7 +11,10 @@
     <div class="mb-6 grid grid-cols-3 gap-3">
         <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Given</p>
-            <p class="mt-1.5 text-xl font-black text-emerald-700">RM {{ number_format($totalGiven, 2) }}</p>
+            <p class="mt-1.5 text-xl font-black text-emerald-700">{{ $totalGivenFormatted }}</p>
+            @if ($hasMultipleCurrencies && count($currencyBreakdown) > 0)
+                <p class="mt-1 text-[10px] text-slate-400">{{ implode(' + ', $currencyBreakdown) }}</p>
+            @endif
         </div>
         <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active Plans</p>
@@ -19,7 +22,11 @@
         </div>
         <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Monthly</p>
-            <p class="mt-1.5 text-xl font-black text-emerald-700">RM {{ number_format($monthlyRecurring, 2) }}</p>
+            @if (count($monthlyRecurringFormatted) > 1)
+                <p class="mt-1.5 text-xl font-black text-emerald-700">{{ implode(' + ', $monthlyRecurringFormatted) }}</p>
+            @else
+                <p class="mt-1.5 text-xl font-black text-emerald-700">{{ reset($monthlyRecurringFormatted) ?? 'RM 0.00' }}</p>
+            @endif
         </div>
     </div>
 
@@ -41,7 +48,7 @@
                                       style="background:{{ $dotColors[$i % count($dotColors)] }};"></span>
                                 <p class="text-xs font-semibold text-slate-700">{{ $item->campaign }}</p>
                             </div>
-                            <p class="text-xs font-black text-slate-900">RM {{ number_format($item->total, 2) }}</p>
+                            <p class="text-xs font-black text-slate-900">≈ MYR {{ number_format($item->total, 2) }}</p>
                         </div>
                     @endforeach
                 </div>
@@ -61,7 +68,7 @@
                                 <p class="text-[11px] text-slate-400">{{ $donation->created_at->diffForHumans() }}</p>
                             </div>
                             <p class="flex-shrink-0 text-xs font-black text-slate-900">
-                                RM {{ number_format($donation->gross_amount, 2) }}
+                                {{ $donation->formatted_amount }}
                             </p>
                         </div>
                     @endforeach
@@ -98,7 +105,7 @@
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            callback: v => 'RM ' + v.toLocaleString(),
+                            callback: v => 'MYR ' + v.toLocaleString(),
                             font: { size: 10 },
                         },
                         grid: { color: '#f1f5f9' },
