@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\DonationStatus;
+use App\Models\Donation;
 use App\Models\Donor;
 
 it('logs in with valid magic token', function () {
@@ -109,4 +111,78 @@ it('renders subscriptions page with manage subtitle', function () {
         ->assertOk()
         ->assertSee('Subscriptions')
         ->assertSee('Manage your recurring donations.');
+});
+
+it('allows donor to download receipt for their own succeeded donation', function () {
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey()])
+        ->get(route('donorportal.donations.receipt.download', $donation))
+        ->assertOk()
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+it('denies receipt download for non-succeeded donation', function () {
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'status' => DonationStatus::Pending,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey()])
+        ->get(route('donorportal.donations.receipt.download', $donation))
+        ->assertNotFound();
+});
+
+it('denies receipt download for another donors donation', function () {
+    $donor = Donor::factory()->create();
+    $otherDonor = Donor::factory()->create();
+    $donation = Donation::factory()->create([
+        'donor_id' => $otherDonor->getKey(),
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey()])
+        ->get(route('donorportal.donations.receipt.download', $donation))
+        ->assertNotFound();
+});
+
+it('denies receipt download for unauthenticated user', function () {
+    $donation = Donation::factory()->create([
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $this->get(route('donorportal.donations.receipt.download', $donation))
+        ->assertNotFound();
+});
+
+it('shows receipt download button for succeeded donations in donor portal', function () {
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey()])
+        ->get(route('donorportal.donations'))
+        ->assertOk()
+        ->assertSee('Receipt')
+        ->assertSee(route('donorportal.donations.receipt.download', $donation), false);
+});
+
+it('hides receipt download button for pending donations in donor portal', function () {
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'status' => DonationStatus::Pending,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey()])
+        ->get(route('donorportal.donations'))
+        ->assertOk()
+        ->assertDontSee('Receipt');
 });

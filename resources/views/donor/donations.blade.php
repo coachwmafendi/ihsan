@@ -32,7 +32,7 @@
                         <p class="mt-0.5 text-[11px] text-slate-400">{{ $donation->created_at->format('d M Y') }}</p>
                     </div>
                 </div>
-                <div class="mt-3 flex flex-wrap gap-2">
+                <div class="mt-3 flex flex-wrap items-center gap-2">
                     @php
                         $statusClass = match ($donation->status) {
                             \App\Enums\DonationStatus::Succeeded => 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -53,6 +53,15 @@
                     <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold {{ $typeClass }}">
                         {{ $typeLabel }}
                     </span>
+                    @if ($donation->status === \App\Enums\DonationStatus::Succeeded)
+                        <a href="{{ route('donorportal.donations.receipt.download', $donation) }}"
+                           class="ml-auto inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[11px] font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
+                            Receipt
+                        </a>
+                    @endif
                 </div>
             </div>
         @empty

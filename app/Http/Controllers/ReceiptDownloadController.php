@@ -15,6 +15,10 @@ class ReceiptDownloadController extends Controller
             throw new NotFoundHttpException('Receipt not available for this donation.');
         }
 
+        if (! $this->canDownloadReceipt($donation)) {
+            throw new NotFoundHttpException('Receipt not available for this donation.');
+        }
+
         $donation->loadMissing(['campaign.organization', 'donor']);
 
         $filename = config('app.name').'-'.$donation->campaign->organization->code.'-'.$donation->invoice_number.'.pdf';
@@ -24,5 +28,10 @@ class ReceiptDownloadController extends Controller
         ]);
 
         return $pdf->download($filename);
+    }
+
+    private function canDownloadReceipt(Donation $donation): bool
+    {
+        return auth()->check() || session('donor_id') === $donation->donor_id;
     }
 }

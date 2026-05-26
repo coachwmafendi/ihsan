@@ -7,7 +7,7 @@
 
         <p>Hi <strong>{{ $donor->name }}</strong>,</p>
 
-        <p>Click the button below to access your donation portal where you can view your donation history and manage subscriptions.</p>
+        <p>Click the button below to access your donation portal where you can view your donation history, manage subscriptions, and download receipts.</p>
 
         <a href="{{ route('donorportal.magic-login', ['token' => $token]) }}"
            style="display: inline-block; padding: 12px 24px; background-color: #0f766e; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0;">
