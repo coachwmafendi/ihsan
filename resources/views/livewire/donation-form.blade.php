@@ -31,8 +31,7 @@
     $introTruncated = str($introTextPlain)->limit(300)->toString();
     $isLongIntro = strlen($introTextPlain) > 300;
     $connectedStripeAccountId = $organization->stripe_onboarded ? $organization->stripe_account_id : null;
-    $currencyLabels = ['myr' => 'RM', 'usd' => '$', 'sgd' => 'S$'];
-    $currencySymbol = $currencyLabels[$this->currency] ?? 'RM';
+    $currencySymbol = \App\Support\Currency::symbol($this->currency);
     $minimumAmount = (float) ($campaign->minimum_amount ?? 5);
     $totalAmount = (float) $this->amount + $this->estimatedFee;
 @endphp

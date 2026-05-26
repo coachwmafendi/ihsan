@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\DonationStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Donor;
+use App\Support\Currency;
 
 class DonorPortalController extends Controller
 {
@@ -33,13 +34,7 @@ class DonorPortalController extends Controller
             ->groupBy('currency')
             ->pluck('total', 'currency')
             ->mapWithKeys(function ($total, $currency) {
-                $symbol = match ($currency) {
-                    'usd' => '$',
-                    'sgd' => 'S$',
-                    default => 'RM',
-                };
-
-                return [$currency => $symbol.' '.number_format((float) $total, 2)];
+                return [$currency => Currency::symbol($currency).' '.number_format((float) $total, 2)];
             })
             ->toArray();
     }
@@ -112,14 +107,9 @@ class DonorPortalController extends Controller
         $monthlyRecurringByCurrency = $activeSubscriptionsList
             ->groupBy('currency')
             ->map(function ($subs, $currency) {
-                $symbol = match ($currency) {
-                    'usd' => '$',
-                    'sgd' => 'S$',
-                    default => 'RM',
-                };
                 $total = $subs->sum('amount');
 
-                return $symbol.' '.number_format((float) $total, 2);
+                return Currency::symbol($currency).' '.number_format((float) $total, 2);
             })
             ->toArray();
 

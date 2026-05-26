@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
+use App\Support\Currency;
 use Database\Factories\DonationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -50,11 +51,7 @@ class Donation extends Model
 
     public function currencySymbol(): Attribute
     {
-        return Attribute::get(fn () => match ($this->currency) {
-            'usd' => '$',
-            'sgd' => 'S$',
-            default => 'RM',
-        });
+        return Attribute::get(fn () => Currency::symbol($this->currency));
     }
 
     public function formattedAmount(): Attribute

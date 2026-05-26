@@ -9,9 +9,9 @@ use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
+use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendLargeDonationNotification;
-use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendNewDonationNotification;
 use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
@@ -19,6 +19,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
 use App\Support\ClientInfo;
+use App\Support\Currency;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -83,9 +84,8 @@ class DonationForm extends Component
         $amounts = $this->suggestedAmounts($this->frequency);
         $this->amount = $amounts[0] ?? $this->amount;
 
-        $currencyLabels = ['myr' => 'RM', 'usd' => '$', 'sgd' => 'S$'];
         $this->dispatch('currency-updated',
-            symbol: $currencyLabels[$currency] ?? strtoupper($currency),
+            symbol: Currency::symbol($currency),
             oneTimeAmounts: $this->suggestedAmounts('one_time'),
             monthlyAmounts: $this->suggestedAmounts('monthly'),
         );

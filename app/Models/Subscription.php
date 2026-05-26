@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
+use App\Support\Currency;
 use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -35,11 +36,7 @@ class Subscription extends Model
 
     public function currencySymbol(): Attribute
     {
-        return Attribute::get(fn () => match ($this->currency) {
-            'usd' => '$',
-            'sgd' => 'S$',
-            default => 'RM',
-        });
+        return Attribute::get(fn () => Currency::symbol($this->currency));
     }
 
     protected function casts(): array
