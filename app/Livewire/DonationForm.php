@@ -156,6 +156,7 @@ class DonationForm extends Component
     public function selectAmount(int $amount): void
     {
         $this->amount = $amount;
+        $this->dispatch('amount-updated', amount: $amount);
     }
 
     public function selectFrequency(string $frequency): void
@@ -165,6 +166,9 @@ class DonationForm extends Component
         }
 
         $this->frequency = $frequency;
+        $amounts = $this->suggestedAmounts($frequency);
+        $this->amount = $amounts[0] ?? $this->amount;
+        $this->dispatch('amount-updated', amount: $this->amount);
     }
 
     public function confirmPayment(string $paymentIntentId, ?StripePaymentIntent $paymentIntent = null): void
