@@ -76,6 +76,16 @@ class DonationForm extends Component
         }
 
         $this->currency = $currency;
+
+        $amounts = $this->suggestedAmounts($this->frequency);
+        $this->amount = $amounts[0] ?? $this->amount;
+
+        $currencyLabels = ['myr' => 'RM', 'usd' => '$', 'sgd' => 'S$'];
+        $this->dispatch('currency-updated',
+            symbol: $currencyLabels[$currency] ?? strtoupper($currency),
+            oneTimeAmounts: $this->suggestedAmounts('one_time'),
+            monthlyAmounts: $this->suggestedAmounts('monthly'),
+        );
     }
 
     public function mount(?Element $element = null, ?Campaign $campaign = null): void

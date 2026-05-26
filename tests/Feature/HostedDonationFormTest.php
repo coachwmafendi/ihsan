@@ -47,13 +47,12 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertSee('Secure donation')
         ->assertSee('Give once')
         ->assertSee('Monthly')
-        ->assertSee('RM 200')
-        ->assertSee('RM 5')
+        ->assertSee('[200,100,50,30,10,5]', false)
         ->assertSee('Donate monthly')
         ->assertSee('x-show="currentStep === 3"', false)
         ->assertDontSee('x-show="!processing && !success && !error"', false)
         ->assertSee("x-on:click=\"frequency = 'one_time'\"", false)
-        ->assertSee("x-on:click=\"frequency = 'monthly'\"", false)
+        ->assertSee("x-on:click=\"frequency = 'monthly'", false)
         ->assertDontSee("wire:click=\"selectFrequency('monthly')\"", false)
         ->assertDontSee('wire:click="selectAmount', false)
         ->assertSee('$wire.$set(&#039;frequency&#039;, this.frequency, false)', false)
@@ -215,8 +214,7 @@ it('renders the hosted donation form as an image-led popup', function () {
         ->assertSee(route('donations.campaign-image', $element), false)
         ->assertSee('Give once')
         ->assertSee('Monthly')
-        ->assertSee('RM 300')
-        ->assertSee('RM 30')
+        ->assertSee('[300,200,30]', false)
         ->assertSee('Donate monthly')
         ->assertSee('lg:max-w-6xl', false)
         ->assertSee('lg:grid-cols-[minmax(0,1fr)_440px]', false)
@@ -805,7 +803,7 @@ it('renders a hosted donation form for an active campaign without element', func
         ->assertOk()
         ->assertSee('Maahad Tahfiz Mumtazatut Taqwa')
         ->assertSee('Campaign Direct Fund')
-        ->assertSee('RM 30');
+        ->assertSee('x-for="amt in (frequency', false);
 });
 
 it('validates hosted donation input before creating records', function () {
