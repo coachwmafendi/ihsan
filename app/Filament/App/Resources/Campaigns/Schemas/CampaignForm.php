@@ -82,6 +82,14 @@ class CampaignForm
                                                     ->label('Benarkan derma bulanan'),
                                                 Toggle::make('allow_custom_amount')
                                                     ->label('Benarkan jumlah khas'),
+                                                TextInput::make('minimum_amount')
+                                                    ->label('Jumlah minima')
+                                                    ->helperText('Jumlah minimum untuk setiap derma.')
+                                                    ->numeric()
+                                                    ->min(0)
+                                                    ->step(1)
+                                                    ->default(5)
+                                                    ->columnSpanFull(),
                                             ]),
                                         Section::make('Jumlah')
                                             ->description('Tetapkan sasaran dan tempoh kempen.')

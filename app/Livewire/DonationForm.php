@@ -273,7 +273,7 @@ class DonationForm extends Component
     protected function rules(): array
     {
         return [
-            'amount' => ['required', 'numeric', 'min:1', 'max:100000'],
+            'amount' => ['required', 'numeric', 'min:'.($this->campaign?->minimum_amount ?? $this->element?->campaign?->minimum_amount ?? 1), 'max:100000'],
             'currency' => ['required', 'string', 'in:myr,usd,sgd'],
             'frequency' => [
                 'required',
