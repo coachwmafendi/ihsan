@@ -38,7 +38,7 @@ class ElementForm
                 'corner_radius' => 8,
             ],
             ElementType::FloatingButton->value => [
-                'button_text' => 'Derma Sekarang',
+                'button_text' => 'Donate Now',
                 'action' => 'checkout_modal',
                 'position' => 'bottom-right',
                 'color' => 'campaign',
@@ -66,9 +66,9 @@ class ElementForm
                 'submit_text' => 'Donate and Support',
             ],
             ElementType::Popup->value => [
-                'title' => 'Bantu Anak Tahfiz Hari Ini',
+                'title' => 'Support Our Campaign Today',
                 'message' => null,
-                'button_text' => 'Derma Sekarang',
+                'button_text' => 'Donate Now',
                 'action' => 'checkout_modal',
                 'trigger' => 'after_delay',
                 'delay' => 8,
@@ -218,7 +218,7 @@ class ElementForm
                                     ->schema([
                                         TextInput::make('button_text')
                                             ->label('Button text')
-                                            ->default('Derma Sekarang')
+                                            ->default('Donate Now')
                                             ->required()
                                             ->live(),
                                         Select::make('action')
@@ -475,7 +475,7 @@ class ElementForm
                                             ->required()
                                             ->live(),
                                         Select::make('default_frequency')
-                                            ->label('Pra-set kekerapan')
+                                            ->label('Default frequency')
                                             ->options([
                                                 'one_time' => 'One-time',
                                                 'monthly' => 'Monthly',
@@ -484,7 +484,7 @@ class ElementForm
                                             ->live()
                                             ->columnSpan(1),
                                         TextInput::make('default_amount')
-                                            ->label('Jumlah lalai (RM)')
+                                            ->label('Default amount (RM)')
                                             ->numeric()
                                             ->minValue(1)
                                             ->default(30)
@@ -492,7 +492,7 @@ class ElementForm
                                             ->columnSpan(1),
                                         Placeholder::make('amounts_note')
                                             ->hiddenLabel()
-                                            ->content(new HtmlString('<p class="text-sm text-zinc-500">Jumlah derma dicadangkan dikawal dari <strong>tetapan kempen</strong>.</p>'))
+                                            ->content(new HtmlString('<p class="text-sm text-zinc-500">Suggested donation amounts are controlled from <strong>campaign settings</strong>.</p>'))
                                             ->columnSpanFull(),
                                         Toggle::make('allow_monthly')
                                             ->label('Allow monthly donations')
@@ -563,7 +563,7 @@ class ElementForm
                                             ->content(fn (?Element $record): HtmlString => new HtmlString(
                                                 $record?->token
                                                     ? static::embedTabHtml($record)
-                                                    : '<p class="text-sm text-zinc-500">Simpan element untuk mendapatkan kod benam.</p>'
+                                                    : '<p class="text-sm text-zinc-500">Save the element to get the embed code.</p>'
                                             ))
                                             ->columnSpanFull(),
                                     ]),
@@ -628,15 +628,15 @@ class ElementForm
         ]);
 
         return '<div class="space-y-4">'
-            .'<p class="text-sm text-zinc-500">Letak kod berikut dalam mana-mana halaman web untuk benamkan borang derma terus tanpa pop-up.</p>'
-            .self::copyableSnippet('Kod benam', $iframe)
+            .'<p class="text-sm text-zinc-500">Place the following code on any webpage to embed the donation form directly without a pop-up.</p>'
+            .self::copyableSnippet('Embed code', $iframe)
             .'<div class="flex items-start gap-6 pt-2">'
             .'<div class="shrink-0 text-center">'
             .'<img src="'.e($qrUrl).'" width="140" height="140" loading="lazy" class="rounded-lg border border-zinc-200" alt="QR Code">'
-            .'<p class="mt-1.5 text-xs text-zinc-400">Imbas untuk derma</p>'
+            .'<p class="mt-1.5 text-xs text-zinc-400">Scan to donate</p>'
             .'</div>'
             .'<div class="flex-1 space-y-3 pt-1">'
-            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Kongsi</p>'
+            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Share</p>'
             .'<a href="'.e($waUrl).'" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 transition">'
             .$waIcon.'WhatsApp'
             .'</a>'
@@ -651,7 +651,7 @@ class ElementForm
         return '<div x-data="{ copied: false }" data-code="'.e($code).'" class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">'
             .'<div class="mb-2 flex items-center justify-between gap-3">'
             .'<span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">'.e($label).'</span>'
-            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Disalin\' : \'Salin\'"></button>'
+            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Copied\' : \'Copy\'"></button>'
             .'</div>'
             .'<code class="block overflow-x-auto whitespace-pre rounded-md bg-white p-2 text-xs text-zinc-700 ring-1 ring-zinc-200">'.e($code).'</code>'
             .'</div>';
