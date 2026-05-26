@@ -230,31 +230,35 @@
 
 
                             @if ($this->config('show_suggested', true))
-                                <div x-show="frequency === 'one_time'" class="grid grid-cols-3 gap-2">
-                                    @foreach ($oneTimeAmounts as $amount)
-                                        <button
-                                            type="button"
-                                            x-on:click="amount = {{ $amount }}"
-                                            x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
-                                            class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
-                                        >
-                                            {{ $currencySymbol }} {{ number_format($amount) }}
-                                        </button>
-                                    @endforeach
-                                </div>
+                                <template x-if="frequency === 'one_time'">
+                                    <div class="grid grid-cols-3 gap-2">
+                                        @foreach ($oneTimeAmounts as $amount)
+                                            <button
+                                                type="button"
+                                                x-on:click="amount = {{ $amount }}"
+                                                x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
+                                                class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
+                                            >
+                                                {{ $currencySymbol }} {{ number_format($amount) }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </template>
 
-                                <div x-show="frequency === 'monthly'" class="grid grid-cols-3 gap-2">
-                                    @foreach ($monthlyAmounts as $amount)
-                                        <button
-                                            type="button"
-                                            x-on:click="amount = {{ $amount }}"
-                                            x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
-                                            class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
-                                        >
-                                            {{ $currencySymbol }} {{ number_format($amount) }}
-                                        </button>
-                                    @endforeach
-                                </div>
+                                <template x-if="frequency === 'monthly'">
+                                    <div class="grid grid-cols-3 gap-2">
+                                        @foreach ($monthlyAmounts as $amount)
+                                            <button
+                                                type="button"
+                                                x-on:click="amount = {{ $amount }}"
+                                                x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
+                                                class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
+                                            >
+                                                {{ $currencySymbol }} {{ number_format($amount) }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </template>
                             @endif
 
                             @if ($this->config('show_amount_input', true))
