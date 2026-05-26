@@ -50,6 +50,8 @@ class DonationForm extends Component
 
     public bool $isPopup = false;
 
+    public string $pageUrl = '';
+
     public string $currency = 'myr';
 
     public bool $coverFee = true;
@@ -99,6 +101,8 @@ class DonationForm extends Component
         if ($campaign === null && $route !== null) {
             $campaign = $route->parameter('campaign');
         }
+
+        $this->pageUrl = request()->fullUrl();
 
         if ($element instanceof Element) {
             abort_if(
@@ -253,7 +257,10 @@ class DonationForm extends Component
             $utmParams['element_name'] = $this->element->name;
         }
 
-        $clientInfo = ClientInfo::fromRequest(request());
+        $clientInfo = [
+            ...ClientInfo::fromRequest(request()),
+            'page_url' => $this->pageUrl,
+        ];
 
         $donation = Donation::query()->create([
             'campaign_id' => $campaignId,

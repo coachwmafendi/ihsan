@@ -227,26 +227,16 @@ class DonationsTable
                                     ->copyable()
                                     ->copyMessage('Copied'),
                                 TextEntry::make('element_token')
-                                    ->label('Element')
+                                    ->label('Element (Type-Name)')
                                     ->columnSpanFull()
                                     ->visible(fn ($record): bool => is_array($record->utm_params) && ($record->utm_params['source'] ?? null) === 'element')
                                     ->formatStateUsing(function ($record): string {
                                         $utm = is_array($record->utm_params) ? $record->utm_params : [];
+                                        $type = $utm['element_type'] ?? '';
                                         $name = $utm['element_name'] ?? '';
-                                        $token = $utm['element_token'] ?? '';
 
-                                        $parts = [];
-                                        if ($name) {
-                                            $parts[] = $name;
-                                        }
-                                        if ($token) {
-                                            $parts[] = $token;
-                                        }
-
-                                        return implode(' — ', $parts);
-                                    })
-                                    ->copyable()
-                                    ->copyMessage('Copied'),
+                                        return ucwords(str_replace('_', ' ', $type)).' - '.($name ?: '—');
+                                    }),
                                 TextEntry::make('gross_amount')
                                     ->label('Amount')
                                     ->columnSpanFull()
