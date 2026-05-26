@@ -1,0 +1,27 @@
+- generic [ref=e4]:
+  - button "Close" [ref=e5]:
+    - img [ref=e6]
+  - generic [ref=e10]:
+    - generic [ref=e11]:
+      - img "Kempen Tajaan Pelajar" [ref=e13]
+      - generic [ref=e15]:
+        - paragraph [ref=e17]: Maahad Tahfiz Mumtazatut Taqwa
+        - heading "Kempen Tajaan Pelajar" [level=1] [ref=e18]
+        - generic [ref=e20]: Bantu ringankan beban pelajar yang memerlukan dengan menyumbang keperluan pembelajaran, yuran pengajian dan kebajikan harian mereka. Setiap tajaan anda membuka peluang pendidikan dan masa depan yang lebih baik buat mereka.
+        - generic [ref=e22]:
+          - generic [ref=e23]: $ 8,981.05 raised
+          - generic [ref=e24]: Goal $ 50,000.00
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - img [ref=e30]
+        - heading "Secure donation" [level=2] [ref=e33]
+      - generic [ref=e35]:
+        - generic [ref=e37]:
+          - text: Step
+          - strong [ref=e38]: "1"
+          - text: of 3 — Choose Amount
+        - generic [ref=e39]:
+          - generic [ref=e40]
+          - generic [ref=e43]
+          - generic [ref=e50]
+          - button "Continue →" [ref=e65]

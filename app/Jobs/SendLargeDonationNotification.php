@@ -36,7 +36,9 @@ class SendLargeDonationNotification implements ShouldQueue
 
         $threshold = (int) ($settings['large_donation_threshold'] ?? 1000);
 
-        if ((float) $this->donation->gross_amount < $threshold) {
+        $amount = (float) ($this->donation->base_amount ?? $this->donation->gross_amount);
+
+        if ($amount < $threshold) {
             return;
         }
 

@@ -57,6 +57,22 @@ class Donation extends Model
         });
     }
 
+    public function formattedAmount(): Attribute
+    {
+        return Attribute::get(function () {
+            $symbol = $this->currency_symbol;
+            $amount = number_format((float) $this->gross_amount, 2);
+
+            if ($this->currency !== 'myr' && $this->base_amount !== null) {
+                $base = number_format((float) $this->base_amount, 2);
+
+                return "≈ MYR {$base} - {$symbol} {$amount}";
+            }
+
+            return "{$symbol} {$amount}";
+        });
+    }
+
     protected function casts(): array
     {
         return [

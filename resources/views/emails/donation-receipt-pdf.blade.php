@@ -104,7 +104,7 @@
         </tr>
         <tr>
             <td>Amount</td>
-            <td class="amount">{{ $donation->currency_symbol }} {{ number_format($donation->gross_amount, 2) }}</td>
+            <td class="amount">{{ $donation->formatted_amount }}</td>
         </tr>
         <tr>
             <td>Campaign</td>

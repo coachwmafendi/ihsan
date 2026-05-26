@@ -11,7 +11,7 @@
         <p>Hi <strong>{{ $donation->campaign->organization->name }}</strong>,</p>
 
         <p style="font-size: 1.125rem;">
-            A donation worth <strong style="color: #7c3aed; font-size: 1.5rem;">{{ $donation->currency_symbol }} {{ number_format($donation->gross_amount, 2) }}</strong>
+            A donation worth <strong style="color: #7c3aed; font-size: 1.5rem;">{{ $donation->formatted_amount }}</strong>
             has been received for <strong>{{ $donation->campaign->title }}</strong>.
         </p>
 
@@ -22,7 +22,7 @@
             </tr>
             <tr style="background: #fff;">
                 <td style="padding: 12px 16px; color: #6b7280;">Amount</td>
-                <td style="padding: 12px 16px; font-weight: 700; font-size: 1.25rem; color: #7c3aed;">{{ $donation->currency_symbol }} {{ number_format($donation->gross_amount, 2) }}</td>
+                <td style="padding: 12px 16px; font-weight: 700; font-size: 1.25rem; color: #7c3aed;">{{ $donation->formatted_amount }}</td>
             </tr>
             <tr style="background: #f5f3ff;">
                 <td style="padding: 12px 16px; color: #6b7280;">Campaign</td>

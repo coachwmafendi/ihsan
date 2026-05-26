@@ -7,14 +7,14 @@
 
         <p>Hi <strong>{{ $donation->donor->name }}</strong>,</p>
 
-        <p>Your donation of <strong>{{ $donation->currency_symbol }} {{ number_format($donation->gross_amount, 2) }}</strong> to <strong>{{ $donation->campaign->title }}</strong> has been received successfully.</p>
+        <p>Your donation of <strong>{{ $donation->formatted_amount }}</strong> to <strong>{{ $donation->campaign->title }}</strong> has been received successfully.</p>
 
         @if ($donation->type === \App\Enums\DonationType::Recurring)
             <p><em>This is a recurring donation. You will receive a receipt for each successful payment.</em></p>
         @endif
 
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Amount</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donation->currency_symbol }} {{ number_format($donation->gross_amount, 2) }}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Amount</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donation->formatted_amount }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Campaign</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->title }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Organization</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->organization->name }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Date</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->created_at->format('d M Y, h:i A') }}</td></tr>
