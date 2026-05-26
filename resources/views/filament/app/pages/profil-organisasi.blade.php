@@ -4,7 +4,7 @@
 
         <div class="mt-4">
             <x-filament::button type="submit" icon="heroicon-o-check">
-                Simpan Profil
+                Save Profile
             </x-filament::button>
         </div>
     </form>

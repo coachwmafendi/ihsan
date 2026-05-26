@@ -62,7 +62,7 @@ class Pembayaran extends Page implements HasActions
         $org->update(['settings' => $settings]);
 
         Notification::make()
-            ->title('Mata wang diterima dikemas kini')
+            ->title('Accepted currencies updated')
             ->success()
             ->send();
     }
@@ -83,13 +83,13 @@ class Pembayaran extends Page implements HasActions
     public function reconnectAction(): Action
     {
         return Action::make('reconnect')
-            ->label('Sambung Semula')
+            ->label('Reconnect')
             ->icon('heroicon-o-arrow-path')
             ->color('danger')
             ->requiresConfirmation()
-            ->modalHeading('Sambung Semula Stripe Connect?')
-            ->modalDescription('Tindakan ini akan memutuskan sambungan Stripe Connect semasa. Anda perlu menyambung semula akaun Stripe untuk terus menggunakan panel.')
-            ->modalSubmitActionLabel('Ya, sambung semula')
+            ->modalHeading('Reconnect Stripe Connect?')
+            ->modalDescription('This will disconnect your current Stripe Connect account. You will need to reconnect a Stripe account to continue using the panel.')
+            ->modalSubmitActionLabel('Yes, reconnect')
             ->action(function () {
                 $org = auth()->user()->organization;
 
@@ -103,7 +103,7 @@ class Pembayaran extends Page implements HasActions
                 ]);
 
                 Notification::make()
-                    ->title('Sambungan Stripe telah direset')
+                    ->title('Stripe connection reset')
                     ->warning()
                     ->send();
 

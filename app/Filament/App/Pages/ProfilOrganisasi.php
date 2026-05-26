@@ -19,7 +19,9 @@ class ProfilOrganisasi extends Page
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-office';
 
-    protected static ?string $navigationLabel = 'Profil Organisasi';
+    protected static ?string $navigationLabel = 'Organisation Profile';
+
+    protected static ?string $title = 'Organisation Profile';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 
@@ -49,45 +51,45 @@ class ProfilOrganisasi extends Page
                 Tabs::make()
                     ->columnSpanFull()
                     ->tabs([
-                        Tab::make('Maklumat')
+                        Tab::make('Information')
                             ->icon('heroicon-o-building-office')
                             ->columns(2)
                             ->schema([
                                 TextInput::make('name')
-                                    ->label('Nama organisasi')
+                                    ->label('Organisation name')
                                     ->required()
                                     ->maxLength(255),
                                 TextInput::make('ros_rob_number')
-                                    ->label('Nombor ROS/ROB')
+                                    ->label('ROS/ROB Number')
                                     ->nullable()
                                     ->maxLength(255),
                                 RichEditor::make('description')
-                                    ->label('Deskripsi')
+                                    ->label('Description')
                                     ->nullable()
                                     ->columnSpanFull(),
                             ]),
 
-                        Tab::make('Hubungi')
+                        Tab::make('Contact')
                             ->icon('heroicon-o-envelope')
                             ->columns(2)
                             ->schema([
                                 TextInput::make('website_url')
-                                    ->label('URL laman web')
+                                    ->label('Website URL')
                                     ->url()
                                     ->nullable()
                                     ->maxLength(255)
                                     ->placeholder('https://example.com'),
                                 TagsInput::make('settings.allowed_domains')
-                                    ->label('Domain dibenarkan')
-                                    ->helperText('Domain laman web organisasi. Akan diguna sebagai domain lalai untuk kempen baharu.')
-                                    ->placeholder('Tambah domain'),
+                                    ->label('Allowed domains')
+                                    ->helperText('Organisation website domains. Used as the default domain for new campaigns.')
+                                    ->placeholder('Add domain'),
                                 TextInput::make('contact_email')
-                                    ->label('E-mel hubungi')
+                                    ->label('Contact email')
                                     ->email()
                                     ->nullable()
                                     ->maxLength(255),
                                 TextInput::make('contact_phone')
-                                    ->label('Telefon hubungi')
+                                    ->label('Contact phone')
                                     ->nullable()
                                     ->maxLength(255)
                                     ->prefix('+60')
@@ -105,24 +107,24 @@ class ProfilOrganisasi extends Page
                                     ->imageResizeTargetHeight('256'),
                             ]),
 
-                        Tab::make('Alamat')
+                        Tab::make('Address')
                             ->icon('heroicon-o-map-pin')
                             ->columns(2)
                             ->schema([
                                 TextInput::make('address_line_1')
-                                    ->label('Alamat 1')
+                                    ->label('Address line 1')
                                     ->nullable()
                                     ->maxLength(255),
                                 TextInput::make('address_line_2')
-                                    ->label('Alamat 2')
+                                    ->label('Address line 2')
                                     ->nullable()
                                     ->maxLength(255),
                                 TextInput::make('city')
-                                    ->label('Bandar')
+                                    ->label('City')
                                     ->nullable()
                                     ->maxLength(255),
                                 Select::make('state')
-                                    ->label('Negeri')
+                                    ->label('State')
                                     ->nullable()
                                     ->options([
                                         'Johor' => 'Johor',
@@ -144,11 +146,11 @@ class ProfilOrganisasi extends Page
                                     ])
                                     ->searchable(),
                                 TextInput::make('postcode')
-                                    ->label('Poskod')
+                                    ->label('Postcode')
                                     ->nullable()
                                     ->maxLength(20),
                                 Select::make('country')
-                                    ->label('Negara')
+                                    ->label('Country')
                                     ->nullable()
                                     ->default('Malaysia')
                                     ->options([
@@ -177,7 +179,7 @@ class ProfilOrganisasi extends Page
                                     ->searchable(),
                             ]),
 
-                        Tab::make('Sosial')
+                        Tab::make('Social')
                             ->icon('heroicon-o-share')
                             ->columns(2)
                             ->schema([
@@ -218,15 +220,15 @@ class ProfilOrganisasi extends Page
                             ->columns(2)
                             ->schema([
                                 TextInput::make('bank_name')
-                                    ->label('Nama bank')
+                                    ->label('Bank name')
                                     ->nullable()
                                     ->maxLength(255),
                                 TextInput::make('bank_account_name')
-                                    ->label('Nama akaun')
+                                    ->label('Account name')
                                     ->nullable()
                                     ->maxLength(255),
                                 TextInput::make('bank_account_number')
-                                    ->label('Nombor akaun')
+                                    ->label('Account number')
                                     ->nullable()
                                     ->maxLength(255),
                             ]),
@@ -252,7 +254,7 @@ class ProfilOrganisasi extends Page
         ));
 
         Notification::make()
-            ->title('Profil organisasi disimpan')
+            ->title('Organisation profile saved')
             ->success()
             ->send();
     }

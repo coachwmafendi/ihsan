@@ -1,15 +1,15 @@
 <x-filament::page>
     @php
         $toggleCards = [
-            ['label' => 'Derma Baharu', 'desc' => 'Terima e-mel untuk setiap derma berjaya', 'prop' => 'notifyNewDonation', 'active' => $notifyNewDonation],
-            ['label' => 'Ringkasan Harian', 'desc' => 'Terima ringkasan semua derma yang diterima setiap hari', 'prop' => 'dailyDonationSummary', 'active' => $dailyDonationSummary],
-            ['label' => 'Bayaran Gagal', 'desc' => 'Amaran apabila bayaran berulang penderma gagal diproses', 'prop' => 'failedPaymentNotification', 'active' => $failedPaymentNotification],
-            ['label' => 'Langganan Baharu', 'desc' => 'Terima e-mel apabila ada langganan bulanan baharu', 'prop' => 'notifyNewSubscription', 'active' => $notifyNewSubscription],
-            ['label' => 'Langganan Dibatalkan', 'desc' => 'Terima e-mel apabila penderma membatalkan langganan', 'prop' => 'notifySubscriptionCancelled', 'active' => $notifySubscriptionCancelled],
-            ['label' => 'Derma Besar', 'desc' => 'Terima e-mel khas untuk derma melebihi ambang tertentu', 'prop' => 'notifyLargeDonation', 'active' => $notifyLargeDonation],
-            ['label' => 'Refund', 'desc' => 'Terima e-mel apabila ada derma direfund', 'prop' => 'notifyRefund', 'active' => $notifyRefund],
-            ['label' => 'Sasaran Kempen', 'desc' => 'Notifikasi apabila kempen menghampiri sasaran', 'prop' => 'notifyCampaignMilestone', 'active' => $notifyCampaignMilestone],
-            ['label' => 'Laporan Bulanan', 'desc' => 'Terima laporan ringkasan derma setiap bulan', 'prop' => 'monthlyReport', 'active' => $monthlyReport],
+            ['label' => 'New Donation', 'desc' => 'Receive an email for every successful donation', 'prop' => 'notifyNewDonation', 'active' => $notifyNewDonation],
+            ['label' => 'Daily Summary', 'desc' => 'Receive a daily summary of all donations received', 'prop' => 'dailyDonationSummary', 'active' => $dailyDonationSummary],
+            ['label' => 'Failed Payment', 'desc' => 'Alert when a recurring donor payment fails to process', 'prop' => 'failedPaymentNotification', 'active' => $failedPaymentNotification],
+            ['label' => 'New Subscription', 'desc' => 'Receive an email when a new monthly subscription is created', 'prop' => 'notifyNewSubscription', 'active' => $notifyNewSubscription],
+            ['label' => 'Subscription Cancelled', 'desc' => 'Receive an email when a donor cancels their subscription', 'prop' => 'notifySubscriptionCancelled', 'active' => $notifySubscriptionCancelled],
+            ['label' => 'Large Donation', 'desc' => 'Receive a special email for donations above a set threshold', 'prop' => 'notifyLargeDonation', 'active' => $notifyLargeDonation],
+            ['label' => 'Refund', 'desc' => 'Receive an email when a donation is refunded', 'prop' => 'notifyRefund', 'active' => $notifyRefund],
+            ['label' => 'Campaign Milestone', 'desc' => 'Notification when a campaign is approaching its goal', 'prop' => 'notifyCampaignMilestone', 'active' => $notifyCampaignMilestone],
+            ['label' => 'Monthly Report', 'desc' => 'Receive a monthly donation summary report', 'prop' => 'monthlyReport', 'active' => $monthlyReport],
         ];
     @endphp
 
@@ -33,19 +33,19 @@
                 </div>
                 @if ($card['prop'] === 'dailyDonationSummary')
                     <div class="mt-auto border-t border-gray-100 bg-gray-50 px-5 py-3 dark:border-gray-700 dark:bg-gray-800/50 rounded-b-xl">
-                        <label class="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-400">Masa Hantar</label>
+                        <label class="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-400">Send Time</label>
                         <input
                             type="time"
                             wire:model.live.blur="dailySummaryTime"
                             {{ $dailyDonationSummary ? '' : 'disabled' }}
                             class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                        <p class="mt-1 text-xs text-gray-400">Waktu Malaysia (MYT)</p>
+                        <p class="mt-1 text-xs text-gray-400">Malaysia Time (MYT)</p>
                     </div>
                 @endif
                 @if ($card['prop'] === 'notifyLargeDonation')
                     <div class="mt-auto border-t border-gray-100 bg-gray-50 px-5 py-3 dark:border-gray-700 dark:bg-gray-800/50 rounded-b-xl">
-                        <label class="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-400">Ambang (RM)</label>
+                        <label class="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-400">Threshold (RM)</label>
                         <input
                             type="number"
                             wire:model.live.blur="largeDonationThreshold"
@@ -62,6 +62,6 @@
     </div>
 
     <div class="mt-4">
-        <p class="text-xs text-gray-400">Perubahan disimpan secara automatik.</p>
+        <p class="text-xs text-gray-400">Changes are saved automatically.</p>
     </div>
 </x-filament::page>

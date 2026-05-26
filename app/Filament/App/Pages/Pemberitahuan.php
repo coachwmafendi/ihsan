@@ -10,9 +10,9 @@ class Pemberitahuan extends Page
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-bell-alert';
 
-    protected static ?string $navigationLabel = 'Pemberitahuan';
+    protected static ?string $navigationLabel = 'Notifications';
 
-    protected static ?string $title = 'Pemberitahuan Email';
+    protected static ?string $title = 'Email Notifications';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 

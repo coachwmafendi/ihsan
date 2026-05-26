@@ -7,16 +7,16 @@
     <x-filament::section icon="heroicon-o-currency-dollar">
         <x-slot name="heading">
             <div class="flex items-center gap-2">
-                <span>Sambungan Stripe Connect</span>
+                <span>Stripe Connect</span>
                 @if ($org && $org->stripe_onboarded)
                     <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-400/10 dark:text-teal-400">
                         <x-heroicon-o-check-circle class="size-3.5" />
-                        Berjaya disambung
+                        Connected
                     </span>
                 @else
                     <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-400/10 dark:text-amber-400">
                         <x-heroicon-o-exclamation-circle class="size-3.5" />
-                        Belum selesai
+                        Incomplete
                     </span>
                 @endif
             </div>
@@ -69,9 +69,9 @@
 
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Sambung Semula</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Reconnect</p>
                         <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-                            Putuskan sambungan Stripe Connect semasa dan sambung semula dengan akaun lain.
+                            Disconnect the current Stripe Connect account and reconnect with a different one.
                         </p>
                     </div>
                     {{ $this->reconnectAction }}
@@ -83,14 +83,14 @@
     <x-filament::section icon="heroicon-o-banknotes">
         <x-slot name="heading">
             <div class="flex items-center gap-2">
-                <span>Mata Wang Diterima</span>
+                <span>Accepted Currencies</span>
             </div>
         </x-slot>
 
         <div class="space-y-4">
             <p class="text-sm text-gray-500 dark:text-gray-400">
-                Pilih mata wang yang boleh digunakan penderma untuk membuat derma.
-                Ringgit Malaysia (MYR) sentiasa diaktifkan.
+                Select the currencies donors can use to make donations.
+                Malaysian Ringgit (MYR) is always enabled.
             </p>
 
             <div class="grid grid-cols-3 gap-4">
