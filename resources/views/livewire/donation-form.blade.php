@@ -193,7 +193,7 @@
                     @endif
                 >
                     <div
-                        x-data="donationForm(@js($frequency), @js($amount), @js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount))"
+                        x-data="donationForm(@js($frequency), @js($amount), @js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($currencySymbol), @js($oneTimeAmounts), @js($monthlyAmounts))"
                     >
 
                         {{-- Step progress indicator --}}
@@ -208,7 +208,7 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
-                                    x-on:click="frequency = 'one_time'"
+                                    x-on:click="frequency = 'one_time'; amount = oneTimeAmounts[0]"
                                     x-bind:class="frequency === 'one_time' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                                     class="min-h-10 rounded-lg border px-3 text-sm font-semibold transition"
                                 >
@@ -218,7 +218,7 @@
                                 @if ($allowMonthly)
                                     <button
                                         type="button"
-                                        x-on:click="frequency = 'monthly'; launchHearts($event)"
+                                        x-on:click="frequency = 'monthly'; amount = monthlyAmounts[0]; launchHearts($event)"
                                         x-bind:class="frequency === 'monthly' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                                         class="relative min-h-10 rounded-lg border px-3 text-sm font-semibold transition overflow-visible"
                                     >
@@ -230,35 +230,17 @@
 
 
                             @if ($this->config('show_suggested', true))
-                                <template x-if="frequency === 'one_time'">
-                                    <div class="grid grid-cols-3 gap-2">
-                                        @foreach ($oneTimeAmounts as $amount)
-                                            <button
-                                                type="button"
-                                                x-on:click="amount = {{ $amount }}"
-                                                x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
-                                                class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
-                                            >
-                                                {{ $currencySymbol }} {{ number_format($amount) }}
-                                            </button>
-                                        @endforeach
-                                    </div>
-                                </template>
-
-                                <template x-if="frequency === 'monthly'">
-                                    <div class="grid grid-cols-3 gap-2">
-                                        @foreach ($monthlyAmounts as $amount)
-                                            <button
-                                                type="button"
-                                                x-on:click="amount = {{ $amount }}"
-                                                x-bind:class="Number(amount) === {{ $amount }} ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
-                                                class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
-                                            >
-                                                {{ $currencySymbol }} {{ number_format($amount) }}
-                                            </button>
-                                        @endforeach
-                                    </div>
-                                </template>
+                                <div wire:ignore class="grid grid-cols-3 gap-2">
+                                    <template x-for="amt in (frequency === 'one_time' ? oneTimeAmounts : monthlyAmounts)" :key="frequency + '-' + amt">
+                                        <button
+                                            type="button"
+                                            x-on:click="amount = amt"
+                                            x-bind:class="Number(amount) === amt ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
+                                            class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
+                                            x-text="currencySymbol + ' ' + Number(amt).toLocaleString('en-US')"
+                                        ></button>
+                                    </template>
+                                </div>
                             @endif
 
                             @if ($this->config('show_amount_input', true))
@@ -543,7 +525,7 @@
 
 @script
 <script>
-    Alpine.data('donationForm', (initialFrequency, initialAmount, initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5) => {
+    Alpine.data('donationForm', (initialFrequency, initialAmount, initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialCurrencySymbol = 'RM', initialOneTimeAmounts = [], initialMonthlyAmounts = []) => {
         let stripe = null;
         let cardElement = null;
 
@@ -554,6 +536,9 @@
             donorEmail: initialEmail,
             donorPhone: initialPhone,
             minimumAmount: initialMinimumAmount,
+            currencySymbol: initialCurrencySymbol,
+            oneTimeAmounts: initialOneTimeAmounts,
+            monthlyAmounts: initialMonthlyAmounts,
             processing: false,
             currentStep: 1,
             stepErrors: {},
@@ -655,6 +640,14 @@
             },
 
             async init() {
+                $wire.on('currency-updated', ({ symbol, oneTimeAmounts, monthlyAmounts }) => {
+                    this.currencySymbol = symbol;
+                    this.oneTimeAmounts = oneTimeAmounts;
+                    this.monthlyAmounts = monthlyAmounts;
+                    const currentAmounts = this.frequency === 'one_time' ? oneTimeAmounts : monthlyAmounts;
+                    if (currentAmounts.length > 0) this.amount = currentAmounts[0];
+                });
+
                 const locale = Intl.DateTimeFormat().resolvedOptions().locale;
                 const detectedCountry = locale.split('-')[1]?.toLowerCase();
                 const currencyMap = { my: 'myr', us: 'usd', sg: 'sgd' };
