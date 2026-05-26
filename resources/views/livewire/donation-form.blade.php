@@ -336,7 +336,7 @@
                                             </span>
                                         </label>
                                     @endif
-                                    <div x-show="stepErrors.amount" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.amount"></div>
+                                    <div x-show="stepErrors.amount" x-cloak class="mt-1 text-xs text-red-600" x-text="stepErrors.amount"></div>
                                 </label>
                             @endif
 
