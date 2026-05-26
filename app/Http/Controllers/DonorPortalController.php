@@ -114,11 +114,8 @@ class DonorPortalController extends Controller
         return view('donor.dashboard', [
             'donor' => $donor,
             'totalGiven' => $totalGiven,
-            'totalGivenFormatted' => $this->formatAmount($totalGiven),
             'currencyBreakdown' => $currencyBreakdown,
-            'hasMultipleCurrencies' => $hasMultipleCurrencies,
             'activeSubscriptions' => $activeSubscriptions,
-            'monthlyRecurring' => $monthlyRecurring,
             'monthlyRecurringFormatted' => $monthlyRecurringByCurrency,
             'monthlyDonations' => $monthlyDonations,
             'campaignBreakdown' => $campaignBreakdown,
@@ -139,9 +136,7 @@ class DonorPortalController extends Controller
         return view('donor.donations', [
             'donor' => $donor,
             'totalGiven' => $totalGiven,
-            'totalGivenFormatted' => $this->formatAmount($totalGiven),
             'currencyBreakdown' => $currencyBreakdown,
-            'hasMultipleCurrencies' => count($currencyBreakdown) > 1,
             'donationCount' => $donor->donations()->where('status', DonationStatus::Succeeded)->count(),
             'donations' => $donor->donations()->with('campaign.organization')->latest()->paginate(10),
         ]);
