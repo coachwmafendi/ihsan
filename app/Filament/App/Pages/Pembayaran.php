@@ -32,6 +32,8 @@ class Pembayaran extends Page implements HasActions
 
     public string $feeCollectionMethod = 'invoice';
 
+    public bool $showFeeConfirm = false;
+
     public function mount(): void
     {
         $org = auth()->user()->organization;
@@ -79,6 +81,8 @@ class Pembayaran extends Page implements HasActions
         }
 
         $org->update(['fee_collection_method' => $this->feeCollectionMethod]);
+
+        $this->showFeeConfirm = false;
 
         Notification::make()
             ->title('Fee collection method updated')

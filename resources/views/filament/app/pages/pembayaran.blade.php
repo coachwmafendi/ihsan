@@ -141,56 +141,54 @@
         </div>
     </x-filament::section>
 
-    <div x-data="{ confirmOpen: false }">
-        <x-filament::section icon="heroicon-o-receipt-percent">
-            <x-slot name="heading">
-                <div class="flex items-center gap-2">
-                    <span>Fee Collection</span>
-                </div>
-            </x-slot>
-
-            <div class="space-y-4">
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                    Choose how processing fees ({{ $this->getProcessingFeePercent() }}%) are collected.
-                </p>
-
-                <div class="max-w-xs">
-                    <select
-                        wire:model="feeCollectionMethod"
-                        class="w-full rounded-lg border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                    >
-                        <option value="invoice">Monthly Invoice</option>
-                        <option value="upfront">Upfront Deduction</option>
-                    </select>
-
-                    <div class="mt-3">
-                        <x-filament::button @click="confirmOpen = true" color="primary">
-                            Save
-                        </x-filament::button>
-                    </div>
-                </div>
+    <x-filament::section icon="heroicon-o-receipt-percent">
+        <x-slot name="heading">
+            <div class="flex items-center gap-2">
+                <span>Fee Collection</span>
             </div>
-        </x-filament::section>
+        </x-slot>
 
-        <x-filament::modal id="fee-confirm" :show="confirmOpen" @close="confirmOpen = false">
-            <x-slot name="heading">Change fee collection method?</x-slot>
-
-            <p class="text-sm text-gray-500">
-                @if ($feeCollectionMethod === 'invoice')
-                    Fees will be accumulated and invoiced at the end of each month via Stripe.
-                @else
-                    Processing fees will be deducted automatically from each donation before funds reach your Stripe balance.
-                @endif
+        <div class="space-y-4">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Choose how processing fees ({{ $this->getProcessingFeePercent() }}%) are collected.
             </p>
 
-            <x-slot name="footer">
-                <x-filament::button @click="confirmOpen = false" color="gray">
-                    Cancel
-                </x-filament::button>
-                <x-filament::button @click="confirmOpen = false; $wire.saveFeeCollection()" color="primary">
-                    Yes, change
-                </x-filament::button>
-            </x-slot>
-        </x-filament::modal>
-    </div>
+            <div class="max-w-xs">
+                <select
+                    wire:model="feeCollectionMethod"
+                    class="w-full rounded-lg border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                >
+                    <option value="invoice">Monthly Invoice</option>
+                    <option value="upfront">Upfront Deduction</option>
+                </select>
+
+                <div class="mt-3">
+                    <x-filament::button wire:click="$set('showFeeConfirm', true)" color="primary">
+                        Save
+                    </x-filament::button>
+                </div>
+            </div>
+        </div>
+    </x-filament::section>
+
+    <x-filament::modal wire:model="showFeeConfirm">
+        <x-slot name="heading">Change fee collection method?</x-slot>
+
+        <p class="text-sm text-gray-500">
+            @if ($feeCollectionMethod === 'invoice')
+                Fees will be accumulated and invoiced at the end of each month via Stripe.
+            @else
+                Processing fees will be deducted automatically from each donation before funds reach your Stripe balance.
+            @endif
+        </p>
+
+        <x-slot name="footer">
+            <x-filament::button wire:click="$set('showFeeConfirm', false)" color="gray">
+                Cancel
+            </x-filament::button>
+            <x-filament::button wire:click="saveFeeCollection" color="primary">
+                Yes, change
+            </x-filament::button>
+        </x-slot>
+    </x-filament::modal>
 </x-filament::page>

@@ -247,66 +247,71 @@ class OrganizationForm
                                     ]),
                             ]),
 
-                        Section::make('Stripe Connect')
+                        Grid::make(['default' => 1])
                             ->columnSpan(['default' => 12, 'lg' => 4])
-                            ->icon('heroicon-o-credit-card')
-                            ->visible(fn ($record) => $record !== null)
-                            ->collapsible()
-                            ->collapsed(false)
                             ->schema([
-                                TextInput::make('stripe_account_id')
-                                    ->label('Account ID')
-                                    ->disabled()
-                                    ->dehydrated(false)
-                                    ->placeholder('Not connected')
-                                    ->prefixIcon(fn ($record) => $record->stripe_onboarded ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
-                                    ->prefixIconColor(fn ($record) => $record->stripe_onboarded ? 'success' : 'danger'),
+                                Section::make('Stripe Connect')
+                                    ->icon('heroicon-o-credit-card')
+                                    ->visible(fn ($record) => $record !== null)
+                                    ->collapsible()
+                                    ->collapsed(false)
+                                    ->schema([
+                                        TextInput::make('stripe_account_id')
+                                            ->label('Account ID')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->placeholder('Not connected')
+                                            ->prefixIcon(fn ($record) => $record->stripe_onboarded ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                                            ->prefixIconColor(fn ($record) => $record->stripe_onboarded ? 'success' : 'danger'),
 
-                                TextInput::make('stripe_onboarded_at_display')
-                                    ->label('Onboarded')
-                                    ->disabled()
-                                    ->dehydrated(false)
-                                    ->placeholder('—')
-                                    ->formatStateUsing(fn ($state, $record) => $record->stripe_onboarded_at?->format('d/m/Y H:i') ?? '—'),
+                                        Grid::make(2)
+                                            ->schema([
+                                                TextInput::make('stripe_onboarded_at_display')
+                                                    ->label('Onboarded')
+                                                    ->disabled()
+                                                    ->dehydrated(false)
+                                                    ->placeholder('—')
+                                                    ->formatStateUsing(fn ($state, $record) => $record->stripe_onboarded_at?->format('d/m/Y H:i') ?? '—'),
 
-                                Toggle::make('stripe_onboarded')
-                                    ->label('Status')
-                                    ->disabled()
-                                    ->dehydrated(false)
-                                    ->onColor('success')
-                                    ->offColor('danger')
-                                    ->onIcon('heroicon-o-check')
-                                    ->offIcon('heroicon-o-x-mark')
-                                    ->inline(false),
-                            ]),
+                                                Toggle::make('stripe_onboarded')
+                                                    ->label('Status')
+                                                    ->disabled()
+                                                    ->dehydrated(false)
+                                                    ->onColor('success')
+                                                    ->offColor('danger')
+                                                    ->onIcon('heroicon-o-check')
+                                                    ->offIcon('heroicon-o-x-mark')
+                                                    ->inline(false),
+                                            ]),
+                                    ]),
 
-                        Section::make('Billing & Fees')
-                            ->columnSpan(['default' => 12, 'lg' => 4])
-                            ->icon('heroicon-o-banknotes')
-                            ->schema([
-                                Select::make('fee_collection_method')
-                                    ->label('Fee Collection Method')
-                                    ->options([
-                                        'invoice' => 'Monthly Invoice',
-                                        'upfront' => 'Upfront Deduction',
-                                    ])
-                                    ->default('upfront')
-                                    ->helperText('How processing fees are collected from this organization.'),
-                                TextInput::make('processing_fee_override')
-                                    ->label('Processing Fee Override (%)')
-                                    ->numeric()
-                                    ->nullable()
-                                    ->minValue(0)
-                                    ->maxValue(100)
-                                    ->step(0.1)
-                                    ->placeholder('Leave blank to use global default')
-                                    ->helperText('Override global processing fee for this org. Global default used if blank.'),
-                                Textarea::make('admin_notes')
-                                    ->label('Internal Notes')
-                                    ->nullable()
-                                    ->rows(4)
-                                    ->columnSpanFull()
-                                    ->helperText('Internal notes — not visible to organization.'),
+                                Section::make('Billing & Fees')
+                                    ->icon('heroicon-o-banknotes')
+                                    ->schema([
+                                        Select::make('fee_collection_method')
+                                            ->label('Fee Collection Method')
+                                            ->options([
+                                                'invoice' => 'Monthly Invoice',
+                                                'upfront' => 'Upfront Deduction',
+                                            ])
+                                            ->default('upfront')
+                                            ->helperText('How processing fees are collected from this organization.'),
+                                        TextInput::make('processing_fee_override')
+                                            ->label('Processing Fee Override (%)')
+                                            ->numeric()
+                                            ->nullable()
+                                            ->minValue(0)
+                                            ->maxValue(100)
+                                            ->step(0.1)
+                                            ->placeholder('Leave blank to use global default')
+                                            ->helperText('Override global processing fee for this org. Global default used if blank.'),
+                                        Textarea::make('admin_notes')
+                                            ->label('Internal Notes')
+                                            ->nullable()
+                                            ->rows(4)
+                                            ->columnSpanFull()
+                                            ->helperText('Internal notes — not visible to organization.'),
+                                    ]),
                             ]),
                     ]),
             ]);
