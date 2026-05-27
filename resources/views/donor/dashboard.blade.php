@@ -31,7 +31,8 @@
         </div>
 
         <div class="mb-6 grid grid-cols-3 gap-3">
-            <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
+            <a href="{{ route('donorportal.donations') }}"
+               class="block rounded-xl bg-white p-4 transition hover:shadow-md" style="border:1.5px solid #e2e8f0;">
                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Given</p>
                 @if (count($currencyBreakdown) > 1)
                     <p class="mt-1.5 text-xl font-black text-emerald-700">{{ implode(' + ', $currencyBreakdown) }}</p>
@@ -42,19 +43,21 @@
                         <p class="mt-1 text-[10px] text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
                     @endif
                 @endif
-            </div>
-            <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
+            </a>
+            <a href="{{ route('donorportal.subscriptions') }}"
+               class="block rounded-xl bg-white p-4 transition hover:shadow-md" style="border:1.5px solid #e2e8f0;">
                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active Plans</p>
                 <p class="mt-1.5 text-xl font-black text-slate-900">{{ $activeSubscriptions }}</p>
-            </div>
-            <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
+            </a>
+            <a href="{{ route('donorportal.subscriptions') }}"
+               class="block rounded-xl bg-white p-4 transition hover:shadow-md" style="border:1.5px solid #e2e8f0;">
                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Monthly</p>
                 @if (count($monthlyRecurringFormatted) > 1)
                     <p class="mt-1.5 text-xl font-black text-emerald-700">{{ implode(' + ', $monthlyRecurringFormatted) }}</p>
                 @else
                     <p class="mt-1.5 text-xl font-black text-emerald-700">{{ reset($monthlyRecurringFormatted) ?? 'RM 0.00' }}</p>
                 @endif
-            </div>
+            </a>
         </div>
 
         <div class="mb-6 rounded-xl bg-white p-5" style="border:1.5px solid #e2e8f0;">

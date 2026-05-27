@@ -117,5 +117,4 @@
             <div class="mt-8">{{ $donations->links() }}</div>
         @endif
     </div>
-</div>
 @endsection

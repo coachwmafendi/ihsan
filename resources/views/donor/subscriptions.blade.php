@@ -3,7 +3,8 @@
 @section('title', 'Subscriptions')
 
 @section('content')
-<div class="animate-content">
+<div class="donor-fade" id="donorContent">
+<script>document.addEventListener('DOMContentLoaded',()=>{requestAnimationFrame(()=>{requestAnimationFrame(()=>{document.getElementById('donorContent').classList.add('visible')})})})</script>
         <div class="mb-8">
             <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Subscriptions</h1>
             <p class="mt-0.5 text-xs text-slate-500">Manage your recurring donations.</p>
@@ -94,5 +95,4 @@
             <div class="mt-8">{{ $subscriptions->links() }}</div>
         @endif
     </div>
-</div>
 @endsection
