@@ -141,42 +141,40 @@
         </div>
     </x-filament::section>
 
-    <x-filament::section icon="heroicon-o-receipt-percent">
-        <x-slot name="heading">
-            <div class="flex items-center gap-2">
-                <span>Fee Collection</span>
-            </div>
-        </x-slot>
+    <div x-data="{ confirmOpen: false }">
+        <x-filament::section icon="heroicon-o-receipt-percent">
+            <x-slot name="heading">
+                <div class="flex items-center gap-2">
+                    <span>Fee Collection</span>
+                </div>
+            </x-slot>
 
-        <div class="space-y-4">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                Choose how processing fees ({{ $this->getProcessingFeePercent() }}%) are collected.
-            </p>
+            <div class="space-y-4">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Choose how processing fees ({{ $this->getProcessingFeePercent() }}%) are collected.
+                </p>
 
-            <div class="max-w-xs">
-                <select
-                    wire:model="feeCollectionMethod"
-                    class="w-full rounded-lg border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                >
-                    <option value="invoice">Monthly Invoice</option>
-                    <option value="upfront">Upfront Deduction</option>
-                </select>
+                <div class="max-w-xs">
+                    <select
+                        wire:model="feeCollectionMethod"
+                        class="w-full rounded-lg border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                    >
+                        <option value="invoice">Monthly Invoice</option>
+                        <option value="upfront">Upfront Deduction</option>
+                    </select>
 
-                <div class="mt-3">
-                    <x-filament::button @click="confirmOpen = true" color="primary">
-                        Save
-                    </x-filament::button>
+                    <div class="mt-3">
+                        <x-filament::button @click="confirmOpen = true" color="primary">
+                            Save
+                        </x-filament::button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </x-filament::section>
+        </x-filament::section>
 
-    <div
-        x-data="{ confirmOpen: false }"
-        x-cloak
-    >
         <div
             x-show="confirmOpen"
+            x-cloak
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
             @click.self="confirmOpen = false"
         >

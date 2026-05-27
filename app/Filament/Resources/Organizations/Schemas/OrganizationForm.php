@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Organizations\Schemas;
 
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -14,7 +13,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
-use Illuminate\Support\HtmlString;
 
 class OrganizationForm
 {
@@ -22,11 +20,11 @@ class OrganizationForm
     {
         return $schema
             ->components([
-                Grid::make(['default' => 1, 'lg' => 4])
+                Grid::make(['default' => 1, 'lg' => 12])
+                    ->columnSpanFull()
                     ->schema([
-                        Tabs::make('Organization Tabs')
-                            ->columnSpan(['default' => 1, 'lg' => 3])
-                            ->extraAttributes(['class' => 'ihsan-org-tabs'])
+                        Tabs::make('Organization')
+                            ->columnSpan(['default' => 12, 'lg' => 8])
                             ->tabs([
                                 Tab::make('Details')
                                     ->icon('heroicon-o-building-office')
@@ -278,35 +276,37 @@ class OrganizationForm
                                     ]),
                             ]),
 
-                        Section::make('Stripe Account')
-                            ->columnSpan(['default' => 1, 'lg' => 1])
+                        Section::make('Stripe Connect')
+                            ->columnSpan(['default' => 12, 'lg' => 4])
                             ->icon('heroicon-o-credit-card')
                             ->visible(fn ($record) => $record !== null)
                             ->collapsible()
+                            ->collapsed(false)
                             ->schema([
-                                Placeholder::make('stripe_status')
-                                    ->label('Status')
-                                    ->content(function ($record) {
-                                        if ($record->stripe_onboarded) {
-                                            return new HtmlString('<span class="inline-flex items-center gap-1.5 rounded-full bg-success-50 px-2.5 py-1 text-xs font-semibold text-success-700 dark:bg-success-900/20 dark:text-success-400"><span class="h-1.5 w-1.5 rounded-full bg-success-500"></span>Connected</span>');
-                                        }
-
-                                        return new HtmlString('<span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-400"><span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span>Not connected</span>');
-                                    }),
-
-                                Placeholder::make('stripe_account_id')
+                                TextInput::make('stripe_account_id')
                                     ->label('Account ID')
-                                    ->content(fn ($record) => $record->stripe_account_id
-                                        ? new HtmlString('<code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300">'.$record->stripe_account_id.'</code>')
-                                        : new HtmlString('<span class="text-sm italic text-gray-400">Not connected</span>')
-                                    ),
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->placeholder('Not connected')
+                                    ->prefixIcon(fn ($record) => $record->stripe_onboarded ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                                    ->prefixIconColor(fn ($record) => $record->stripe_onboarded ? 'success' : 'danger'),
 
-                                Placeholder::make('stripe_onboarded_at')
+                                TextInput::make('stripe_onboarded_at_display')
                                     ->label('Onboarded')
-                                    ->content(fn ($record) => $record->stripe_onboarded_at
-                                        ? new HtmlString('<span class="text-sm text-gray-700 dark:text-gray-300">'.$record->stripe_onboarded_at->format('d/m/Y H:i').'</span>')
-                                        : new HtmlString('<span class="text-sm italic text-gray-400">—</span>')
-                                    ),
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->placeholder('—')
+                                    ->formatStateUsing(fn ($state, $record) => $record->stripe_onboarded_at?->format('d/m/Y H:i') ?? '—'),
+
+                                Toggle::make('stripe_onboarded')
+                                    ->label('Status')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->onColor('success')
+                                    ->offColor('danger')
+                                    ->onIcon('heroicon-o-check')
+                                    ->offIcon('heroicon-o-x-mark')
+                                    ->inline(false),
                             ]),
                     ]),
             ]);

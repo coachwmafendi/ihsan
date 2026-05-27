@@ -162,7 +162,9 @@ it('creates connected account customers for connected organization payments', fu
         ->and($paymentIntentRequest['headers'])->toContain('Stripe-Account: acct_connected_test')
         ->and($paymentIntentRequest['params'])->toMatchArray([
             'customer' => 'cus_connected_donor',
-        ])
-        ->and($paymentIntentRequest['params'])->not->toHaveKey('application_fee_amount')
+        ]);
+
+    expect($paymentIntentRequest['params'])->not->toHaveKey('application_fee_amount')
         ->and($paymentIntentRequest['params'])->not->toHaveKey('transfer_data');
+
 });
