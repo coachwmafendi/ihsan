@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-8">
-        <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Hi, {{ $donor->name }} 👋</h1>
+        <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Hi, {{ $donor->name }} <span class="ml-1">👋</span></h1>
         @if ($primaryOrganization !== null)
             <p class="mt-1 text-sm font-bold text-slate-600">
                 Welcome to the <span class="uppercase">{{ $primaryOrganization->name }}</span> Donor Portal
@@ -12,21 +12,21 @@
         @else
             <p class="mt-1 text-sm font-bold text-slate-600">Welcome to the Donor Portal</p>
         @endif
-    </div>
 
-    @php
-        $latestCampaign = $recentDonations->first()?->campaign;
-        $donationUrl = $latestCampaign !== null
-            ? route('donations.campaign-show', $latestCampaign)
-            : route('home');
-    @endphp
-    <a href="{{ $donationUrl }}"
-       class="mb-8 inline-flex items-center gap-2.5 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900">
-        <svg class="h-5 w-5 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-        </svg>
-        Make a new donation
-    </a>
+        @php
+            $latestCampaign = $recentDonations->first()?->campaign;
+            $donationUrl = $latestCampaign !== null
+                ? route('donations.campaign-show', $latestCampaign)
+                : route('home');
+        @endphp
+        <a href="{{ $donationUrl }}"
+           class="mt-6 inline-flex items-center gap-2.5 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900">
+            <svg class="h-5 w-5 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+            </svg>
+            Make a new donation
+        </a>
+    </div>
 
     <div class="mb-6 grid grid-cols-3 gap-3">
         <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
