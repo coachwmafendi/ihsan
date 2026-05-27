@@ -7,6 +7,7 @@ use App\Enums\SubscriptionStatus;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Support\Currency;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DonorPortalController extends Controller
 {

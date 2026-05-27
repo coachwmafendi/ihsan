@@ -94,4 +94,5 @@
             <div class="mt-8">{{ $subscriptions->links() }}</div>
         @endif
     </div>
+</div>
 @endsection

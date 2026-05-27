@@ -3,7 +3,8 @@
 @section('title', 'Donations')
 
 @section('content')
-<div class="animate-content">
+<div class="donor-fade" id="donorContent">
+<script>document.addEventListener('DOMContentLoaded',()=>{requestAnimationFrame(()=>{requestAnimationFrame(()=>{document.getElementById('donorContent').classList.add('visible')})})})</script>
         <div class="mb-8 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Donations</h1>
@@ -25,9 +26,10 @@
             </div>
             @if ($donationCount > 0 && $subscription === null)
                 <a href="{{ route('donorportal.receipts.download-all') }}"
-                   class="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900">
-                    <svg class="h-4 w-4 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                   class="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:shadow-md"
+                   style="background:#0d9488;">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
                     Download all receipts
                 </a>
@@ -115,4 +117,5 @@
             <div class="mt-8">{{ $donations->links() }}</div>
         @endif
     </div>
+</div>
 @endsection
