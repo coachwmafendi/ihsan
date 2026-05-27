@@ -68,7 +68,6 @@ select:focus[data-flux-control] {
     @apply size-4;
 } */
 
-.donor-skeleton { transition: opacity 0.25s ease-out; }
+.donor-wrap { position: relative; }
+.donor-skeleton { position: absolute; inset: 0; z-index: 1; background: #f8fafc; transition: opacity 0.25s ease-out; }
 .donor-skeleton.done { opacity: 0; pointer-events: none; }
-.donor-content { opacity: 0; transition: opacity 0.35s ease-out; }
-.donor-content.visible { opacity: 1; }
