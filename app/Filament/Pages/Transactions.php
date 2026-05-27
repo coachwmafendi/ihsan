@@ -70,7 +70,11 @@ class Transactions extends Page implements HasTable
                     ->sortable(),
                 TextColumn::make('processing_fee')
                     ->label('Fee')
-                    ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
+                    ->formatStateUsing(function (string $state, Donation $record): string {
+                        $currency = strtoupper($record->currency);
+
+                        return $currency.' '.number_format((float) $state, 2);
+                    })
                     ->toggleable(),
                 TextColumn::make('net_amount')
                     ->label('Org receives')
