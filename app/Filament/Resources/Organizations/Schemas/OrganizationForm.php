@@ -290,7 +290,7 @@ class OrganizationForm
                                     ->extraAttributes(['class' => 'opacity-75'])
                                     ->schema([
                                         Select::make('fee_collection_method')
-                                            ->label('Billing & Fees')
+                                            ->label('Collection Method')
                                             ->options([
                                                 'invoice' => 'Monthly Invoice',
                                                 'upfront' => 'Upfront Deduction',

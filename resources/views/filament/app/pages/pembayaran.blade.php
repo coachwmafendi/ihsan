@@ -144,11 +144,11 @@
     <x-filament::section icon="heroicon-o-receipt-percent">
         <x-slot name="heading">
             <div class="flex items-center gap-2">
-                <span>Fee Collection</span>
+                <span>Billing &amp; Fees</span>
             </div>
         </x-slot>
 
-        <div class="space-y-4">
+        <div class="space-y-4 opacity-50 pointer-events-none">
             <p class="text-sm text-gray-500 dark:text-gray-400">
                 Choose how processing fees ({{ $this->getProcessingFeePercent() }}%) are collected.
             </p>
