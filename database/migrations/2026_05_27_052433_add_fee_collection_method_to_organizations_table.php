@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('organizations', function (Blueprint $table) {
-            $table->string('fee_collection_method', 20)->default('invoice')->after('settings');
+            $table->string('fee_collection_method', 20)->default('upfront')->after('settings');
         });
     }
 

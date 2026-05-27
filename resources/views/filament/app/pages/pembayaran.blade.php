@@ -153,43 +153,51 @@
                 Choose how processing fees ({{ $this->getProcessingFeePercent() }}%) are collected.
             </p>
 
-            <div class="grid grid-cols-2 gap-4">
-                <label class="flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition
-                    {{ $feeCollectionMethod === 'invoice' ? 'border-teal-500 bg-teal-50 dark:border-teal-600 dark:bg-teal-900/20' : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900' }}">
-                    <input
-                        type="radio"
-                        name="fee_collection_method"
-                        value="invoice"
-                        wire:model.live="feeCollectionMethod"
-                        class="mt-0.5 size-4 border-gray-300 text-teal-600 focus:ring-teal-600 dark:border-gray-600 dark:bg-gray-800"
-                    />
-                    <div>
-                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Monthly Invoice</p>
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Fees are accumulated and invoiced at the end of each month.
-                            You will receive a Stripe invoice to pay.
-                        </p>
-                    </div>
-                </label>
+            <div class="max-w-xs">
+                <select
+                    wire:model="feeCollectionMethod"
+                    class="w-full rounded-lg border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                >
+                    <option value="invoice">Monthly Invoice</option>
+                    <option value="upfront">Upfront Deduction</option>
+                </select>
 
-                <label class="flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition
-                    {{ $feeCollectionMethod === 'upfront' ? 'border-teal-500 bg-teal-50 dark:border-teal-600 dark:bg-teal-900/20' : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900' }}">
-                    <input
-                        type="radio"
-                        name="fee_collection_method"
-                        value="upfront"
-                        wire:model.live="feeCollectionMethod"
-                        class="mt-0.5 size-4 border-gray-300 text-teal-600 focus:ring-teal-600 dark:border-gray-600 dark:bg-gray-800"
-                    />
-                    <div>
-                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Upfront Deduction</p>
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Processing fees are deducted automatically from each donation
-                            before funds reach your Stripe balance. No monthly invoices.
-                        </p>
-                    </div>
-                </label>
+                <div class="mt-3">
+                    <x-filament::button @click="confirmOpen = true" color="primary">
+                        Save
+                    </x-filament::button>
+                </div>
             </div>
         </div>
     </x-filament::section>
+
+    <div
+        x-data="{ confirmOpen: false }"
+        x-cloak
+    >
+        <div
+            x-show="confirmOpen"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            @click.self="confirmOpen = false"
+        >
+            <div class="mx-4 w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-zinc-800">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Change fee collection method?</h3>
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    @if ($feeCollectionMethod === 'invoice')
+                        Fees will be accumulated and invoiced at the end of each month via Stripe.
+                    @else
+                        Processing fees will be deducted automatically from each donation before funds reach your Stripe balance.
+                    @endif
+                </p>
+                <div class="mt-6 flex justify-end gap-3">
+                    <x-filament::button @click="confirmOpen = false" color="gray">
+                        Cancel
+                    </x-filament::button>
+                    <x-filament::button @click="confirmOpen = false; $wire.saveFeeCollection()" color="primary">
+                        Yes, change
+                    </x-filament::button>
+                </div>
+            </div>
+        </div>
+    </div>
 </x-filament::page>

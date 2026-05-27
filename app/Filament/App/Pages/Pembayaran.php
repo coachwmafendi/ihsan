@@ -71,7 +71,7 @@ class Pembayaran extends Page implements HasActions
             ->send();
     }
 
-    public function updatedFeeCollectionMethod(): void
+    public function saveFeeCollection(): void
     {
         $org = auth()->user()->organization;
         if ($org === null) {
