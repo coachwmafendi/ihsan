@@ -69,12 +69,15 @@ class SyncDonationStripeDetails
             if ($organizationId !== null) {
                 $status = $organization->fee_collection_method === 'upfront' ? 'collected' : 'pending';
 
-                $donation->processingFee()->create([
-                    'organization_id' => $organizationId,
-                    'fee_amount' => $processingFee,
-                    'fee_percentage' => $this->processingFeePercent(),
-                    'status' => $status,
-                ]);
+                $donation->processingFee()->updateOrCreate(
+                    ['donation_id' => $donation->id],
+                    [
+                        'organization_id' => $organizationId,
+                        'fee_amount' => $processingFee,
+                        'fee_percentage' => $this->processingFeePercent(),
+                        'status' => $status,
+                    ],
+                );
             }
         }
 

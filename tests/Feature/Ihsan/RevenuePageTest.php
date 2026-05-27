@@ -74,14 +74,15 @@ it('displays fee breakdown by status', function () {
     $campaign = Campaign::factory()->for($org)->create();
     $donor = Donor::factory()->create();
 
-    $donation = Donation::factory()->for($campaign)->for($donor)->create([
-        'status' => DonationStatus::Succeeded,
-    ]);
+    $paid = Donation::factory()->for($campaign)->for($donor)->create(['status' => DonationStatus::Succeeded]);
+    $pending = Donation::factory()->for($campaign)->for($donor)->create(['status' => DonationStatus::Succeeded]);
+    $invoiced = Donation::factory()->for($campaign)->for($donor)->create(['status' => DonationStatus::Succeeded]);
+    $failed = Donation::factory()->for($campaign)->for($donor)->create(['status' => DonationStatus::Succeeded]);
 
-    ProcessingFee::factory()->create(['donation_id' => $donation->id, 'organization_id' => $org->id, 'fee_amount' => 10.00, 'status' => 'paid']);
-    ProcessingFee::factory()->create(['donation_id' => $donation->id, 'organization_id' => $org->id, 'fee_amount' => 5.00, 'status' => 'pending']);
-    ProcessingFee::factory()->create(['donation_id' => $donation->id, 'organization_id' => $org->id, 'fee_amount' => 3.00, 'status' => 'invoiced']);
-    ProcessingFee::factory()->create(['donation_id' => $donation->id, 'organization_id' => $org->id, 'fee_amount' => 2.00, 'status' => 'failed']);
+    ProcessingFee::factory()->create(['donation_id' => $paid->id, 'organization_id' => $org->id, 'fee_amount' => 10.00, 'status' => 'paid']);
+    ProcessingFee::factory()->create(['donation_id' => $pending->id, 'organization_id' => $org->id, 'fee_amount' => 5.00, 'status' => 'pending']);
+    ProcessingFee::factory()->create(['donation_id' => $invoiced->id, 'organization_id' => $org->id, 'fee_amount' => 3.00, 'status' => 'invoiced']);
+    ProcessingFee::factory()->create(['donation_id' => $failed->id, 'organization_id' => $org->id, 'fee_amount' => 2.00, 'status' => 'failed']);
 
     $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
 

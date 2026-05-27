@@ -4,7 +4,6 @@ namespace App\Filament\Pages;
 
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
-use App\Models\ProcessingFee;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
@@ -36,12 +35,6 @@ class MonthlyInvoices extends Page implements HasTable
 
     public int $invoicesSent = 0;
 
-    public int $invoiceOrgs = 0;
-
-    public int $upfrontOrgs = 0;
-
-    public string $totalUpfrontFees = '0.00';
-
     public function mount(): void
     {
         $this->totalOutstanding = number_format((float) MonthlyInvoice::query()
@@ -55,15 +48,6 @@ class MonthlyInvoices extends Page implements HasTable
         $this->invoicesSent = MonthlyInvoice::query()
             ->where('created_at', '>=', now()->startOfMonth())
             ->count();
-
-        $this->invoiceOrgs = Organization::where('fee_collection_method', 'invoice')->count();
-        $this->upfrontOrgs = Organization::where('fee_collection_method', 'upfront')->count();
-
-        $currentMonthStart = now()->startOfMonth();
-        $this->totalUpfrontFees = number_format((float) ProcessingFee::query()
-            ->whereHas('organization', fn ($q) => $q->where('fee_collection_method', 'upfront'))
-            ->where('created_at', '>=', $currentMonthStart)
-            ->sum('fee_amount'), 2, '.', '');
     }
 
     public function table(Table $table): Table
