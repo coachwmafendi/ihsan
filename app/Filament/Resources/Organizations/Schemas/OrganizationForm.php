@@ -280,9 +280,9 @@ class OrganizationForm
                                     ->inline(false),
                             ]),
 
-                        Section::make('Admin Settings')
+                        Section::make('Billing & Fees')
                             ->columnSpan(['default' => 12, 'lg' => 4])
-                            ->icon('heroicon-o-shield-check')
+                            ->icon('heroicon-o-banknotes')
                             ->schema([
                                 Select::make('fee_collection_method')
                                     ->label('Fee Collection Method')

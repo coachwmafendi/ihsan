@@ -172,30 +172,25 @@
             </div>
         </x-filament::section>
 
-        <div
-            x-show="confirmOpen"
-            x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-            @click.self="confirmOpen = false"
-        >
-            <div class="mx-4 w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-zinc-800">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Change fee collection method?</h3>
-                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                    @if ($feeCollectionMethod === 'invoice')
-                        Fees will be accumulated and invoiced at the end of each month via Stripe.
-                    @else
-                        Processing fees will be deducted automatically from each donation before funds reach your Stripe balance.
-                    @endif
-                </p>
-                <div class="mt-6 flex justify-end gap-3">
-                    <x-filament::button @click="confirmOpen = false" color="gray">
-                        Cancel
-                    </x-filament::button>
-                    <x-filament::button @click="confirmOpen = false; $wire.saveFeeCollection()" color="primary">
-                        Yes, change
-                    </x-filament::button>
-                </div>
-            </div>
-        </div>
+        <x-filament::modal id="fee-confirm" :show="confirmOpen" @close="confirmOpen = false">
+            <x-slot name="heading">Change fee collection method?</x-slot>
+
+            <p class="text-sm text-gray-500">
+                @if ($feeCollectionMethod === 'invoice')
+                    Fees will be accumulated and invoiced at the end of each month via Stripe.
+                @else
+                    Processing fees will be deducted automatically from each donation before funds reach your Stripe balance.
+                @endif
+            </p>
+
+            <x-slot name="footer">
+                <x-filament::button @click="confirmOpen = false" color="gray">
+                    Cancel
+                </x-filament::button>
+                <x-filament::button @click="confirmOpen = false; $wire.saveFeeCollection()" color="primary">
+                    Yes, change
+                </x-filament::button>
+            </x-slot>
+        </x-filament::modal>
     </div>
 </x-filament::page>
