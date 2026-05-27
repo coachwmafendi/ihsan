@@ -30,6 +30,8 @@ class Pembayaran extends Page implements HasActions
 
     public array $currencies = ['myr' => true, 'usd' => false, 'sgd' => false];
 
+    public string $feeCollectionMethod = 'invoice';
+
     public function mount(): void
     {
         $org = auth()->user()->organization;
@@ -41,6 +43,8 @@ class Pembayaran extends Page implements HasActions
             'usd' => in_array('usd', $accepted),
             'sgd' => in_array('sgd', $accepted),
         ];
+
+        $this->feeCollectionMethod = $org?->fee_collection_method ?? 'invoice';
     }
 
     public function updatedCurrencies(): void
@@ -65,6 +69,26 @@ class Pembayaran extends Page implements HasActions
             ->title('Accepted currencies updated')
             ->success()
             ->send();
+    }
+
+    public function updatedFeeCollectionMethod(): void
+    {
+        $org = auth()->user()->organization;
+        if ($org === null) {
+            return;
+        }
+
+        $org->update(['fee_collection_method' => $this->feeCollectionMethod]);
+
+        Notification::make()
+            ->title('Fee collection method updated')
+            ->success()
+            ->send();
+    }
+
+    public function getProcessingFeePercent(): string
+    {
+        return number_format((float) config('services.stripe.processing_fee_percent', 2.5), 1);
     }
 
     public function stripeAccount(): ?StripeAccount

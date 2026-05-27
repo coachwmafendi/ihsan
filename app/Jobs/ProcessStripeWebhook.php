@@ -7,7 +7,6 @@ use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\SubscriptionStatus;
-use App\Jobs\SendCampaignMilestoneNotification;
 use App\Mail\PlatformInvoicePaid;
 use App\Models\Donation;
 use App\Models\MonthlyInvoice;

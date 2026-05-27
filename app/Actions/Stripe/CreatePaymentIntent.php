@@ -70,6 +70,11 @@ class CreatePaymentIntent
                 $customerParams['phone'] = $donation->donor->phone;
             }
 
+            if ($organization->fee_collection_method === 'upfront') {
+                $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
+                $params['application_fee_amount'] = (int) round($params['amount'] * $feePercent / 100);
+            }
+
             $customer = Customer::create($customerParams, $stripeOptions);
 
             $params['customer'] = $customer->id;

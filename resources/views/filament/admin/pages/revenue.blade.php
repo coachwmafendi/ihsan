@@ -134,7 +134,7 @@
                 </div>
             </x-slot>
 
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <div class="rounded-lg border border-success-200 bg-success-50/50 p-4 dark:border-success-800 dark:bg-success-900/10">
                     <div class="flex items-center gap-2">
                         <div class="flex h-7 w-7 items-center justify-center rounded-full bg-success-100 dark:bg-success-800">
@@ -144,6 +144,18 @@
                     </div>
                     <div class="mt-3 text-xl font-bold text-gray-950 dark:text-white">
                         MYR {{ $paidFees }}
+                    </div>
+                </div>
+
+                <div class="rounded-lg border border-teal-200 bg-teal-50/50 p-4 dark:border-teal-800 dark:bg-teal-900/10">
+                    <div class="flex items-center gap-2">
+                        <div class="flex h-7 w-7 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-800">
+                            <x-heroicon-o-arrow-path class="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                        </div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-400">Collected</span>
+                    </div>
+                    <div class="mt-3 text-xl font-bold text-gray-950 dark:text-white">
+                        MYR {{ $collectedFees }}
                     </div>
                 </div>
 

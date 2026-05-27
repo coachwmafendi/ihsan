@@ -39,7 +39,7 @@ it('does not trigger N+1 queries on the revenue page', function () {
     });
 
     // Uses a single aggregated query instead of per-organization loops
-    expect($queryCount)->toBeLessThanOrEqual(10);
+    expect($queryCount)->toBeLessThanOrEqual(11);
 });
 
 it('does not trigger N+1 queries on the platform overview page', function () {

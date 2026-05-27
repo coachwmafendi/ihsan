@@ -27,6 +27,8 @@ class Revenue extends Page
 
     public string $pendingFees = '0.00';
 
+    public string $collectedFees = '0.00';
+
     public string $invoicedFees = '0.00';
 
     public string $failedFees = '0.00';
@@ -82,6 +84,7 @@ class Revenue extends Page
         $this->totalProcessingFees = number_format($totalFeeAmount, 2, '.', '');
 
         $this->paidFees = $this->sumFeesByStatus('paid', $from, $to);
+        $this->collectedFees = $this->sumFeesByStatus('collected', $from, $to);
         $this->pendingFees = $this->sumFeesByStatus('pending', $from, $to);
         $this->invoicedFees = $this->sumFeesByStatus('invoiced', $from, $to);
         $this->failedFees = $this->sumFeesByStatus('failed', $from, $to);

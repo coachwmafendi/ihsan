@@ -272,6 +272,14 @@ class OrganizationForm
                             ->icon('heroicon-o-shield-check')
                             ->columns(2)
                             ->schema([
+                                Select::make('fee_collection_method')
+                                    ->label('Fee Collection Method')
+                                    ->options([
+                                        'invoice' => 'Monthly Invoice',
+                                        'upfront' => 'Upfront Deduction',
+                                    ])
+                                    ->default('invoice')
+                                    ->helperText('How processing fees are collected from this organization.'),
                                 TextInput::make('processing_fee_override')
                                     ->label('Processing Fee Override (%)')
                                     ->numeric()

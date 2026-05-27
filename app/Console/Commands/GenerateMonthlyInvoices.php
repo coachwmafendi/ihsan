@@ -34,6 +34,7 @@ class GenerateMonthlyInvoices extends Command
             ->where('status', 'pending')
             ->where('created_at', '>=', $period->copy()->startOfMonth())
             ->where('created_at', '<', $period->copy()->addMonth()->startOfMonth())
+            ->whereHas('donation.campaign.organization', fn ($q) => $q->where('fee_collection_method', 'invoice'))
             ->get();
 
         if ($pendingFees->isEmpty()) {

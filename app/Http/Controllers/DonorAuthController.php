@@ -45,7 +45,7 @@ class DonorAuthController extends Controller
 
         session()->put('donor_id', $donor->getKey());
 
-        return redirect()->route('donorportal.donations');
+        return redirect()->route('donorportal.dashboard');
     }
 
     public function logout()

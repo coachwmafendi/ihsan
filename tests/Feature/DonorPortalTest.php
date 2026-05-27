@@ -13,7 +13,7 @@ it('logs in with valid magic token', function () {
     ]);
 
     $this->get(route('donorportal.magic-login', ['token' => 'valid-token-123']))
-        ->assertRedirect(route('donorportal.donations'));
+        ->assertRedirect(route('donorportal.dashboard'));
 
     $this->assertEquals(session('donor_id'), $donor->getKey());
 });

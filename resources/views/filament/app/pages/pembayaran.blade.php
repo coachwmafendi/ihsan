@@ -140,4 +140,56 @@
             </div>
         </div>
     </x-filament::section>
+
+    <x-filament::section icon="heroicon-o-receipt-percent">
+        <x-slot name="heading">
+            <div class="flex items-center gap-2">
+                <span>Fee Collection</span>
+            </div>
+        </x-slot>
+
+        <div class="space-y-4">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Choose how processing fees ({{ $this->getProcessingFeePercent() }}%) are collected.
+            </p>
+
+            <div class="grid grid-cols-2 gap-4">
+                <label class="flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition
+                    {{ $feeCollectionMethod === 'invoice' ? 'border-teal-500 bg-teal-50 dark:border-teal-600 dark:bg-teal-900/20' : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900' }}">
+                    <input
+                        type="radio"
+                        name="fee_collection_method"
+                        value="invoice"
+                        wire:model.live="feeCollectionMethod"
+                        class="mt-0.5 size-4 border-gray-300 text-teal-600 focus:ring-teal-600 dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Monthly Invoice</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Fees are accumulated and invoiced at the end of each month.
+                            You will receive a Stripe invoice to pay.
+                        </p>
+                    </div>
+                </label>
+
+                <label class="flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition
+                    {{ $feeCollectionMethod === 'upfront' ? 'border-teal-500 bg-teal-50 dark:border-teal-600 dark:bg-teal-900/20' : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900' }}">
+                    <input
+                        type="radio"
+                        name="fee_collection_method"
+                        value="upfront"
+                        wire:model.live="feeCollectionMethod"
+                        class="mt-0.5 size-4 border-gray-300 text-teal-600 focus:ring-teal-600 dark:border-gray-600 dark:bg-gray-800"
+                    />
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Upfront Deduction</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Processing fees are deducted automatically from each donation
+                            before funds reach your Stripe balance. No monthly invoices.
+                        </p>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </x-filament::section>
 </x-filament::page>
