@@ -1,8 +1,10 @@
 <?php
 
 use App\Enums\DonationStatus;
+use App\Enums\SubscriptionStatus;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\Subscription;
 
 it('logs in with valid magic token', function () {
     $donor = Donor::factory()->create([
@@ -185,4 +187,42 @@ it('hides receipt download button for pending donations in donor portal', functi
         ->get(route('donorportal.donations'))
         ->assertOk()
         ->assertDontSee('Receipt');
+});
+
+it('filters donations page by subscription id', function () {
+    $donor = Donor::factory()->create();
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+    ]);
+    $relatedDonation = Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'subscription_id' => $subscription->getKey(),
+        'status' => DonationStatus::Succeeded,
+    ]);
+    $otherDonation = Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'subscription_id' => null,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey()])
+        ->get(route('donorportal.donations', ['subscription' => $subscription->getKey()]))
+        ->assertOk()
+        ->assertSee('Payment history for')
+        ->assertSee($relatedDonation->campaign->title)
+        ->assertDontSee($otherDonation->campaign->title);
+});
+
+it('shows history button for subscriptions in donor portal', function () {
+    $donor = Donor::factory()->create();
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey()])
+        ->get(route('donorportal.subscriptions'))
+        ->assertOk()
+        ->assertSee('History')
+        ->assertSee(route('donorportal.donations', ['subscription' => $subscription->getKey()]), false);
 });

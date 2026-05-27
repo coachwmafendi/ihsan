@@ -5,7 +5,21 @@
 @section('content')
     <div class="mb-8">
         <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Donations</h1>
-        <p class="mt-0.5 text-xs text-slate-500">Your complete giving history.</p>
+        @if ($subscription !== null)
+            <p class="mt-0.5 text-xs text-slate-500">
+                Payment history for <strong>{{ $subscription->campaign->title }}</strong>
+                · {{ $subscription->currency_symbol }} {{ number_format($subscription->amount, 2) }}/{{ $subscription->interval->value }}
+            </p>
+            <a href="{{ route('donorportal.donations') }}"
+               class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                </svg>
+                Back to all donations
+            </a>
+        @else
+            <p class="mt-0.5 text-xs text-slate-500">Your complete giving history.</p>
+        @endif
     </div>
 
     <div class="mb-6 grid grid-cols-2 gap-3">

@@ -100,6 +100,8 @@ class DonorPortalController extends Controller
             ->limit(5)
             ->get();
 
+        $primaryOrganization = $recentDonations->first()?->campaign?->organization;
+
         $activeSubscriptionsList = $donor->subscriptions()
             ->where('status', SubscriptionStatus::Active)
             ->get();
@@ -122,6 +124,7 @@ class DonorPortalController extends Controller
             'monthlyDonations' => $monthlyDonations,
             'campaignBreakdown' => $campaignBreakdown,
             'recentDonations' => $recentDonations,
+            'primaryOrganization' => $primaryOrganization,
         ]);
     }
 
@@ -132,6 +135,18 @@ class DonorPortalController extends Controller
             return redirect()->route('donorportal.login');
         }
 
+        $subscriptionFilter = request()->query('subscription');
+        $subscription = null;
+
+        $query = $donor->donations()->with('campaign.organization');
+
+        if ($subscriptionFilter !== null) {
+            $subscription = $donor->subscriptions()->find($subscriptionFilter);
+            if ($subscription !== null) {
+                $query->where('subscription_id', $subscription->getKey());
+            }
+        }
+
         $totalGiven = $this->getTotalGiven($donor);
         $currencyBreakdown = $this->getCurrencyBreakdown($donor);
 
@@ -140,7 +155,8 @@ class DonorPortalController extends Controller
             'totalGiven' => $totalGiven,
             'currencyBreakdown' => $currencyBreakdown,
             'donationCount' => $donor->donations()->where('status', DonationStatus::Succeeded)->count(),
-            'donations' => $donor->donations()->with('campaign.organization')->latest()->paginate(10),
+            'donations' => $query->latest()->paginate(10),
+            'subscription' => $subscription,
         ]);
     }
 

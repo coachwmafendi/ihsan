@@ -4,8 +4,14 @@
 
 @section('content')
     <div class="mb-8">
-        <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Dashboard</h1>
-        <p class="mt-0.5 text-xs text-slate-500">Hi {{ $donor->name }}, here's your giving overview.</p>
+        <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Hi, {{ $donor->name }}</h1>
+        @if ($primaryOrganization !== null)
+            <p class="mt-1 text-sm text-slate-600">
+                Welcome to the <strong class="uppercase">{{ $primaryOrganization->name }}</strong> Donor Portal
+            </p>
+        @else
+            <p class="mt-1 text-sm text-slate-600">Welcome to the Donor Portal</p>
+        @endif
     </div>
 
     <div class="mb-6 grid grid-cols-3 gap-3">
