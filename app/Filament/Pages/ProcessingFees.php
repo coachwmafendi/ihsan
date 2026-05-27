@@ -50,7 +50,23 @@ class ProcessingFees extends Page implements HasTable
                     ->toggleable(),
                 TextColumn::make('donation.gross_amount')
                     ->label('Donation')
-                    ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
+                    ->formatStateUsing(function (string $state, ProcessingFee $record): string {
+                        if ($record->donation->currency !== 'myr' && $record->donation->base_amount !== null) {
+                            return '≈ MYR '.number_format((float) $record->donation->base_amount, 2);
+                        }
+
+                        return 'MYR '.number_format((float) $state, 2);
+                    })
+                    ->tooltip(function (string $state, ProcessingFee $record): ?string {
+                        if ($record->donation->currency !== 'myr' && $record->donation->base_amount !== null) {
+                            $gross = number_format((float) $state, 2);
+                            $currency = strtoupper($record->donation->currency);
+
+                            return $currency.' '.$gross;
+                        }
+
+                        return null;
+                    })
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('fee_amount')

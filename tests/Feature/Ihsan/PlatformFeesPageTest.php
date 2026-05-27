@@ -2,6 +2,7 @@
 
 use App\Enums\UserRole;
 use App\Filament\Pages\ProcessingFees;
+use App\Models\Donation;
 use App\Models\ProcessingFee;
 use App\Models\User;
 use Livewire\Livewire;
@@ -47,4 +48,42 @@ it('can mark fee as paid', function () {
         ->callTableAction('mark_paid', $fee);
 
     expect($fee->fresh()->status)->toBe('paid');
+});
+
+it('displays approximated MYR amount with tooltip for foreign currency donations', function () {
+    $donation = Donation::factory()->create([
+        'gross_amount' => 50.00,
+        'currency' => 'usd',
+        'base_currency' => 'myr',
+        'base_amount' => 235.50,
+    ]);
+
+    ProcessingFee::factory()->create([
+        'donation_id' => $donation->id,
+        'fee_amount' => 5.88,
+        'fee_percentage' => 2.5,
+    ]);
+
+    Livewire::test(ProcessingFees::class)
+        ->loadTable()
+        ->assertSee('≈ MYR 235.50')
+        ->assertSee('USD 50.00'); // shown in tooltip
+});
+
+it('displays plain MYR amount for local currency donations', function () {
+    $donation = Donation::factory()->create([
+        'gross_amount' => 120.00,
+        'currency' => 'myr',
+    ]);
+
+    ProcessingFee::factory()->create([
+        'donation_id' => $donation->id,
+        'fee_amount' => 3.00,
+        'fee_percentage' => 2.5,
+    ]);
+
+    Livewire::test(ProcessingFees::class)
+        ->loadTable()
+        ->assertSee('MYR 120.00')
+        ->assertDontSee('≈');
 });
