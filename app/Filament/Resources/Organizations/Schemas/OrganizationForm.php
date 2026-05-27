@@ -287,9 +287,10 @@ class OrganizationForm
 
                                 Section::make('Billing & Fees')
                                     ->icon('heroicon-o-banknotes')
+                                    ->extraAttributes(['class' => 'opacity-75'])
                                     ->schema([
                                         Select::make('fee_collection_method')
-                                            ->label('Fee Collection Method')
+                                            ->label('Billing & Fees')
                                             ->options([
                                                 'invoice' => 'Monthly Invoice',
                                                 'upfront' => 'Upfront Deduction',

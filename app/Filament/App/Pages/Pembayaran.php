@@ -32,8 +32,6 @@ class Pembayaran extends Page implements HasActions
 
     public string $feeCollectionMethod = 'invoice';
 
-    public bool $showFeeConfirm = false;
-
     public function mount(): void
     {
         $org = auth()->user()->organization;

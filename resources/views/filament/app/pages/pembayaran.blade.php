@@ -163,32 +163,15 @@
                 </select>
 
                 <div class="mt-3">
-                    <x-filament::button wire:click="$set('showFeeConfirm', true)" color="primary">
+                    <x-filament::button
+                        wire:click="saveFeeCollection"
+                        wire:confirm="Are you sure you want to change the fee collection method?"
+                        color="primary"
+                    >
                         Save
                     </x-filament::button>
                 </div>
             </div>
         </div>
     </x-filament::section>
-
-    <x-filament::modal wire:model="showFeeConfirm">
-        <x-slot name="heading">Change fee collection method?</x-slot>
-
-        <p class="text-sm text-gray-500">
-            @if ($feeCollectionMethod === 'invoice')
-                Fees will be accumulated and invoiced at the end of each month via Stripe.
-            @else
-                Processing fees will be deducted automatically from each donation before funds reach your Stripe balance.
-            @endif
-        </p>
-
-        <x-slot name="footer">
-            <x-filament::button wire:click="$set('showFeeConfirm', false)" color="gray">
-                Cancel
-            </x-filament::button>
-            <x-filament::button wire:click="saveFeeCollection" color="primary">
-                Yes, change
-            </x-filament::button>
-        </x-slot>
-    </x-filament::modal>
 </x-filament::page>
