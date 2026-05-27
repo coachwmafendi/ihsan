@@ -40,6 +40,17 @@ class ProcessingFees extends Page implements HasTable
                     ->label('Organisation')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('organization.fee_collection_method')
+                    ->label('Method')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'upfront' => 'success',
+                        'invoice' => 'info',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => str($state)->headline()->toString())
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('donation.campaign.title')
                     ->label('Campaign')
                     ->searchable()
