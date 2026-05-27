@@ -16,7 +16,7 @@
             <x-filament::section>
                 <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Active subscriptions</div>
                 <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">{{ $activeSubscriptions }}</div>
-                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">Across all NGOs</div>
+                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">Across all organizations</div>
             </x-filament::section>
 
             <x-filament::section>
@@ -87,7 +87,12 @@
                             <div class="truncate text-sm text-gray-500 dark:text-gray-400">{{ $donation['campaign'] }}</div>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="text-sm font-semibold text-gray-950 dark:text-white">{{ $donation['amount'] }}</span>
+                            <div class="text-right">
+                                <span class="text-sm font-semibold text-gray-950 dark:text-white">{{ $donation['amount'] }}</span>
+                                @if ($donation['original_amount'])
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ $donation['original_amount'] }}</div>
+                                @endif
+                            </div>
                             <x-filament::badge :color="match($donation['status']) { 'succeeded' => 'success', 'pending' => 'warning', 'failed' => 'danger', 'refunded' => 'gray', default => 'gray' }">
                                 {{ ucfirst($donation['status']) }}
                             </x-filament::badge>

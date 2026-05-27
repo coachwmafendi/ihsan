@@ -88,12 +88,23 @@ class PlatformOverview extends Page
             ->latest()
             ->limit(5)
             ->get()
-            ->map(fn (Donation $donation): array => [
-                'organization' => $donation->campaign->organization->name,
-                'campaign' => $donation->campaign->title,
-                'amount' => 'MYR '.number_format((float) $donation->gross_amount, 2, '.', ''),
-                'status' => $donation->status->value,
-            ])
+            ->map(function (Donation $donation): array {
+                $amount = $donation->currency !== 'myr' && $donation->base_amount !== null
+                    ? '≈ MYR '.number_format((float) $donation->base_amount, 2, '.', '')
+                    : 'MYR '.number_format((float) $donation->gross_amount, 2, '.', '');
+
+                $original = $donation->currency !== 'myr' && $donation->base_amount !== null
+                    ? strtoupper($donation->currency).' '.number_format((float) $donation->gross_amount, 2, '.', '')
+                    : null;
+
+                return [
+                    'organization' => $donation->campaign->organization->name,
+                    'campaign' => $donation->campaign->title,
+                    'amount' => $amount,
+                    'original_amount' => $original,
+                    'status' => $donation->status->value,
+                ];
+            })
             ->all();
     }
 }
