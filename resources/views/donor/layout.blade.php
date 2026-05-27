@@ -5,34 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Donor Portal') — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireScripts
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="min-h-screen bg-slate-50 antialiased">
     <header class="bg-slate-900">
         <div class="mx-auto flex max-w-3xl items-center justify-between px-6 py-3">
             @if (isset($primaryOrganization) && filled($primaryOrganization?->logo_path))
-                <a href="{{ route('donorportal.dashboard') }}" class="flex items-center">
+                <a href="{{ route('donorportal.dashboard') }}" wire:navigate class="flex items-center">
                     <img src="{{ route('organization.logo', $primaryOrganization) }}"
                          alt="{{ $primaryOrganization->name }}"
                          class="h-8 w-auto object-contain">
                 </a>
             @else
-                <a href="{{ route('donorportal.dashboard') }}"
+                <a href="{{ route('donorportal.dashboard') }}" wire:navigate
                    class="text-sm font-black text-white [letter-spacing:-0.02em]">
                     Ihsan.
                 </a>
             @endif
             <nav class="flex gap-1">
-                <a href="{{ route('donorportal.dashboard') }}"
+                <a href="{{ route('donorportal.dashboard') }}" wire:navigate
                    class="rounded-md px-3 py-1.5 text-xs font-medium transition
                    {{ request()->routeIs('donorportal.dashboard') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Dashboard
                 </a>
-                <a href="{{ route('donorportal.donations') }}"
+                <a href="{{ route('donorportal.donations') }}" wire:navigate
                    class="rounded-md px-3 py-1.5 text-xs font-medium transition
                    {{ request()->routeIs('donorportal.donations') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Donations
                 </a>
-                <a href="{{ route('donorportal.subscriptions') }}"
+                <a href="{{ route('donorportal.subscriptions') }}" wire:navigate
                    class="rounded-md px-3 py-1.5 text-xs font-medium transition
                    {{ request()->routeIs('donorportal.subscriptions') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Subscriptions

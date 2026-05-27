@@ -3,8 +3,8 @@
 @section('title', 'Subscriptions')
 
 @section('content')
-<div class="donor-wrap">
-<div id="donorSkeleton" class="donor-skeleton" aria-hidden="true">
+<div class="donor-wrap" x-data="{ loaded: false }" x-init="$nextTick(() => setTimeout(() => loaded = true, 400))">
+<div class="donor-skeleton" x-show="!loaded" x-transition.opacity.duration.250ms x-cloak aria-hidden="true">
     <div class="mb-8">
         <div class="h-8 w-48 animate-pulse rounded-lg bg-slate-200"></div>
         <div class="mt-1 h-4 w-64 animate-pulse rounded bg-slate-100"></div>
@@ -14,7 +14,7 @@
         <div class="h-32 animate-pulse rounded-xl bg-slate-100" style="border:1.5px solid transparent;"></div>
     </div>
 </div>
-<div id="donorContent">
+<div>
     <div class="mb-8">
         <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Subscriptions</h1>
         <p class="mt-0.5 text-xs text-slate-500">Manage your recurring donations.</p>
@@ -106,5 +106,4 @@
     @endif
 </div>
 </div>
-<script>document.addEventListener('DOMContentLoaded',()=>{requestAnimationFrame(()=>{requestAnimationFrame(()=>{setTimeout(()=>{document.getElementById('donorSkeleton').classList.add('done')},400)})})})</script>
 @endsection

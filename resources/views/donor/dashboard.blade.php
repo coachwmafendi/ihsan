@@ -3,8 +3,8 @@
 @section('title', 'Dashboard')
 
 @section('content')
-<div class="donor-wrap">
-<div id="donorSkeleton" class="donor-skeleton" aria-hidden="true">
+<div class="donor-wrap" x-data="{ loaded: false }" x-init="$nextTick(() => setTimeout(() => loaded = true, 400))">
+<div class="donor-skeleton" x-show="!loaded" x-transition.opacity.duration.250ms x-cloak aria-hidden="true">
     <div class="mb-8">
         <div class="h-8 w-64 animate-pulse rounded-lg bg-slate-200"></div>
         <div class="mt-2 h-4 w-80 animate-pulse rounded bg-slate-100"></div>
@@ -21,7 +21,7 @@
         <div class="h-64 animate-pulse rounded-xl bg-slate-100" style="border:1.5px solid transparent;"></div>
     </div>
 </div>
-<div id="donorContent">
+<div>
     <div class="mb-8">
         <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Hi, {{ $donor->name }} <span class="ml-1">👋</span></h1>
         @if ($primaryOrganization !== null)
@@ -126,47 +126,45 @@
     </div>
 </div>
 </div>
-<script>document.addEventListener('DOMContentLoaded',()=>{requestAnimationFrame(()=>{requestAnimationFrame(()=>{setTimeout(()=>{document.getElementById('donorSkeleton').classList.add('done')},400)})})})</script>
-@endsection
-
-@push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const ctx = document.getElementById('monthlyChart').getContext('2d');
-        const monthlyData = @json($monthlyDonations);
-
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: monthlyData.map(d => d.month),
-                datasets: [{
-                    data: monthlyData.map(d => d.total),
-                    backgroundColor: monthlyData.map((d, i) =>
-                        i === monthlyData.length - 1 ? '#10b981' : '#f1f5f9'
-                    ),
-                    borderRadius: 5,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: v => 'MYR ' + v.toLocaleString(),
-                            font: { size: 10 },
+<script>
+    (function() {
+        var canvas = document.getElementById('monthlyChart');
+        if (canvas && typeof Chart !== 'undefined') {
+            var monthlyData = @json($monthlyDonations);
+            new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: monthlyData.map(function(d) { return d.month; }),
+                    datasets: [{
+                        data: monthlyData.map(function(d) { return d.total; }),
+                        backgroundColor: monthlyData.map(function(d, i) {
+                            return i === monthlyData.length - 1 ? '#10b981' : '#f1f5f9';
+                        }),
+                        borderRadius: 5,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(v) { return 'MYR ' + v.toLocaleString(); },
+                                font: { size: 10 },
+                            },
+                            grid: { color: '#f1f5f9' },
+                            border: { display: false },
                         },
-                        grid: { color: '#f1f5f9' },
-                        border: { display: false },
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { size: 10 } },
-                        border: { display: false },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10 } },
+                            border: { display: false },
+                        },
                     },
                 },
-            },
-        });
-    </script>
-@endpush
+            });
+        }
+    })();
+</script>
+@endsection
