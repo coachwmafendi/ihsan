@@ -245,35 +245,6 @@ class OrganizationForm
                                             ->columnSpanFull()
                                             ->helperText('Organisasi ini dikecualikan cukai (e.g., LHDN exemption)'),
                                     ]),
-
-                                Tab::make('Admin')
-                                    ->icon('heroicon-o-shield-check')
-                                    ->columns(2)
-                                    ->schema([
-                                        Select::make('fee_collection_method')
-                                            ->label('Fee Collection Method')
-                                            ->options([
-                                                'invoice' => 'Monthly Invoice',
-                                                'upfront' => 'Upfront Deduction',
-                                            ])
-                                            ->default('upfront')
-                                            ->helperText('How processing fees are collected from this organization.'),
-                                        TextInput::make('processing_fee_override')
-                                            ->label('Processing Fee Override (%)')
-                                            ->numeric()
-                                            ->nullable()
-                                            ->minValue(0)
-                                            ->maxValue(100)
-                                            ->step(0.1)
-                                            ->placeholder('Leave blank to use global default')
-                                            ->helperText('Override global processing fee for this org. Global default used if blank.'),
-                                        Textarea::make('admin_notes')
-                                            ->label('Internal Notes')
-                                            ->nullable()
-                                            ->rows(4)
-                                            ->columnSpanFull()
-                                            ->helperText('Internal notes — not visible to organization.'),
-                                    ]),
                             ]),
 
                         Section::make('Stripe Connect')
@@ -307,6 +278,35 @@ class OrganizationForm
                                     ->onIcon('heroicon-o-check')
                                     ->offIcon('heroicon-o-x-mark')
                                     ->inline(false),
+                            ]),
+
+                        Section::make('Admin Settings')
+                            ->columnSpan(['default' => 12, 'lg' => 4])
+                            ->icon('heroicon-o-shield-check')
+                            ->schema([
+                                Select::make('fee_collection_method')
+                                    ->label('Fee Collection Method')
+                                    ->options([
+                                        'invoice' => 'Monthly Invoice',
+                                        'upfront' => 'Upfront Deduction',
+                                    ])
+                                    ->default('upfront')
+                                    ->helperText('How processing fees are collected from this organization.'),
+                                TextInput::make('processing_fee_override')
+                                    ->label('Processing Fee Override (%)')
+                                    ->numeric()
+                                    ->nullable()
+                                    ->minValue(0)
+                                    ->maxValue(100)
+                                    ->step(0.1)
+                                    ->placeholder('Leave blank to use global default')
+                                    ->helperText('Override global processing fee for this org. Global default used if blank.'),
+                                Textarea::make('admin_notes')
+                                    ->label('Internal Notes')
+                                    ->nullable()
+                                    ->rows(4)
+                                    ->columnSpanFull()
+                                    ->helperText('Internal notes — not visible to organization.'),
                             ]),
                     ]),
             ]);
