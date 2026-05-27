@@ -185,19 +185,29 @@ class DonorPortalController extends Controller
         ]);
     }
 
-    public function cancelSubscription(string $id)
+    public function downloadAllReceipts()
     {
         $donor = $this->getDonor();
         if ($donor === null) {
             return redirect()->route('donorportal.login');
         }
 
-        $subscription = $donor->subscriptions()->findOrFail($id);
-        $subscription->update([
-            'status' => SubscriptionStatus::Cancelled,
-            'cancelled_at' => now(),
+        $donations = $donor->donations()
+            ->where('status', DonationStatus::Succeeded)
+            ->with(['campaign.organization', 'donor'])
+            ->latest()
+            ->get();
+
+        if ($donations->isEmpty()) {
+            return redirect()->route('donorportal.donations')->with('error', 'No receipts available to download.');
+        }
+
+        $filename = config('app.name').'-all-receipts-'.now()->format('Y-m-d').'.pdf';
+
+        $pdf = Pdf::loadView('emails.donation-receipt-pdf-bulk', [
+            'donations' => $donations,
         ]);
 
-        return redirect()->route('donorportal.subscriptions')->with('success', 'Subscription cancelled.');
+        return $pdf->download($filename);
     }
 }

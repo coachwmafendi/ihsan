@@ -78,6 +78,8 @@ Route::prefix('donorportal')->name('donorportal.')->group(function () {
     Route::get('donations', [DonorPortalController::class, 'donations'])->name('donations');
     Route::get('donations/{donation}/receipt', ReceiptDownloadController::class)
         ->name('donations.receipt.download');
+    Route::get('receipts', [DonorPortalController::class, 'downloadAllReceipts'])
+        ->name('receipts.download-all');
     Route::get('subscriptions', [DonorPortalController::class, 'subscriptions'])->name('subscriptions');
     Route::post('subscriptions/{subscription}/cancel', [DonorPortalController::class, 'cancelSubscription'])->name('subscriptions.cancel');
 });
