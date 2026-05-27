@@ -9,10 +9,18 @@
 <body class="min-h-screen bg-slate-50 antialiased">
     <header class="bg-slate-900">
         <div class="mx-auto flex max-w-3xl items-center justify-between px-6 py-3">
-            <a href="{{ route('donorportal.dashboard') }}"
-               class="text-sm font-black text-white [letter-spacing:-0.02em]">
-                Ihsan.
-            </a>
+            @if (isset($primaryOrganization) && filled($primaryOrganization?->logo_path))
+                <a href="{{ route('donorportal.dashboard') }}" class="flex items-center">
+                    <img src="{{ asset('storage/'.$primaryOrganization->logo_path) }}"
+                         alt="{{ $primaryOrganization->name }}"
+                         class="h-8 w-auto object-contain">
+                </a>
+            @else
+                <a href="{{ route('donorportal.dashboard') }}"
+                   class="text-sm font-black text-white [letter-spacing:-0.02em]">
+                    Ihsan.
+                </a>
+            @endif
             <nav class="flex gap-1">
                 <a href="{{ route('donorportal.dashboard') }}"
                    class="rounded-md px-3 py-1.5 text-xs font-medium transition

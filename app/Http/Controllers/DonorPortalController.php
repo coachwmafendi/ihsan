@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\DonationStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Donor;
+use App\Models\Organization;
 use App\Support\Currency;
 
 class DonorPortalController extends Controller
@@ -128,6 +129,15 @@ class DonorPortalController extends Controller
         ]);
     }
 
+    private function getPrimaryOrganization(Donor $donor): ?Organization
+    {
+        return $donor->donations()
+            ->where('status', DonationStatus::Succeeded)
+            ->with('campaign.organization')
+            ->latest()
+            ->first()?->campaign?->organization;
+    }
+
     public function donations()
     {
         $donor = $this->getDonor();
@@ -157,6 +167,7 @@ class DonorPortalController extends Controller
             'donationCount' => $donor->donations()->where('status', DonationStatus::Succeeded)->count(),
             'donations' => $query->latest()->paginate(10),
             'subscription' => $subscription,
+            'primaryOrganization' => $this->getPrimaryOrganization($donor),
         ]);
     }
 
@@ -170,6 +181,7 @@ class DonorPortalController extends Controller
         return view('donor.subscriptions', [
             'donor' => $donor,
             'subscriptions' => $donor->subscriptions()->with('campaign.organization')->latest()->paginate(10),
+            'primaryOrganization' => $this->getPrimaryOrganization($donor),
         ]);
     }
 
