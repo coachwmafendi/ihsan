@@ -11,7 +11,7 @@
         <div class="mx-auto flex max-w-3xl items-center justify-between px-6 py-3">
             @if (isset($primaryOrganization) && filled($primaryOrganization?->logo_path))
                 <a href="{{ route('donorportal.dashboard') }}" class="flex items-center">
-                    <img src="{{ asset('storage/'.$primaryOrganization->logo_path) }}"
+                    <img src="{{ route('organization.logo', $primaryOrganization) }}"
                          alt="{{ $primaryOrganization->name }}"
                          class="h-8 w-auto object-contain">
                 </a>

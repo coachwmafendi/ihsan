@@ -50,6 +50,18 @@ Route::get('/stripe/connect/callback', [StripeConnectController::class, 'callbac
 
 use App\Http\Controllers\DonorAuthController;
 use App\Http\Controllers\DonorPortalController;
+use App\Models\Organization;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+// Organization logo (served from private storage)
+Route::get('/org/{organization}/logo', function (Organization $organization): ?StreamedResponse {
+    if (! filled($organization->logo_path)) {
+        abort(404);
+    }
+
+    return Storage::disk('local')->response($organization->logo_path);
+})->name('organization.logo');
 
 // Donor portal
 Route::prefix('donorportal')->name('donorportal.')->group(function () {
