@@ -17,6 +17,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class ElementsRelationManager extends RelationManager
 {
@@ -69,6 +70,7 @@ class ElementsRelationManager extends RelationManager
                             'organization_id' => $campaign->organization_id,
                             'name' => $data['name'],
                             'type' => $data['type'],
+                            'token' => str_replace('.', '', Str::random(10)),
                             'config' => $data['config'] ?? null,
                             'is_active' => $data['is_active'] ?? true,
                         ]);
