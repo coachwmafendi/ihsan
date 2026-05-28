@@ -31,7 +31,7 @@
                 : this.donationModalMobileUrl;
         },
     }"
-     @message.window="if ($event.data && $event.data.type === 'donation-popup-close') donationModalOpen = false">
+     @message.window="if ($event.data && $event.data.type === 'donation-popup-close') { donationModalOpen = false; window.location.reload(); }">
     <div class="mb-8">
         <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Hi, {{ $donor->name }} <span class="ml-1">👋</span></h1>
         <p class="mt-1 text-sm font-bold text-slate-600">
