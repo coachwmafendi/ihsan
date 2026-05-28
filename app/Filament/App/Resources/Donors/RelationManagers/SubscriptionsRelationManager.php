@@ -29,7 +29,7 @@ class SubscriptionsRelationManager extends RelationManager
                     ->label('Start Date'),
                 TextColumn::make('amount')
                     ->label('Amount')
-                    ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
+                    ->formatStateUsing(fn (string $state, $record): string => $record->currency_symbol.' '.number_format((float) $state, 2))
                     ->sortable(),
                 TextColumn::make('interval')
                     ->label('Frequency')
