@@ -3,6 +3,9 @@
     x-init="init"
     class="space-y-6"
 >
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
     {{-- Installment Amount --}}
     <div class="flex items-center gap-4">
         <label class="w-32 text-right text-sm font-medium text-gray-700">Installment amount</label>
@@ -86,8 +89,9 @@
 
     {{-- Transaction Costs --}}
     <div class="border-t pt-4">
-        <p class="text-sm text-gray-600">
-            Estimated transaction costs: <span class="font-semibold" x-text="currencySymbol + estimatedFee.toFixed(2)"></span>
+        <p class="text-sm text-gray-600 flex items-center justify-between">
+            <span>Estimated transaction costs:</span>
+            <span class="font-semibold" x-text="currencySymbol + estimatedFee.toFixed(2)"></span>
         </p>
 
         <label class="mt-3 flex items-center gap-2 rounded-lg bg-gray-50 px-4 py-3 cursor-pointer">
@@ -102,7 +106,7 @@
     </div>
 
     {{-- Payment Method --}}
-    <div class="border-t pt-4">
+    <div class="border-t pt-4" wire:ignore>
         <label class="block text-sm font-medium text-gray-700 mb-3">Payment method</label>
 
         <div class="space-y-3">
@@ -111,6 +115,7 @@
                     type="radio"
                     name="payment_method"
                     value="current"
+                    checked
                     x-model="paymentMethod"
                     class="text-primary-600 focus:ring-primary-500"
                 >
@@ -133,20 +138,21 @@
                 <span class="text-sm text-gray-600">New credit card</span>
             </label>
         </div>
-    </div>
 
-    {{-- New Card Input Section --}}
-    <div
-        x-show="paymentMethod === 'new'"
-        x-cloak
-        class="space-y-4 rounded-xl bg-gray-50 p-5"
-    >
-        <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-2">Card number</label>
-            <div
-                id="stripe-card-element"
-                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3"
-            ></div>
+        <div
+            x-show="paymentMethod === 'new'"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 transform scale-95"
+            x-transition:enter-end="opacity-100 transform scale-100"
+            class="mt-4 space-y-4 rounded-xl bg-gray-50 p-5"
+        >
+            <div>
+                <label class="block text-sm font-semibold text-gray-900 mb-2">Card details</label>
+                <div
+                    id="stripe-card-element"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 min-h-[40px]"
+                ></div>
             <div
                 id="stripe-card-errors"
                 class="mt-2 text-sm text-red-600"
@@ -172,6 +178,13 @@
 
     {{-- Actions --}}
     <div class="flex justify-end gap-3 pt-2">
+        <button
+            type="button"
+            x-on:click="$dispatch('close-modal')"
+            class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+            Cancel
+        </button>
         <button
             type="button"
             x-show="paymentMethod === 'new'"
@@ -215,16 +228,19 @@
                 init() {
                     this.$watch('paymentMethod', (value) => {
                         if (value === 'new') {
-                            this.$nextTick(() => this.mountCardElement());
+                            setTimeout(() => this.mountCardElement(), 100);
                         }
                     });
                 },
 
                 mountCardElement() {
-                    if (!this.clientSecret) return;
+                    if (!this.clientSecret || this.cardElement) return;
 
                     const container = document.getElementById('stripe-card-element');
-                    if (!container || container.hasChildNodes()) return;
+                    if (!container) return;
+                    
+                    // Clear container
+                    container.innerHTML = '';
 
                     this.stripe = Stripe('{{ config('services.stripe.key') }}');
                     const elements = this.stripe.elements({
