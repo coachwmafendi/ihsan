@@ -15,6 +15,7 @@ class NewDonationNotification extends Mailable
 
     public function __construct(
         public Donation $donation,
+        public string $amountDisplay,
     ) {}
 
     public function envelope(): Envelope

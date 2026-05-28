@@ -7,11 +7,11 @@
 
         <p>Hi <strong>{{ $donation->campaign->organization->name }}</strong>,</p>
 
-        <p>You have received a new donation of <strong>{{ $donation->amount_with_conversion }}</strong> for <strong>{{ $donation->campaign->title }}</strong>.</p>
+        <p>You have received a new donation of <strong>{{ $amountDisplay }}</strong> for <strong>{{ $donation->campaign->title }}</strong>.</p>
 
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Donor</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->donor->name }}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Amount</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donation->amount_with_conversion }}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Amount</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $amountDisplay }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Campaign</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->title }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Type</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ ucwords(str_replace('_', ' ', $donation->type->value)) }}</td></tr>
             <tr><td style="padding: 8px; color: #64748b;">Date</td><td style="padding: 8px;">{{ $donation->created_at->format('d M Y, h:i A') }}</td></tr>
