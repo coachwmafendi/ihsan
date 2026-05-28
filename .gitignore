@@ -27,3 +27,6 @@ public/icons/
 .playwright-mcp/
 tests/Feature/TmpWebhookTest.php
 .worktrees/
+docs/superpowers/plans/*.md
+*.png
+!storage/app/public/**/*.png
