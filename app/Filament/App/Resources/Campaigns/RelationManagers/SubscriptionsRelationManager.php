@@ -4,14 +4,11 @@ namespace App\Filament\App\Resources\Campaigns\RelationManagers;
 
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
+use App\Support\Currency;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DissociateAction;
 use Filament\Actions\DissociateBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -72,7 +69,7 @@ class SubscriptionsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('title')
+            ->recordTitleAttribute('stripe_subscription_id')
             ->columns([
                 TextColumn::make('donor.name')
                     ->searchable(),
@@ -82,7 +79,7 @@ class SubscriptionsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('amount')
                     ->formatStateUsing(function ($record) {
-                        $symbol = \App\Support\Currency::symbol($record->currency);
+                        $symbol = Currency::symbol($record->currency);
 
                         return $symbol.' '.number_format((float) $record->amount, 2);
                     })
@@ -127,7 +124,7 @@ class SubscriptionsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                AssociateAction::make(),
+                AssociateAction::make()->label('Kaitkan langganan'),
             ])
             ->recordActions([
                 DissociateAction::make(),
