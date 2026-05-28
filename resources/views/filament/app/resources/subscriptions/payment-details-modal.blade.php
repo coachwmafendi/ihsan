@@ -159,9 +159,8 @@
 
     {{-- Transaction Costs --}}
     <div class="border-t pt-4">
-        <p class="text-sm text-gray-600 flex items-center justify-between">
-            <span>Estimated transaction costs:</span>
-            <span class="font-semibold" x-text="currencySymbol + estimatedFee.toFixed(2)"></span>
+        <p class="text-sm text-gray-600">
+            Estimated transaction costs: <span class="font-semibold ml-1" x-text="currencySymbol + estimatedFee.toFixed(2)"></span>
         </p>
 
         <label class="mt-3 flex items-center gap-2 rounded-lg bg-gray-50 px-4 py-3 cursor-pointer">
