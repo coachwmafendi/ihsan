@@ -106,16 +106,14 @@
     </div>
 
     {{-- Payment Method --}}
-    <div class="border-t pt-4" wire:ignore>
+    <div class="border-t pt-4">
         <label class="block text-sm font-medium text-gray-700 mb-3">Payment method</label>
 
         <div class="space-y-3">
-            <label class="flex items-center gap-3 cursor-pointer">
+            <label class="flex items-center gap-3 cursor-pointer" x-on:click="paymentMethod = 'current'">
                 <input
                     type="radio"
-                    name="payment_method"
                     value="current"
-                    checked
                     x-model="paymentMethod"
                     class="text-primary-600 focus:ring-primary-500"
                 >
@@ -127,10 +125,9 @@
                 </div>
             </label>
 
-            <label class="flex items-center gap-3 cursor-pointer">
+            <label class="flex items-center gap-3 cursor-pointer" x-on:click="paymentMethod = 'new'">
                 <input
                     type="radio"
-                    name="payment_method"
                     value="new"
                     x-model="paymentMethod"
                     class="text-primary-600 focus:ring-primary-500"
@@ -139,34 +136,35 @@
             </label>
         </div>
 
-        <div
-            x-show="paymentMethod === 'new'"
-            x-cloak
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 transform scale-95"
-            x-transition:enter-end="opacity-100 transform scale-100"
-            class="mt-4 space-y-4 rounded-xl bg-gray-50 p-5"
-        >
-            <div>
-                <label class="block text-sm font-semibold text-gray-900 mb-2">Card details</label>
-                <div
-                    id="stripe-card-element"
-                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 min-h-[40px]"
-                ></div>
+        <template x-if="paymentMethod === 'new'">
             <div
-                id="stripe-card-errors"
-                class="mt-2 text-sm text-red-600"
-                x-text="cardError"
-            ></div>
-        </div>
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 transform scale-95"
+                x-transition:enter-end="opacity-100 transform scale-100"
+                class="mt-4 space-y-4 rounded-xl bg-gray-50 p-5"
+            >
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Card details</label>
+                    <div
+                        id="stripe-card-element"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 min-h-[44px]"
+                    ></div>
+                    <div
+                        id="stripe-card-errors"
+                        class="mt-2 text-sm text-red-600"
+                        x-text="cardError"
+                    ></div>
+                </div>
 
-        <div x-show="loading" class="text-sm text-gray-500">
-            Processing...
-        </div>
+                <div x-show="loading" class="text-sm text-gray-500">
+                    Processing...
+                </div>
 
-        <div x-show="success" x-cloak class="rounded-lg bg-green-50 p-3 text-sm text-green-700">
-            Payment method saved successfully.
-        </div>
+                <div x-show="success" class="rounded-lg bg-green-50 p-3 text-sm text-green-700">
+                    Payment method saved successfully.
+                </div>
+            </div>
+        </template>
     </div>
 
     {{-- Info Box --}}
