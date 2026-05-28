@@ -70,7 +70,7 @@ class ElementsRelationManager extends RelationManager
                             'organization_id' => $campaign->organization_id,
                             'name' => $data['name'],
                             'type' => $data['type'],
-                            'token' => str_replace('.', '', Str::random(10)),
+                            'token' => Str::random(6),
                             'config' => $data['config'] ?? null,
                             'is_active' => $data['is_active'] ?? true,
                         ]);
