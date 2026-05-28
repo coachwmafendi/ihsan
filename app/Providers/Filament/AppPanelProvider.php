@@ -49,7 +49,6 @@ class AppPanelProvider extends PanelProvider
                             interval: initial.interval,
                             billingDay: initial.billingDay,
                             cancelAt: initial.cancelAt,
-                            unlimitedEndDate: initial.unlimitedEndDate,
                             coverFee: initial.coverFee,
                             amount: initial.amount,
                             processingFeeRate: initial.processingFeeRate,

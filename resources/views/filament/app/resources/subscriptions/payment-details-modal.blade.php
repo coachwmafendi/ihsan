@@ -11,7 +11,6 @@
         'interval' => $record->interval->value,
         'billingDay' => $currentBillingDay,
         'cancelAt' => $currentCancelAt,
-        'unlimitedEndDate' => $currentCancelAt === '',
         'coverFee' => (bool) $record->cover_fee,
         'amount' => (float) $record->amount,
         'processingFeeRate' => $processingFeePercent,
@@ -59,13 +58,31 @@
     {{-- End Date --}}
     <div class="flex items-center gap-4">
         <label class="w-32 text-right text-sm font-medium text-gray-700">End date</label>
-        <div class="flex-1 flex items-center gap-3">
-            <input type="date" x-model="cancelAt" :disabled="unlimitedEndDate" x-show="!unlimitedEndDate" class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50 disabled:text-gray-400">
-            <span x-show="unlimitedEndDate" class="flex-1 text-sm text-gray-400 italic">No end date</span>
-            <label class="flex items-center gap-2 cursor-pointer whitespace-nowrap">
-                <input type="checkbox" x-model="unlimitedEndDate" @change="if (unlimitedEndDate) cancelAt = ''" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                <span class="text-sm text-gray-600">Unlimited</span>
-            </label>
+        <div class="relative w-48">
+            {{-- "Unlimited" button — shown when no date selected --}}
+            <button
+                x-show="!cancelAt"
+                type="button"
+                @click="cancelAt = '{{ now()->addYears(2)->format('Y-m-d') }}'; $nextTick(() => $refs.dateInput.showPicker ? $refs.dateInput.showPicker() : $refs.dateInput.click())"
+                class="flex w-full items-center rounded-lg border border-gray-300 py-2 pl-4 pr-4 text-sm bg-white cursor-pointer hover:border-gray-400 text-gray-400"
+                style="gap: 0.625rem"
+            >
+                <x-heroicon-o-calendar class="w-4 h-4 shrink-0" />
+                Unlimited
+            </button>
+
+            {{-- Date input — shown only when a date is set (no empty placeholder issue) --}}
+            <div x-show="cancelAt" class="flex items-center gap-2">
+                <input
+                    type="date"
+                    x-ref="dateInput"
+                    x-model="cancelAt"
+                    class="w-full rounded-lg border border-gray-300 py-2 px-3 text-sm bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                <button type="button" @click.stop="cancelAt = ''" class="text-gray-400 hover:text-gray-600 shrink-0">
+                    <x-heroicon-o-x-mark class="w-4 h-4" />
+                </button>
+            </div>
         </div>
     </div>
 
@@ -123,8 +140,8 @@
         <span class="font-semibold" x-text="'{{ $currencySymbol }} ' + (coverFee ? (amount * (1.03 + processingFeeRate) + 0.50).toFixed(2) : parseFloat(amount).toFixed(2))"></span>
         <span x-show="coverFee">(with costs covered)</span>
         will run on {{ $record->current_period_end?->format('M j, Y, g:i A') ?? 'N/A' }},
-        <span x-show="!unlimitedEndDate">ending on <span class="font-semibold" x-text="cancelAt ? new Date(cancelAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'"></span>.</span>
-        <span x-show="unlimitedEndDate">with no end date.</span>
+        <span x-show="cancelAt">ending on <span class="font-semibold" x-text="new Date(cancelAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })"></span>.</span>
+        <span x-show="!cancelAt">with no end date.</span>
     </div>
 
     {{-- Success message (outside card section) --}}
