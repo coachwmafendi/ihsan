@@ -13,13 +13,12 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Stripe\BillingPortal\Session as BillingPortalSession;
-use Stripe\Stripe;
-use Stripe\Subscription as StripeSubscription;
 
 class EditSubscription extends EditRecord
 {
     protected static string $resource = SubscriptionResource::class;
+
+    public ?string $paymentClientSecret = null;
 
     protected function getHeaderActions(): array
     {
@@ -61,41 +60,25 @@ class EditSubscription extends EditRecord
                     }
                 })
                 ->hidden(fn () => $this->record->status === SubscriptionStatus::Cancelled),
-            Action::make('updatePaymentMethod')
-                ->label('Update Payment Method')
+            Action::make('updatePaymentDetails')
+                ->label('Update Payment Details')
                 ->icon('heroicon-o-credit-card')
                 ->color('info')
-                ->requiresConfirmation()
-                ->action(function () {
+                ->modalHeading('Edit payment details')
+                ->modalSubmitAction(false)
+                ->modalContent(view('filament.app.resources.subscriptions.payment-details-modal'))
+                ->action(function (array $data) {})
+                ->mountUsing(function () {
                     try {
-                        $subscription = $this->record;
-                        $subscription->loadMissing('campaign.organization');
-
-                        Stripe::setApiKey(config('services.stripe.secret'));
-
-                        $org = $subscription->campaign->organization;
-                        $stripeOptions = [];
-                        if ($org?->stripe_account_id && $org->stripe_onboarded) {
-                            $stripeOptions['stripe_account'] = $org->stripe_account_id;
-                        }
-
-                        $stripeSubscription = StripeSubscription::retrieve(
-                            $subscription->stripe_subscription_id,
-                            $stripeOptions,
-                        );
-                        $customerId = $stripeSubscription->customer;
-
-                        $session = BillingPortalSession::create([
-                            'customer' => $customerId,
-                            'return_url' => url()->current(),
-                        ], $stripeOptions);
-
-                        $this->redirect($session->url);
+                        $this->paymentClientSecret = app(ManageStripeSubscription::class)
+                            ->createSetupIntent($this->record);
                     } catch (\Exception $e) {
                         Notification::make()
-                            ->title('Failed to open payment portal: '.$e->getMessage())
+                            ->title('Failed to initialise payment form: '.$e->getMessage())
                             ->danger()
                             ->send();
+
+                        $this->halt();
                     }
                 })
                 ->hidden(fn () => $this->record->status === SubscriptionStatus::Cancelled),
@@ -186,6 +169,26 @@ class EditSubscription extends EditRecord
                 })
                 ->hidden(fn () => $this->record->paused_until === null),
         ];
+    }
+
+    public function savePaymentMethod(string $paymentMethodId): void
+    {
+        try {
+            app(ManageStripeSubscription::class)->updatePaymentMethod(
+                $this->record,
+                $paymentMethodId,
+            );
+
+            Notification::make()
+                ->title('Payment method updated successfully.')
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Failed to update payment method: '.$e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     protected function mutateFormDataBeforeSave(array $data): array
