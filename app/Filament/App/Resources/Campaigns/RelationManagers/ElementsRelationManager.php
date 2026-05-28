@@ -60,7 +60,19 @@ class ElementsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                CreateAction::make(),
+                CreateAction::make()
+                    ->closeModalByClickingAway(false)
+                    ->using(function (array $data) {
+                        $campaign = $this->getOwnerRecord();
+
+                        return $campaign->elements()->create([
+                            'organization_id' => $campaign->organization_id,
+                            'name' => $data['name'],
+                            'type' => $data['type'],
+                            'config' => $data['config'] ?? null,
+                            'is_active' => $data['is_active'] ?? true,
+                        ]);
+                    }),
                 AssociateAction::make(),
             ])
             ->recordActions([
