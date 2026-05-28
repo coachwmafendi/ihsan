@@ -356,26 +356,28 @@
                                 </label>
                             @endif
 
-                            <button
-                                type="button"
-                                x-on:click="nextStep()"
-                                class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
-                            >
-                                Continue &rarr;
-                            </button>
-                        </div>{{-- end Step 1 --}}
+                             <button
+                                 type="button"
+                                 x-on:click="nextStep()"
+                                 x-bind:disabled="processing"
+                                 class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98] disabled:opacity-60"
+                             >
+                                 Continue &rarr;
+                             </button>
+                         </div>{{-- end Step 1 --}}
 
-                        {{-- Step 2: Donor Details --}}
-                        <div x-show="currentStep === 2" x-cloak class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
+                         {{-- Step 2: Donor Details --}}
+                         <div x-show="currentStep === 2" x-cloak class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
 
-                            <button
-                                type="button"
-                                x-on:click="prevStep()"
-                                class="mb-1 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition"
-                            >
-                                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                                Back
-                            </button>
+                             <button
+                                 type="button"
+                                 x-on:click="prevStep()"
+                                 x-bind:disabled="processing"
+                                 class="mb-1 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition disabled:opacity-50"
+                             >
+                                 <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                 Back
+                             </button>
 
                             <div class="space-y-3">
                                 <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Your details</p>
@@ -435,23 +437,25 @@
                                 </label>
                             @endif
 
-                            <button
-                                type="button"
-                                x-on:click="nextStep()"
-                                class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
-                            >
-                                Continue &rarr;
-                            </button>
-                        </div>{{-- end Step 2 --}}
+                             <button
+                                 type="button"
+                                 x-on:click="nextStep()"
+                                 x-bind:disabled="processing"
+                                 class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98] disabled:opacity-60"
+                             >
+                                 Continue &rarr;
+                             </button>
+                         </div>{{-- end Step 2 --}}
 
-                        {{-- Step 3: Payment --}}
-                        <div x-show="currentStep === 3" x-cloak class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
+                         {{-- Step 3: Payment --}}
+                         <div x-show="currentStep === 3" x-cloak class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
 
-                            <button
-                                type="button"
-                                x-on:click="prevStep()"
-                                class="mb-1 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition"
-                            >
+                             <button
+                                 type="button"
+                                 x-on:click="prevStep()"
+                                 x-bind:disabled="processing"
+                                 class="mb-1 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition disabled:opacity-50"
+                             >
                                 <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                                 Back
                             </button>
@@ -680,6 +684,8 @@
             },
 
             async handleSubmit() {
+                if (this.processing) return;
+                this.processing = true;
                 this.cardError = '';
 
                 this.mountCardElement();
@@ -695,12 +701,12 @@
                 });
 
                 if (paymentMethodError) {
+                    this.processing = false;
                     this.currentStep = 'error';
                     this.cardError = paymentMethodError.message;
                     return;
                 }
 
-                this.processing = true;
                 $wire.$set('amount', this.amount, false);
                 $wire.$set('name', this.donorName, false);
                 $wire.$set('email', this.donorEmail, false);
