@@ -21,6 +21,8 @@ class DonorFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->optional()->phoneNumber(),
+            'address_city' => fake()->optional()->city(),
+            'country' => fake()->optional()->randomElement(['my', 'sg', 'id']),
         ];
     }
 }

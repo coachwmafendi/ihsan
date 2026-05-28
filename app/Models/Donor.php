@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'email', 'phone', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at'])]
+#[Fillable(['name', 'email', 'phone', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale'])]
 class Donor extends Model
 {
     /** @use HasFactory<DonorFactory> */

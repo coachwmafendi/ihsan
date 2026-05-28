@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['campaign_id', 'donor_id', 'subscription_id', 'stripe_payment_intent_id', 'stripe_charge_id', 'payment_method_brand', 'payment_method_type', 'donor_country', 'gross_amount', 'stripe_fee', 'donor_fee_covered', 'processing_fee', 'net_amount', 'currency', 'base_currency', 'base_amount', 'status', 'type', 'donor_message', 'is_anonymous', 'utm_params', 'invoice_number', 'device_type', 'ip_address', 'browser', 'os', 'page_url', 'geo_city', 'geo_region'])]
+#[Fillable(['campaign_id', 'donor_id', 'subscription_id', 'stripe_payment_intent_id', 'stripe_charge_id', 'payment_method_brand', 'payment_method_type', 'donor_country', 'gross_amount', 'stripe_fee', 'donor_fee_covered', 'processing_fee', 'net_amount', 'currency', 'base_currency', 'base_amount', 'exchange_rate', 'status', 'type', 'donor_message', 'is_anonymous', 'utm_params', 'invoice_number', 'device_type', 'ip_address', 'browser', 'os', 'page_url', 'geo_city', 'geo_region', 'payment_method_last4', 'billing_address_line1', 'billing_address_line2', 'billing_address_city', 'billing_address_state', 'billing_address_postal_code', 'billing_country', 'receipt_sent_at'])]
 class Donation extends Model
 {
     /** @use HasFactory<DonationFactory> */
@@ -68,7 +68,9 @@ class Donation extends Model
             if ($this->currency !== 'myr' && $this->base_amount !== null) {
                 $base = number_format((float) $this->base_amount, 2);
 
-                return "≈ MYR {$base} ({$symbol} {$amount})";
+                if ($base !== $amount) {
+                    return "≈ MYR {$base} ({$symbol} {$amount})";
+                }
             }
 
             return "{$symbol} {$amount}";

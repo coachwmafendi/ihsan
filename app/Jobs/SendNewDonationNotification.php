@@ -35,12 +35,12 @@ class SendNewDonationNotification implements ShouldQueue
             return;
         }
 
-        // If large donation notification is enabled and amount meets threshold,
-        // skip this normal notification — the large one will handle it
         $largeDonationEnabled = $settings['notify_large_donation'] ?? false;
         $largeThreshold = (int) ($settings['large_donation_threshold'] ?? 1000);
 
-        if ($largeDonationEnabled && (float) $this->donation->gross_amount >= $largeThreshold) {
+        $amount = (float) ($this->donation->base_amount ?? $this->donation->gross_amount);
+
+        if ($largeDonationEnabled && $amount >= $largeThreshold) {
             return;
         }
 
