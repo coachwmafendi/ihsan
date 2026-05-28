@@ -5,6 +5,7 @@ namespace App\Actions\Stripe;
 use App\Enums\SubscriptionStatus;
 use App\Models\Subscription;
 use Stripe\Price;
+use Stripe\SetupIntent;
 use Stripe\Stripe;
 use Stripe\Subscription as StripeSubscription;
 use Stripe\SubscriptionItem;
@@ -71,7 +72,7 @@ class ManageStripeSubscription
         ]);
     }
 
-    public function changeAmount(Subscription $subscription, float $newAmount): void
+    public function changeAmount(Subscription $subscription, float $newAmount, ?string $interval = null): void
     {
         Stripe::setApiKey(config('services.stripe.secret'));
 
@@ -92,11 +93,13 @@ class ManageStripeSubscription
         $product = $subscriptionItem->price->product;
         $productId = is_string($product) ? $product : $product->id;
 
+        $effectiveInterval = $interval ?? $subscription->interval->value;
+
         $price = Price::create([
             'product' => $productId,
             'unit_amount' => (int) ($newAmount * 100),
             'currency' => strtolower($subscription->currency ?? 'myr'),
-            'recurring' => ['interval' => 'month'],
+            'recurring' => ['interval' => $this->stripeInterval($effectiveInterval)],
         ], $stripeOptions);
 
         SubscriptionItem::update($subscriptionItem->id, [
@@ -110,9 +113,59 @@ class ManageStripeSubscription
         ]);
     }
 
+    public function createSetupIntent(Subscription $subscription): string
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        $subscription->loadMissing('campaign.organization');
+        $stripeOptions = $this->stripeOptions($subscription);
+
+        $stripeSubscription = StripeSubscription::retrieve(
+            $subscription->stripe_subscription_id,
+            $stripeOptions,
+        );
+
+        $setupIntent = SetupIntent::create([
+            'customer' => $stripeSubscription->customer,
+            'usage' => 'off_session',
+        ], $stripeOptions);
+
+        return $setupIntent->client_secret;
+    }
+
+    public function updatePaymentMethod(Subscription $subscription, string $paymentMethodId): void
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        $subscription->loadMissing('campaign.organization');
+        $stripeOptions = $this->stripeOptions($subscription);
+
+        StripeSubscription::update($subscription->stripe_subscription_id, [
+            'default_payment_method' => $paymentMethodId,
+        ], $stripeOptions);
+
+        $donor = $subscription->donor;
+        if ($donor && $donor->stripe_customer_id === null) {
+            $stripeSubscription = StripeSubscription::retrieve(
+                $subscription->stripe_subscription_id,
+                $stripeOptions,
+            );
+            $donor->update(['stripe_customer_id' => $stripeSubscription->customer]);
+        }
+    }
+
     /**
      * @return array<string, string>
      */
+    private function stripeInterval(string $interval): string
+    {
+        return match ($interval) {
+            'weekly' => 'week',
+            'yearly' => 'year',
+            default => 'month',
+        };
+    }
+
     private function stripeOptions(Subscription $subscription): array
     {
         $organization = $subscription->campaign->organization;

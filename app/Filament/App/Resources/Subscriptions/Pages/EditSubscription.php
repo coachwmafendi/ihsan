@@ -3,13 +3,19 @@
 namespace App\Filament\App\Resources\Subscriptions\Pages;
 
 use App\Actions\Stripe\ManageStripeSubscription;
+use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Filament\App\Resources\Subscriptions\SubscriptionResource;
 use App\Models\Subscription;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Stripe\BillingPortal\Session as BillingPortalSession;
+use Stripe\Stripe;
+use Stripe\Subscription as StripeSubscription;
 
 class EditSubscription extends EditRecord
 {
@@ -18,6 +24,81 @@ class EditSubscription extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('changeAmount')
+                ->label('Change Amount')
+                ->icon('heroicon-o-currency-dollar')
+                ->color('primary')
+                ->form([
+                    TextInput::make('new_amount')
+                        ->label('New Amount')
+                        ->required()
+                        ->numeric()
+                        ->prefix(fn () => strtoupper($this->record->currency ?? 'MYR')),
+                    Select::make('new_interval')
+                        ->label('Interval')
+                        ->options(SubscriptionInterval::class)
+                        ->default(fn () => $this->record->interval->value),
+                ])
+                ->action(function (array $data) {
+                    try {
+                        app(ManageStripeSubscription::class)->changeAmount(
+                            $this->record,
+                            (float) $data['new_amount'],
+                            $data['new_interval']?->value ?? null,
+                        );
+
+                        $this->refreshFormData(['amount', 'stripe_price_id']);
+
+                        Notification::make()
+                            ->title('Subscription amount updated successfully.')
+                            ->success()
+                            ->send();
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('Failed to update amount: '.$e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                })
+                ->hidden(fn () => $this->record->status === SubscriptionStatus::Cancelled),
+            Action::make('updatePaymentMethod')
+                ->label('Update Payment Method')
+                ->icon('heroicon-o-credit-card')
+                ->color('info')
+                ->requiresConfirmation()
+                ->action(function () {
+                    try {
+                        $subscription = $this->record;
+                        $subscription->loadMissing('campaign.organization');
+
+                        Stripe::setApiKey(config('services.stripe.secret'));
+
+                        $org = $subscription->campaign->organization;
+                        $stripeOptions = [];
+                        if ($org?->stripe_account_id && $org->stripe_onboarded) {
+                            $stripeOptions['stripe_account'] = $org->stripe_account_id;
+                        }
+
+                        $stripeSubscription = StripeSubscription::retrieve(
+                            $subscription->stripe_subscription_id,
+                            $stripeOptions,
+                        );
+                        $customerId = $stripeSubscription->customer;
+
+                        $session = BillingPortalSession::create([
+                            'customer' => $customerId,
+                            'return_url' => url()->current(),
+                        ], $stripeOptions);
+
+                        $this->redirect($session->url);
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('Failed to open payment portal: '.$e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                })
+                ->hidden(fn () => $this->record->status === SubscriptionStatus::Cancelled),
             Action::make('cancel')
                 ->label('Cancel')
                 ->icon('heroicon-o-x-circle')
@@ -57,9 +138,7 @@ class EditSubscription extends EditRecord
                             ->send();
                     }
                 })
-                ->hidden(fn () => in_array($this->record->status, [
-                    SubscriptionStatus::Cancelled,
-                ])),
+                ->hidden(fn () => $this->record->status === SubscriptionStatus::Cancelled),
             Action::make('pause')
                 ->label('Pause')
                 ->icon('heroicon-o-pause-circle')
@@ -111,22 +190,6 @@ class EditSubscription extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        if (isset($data['amount']) && (float) $data['amount'] !== (float) ($this->record->amount ?? 0)) {
-            try {
-                app(ManageStripeSubscription::class)->changeAmount(
-                    $this->record,
-                    (float) $data['amount'],
-                );
-            } catch (\Exception $e) {
-                Notification::make()
-                    ->title('Failed to update amount in Stripe: '.$e->getMessage())
-                    ->danger()
-                    ->send();
-
-                $this->halt();
-            }
-        }
-
         return $data;
     }
 }

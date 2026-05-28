@@ -42,11 +42,15 @@ class SubscriptionForm
                             ->required()
                             ->searchable()
                             ->preload()
+                            ->disabled()
+                            ->dehydrated()
                             ->columnSpan(['md' => 2, 'xl' => 3]),
                         TextInput::make('amount')
                             ->required()
                             ->numeric()
-                            ->prefix('MYR'),
+                            ->disabled()
+                            ->dehydrated()
+                            ->prefix(fn ($record) => strtoupper($record?->currency ?? 'MYR')),
                         Select::make('interval')
                             ->required()
                             ->options(SubscriptionInterval::class)
@@ -54,7 +58,9 @@ class SubscriptionForm
                             ->dehydrated(),
                         Select::make('status')
                             ->required()
-                            ->options(SubscriptionStatus::class),
+                            ->options(SubscriptionStatus::class)
+                            ->disabled()
+                            ->dehydrated(),
                         TextInput::make('stripe_subscription_id')
                             ->label('Stripe Subscription ID')
                             ->disabled()
