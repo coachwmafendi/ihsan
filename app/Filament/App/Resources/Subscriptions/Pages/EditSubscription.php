@@ -3,14 +3,11 @@
 namespace App\Filament\App\Resources\Subscriptions\Pages;
 
 use App\Actions\Stripe\ManageStripeSubscription;
-use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Filament\App\Resources\Subscriptions\SubscriptionResource;
 use App\Models\Subscription;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
@@ -31,44 +28,6 @@ class EditSubscription extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('changeAmount')
-                ->label('Change Amount')
-                ->icon('heroicon-o-currency-dollar')
-                ->color('primary')
-                ->modalWidth('sm')
-                ->form([
-                    TextInput::make('new_amount')
-                        ->label('New Amount')
-                        ->required()
-                        ->numeric()
-                        ->prefix(fn () => strtoupper($this->record->currency ?? 'MYR')),
-                    Select::make('new_interval')
-                        ->label('Interval')
-                        ->options(SubscriptionInterval::class)
-                        ->default(fn () => $this->record->interval->value),
-                ])
-                ->action(function (array $data) {
-                    try {
-                        app(ManageStripeSubscription::class)->changeAmount(
-                            $this->record,
-                            (float) $data['new_amount'],
-                            $data['new_interval']?->value ?? null,
-                        );
-
-                        $this->refreshFormData(['amount', 'stripe_price_id']);
-
-                        Notification::make()
-                            ->title('Subscription amount updated successfully.')
-                            ->success()
-                            ->send();
-                    } catch (\Exception $e) {
-                        Notification::make()
-                            ->title('Failed to update amount: '.$e->getMessage())
-                            ->danger()
-                            ->send();
-                    }
-                })
-                ->hidden(fn () => $this->record->status === SubscriptionStatus::Cancelled),
             Action::make('updatePaymentDetails')
                 ->label('Update Payment Details')
                 ->icon('heroicon-o-credit-card')
