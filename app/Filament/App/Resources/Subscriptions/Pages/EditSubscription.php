@@ -44,12 +44,8 @@ class EditSubscription extends EditRecord
                         $this->paymentClientSecret = app(ManageStripeSubscription::class)
                             ->createSetupIntent($this->record);
                     } catch (\Exception $e) {
-                        Notification::make()
-                            ->title('Failed to initialise payment form: '.$e->getMessage())
-                            ->danger()
-                            ->send();
-
-                        $this->halt();
+                        // Still open modal even if setup intent fails
+                        $this->paymentClientSecret = null;
                     }
                 })
                 ->hidden(fn () => $this->record->status === SubscriptionStatus::Cancelled),
