@@ -84,7 +84,7 @@
                 ];
                 $iconPath = $icons[$config['icon'] ?? 'heart'] ?? $icons['heart'];
             @endphp
-            <div class="relative flex min-h-[160px] w-full items-center justify-center rounded-lg border-2 border-dashed border-zinc-200 bg-white/60">
+            <div class="relative flex min-h-[220px] w-full items-center justify-center rounded-lg border-2 border-dashed border-zinc-200 bg-white/60">
                 <div
                     class="inline-flex items-center justify-center gap-2 text-white shadow-lg"
                     style="background:{{ $previewColor }};width:{{ $sz['size'] }};height:{{ $sz['size'] }};font-size:{{ $sz['font'] }};border-radius:{{ $radius }};{{ $isPill ? 'padding:0 20px;width:auto;min-width:'.$sz['size'] : '' }}"
