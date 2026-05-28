@@ -114,8 +114,7 @@ class DonationForm extends Component
             $this->element = $element->loadMissing(['campaign.organization']);
             $this->amount = $this->config('default_amount', $this->suggestedAmounts()[0] ?? 5);
             $this->frequency = $this->config('default_frequency', $this->config('allow_monthly', true) ? 'monthly' : 'one_time');
-            $this->isEmbed = request()->query('embed') !== null;
-            $this->isPopup = $element->type === ElementType::Popup || request()->query('popup') !== null || (bool) $this->config('display_as_popup', false);
+            $this->setElementPresentationMode($element);
         } elseif ($campaign instanceof Campaign) {
             abort_if(
                 $campaign->status !== CampaignStatus::Active || ! $campaign->checkout_modal_enabled,
@@ -125,8 +124,7 @@ class DonationForm extends Component
             $this->campaign = $campaign->loadMissing(['organization']);
             $this->amount = $this->suggestedAmounts()[0] ?? 5;
             $this->frequency = $this->config('allow_monthly', true) ? 'monthly' : 'one_time';
-            $this->isEmbed = request()->query('embed') !== null;
-            $this->isPopup = request()->query('popup') !== null;
+            $this->setCampaignPresentationMode();
         } elseif ($this->element !== null) {
             // Direct initialization (tests) via pre-set property
             $element = $this->element;
@@ -138,8 +136,7 @@ class DonationForm extends Component
             $this->element = $element->loadMissing(['campaign.organization']);
             $this->amount = $this->config('default_amount', $this->suggestedAmounts()[0] ?? 5);
             $this->frequency = $this->config('default_frequency', $this->config('allow_monthly', true) ? 'monthly' : 'one_time');
-            $this->isEmbed = request()->query('embed') !== null;
-            $this->isPopup = $element->type === ElementType::Popup || request()->query('popup') !== null || (bool) $this->config('display_as_popup', false);
+            $this->setElementPresentationMode($element);
         } elseif ($this->campaign !== null) {
             // Direct initialization (tests) via pre-set property
             $campaign = $this->campaign;
@@ -151,11 +148,24 @@ class DonationForm extends Component
             $this->campaign = $campaign->loadMissing(['organization']);
             $this->amount = $this->suggestedAmounts()[0] ?? 5;
             $this->frequency = $this->config('allow_monthly', true) ? 'monthly' : 'one_time';
-            $this->isEmbed = request()->query('embed') !== null;
-            $this->isPopup = request()->query('popup') !== null;
+            $this->setCampaignPresentationMode();
         } else {
             abort(404);
         }
+    }
+
+    private function setElementPresentationMode(Element $element): void
+    {
+        $this->isEmbed = request()->query('embed') !== null;
+        $this->isPopup = $element->type === ElementType::Popup
+            || request()->query('popup') !== null
+            || (bool) $this->config('display_as_popup', false);
+    }
+
+    private function setCampaignPresentationMode(): void
+    {
+        $this->isEmbed = request()->query('embed') !== null;
+        $this->isPopup = request()->query('popup') !== null;
     }
 
     public function selectAmount(int $amount): void

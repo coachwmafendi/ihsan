@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DonationStatus;
+use App\Enums\ElementType;
 use App\Enums\SubscriptionStatus;
+use App\Models\Campaign;
 use App\Models\Donor;
+use App\Models\Element;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Support\Currency;
@@ -48,6 +51,47 @@ class DonorPortalController extends Controller
                 return [$currency => Currency::symbol($currency).' '.number_format((float) $total, 2)];
             })
             ->toArray();
+    }
+
+    /**
+     * @return array{href: string, desktop: string, mobile: string}
+     */
+    private function donationModalUrlsFor(?Campaign $campaign): array
+    {
+        if ($campaign === null) {
+            $home = route('home');
+
+            return ['href' => $home, 'desktop' => $home, 'mobile' => $home];
+        }
+
+        $elements = Element::query()
+            ->where('campaign_id', $campaign->getKey())
+            ->where('is_active', true)
+            ->get();
+
+        foreach ([ElementType::Form, ElementType::Button, ElementType::Popup, ElementType::FloatingButton] as $type) {
+            $element = $elements->firstWhere('type', $type);
+
+            if ($element !== null) {
+                return [
+                    'href' => route('donations.show', ['element' => $element, 'popup' => 1]),
+                    'desktop' => route('donations.show', $element),
+                    'mobile' => route('donations.show', $element),
+                ];
+            }
+        }
+
+        if (! $campaign->checkout_modal_enabled) {
+            $home = route('home');
+
+            return ['href' => $home, 'desktop' => $home, 'mobile' => $home];
+        }
+
+        return [
+            'href' => route('donations.campaign-show', ['campaign' => $campaign, 'popup' => 1]),
+            'desktop' => route('donations.campaign-show', $campaign),
+            'mobile' => route('donations.campaign-show', $campaign),
+        ];
     }
 
     public function dashboard(Organization $organization)
@@ -113,10 +157,15 @@ class DonorPortalController extends Controller
             ->latest()
             ->limit(5)
             ->get();
+        $latestCampaign = $recentDonations->first()?->campaign;
+        $donationModalUrls = $this->donationModalUrlsFor($latestCampaign);
 
         return view('donor.dashboard', [
             'donor' => $donor,
             'organization' => $organization,
+            'donationModalUrl' => $donationModalUrls['href'],
+            'donationModalDesktopUrl' => $donationModalUrls['desktop'],
+            'donationModalMobileUrl' => $donationModalUrls['mobile'],
             'totalGiven' => $totalGiven,
             'currencyBreakdown' => $currencyBreakdown,
             'activeSubscriptions' => $activeSubscriptions,

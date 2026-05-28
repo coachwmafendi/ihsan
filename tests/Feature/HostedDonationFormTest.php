@@ -120,6 +120,7 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertSee(route('donations.campaign-image', $element), false)
         ->assertSee('Donate monthly')
         ->assertSee('lg:max-w-6xl', false)
+        ->assertSee('bg-black/35 backdrop-blur-[1px]', false)
         ->assertSee('lg:grid-cols-[minmax(0,1fr)_440px]', false)
         ->assertSee('lg:border-r lg:border-slate-200', false);
 

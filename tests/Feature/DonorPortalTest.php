@@ -1,10 +1,12 @@
 <?php
 
 use App\Enums\DonationStatus;
+use App\Enums\ElementType;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\Element;
 use App\Models\Organization;
 use App\Models\Subscription;
 
@@ -126,6 +128,62 @@ it('renders dashboard with stats and activity sections', function () {
         ->assertSee('Monthly Giving')
         ->assertSee('By Campaign')
         ->assertSee('Recent Activity');
+});
+
+it('opens new donation modal with a form element token when one exists for the latest campaign', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $org->getKey(),
+        'checkout_modal_enabled' => true,
+    ]);
+    $buttonElement = Element::factory()->create([
+        'organization_id' => $org->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'type' => ElementType::Button,
+        'token' => 'BTN123',
+    ]);
+    $formElement = Element::factory()->create([
+        'organization_id' => $org->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'type' => ElementType::Form,
+        'token' => 'FORM123',
+    ]);
+
+    Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.dashboard', $org))
+        ->assertOk()
+        ->assertSee(route('donations.show', ['element' => $formElement, 'popup' => 1]), false)
+        ->assertSee(route('donations.show', $formElement), false)
+        ->assertDontSee(route('donations.show', ['element' => $buttonElement, 'popup' => 1]), false)
+        ->assertDontSee(route('donations.campaign-show', ['campaign' => $campaign, 'popup' => 1]), false);
+});
+
+it('falls back to a campaign modal url when no active element exists for the latest campaign', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $org->getKey(),
+        'checkout_modal_enabled' => true,
+    ]);
+
+    Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.dashboard', $org))
+        ->assertOk()
+        ->assertSee(route('donations.campaign-show', ['campaign' => $campaign, 'popup' => 1]), false)
+        ->assertSee(route('donations.campaign-show', $campaign), false);
 });
 
 it('renders donations page with stats and card list', function () {

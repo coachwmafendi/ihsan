@@ -21,26 +21,59 @@
         <div class="h-64 animate-pulse rounded-xl bg-slate-100" style="border:1.5px solid transparent;"></div>
     </div>
 </div>
-<div>
+<div x-data="{
+        donationModalOpen: false,
+        donationModalDesktopUrl: @js($donationModalDesktopUrl),
+        donationModalMobileUrl: @js($donationModalMobileUrl),
+        donationModalUrl() {
+            return window.matchMedia('(min-width: 768px)').matches
+                ? this.donationModalDesktopUrl
+                : this.donationModalMobileUrl;
+        },
+    }"
+     @message.window="if ($event.data && $event.data.type === 'donation-popup-close') donationModalOpen = false">
     <div class="mb-8">
         <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Hi, {{ $donor->name }} <span class="ml-1">👋</span></h1>
         <p class="mt-1 text-sm font-bold text-slate-600">
             Welcome to the <span class="uppercase">{{ $organization->name }}</span> Donor Portal
         </p>
 
-        @php
-            $latestCampaign = $recentDonations->first()?->campaign;
-            $donationUrl = $latestCampaign !== null
-                ? route('donations.campaign-show', $latestCampaign)
-                : route('home');
-        @endphp
-        <a href="{{ $donationUrl }}"
+        <a href="{{ $donationModalUrl }}"
+           @click.prevent="donationModalOpen = true"
            class="mt-6 inline-flex items-center gap-2.5 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900">
             <svg class="h-5 w-5 text-rose-500" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
             </svg>
             Make a new donation
         </a>
+
+        <div x-show="donationModalOpen"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+             role="dialog"
+             aria-modal="true"
+             @click.self="donationModalOpen = false"
+             @keydown.escape.window="donationModalOpen = false">
+            <div class="relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl md:max-w-2xl"
+                 @click.outside="donationModalOpen = false">
+                <button type="button"
+                        class="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-slate-900/10 text-xl leading-none text-slate-600 transition hover:bg-slate-900/15 hover:text-slate-900"
+                        aria-label="Close donation form"
+                        @click="donationModalOpen = false">
+                    &times;
+                </button>
+                <iframe :src="donationModalOpen ? donationModalUrl() : 'about:blank'"
+                        title="Donation form"
+                        class="h-[80vh] w-full border-0"
+                        allow="payment *"></iframe>
+            </div>
+        </div>
     </div>
 
     <div class="mb-6 grid grid-cols-3 gap-3">

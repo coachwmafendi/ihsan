@@ -12,7 +12,7 @@
             x-on:close-popup.window="close()"
             class="fixed inset-0 z-50 flex items-center justify-center p-4"
         >
-            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close()"></div>
+            <div class="absolute inset-0 bg-black/35 backdrop-blur-[1px]" @click="close()"></div>
 
             <div class="relative w-full max-w-xl lg:max-w-6xl">
                 <button
