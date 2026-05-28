@@ -26,3 +26,4 @@ node_modules
 public/icons/
 .playwright-mcp/
 tests/Feature/TmpWebhookTest.php
+.worktrees/
