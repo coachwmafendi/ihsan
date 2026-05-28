@@ -5,10 +5,6 @@ namespace App\Filament\App\Resources\Campaigns\RelationManagers;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Support\Currency;
-use Filament\Actions\AssociateAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DissociateAction;
-use Filament\Actions\DissociateBulkAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -122,17 +118,6 @@ class SubscriptionsRelationManager extends RelationManager
             ])
             ->filters([
                 //
-            ])
-            ->headerActions([
-                AssociateAction::make()->label('Kaitkan langganan'),
-            ])
-            ->recordActions([
-                DissociateAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DissociateBulkAction::make(),
-                ]),
             ]);
     }
 }
