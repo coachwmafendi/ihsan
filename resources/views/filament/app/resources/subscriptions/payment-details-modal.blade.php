@@ -17,13 +17,9 @@
         stripe: null,
         cardElement: null,
 
-        init() {
-            this.$watch('paymentMethod', (value) => {
-                if (value === 'new') {
-                    setTimeout(() => this.mountCardElement(), 100);
-                }
-            });
-        },
+                init() {
+                    // Card element mounts via x-init on the container div
+                },
 
         mountCardElement() {
             if (!this.clientSecret || this.cardElement) return;
@@ -205,13 +201,12 @@
             </label>
         </div>
 
-        <template x-if="paymentMethod === 'new'">
-            <div
-                x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 transform scale-95"
-                x-transition:enter-end="opacity-100 transform scale-100"
-                class="mt-4 space-y-4 rounded-xl bg-gray-50 p-5"
-            >
+        <div
+            x-show="paymentMethod === 'new'"
+            x-cloak
+            x-init="$nextTick(() => { if (paymentMethod === 'new') mountCardElement(); })"
+            class="mt-4 space-y-4 rounded-xl bg-gray-50 p-5"
+        >
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-2">Card details</label>
                     <div
@@ -233,7 +228,6 @@
                     Payment method saved successfully.
                 </div>
             </div>
-        </template>
     </div>
 
     {{-- Info Box --}}
