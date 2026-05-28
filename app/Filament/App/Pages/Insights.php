@@ -203,7 +203,7 @@ class Insights extends Page
             $successfulDonations->where('type', $this->frequencyFilter === 'one_time' ? DonationType::OneTime : DonationType::Recurring);
         }
 
-        $this->totalRaised = $this->formatMoney((float) (clone $successfulDonations)->sum('gross_amount'));
+        $this->totalRaised = $this->formatMoney((float) (clone $successfulDonations)->sum('base_amount'));
 
         $this->monthlyRecurringRevenue = number_format((float) Subscription::query()
             ->whereIn('campaign_id', $campaignIds)
@@ -219,11 +219,11 @@ class Insights extends Page
 
         $this->oneTimeDonationsTotal = $this->formatMoney((float) (clone $successfulDonations)
             ->where('type', DonationType::OneTime)
-            ->sum('gross_amount'));
+            ->sum('base_amount'));
 
         $this->firstInstallmentsTotal = $this->formatMoney((float) (clone $successfulDonations)
             ->where('type', DonationType::Recurring)
-            ->sum('gross_amount'));
+            ->sum('base_amount'));
 
         $this->successfulDonationsCount = (clone $successfulDonations)->count();
 
@@ -240,7 +240,7 @@ class Insights extends Page
 
         $this->averageDonationAmount = $this->formatMoney($this->successfulDonationsCount === 0
             ? 0
-            : (float) (clone $successfulDonations)->sum('gross_amount') / $this->successfulDonationsCount);
+            : (float) (clone $successfulDonations)->sum('base_amount') / $this->successfulDonationsCount);
 
         $this->activeSubscriptionsCount = Subscription::query()
             ->whereIn('campaign_id', $campaignIds)
@@ -298,7 +298,7 @@ class Insights extends Page
         $amounts = $days->mapWithKeys(fn (string $date) => [
             $date => (float) $donations
                 ->filter(fn (Donation $donation) => $donation->created_at->toDateString() === $date)
-                ->sum('gross_amount'),
+                ->sum('base_amount'),
         ]);
 
         $max = max($amounts->max(), 1);
@@ -333,8 +333,8 @@ class Insights extends Page
         $this->applyDateFilter($recurringQuery, $dateStart);
 
         return [
-            ['label' => 'One-time', 'value' => 'MYR '.$this->formatMoney((float) $oneTimeQuery->sum('gross_amount'))],
-            ['label' => 'Recurring', 'value' => 'MYR '.$this->formatMoney((float) $recurringQuery->sum('gross_amount'))],
+            ['label' => 'One-time', 'value' => 'MYR '.$this->formatMoney((float) $oneTimeQuery->sum('base_amount'))],
+            ['label' => 'Recurring', 'value' => 'MYR '.$this->formatMoney((float) $recurringQuery->sum('base_amount'))],
         ];
     }
 
@@ -372,7 +372,9 @@ class Insights extends Page
             ->map(fn (Donation $donation): array => [
                 'donor' => $donation->donor->name,
                 'campaign' => $donation->campaign->title,
-                'amount' => 'MYR '.$this->formatMoney((float) $donation->gross_amount),
+                'amount' => $donation->currency !== 'myr' && $donation->base_amount !== null
+                    ? '≈ MYR '.$this->formatMoney((float) $donation->base_amount)
+                    : 'MYR '.$this->formatMoney((float) $donation->gross_amount),
                 'type' => str($donation->type->value)->headline()->toString(),
             ])
             ->all();
@@ -387,7 +389,7 @@ class Insights extends Page
         $donations = Donation::query()
             ->whereIn('campaign_id', $campaignIds)
             ->where('created_at', '>=', now()->subMonths(12)->startOfMonth())
-            ->get(['created_at', 'gross_amount', 'status']);
+            ->get(['created_at', 'base_amount', 'status']);
 
         $months = collect(range(11, 0))
             ->map(fn (int $i) => now()->subMonthsNoOverflow($i)->format('Y-m'));
@@ -399,7 +401,7 @@ class Insights extends Page
             ->values()
             ->map(function (string $month) use ($grouped) {
                 $monthDonations = $grouped->get($month, collect());
-                $total = (float) $monthDonations->where('status', DonationStatus::Succeeded)->sum('gross_amount');
+                $total = (float) $monthDonations->where('status', DonationStatus::Succeeded)->sum('base_amount');
                 $totalCount = $monthDonations->count();
                 $successCount = $monthDonations->where('status', DonationStatus::Succeeded)->count();
 
@@ -427,7 +429,7 @@ class Insights extends Page
 
         return Donation::query()
             ->selectRaw('campaign_id')
-            ->selectRaw('SUM(CASE WHEN status = ? THEN gross_amount ELSE 0 END) as total', [DonationStatus::Succeeded->value])
+            ->selectRaw('SUM(CASE WHEN status = ? THEN base_amount ELSE 0 END) as total', [DonationStatus::Succeeded->value])
             ->selectRaw('COUNT(*) as total_count')
             ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as success_count', [DonationStatus::Succeeded->value])
             ->whereIn('campaign_id', $campaignIds)
@@ -651,7 +653,7 @@ class Insights extends Page
         return Donation::query()
             ->selectRaw('payment_method_type')
             ->selectRaw('COUNT(*) as count')
-            ->selectRaw('SUM(gross_amount) as total_amount')
+            ->selectRaw('SUM(base_amount) as total_amount')
             ->whereIn('campaign_id', $campaignIds)
             ->where('status', DonationStatus::Succeeded)
             ->whereNotNull('payment_method_type')
@@ -698,7 +700,7 @@ class Insights extends Page
             ->selectRaw('campaign_id')
             ->selectRaw('COUNT(*) as total_donations')
             ->selectRaw('COUNT(CASE WHEN status = ? THEN 1 END) as successful_count', [DonationStatus::Succeeded->value])
-            ->selectRaw('SUM(CASE WHEN status = ? THEN gross_amount ELSE 0 END) as total_amount', [DonationStatus::Succeeded->value])
+            ->selectRaw('SUM(CASE WHEN status = ? THEN base_amount ELSE 0 END) as total_amount', [DonationStatus::Succeeded->value])
             ->whereIn('campaign_id', $campaignIds)
             ->when($dateStart !== null, fn ($q) => $q->where('created_at', '>=', $dateStart))
             ->groupBy('campaign_id')
