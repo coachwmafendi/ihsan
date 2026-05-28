@@ -50,7 +50,9 @@
             appearance: { theme: 'stripe' },
         });
 
-        const card = elements.create('payment');
+        const card = elements.create('payment', {
+            paymentMethodTypes: ['card'],
+        });
         card.mount('#stripe-card-element');
 
         card.on('change', (event) => {
@@ -362,12 +364,13 @@
      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
      @click.self="paymentModal = null"
      x-transition.opacity>
-    <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" @click.stop>
         <h3 class="text-base font-black text-slate-900">Update Card Details</h3>
-        <p class="mt-1 text-xs text-slate-500">Enter your new card information below.</p>
-        <div class="mt-4">
-            <div id="stripe-card-element" class="rounded-lg border border-gray-300 p-3"></div>
-            <div id="stripe-card-errors" class="mt-2 text-sm text-danger-600"></div>
+        <div class="max-h-[28rem] overflow-y-auto">
+            <div class="mt-4">
+                <div id="stripe-card-element" class="rounded-lg border border-gray-300 p-3"></div>
+                <div id="stripe-card-errors" class="mt-2 text-sm text-danger-600"></div>
+            </div>
         </div>
         <div x-show="paymentLoading" class="mt-2 text-xs text-slate-500">Processing...</div>
         <div x-show="paymentSuccess" class="mt-2 rounded-lg bg-emerald-50 p-3 text-xs font-bold text-emerald-700">

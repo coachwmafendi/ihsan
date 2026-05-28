@@ -57,7 +57,9 @@
                         },
                     });
 
-                    const card = this.elements.create('payment');
+                    const card = this.elements.create('payment', {
+                        paymentMethodTypes: ['card'],
+                    });
                     card.mount('#stripe-card-element');
 
                     card.on('change', (event) => {
