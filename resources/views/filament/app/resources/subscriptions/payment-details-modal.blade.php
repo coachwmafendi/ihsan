@@ -25,8 +25,21 @@
     {{-- Frequency --}}
     <div class="flex items-center gap-4">
         <label class="w-32 text-right text-sm font-medium text-gray-700">Frequency</label>
-        <select class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm focus:border-primary-500 focus:ring-primary-500" disabled>
-            <option>{{ ucfirst($record->interval->value) }}</option>
+        <select class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm focus:border-primary-500 focus:ring-primary-500">
+            @php
+                $frequencies = [
+                    'one_time' => 'One Time',
+                    'weekly' => 'Weekly',
+                    'monthly' => 'Monthly',
+                    'yearly' => 'Yearly',
+                ];
+                $currentInterval = $record->interval->value;
+            @endphp
+            @foreach ($frequencies as $value => $label)
+                <option value="{{ $value }}" {{ $currentInterval === $value ? 'selected' : '' }}>
+                    {{ $label }}
+                </option>
+            @endforeach
         </select>
     </div>
 
