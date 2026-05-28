@@ -6,18 +6,13 @@
         @livewireStyles
     </head>
     <body class="min-h-screen text-slate-950 antialiased">
-        <div
-            x-data="popupModal()"
-            x-init="init()"
-            x-on:close-popup.window="close()"
-            class="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
-            <div class="absolute inset-0 bg-black/35 backdrop-blur-[1px]" @click="close()"></div>
+        <div id="popup-container" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div id="popup-backdrop" class="absolute inset-0 bg-black/35 backdrop-blur-[1px]" onclick="closePopup()"></div>
 
             <div class="relative w-full max-w-xl lg:max-w-6xl">
                 <button
                     type="button"
-                    @click="close()"
+                    onclick="closePopup()"
                     class="absolute -right-3 -top-3 z-10 flex size-8 items-center justify-center rounded-full bg-white text-slate-400 shadow-lg transition hover:bg-slate-100 hover:text-slate-600"
                     aria-label="Close"
                 >
@@ -26,7 +21,7 @@
                     </svg>
                 </button>
 
-                <div class="max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl bg-white shadow-2xl">
+                <div id="popup-inner" class="max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl bg-white shadow-2xl">
                     {{ $slot }}
                 </div>
             </div>
@@ -37,20 +32,36 @@
         <script>
             window.stripePublishableKey = '{{ config('services.stripe.key') }}';
 
-            function popupModal() {
-                return {
-                    init() {
-                        this.$dispatch('popup-opened');
-                    },
-                    close() {
-                        if (window.parent !== window) {
-                            window.parent.postMessage({ type: 'donation-popup-close' }, '*');
-                        } else if (window.opener) {
-                            window.close();
-                        } else {
-                            window.history.back();
-                        }
-                    }
+            if (window.self !== window.top) {
+                var container = document.getElementById('popup-container');
+                container.className = 'h-full w-full';
+                container.style.removeProperty('position');
+                container.style.removeProperty('z-index');
+
+                var backdrop = document.getElementById('popup-backdrop');
+                if (backdrop) backdrop.remove();
+
+                container.querySelector('button[onclick="closePopup()"]')?.remove();
+
+                var inner = document.getElementById('popup-inner');
+                if (inner) {
+                    inner.className = 'h-full w-full';
+                    inner.style.removeProperty('max-height');
+                    inner.style.removeProperty('overflow');
+                    inner.style.removeProperty('border-radius');
+                    inner.style.removeProperty('box-shadow');
+                }
+
+                document.body.classList.add('bg-white');
+            }
+
+            function closePopup() {
+                if (window.parent !== window) {
+                    window.parent.postMessage({ type: 'donation-popup-close' }, '*');
+                } else if (window.opener) {
+                    window.close();
+                } else {
+                    window.history.back();
                 }
             }
         </script>

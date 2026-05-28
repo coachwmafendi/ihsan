@@ -75,7 +75,7 @@ class DonorPortalController extends Controller
             if ($element !== null) {
                 return [
                     'href' => route('donations.show', ['element' => $element, 'popup' => 1]),
-                    'desktop' => route('donations.show', $element),
+                    'desktop' => route('donations.show', ['element' => $element, 'popup' => 1]),
                     'mobile' => route('donations.show', $element),
                 ];
             }
@@ -89,7 +89,7 @@ class DonorPortalController extends Controller
 
         return [
             'href' => route('donations.campaign-show', ['campaign' => $campaign, 'popup' => 1]),
-            'desktop' => route('donations.campaign-show', $campaign),
+            'desktop' => route('donations.campaign-show', ['campaign' => $campaign, 'popup' => 1]),
             'mobile' => route('donations.campaign-show', $campaign),
         ];
     }

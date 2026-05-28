@@ -49,28 +49,31 @@
 
         <div x-show="donationModalOpen"
              x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
              x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
              x-cloak
-             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+             class="fixed inset-0 z-[9999] flex bg-black/40 px-4 py-4"
              role="dialog"
              aria-modal="true"
              @click.self="donationModalOpen = false"
              @keydown.escape.window="donationModalOpen = false">
-            <div class="relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl md:max-w-2xl"
-                 @click.outside="donationModalOpen = false">
-                <button type="button"
-                        class="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-slate-900/10 text-xl leading-none text-slate-600 transition hover:bg-slate-900/15 hover:text-slate-900"
-                        aria-label="Close donation form"
-                        @click="donationModalOpen = false">
-                    &times;
-                </button>
+            <div class="relative mx-auto flex w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white/80 backdrop-blur-xl shadow-2xl">
+                <div class="flex items-center justify-end border-b border-slate-100 px-4 py-2">
+                    <button type="button"
+                            class="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                            aria-label="Close donation form"
+                            @click="donationModalOpen = false">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
                 <iframe :src="donationModalOpen ? donationModalUrl() : 'about:blank'"
                         title="Donation form"
-                        class="h-[80vh] w-full border-0"
+                        class="h-full w-full flex-1 border-0 min-h-[70vh]"
                         allow="payment *"></iframe>
             </div>
         </div>
