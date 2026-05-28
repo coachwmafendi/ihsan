@@ -16,8 +16,6 @@ class SyncDonationStripeDetails
      */
     public function sync(Donation $donation, ?StripePaymentIntent $paymentIntent = null, array $stripeOptions = []): array
     {
-        $shouldRetrieveMissingChargeDetails = $paymentIntent === null;
-
         $paymentIntent ??= StripePaymentIntent::retrieve([
             'id' => $donation->stripe_payment_intent_id,
             'expand' => ['latest_charge.balance_transaction'],
@@ -25,29 +23,16 @@ class SyncDonationStripeDetails
 
         [$cardBrand, $paymentMethodType, $donorCountry] = $this->paymentMethodDetails($paymentIntent, $stripeOptions);
 
-        // Calculate base_amount from exchange rate for non-MYR currencies
-        $baseCurrency = 'myr';
-        $baseAmount = (float) $donation->gross_amount;
+        $rawCharge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
+        $hasExpandedCharge = ! is_string($rawCharge) && ($rawCharge->balance_transaction ?? null) !== null;
+        $shouldRetrieveMissingChargeDetails = ! $hasExpandedCharge;
 
-        if (strtolower($donation->currency) !== 'myr') {
-            $charge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
-            if (! is_string($charge) && $charge !== null && ($charge->balance_transaction ?? null) !== null) {
-                $btId = is_string($charge->balance_transaction)
-                    ? $charge->balance_transaction
-                    : $charge->balance_transaction->id;
-
-                try {
-                    $bt = BalanceTransaction::retrieve($btId, $stripeOptions);
-                    if ($bt->exchange_rate !== null) {
-                        $baseAmount = round(((float) $donation->gross_amount) * ((float) $bt->exchange_rate), 2);
-                    }
-                } catch (\Exception $e) {
-                    // Fallback to 1:1 rate
-                }
-            }
-        }
-
-        [$chargeId, $stripeFee, $processingFee] = $this->chargeDetails($donation, $paymentIntent, $stripeOptions, $shouldRetrieveMissingChargeDetails, $baseAmount);
+        [$chargeId, $stripeFee, $processingFee, $baseAmount] = $this->chargeDetails(
+            $donation,
+            $paymentIntent,
+            $stripeOptions,
+            $shouldRetrieveMissingChargeDetails,
+        );
 
         $donation->update([
             'stripe_charge_id' => $chargeId,
@@ -56,7 +41,7 @@ class SyncDonationStripeDetails
             'payment_method_brand' => $cardBrand,
             'payment_method_type' => $paymentMethodType,
             'donor_country' => $donorCountry,
-            'base_currency' => $baseCurrency,
+            'base_currency' => 'myr',
             'base_amount' => $baseAmount,
             'net_amount' => (float) $baseAmount - $stripeFee,
         ]);
@@ -117,13 +102,27 @@ class SyncDonationStripeDetails
 
     /**
      * @param  array<string, string>  $stripeOptions
-     * @return array{0: string|null, 1: float, 2: float}
+     * @return array{0: string|null, 1: float, 2: float, 3: float}
      */
-    private function chargeDetails(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions, bool $shouldRetrieveMissingChargeDetails, float $baseAmount): array
+    private function chargeDetails(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions, bool $shouldRetrieveMissingChargeDetails): array
     {
         $charge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
         $charge = $this->retrieveCharge($charge, $stripeOptions, $shouldRetrieveMissingChargeDetails);
         $chargeId = is_string($charge) ? $charge : ($charge->id ?? null);
+
+        // Calculate base_amount from exchange rate for non-MYR currencies
+        $baseAmount = (float) $donation->gross_amount;
+
+        if (strtolower($donation->currency) !== 'myr') {
+            $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
+            if ($balanceTransaction !== null) {
+                $balanceTransaction = $this->retrieveBalanceTransaction($balanceTransaction, $stripeOptions);
+                if ($balanceTransaction->exchange_rate !== null) {
+                    $baseAmount = round(((float) $donation->gross_amount) * ((float) $balanceTransaction->exchange_rate), 2);
+                }
+            }
+        }
+
         $processingFee = round((float) $baseAmount * $this->processingFeePercent() / 100, 2);
         $stripeFee = 0.0;
         $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
@@ -133,7 +132,7 @@ class SyncDonationStripeDetails
             [$stripeFee, $processingFee] = $this->feesFromBalanceTransaction($balanceTransaction, $processingFee);
         }
 
-        return [$chargeId, $stripeFee, $processingFee];
+        return [$chargeId, $stripeFee, $processingFee, $baseAmount];
     }
 
     /**

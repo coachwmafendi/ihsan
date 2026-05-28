@@ -125,8 +125,7 @@ it('renders dashboard with stats and activity sections', function () {
         ->assertSee('Total Given')
         ->assertSee('Active Plans')
         ->assertSee('Monthly')
-        ->assertSee('Monthly Giving')
-        ->assertSee('By Campaign')
+        ->assertSee('Giving by Campaign')
         ->assertSee('Recent Activity');
 });
 

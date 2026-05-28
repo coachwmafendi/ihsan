@@ -151,6 +151,15 @@ class DonorPortalController extends Controller
                 });
             });
 
+        $campaignChartData = $this->scopeToOrg($donor->donations(), $organization)
+            ->where('donations.status', DonationStatus::Succeeded)
+            ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
+            ->selectRaw('campaigns.title as campaign, SUM(donations.gross_amount) as total')
+            ->groupBy('campaigns.title')
+            ->orderByDesc('total')
+            ->get()
+            ->values();
+
         $recentDonations = $this->scopeToOrg($donor->donations(), $organization)
             ->where('status', DonationStatus::Succeeded)
             ->with('campaign.organization')
@@ -172,6 +181,7 @@ class DonorPortalController extends Controller
             'monthlyRecurringFormatted' => $monthlyRecurringByCurrency,
             'monthlyDonations' => $monthlyDonations,
             'campaignBreakdown' => $campaignBreakdown,
+            'campaignChartData' => $campaignChartData,
             'recentDonations' => $recentDonations,
         ]);
     }
