@@ -188,12 +188,20 @@ class ManageStripeSubscription
             $updated = StripeSubscription::update($subscription->stripe_subscription_id, $stripeParams, $stripeOptions);
         }
 
-        $subscription->update([
+        $updateData = [
             'cover_fee' => (bool) $data['cover_fee'],
             'cancel_at' => $newCancelAt,
-            'current_period_start' => Carbon::createFromTimestamp($updated->current_period_start),
-            'current_period_end' => Carbon::createFromTimestamp($updated->current_period_end),
-        ]);
+        ];
+
+        if ($updated->current_period_start) {
+            $updateData['current_period_start'] = Carbon::createFromTimestamp($updated->current_period_start);
+        }
+
+        if ($updated->current_period_end) {
+            $updateData['current_period_end'] = Carbon::createFromTimestamp($updated->current_period_end);
+        }
+
+        $subscription->update($updateData);
     }
 
     public function createSetupIntent(Subscription $subscription): string

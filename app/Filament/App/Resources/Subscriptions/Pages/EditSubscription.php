@@ -156,7 +156,18 @@ class EditSubscription extends EditRecord
             ]);
 
             $this->record->refresh();
-            $this->fillForm();
+
+            $this->refreshFormData([
+                'amount',
+                'interval',
+                'stripe_price_id',
+                'current_period_start',
+                'current_period_end',
+                'cancel_at_period_end',
+                'status',
+                'paused_until',
+                'cancelled_at',
+            ]);
 
             Notification::make()
                 ->title('Subscription details updated.')
