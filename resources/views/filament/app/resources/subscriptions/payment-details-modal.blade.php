@@ -33,11 +33,25 @@
     {{-- Starting On --}}
     <div class="flex items-center gap-4">
         <label class="w-32 text-right text-sm font-medium text-gray-700">Starting on</label>
-        <select class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm focus:border-primary-500 focus:ring-primary-500" disabled>
+        <select class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm focus:border-primary-500 focus:ring-primary-500">
             @php
-                $startDate = $record->current_period_start ?? $record->created_at;
+                function ordinal(int $number): string {
+                    $suffix = match (true) {
+                        in_array($number % 100, [11, 12, 13]) => 'th',
+                        $number % 10 === 1 => 'st',
+                        $number % 10 === 2 => 'nd',
+                        $number % 10 === 3 => 'rd',
+                        default => 'th',
+                    };
+                    return $number.$suffix;
+                }
+                $currentDay = ($record->current_period_start ?? $record->created_at)?->format('j') ?? 19;
             @endphp
-            <option>{{ $startDate?->format('jS') }}</option>
+            @for ($day = 1; $day <= 31; $day++)
+                <option value="{{ $day }}" {{ (int) $currentDay === $day ? 'selected' : '' }}>
+                    {{ ordinal($day) }}
+                </option>
+            @endfor
         </select>
     </div>
 
