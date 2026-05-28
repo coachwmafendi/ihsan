@@ -27,7 +27,7 @@
     wire:key="element-preview-{{ md5(json_encode([$type, $config])) }}"
     class="rounded-xl border border-zinc-200 bg-white"
 >
-    <div class="border-b border-zinc-100 px-5 py-3.5">
+    <div class="border-b border-zinc-100 px-4 py-2">
         <div class="flex items-center justify-between">
             <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Preview</h3>
             @if($type)
@@ -38,7 +38,7 @@
         </div>
     </div>
 
-    <div class="flex min-h-[400px] items-center justify-center bg-zinc-50 px-6 py-10">
+    <div class="flex min-h-[180px] items-center justify-center bg-zinc-50 px-4 py-6">
         @if(! $type)
             <div class="text-center">
                 <svg class="mx-auto size-10 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -48,7 +48,7 @@
             </div>
 
         @elseif($type === 'button')
-            <div class="flex min-h-[200px] items-center justify-center">
+            <div class="flex min-h-[120px] items-center justify-center">
                 <button
                     type="button"
                     class="{{ $config['button_size'] ?? 'text-base px-6 py-3' }} {{ $config['button_color'] ?? 'bg-blue-600 hover:bg-blue-700' }} inline-flex items-center justify-center font-semibold text-white shadow-sm transition-all duration-150 focus:outline-none"
@@ -84,7 +84,7 @@
                 ];
                 $iconPath = $icons[$config['icon'] ?? 'heart'] ?? $icons['heart'];
             @endphp
-            <div class="relative flex min-h-[300px] w-full items-center justify-center rounded-lg border-2 border-dashed border-zinc-200 bg-white/60">
+            <div class="relative flex min-h-[160px] w-full items-center justify-center rounded-lg border-2 border-dashed border-zinc-200 bg-white/60">
                 <div
                     class="inline-flex items-center justify-center gap-2 text-white shadow-lg"
                     style="background:{{ $previewColor }};width:{{ $sz['size'] }};height:{{ $sz['size'] }};font-size:{{ $sz['font'] }};border-radius:{{ $radius }};{{ $isPill ? 'padding:0 20px;width:auto;min-width:'.$sz['size'] : '' }}"
@@ -113,12 +113,12 @@
                 }"
                 class="relative mx-auto w-full max-w-[380px]"
             >
-                <div class="min-h-[690px] rounded-[42px] bg-zinc-900 p-2.5 shadow-xl shadow-zinc-800/20 ring-1 ring-zinc-800">
-                    <div class="relative min-h-[610px] overflow-hidden rounded-[30px] bg-white shadow-inner">
+                <div class="min-h-[420px] rounded-[42px] bg-zinc-900 p-2.5 shadow-xl shadow-zinc-800/20 ring-1 ring-zinc-800">
+                    <div class="relative min-h-[360px] overflow-hidden rounded-[30px] bg-white shadow-inner">
                         <div class="absolute left-1/2 top-3 z-10 flex h-7 w-24 -translate-x-1/2 items-center justify-center rounded-full bg-zinc-950">
                             <div class="size-2.5 rounded-full bg-zinc-900 ring-2 ring-zinc-800"></div>
                         </div>
-                        <div x-show="submitted" x-cloak class="flex min-h-[610px] flex-col items-center px-6 pb-20 pt-24 text-center">
+                        <div x-show="submitted" x-cloak class="flex min-h-[360px] flex-col items-center px-6 pb-20 pt-24 text-center">
                             <div class="mb-6 flex size-16 items-center justify-center rounded-full bg-emerald-50">
                                 <svg class="size-7 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -134,7 +134,7 @@
                                 Back to form
                             </button>
                         </div>
-                        <div x-show="! submitted" class="min-h-[610px] space-y-4 px-4 pb-5 pt-12 text-sm">
+                        <div x-show="! submitted" class="min-h-[360px] space-y-4 px-4 pb-5 pt-12 text-sm">
                             <div class="flex items-center gap-2">
                                 <span class="flex size-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
                                     <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
