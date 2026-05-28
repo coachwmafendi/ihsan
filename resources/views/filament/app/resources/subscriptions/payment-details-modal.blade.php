@@ -165,7 +165,9 @@
 
     {{-- Info Box --}}
     <div class="rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-800">
-        The next installment of {{ \App\Support\Currency::symbol($record->currency) }}{{ number_format($record->amount + ($record->amount * 0.03 + 0.50), 2) }} (with costs covered) will run on {{ $record->current_period_end?->format('M j, Y, g:i A') ?? 'N/A' }}.
+        The next installment of <span x-text="currencySymbol + totalAmount.toFixed(2)"></span>
+        <span x-show="coverFee">(with costs covered)</span>
+        will run on {{ $record->current_period_end?->format('M j, Y, g:i A') ?? 'N/A' }}.
     </div>
 
     {{-- Actions --}}
@@ -191,8 +193,17 @@
     </div>
 
     <script>
-        function paymentDetails(clientSecret) {
+        function paymentDetails(clientSecret, initialAmount) {
             return {
+                amount: initialAmount,
+                currencySymbol: '{{ \App\Support\Currency::symbol($record->currency) }}',
+                coverFee: true,
+                get estimatedFee() {
+                    return this.amount > 0 ? (this.amount * 0.03 + 0.50) : 0;
+                },
+                get totalAmount() {
+                    return this.coverFee ? this.amount + this.estimatedFee : this.amount;
+                },
                 paymentMethod: 'current',
                 loading: false,
                 success: false,
