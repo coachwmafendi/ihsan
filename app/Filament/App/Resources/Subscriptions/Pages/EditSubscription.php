@@ -139,17 +139,24 @@ class EditSubscription extends EditRecord
         ];
     }
 
-    public function saveDetails(string $interval, int $billingDay, ?string $cancelAt, bool $coverFee): void
+    public function saveDetails(float $amount, string $interval, int $billingDay, ?string $cancelAt, bool $coverFee): void
     {
         try {
-            app(ManageStripeSubscription::class)->updateDetails($this->record, [
+            $action = app(ManageStripeSubscription::class);
+
+            if ((float) $this->record->amount !== $amount) {
+                $action->changeAmount($this->record, $amount, $interval);
+            }
+
+            $action->updateDetails($this->record, [
                 'interval' => $interval,
                 'billing_day' => $billingDay,
                 'cancel_at' => $cancelAt,
                 'cover_fee' => $coverFee,
             ]);
 
-            $this->refreshFormData(['interval', 'current_period_start', 'current_period_end']);
+            $this->record->refresh();
+            $this->fillForm();
 
             Notification::make()
                 ->title('Subscription details updated.')

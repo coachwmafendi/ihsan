@@ -181,13 +181,18 @@ class ManageStripeSubscription
             $stripeParams['cancel_at'] = $newCancelAt ? $newCancelAt->timestamp : '';
         }
 
+        // Always re-fetch Stripe subscription to sync current_period_end
+        $updated = StripeSubscription::retrieve($subscription->stripe_subscription_id, $stripeOptions);
+
         if (! empty($stripeParams)) {
-            StripeSubscription::update($subscription->stripe_subscription_id, $stripeParams, $stripeOptions);
+            $updated = StripeSubscription::update($subscription->stripe_subscription_id, $stripeParams, $stripeOptions);
         }
 
         $subscription->update([
             'cover_fee' => (bool) $data['cover_fee'],
             'cancel_at' => $newCancelAt,
+            'current_period_start' => Carbon::createFromTimestamp($updated->current_period_start),
+            'current_period_end' => Carbon::createFromTimestamp($updated->current_period_end),
         ]);
     }
 

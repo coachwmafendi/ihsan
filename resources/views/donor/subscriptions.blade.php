@@ -8,6 +8,7 @@
     changeModal: null,
     paymentModal: null,
     pauseConfirmId: null,
+    cancelConfirmId: null,
     paymentClientSecret: null,
     paymentStripeAccount: null,
     paymentLoading: false,
@@ -208,18 +209,14 @@
                                 </svg>
                                 History
                             </a>
-                            <form action="{{ route('donorportal.subscriptions.cancel', ['organization' => $organization, 'subscription' => $subscription]) }}"
-                                  method="POST"
-                                  onsubmit="return confirm('Cancel this subscription at the end of the billing period? To cancel immediately, use the Cancel Now option instead.')">
-                                @csrf
-                                <button type="submit"
-                                        class="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100">
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                    </svg>
-                                    Cancel
-                                </button>
-                            </form>
+                            <button type="button"
+                                    @click="cancelConfirmId = {{ $subscription->getKey() }}"
+                                    class="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100">
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                </svg>
+                                Cancel
+                            </button>
                         </div>
                     @elseif ($subscription->status === \App\Enums\SubscriptionStatus::Paused)
                         <div class="flex items-center gap-2">
@@ -327,6 +324,33 @@
             <button type="submit"
                     class="rounded-lg border border-transparent bg-amber-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-amber-500">
                 Yes, Pause
+            </button>
+        </form>
+    </div>
+</div>
+
+{{-- Cancel Confirmation Modal --}}
+<div x-show="cancelConfirmId !== null"
+     x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+     @click.self="cancelConfirmId = null"
+     x-transition.opacity>
+    <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
+        <h3 class="text-base font-black text-slate-900">Cancel Subscription?</h3>
+        <p class="mt-1 text-xs text-slate-500">Your subscription will stop at the end of the current billing period. No further charges after that.</p>
+
+        <form method="POST"
+              x-bind:action="'{{ route('donorportal.subscriptions.cancel', ['organization' => $organization, 'subscription' => '__id__']) }}'.replace('__id__', cancelConfirmId)"
+              class="mt-6 flex items-center justify-end gap-2">
+            @csrf
+            <button type="button"
+                    @click="cancelConfirmId = null"
+                    class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                Keep Active
+            </button>
+            <button type="submit"
+                    class="rounded-lg border border-transparent bg-red-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-red-500">
+                Yes, Cancel
             </button>
         </form>
     </div>

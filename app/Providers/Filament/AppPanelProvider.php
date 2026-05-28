@@ -50,6 +50,8 @@ class AppPanelProvider extends PanelProvider
                             billingDay: initial.billingDay,
                             cancelAt: initial.cancelAt,
                             coverFee: initial.coverFee,
+                            amount: initial.amount,
+                            processingFeeRate: initial.processingFeeRate,
                             cardError: '',
                             loading: false,
                             success: false,
@@ -86,6 +88,7 @@ class AppPanelProvider extends PanelProvider
 
                                 // Always save subscription details first
                                 await this.$wire.saveDetails(
+                                    this.amount,
                                     this.interval,
                                     this.billingDay,
                                     this.cancelAt || null,

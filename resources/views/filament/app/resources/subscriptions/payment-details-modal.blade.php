@@ -4,13 +4,16 @@
         ? $record->cancel_at->format('Y-m-d')
         : ($record->current_period_start ?? $record->created_at)?->addYears(2)->format('Y-m-d') ?? '';
     $stripeAccount = $record->campaign->organization->stripe_account_id ?? null;
-    $feeAmount = $record->amount * 0.03 + 0.50;
+    $processingFeePercent = (float) config('services.stripe.processing_fee_percent', 2.5) / 100;
+    $feeAmount = $record->amount * (0.03 + $processingFeePercent) + 0.50;
     $displayTotal = $record->amount + $feeAmount;
     $initialData = [
         'interval' => $record->interval->value,
         'billingDay' => $currentBillingDay,
         'cancelAt' => $currentCancelAt,
-        'coverFee' => $record->cover_fee ?? true,
+        'coverFee' => (bool) $record->cover_fee,
+        'amount' => (float) $record->amount,
+        'processingFeeRate' => $processingFeePercent,
     ];
 @endphp
 
@@ -28,7 +31,7 @@
         <label class="w-32 text-right text-sm font-medium text-gray-700">Installment amount</label>
         <div class="relative flex-1">
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">{{ \App\Support\Currency::symbol($record->currency) }}</span>
-            <input type="text" value="{{ number_format($record->amount, 2) }}" readonly class="w-full rounded-lg border border-gray-300 py-2 pl-11 pr-16 text-sm bg-gray-50">
+            <input type="number" min="0.01" step="0.01" x-model.number="amount" class="w-full rounded-lg border border-gray-300 py-2 pl-11 pr-16 text-sm bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">{{ strtoupper($record->currency) }}</span>
         </div>
     </div>
@@ -61,7 +64,7 @@
     {{-- Transaction Costs --}}
     <div class="border-t pt-4">
         <p class="text-sm text-gray-600">
-            Estimated transaction costs: <span class="font-semibold ml-1">{{ \App\Support\Currency::symbol($record->currency) }} {{ number_format($feeAmount, 2) }}</span>
+            Estimated transaction fees (Stripe + processing): <span class="font-semibold ml-1" x-text="'{{ \App\Support\Currency::symbol($record->currency) }} ' + (amount * (0.03 + processingFeeRate) + 0.50).toFixed(2)"></span>
         </p>
 
         <label class="mt-3 flex items-center gap-3 rounded-lg bg-gray-50 px-4 py-3 cursor-pointer">
@@ -106,10 +109,13 @@
     </div>
 
     {{-- Info Box --}}
+    @php $currencySymbol = \App\Support\Currency::symbol($record->currency); @endphp
     <div class="rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-800">
-        The next installment of <span class="font-semibold">{{ \App\Support\Currency::symbol($record->currency) }} {{ number_format($displayTotal, 2) }}</span>
+        The next installment of
+        <span class="font-semibold" x-text="'{{ $currencySymbol }} ' + (coverFee ? (amount * (1.03 + processingFeeRate) + 0.50).toFixed(2) : parseFloat(amount).toFixed(2))"></span>
         <span x-show="coverFee">(with costs covered)</span>
-        will run on {{ $record->current_period_end?->format('M j, Y, g:i A') ?? 'N/A' }}.
+        will run on {{ $record->current_period_end?->format('M j, Y, g:i A') ?? 'N/A' }},
+        ending on <span class="font-semibold" x-text="cancelAt ? new Date(cancelAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'"></span>.
     </div>
 
     {{-- Success message (outside card section) --}}
