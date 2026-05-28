@@ -21,7 +21,7 @@ class CampaignStatsOverview extends BaseWidget
             ->count();
         $totalRaised = Donation::where('status', DonationStatus::Succeeded)
             ->whereHas('campaign', fn ($q) => $q->where('organization_id', $orgId))
-            ->sum('gross_amount');
+            ->sum('base_amount');
         $totalDonors = Donation::where('status', DonationStatus::Succeeded)
             ->whereHas('campaign', fn ($q) => $q->where('organization_id', $orgId))
             ->whereNotNull('donor_id')

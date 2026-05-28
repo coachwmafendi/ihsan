@@ -70,7 +70,7 @@ class Revenue extends Page
             ->when($from, fn (Builder $q) => $q->whereDate('donations.created_at', '>=', $from))
             ->when($to, fn (Builder $q) => $q->whereDate('donations.created_at', '<=', $to));
 
-        $totalVolume = (float) (clone $succeeded)->sum('gross_amount');
+        $totalVolume = (float) (clone $succeeded)->sum('base_amount');
         $this->totalDonationVolume = number_format($totalVolume, 2, '.', '');
         $this->totalTransactions = (clone $succeeded)->count();
         $this->averageDonationSize = $this->totalTransactions > 0
@@ -98,7 +98,7 @@ class Revenue extends Page
             : '0.00';
 
         $succeededDonations = Donation::query()
-            ->selectRaw('campaigns.organization_id, COUNT(*) as donation_count, SUM(gross_amount) as volume, AVG(gross_amount) as avg_donation')
+            ->selectRaw('campaigns.organization_id, COUNT(*) as donation_count, SUM(base_amount) as volume, AVG(base_amount) as avg_donation')
             ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
             ->where('donations.status', DonationStatus::Succeeded)
             ->when($from, fn (Builder $q) => $q->whereDate('donations.created_at', '>=', $from))

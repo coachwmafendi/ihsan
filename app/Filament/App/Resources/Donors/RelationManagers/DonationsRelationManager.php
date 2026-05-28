@@ -6,7 +6,7 @@ use App\Enums\DonationType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\TextInput;
+use App\Support\Currency;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -28,7 +28,7 @@ class DonationsRelationManager extends RelationManager
                     ->label('Date'),
                 TextColumn::make('gross_amount')
                     ->label('Amount')
-                    ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
+                    ->formatStateUsing(fn (string $state, $record): string => Currency::symbol($record->currency).' '.number_format((float) $state, 2))
                     ->sortable(),
                 TextColumn::make('campaign.title')
                     ->label('Campaign')
