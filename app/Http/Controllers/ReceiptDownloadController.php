@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Donation;
+use App\Models\Organization;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -11,15 +12,29 @@ class ReceiptDownloadController extends Controller
 {
     public function __invoke(Donation $donation): Response
     {
+        return $this->download($donation);
+    }
+
+    public function downloadForOrganization(Organization $organization, Donation $donation): Response
+    {
+        return $this->download($donation, $organization);
+    }
+
+    private function download(Donation $donation, ?Organization $organization = null): Response
+    {
         if ($donation->status->value !== 'succeeded') {
             throw new NotFoundHttpException('Receipt not available for this donation.');
         }
 
-        if (! $this->canDownloadReceipt($donation)) {
+        if (! $this->canDownloadReceipt($donation, $organization)) {
             throw new NotFoundHttpException('Receipt not available for this donation.');
         }
 
         $donation->loadMissing(['campaign.organization', 'donor']);
+
+        if ($organization !== null && $donation->campaign->organization_id !== $organization->getKey()) {
+            throw new NotFoundHttpException('Receipt not available for this donation.');
+        }
 
         $filename = config('app.name').'-'.$donation->campaign->organization->code.'-'.$donation->invoice_number.'.pdf';
 
@@ -30,8 +45,16 @@ class ReceiptDownloadController extends Controller
         return $pdf->download($filename);
     }
 
-    private function canDownloadReceipt(Donation $donation): bool
+    private function canDownloadReceipt(Donation $donation, ?Organization $organization): bool
     {
-        return auth()->check() || session('donor_id') === $donation->donor_id;
+        if (auth()->check()) {
+            return true;
+        }
+
+        if (session('donor_id') !== $donation->donor_id) {
+            return false;
+        }
+
+        return $organization === null || (string) session('organization_id') === (string) $organization->getKey();
     }
 }

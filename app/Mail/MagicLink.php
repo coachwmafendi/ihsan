@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Donor;
+use App\Models\Organization;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -16,12 +17,13 @@ class MagicLink extends Mailable
     public function __construct(
         public Donor $donor,
         public string $token,
+        public Organization $organization,
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Donation Portal Login Link — '.config('app.name'),
+            subject: 'Your Donation Portal Login Link — '.$this->organization->name,
         );
     }
 

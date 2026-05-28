@@ -24,13 +24,9 @@
 <div>
     <div class="mb-8">
         <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Hi, {{ $donor->name }} <span class="ml-1">👋</span></h1>
-        @if ($primaryOrganization !== null)
-            <p class="mt-1 text-sm font-bold text-slate-600">
-                Welcome to the <span class="uppercase">{{ $primaryOrganization->name }}</span> Donor Portal
-            </p>
-        @else
-            <p class="mt-1 text-sm font-bold text-slate-600">Welcome to the Donor Portal</p>
-        @endif
+        <p class="mt-1 text-sm font-bold text-slate-600">
+            Welcome to the <span class="uppercase">{{ $organization->name }}</span> Donor Portal
+        </p>
 
         @php
             $latestCampaign = $recentDonations->first()?->campaign;

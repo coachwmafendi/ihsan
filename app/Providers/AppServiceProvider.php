@@ -107,8 +107,8 @@ class AppServiceProvider extends ServiceProvider
         );
 
         RateLimiter::for('donor-magic-link', function (Request $request) {
-            return Limit::perMinute(5)->by($request->ip())->response(function () {
-                return redirect()->route('donorportal.login')
+            return Limit::perMinute(5)->by($request->ip())->response(function () use ($request) {
+                return redirect()->route('donorportal.login', $request->route('organization'))
                     ->with('error', 'Too many login attempts. Please try again in a minute.');
             });
         });

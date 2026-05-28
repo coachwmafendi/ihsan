@@ -64,8 +64,8 @@ Route::get('/org/{organization}/logo', function (Organization $organization): ?S
 })->name('organization.logo');
 
 // Donor portal
-Route::prefix('donorportal')->name('donorportal.')->group(function () {
-    Route::get('/', fn () => redirect()->route('donorportal.dashboard'));
+Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(function () {
+    Route::get('/', fn (Organization $organization) => redirect()->route('donorportal.dashboard', $organization));
     Route::get('login', [DonorAuthController::class, 'showLoginForm'])->name('login');
     Route::post('login', [DonorAuthController::class, 'sendMagicLink'])
         ->middleware('throttle:donor-magic-link')
@@ -76,7 +76,7 @@ Route::prefix('donorportal')->name('donorportal.')->group(function () {
     Route::post('logout', [DonorAuthController::class, 'logout'])->name('logout');
     Route::get('dashboard', [DonorPortalController::class, 'dashboard'])->name('dashboard');
     Route::get('donations', [DonorPortalController::class, 'donations'])->name('donations');
-    Route::get('donations/{donation}/receipt', ReceiptDownloadController::class)
+    Route::get('donations/{donation}/receipt', [ReceiptDownloadController::class, 'downloadForOrganization'])
         ->name('donations.receipt.download');
     Route::get('receipts', [DonorPortalController::class, 'downloadAllReceipts'])
         ->name('receipts.download-all');

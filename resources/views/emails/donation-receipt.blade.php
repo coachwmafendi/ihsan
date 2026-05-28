@@ -24,7 +24,7 @@
         <p>Thank you for your support!</p>
 
         <p style="font-size: 0.875rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 24px;">
-            <a href="{{ route('donorportal.login') }}" style="color: #0d9488; text-decoration: underline;">Log in to the donor portal</a>
+            <a href="{{ route('donorportal.login', $donation->campaign->organization) }}" style="color: #0d9488; text-decoration: underline;">Log in to the donor portal</a>
             to view your donation history, manage subscriptions, and download receipts.
         </p>
     </div>

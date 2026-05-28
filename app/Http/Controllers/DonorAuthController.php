@@ -4,17 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Mail\MagicLink;
 use App\Models\Donor;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class DonorAuthController extends Controller
 {
-    public function showLoginForm()
+    public function showLoginForm(Organization $organization)
     {
-        return view('donor.login');
+        return view('donor.login', ['organization' => $organization]);
     }
 
-    public function sendMagicLink(Request $request)
+    public function sendMagicLink(Request $request, Organization $organization)
     {
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255'],
@@ -25,14 +26,14 @@ class DonorAuthController extends Controller
         if ($donor !== null) {
             $token = $donor->generateMagicToken();
 
-            Mail::to($donor->email)->queue(new MagicLink($donor, $token));
+            Mail::to($donor->email)->queue(new MagicLink($donor, $token, $organization));
         }
 
-        return redirect()->route('donorportal.login')
+        return redirect()->route('donorportal.login', $organization)
             ->with('success', 'If that email is registered, a login link has been sent.');
     }
 
-    public function login(string $token)
+    public function login(Organization $organization, string $token)
     {
         $donor = Donor::query()
             ->where('magic_token', $token)
@@ -40,18 +41,19 @@ class DonorAuthController extends Controller
             ->first();
 
         if ($donor === null) {
-            return redirect()->route('donorportal.login')->with('error', 'Invalid or expired login link.');
+            return redirect()->route('donorportal.login', $organization)->with('error', 'Invalid or expired login link.');
         }
 
         session()->put('donor_id', $donor->getKey());
+        session()->put('organization_id', $organization->getKey());
 
-        return redirect()->route('donorportal.dashboard');
+        return redirect()->route('donorportal.dashboard', $organization);
     }
 
-    public function logout()
+    public function logout(Organization $organization)
     {
-        session()->forget('donor_id');
+        session()->forget(['donor_id', 'organization_id']);
 
-        return redirect()->route('donorportal.login');
+        return redirect()->route('donorportal.login', $organization);
     }
 }

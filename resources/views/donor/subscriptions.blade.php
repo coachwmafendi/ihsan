@@ -57,14 +57,14 @@
 
                     @if ($subscription->status === \App\Enums\SubscriptionStatus::Active)
                         <div class="flex items-center gap-2">
-                            <a href="{{ route('donorportal.donations', ['subscription' => $subscription->getKey()]) }}"
+                            <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
                                class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
                                 </svg>
                                 History
                             </a>
-                            <form action="{{ route('donorportal.subscriptions.cancel', $subscription) }}"
+                            <form action="{{ route('donorportal.subscriptions.cancel', ['organization' => $organization, 'subscription' => $subscription]) }}"
                                   method="POST"
                                   onsubmit="return confirm('Cancel this subscription?')">
                                 @csrf
@@ -78,7 +78,7 @@
                             </form>
                         </div>
                     @else
-                        <a href="{{ route('donorportal.donations', ['subscription' => $subscription->getKey()]) }}"
+                        <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />

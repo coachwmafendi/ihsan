@@ -27,7 +27,7 @@
                     Payment history for <strong>{{ $subscription->campaign->title }}</strong>
                     · {{ $subscription->currency_symbol }} {{ number_format($subscription->amount, 2) }}/{{ $subscription->interval->value }}
                 </p>
-                <a href="{{ route('donorportal.donations') }}"
+                <a href="{{ route('donorportal.donations', $organization) }}"
                    class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700">
                     <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
@@ -39,7 +39,7 @@
             @endif
         </div>
         @if ($donationCount > 0 && $subscription === null)
-            <a href="{{ route('donorportal.receipts.download-all') }}"
+            <a href="{{ route('donorportal.receipts.download-all', $organization) }}"
                class="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:shadow-md"
                style="background:#0d9488;">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -104,7 +104,7 @@
                         {{ $typeLabel }}
                     </span>
                     @if ($donation->status === \App\Enums\DonationStatus::Succeeded)
-                        <a href="{{ route('donorportal.donations.receipt.download', $donation) }}"
+                        <a href="{{ route('donorportal.donations.receipt.download', ['organization' => $organization, 'donation' => $donation]) }}"
                            class="ml-auto inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[11px] font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">
                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />

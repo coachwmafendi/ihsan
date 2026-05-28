@@ -11,37 +11,42 @@
 <body class="min-h-screen bg-slate-50 antialiased">
     <header class="bg-slate-900">
         <div class="mx-auto flex max-w-3xl items-center justify-between px-6 py-3">
-            @if (isset($primaryOrganization) && filled($primaryOrganization?->logo_path))
-                <a href="{{ route('donorportal.dashboard') }}" wire:navigate class="flex items-center">
-                    <img src="{{ route('organization.logo', $primaryOrganization) }}"
-                         alt="{{ $primaryOrganization->name }}"
+            @if (isset($organization) && filled($organization->logo_path))
+                <a href="{{ route('donorportal.dashboard', $organization) }}" wire:navigate class="flex items-center">
+                    <img src="{{ route('organization.logo', $organization) }}"
+                         alt="{{ $organization->name }}"
                          class="h-8 w-auto object-contain">
                 </a>
+            @elseif (isset($organization))
+                <a href="{{ route('donorportal.dashboard', $organization) }}" wire:navigate
+                   class="text-sm font-black text-white [letter-spacing:-0.02em]">
+                    {{ $organization->name }}
+                </a>
             @else
-                <a href="{{ route('donorportal.dashboard') }}" wire:navigate
+                <a href="#"
                    class="text-sm font-black text-white [letter-spacing:-0.02em]">
                     Ihsan.
                 </a>
             @endif
             <nav class="flex gap-1">
-                <a href="{{ route('donorportal.dashboard') }}" wire:navigate
+                <a href="{{ route('donorportal.dashboard', $organization) }}" wire:navigate
                    class="rounded-md px-3 py-1.5 text-xs font-medium transition
                    {{ request()->routeIs('donorportal.dashboard') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Dashboard
                 </a>
-                <a href="{{ route('donorportal.donations') }}" wire:navigate
+                <a href="{{ route('donorportal.donations', $organization) }}" wire:navigate
                    class="rounded-md px-3 py-1.5 text-xs font-medium transition
                    {{ request()->routeIs('donorportal.donations') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Donations
                 </a>
-                <a href="{{ route('donorportal.subscriptions') }}" wire:navigate
+                <a href="{{ route('donorportal.subscriptions', $organization) }}" wire:navigate
                    class="rounded-md px-3 py-1.5 text-xs font-medium transition
                    {{ request()->routeIs('donorportal.subscriptions') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Subscriptions
                 </a>
             </nav>
             <div class="flex items-center gap-3">
-                <form method="POST" action="{{ route('donorportal.logout') }}">
+                <form method="POST" action="{{ route('donorportal.logout', $organization) }}">
                     @csrf
                     <button type="submit" class="text-xs font-medium text-white/30 transition hover:text-white/60">
                         Sign out

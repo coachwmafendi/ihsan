@@ -9,8 +9,15 @@
 <body class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4 antialiased">
     <div class="w-full max-w-xs">
         <div class="mb-8 text-center">
-            <img src="{{ asset('logo-ihsan.png') }}" alt="{{ config('app.name') }}" class="mx-auto h-10 w-auto" />
-            <p class="mt-2 text-xs text-slate-400">Your giving, your way.</p>
+            @if (filled($organization->logo_path))
+                <img src="{{ route('organization.logo', $organization) }}" alt="{{ $organization->name }}" class="mx-auto h-10 w-auto object-contain" />
+            @else
+                <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-black text-white">
+                    {{ mb_strtoupper(mb_substr($organization->name, 0, 1)) }}
+                </div>
+            @endif
+            <p class="mt-2 text-xs font-semibold text-slate-700">{{ $organization->name }}</p>
+            <p class="mt-0.5 text-xs text-slate-400">Donor Portal</p>
         </div>
 
         <div class="rounded-2xl bg-white p-8 shadow-[0_4px_24px_rgba(15,23,42,0.08)]"
@@ -32,7 +39,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('donorportal.send-magic-link') }}" class="mt-6 space-y-5">
+            <form method="POST" action="{{ route('donorportal.send-magic-link', $organization) }}" class="mt-6 space-y-5">
                 @csrf
                 <div>
                     <label for="email" class="block text-xs font-semibold text-slate-700">

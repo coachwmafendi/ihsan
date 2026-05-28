@@ -6,31 +6,40 @@ use App\Enums\DonationStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Donor;
 use App\Models\Organization;
+use App\Models\Subscription;
 use App\Support\Currency;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 
 class DonorPortalController extends Controller
 {
-    private function getDonor(): ?Donor
+    private function getDonor(Organization $organization): ?Donor
     {
         $donorId = session('donor_id');
-        if ($donorId === null) {
+        $organizationId = session('organization_id');
+
+        if ($donorId === null || (string) $organizationId !== (string) $organization->getKey()) {
             return null;
         }
 
         return Donor::query()->find($donorId);
     }
 
-    private function getTotalGiven(Donor $donor): float
+    private function scopeToOrg($query, Organization $organization)
     {
-        return (float) $donor->donations()
-            ->where('status', DonationStatus::Succeeded)
-            ->sum(\DB::raw('COALESCE(base_amount, gross_amount)'));
+        return $query->whereHas('campaign', fn ($query) => $query->where('organization_id', $organization->getKey()));
     }
 
-    private function getCurrencyBreakdown(Donor $donor): array
+    private function getTotalGiven(Donor $donor, Organization $organization): float
     {
-        return $donor->donations()
+        return (float) $this->scopeToOrg($donor->donations(), $organization)
+            ->where('status', DonationStatus::Succeeded)
+            ->sum(DB::raw('COALESCE(base_amount, gross_amount)'));
+    }
+
+    private function getCurrencyBreakdown(Donor $donor, Organization $organization): array
+    {
+        return $this->scopeToOrg($donor->donations(), $organization)
             ->where('status', DonationStatus::Succeeded)
             ->selectRaw('currency, SUM(gross_amount) as total')
             ->groupBy('currency')
@@ -41,31 +50,34 @@ class DonorPortalController extends Controller
             ->toArray();
     }
 
-    private function formatAmount(float $amount): string
+    public function dashboard(Organization $organization)
     {
-        return '≈ MYR '.number_format($amount, 2);
-    }
-
-    public function dashboard()
-    {
-        $donor = $this->getDonor();
+        $donor = $this->getDonor($organization);
         if ($donor === null) {
-            return redirect()->route('donorportal.login');
+            return redirect()->route('donorportal.login', $organization);
         }
 
-        $totalGiven = $this->getTotalGiven($donor);
-        $currencyBreakdown = $this->getCurrencyBreakdown($donor);
-        $hasMultipleCurrencies = count($currencyBreakdown) > 1;
+        $totalGiven = $this->getTotalGiven($donor, $organization);
+        $currencyBreakdown = $this->getCurrencyBreakdown($donor, $organization);
 
-        $activeSubscriptions = $donor->subscriptions()
+        $activeSubscriptions = $this->scopeToOrg($donor->subscriptions(), $organization)
             ->where('status', SubscriptionStatus::Active)
             ->count();
 
-        $monthlyRecurring = $donor->subscriptions()
+        $activeSubscriptionsList = $this->scopeToOrg($donor->subscriptions(), $organization)
             ->where('status', SubscriptionStatus::Active)
-            ->sum('amount');
+            ->get();
 
-        $monthlyDonations = $donor->donations()
+        $monthlyRecurringByCurrency = $activeSubscriptionsList
+            ->groupBy('currency')
+            ->map(function ($subs, $currency) {
+                $total = $subs->sum('amount');
+
+                return Currency::symbol($currency).' '.number_format((float) $total, 2);
+            })
+            ->toArray();
+
+        $monthlyDonations = $this->scopeToOrg($donor->donations(), $organization)
             ->where('status', DonationStatus::Succeeded)
             ->selectRaw("strftime('%Y-%m', created_at) as month, SUM(COALESCE(base_amount, gross_amount)) as total")
             ->groupBy('month')
@@ -75,7 +87,7 @@ class DonorPortalController extends Controller
             ->reverse()
             ->values();
 
-        $campaignBreakdown = $donor->donations()
+        $campaignBreakdown = $this->scopeToOrg($donor->donations(), $organization)
             ->where('donations.status', DonationStatus::Succeeded)
             ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
             ->selectRaw('campaigns.title as campaign, donations.currency, SUM(donations.gross_amount) as total')
@@ -95,30 +107,16 @@ class DonorPortalController extends Controller
                 });
             });
 
-        $recentDonations = $donor->donations()
+        $recentDonations = $this->scopeToOrg($donor->donations(), $organization)
             ->where('status', DonationStatus::Succeeded)
             ->with('campaign.organization')
             ->latest()
             ->limit(5)
             ->get();
 
-        $primaryOrganization = $recentDonations->first()?->campaign?->organization;
-
-        $activeSubscriptionsList = $donor->subscriptions()
-            ->where('status', SubscriptionStatus::Active)
-            ->get();
-
-        $monthlyRecurringByCurrency = $activeSubscriptionsList
-            ->groupBy('currency')
-            ->map(function ($subs, $currency) {
-                $total = $subs->sum('amount');
-
-                return Currency::symbol($currency).' '.number_format((float) $total, 2);
-            })
-            ->toArray();
-
         return view('donor.dashboard', [
             'donor' => $donor,
+            'organization' => $organization,
             'totalGiven' => $totalGiven,
             'currencyBreakdown' => $currencyBreakdown,
             'activeSubscriptions' => $activeSubscriptions,
@@ -126,89 +124,107 @@ class DonorPortalController extends Controller
             'monthlyDonations' => $monthlyDonations,
             'campaignBreakdown' => $campaignBreakdown,
             'recentDonations' => $recentDonations,
-            'primaryOrganization' => $primaryOrganization,
         ]);
     }
 
-    private function getPrimaryOrganization(Donor $donor): ?Organization
+    public function donations(Organization $organization)
     {
-        return $donor->donations()
-            ->where('status', DonationStatus::Succeeded)
-            ->with('campaign.organization')
-            ->latest()
-            ->first()?->campaign?->organization;
-    }
-
-    public function donations()
-    {
-        $donor = $this->getDonor();
+        $donor = $this->getDonor($organization);
         if ($donor === null) {
-            return redirect()->route('donorportal.login');
+            return redirect()->route('donorportal.login', $organization);
         }
 
         $subscriptionFilter = request()->query('subscription');
         $subscription = null;
 
-        $query = $donor->donations()->with('campaign.organization');
+        $query = $this->scopeToOrg($donor->donations(), $organization)->with('campaign.organization');
 
         if ($subscriptionFilter !== null) {
-            $subscription = $donor->subscriptions()->find($subscriptionFilter);
+            $subscription = $this->scopeToOrg($donor->subscriptions(), $organization)->find($subscriptionFilter);
             if ($subscription !== null) {
                 $query->where('subscription_id', $subscription->getKey());
             }
         }
 
-        $totalGiven = $this->getTotalGiven($donor);
-        $currencyBreakdown = $this->getCurrencyBreakdown($donor);
+        $totalGiven = $this->getTotalGiven($donor, $organization);
+        $currencyBreakdown = $this->getCurrencyBreakdown($donor, $organization);
 
         return view('donor.donations', [
             'donor' => $donor,
+            'organization' => $organization,
             'totalGiven' => $totalGiven,
             'currencyBreakdown' => $currencyBreakdown,
-            'donationCount' => $donor->donations()->where('status', DonationStatus::Succeeded)->count(),
+            'donationCount' => $this->scopeToOrg($donor->donations(), $organization)
+                ->where('status', DonationStatus::Succeeded)
+                ->count(),
             'donations' => $query->latest()->paginate(10),
             'subscription' => $subscription,
-            'primaryOrganization' => $this->getPrimaryOrganization($donor),
         ]);
     }
 
-    public function subscriptions()
+    public function subscriptions(Organization $organization)
     {
-        $donor = $this->getDonor();
+        $donor = $this->getDonor($organization);
         if ($donor === null) {
-            return redirect()->route('donorportal.login');
+            return redirect()->route('donorportal.login', $organization);
         }
 
         return view('donor.subscriptions', [
             'donor' => $donor,
-            'subscriptions' => $donor->subscriptions()->with('campaign.organization')->latest()->paginate(10),
-            'primaryOrganization' => $this->getPrimaryOrganization($donor),
+            'organization' => $organization,
+            'subscriptions' => $this->scopeToOrg($donor->subscriptions(), $organization)
+                ->with('campaign.organization')
+                ->latest()
+                ->paginate(10),
         ]);
     }
 
-    public function downloadAllReceipts()
+    public function downloadAllReceipts(Organization $organization)
     {
-        $donor = $this->getDonor();
+        $donor = $this->getDonor($organization);
         if ($donor === null) {
-            return redirect()->route('donorportal.login');
+            return redirect()->route('donorportal.login', $organization);
         }
 
-        $donations = $donor->donations()
+        $donations = $this->scopeToOrg($donor->donations(), $organization)
             ->where('status', DonationStatus::Succeeded)
             ->with(['campaign.organization', 'donor'])
             ->latest()
             ->get();
 
         if ($donations->isEmpty()) {
-            return redirect()->route('donorportal.donations')->with('error', 'No receipts available to download.');
+            return redirect()->route('donorportal.donations', $organization)
+                ->with('error', 'No receipts available to download.');
         }
 
-        $filename = config('app.name').'-all-receipts-'.now()->format('Y-m-d').'.pdf';
+        $filename = config('app.name').'-'.$organization->code.'-all-receipts-'.now()->format('Y-m-d').'.pdf';
 
         $pdf = Pdf::loadView('emails.donation-receipt-pdf-bulk', [
             'donations' => $donations,
         ]);
 
         return $pdf->download($filename);
+    }
+
+    public function cancelSubscription(Organization $organization, Subscription $subscription)
+    {
+        $donor = $this->getDonor($organization);
+        if ($donor === null) {
+            return redirect()->route('donorportal.login', $organization);
+        }
+
+        $subscription->loadMissing('campaign');
+
+        if (
+            $subscription->donor_id !== $donor->getKey()
+            || $subscription->campaign?->organization_id !== $organization->getKey()
+        ) {
+            abort(403);
+        }
+
+        $subscription->update(['status' => SubscriptionStatus::Cancelled]);
+
+        return redirect()->route('donorportal.subscriptions', $organization)
+            ->with('success', 'Subscription cancelled.');
     }
 }
