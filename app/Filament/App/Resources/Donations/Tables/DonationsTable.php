@@ -280,6 +280,9 @@ class DonationsTable
                                 TextEntry::make('payment_method_type')
                                     ->label('Method Type')
                                     ->formatStateUsing(fn (?string $state): string => $state === 'fpx' ? 'FPX' : (str($state ?? '')->headline()->toString() ?: '—')),
+                                TextEntry::make('payment_method_last4')
+                                    ->label('Card Number')
+                                    ->formatStateUsing(fn (?string $state): string => $state ? '•••• '.$state : '—'),
                                 TextEntry::make('donor_message')
                                     ->label('Message')
                                     ->columnSpanFull()
