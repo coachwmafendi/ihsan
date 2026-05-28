@@ -46,7 +46,7 @@ class DonorsTable
                     ->sortable()
                     ->toggleable(),
             ])
-            ->defaultSort('last_donation', 'desc')
+            ->defaultSort('donations_max_created_at', 'desc')
             ->filters([
                 Filter::make('donation_date')
                     ->label('Date')

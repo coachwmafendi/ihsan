@@ -10,7 +10,7 @@
 </head>
 <body class="min-h-screen bg-slate-50 antialiased">
     <header class="bg-slate-900">
-        <div class="mx-auto flex max-w-3xl items-center justify-between px-6 py-3">
+        <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
             @if (isset($organization) && filled($organization->logo_path))
                 <a href="{{ route('donorportal.dashboard', $organization) }}" wire:navigate class="flex items-center">
                     <img src="{{ route('organization.logo', $organization) }}"
@@ -56,7 +56,7 @@
         </div>
     </header>
 
-    <main class="mx-auto max-w-3xl px-6 py-8">
+    <main class="mx-auto max-w-5xl px-6 py-8">
         @if (session('success'))
             <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700">
                 {{ session('success') }}

@@ -55,6 +55,8 @@
                 document.body.classList.add('bg-white');
             }
 
+            document.addEventListener('close-popup', closePopup);
+
             function closePopup() {
                 if (window.parent !== window) {
                     window.parent.postMessage({ type: 'donation-popup-close' }, '*');
