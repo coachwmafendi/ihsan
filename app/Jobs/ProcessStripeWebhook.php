@@ -122,6 +122,7 @@ class ProcessStripeWebhook implements ShouldQueue
 
         if ($wasPending) {
             SendDonationReceipt::dispatch($donation);
+            SendNewDonationNotification::dispatch($donation);
         }
 
         SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
