@@ -83,17 +83,15 @@ class DonationsRelationManager extends RelationManager
                     ->formatStateUsing(function ($record) {
                         $gross = number_format((float) $record->gross_amount, 2);
                         $symbol = strtoupper($record->currency);
-                        $display = $symbol.' '.$gross;
 
                         if ($record->currency !== 'myr' && $record->base_amount) {
                             $base = number_format((float) $record->base_amount, 2);
 
-                            return $display."\n≈ MYR {$base}";
+                            return "≈ MYR {$base} ({$symbol} {$gross})";
                         }
 
-                        return $display;
+                        return "{$symbol} {$gross}";
                     })
-                    ->html()
                     ->sortable()
                     ->weight('medium'),
                 TextColumn::make('currency')
@@ -135,6 +133,7 @@ class DonationsRelationManager extends RelationManager
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
+            ->modifyQueryUsing(fn ($query) => $query->orderBy('created_at', 'desc'))
             ->filters([
                 //
             ])

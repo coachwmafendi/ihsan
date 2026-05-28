@@ -32,29 +32,40 @@ class SubscriptionsRelationManager extends RelationManager
                     ->relationship('donor', 'name')
                     ->required(),
                 TextInput::make('stripe_subscription_id')
-                    ->required(),
-                TextInput::make('stripe_price_id'),
+                    ->required()
+                    ->disabled(),
+                TextInput::make('stripe_price_id')
+                    ->disabled(),
                 TextInput::make('amount')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->disabled(),
                 TextInput::make('currency')
                     ->required()
-                    ->default('myr'),
+                    ->default('myr')
+                    ->disabled(),
                 Select::make('interval')
                     ->options(SubscriptionInterval::class)
-                    ->required(),
+                    ->required()
+                    ->disabled(),
                 Select::make('status')
                     ->options(SubscriptionStatus::class)
                     ->default('incomplete')
-                    ->required(),
+                    ->required()
+                    ->disabled(),
                 TextInput::make('retry_count')
                     ->required()
                     ->numeric()
-                    ->default(0),
-                DateTimePicker::make('current_period_start'),
-                DateTimePicker::make('current_period_end'),
-                DateTimePicker::make('paused_until'),
-                DateTimePicker::make('cancelled_at'),
+                    ->default(0)
+                    ->disabled(),
+                DateTimePicker::make('current_period_start')
+                    ->disabled(),
+                DateTimePicker::make('current_period_end')
+                    ->disabled(),
+                DateTimePicker::make('paused_until')
+                    ->disabled(),
+                DateTimePicker::make('cancelled_at')
+                    ->disabled(),
             ]);
     }
 
@@ -70,9 +81,15 @@ class SubscriptionsRelationManager extends RelationManager
                 TextColumn::make('stripe_price_id')
                     ->searchable(),
                 TextColumn::make('amount')
-                    ->numeric()
+                    ->formatStateUsing(function ($record) {
+                        $symbol = \App\Support\Currency::symbol($record->currency);
+
+                        return $symbol.' '.number_format((float) $record->amount, 2);
+                    })
                     ->sortable(),
                 TextColumn::make('currency')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => strtoupper($state))
                     ->searchable(),
                 TextColumn::make('interval')
                     ->badge()
@@ -110,18 +127,14 @@ class SubscriptionsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                CreateAction::make(),
                 AssociateAction::make(),
             ])
             ->recordActions([
-                EditAction::make(),
                 DissociateAction::make(),
-                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DissociateBulkAction::make(),
-                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
