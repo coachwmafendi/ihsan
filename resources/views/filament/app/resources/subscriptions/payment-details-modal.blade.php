@@ -108,9 +108,6 @@
 
     {{-- Actions --}}
     <div class="flex justify-end gap-3 pt-2">
-        <button type="button" x-on:click="$dispatch('close-modal')" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-            Cancel
-        </button>
         <button type="button" class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
             Save changes
         </button>
