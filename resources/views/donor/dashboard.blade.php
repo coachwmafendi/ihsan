@@ -93,10 +93,19 @@
                 @endif
             @endif
         </a>
-        <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
+        @if ($activeSubscriptions > 0)
+            <a href="{{ route('donorportal.subscriptions', $organization) }}" wire:navigate
+               class="block rounded-xl bg-white p-4 transition hover:bg-slate-50" style="border:1.5px solid #e2e8f0;">
+        @else
+            <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
+        @endif
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active Plans</p>
             <p class="mt-1.5 text-xl font-black text-slate-900">{{ $activeSubscriptions }}</p>
-        </div>
+        @if ($activeSubscriptions > 0)
+            </a>
+        @else
+            </div>
+        @endif
         <div class="rounded-xl bg-white p-4" style="border:1.5px solid #e2e8f0;">
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Monthly</p>
             @if (count($monthlyRecurringFormatted) > 1)
