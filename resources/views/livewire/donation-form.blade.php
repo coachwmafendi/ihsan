@@ -37,6 +37,12 @@
 @endphp
 
 <div>
+    @if ($campaign->has_target && (float) $campaign->collected_amount >= (float) $campaign->target_amount)
+        <div class="flex items-center gap-2 bg-emerald-600 px-4 py-2.5 text-center text-sm font-bold text-white">
+            <span>🎉</span>
+            <span>Target Tercapai! Terima kasih atas sokongan anda.</span>
+        </div>
+    @endif
     @if ($usesSecureDonationShell)
         @if ($isPopup)
             <div class="bg-white lg:grid lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_440px] lg:items-stretch">
