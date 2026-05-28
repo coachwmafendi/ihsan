@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Stripe\ManageStripeSubscription;
 use App\Enums\DonationStatus;
 use App\Enums\ElementType;
 use App\Enums\SubscriptionStatus;
@@ -281,9 +282,168 @@ class DonorPortalController extends Controller
             abort(403);
         }
 
-        $subscription->update(['status' => SubscriptionStatus::Cancelled]);
+        try {
+            $immediately = request()->boolean('immediately', false);
 
-        return redirect()->route('donorportal.subscriptions', $organization)
-            ->with('success', 'Subscription cancelled.');
+            app(ManageStripeSubscription::class)->cancel($subscription, $immediately);
+
+            return redirect()->route('donorportal.subscriptions', $organization)
+                ->with('success', $immediately
+                    ? 'Subscription cancelled immediately.'
+                    : 'Subscription will cancel at the end of the billing period.');
+        } catch (\Exception $e) {
+            return redirect()->route('donorportal.subscriptions', $organization)
+                ->with('error', 'Failed to cancel: '.$e->getMessage());
+        }
+    }
+
+    public function pauseSubscription(Organization $organization, Subscription $subscription)
+    {
+        $donor = $this->getDonor($organization);
+        if ($donor === null) {
+            return redirect()->route('donorportal.login', $organization);
+        }
+
+        $subscription->loadMissing('campaign');
+
+        if (
+            $subscription->donor_id !== $donor->getKey()
+            || $subscription->campaign?->organization_id !== $organization->getKey()
+        ) {
+            abort(403);
+        }
+
+        try {
+            app(ManageStripeSubscription::class)->pause($subscription);
+
+            return redirect()->route('donorportal.subscriptions', $organization)
+                ->with('success', 'Subscription paused.');
+        } catch (\Exception $e) {
+            return redirect()->route('donorportal.subscriptions', $organization)
+                ->with('error', 'Failed to pause: '.$e->getMessage());
+        }
+    }
+
+    public function resumeSubscription(Organization $organization, Subscription $subscription)
+    {
+        $donor = $this->getDonor($organization);
+        if ($donor === null) {
+            return redirect()->route('donorportal.login', $organization);
+        }
+
+        $subscription->loadMissing('campaign');
+
+        if (
+            $subscription->donor_id !== $donor->getKey()
+            || $subscription->campaign?->organization_id !== $organization->getKey()
+        ) {
+            abort(403);
+        }
+
+        try {
+            app(ManageStripeSubscription::class)->resume($subscription);
+
+            return redirect()->route('donorportal.subscriptions', $organization)
+                ->with('success', 'Subscription resumed.');
+        } catch (\Exception $e) {
+            return redirect()->route('donorportal.subscriptions', $organization)
+                ->with('error', 'Failed to resume: '.$e->getMessage());
+        }
+    }
+
+    public function changeSubscriptionAmount(Organization $organization, Subscription $subscription)
+    {
+        $donor = $this->getDonor($organization);
+        if ($donor === null) {
+            return redirect()->route('donorportal.login', $organization);
+        }
+
+        $subscription->loadMissing('campaign');
+
+        if (
+            $subscription->donor_id !== $donor->getKey()
+            || $subscription->campaign?->organization_id !== $organization->getKey()
+        ) {
+            abort(403);
+        }
+
+        $data = request()->validate([
+            'new_amount' => 'required|numeric|min:1',
+        ]);
+
+        try {
+            app(ManageStripeSubscription::class)->changeAmount(
+                $subscription,
+                (float) $data['new_amount'],
+            );
+
+            return redirect()->route('donorportal.subscriptions', $organization)
+                ->with('success', 'Subscription amount updated.');
+        } catch (\Exception $e) {
+            return redirect()->route('donorportal.subscriptions', $organization)
+                ->with('error', 'Failed to change amount: '.$e->getMessage());
+        }
+    }
+
+    public function paymentMethodClientSecret(Organization $organization, Subscription $subscription)
+    {
+        $donor = $this->getDonor($organization);
+        if ($donor === null) {
+            abort(403);
+        }
+
+        $subscription->loadMissing('campaign');
+
+        if (
+            $subscription->donor_id !== $donor->getKey()
+            || $subscription->campaign?->organization_id !== $organization->getKey()
+        ) {
+            abort(403);
+        }
+
+        try {
+            $clientSecret = app(ManageStripeSubscription::class)->createSetupIntent($subscription);
+
+            $org = $subscription->campaign?->organization;
+
+            return response()->json([
+                'client_secret' => $clientSecret,
+                'stripe_account_id' => $org?->stripe_account_id,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updatePaymentMethod(Organization $organization, Subscription $subscription)
+    {
+        $donor = $this->getDonor($organization);
+        if ($donor === null) {
+            abort(403);
+        }
+
+        $subscription->loadMissing('campaign');
+
+        if (
+            $subscription->donor_id !== $donor->getKey()
+            || $subscription->campaign?->organization_id !== $organization->getKey()
+        ) {
+            abort(403);
+        }
+
+        $data = request()->validate([
+            'payment_method_id' => 'required|string',
+        ]);
+
+        try {
+            app(ManageStripeSubscription::class)->updatePaymentMethod(
+                $subscription,
+                $data['payment_method_id'],
+            );
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

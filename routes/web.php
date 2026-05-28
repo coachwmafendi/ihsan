@@ -82,4 +82,9 @@ Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(fu
         ->name('receipts.download-all');
     Route::get('subscriptions', [DonorPortalController::class, 'subscriptions'])->name('subscriptions');
     Route::post('subscriptions/{subscription}/cancel', [DonorPortalController::class, 'cancelSubscription'])->name('subscriptions.cancel');
+    Route::post('subscriptions/{subscription}/pause', [DonorPortalController::class, 'pauseSubscription'])->name('subscriptions.pause');
+    Route::post('subscriptions/{subscription}/resume', [DonorPortalController::class, 'resumeSubscription'])->name('subscriptions.resume');
+    Route::post('subscriptions/{subscription}/change-amount', [DonorPortalController::class, 'changeSubscriptionAmount'])->name('subscriptions.change-amount');
+    Route::get('subscriptions/{subscription}/payment-method/client-secret', [DonorPortalController::class, 'paymentMethodClientSecret'])->name('subscriptions.payment-method.client-secret');
+    Route::post('subscriptions/{subscription}/payment-method', [DonorPortalController::class, 'updatePaymentMethod'])->name('subscriptions.payment-method.update');
 });

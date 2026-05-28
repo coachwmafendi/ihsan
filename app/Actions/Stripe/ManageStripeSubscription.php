@@ -128,6 +128,7 @@ class ManageStripeSubscription
         $setupIntent = SetupIntent::create([
             'customer' => $stripeSubscription->customer,
             'usage' => 'off_session',
+            'payment_method_types' => ['card'],
         ], $stripeOptions);
 
         return $setupIntent->client_secret;

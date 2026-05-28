@@ -54,12 +54,13 @@
     </div>
 
     {{-- Payment Method --}}
-    <div class="border-t pt-4" x-data="{ paymentMethod: 'current', cardError: '', loading: false, success: false, clientSecret: {{ json_encode($clientSecret) }}, stripe: null, cardElement: null }" x-init="$watch('paymentMethod', value => { if (value === 'new' && clientSecret) $nextTick(() => mountStripeCard()) })">
+    @php $stripeAccount = $record->campaign->organization->stripe_account_id ?? null; @endphp
+    <div class="border-t pt-4" x-data="paymentDetailsModal({{ json_encode($clientSecret) }}, {{ json_encode($stripeAccount) }})" x-init="init()" @submit-payment-details.window="save()" data-stripe-key="{{ config('services.stripe.key') }}">
         <label class="block text-sm font-medium text-gray-700 mb-3">Payment method</label>
 
         <div class="space-y-3">
             <label class="flex items-center gap-3 cursor-pointer">
-                <input type="radio" value="current" x-model="paymentMethod" class="text-primary-600 focus:ring-primary-500" checked>
+                <input type="radio" value="current" x-model="paymentMethod" class="text-primary-600 focus:ring-primary-500">
                 <div class="flex items-center gap-2">
                     <span class="text-blue-600"><x-heroicon-o-credit-card class="w-6 h-6" /></span>
                     <span class="text-sm text-gray-600">Current card on file</span>
@@ -73,9 +74,12 @@
         </div>
 
         <div x-show="paymentMethod === 'new'" x-cloak class="mt-4 space-y-4 rounded-xl bg-gray-50 p-5">
-            <div>
+            <div x-show="!clientSecret" class="text-sm text-red-600">
+                Unable to load card form. Please refresh and try again.
+            </div>
+            <div x-show="clientSecret">
                 <label class="block text-sm font-semibold text-gray-900 mb-2">Card details</label>
-                <div id="stripe-card-element" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 min-h-[44px]"></div>
+                <div id="stripe-card-element" wire:ignore class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 min-h-[44px]"></div>
                 <div class="mt-2 text-sm text-red-600" x-text="cardError"></div>
             </div>
 
@@ -95,30 +99,12 @@
     </div>
 
     {{-- Actions --}}
-    <div class="flex justify-end gap-3 pt-2">
-        <button type="button" wire:click="$dispatch('close-modal')" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+    <div class="flex justify-end gap-3 pt-2" x-data>
+        <button type="button" @click="$wire.unmountAction()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             Cancel
         </button>
-        <button type="button" class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
+        <button type="button" @click="$dispatch('submit-payment-details')" class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
             Save changes
         </button>
     </div>
-
-    @if($clientSecret)
-    <script>
-        function mountStripeCard() {
-            const container = document.getElementById('stripe-card-element');
-            if (!container || container.hasChildNodes()) return;
-
-            const stripe = Stripe('{{ config('services.stripe.key') }}');
-            const elements = stripe.elements({
-                clientSecret: {{ json_encode($clientSecret) }},
-                appearance: { theme: 'stripe' }
-            });
-
-            const card = elements.create('payment');
-            card.mount('#stripe-card-element');
-        }
-    </script>
-    @endif
 </div>

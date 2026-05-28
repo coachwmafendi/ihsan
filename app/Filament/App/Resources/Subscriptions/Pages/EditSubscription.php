@@ -34,6 +34,7 @@ class EditSubscription extends EditRecord
                 ->color('info')
                 ->modalHeading('Edit payment details')
                 ->modalSubmitAction(false)
+                ->modalCancelAction(false)
                 ->modalContent(fn () => view('filament.app.resources.subscriptions.payment-details-modal', [
                     'record' => $this->record,
                     'clientSecret' => $this->paymentClientSecret,
