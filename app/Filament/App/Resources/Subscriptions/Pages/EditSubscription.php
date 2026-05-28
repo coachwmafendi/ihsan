@@ -35,6 +35,7 @@ class EditSubscription extends EditRecord
                 ->label('Change Amount')
                 ->icon('heroicon-o-currency-dollar')
                 ->color('primary')
+                ->modalWidth('sm')
                 ->form([
                     TextInput::make('new_amount')
                         ->label('New Amount')
