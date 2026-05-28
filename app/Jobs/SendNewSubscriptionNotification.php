@@ -20,6 +20,7 @@ class SendNewSubscriptionNotification implements ShouldQueue
 
     public function handle(): void
     {
+        $this->donation->refresh();
         $this->donation->loadMissing(['donor', 'campaign.organization']);
 
         $org = $this->donation->campaign?->organization;
