@@ -3,6 +3,7 @@
 namespace App\Filament\App\Resources\Campaigns\Schemas;
 
 use App\Enums\CampaignStatus;
+use App\Enums\DonationStatus;
 use App\Enums\PaymentGateway;
 use App\Filament\Forms\Components\SuggestedAmounts;
 use Filament\Forms\Components\DatePicker;
@@ -238,7 +239,10 @@ class CampaignForm
                                 Placeholder::make('collected_amount')
                                     ->label('Jumlah terkumpul')
                                     ->content(fn ($record) => new HtmlString(
-                                        '<span class="text-2xl font-bold text-emerald-600">RM '.number_format($record->collected_amount ?? 0, 2).'</span>'
+                                        '<span class="text-2xl font-bold text-emerald-600">RM '.number_format(
+                                            $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount') ?? 0,
+                                            2
+                                        ).'</span>'
                                     )),
                                 Placeholder::make('donation_count')
                                     ->label('Jumlah derma')
@@ -268,7 +272,7 @@ class CampaignForm
             return '<p style="font-size: 0.875rem; color: #71717a;">Tiada sasaran ditetapkan untuk kempen ini.</p>';
         }
 
-        $collected = (float) $record->collected_amount;
+        $collected = (float) $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount');
         $target = (float) $record->target_amount;
         $percentage = min(round(($collected / $target) * 100, 1), 100);
         $barWidth = max($percentage, 2);

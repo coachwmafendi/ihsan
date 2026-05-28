@@ -3,6 +3,7 @@
 namespace App\Filament\App\Resources\Campaigns\Tables;
 
 use App\Enums\CampaignStatus;
+use App\Enums\DonationStatus;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -39,10 +40,17 @@ class CampaignsTable
                         'Ended' => 'danger',
                         default => 'gray',
                     }),
-                TextColumn::make('collected_amount')
+                TextColumn::make('raised')
                     ->label('Raised')
-                    ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
-                    ->sortable(),
+                    ->getStateUsing(fn ($record): string => 'MYR '.number_format(
+                        (float) $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount'),
+                        2
+                    ))
+                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query
+                        ->orderByRaw(
+                            '(SELECT COALESCE(SUM(base_amount), 0) FROM donations WHERE donations.campaign_id = campaigns.id AND donations.status = ?) '.$direction,
+                            [DonationStatus::Succeeded->value]
+                        )),
                 TextColumn::make('progress')
                     ->label('Progress')
                     ->html()
@@ -51,7 +59,8 @@ class CampaignsTable
                             return '<span class="text-xs text-gray-400">No target</span>';
                         }
 
-                        $pct = min(100, (int) round(($record->collected_amount / $record->target_amount) * 100));
+                        $collected = (float) $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount');
+                        $pct = min(100, (int) round(($collected / $record->target_amount) * 100));
                         $barColor = $pct >= 100 ? 'bg-emerald-600' : ($pct >= 50 ? 'bg-teal-600' : 'bg-amber-500');
 
                         return '<div class="flex items-center gap-2 w-44"><div class="flex-1 h-2.5 rounded-full bg-gray-200"><div class="h-2.5 rounded-full '.$barColor.'" style="width: '.$pct.'%"></div></div><span class="text-xs font-medium tabular-nums text-gray-600">'.$pct.'%<br><span class="text-gray-400 font-normal">of MYR '.number_format((float) $record->target_amount, 2).'</span></span></div>';
@@ -108,8 +117,8 @@ class CampaignsTable
                         'no_end' => $query->whereNull('end_date'),
                         default => $query,
                     }),
-                Filter::make('collected_amount')
-                    ->label('Collected Range')
+                Filter::make('raised_range')
+                    ->label('Raised Range')
                     ->form([
                         TextInput::make('min')
                             ->label('Min (MYR)')
@@ -121,8 +130,16 @@ class CampaignsTable
                             ->minValue(0),
                     ])
                     ->query(fn (Builder $query, array $data): Builder => $query
-                        ->when($data['min'] ?? null, fn (Builder $q, $m): Builder => $q->where('collected_amount', '>=', (float) $m))
-                        ->when($data['max'] ?? null, fn (Builder $q, $m): Builder => $q->where('collected_amount', '<=', (float) $m))),
+                        ->when($data['min'] ?? null, fn (Builder $q, $m): Builder => $q
+                            ->whereRaw(
+                                '(SELECT COALESCE(SUM(base_amount), 0) FROM donations WHERE donations.campaign_id = campaigns.id AND donations.status = ?) >= ?',
+                                [DonationStatus::Succeeded->value, (float) $m]
+                            ))
+                        ->when($data['max'] ?? null, fn (Builder $q, $m): Builder => $q
+                            ->whereRaw(
+                                '(SELECT COALESCE(SUM(base_amount), 0) FROM donations WHERE donations.campaign_id = campaigns.id AND donations.status = ?) <= ?',
+                                [DonationStatus::Succeeded->value, (float) $m]
+                            ))),
             ])
             ->recordActions([
                 EditAction::make(),
