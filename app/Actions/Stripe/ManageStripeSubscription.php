@@ -2,8 +2,10 @@
 
 namespace App\Actions\Stripe;
 
+use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Models\Subscription;
+use Carbon\Carbon;
 use Stripe\Price;
 use Stripe\SetupIntent;
 use Stripe\Stripe;
@@ -110,6 +112,82 @@ class ManageStripeSubscription
         $subscription->update([
             'amount' => $newAmount,
             'stripe_price_id' => $price->id,
+        ]);
+    }
+
+    /**
+     * Update frequency, end date, billing day, and cover fee.
+     *
+     * @param  array{interval: string, billing_day: int, cancel_at: ?string, cover_fee: bool}  $data
+     */
+    public function updateDetails(Subscription $subscription, array $data): void
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        $subscription->loadMissing('campaign.organization');
+        $stripeOptions = $this->stripeOptions($subscription);
+
+        $stripeParams = [];
+
+        // Frequency change → new Stripe price with new interval
+        $newInterval = SubscriptionInterval::from($data['interval']);
+        if ($newInterval !== $subscription->interval) {
+            $stripeSubscription = StripeSubscription::retrieve([
+                'id' => $subscription->stripe_subscription_id,
+                'expand' => ['items.data.price.product'],
+            ], $stripeOptions);
+
+            $subscriptionItem = $stripeSubscription->items->data[0] ?? null;
+            if ($subscriptionItem) {
+                $product = $subscriptionItem->price->product;
+                $productId = is_string($product) ? $product : $product->id;
+
+                $price = Price::create([
+                    'product' => $productId,
+                    'unit_amount' => (int) ($subscription->amount * 100),
+                    'currency' => strtolower($subscription->currency ?? 'myr'),
+                    'recurring' => ['interval' => $this->stripeInterval($data['interval'])],
+                ], $stripeOptions);
+
+                SubscriptionItem::update($subscriptionItem->id, [
+                    'price' => $price->id,
+                    'proration_behavior' => 'none',
+                ], $stripeOptions);
+
+                $subscription->update([
+                    'interval' => $newInterval,
+                    'stripe_price_id' => $price->id,
+                ]);
+            }
+        }
+
+        // Billing day change → update billing_cycle_anchor
+        $currentDay = (int) ($subscription->current_period_start ?? now())->format('j');
+        $newDay = (int) $data['billing_day'];
+        if ($newDay !== $currentDay && $newDay >= 1 && $newDay <= 28) {
+            $anchor = Carbon::now()->setDay($newDay);
+            if ($anchor->isPast()) {
+                $anchor->addMonth();
+            }
+
+            $stripeParams['billing_cycle_anchor'] = $anchor->timestamp;
+            $stripeParams['proration_behavior'] = 'none';
+        }
+
+        // End date → cancel_at
+        $newCancelAt = $data['cancel_at'] ? Carbon::parse($data['cancel_at']) : null;
+        $oldCancelAt = $subscription->cancel_at;
+        if ($newCancelAt?->timestamp !== $oldCancelAt?->timestamp) {
+            $stripeParams['cancel_at'] = $newCancelAt ? $newCancelAt->timestamp : '';
+        }
+
+        if (! empty($stripeParams)) {
+            StripeSubscription::update($subscription->stripe_subscription_id, $stripeParams, $stripeOptions);
+        }
+
+        $subscription->update([
+            'cover_fee' => (bool) $data['cover_fee'],
+            'cancel_at' => $newCancelAt,
         ]);
     }
 

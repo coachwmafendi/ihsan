@@ -1,4 +1,26 @@
-<div class="space-y-6">
+@php
+    $currentBillingDay = (int) ($record->current_period_start ?? $record->created_at)?->format('j');
+    $currentCancelAt = $record->cancel_at
+        ? $record->cancel_at->format('Y-m-d')
+        : ($record->current_period_start ?? $record->created_at)?->addYears(2)->format('Y-m-d') ?? '';
+    $stripeAccount = $record->campaign->organization->stripe_account_id ?? null;
+    $feeAmount = $record->amount * 0.03 + 0.50;
+    $displayTotal = $record->amount + $feeAmount;
+    $initialData = [
+        'interval' => $record->interval->value,
+        'billingDay' => $currentBillingDay,
+        'cancelAt' => $currentCancelAt,
+        'coverFee' => $record->cover_fee ?? true,
+    ];
+@endphp
+
+<div
+    class="space-y-6"
+    x-data="paymentDetailsModal({{ json_encode($clientSecret) }}, {{ json_encode($stripeAccount) }}, {{ json_encode($initialData) }})"
+    x-init="init()"
+    @submit-payment-details.window="save()"
+    data-stripe-key="{{ config('services.stripe.key') }}"
+>
     <style>[x-cloak] { display: none !important; }</style>
 
     {{-- Installment Amount --}}
@@ -14,48 +36,43 @@
     {{-- Frequency --}}
     <div class="flex items-center gap-4">
         <label class="w-32 text-right text-sm font-medium text-gray-700">Frequency</label>
-        <div class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm bg-gray-50 text-gray-700">
-            {{ ucfirst($record->interval->value) }}
-        </div>
+        <select x-model="interval" class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+        </select>
     </div>
 
     {{-- Starting On --}}
     <div class="flex items-center gap-4">
         <label class="w-32 text-right text-sm font-medium text-gray-700">Starting on</label>
-        <div class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm bg-gray-50 text-gray-700">
-            {{ ($record->current_period_start ?? $record->created_at)?->format('jS') ?? '19th' }}
+        <div class="flex-1 flex items-center gap-2">
+            <input type="number" min="1" max="28" x-model.number="billingDay" class="w-24 rounded-lg border border-gray-300 py-2 px-3 text-sm bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            <span class="text-sm text-gray-500">day of month</span>
         </div>
     </div>
 
     {{-- End Date --}}
     <div class="flex items-center gap-4">
         <label class="w-32 text-right text-sm font-medium text-gray-700">End date</label>
-        <div class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm bg-gray-50 text-gray-700 flex items-center gap-2">
-            <x-heroicon-o-calendar class="w-4 h-4 text-gray-400" />
-            {{ $record->created_at->copy()->addYear()->format('d M Y') }}
-        </div>
+        <input type="date" x-model="cancelAt" class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
     </div>
 
     {{-- Transaction Costs --}}
     <div class="border-t pt-4">
-        @php
-            $feeAmount = $record->amount * 0.03 + 0.50;
-            $totalWithFee = $record->amount + $feeAmount;
-        @endphp
         <p class="text-sm text-gray-600">
             Estimated transaction costs: <span class="font-semibold ml-1">{{ \App\Support\Currency::symbol($record->currency) }} {{ number_format($feeAmount, 2) }}</span>
         </p>
 
-        <div class="mt-3 flex items-center gap-2 rounded-lg bg-gray-50 px-4 py-3">
-            <svg class="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        <label class="mt-3 flex items-center gap-3 rounded-lg bg-gray-50 px-4 py-3 cursor-pointer">
+            <input type="checkbox" x-model="coverFee" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
             <span class="text-sm text-gray-700">Cover transaction costs</span>
             <x-heroicon-o-question-mark-circle class="w-4 h-4 text-gray-400" />
-        </div>
+        </label>
     </div>
 
     {{-- Payment Method --}}
-    @php $stripeAccount = $record->campaign->organization->stripe_account_id ?? null; @endphp
-    <div class="border-t pt-4" x-data="paymentDetailsModal({{ json_encode($clientSecret) }}, {{ json_encode($stripeAccount) }})" x-init="init()" @submit-payment-details.window="save()" data-stripe-key="{{ config('services.stripe.key') }}">
+    <div class="border-t pt-4">
         <label class="block text-sm font-medium text-gray-700 mb-3">Payment method</label>
 
         <div class="space-y-3">
@@ -84,27 +101,35 @@
             </div>
 
             <div x-show="loading" class="text-sm text-gray-500">Processing...</div>
-            <div x-show="success" class="rounded-lg bg-green-50 p-3 text-sm text-green-700">Payment method saved successfully.</div>
+            <div x-show="success" class="rounded-lg bg-green-50 p-3 text-sm text-green-700">Changes saved successfully.</div>
         </div>
     </div>
 
     {{-- Info Box --}}
-    @php
-        $displayFee = $record->amount * 0.03 + 0.50;
-        $displayTotal = $record->amount + $displayFee;
-    @endphp
     <div class="rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-800">
         The next installment of <span class="font-semibold">{{ \App\Support\Currency::symbol($record->currency) }} {{ number_format($displayTotal, 2) }}</span>
-        (with costs covered) will run on {{ $record->current_period_end?->format('M j, Y, g:i A') ?? 'N/A' }}.
+        <span x-show="coverFee">(with costs covered)</span>
+        will run on {{ $record->current_period_end?->format('M j, Y, g:i A') ?? 'N/A' }}.
+    </div>
+
+    {{-- Success message (outside card section) --}}
+    <div x-show="success && paymentMethod === 'current'" class="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+        Changes saved successfully.
     </div>
 
     {{-- Actions --}}
-    <div class="flex justify-end gap-3 pt-2" x-data>
+    <div class="flex justify-end gap-3 pt-2">
         <button type="button" @click="$wire.unmountAction()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             Cancel
         </button>
-        <button type="button" @click="$dispatch('submit-payment-details')" class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
-            Save changes
+        <button
+            type="button"
+            @click="$dispatch('submit-payment-details')"
+            :disabled="loading"
+            class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+        >
+            <span x-show="!loading">Save changes</span>
+            <span x-show="loading">Saving...</span>
         </button>
     </div>
 </div>

@@ -42,10 +42,14 @@ class AppPanelProvider extends PanelProvider
             fn (): HtmlString => new HtmlString(<<<'HTML'
                 <script>
                     document.addEventListener('alpine:init', () => {
-                        Alpine.data('paymentDetailsModal', (clientSecret, stripeAccount) => ({
+                        Alpine.data('paymentDetailsModal', (clientSecret, stripeAccount, initial) => ({
                             paymentMethod: 'current',
                             clientSecret: clientSecret,
                             stripeAccount: stripeAccount,
+                            interval: initial.interval,
+                            billingDay: initial.billingDay,
+                            cancelAt: initial.cancelAt,
+                            coverFee: initial.coverFee,
                             cardError: '',
                             loading: false,
                             success: false,
@@ -77,30 +81,41 @@ class AppPanelProvider extends PanelProvider
                             },
 
                             async save() {
-                                if (this.paymentMethod === 'current') {
-                                    this.$wire.unmountAction();
-                                    return;
-                                }
-
-                                if (!this.stripe || !this.elements) return;
-
                                 this.loading = true;
                                 this.cardError = '';
 
-                                const { setupIntent, error } = await this.stripe.confirmSetup({
-                                    elements: this.elements,
-                                    redirect: 'if_required',
-                                });
+                                // Always save subscription details first
+                                await this.$wire.saveDetails(
+                                    this.interval,
+                                    this.billingDay,
+                                    this.cancelAt || null,
+                                    this.coverFee,
+                                );
 
-                                if (error) {
-                                    this.cardError = error.message;
-                                    this.loading = false;
-                                    return;
+                                // If new card selected, confirm Stripe setup
+                                if (this.paymentMethod === 'new') {
+                                    if (!this.stripe || !this.elements) {
+                                        this.loading = false;
+                                        return;
+                                    }
+
+                                    const { setupIntent, error } = await this.stripe.confirmSetup({
+                                        elements: this.elements,
+                                        redirect: 'if_required',
+                                    });
+
+                                    if (error) {
+                                        this.cardError = error.message;
+                                        this.loading = false;
+                                        return;
+                                    }
+
+                                    await this.$wire.savePaymentMethod(setupIntent.payment_method);
                                 }
 
-                                await this.$wire.savePaymentMethod(setupIntent.payment_method);
                                 this.success = true;
                                 this.loading = false;
+                                setTimeout(() => this.$wire.unmountAction(), 1500);
                             },
                         }));
                     });

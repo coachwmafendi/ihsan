@@ -7,6 +7,7 @@
     loaded: false,
     changeModal: null,
     paymentModal: null,
+    pauseConfirmId: null,
     paymentClientSecret: null,
     paymentStripeAccount: null,
     paymentLoading: false,
@@ -192,19 +193,14 @@
                                 </svg>
                                 Card Details
                             </button>
-                            <form action="{{ route('donorportal.subscriptions.pause', ['organization' => $organization, 'subscription' => $subscription]) }}"
-                                  method="POST"
-                                  onsubmit="return confirm('Pause this subscription?')"
-                                  class="inline">
-                                @csrf
-                                <button type="submit"
-                                        class="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-600 transition hover:bg-amber-100">
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
-                                    </svg>
-                                    Pause
-                                </button>
-                            </form>
+                            <button type="button"
+                                    @click="pauseConfirmId = {{ $subscription->getKey() }}"
+                                    class="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-600 transition hover:bg-amber-100">
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                                </svg>
+                                Pause
+                            </button>
                             <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
                                class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -306,6 +302,33 @@
                 Save
             </button>
         </div>
+    </div>
+</div>
+
+{{-- Pause Confirmation Modal --}}
+<div x-show="pauseConfirmId !== null"
+     x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+     @click.self="pauseConfirmId = null"
+     x-transition.opacity>
+    <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
+        <h3 class="text-base font-black text-slate-900">Pause Subscription?</h3>
+        <p class="mt-1 text-xs text-slate-500">No further payments will be collected until you resume.</p>
+
+        <form method="POST"
+              x-bind:action="'{{ route('donorportal.subscriptions.pause', ['organization' => $organization, 'subscription' => '__id__']) }}'.replace('__id__', pauseConfirmId)"
+              class="mt-6 flex items-center justify-end gap-2">
+            @csrf
+            <button type="button"
+                    @click="pauseConfirmId = null"
+                    class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                Keep Active
+            </button>
+            <button type="submit"
+                    class="rounded-lg border border-transparent bg-amber-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-amber-500">
+                Yes, Pause
+            </button>
+        </form>
     </div>
 </div>
 
