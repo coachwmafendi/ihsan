@@ -20,6 +20,14 @@ class EditSubscription extends EditRecord
 
     public ?string $paymentClientSecret = null;
 
+    public function getHeading(): string
+    {
+        $currency = strtoupper($this->record->currency ?? 'MYR');
+        $amount = number_format((float) $this->record->amount, 2);
+
+        return "Edit {$currency}{$amount} recurring plan";
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -66,7 +74,7 @@ class EditSubscription extends EditRecord
                 ->color('info')
                 ->modalHeading('Edit payment details')
                 ->modalSubmitAction(false)
-                ->modalContent(view('filament.app.resources.subscriptions.payment-details-modal'))
+                ->modalContent(fn () => view('filament.app.resources.subscriptions.payment-details-modal', ['record' => $this->record]))
                 ->action(function (array $data) {})
                 ->mountUsing(function () {
                     try {
@@ -83,7 +91,7 @@ class EditSubscription extends EditRecord
                 })
                 ->hidden(fn () => $this->record->status === SubscriptionStatus::Cancelled),
             Action::make('cancel')
-                ->label('Cancel')
+                ->label('Cancel Recurring')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
                 ->requiresConfirmation()
@@ -123,7 +131,7 @@ class EditSubscription extends EditRecord
                 })
                 ->hidden(fn () => $this->record->status === SubscriptionStatus::Cancelled),
             Action::make('pause')
-                ->label('Pause')
+                ->label('Pause Recurring')
                 ->icon('heroicon-o-pause-circle')
                 ->color('warning')
                 ->requiresConfirmation()
