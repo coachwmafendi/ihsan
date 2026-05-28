@@ -11,6 +11,7 @@
         'interval' => $record->interval->value,
         'billingDay' => $currentBillingDay,
         'cancelAt' => $currentCancelAt,
+        'unlimitedEndDate' => $currentCancelAt === '',
         'coverFee' => (bool) $record->cover_fee,
         'amount' => (float) $record->amount,
         'processingFeeRate' => $processingFeePercent,
@@ -58,7 +59,14 @@
     {{-- End Date --}}
     <div class="flex items-center gap-4">
         <label class="w-32 text-right text-sm font-medium text-gray-700">End date</label>
-        <input type="date" x-model="cancelAt" class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+        <div class="flex-1 flex items-center gap-3">
+            <input type="date" x-model="cancelAt" :disabled="unlimitedEndDate" x-show="!unlimitedEndDate" class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50 disabled:text-gray-400">
+            <span x-show="unlimitedEndDate" class="flex-1 text-sm text-gray-400 italic">No end date</span>
+            <label class="flex items-center gap-2 cursor-pointer whitespace-nowrap">
+                <input type="checkbox" x-model="unlimitedEndDate" @change="if (unlimitedEndDate) cancelAt = ''" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                <span class="text-sm text-gray-600">Unlimited</span>
+            </label>
+        </div>
     </div>
 
     {{-- Transaction Costs --}}
@@ -115,7 +123,8 @@
         <span class="font-semibold" x-text="'{{ $currencySymbol }} ' + (coverFee ? (amount * (1.03 + processingFeeRate) + 0.50).toFixed(2) : parseFloat(amount).toFixed(2))"></span>
         <span x-show="coverFee">(with costs covered)</span>
         will run on {{ $record->current_period_end?->format('M j, Y, g:i A') ?? 'N/A' }},
-        ending on <span class="font-semibold" x-text="cancelAt ? new Date(cancelAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'"></span>.
+        <span x-show="!unlimitedEndDate">ending on <span class="font-semibold" x-text="cancelAt ? new Date(cancelAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'"></span>.</span>
+        <span x-show="unlimitedEndDate">with no end date.</span>
     </div>
 
     {{-- Success message (outside card section) --}}
