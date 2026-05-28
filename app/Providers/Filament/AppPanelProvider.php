@@ -145,7 +145,7 @@ class AppPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Teal,
             ])
-            ->font('Manrope')
+            ->font('Inter')
             ->maxContentWidth('7xl')
             ->viteTheme('resources/css/filament/app/theme.css')
             ->discoverResources(in: app_path('Filament/App/Resources'), for: 'App\Filament\App\Resources')
