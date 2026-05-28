@@ -438,12 +438,6 @@ class ElementForm
                                             ->native(false),
                                     ]),
                             ]),
-                        View::make('filament.forms.components.element-preview')
-                            ->columnSpanFull()
-                            ->viewData(fn (Get $get): array => [
-                                'type' => $get('type'),
-                                'config' => self::previewConfig($get),
-                            ]),
                     ]),
                 Grid::make([
                     'default' => 1,
