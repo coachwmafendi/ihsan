@@ -58,11 +58,15 @@
     {{-- End Date --}}
     <div class="flex items-center gap-4">
         <label class="w-32 text-right text-sm font-medium text-gray-700">End date</label>
-        <div class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-500">
-            <span class="flex items-center gap-2">
+        <div class="relative flex-1">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <x-heroicon-o-calendar class="w-4 h-4" />
-                Unlimited
             </span>
+            <input
+                type="date"
+                value="{{ $record->created_at->copy()->addYear()->format('Y-m-d') }}"
+                class="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 text-sm focus:border-primary-500 focus:ring-primary-500"
+            >
         </div>
     </div>
 
