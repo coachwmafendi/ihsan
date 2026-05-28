@@ -1,11 +1,81 @@
 <div
-    x-data="paymentDetails({{ json_encode($clientSecret) }}, {{ $record->amount }})"
-    x-init="init"
+    x-data="{
+        amount: {{ $record->amount }},
+        currencySymbol: '{{ \App\Support\Currency::symbol($record->currency) }}',
+        coverFee: true,
+        get estimatedFee() {
+            return this.amount > 0 ? (this.amount * 0.03 + 0.50) : 0;
+        },
+        get totalAmount() {
+            return this.coverFee ? this.amount + this.estimatedFee : this.amount;
+        },
+        paymentMethod: 'current',
+        loading: false,
+        success: false,
+        cardError: '',
+        clientSecret: {{ json_encode($clientSecret) }},
+        stripe: null,
+        cardElement: null,
+
+        init() {
+            this.$watch('paymentMethod', (value) => {
+                if (value === 'new') {
+                    setTimeout(() => this.mountCardElement(), 100);
+                }
+            });
+        },
+
+        mountCardElement() {
+            if (!this.clientSecret || this.cardElement) return;
+
+            const container = document.getElementById('stripe-card-element');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            this.stripe = Stripe('{{ config('services.stripe.key') }}');
+            const elements = this.stripe.elements({
+                clientSecret: this.clientSecret,
+                appearance: { theme: 'stripe' }
+            });
+
+            const card = elements.create('payment');
+            card.mount('#stripe-card-element');
+
+            card.on('change', (event) => {
+                this.cardError = event.error ? event.error.message : '';
+            });
+
+            this.cardElement = card;
+        },
+
+        async submit() {
+            this.loading = true;
+            this.success = false;
+            this.cardError = '';
+
+            const { setupIntent, error } = await this.stripe.confirmSetup({
+                elements: this.stripe.elements({ clientSecret: this.clientSecret }),
+                redirect: 'if_required',
+            });
+
+            if (error) {
+                this.cardError = error.message;
+                this.loading = false;
+                return;
+            }
+
+            await $wire.savePaymentMethod(setupIntent.payment_method);
+            this.success = true;
+            this.loading = false;
+        },
+    }"
     class="space-y-6"
 >
     <style>
         [x-cloak] { display: none !important; }
     </style>
+
     {{-- Installment Amount --}}
     <div class="flex items-center gap-4">
         <label class="w-32 text-right text-sm font-medium text-gray-700">Installment amount</label>
@@ -202,81 +272,4 @@
             Save changes
         </button>
     </div>
-
-    <script>
-        function paymentDetails(clientSecret, initialAmount) {
-            return {
-                amount: initialAmount,
-                currencySymbol: '{{ \App\Support\Currency::symbol($record->currency) }}',
-                coverFee: true,
-                get estimatedFee() {
-                    return this.amount > 0 ? (this.amount * 0.03 + 0.50) : 0;
-                },
-                get totalAmount() {
-                    return this.coverFee ? this.amount + this.estimatedFee : this.amount;
-                },
-                paymentMethod: 'current',
-                loading: false,
-                success: false,
-                cardError: '',
-                clientSecret: clientSecret,
-                stripe: null,
-                cardElement: null,
-
-                init() {
-                    this.$watch('paymentMethod', (value) => {
-                        if (value === 'new') {
-                            setTimeout(() => this.mountCardElement(), 100);
-                        }
-                    });
-                },
-
-                mountCardElement() {
-                    if (!this.clientSecret || this.cardElement) return;
-
-                    const container = document.getElementById('stripe-card-element');
-                    if (!container) return;
-                    
-                    // Clear container
-                    container.innerHTML = '';
-
-                    this.stripe = Stripe('{{ config('services.stripe.key') }}');
-                    const elements = this.stripe.elements({
-                        clientSecret: this.clientSecret,
-                        appearance: { theme: 'stripe' }
-                    });
-
-                    const card = elements.create('payment');
-                    card.mount('#stripe-card-element');
-
-                    card.on('change', (event) => {
-                        this.cardError = event.error ? event.error.message : '';
-                    });
-
-                    this.cardElement = card;
-                },
-
-                async submit() {
-                    this.loading = true;
-                    this.success = false;
-                    this.cardError = '';
-
-                    const { setupIntent, error } = await this.stripe.confirmSetup({
-                        elements: this.stripe.elements({ clientSecret: this.clientSecret }),
-                        redirect: 'if_required',
-                    });
-
-                    if (error) {
-                        this.cardError = error.message;
-                        this.loading = false;
-                        return;
-                    }
-
-                    await $wire.savePaymentMethod(setupIntent.payment_method);
-                    this.success = true;
-                    this.loading = false;
-                },
-            };
-        }
-    </script>
 </div>

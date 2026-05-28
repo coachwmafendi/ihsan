@@ -1,6 +1,0 @@
-- generic [ref=e4]:
-  - button "Close" [ref=e5]:
-    - img [ref=e6]
-  - generic [ref=e10]:
-    - generic [ref=e11]
-    - generic [ref=e27]
