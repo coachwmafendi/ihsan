@@ -1,5 +1,5 @@
 <div
-    x-data="paymentDetails({{ json_encode($clientSecret) }})"
+    x-data="paymentDetails({{ json_encode($clientSecret) }}, {{ $record->amount }})"
     x-init="init"
     class="space-y-6"
 >
@@ -11,10 +11,11 @@
                 {{ \App\Support\Currency::symbol($record->currency) }}
             </span>
             <input
-                type="text"
-                value="{{ number_format($record->amount, 2) }}"
+                type="number"
+                step="0.01"
+                min="1"
+                x-model.number="amount"
                 class="w-full rounded-lg border border-gray-300 py-2 pl-8 pr-16 text-sm focus:border-primary-500 focus:ring-primary-500"
-                readonly
             >
             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
                 {{ strtoupper($record->currency) }}
@@ -28,9 +29,9 @@
         <select class="flex-1 rounded-lg border border-gray-300 py-2 px-3 text-sm focus:border-primary-500 focus:ring-primary-500">
             @php
                 $frequencies = [
-                    'one_time' => 'One Time',
                     'weekly' => 'Weekly',
                     'monthly' => 'Monthly',
+                    'quarterly' => 'Quarterly',
                     'yearly' => 'Yearly',
                 ];
                 $currentInterval = $record->interval->value;
@@ -86,11 +87,15 @@
     {{-- Transaction Costs --}}
     <div class="border-t pt-4">
         <p class="text-sm text-gray-600">
-            Estimated transaction costs: <span class="font-semibold">{{ \App\Support\Currency::symbol($record->currency) }}{{ number_format($record->amount * 0.03 + 0.50, 2) }}</span>
+            Estimated transaction costs: <span class="font-semibold" x-text="currencySymbol + estimatedFee.toFixed(2)"></span>
         </p>
 
         <label class="mt-3 flex items-center gap-2 rounded-lg bg-gray-50 px-4 py-3 cursor-pointer">
-            <input type="checkbox" checked class="rounded border-gray-300 text-primary-600 focus:ring-primary-500" disabled>
+            <input
+                type="checkbox"
+                x-model="coverFee"
+                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            >
             <span class="text-sm text-gray-700">Cover transaction costs</span>
             <x-heroicon-o-question-mark-circle class="w-4 h-4 text-gray-400" />
         </label>
