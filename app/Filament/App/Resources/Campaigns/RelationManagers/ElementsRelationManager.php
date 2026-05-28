@@ -4,7 +4,6 @@ namespace App\Filament\App\Resources\Campaigns\RelationManagers;
 
 use App\Enums\ElementType;
 use App\Filament\App\Resources\Elements\Schemas\ElementForm;
-use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -75,7 +74,6 @@ class ElementsRelationManager extends RelationManager
                             'is_active' => $data['is_active'] ?? true,
                         ]);
                     }),
-                AssociateAction::make(),
             ])
             ->recordActions([
                 EditAction::make(),
