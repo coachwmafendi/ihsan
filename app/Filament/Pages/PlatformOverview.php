@@ -58,7 +58,7 @@ class PlatformOverview extends Page
 
         $succeededDonations = Donation::query()->where('status', DonationStatus::Succeeded);
 
-        $this->totalDonationsVolume = number_format((float) (clone $succeededDonations)->sum('gross_amount'), 2, '.', '');
+        $this->totalDonationsVolume = number_format((float) (clone $succeededDonations)->sum('base_amount'), 2, '.', '');
         $this->totalDonationsCount = Donation::query()->count();
 
         $this->totalProcessingFees = number_format((float) ProcessingFee::query()
