@@ -195,6 +195,19 @@
                 </div>
             </div>
 
+            @if ($hasActiveSubscriptions)
+<div class="rounded-xl bg-blue-50 p-5" style="border:1.5px solid #e2e8f0;">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" name="sync_stripe" id="sync_stripe" value="1"
+                               class="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                        <div>
+                            <label for="sync_stripe" class="text-sm font-bold text-slate-900 cursor-pointer">Update recurring plans</label>
+                            <p class="mt-0.5 text-xs text-slate-500">Applies changes to all your active recurring plans.</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div class="flex justify-end">
                 <button type="submit"
                         class="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-sm transition hover:shadow-md"

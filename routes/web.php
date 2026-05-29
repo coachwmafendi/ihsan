@@ -99,4 +99,5 @@ Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(fu
     Route::post('subscriptions/{subscription}/change-amount', [DonorPortalController::class, 'changeSubscriptionAmount'])->name('subscriptions.change-amount');
     Route::get('subscriptions/{subscription}/payment-method/client-secret', [DonorPortalController::class, 'paymentMethodClientSecret'])->name('subscriptions.payment-method.client-secret');
     Route::post('subscriptions/{subscription}/payment-method', [DonorPortalController::class, 'updatePaymentMethod'])->name('subscriptions.payment-method.update');
+    Route::post('report-problem', [DonorPortalController::class, 'reportProblem'])->name('report-problem');
 });

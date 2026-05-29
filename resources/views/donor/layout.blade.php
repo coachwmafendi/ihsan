@@ -8,7 +8,7 @@
     @livewireScripts
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="min-h-screen bg-slate-50 antialiased">
+<body class="min-h-screen bg-slate-50 antialiased" x-data="{ reportOpen: false }">
     <header class="bg-slate-900">
         <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
             @if (isset($organization) && filled($organization->logo_path))
@@ -62,14 +62,92 @@
     </header>
 
     <main class="mx-auto max-w-5xl px-6 py-8">
-        @if (session('success'))
-            <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700">
-                {{ session('success') }}
-            </div>
-        @endif
-
         @yield('content')
     </main>
+
+    <div id="toast" class="fixed bottom-6 right-6 z-50 max-w-sm rounded-xl border border-emerald-200 bg-white px-5 py-3.5 shadow-xl transition-all duration-300 ease-out"
+         style="display:none; opacity:0; transform:translateY(8px);">
+        <div class="flex items-center gap-3">
+            <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+            </div>
+            <p id="toast-message" class="text-sm font-semibold text-slate-800"></p>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var msg = @json(session('success'));
+            if (msg) {
+                var t = document.getElementById('toast');
+                document.getElementById('toast-message').textContent = msg;
+                t.style.display = 'block';
+                requestAnimationFrame(function() {
+                    t.style.opacity = '1';
+                    t.style.transform = 'translateY(0)';
+                });
+                setTimeout(function() {
+                    t.style.opacity = '0';
+                    t.style.transform = 'translateY(8px)';
+                    setTimeout(function() { t.style.display = 'none'; }, 300);
+                }, 4000);
+            }
+        })();
+    </script>
+
+    <footer class="border-t border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+            <p class="text-[11px] text-slate-400">&copy; {{ date('Y') }} Ihsan.</p>
+            <button type="button" @click="reportOpen = true"
+                    class="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400 transition hover:text-slate-700">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                Report a problem
+            </button>
+        </div>
+    </footer>
+
+    {{-- Report a Problem Modal --}}
+    <div x-show="reportOpen" x-cloak
+         class="fixed inset-0 z-50" aria-modal="true" role="dialog">
+        <div class="fixed inset-0 bg-black/40" @click="reportOpen = false"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                    <h2 class="text-base font-bold text-slate-900">Report a problem</h2>
+                    <button type="button" @click="reportOpen = false"
+                            class="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <form method="POST" action="{{ route('donorportal.report-problem', $organization) }}" class="p-6">
+                    @csrf
+                    <p class="mb-5 text-sm text-slate-600">We value your feedback — it helps us improve your experience with our platform.</p>
+                    <label class="mb-1.5 block text-xs font-semibold text-slate-600">Your message</label>
+                    <textarea name="message" rows="5" required
+                              class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                              placeholder="Describe the issue you're experiencing..."></textarea>
+                    <div class="mt-5 flex justify-end gap-3">
+                        <button type="button" @click="reportOpen = false"
+                                class="rounded-lg border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="rounded-lg px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:shadow-md"
+                                style="background:#0d9488;">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     @stack('scripts')
 </body>
 </html>

@@ -6,16 +6,21 @@ use App\Actions\Stripe\ManageStripeSubscription;
 use App\Enums\DonationStatus;
 use App\Enums\ElementType;
 use App\Enums\SubscriptionStatus;
+use App\Enums\UserRole;
 use App\Models\Campaign;
 use App\Models\Donor;
 use App\Models\Element;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Models\User;
 use App\Support\Currency;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Stripe\Customer;
+use Stripe\Stripe;
 
 class DonorPortalController extends Controller
 {
@@ -474,10 +479,15 @@ class DonorPortalController extends Controller
             return redirect()->route('donorportal.login', $organization);
         }
 
+        $hasActiveSubscriptions = $this->scopeToOrg($donor->subscriptions(), $organization)
+            ->where('status', SubscriptionStatus::Active)
+            ->exists();
+
         return view('donor.profile', [
             'donor' => $donor,
             'organization' => $organization,
             'countries' => self::countryOptions(),
+            'hasActiveSubscriptions' => $hasActiveSubscriptions,
         ]);
     }
 
@@ -502,7 +512,10 @@ class DonorPortalController extends Controller
             'address_postal_code' => 'nullable|string|max:255',
             'country' => 'nullable|string|size:2',
             'locale' => 'nullable|string|in:en,ms',
+            'sync_stripe' => 'nullable|boolean',
         ]);
+
+        $syncStripe = (bool) ($data['sync_stripe'] ?? false);
 
         if (request()->hasFile('photo')) {
             if ($donor->photo_path !== null) {
@@ -514,7 +527,57 @@ class DonorPortalController extends Controller
 
         $donor->update($data);
 
+        if ($syncStripe && $donor->stripe_customer_id) {
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            $stripeOptions = $organization->stripe_account_id
+                ? ['stripe_account' => $organization->stripe_account_id]
+                : [];
+
+            Customer::update($donor->stripe_customer_id, [
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'] ?? '',
+                'address' => [
+                    'line1' => $data['address_line1'] ?? '',
+                    'line2' => $data['address_line2'] ?? '',
+                    'city' => $data['address_city'] ?? '',
+                    'state' => $data['address_state'] ?? '',
+                    'postal_code' => $data['address_postal_code'] ?? '',
+                    'country' => $data['country'] ?? '',
+                ],
+            ], $stripeOptions);
+        }
+
         return redirect()->route('donorportal.profile', $organization)
             ->with('success', 'Profile updated successfully.');
+    }
+
+    public function reportProblem(Organization $organization): RedirectResponse
+    {
+        $donor = $this->getDonor($organization);
+        if ($donor === null) {
+            return redirect()->route('donorportal.login', $organization);
+        }
+
+        $data = request()->validate([
+            'message' => 'required|string|max:5000',
+        ]);
+
+        $admins = User::query()
+            ->where('organization_id', $organization->getKey())
+            ->where('role', UserRole::NgoAdmin)
+            ->get();
+
+        foreach ($admins as $admin) {
+            Mail::raw("A donor has reported a problem:\n\n".$data['message']."\n\n---\nDonor: {$donor->name} ({$donor->email})\nOrganization: {$organization->name}", function ($message) use ($admin, $organization) {
+                $message->to($admin->email)
+                    ->subject('Report a Problem — '.$organization->name)
+                    ->replyTo($admin->email);
+            });
+        }
+
+        return redirect()->route('donorportal.dashboard', $organization)
+            ->with('success', 'Thank you for your feedback. We will review it shortly.');
     }
 }
