@@ -59,7 +59,7 @@
 
             function closePopup() {
                 if (window.parent !== window) {
-                    window.parent.postMessage({ type: 'donation-popup-close' }, '*');
+                    window.parent.postMessage({ type: 'donation-popup-close' }, window.location.origin);
                 } else if (window.opener) {
                     window.close();
                 } else {

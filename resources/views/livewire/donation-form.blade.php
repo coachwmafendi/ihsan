@@ -75,7 +75,7 @@
                             {{ $introTruncated }}{{ $isLongIntro ? '...' : '' }}
                         </div>
                         <div x-show="expanded" x-cloak>
-                            {!! $introText !!}
+                            {{ $introText }}
                         </div>
                         @if ($isLongIntro)
                             <button type="button" x-on:click="expanded = ! expanded" class="mt-1 text-sm font-semibold text-teal-700 hover:text-teal-800">

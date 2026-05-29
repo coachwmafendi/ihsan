@@ -208,16 +208,22 @@ class ManageStripeSubscription
     {
         Stripe::setApiKey(config('services.stripe.secret'));
 
-        $subscription->loadMissing('campaign.organization');
+        $subscription->loadMissing('campaign.organization', 'donor');
         $stripeOptions = $this->stripeOptions($subscription);
 
-        $stripeSubscription = StripeSubscription::retrieve(
-            $subscription->stripe_subscription_id,
-            $stripeOptions,
-        );
+        $customerId = $subscription->donor?->stripe_customer_id;
+
+        if ($customerId === null) {
+            $stripeSubscription = StripeSubscription::retrieve(
+                $subscription->stripe_subscription_id,
+                $stripeOptions,
+            );
+            $customerId = $stripeSubscription->customer;
+            $subscription->donor?->update(['stripe_customer_id' => $customerId]);
+        }
 
         $setupIntent = SetupIntent::create([
-            'customer' => $stripeSubscription->customer,
+            'customer' => $customerId,
             'usage' => 'off_session',
             'payment_method_types' => ['card'],
         ], $stripeOptions);

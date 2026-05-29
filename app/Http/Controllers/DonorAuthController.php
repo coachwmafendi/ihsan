@@ -7,6 +7,7 @@ use App\Models\Donor;
 use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 
 class DonorAuthController extends Controller
 {
@@ -23,11 +24,15 @@ class DonorAuthController extends Controller
 
         $donor = Donor::query()->where('email', $validated['email'])->first();
 
+        RateLimiter::hit('donor-magic-link-email:'.$validated['email']);
+
         if ($donor !== null) {
             $token = $donor->generateMagicToken();
 
             Mail::to($donor->email)->queue(new MagicLink($donor, $token, $organization));
         }
+
+        usleep(random_int(100000, 200000));
 
         return redirect()->route('donorportal.login', $organization)
             ->with('success', 'If that email is registered, a login link has been sent.');

@@ -6,6 +6,7 @@ use App\Models\Organization;
 use Filament\Notifications\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Stripe\Account;
 use Stripe\OAuth;
 use Stripe\Stripe;
@@ -27,10 +28,14 @@ class StripeConnectController extends Controller
                 ->with('error', 'Ciri Connect Stripe belum dikonfigurasi.');
         }
 
+        $state = Str::random(40);
+        session(['stripe_connect_state' => $state]);
+        session(['stripe_connect_org_id' => $org->getKey()]);
+
         $authorizeUrl = OAuth::authorizeUrl([
             'client_id' => $clientId,
             'scope' => 'read_write',
-            'state' => $org->getKey(),
+            'state' => $state,
             'redirect_uri' => route('stripe.connect.callback'),
         ]);
 
@@ -53,6 +58,18 @@ class StripeConnectController extends Controller
                 ->with('error', 'Parameter tidak lengkap.');
         }
 
+        if ($state !== session('stripe_connect_state')) {
+            return redirect()->route('filament.app.pages.stripe-onboarding')
+                ->with('error', 'State parameter tidak sah. Sila cuba lagi.');
+        }
+
+        $org = Organization::query()->find(session('stripe_connect_org_id'));
+
+        if ($org === null) {
+            return redirect()->route('filament.app.pages.stripe-onboarding')
+                ->with('error', 'Organisasi tidak dijumpai.');
+        }
+
         Stripe::setApiKey(config('services.stripe.secret'));
 
         try {
@@ -62,7 +79,7 @@ class StripeConnectController extends Controller
             ]);
         } catch (\Throwable $e) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'Gagal menukar kod OAuth: '.$e->getMessage());
+                ->with('error', 'Gagal menyambung akaun Stripe Connect. Sila cuba lagi.');
         }
 
         $stripeUserId = $response->stripe_user_id;
@@ -70,13 +87,6 @@ class StripeConnectController extends Controller
         if (! $stripeUserId) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
                 ->with('error', 'Tiada stripe_user_id dalam respons OAuth.');
-        }
-
-        $org = Organization::query()->find($state);
-
-        if ($org === null) {
-            return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'Organisasi tidak dijumpai.');
         }
 
         $org->update([

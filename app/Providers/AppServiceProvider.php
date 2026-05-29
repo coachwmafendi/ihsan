@@ -96,21 +96,26 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
+        Password::defaults(fn (): Password => app()->isProduction()
             ? Password::min(12)
                 ->mixedCase()
                 ->letters()
                 ->numbers()
                 ->symbols()
                 ->uncompromised()
-            : null,
+            : Password::min(8),
         );
 
         RateLimiter::for('donor-magic-link', function (Request $request) {
-            return Limit::perMinute(5)->by($request->ip())->response(function () use ($request) {
-                return redirect()->route('donorportal.login', $request->route('organization'))
-                    ->with('error', 'Too many login attempts. Please try again in a minute.');
-            });
+            return Limit::perMinute(5)->by($request->ip())
+                ->response(function () use ($request) {
+                    return redirect()->route('donorportal.login', $request->route('organization'))
+                        ->with('error', 'Too many login attempts. Please try again in a minute.');
+                });
+        });
+
+        RateLimiter::for('donor-magic-link-email', function (Request $request) {
+            return Limit::perMinute(3)->by($request->input('email', $request->ip()));
         });
     }
 }

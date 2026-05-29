@@ -11,6 +11,7 @@
     cancelConfirmId: null,
     paymentClientSecret: null,
     paymentStripeAccount: null,
+    paymentMounting: false,
     paymentLoading: false,
     paymentSuccess: false,
     paymentError: null,
@@ -21,6 +22,7 @@
         this.paymentModal = subscriptionId;
         this.paymentSuccess = false;
         this.paymentLoading = false;
+        this.paymentMounting = true;
         this.paymentError = null;
         this.paymentClientSecret = null;
         this.paymentStripeAccount = null;
@@ -30,7 +32,14 @@
 
         if (data.error) {
             this.paymentError = data.error;
+            this.paymentMounting = false;
             this.paymentModal = null;
+            return;
+        }
+
+        // User may have closed modal during fetch
+        if (this.paymentModal === null) {
+            this.paymentMounting = false;
             return;
         }
 
@@ -39,6 +48,7 @@
 
         if (!window.Stripe) {
             this.paymentError = 'Stripe failed to load. Please try again.';
+            this.paymentMounting = false;
             return;
         }
 
@@ -57,6 +67,7 @@
             paymentMethodTypes: ['card'],
         });
         card.mount('#stripe-card-element');
+        this.paymentMounting = false;
 
         card.on('change', (event) => {
             const el = document.getElementById('stripe-card-errors');
@@ -371,13 +382,23 @@
 <div x-show="paymentModal !== null"
      x-cloak
      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-     @click.self="paymentModal = null"
+     @click.self="paymentModal = null; paymentMounting = false"
      x-transition.opacity>
     <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" @click.stop>
         <h3 class="text-base font-black text-slate-900">Update Card Details</h3>
         <div class="max-h-[28rem] overflow-y-auto">
             <div class="mt-4">
-                <div id="stripe-card-element" class="rounded-lg border border-gray-300 p-3"></div>
+                <div x-show="paymentMounting" class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                    <div class="space-y-2">
+                        <div class="h-3 w-1/3 animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-9 animate-pulse rounded bg-slate-200"></div>
+                        <div class="mt-3 grid grid-cols-2 gap-3">
+                            <div class="h-9 animate-pulse rounded bg-slate-200"></div>
+                            <div class="h-9 animate-pulse rounded bg-slate-200"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="stripe-card-element" x-show="!paymentMounting" class="rounded-lg border border-gray-300 p-3"></div>
                 <div id="stripe-card-errors" class="mt-2 text-xs text-red-500"></div>
             </div>
         </div>
@@ -386,7 +407,7 @@
             Card updated successfully!
         </div>
         <div class="mt-4 flex items-center justify-end gap-2">
-            <button @click="paymentModal = null"
+            <button @click="paymentModal = null; paymentMounting = false"
                     class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                 Close
             </button>

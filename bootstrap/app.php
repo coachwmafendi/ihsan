@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureDonorSession;
 use App\Http\Middleware\ResolveDonationElement;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,7 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
             '/stripe/webhook',
         ]);
 
-        $middleware->trustProxies(at: '*');
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES'));
+        $middleware->append(SecurityHeaders::class);
         $middleware->alias([
             'resolve.element' => ResolveDonationElement::class,
             'donor.auth' => EnsureDonorSession::class,

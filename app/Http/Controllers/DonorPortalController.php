@@ -275,7 +275,7 @@ class DonorPortalController extends Controller
                 ->with('success', 'Subscription will cancel at the end of the billing period.');
         } catch (\Exception $e) {
             return redirect()->route('donorportal.subscriptions', $organization)
-                ->with('error', 'Failed to cancel: '.$e->getMessage());
+                ->with('error', 'Unable to cancel subscription. Please try again later.');
         }
     }
 
@@ -299,7 +299,7 @@ class DonorPortalController extends Controller
                 ->with('success', 'Subscription paused.');
         } catch (\Exception $e) {
             return redirect()->route('donorportal.subscriptions', $organization)
-                ->with('error', 'Failed to pause: '.$e->getMessage());
+                ->with('error', 'Unable to pause subscription. Please try again later.');
         }
     }
 
@@ -323,7 +323,7 @@ class DonorPortalController extends Controller
                 ->with('success', 'Subscription resumed.');
         } catch (\Exception $e) {
             return redirect()->route('donorportal.subscriptions', $organization)
-                ->with('error', 'Failed to resume: '.$e->getMessage());
+                ->with('error', 'Unable to resume subscription. Please try again later.');
         }
     }
 
@@ -354,7 +354,7 @@ class DonorPortalController extends Controller
                 ->with('success', 'Subscription amount updated.');
         } catch (\Exception $e) {
             return redirect()->route('donorportal.subscriptions', $organization)
-                ->with('error', 'Failed to change amount: '.$e->getMessage());
+                ->with('error', 'Unable to update subscription amount. Please try again later.');
         }
     }
 
@@ -381,7 +381,7 @@ class DonorPortalController extends Controller
                 'stripe_account_id' => $org?->stripe_account_id,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Unable to process payment method update.'], 500);
         }
     }
 
@@ -410,7 +410,7 @@ class DonorPortalController extends Controller
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Unable to update payment method.'], 500);
         }
     }
 
