@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureDonorSession;
 use App\Http\Middleware\ResolveDonationElement;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->alias([
             'resolve.element' => ResolveDonationElement::class,
+            'donor.auth' => EnsureDonorSession::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -29,7 +29,7 @@ class Donor extends Model
     {
         $token = Str::random(64);
         $this->update([
-            'magic_token' => $token,
+            'magic_token' => hash('sha256', $token),
             'magic_token_expires_at' => now()->addHours(24),
         ]);
 
@@ -40,7 +40,7 @@ class Donor extends Model
     {
         static::creating(function (Donor $donor) {
             if (! $donor->magic_token) {
-                $donor->magic_token = Str::random(64);
+                $donor->magic_token = hash('sha256', Str::random(64));
                 $donor->magic_token_expires_at = now()->addYears(5);
             }
         });
@@ -48,7 +48,7 @@ class Donor extends Model
 
     public function isValidMagicToken(string $token): bool
     {
-        return $this->magic_token === $token
+        return $this->magic_token === hash('sha256', $token)
             && $this->magic_token_expires_at !== null
             && $this->magic_token_expires_at->isFuture();
     }

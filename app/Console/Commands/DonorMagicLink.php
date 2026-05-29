@@ -3,11 +3,12 @@
 namespace App\Console\Commands;
 
 use App\Models\Donor;
+use App\Models\Organization;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('donor:magic-link {email?}')]
+#[Signature('donor:magic-link {email?} {organization?}')]
 #[Description('Generate a magic login link for a donor')]
 class DonorMagicLink extends Command
 {
@@ -29,8 +30,24 @@ class DonorMagicLink extends Command
             return self::FAILURE;
         }
 
+        $orgCode = $this->argument('organization') ?? $this->ask('Organization code');
+
+        if ($orgCode === null || $orgCode === '') {
+            $this->error('Organization code is required.');
+
+            return self::FAILURE;
+        }
+
+        $organization = Organization::query()->where('code', $orgCode)->first();
+
+        if ($organization === null) {
+            $this->error("No organization found with code: {$orgCode}");
+
+            return self::FAILURE;
+        }
+
         $token = $donor->generateMagicToken();
-        $url = url("/donorportal/login/{$token}");
+        $url = route('donorportal.magic-login', ['organization' => $organization, 'token' => $token]);
 
         $this->info("Magic link for {$donor->name} ({$donor->email}):");
         $this->line($url);

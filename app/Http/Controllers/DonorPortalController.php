@@ -24,21 +24,21 @@ use Stripe\Stripe;
 
 class DonorPortalController extends Controller
 {
-    private function getDonor(Organization $organization): ?Donor
-    {
-        $donorId = session('donor_id');
-        $organizationId = session('organization_id');
-
-        if ($donorId === null || (string) $organizationId !== (string) $organization->getKey()) {
-            return null;
-        }
-
-        return Donor::query()->find($donorId);
-    }
-
     private function scopeToOrg($query, Organization $organization)
     {
         return $query->whereHas('campaign', fn ($query) => $query->where('organization_id', $organization->getKey()));
+    }
+
+    private function monthlyDateExpression(string $column): string
+    {
+        $driver = DB::connection()->getDriverName();
+
+        return match ($driver) {
+            'mysql' => "DATE_FORMAT($column, '%Y-%m')",
+            'pgsql' => "TO_CHAR($column, 'YYYY-MM')",
+            'sqlite' => "strftime('%Y-%m', $column)",
+            default => "strftime('%Y-%m', $column)",
+        };
     }
 
     private function getTotalGiven(Donor $donor, Organization $organization): float
@@ -104,10 +104,7 @@ class DonorPortalController extends Controller
 
     public function dashboard(Organization $organization)
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            return redirect()->route('donorportal.login', $organization);
-        }
+        $donor = request()->donor;
 
         $totalGiven = $this->getTotalGiven($donor, $organization);
         $currencyBreakdown = $this->getCurrencyBreakdown($donor, $organization);
@@ -131,7 +128,7 @@ class DonorPortalController extends Controller
 
         $monthlyDonations = $this->scopeToOrg($donor->donations(), $organization)
             ->where('status', DonationStatus::Succeeded)
-            ->selectRaw("strftime('%Y-%m', created_at) as month, SUM(COALESCE(base_amount, gross_amount)) as total")
+            ->selectRaw($this->monthlyDateExpression('created_at').' as month, SUM(COALESCE(base_amount, gross_amount)) as total')
             ->groupBy('month')
             ->orderBy('month', 'desc')
             ->limit(12)
@@ -149,13 +146,7 @@ class DonorPortalController extends Controller
             ->groupBy('campaign')
             ->map(function ($items) {
                 return $items->mapWithKeys(function ($item) {
-                    $symbol = match ($item->currency) {
-                        'usd' => '$',
-                        'sgd' => 'S$',
-                        default => 'RM',
-                    };
-
-                    return [$item->currency => $symbol.' '.number_format((float) $item->total, 2)];
+                    return [$item->currency => Currency::symbol($item->currency).' '.number_format((float) $item->total, 2)];
                 });
             });
 
@@ -196,10 +187,7 @@ class DonorPortalController extends Controller
 
     public function donations(Organization $organization)
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            return redirect()->route('donorportal.login', $organization);
-        }
+        $donor = request()->donor;
 
         $subscriptionFilter = request()->query('subscription');
         $subscription = null;
@@ -231,10 +219,7 @@ class DonorPortalController extends Controller
 
     public function subscriptions(Organization $organization)
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            return redirect()->route('donorportal.login', $organization);
-        }
+        $donor = request()->donor;
 
         return view('donor.subscriptions', [
             'donor' => $donor,
@@ -248,10 +233,7 @@ class DonorPortalController extends Controller
 
     public function downloadAllReceipts(Organization $organization)
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            return redirect()->route('donorportal.login', $organization);
-        }
+        $donor = request()->donor;
 
         $donations = $this->scopeToOrg($donor->donations(), $organization)
             ->where('status', DonationStatus::Succeeded)
@@ -275,10 +257,7 @@ class DonorPortalController extends Controller
 
     public function cancelSubscription(Organization $organization, Subscription $subscription)
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            return redirect()->route('donorportal.login', $organization);
-        }
+        $donor = request()->donor;
 
         $subscription->loadMissing('campaign');
 
@@ -290,14 +269,10 @@ class DonorPortalController extends Controller
         }
 
         try {
-            $immediately = request()->boolean('immediately', false);
-
-            app(ManageStripeSubscription::class)->cancel($subscription, $immediately);
+            app(ManageStripeSubscription::class)->cancel($subscription, false);
 
             return redirect()->route('donorportal.subscriptions', $organization)
-                ->with('success', $immediately
-                    ? 'Subscription cancelled immediately.'
-                    : 'Subscription will cancel at the end of the billing period.');
+                ->with('success', 'Subscription will cancel at the end of the billing period.');
         } catch (\Exception $e) {
             return redirect()->route('donorportal.subscriptions', $organization)
                 ->with('error', 'Failed to cancel: '.$e->getMessage());
@@ -306,10 +281,7 @@ class DonorPortalController extends Controller
 
     public function pauseSubscription(Organization $organization, Subscription $subscription)
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            return redirect()->route('donorportal.login', $organization);
-        }
+        $donor = request()->donor;
 
         $subscription->loadMissing('campaign');
 
@@ -333,10 +305,7 @@ class DonorPortalController extends Controller
 
     public function resumeSubscription(Organization $organization, Subscription $subscription)
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            return redirect()->route('donorportal.login', $organization);
-        }
+        $donor = request()->donor;
 
         $subscription->loadMissing('campaign');
 
@@ -360,10 +329,7 @@ class DonorPortalController extends Controller
 
     public function changeSubscriptionAmount(Organization $organization, Subscription $subscription)
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            return redirect()->route('donorportal.login', $organization);
-        }
+        $donor = request()->donor;
 
         $subscription->loadMissing('campaign');
 
@@ -394,10 +360,7 @@ class DonorPortalController extends Controller
 
     public function paymentMethodClientSecret(Organization $organization, Subscription $subscription)
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            abort(403);
-        }
+        $donor = request()->donor;
 
         $subscription->loadMissing('campaign');
 
@@ -424,10 +387,7 @@ class DonorPortalController extends Controller
 
     public function updatePaymentMethod(Organization $organization, Subscription $subscription)
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            abort(403);
-        }
+        $donor = request()->donor;
 
         $subscription->loadMissing('campaign');
 
@@ -454,30 +414,9 @@ class DonorPortalController extends Controller
         }
     }
 
-    /** @return array<string, string> */
-    private static function countryOptions(): array
-    {
-        $codes = ['AF', 'AL', 'DZ', 'AD', 'AO', 'AG', 'AR', 'AM', 'AU', 'AT', 'AZ', 'BS', 'BH', 'BD', 'BB', 'BY', 'BE', 'BZ', 'BJ', 'BT', 'BO', 'BA', 'BW', 'BR', 'BN', 'BG', 'BF', 'BI', 'CV', 'KH', 'CM', 'CA', 'CF', 'TD', 'CL', 'CN', 'CO', 'KM', 'CG', 'CD', 'CR', 'HR', 'CU', 'CY', 'CZ', 'DK', 'DJ', 'DM', 'DO', 'EC', 'EG', 'SV', 'GQ', 'ER', 'EE', 'SZ', 'ET', 'FJ', 'FI', 'FR', 'GA', 'GM', 'GE', 'DE', 'GH', 'GR', 'GD', 'GT', 'GN', 'GW', 'GY', 'HT', 'HN', 'HU', 'IS', 'IN', 'ID', 'IR', 'IQ', 'IE', 'IL', 'IT', 'JM', 'JP', 'JO', 'KZ', 'KE', 'KI', 'KP', 'KR', 'KW', 'KG', 'LA', 'LV', 'LB', 'LS', 'LR', 'LY', 'LI', 'LT', 'LU', 'MG', 'MW', 'MY', 'MV', 'ML', 'MT', 'MH', 'MR', 'MU', 'MX', 'FM', 'MD', 'MC', 'MN', 'ME', 'MA', 'MZ', 'MM', 'NA', 'NR', 'NP', 'NL', 'NZ', 'NI', 'NE', 'NG', 'NO', 'OM', 'PK', 'PW', 'PA', 'PG', 'PY', 'PE', 'PH', 'PL', 'PT', 'QA', 'RO', 'RU', 'RW', 'KN', 'LC', 'VC', 'WS', 'SM', 'ST', 'SA', 'SN', 'RS', 'SC', 'SL', 'SG', 'SK', 'SI', 'SB', 'SO', 'ZA', 'SS', 'ES', 'LK', 'SD', 'SR', 'SE', 'CH', 'SY', 'TW', 'TJ', 'TZ', 'TH', 'TL', 'TG', 'TO', 'TT', 'TN', 'TR', 'TM', 'TV', 'UG', 'UA', 'AE', 'GB', 'US', 'UY', 'UZ', 'VU', 'VE', 'VN', 'YE', 'ZM', 'ZW'];
-
-        $countries = [];
-        foreach ($codes as $code) {
-            $name = \Locale::getDisplayRegion('-'.$code, 'en');
-            if ($name && $name !== $code) {
-                $countries[$code] = $name;
-            }
-        }
-
-        asort($countries);
-
-        return $countries;
-    }
-
     public function profile(Organization $organization)
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            return redirect()->route('donorportal.login', $organization);
-        }
+        $donor = request()->donor;
 
         $hasActiveSubscriptions = $this->scopeToOrg($donor->subscriptions(), $organization)
             ->where('status', SubscriptionStatus::Active)
@@ -486,17 +425,14 @@ class DonorPortalController extends Controller
         return view('donor.profile', [
             'donor' => $donor,
             'organization' => $organization,
-            'countries' => self::countryOptions(),
+            'countries' => config('countries')(),
             'hasActiveSubscriptions' => $hasActiveSubscriptions,
         ]);
     }
 
     public function updateProfile(Organization $organization): RedirectResponse
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            return redirect()->route('donorportal.login', $organization);
-        }
+        $donor = request()->donor;
 
         $data = request()->validate([
             'title' => 'nullable|string|max:10',
@@ -555,10 +491,7 @@ class DonorPortalController extends Controller
 
     public function reportProblem(Organization $organization): RedirectResponse
     {
-        $donor = $this->getDonor($organization);
-        if ($donor === null) {
-            return redirect()->route('donorportal.login', $organization);
-        }
+        $donor = request()->donor;
 
         $data = request()->validate([
             'message' => 'required|string|max:5000',

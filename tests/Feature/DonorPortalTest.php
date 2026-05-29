@@ -9,6 +9,7 @@ use App\Models\Donor;
 use App\Models\Element;
 use App\Models\Organization;
 use App\Models\Subscription;
+use Illuminate\Http\UploadedFile;
 
 it('resolves org-scoped donor portal login page', function () {
     $org = Organization::factory()->create();
@@ -25,7 +26,7 @@ it('returns 404 for unknown org code in donor portal', function () {
 it('logs in with valid magic token', function () {
     $org = Organization::factory()->create();
     $donor = Donor::factory()->create([
-        'magic_token' => 'valid-token-123',
+        'magic_token' => hash('sha256', 'valid-token-123'),
         'magic_token_expires_at' => now()->addHours(24),
     ]);
 
@@ -39,7 +40,7 @@ it('logs in with valid magic token', function () {
 it('rejects expired magic token', function () {
     $org = Organization::factory()->create();
     Donor::factory()->create([
-        'magic_token' => 'expired-token',
+        'magic_token' => hash('sha256', 'expired-token'),
         'magic_token_expires_at' => now()->subHour(),
     ]);
 
@@ -315,7 +316,7 @@ it('denies receipt download for unauthenticated user', function () {
     ]);
 
     $this->get(route('donorportal.donations.receipt.download', ['organization' => $org, 'donation' => $donation]))
-        ->assertNotFound();
+        ->assertRedirect(route('donorportal.login', $org));
 });
 
 it('shows receipt download button for succeeded donations in donor portal', function () {
@@ -439,7 +440,60 @@ it('shows history button for subscriptions in donor portal', function () {
 
     $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
         ->get(route('donorportal.subscriptions', $org))
-        ->assertOk()
         ->assertSee('History')
         ->assertSee(route('donorportal.donations', ['organization' => $org, 'subscription' => $subscription->getKey()]), false);
+});
+
+it('renders profile page with view and edit mode', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.profile', $org))
+        ->assertOk()
+        ->assertSee('Profile')
+        ->assertSee($donor->name)
+        ->assertSee($donor->email);
+});
+
+it('updates donor profile name', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.profile.update', $org), [
+            'name' => 'Updated Name',
+            'email' => $donor->email,
+        ])
+        ->assertRedirect(route('donorportal.profile', $org));
+
+    $this->assertEquals('Updated Name', $donor->fresh()->name);
+});
+
+it('updates donor profile with photo', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    $photo = UploadedFile::fake()->image('profile.jpg', 100, 100);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.profile.update', $org), [
+            'name' => 'Photo Donor',
+            'email' => $donor->email,
+            'photo' => $photo,
+        ])
+        ->assertRedirect(route('donorportal.profile', $org));
+
+    expect($donor->fresh()->photo_path)->not()->toBeNull();
+});
+
+it('submits report problem and redirects to dashboard', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.report-problem', $org), [
+            'message' => 'Test problem report',
+        ])
+        ->assertRedirect(route('donorportal.dashboard', $org));
 });

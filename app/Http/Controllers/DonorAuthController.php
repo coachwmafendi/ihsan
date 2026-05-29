@@ -36,7 +36,7 @@ class DonorAuthController extends Controller
     public function login(Organization $organization, string $token)
     {
         $donor = Donor::query()
-            ->where('magic_token', $token)
+            ->where('magic_token', hash('sha256', $token))
             ->where('magic_token_expires_at', '>', now())
             ->first();
 

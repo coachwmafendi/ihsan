@@ -13,12 +13,15 @@
     paymentStripeAccount: null,
     paymentLoading: false,
     paymentSuccess: false,
+    paymentError: null,
     changeAmount: '',
     changeLoading: false,
+    changeError: null,
     async openPayment(subscriptionId) {
         this.paymentModal = subscriptionId;
         this.paymentSuccess = false;
         this.paymentLoading = false;
+        this.paymentError = null;
         this.paymentClientSecret = null;
         this.paymentStripeAccount = null;
 
@@ -26,7 +29,7 @@
         const data = await res.json();
 
         if (data.error) {
-            alert(data.error);
+            this.paymentError = data.error;
             this.paymentModal = null;
             return;
         }
@@ -35,7 +38,7 @@
         this.paymentStripeAccount = data.stripe_account_id;
 
         if (!window.Stripe) {
-            alert('Stripe failed to load. Please try again.');
+            this.paymentError = 'Stripe failed to load. Please try again.';
             return;
         }
 
@@ -101,6 +104,7 @@
     async changeAmountSubmit(subscriptionId) {
         if (!this.changeAmount || parseFloat(this.changeAmount) <= 0) return;
         this.changeLoading = true;
+        this.changeError = null;
 
         const res = await fetch('{{ route('donorportal.subscriptions.change-amount', ['organization' => $organization, 'subscription' => '__id__']) }}'.replace('__id__', subscriptionId), {
             method: 'POST',
@@ -113,7 +117,7 @@
 
         if (!res.ok) {
             const data = await res.json();
-            alert(data.error || 'Failed to change amount.');
+            this.changeError = data.error || 'Failed to change amount.';
             this.changeLoading = false;
             return;
         }
@@ -144,6 +148,10 @@
             {{ session('error') }}
         </div>
     @endif
+
+    <div x-show="paymentError" x-cloak
+         class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700"
+         x-text="paymentError"></div>
 
     <div class="space-y-3">
         @forelse ($subscriptions as $subscription)
@@ -289,6 +297,7 @@
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-0"
                    placeholder="0.00">
         </div>
+        <div x-show="changeError" class="mt-2 text-xs text-red-500" x-text="changeError"></div>
         <div class="mt-4 flex items-center justify-end gap-2">
             <button @click="changeModal = null"
                     class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
@@ -369,7 +378,7 @@
         <div class="max-h-[28rem] overflow-y-auto">
             <div class="mt-4">
                 <div id="stripe-card-element" class="rounded-lg border border-gray-300 p-3"></div>
-                <div id="stripe-card-errors" class="mt-2 text-sm text-danger-600"></div>
+                <div id="stripe-card-errors" class="mt-2 text-xs text-red-500"></div>
             </div>
         </div>
         <div x-show="paymentLoading" class="mt-2 text-xs text-slate-500">Processing...</div>
