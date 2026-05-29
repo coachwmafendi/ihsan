@@ -2,6 +2,8 @@
 
 namespace App\Filament\App\Resources\Donations\Tables;
 
+use App\Actions\Stripe\RefundDonation;
+use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Models\Campaign;
 use Filament\Actions\Action;
@@ -9,6 +11,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -169,6 +172,30 @@ class DonationsTable
                     }),
             ])
             ->recordActions([
+                Action::make('refund')
+                    ->label('Refund')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Refund Donation')
+                    ->modalDescription(fn ($record): string => 'Refund '.strtoupper($record->currency).' '.number_format((float) $record->gross_amount, 2).' to '.$record->donor?->name.'? This cannot be undone.')
+                    ->modalSubmitActionLabel('Refund')
+                    ->visible(fn ($record): bool => $record->status === DonationStatus::Succeeded)
+                    ->action(function ($record): void {
+                        try {
+                            app(RefundDonation::class)->handle($record);
+
+                            Notification::make()
+                                ->title('Refund initiated. Status will update once Stripe confirms.')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Refund failed: '.$e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
                 Action::make('view')
                     ->icon('heroicon-o-eye')
                     ->color('gray')

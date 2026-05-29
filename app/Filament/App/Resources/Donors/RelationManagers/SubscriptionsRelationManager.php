@@ -4,9 +4,9 @@ namespace App\Filament\App\Resources\Donors\RelationManagers;
 
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -59,8 +59,12 @@ class SubscriptionsRelationManager extends RelationManager
             ->headerActions([
                 //
             ])
-            ->actions([
-                EditAction::make(),
+            ->recordActions([
+                Action::make('edit')
+                    ->label('Edit')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('gray')
+                    ->url(fn ($record): string => route('filament.app.resources.subscriptions.edit', $record)),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
