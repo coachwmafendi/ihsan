@@ -6,6 +6,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -37,8 +38,23 @@ class ProfilOrganisasi extends Page
         $org = auth()->user()->organization;
 
         if ($org !== null) {
+            $settings = $org->settings ?? [];
+
+            // Auto-populate allowed_domains from website_url if not yet set
+            if (empty($settings['allowed_domains']) && filled($org->website_url)) {
+                $host = parse_url($org->website_url, PHP_URL_HOST);
+                if ($host) {
+                    $settings['allowed_domains'] = [$host];
+                }
+            }
+
+            // Auto-populate reply-to email from contact_email if not yet set
+            if (empty($settings['portal_reply_to_email']) && filled($org->contact_email)) {
+                $settings['portal_reply_to_email'] = $org->contact_email;
+            }
+
             $this->form->fill(array_merge($org->toArray(), [
-                'settings' => $org->settings ?? [],
+                'settings' => $settings,
             ]));
         }
     }
@@ -231,6 +247,33 @@ class ProfilOrganisasi extends Page
                                     ->label('Account number')
                                     ->nullable()
                                     ->maxLength(255),
+                            ]),
+
+                        Tab::make('Donor Portal')
+                            ->icon('heroicon-o-globe-alt')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('settings.portal_tagline')
+                                    ->label('Welcome tagline')
+                                    ->nullable()
+                                    ->maxLength(255)
+                                    ->placeholder('e.g. Every donation makes a difference')
+                                    ->helperText('Shown on the donor portal homepage.')
+                                    ->columnSpanFull(),
+                                TextInput::make('settings.portal_reply_to_email')
+                                    ->label('Reply-to email')
+                                    ->email()
+                                    ->nullable()
+                                    ->maxLength(255)
+                                    ->placeholder('e.g. donations@yourorg.org')
+                                    ->helperText('Used as reply-to address in donation receipt emails.'),
+                                Textarea::make('settings.portal_receipt_footer')
+                                    ->label('Receipt footer text')
+                                    ->nullable()
+                                    ->rows(3)
+                                    ->placeholder('e.g. This donation is tax exempt under Section 44(6) of the Income Tax Act 1967.')
+                                    ->helperText('Appears at the bottom of every donation receipt.')
+                                    ->columnSpanFull(),
                             ]),
                     ]),
             ]);
