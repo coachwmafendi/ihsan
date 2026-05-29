@@ -20,7 +20,7 @@
             <p class="mt-0.5 text-xs text-slate-500">Manage your personal information and preferences.</p>
         </div>
 
-        <form method="POST" action="{{ route('donorportal.profile.update', $organization) }}" class="space-y-4">
+        <form method="POST" action="{{ route('donorportal.profile.update', $organization) }}" class="space-y-4" enctype="multipart/form-data">
             @csrf
 
             {{-- Personal Information --}}
@@ -31,13 +31,60 @@
                     </svg>
                     <span class="text-sm font-bold text-slate-900">Personal Information</span>
                 </div>
+                <div class="mb-6 flex items-center gap-5" x-data="{ preview: null }">
+                    <div class="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-full">
+                        <template x-if="preview">
+                            <img :src="preview" class="h-full w-full rounded-full object-cover">
+                        </template>
+                        <template x-if="!preview">
+                            @if ($donor->photo_url)
+                                <img src="{{ $donor->photo_url }}" class="h-full w-full rounded-full object-cover">
+                            @else
+                                <div class="flex h-full w-full items-center justify-center rounded-full bg-slate-100">
+                                    <svg class="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                    </svg>
+                                </div>
+                            @endif
+                        </template>
+                    </div>
+                    <div class="flex-1">
+                        <label class="cursor-pointer">
+                            <span class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+                                </svg>
+                                Upload Photo
+                            </span>
+                            <input type="file" name="photo" accept="image/jpeg,image/png,image/webp"
+                                   class="hidden"
+                                   @change="preview = URL.createObjectURL($event.target.files[0])">
+                        </label>
+                        <p class="mt-1 text-[10px] text-slate-400">JPEG, PNG or WebP. Max 2MB.</p>
+                        @error('photo') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                </div>
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="sm:col-span-2">
-                        <label class="mb-1 block text-xs font-semibold text-slate-600">Name</label>
-                        <input type="text" name="name" value="{{ old('name', $donor->name) }}"
-                               class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('name') border-red-300 @enderror"
-                               placeholder="Your full name">
-                        @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    <div class="sm:col-span-2 flex gap-4">
+                        <div class="w-28 flex-shrink-0">
+                            <label class="mb-1 block text-xs font-semibold text-slate-600">Title</label>
+                            <select name="title"
+                                    class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('title') border-red-300 @enderror">
+                                <option value="">Select</option>
+                                @foreach (['Mr', 'Mrs', 'Ms', 'Miss', 'Dr', 'Prof', 'Sir', 'Madam'] as $t)
+                                    <option value="{{ $t }}" {{ old('title', $donor->title) === $t ? 'selected' : '' }}>{{ $t }}</option>
+                                @endforeach
+                            </select>
+                            @error('title') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="flex-1">
+                            <label class="mb-1 block text-xs font-semibold text-slate-600">Name</label>
+                            <input type="text" name="name" value="{{ old('name', $donor->name) }}"
+                                   class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('name') border-red-300 @enderror"
+                                   placeholder="Your full name">
+                            @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
                     </div>
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-600">Email</label>
@@ -52,6 +99,17 @@
                                class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('phone') border-red-300 @enderror"
                                placeholder="+60 12-345 6789">
                         @error('phone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Occupation</label>
+                        <select name="occupation"
+                                class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('occupation') border-red-300 @enderror">
+                            <option value="">Select</option>
+                            @foreach (['Employed', 'Self-employed', 'Business owner', 'Student', 'Retired', 'Unemployed', 'Other'] as $o)
+                                <option value="{{ $o }}" {{ old('occupation', $donor->occupation) === $o ? 'selected' : '' }}>{{ $o }}</option>
+                            @endforeach
+                        </select>
+                        @error('occupation') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>

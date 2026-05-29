@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'email', 'phone', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale'])]
+#[Fillable(['name', 'email', 'phone', 'title', 'occupation', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale', 'photo_path'])]
 class Donor extends Model
 {
     /** @use HasFactory<DonorFactory> */
@@ -58,5 +58,14 @@ class Donor extends Model
         return [
             'magic_token_expires_at' => 'datetime',
         ];
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if ($this->photo_path === null) {
+            return null;
+        }
+
+        return route('donor.photo', $this);
     }
 }

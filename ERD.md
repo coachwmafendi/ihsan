@@ -1,8 +1,8 @@
 # Entity Relationship Diagram (ERD)
 ## Ihsan — MVP Database Design
 
-**Version:** 1.4  
-**Tarikh:** 23 Mei 2026  
+**Version:** 1.5  
+**Tarikh:** 29 Mei 2026  
 **Database:** SQLite untuk local dev, MySQL 8/PostgreSQL untuk production  
 **Framework:** Laravel 13  
 
@@ -100,12 +100,22 @@ erDiagram
 
     DONORS {
         bigint id PK
+        string title "nullable - Mr|Mrs|Ms|etc"
         string name
+        string occupation "nullable"
         string email UK "global - merentasi semua NGO"
         string phone "nullable"
         string stripe_customer_id UK "nullable"
         string magic_token "nullable"
         timestamp magic_token_expires_at "nullable"
+        string photo_path "nullable"
+        string address_line1 "nullable"
+        string address_line2 "nullable"
+        string address_city "nullable"
+        string address_state "nullable"
+        string address_postal_code "nullable"
+        string country "nullable - ISO 3166-1 alpha-2"
+        string locale "nullable - en|ms"
         timestamps created_at updated_at
     }
 
@@ -245,10 +255,22 @@ Kempen fundraising yang dibuat oleh NGO. Satu NGO boleh ada berbilang kempen akt
 
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
+| `title` | string nullable | Panggilan hormat: `Mr`, `Mrs`, `Ms`, `Miss`, `Dr`, dll |
+| `name` | string | Nama penuh donor |
+| `occupation` | string nullable | Pekerjaan: `Employed`, `Self-employed`, `Business owner`, `Student`, `Retired`, `Unemployed`, `Other` |
 | `email` | string unique globally | Satu donor = satu email, walaupun derma kepada berbilang NGO |
+| `phone` | string nullable | Nombor telefon |
 | `stripe_customer_id` | string unique | Satu Stripe Customer ID untuk semua transaksi donor ini |
 | `magic_token` | string | Token sementara untuk akses donor portal (tanpa password) |
 | `magic_token_expires_at` | timestamp | Token expired selepas 30 minit |
+| `photo_path` | string nullable | Path foto profil di storage private |
+| `address_line1` | string nullable | Alamat baris 1 |
+| `address_line2` | string nullable | Alamat baris 2 |
+| `address_city` | string nullable | Bandar |
+| `address_state` | string nullable | Negeri |
+| `address_postal_code` | string nullable | Poskod |
+| `country` | string nullable | Kod negara ISO 3166-1 alpha-2 |
+| `locale` | string nullable | Bahasa pilihan: `en` (English), `ms` (Bahasa Melayu) |
 
 > **Nota Privacy:** NGO hanya boleh "nampak" donor yang ada donations/subscriptions kepada campaign mereka. Query mesti sentiasa scope melalui `campaigns.organization_id`.
 

@@ -15,6 +15,7 @@ use App\Support\Currency;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DonorPortalController extends Controller
 {
@@ -488,9 +489,12 @@ class DonorPortalController extends Controller
         }
 
         $data = request()->validate([
+            'title' => 'nullable|string|max:10',
             'name' => 'required|string|max:255',
+            'occupation' => 'nullable|string|max:255',
             'email' => 'required|email|max:255|unique:donors,email,'.$donor->getKey(),
             'phone' => 'nullable|string|max:255',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'address_line1' => 'nullable|string|max:255',
             'address_line2' => 'nullable|string|max:255',
             'address_city' => 'nullable|string|max:255',
@@ -499,6 +503,14 @@ class DonorPortalController extends Controller
             'country' => 'nullable|string|size:2',
             'locale' => 'nullable|string|in:en,ms',
         ]);
+
+        if (request()->hasFile('photo')) {
+            if ($donor->photo_path !== null) {
+                Storage::disk('local')->delete($donor->photo_path);
+            }
+
+            $data['photo_path'] = request()->file('photo')->store('donor-photos', 'local');
+        }
 
         $donor->update($data);
 

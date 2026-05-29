@@ -19,10 +19,13 @@ class DonorFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'title' => fake()->optional()->randomElement(['Mr', 'Ms', 'Mrs', 'Dr']),
+            'occupation' => fake()->optional()->jobTitle(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->optional()->phoneNumber(),
             'address_city' => fake()->optional()->city(),
             'country' => fake()->optional()->randomElement(['my', 'sg', 'id']),
+            'photo_path' => null,
         ];
     }
 }
