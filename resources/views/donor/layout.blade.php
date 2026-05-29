@@ -65,37 +65,28 @@
         @yield('content')
     </main>
 
-    <div id="toast" class="fixed bottom-6 right-6 z-50 max-w-sm rounded-xl border border-emerald-200 bg-white px-5 py-3.5 shadow-xl transition-all duration-300 ease-out"
-         style="display:none; opacity:0; transform:translateY(8px);">
-        <div class="flex items-center gap-3">
-            <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
-                <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
+    @if (session('success'))
+        <div id="toast" class="fixed bottom-6 right-6 z-50 max-w-sm rounded-xl border border-emerald-200 bg-white px-5 py-3.5 shadow-xl transition-all duration-500 ease-out opacity-100 translate-y-0">
+            <div class="flex items-center gap-3">
+                <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                    <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                </div>
+                <p class="text-sm font-semibold text-slate-800">{{ session('success') }}</p>
             </div>
-            <p id="toast-message" class="text-sm font-semibold text-slate-800"></p>
         </div>
-    </div>
-
-    <script>
-        (function() {
-            var msg = @json(session('success'));
-            if (msg) {
-                var t = document.getElementById('toast');
-                document.getElementById('toast-message').textContent = msg;
-                t.style.display = 'block';
-                requestAnimationFrame(function() {
-                    t.style.opacity = '1';
-                    t.style.transform = 'translateY(0)';
-                });
-                setTimeout(function() {
-                    t.style.opacity = '0';
-                    t.style.transform = 'translateY(8px)';
-                    setTimeout(function() { t.style.display = 'none'; }, 300);
-                }, 4000);
-            }
-        })();
-    </script>
+        <script>
+            setTimeout(function() {
+                var e = document.getElementById('toast');
+                if (e) {
+                    e.classList.remove('opacity-100', 'translate-y-0');
+                    e.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(function() { e.remove(); }, 500);
+                }
+            }, 5000);
+        </script>
+    @endif
 
     <footer class="border-t border-slate-200 bg-white">
         <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
