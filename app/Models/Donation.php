@@ -59,6 +59,26 @@ class Donation extends Model
         return Attribute::get(fn () => $this->currency_symbol.' '.number_format((float) $this->gross_amount, 2));
     }
 
+    public function paymentMethodDisplay(): Attribute
+    {
+        return Attribute::get(function () {
+            $brand = $this->payment_method_brand;
+            $last4 = $this->payment_method_last4;
+
+            if (! $brand && ! $last4) {
+                return 'Card';
+            }
+
+            $display = $brand ? ucfirst($brand) : 'Card';
+
+            if ($last4) {
+                $display .= ' **** '.$last4;
+            }
+
+            return $display;
+        });
+    }
+
     public function amountWithConversion(): Attribute
     {
         return Attribute::get(function () {

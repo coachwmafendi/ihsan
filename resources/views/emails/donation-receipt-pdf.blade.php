@@ -90,7 +90,7 @@
     <div class="header">
         <h1>Donation Receipt</h1>
         <div class="org-name">{{ $donation->campaign->organization->name }}</div>
-        <div class="receipt-number">{{ $donation->invoice_number }} &middot; {{ $donation->created_at->format('d M Y') }}</div>
+        <div class="receipt-number">{{ $donation->invoice_number }} &middot; {{ $donation->created_at->format('d M Y, g:i A') }}</div>
     </div>
 
     <div class="info-row"><strong>Donor</strong> {{ $donation->donor->name }}</div>
@@ -116,7 +116,7 @@
         </tr>
         <tr>
             <td>Payment Method</td>
-            <td>{{ $donation->payment_method_brand ? ucfirst($donation->payment_method_brand) : 'Card' }}</td>
+            <td>{{ $donation->payment_method_display }}</td>
         </tr>
         <tr>
             <td>Status</td>

@@ -17,7 +17,8 @@
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Amount</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donation->formatted_amount }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Campaign</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->title }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Organization</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->organization->name }}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Date</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->created_at->format('d M Y') }}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Date</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->created_at->format('d M Y, g:i A') }}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Payment Method</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->payment_method_display }}</td></tr>
             <tr><td style="padding: 8px; color: #64748b;">Status</td><td style="padding: 8px; color: #16a34a; font-weight: 600;">Successful</td></tr>
         </table>
 
