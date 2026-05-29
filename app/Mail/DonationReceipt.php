@@ -6,6 +6,7 @@ use App\Models\Donation;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -21,8 +22,12 @@ class DonationReceipt extends Mailable
 
     public function envelope(): Envelope
     {
+        $org = $this->donation->campaign?->organization;
+        $replyTo = $org?->settings['portal_reply_to_email'] ?? null;
+
         return new Envelope(
             subject: 'Your Donation Receipt — '.config('app.name'),
+            replyTo: $replyTo ? [new Address($replyTo, $org->name)] : [],
         );
     }
 

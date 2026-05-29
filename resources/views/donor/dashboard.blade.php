@@ -37,6 +37,9 @@
         <p class="mt-1 text-sm font-bold text-slate-600">
             Welcome to the <span class="uppercase">{{ $organization->name }}</span> Donor Portal
         </p>
+        @if (filled($organization->settings['portal_tagline'] ?? null))
+            <p class="mt-1 text-sm text-slate-500">{{ $organization->settings['portal_tagline'] }}</p>
+        @endif
 
         <a href="{{ $donationModalUrl }}"
            @click.prevent="donationModalOpen = true"
