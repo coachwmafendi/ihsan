@@ -13,6 +13,7 @@ use App\Models\Organization;
 use App\Models\Subscription;
 use App\Support\Currency;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 
 class DonorPortalController extends Controller
@@ -445,5 +446,63 @@ class DonorPortalController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    /** @return array<string, string> */
+    private static function countryOptions(): array
+    {
+        $codes = ['AF', 'AL', 'DZ', 'AD', 'AO', 'AG', 'AR', 'AM', 'AU', 'AT', 'AZ', 'BS', 'BH', 'BD', 'BB', 'BY', 'BE', 'BZ', 'BJ', 'BT', 'BO', 'BA', 'BW', 'BR', 'BN', 'BG', 'BF', 'BI', 'CV', 'KH', 'CM', 'CA', 'CF', 'TD', 'CL', 'CN', 'CO', 'KM', 'CG', 'CD', 'CR', 'HR', 'CU', 'CY', 'CZ', 'DK', 'DJ', 'DM', 'DO', 'EC', 'EG', 'SV', 'GQ', 'ER', 'EE', 'SZ', 'ET', 'FJ', 'FI', 'FR', 'GA', 'GM', 'GE', 'DE', 'GH', 'GR', 'GD', 'GT', 'GN', 'GW', 'GY', 'HT', 'HN', 'HU', 'IS', 'IN', 'ID', 'IR', 'IQ', 'IE', 'IL', 'IT', 'JM', 'JP', 'JO', 'KZ', 'KE', 'KI', 'KP', 'KR', 'KW', 'KG', 'LA', 'LV', 'LB', 'LS', 'LR', 'LY', 'LI', 'LT', 'LU', 'MG', 'MW', 'MY', 'MV', 'ML', 'MT', 'MH', 'MR', 'MU', 'MX', 'FM', 'MD', 'MC', 'MN', 'ME', 'MA', 'MZ', 'MM', 'NA', 'NR', 'NP', 'NL', 'NZ', 'NI', 'NE', 'NG', 'NO', 'OM', 'PK', 'PW', 'PA', 'PG', 'PY', 'PE', 'PH', 'PL', 'PT', 'QA', 'RO', 'RU', 'RW', 'KN', 'LC', 'VC', 'WS', 'SM', 'ST', 'SA', 'SN', 'RS', 'SC', 'SL', 'SG', 'SK', 'SI', 'SB', 'SO', 'ZA', 'SS', 'ES', 'LK', 'SD', 'SR', 'SE', 'CH', 'SY', 'TW', 'TJ', 'TZ', 'TH', 'TL', 'TG', 'TO', 'TT', 'TN', 'TR', 'TM', 'TV', 'UG', 'UA', 'AE', 'GB', 'US', 'UY', 'UZ', 'VU', 'VE', 'VN', 'YE', 'ZM', 'ZW'];
+
+        $countries = [];
+        foreach ($codes as $code) {
+            $name = \Locale::getDisplayRegion('-'.$code, 'en');
+            if ($name && $name !== $code) {
+                $countries[$code] = $name;
+            }
+        }
+
+        asort($countries);
+
+        return $countries;
+    }
+
+    public function profile(Organization $organization)
+    {
+        $donor = $this->getDonor($organization);
+        if ($donor === null) {
+            return redirect()->route('donorportal.login', $organization);
+        }
+
+        return view('donor.profile', [
+            'donor' => $donor,
+            'organization' => $organization,
+            'countries' => self::countryOptions(),
+        ]);
+    }
+
+    public function updateProfile(Organization $organization): RedirectResponse
+    {
+        $donor = $this->getDonor($organization);
+        if ($donor === null) {
+            return redirect()->route('donorportal.login', $organization);
+        }
+
+        $data = request()->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:donors,email,'.$donor->getKey(),
+            'phone' => 'nullable|string|max:255',
+            'address_line1' => 'nullable|string|max:255',
+            'address_line2' => 'nullable|string|max:255',
+            'address_city' => 'nullable|string|max:255',
+            'address_state' => 'nullable|string|max:255',
+            'address_postal_code' => 'nullable|string|max:255',
+            'country' => 'nullable|string|size:2',
+            'locale' => 'nullable|string|in:en,ms',
+        ]);
+
+        $donor->update($data);
+
+        return redirect()->route('donorportal.profile', $organization)
+            ->with('success', 'Profile updated successfully.');
     }
 }

@@ -44,6 +44,11 @@
                    {{ request()->routeIs('donorportal.subscriptions') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Subscriptions
                 </a>
+                <a href="{{ route('donorportal.profile', $organization) }}" wire:navigate
+                   class="rounded-md px-3 py-1.5 text-xs font-medium transition
+                   {{ request()->routeIs('donorportal.profile*') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
+                    Profile
+                </a>
             </nav>
             <div class="flex items-center gap-3">
                 <form method="POST" action="{{ route('donorportal.logout', $organization) }}">

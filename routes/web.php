@@ -74,6 +74,8 @@ Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(fu
         ->middleware('throttle:10,60')
         ->name('magic-login');
     Route::post('logout', [DonorAuthController::class, 'logout'])->name('logout');
+    Route::get('profile', [DonorPortalController::class, 'profile'])->name('profile');
+    Route::post('profile', [DonorPortalController::class, 'updateProfile'])->name('profile.update');
     Route::get('dashboard', [DonorPortalController::class, 'dashboard'])->name('dashboard');
     Route::get('donations', [DonorPortalController::class, 'donations'])->name('donations');
     Route::get('donations/{donation}/receipt', [ReceiptDownloadController::class, 'downloadForOrganization'])
