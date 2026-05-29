@@ -41,18 +41,21 @@ it('calculates correct platform-wide metrics', function () {
 
     $donation = Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 100.00,
+        'base_amount' => 100.00,
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::OneTime,
     ]);
 
     Donation::factory()->for($otherCampaign)->for($donor)->create([
         'gross_amount' => 50.00,
+        'base_amount' => 50.00,
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::OneTime,
     ]);
 
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 20.00,
+        'base_amount' => 20.00,
         'status' => DonationStatus::Failed,
         'type' => DonationType::OneTime,
     ]);

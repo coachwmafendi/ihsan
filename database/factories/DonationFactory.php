@@ -26,6 +26,7 @@ class DonationFactory extends Factory
             'donor_id' => Donor::factory(),
             'subscription_id' => null,
             'gross_amount' => 100.00,
+            'base_amount' => 100.00,
             'stripe_fee' => 3.50,
             'processing_fee' => 3.00,
             'net_amount' => 93.50,

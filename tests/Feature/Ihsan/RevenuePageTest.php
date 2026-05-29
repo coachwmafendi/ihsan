@@ -55,10 +55,12 @@ it('displays average donation size', function () {
 
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 100.00,
+        'base_amount' => 100.00,
         'status' => DonationStatus::Succeeded,
     ]);
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 200.00,
+        'base_amount' => 200.00,
         'status' => DonationStatus::Succeeded,
     ]);
 
@@ -101,11 +103,13 @@ it('filters revenue by period', function () {
 
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 100.00,
+        'base_amount' => 100.00,
         'status' => DonationStatus::Succeeded,
         'created_at' => today(),
     ]);
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 250.00,
+        'base_amount' => 250.00,
         'status' => DonationStatus::Succeeded,
         'created_at' => today()->subYear(),
     ]);
@@ -128,6 +132,7 @@ it('shows avg donation and effective rate per organization', function () {
 
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 200.00,
+        'base_amount' => 200.00,
         'status' => DonationStatus::Succeeded,
     ]);
 
