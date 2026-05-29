@@ -202,85 +202,42 @@ class DonationsTable
                     ->modalHeading('Donation Details')
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close')
+                    ->extraModalFooterActions(fn ($record): array => $record->status === DonationStatus::Succeeded ? [
+                        Action::make('refund_modal')
+                            ->label('Refund')
+                            ->color('danger')
+                            ->icon('heroicon-o-arrow-uturn-left')
+                            ->requiresConfirmation()
+                            ->modalHeading('Refund Donation')
+                            ->modalDescription(fn () => 'Refund '.strtoupper($record->currency).' '.number_format((float) $record->gross_amount, 2).' to '.$record->donor?->name.'? This cannot be undone.')
+                            ->modalSubmitActionLabel('Refund')
+                            ->action(function () use ($record): void {
+                                try {
+                                    app(RefundDonation::class)->handle($record);
+                                    Notification::make()->title('Refund initiated. Status will update once Stripe confirms.')->success()->send();
+                                } catch (\Exception $e) {
+                                    Notification::make()->title('Refund failed: '.$e->getMessage())->danger()->send();
+                                }
+                            }),
+                    ] : [])
                     ->schema([
-                        Section::make('Donor & Campaign')
-                            ->columns(2)
+                        // ── Hero ─────────────────────────────────────────
+                        Section::make()
                             ->schema([
-                                TextEntry::make('id')
-                                    ->label('ID')
-                                    ->copyable()
-                                    ->copyMessage('Copied'),
-                                TextEntry::make('created_at')
-                                    ->label('Date')
-                                    ->dateTime('d M Y, h:i A'),
-                                TextEntry::make('donor.name')
-                                    ->label('Supporter')
-                                    ->formatStateUsing(function ($state, $record): HtmlString {
-                                        $icon = match ($record->device_type) {
-                                            'mobile' => 'heroicon-o-device-phone-mobile',
-                                            'tablet' => 'heroicon-o-device-tablet',
-                                            'desktop' => 'heroicon-o-computer-desktop',
-                                            default => null,
-                                        };
-
-                                        $label = match ($record->device_type) {
-                                            'mobile' => 'Mobile donation',
-                                            'tablet' => 'Tablet donation',
-                                            'desktop' => 'Desktop donation',
-                                            default => null,
-                                        };
-
-                                        $result = e($state);
-
-                                        if ($icon && $label) {
-                                            $result .= ' <span title="'.$label.'">'.Blade::render('<x-'.$icon.' class="inline-block size-4 text-gray-400" />').'</span>';
-                                        }
-
-                                        return new HtmlString($result);
-                                    }),
-                                TextEntry::make('donor.email')
-                                    ->label('Email')
-                                    ->copyable()
-                                    ->copyMessage('Copied'),
-                                TextEntry::make('donor.phone')
-                                    ->label('Phone')
-                                    ->placeholder('—'),
-                                TextEntry::make('campaign.title')
-                                    ->label('Campaign'),
-                                TextEntry::make('page_url')
-                                    ->label('URL')
-                                    ->columnSpanFull()
-                                    ->formatStateUsing(fn (?string $state): string => $state ?? '—')
-                                    ->copyable()
-                                    ->copyMessage('Copied'),
-                                TextEntry::make('element_token')
-                                    ->label('Element (Type-Name)')
-                                    ->columnSpanFull()
-                                    ->visible(fn ($record): bool => is_array($record->utm_params) && ($record->utm_params['source'] ?? null) === 'element')
-                                    ->formatStateUsing(function ($record): string {
-                                        $utm = is_array($record->utm_params) ? $record->utm_params : [];
-                                        $type = $utm['element_type'] ?? '';
-                                        $name = $utm['element_name'] ?? '';
-
-                                        return ucwords(str_replace('_', ' ', $type)).' - '.($name ?: '—');
-                                    }),
                                 TextEntry::make('gross_amount')
                                     ->label('Amount')
-                                    ->columnSpanFull()
                                     ->formatStateUsing(function ($state, $record): string {
                                         $gross = number_format((float) $state, 2);
-
                                         if ($record->currency !== 'myr' && $record->base_amount) {
-                                            $converted = number_format((float) $record->base_amount, 2);
-
-                                            return strtoupper($record->currency).' '.$gross.' ≈ MYR '.$converted;
+                                            return strtoupper($record->currency).' '.$gross.' ≈ MYR '.number_format((float) $record->base_amount, 2);
                                         }
 
-                                        return 'MYR '.$gross;
+                                        return strtoupper($record->currency).' '.$gross;
                                     })
                                     ->weight('bold')
-                                    ->size('lg'),
+                                    ->size('xl'),
                                 TextEntry::make('status')
+                                    ->label('Status')
                                     ->badge()
                                     ->getStateUsing(fn ($record): string => ucfirst($record->status->value))
                                     ->color(fn ($state): string => match ((string) $state) {
@@ -291,98 +248,102 @@ class DonationsTable
                                         default => 'gray',
                                     }),
                                 TextEntry::make('type')
-                                    ->label('Frequency')
+                                    ->label('Type')
                                     ->badge()
                                     ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString()),
-                                TextEntry::make('currency')
-                                    ->label('Currency')
-                                    ->badge()
-                                    ->formatStateUsing(fn (string $state): string => strtoupper($state)),
+                                TextEntry::make('created_at')
+                                    ->label('Date')
+                                    ->dateTime('d M Y, h:i A'),
+                            ])
+                            ->columns(4),
+
+                        // ── Donor & Campaign ─────────────────────────────
+                        Section::make('Donor & Campaign')
+                            ->columns(2)
+                            ->schema([
+                                TextEntry::make('donor.name')
+                                    ->label('Supporter')
+                                    ->formatStateUsing(function ($state, $record): HtmlString {
+                                        $icon = match ($record->device_type) {
+                                            'mobile' => 'heroicon-o-device-phone-mobile',
+                                            'tablet' => 'heroicon-o-device-tablet',
+                                            'desktop' => 'heroicon-o-computer-desktop',
+                                            default => null,
+                                        };
+                                        $label = match ($record->device_type) {
+                                            'mobile' => 'Mobile donation',
+                                            'tablet' => 'Tablet donation',
+                                            'desktop' => 'Desktop donation',
+                                            default => null,
+                                        };
+                                        $result = e($state);
+                                        if ($icon && $label) {
+                                            $result .= ' <span title="'.$label.'">'.Blade::render('<x-'.$icon.' class="inline-block size-4 text-gray-400" />').'</span>';
+                                        }
+
+                                        return new HtmlString($result);
+                                    }),
+                                TextEntry::make('campaign.title')
+                                    ->label('Campaign'),
+                                TextEntry::make('donor.email')
+                                    ->label('Email')
+                                    ->copyable()
+                                    ->copyMessage('Copied'),
+                                TextEntry::make('donor.phone')
+                                    ->label('Phone')
+                                    ->placeholder('—'),
+                                TextEntry::make('payment_method_brand')
+                                    ->label('Payment Method')
+                                    ->formatStateUsing(fn (?string $state, $record): string => collect([
+                                        $state ? str($state)->headline()->toString() : null,
+                                        $record->payment_method_last4 ? '•••• '.$record->payment_method_last4 : null,
+                                    ])->filter()->join(' ') ?: '—'),
                                 TextEntry::make('is_anonymous')
                                     ->label('Anonymous')
                                     ->formatStateUsing(fn ($state) => $state ? 'Yes' : 'No'),
-                                TextEntry::make('payment_method_brand')
-                                    ->label('Payment Method')
-                                    ->formatStateUsing(fn (?string $state): string => $state ? str($state)->headline()->toString() : '—'),
-                                TextEntry::make('payment_method_type')
-                                    ->label('Method Type')
-                                    ->formatStateUsing(fn (?string $state): string => $state === 'fpx' ? 'FPX' : (str($state ?? '')->headline()->toString() ?: '—')),
-                                TextEntry::make('payment_method_last4')
-                                    ->label('Card Number')
-                                    ->formatStateUsing(fn (?string $state): string => $state ? '•••• '.$state : '—'),
                                 TextEntry::make('donor_message')
                                     ->label('Message')
                                     ->columnSpanFull()
                                     ->visible(fn ($record) => $record->donor_message !== null),
-                            ]),
-                        Section::make('Client Info')
-                            ->columns(2)
-                            ->schema([
-                                TextEntry::make('ip_address')
-                                    ->label('IP Address')
+                                TextEntry::make('page_url')
+                                    ->label('URL')
+                                    ->columnSpanFull()
                                     ->formatStateUsing(fn (?string $state): string => $state ?? '—')
                                     ->copyable()
                                     ->copyMessage('Copied'),
-                                TextEntry::make('browser')
-                                    ->label('Browser')
-                                    ->formatStateUsing(fn (?string $state): string => $state ?? '—'),
-                                TextEntry::make('os')
-                                    ->label('OS')
-                                    ->formatStateUsing(fn (?string $state): string => $state ?? '—'),
-                                TextEntry::make('device_type')
-                                    ->label('Device')
-                                    ->formatStateUsing(function (?string $state): string {
-                                        return match ($state) {
-                                            'mobile' => 'Mobile',
-                                            'tablet' => 'Tablet',
-                                            'desktop' => 'Desktop',
-                                            default => '—',
-                                        };
-                                    })
-                                    ->icon(fn (?string $state): ?string => match ($state) {
-                                        'mobile' => 'heroicon-o-device-phone-mobile',
-                                        'tablet' => 'heroicon-o-device-tablet',
-                                        'desktop' => 'heroicon-o-computer-desktop',
-                                        default => null,
-                                    }),
-                                TextEntry::make('geo_city')
-                                    ->label('City')
-                                    ->formatStateUsing(function (?string $state, $record): string {
-                                        if ($state && $record->geo_region) {
-                                            return $state.', '.$record->geo_region;
-                                        }
+                                TextEntry::make('element_token')
+                                    ->label('Element')
+                                    ->columnSpanFull()
+                                    ->visible(fn ($record): bool => is_array($record->utm_params) && ($record->utm_params['source'] ?? null) === 'element')
+                                    ->formatStateUsing(function ($record): string {
+                                        $utm = is_array($record->utm_params) ? $record->utm_params : [];
 
-                                        return $state ?? '—';
+                                        return ucwords(str_replace('_', ' ', $utm['element_type'] ?? '')).' - '.($utm['element_name'] ?? '—');
                                     }),
-                                TextEntry::make('geo_region')
-                                    ->label('Region')
-                                    ->visible(fn ($record) => $record->geo_city === null && $record->geo_region !== null)
-                                    ->formatStateUsing(fn (?string $state): string => $state ?? '—'),
                             ]),
-                        Section::make('Transaction')
+
+                        // ── Receipt & Transaction ────────────────────────
+                        Section::make('Receipt')
                             ->columns(2)
                             ->schema([
                                 TextEntry::make('invoice_number')
-                                    ->label('Receipt')
+                                    ->label('Receipt No.')
                                     ->copyable()
                                     ->copyMessage('Copied')
                                     ->icon('heroicon-o-receipt-percent')
                                     ->url(fn ($record): ?string => $record->status->value === 'succeeded' ? route('donations.receipt.download', $record) : null, shouldOpenInNewTab: true),
-                                TextEntry::make('stripe_payment_intent_id')
-                                    ->label('Payment Intent ID')
-                                    ->copyable()
-                                    ->copyMessage('Copied'),
-                                TextEntry::make('stripe_charge_id')
-                                    ->label('Charge ID')
+                                TextEntry::make('id')
+                                    ->label('Donation ID')
                                     ->copyable()
                                     ->copyMessage('Copied'),
                             ]),
-                        Section::make('Payment & fees')
+
+                        // ── Payment & Fees ───────────────────────────────
+                        Section::make('Payment & Fees')
                             ->columns(3)
                             ->schema([
                                 TextEntry::make('gross_amount')
                                     ->label('Gross')
-                                    ->icon('heroicon-o-currency-dollar')
                                     ->formatStateUsing(function ($state, $record): string {
                                         if ($record->currency !== 'myr' && $record->base_amount) {
                                             return '≈ MYR '.number_format((float) $record->base_amount, 2);
@@ -397,39 +358,84 @@ class DonationsTable
 
                                         return null;
                                     }),
-                                TextEntry::make('stripe_fee')
-                                    ->label('Stripe Fee')
-                                    ->icon('heroicon-o-credit-card')
-                                    ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),
-                                TextEntry::make('processing_fee')
-                                    ->label('Processing Fee')
-                                    ->icon('heroicon-o-receipt-percent')
-                                    ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),
-                                TextEntry::make('donor_fee_covered')
-                                    ->label('Fee Covered')
-                                    ->icon('heroicon-o-heart')
-                                    ->formatStateUsing(function ($state): string {
-                                        $amount = (float) ($state ?? 0);
-
-                                        if ($amount > 0) {
-                                            return 'Covered · MYR '.number_format($amount, 2);
-                                        }
-
-                                        return 'Not Covered';
-                                    })
-                                    ->color(fn ($state): string => (float) ($state ?? 0) > 0 ? 'success' : 'gray')
-                                    ->badge(),
                                 TextEntry::make('effective_fee')
-                                    ->label('Effective Fee')
-                                    ->icon('heroicon-o-arrows-right-left')
-                                    ->getStateUsing(function ($record): float {
-                                        return (float) ($record->stripe_fee ?? 0) + (float) ($record->processing_fee ?? 0);
-                                    })
+                                    ->label('Total Fees')
+                                    ->getStateUsing(fn ($record): float => (float) ($record->stripe_fee ?? 0) + (float) ($record->processing_fee ?? 0))
                                     ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),
                                 TextEntry::make('net_amount')
                                     ->label('Net')
-                                    ->icon('heroicon-o-check-badge')
                                     ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),
+                                TextEntry::make('stripe_fee')
+                                    ->label('Stripe Fee')
+                                    ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),
+                                TextEntry::make('processing_fee')
+                                    ->label('Processing Fee')
+                                    ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),
+                                TextEntry::make('donor_fee_covered')
+                                    ->label('Fee Covered by Donor')
+                                    ->formatStateUsing(function ($state): string {
+                                        $amount = (float) ($state ?? 0);
+
+                                        return $amount > 0 ? 'MYR '.number_format($amount, 2) : 'No';
+                                    })
+                                    ->color(fn ($state): string => (float) ($state ?? 0) > 0 ? 'success' : 'gray')
+                                    ->badge(),
+                            ]),
+
+                        // ── Client Info (collapsed) ──────────────────────
+                        Section::make('Client Info')
+                            ->collapsed()
+                            ->columns(2)
+                            ->schema([
+                                TextEntry::make('ip_address')
+                                    ->label('IP Address')
+                                    ->formatStateUsing(fn (?string $state): string => $state ?? '—')
+                                    ->copyable()
+                                    ->copyMessage('Copied'),
+                                TextEntry::make('device_type')
+                                    ->label('Device')
+                                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                        'mobile' => 'Mobile',
+                                        'tablet' => 'Tablet',
+                                        'desktop' => 'Desktop',
+                                        default => '—',
+                                    })
+                                    ->icon(fn (?string $state): ?string => match ($state) {
+                                        'mobile' => 'heroicon-o-device-phone-mobile',
+                                        'tablet' => 'heroicon-o-device-tablet',
+                                        'desktop' => 'heroicon-o-computer-desktop',
+                                        default => null,
+                                    }),
+                                TextEntry::make('browser')
+                                    ->label('Browser')
+                                    ->formatStateUsing(fn (?string $state): string => $state ?? '—'),
+                                TextEntry::make('os')
+                                    ->label('OS')
+                                    ->formatStateUsing(fn (?string $state): string => $state ?? '—'),
+                                TextEntry::make('geo_city')
+                                    ->label('Location')
+                                    ->formatStateUsing(function (?string $state, $record): string {
+                                        if ($state && $record->geo_region) {
+                                            return $state.', '.$record->geo_region;
+                                        }
+
+                                        return $state ?? '—';
+                                    }),
+                            ]),
+
+                        // ── Stripe Details (collapsed) ───────────────────
+                        Section::make('Stripe Details')
+                            ->collapsed()
+                            ->columns(2)
+                            ->schema([
+                                TextEntry::make('stripe_payment_intent_id')
+                                    ->label('Payment Intent ID')
+                                    ->copyable()
+                                    ->copyMessage('Copied'),
+                                TextEntry::make('stripe_charge_id')
+                                    ->label('Charge ID')
+                                    ->copyable()
+                                    ->copyMessage('Copied'),
                             ]),
                     ]),
             ])
