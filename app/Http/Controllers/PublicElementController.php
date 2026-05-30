@@ -87,9 +87,7 @@ class PublicElementController extends Controller
             }
             if ($imagePath) {
                 if (Storage::disk('public')->exists($imagePath)) {
-                    $settings['image_url'] = Storage::disk('public')->url($imagePath);
-                } elseif (Storage::disk('local')->exists($imagePath)) {
-                    $settings['image_url'] = Storage::disk('local')->url($imagePath);
+                    $settings['image_url'] = request()->getSchemeAndHttpHost().'/storage/'.$imagePath;
                 }
             }
             if (empty($settings['image_url']) && $element->campaign?->image_path) {

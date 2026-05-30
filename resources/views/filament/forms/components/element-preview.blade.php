@@ -171,50 +171,7 @@
                 $popupMessage = $config['message'] ?? '';
                 $popupButton = $config['button_text'] ?? 'Donate Now';
                 $popupLayout = $config['layout'] ?? 'simple';
-                $imagePath = null;
-                $popupImage = $config['image'] ?? null;
-                if (is_string($popupImage) && $popupImage !== '' && ! in_array($popupImage, ['campaign', 'none'], true)) {
-                    $imagePath = $popupImage;
-                } elseif (is_array($popupImage)) {
-                    foreach ($popupImage as $item) {
-                        if (is_string($item) && $item !== '' && ! in_array($item, ['campaign', 'none'], true)) {
-                            $imagePath = $item;
-                            break;
-                        }
-                        if (is_array($item) || is_object($item)) {
-                            foreach ((array) $item as $v) {
-                                if (is_string($v) && $v !== '' && ! in_array($v, ['campaign', 'none'], true) && str_starts_with($v, 'elements/')) {
-                                    $imagePath = $v;
-                                    break 2;
-                                }
-                            }
-                        }
-                    }
-                }
-                $imageUrl = null;
-                if ($imagePath) {
-                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($imagePath)) {
-                        $imageUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($imagePath);
-                    } elseif (\Illuminate\Support\Facades\Storage::disk('local')->exists($imagePath)) {
-                        $imageUrl = \Illuminate\Support\Facades\Storage::disk('local')->url($imagePath);
-                    }
-                }
-                // Handle livewire temporary upload preview
-                $rawImage = $config['image'] ?? null;
-                if (! $imageUrl && is_array($rawImage) && count($rawImage) > 0) {
-                    $first = $rawImage[0];
-                    if (is_array($first) && isset($first['path']) && str_starts_with($first['path'], 'livewire-tmp/')) {
-                        try {
-                            $imageUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
-                                'livewire.preview-file',
-                                now()->addMinutes(30),
-                                ['filename' => basename($first['path'])]
-                            );
-                        } catch (\Exception $e) {
-                            $imageUrl = null;
-                        }
-                    }
-                }
+                $imageUrl = $config['image_url'] ?? null;
                 $popupColor = $config['color'] ?? 'campaign';
                 $colors = ['campaign' => '#16a34a', 'blue' => '#2563eb', 'teal' => '#0d9488', 'green' => '#16a34a', 'orange' => '#ea580c', 'red' => '#dc2626', 'purple' => '#9333ea', 'dark' => '#1e293b'];
                 $accentColor = $colors[$popupColor] ?? '#16a34a';
@@ -232,7 +189,7 @@
                     @endif
                     <div class="p-6 text-center">
                         @if($imageUrl && $popupLayout === 'simple')
-                            <div class="mb-5 overflow-hidden rounded-xl">
+                            <div class="mb-8 overflow-hidden rounded-xl">
                                 <img src="{{ $imageUrl }}" class="h-40 w-full object-cover" alt="">
                             </div>
                         @endif

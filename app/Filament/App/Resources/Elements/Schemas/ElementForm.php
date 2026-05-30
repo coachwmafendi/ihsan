@@ -20,7 +20,9 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class ElementForm
 {
@@ -347,7 +349,7 @@ class ElementForm
                     ->extraAttributes(['class' => 'ihsan-builder-shell'])
                     ->visible(fn (Get $get): bool => $get('type') === ElementType::Popup->value)
                     ->schema([
-                        Grid::make()
+                        Grid::make(1)
                             ->columnSpan([
                                 'default' => 1,
                                 'xl' => 7,
@@ -355,9 +357,19 @@ class ElementForm
                             ->statePath('config')
                             ->extraAttributes(['class' => 'ihsan-builder-editor space-y-4'])
                             ->schema([
-                                Section::make('Content')
+                                Section::make('Content & Appearance')
+                                    ->columns(2)
                                     ->icon('heroicon-m-document-text')
                                     ->schema([
+                                        FileUpload::make('image')
+                                            ->label('Image')
+                                            ->image()
+                                            ->disk('public')
+                                            ->directory('elements/popups')
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
+                                            ->helperText('Saiz ideal: 960 x 540 px. JPG, PNG, WebP, AVIF.')
+                                            ->live()
+                                            ->columnSpanFull(),
                                         TextInput::make('title')
                                             ->label('Title')
                                             ->required()
@@ -368,24 +380,43 @@ class ElementForm
                                             ->rows(3)
                                             ->live()
                                             ->columnSpanFull(),
-                                        Grid::make()
-                                            ->columns(2)
-                                            ->columnSpanFull()
-                                            ->schema([
-                                                TextInput::make('button_text')
-                                                    ->label('Button text')
-                                                    ->required()
-                                                    ->live(),
-                                                Select::make('action')
-                                                    ->label('Action')
-                                                    ->options([
-                                                        'campaign_page' => 'Open campaign page',
-                                                        'checkout_modal' => 'Open checkout modal',
-                                                    ])
-                                                    ->default('checkout_modal')
-                                                    ->live()
-                                                    ->native(false),
-                                            ]),
+                                        TextInput::make('button_text')
+                                            ->label('Button text')
+                                            ->required()
+                                            ->live(),
+                                        Select::make('action')
+                                            ->label('Action')
+                                            ->options([
+                                                'campaign_page' => 'Open campaign page',
+                                                'checkout_modal' => 'Open checkout modal',
+                                            ])
+                                            ->default('checkout_modal')
+                                            ->live()
+                                            ->native(false),
+                                        Select::make('layout')
+                                            ->label('Layout')
+                                            ->options([
+                                                'simple' => 'Simple',
+                                                'full' => 'Full',
+                                            ])
+                                            ->default('simple')
+                                            ->live()
+                                            ->native(false),
+                                        Select::make('color')
+                                            ->label('Color')
+                                            ->options([
+                                                'campaign' => 'Use campaign color',
+                                                'blue' => 'Blue',
+                                                'teal' => 'Teal',
+                                                'green' => 'Green',
+                                                'orange' => 'Orange',
+                                                'red' => 'Red',
+                                                'purple' => 'Purple',
+                                                'dark' => 'Dark',
+                                            ])
+                                            ->default('campaign')
+                                            ->live()
+                                            ->native(false),
                                     ]),
                                 Section::make('Display Rules')
                                     ->columns(2)
@@ -431,51 +462,13 @@ class ElementForm
                                             ->live()
                                             ->native(false),
                                     ]),
-                                Section::make('Appearance')
-                                    ->columns(2)
-                                    ->icon('heroicon-m-paint-brush')
-                                    ->schema([
-                                        Select::make('layout')
-                                            ->label('Layout')
-                                            ->options([
-                                                'simple' => 'Simple',
-                                                'full' => 'Full',
-                                            ])
-                                            ->default('simple')
-                                            ->live()
-                                            ->native(false),
-                                        Select::make('color')
-                                            ->label('Color')
-                                            ->options([
-                                                'campaign' => 'Use campaign color',
-                                                'blue' => 'Blue',
-                                                'teal' => 'Teal',
-                                                'green' => 'Green',
-                                                'orange' => 'Orange',
-                                                'red' => 'Red',
-                                                'purple' => 'Purple',
-                                                'dark' => 'Dark',
-                                            ])
-                                            ->default('campaign')
-                                            ->live()
-                                            ->native(false),
-                                        FileUpload::make('image')
-                                            ->label('Image')
-                                            ->image()
-                                            ->disk('public')
-                                            ->directory('elements/popups')
-                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
-                                            ->helperText('Saiz ideal: 960 x 540 px. JPG, PNG, WebP, AVIF.')
-                                            ->live()
-                                            ->columnSpanFull(),
-                                    ]),
                             ]),
                         Section::make('Live Preview')
                             ->columnSpan([
                                 'default' => 1,
                                 'xl' => 5,
                             ])
-                            ->extraAttributes(['class' => 'ihsan-builder-preview xl:sticky xl:top-6'])
+                            ->extraAttributes(['class' => 'ihsan-builder-preview xl:sticky xl:top-6 xl:self-start'])
                             ->schema([
                                 View::make('filament.forms.components.element-preview')
                                     ->viewData(fn (Get $get): array => [
@@ -612,7 +605,7 @@ class ElementForm
                                 'default' => 1,
                                 'xl' => 5,
                             ])
-                            ->extraAttributes(['class' => 'ihsan-builder-preview xl:sticky xl:top-6'])
+                            ->extraAttributes(['class' => 'ihsan-builder-preview xl:sticky xl:top-6 xl:self-start'])
                             ->schema([
                                 View::make('filament.forms.components.element-preview')
                                     ->viewData(fn (Get $get): array => [
@@ -858,6 +851,20 @@ class ElementForm
         }
 
         if ($type === ElementType::Popup->value) {
+            $rawImage = $get('config.image');
+            $imageUrl = null;
+
+            if ($rawImage instanceof TemporaryUploadedFile) {
+                try {
+                    $imageUrl = $rawImage->temporaryUrl();
+                } catch (\Exception) {
+                }
+            } elseif (is_string($rawImage) && filled($rawImage)) {
+                if (Storage::disk('public')->exists($rawImage)) {
+                    $imageUrl = Storage::disk('public')->url($rawImage);
+                }
+            }
+
             return [
                 'title' => $get('config.title'),
                 'message' => $get('config.message'),
@@ -868,7 +875,8 @@ class ElementForm
                 'frequency' => $get('config.frequency'),
                 'visibility' => $get('config.visibility'),
                 'layout' => $get('config.layout'),
-                'image' => $get('config.image'),
+                'image' => $rawImage,
+                'image_url' => $imageUrl,
                 'color' => $get('config.color'),
             ];
         }
