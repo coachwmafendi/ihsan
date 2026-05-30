@@ -31,15 +31,21 @@ class UsersRelationManager extends RelationManager
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label('Full name')
                     ->required()
                     ->maxLength(255)
-                    ->placeholder('e.g. Ahmad bin Ali'),
+                    ->placeholder('e.g. Ahmad bin Ali')
+                    ->columnSpanFull()
+                    ->autocomplete('name'),
                 TextInput::make('email')
+                    ->label('Email')
                     ->required()
                     ->email()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true)
-                    ->placeholder('admin@example.com'),
+                    ->placeholder('admin@example.com')
+                    ->columnSpanFull()
+                    ->autocomplete('email'),
             ]);
     }
 
@@ -75,6 +81,12 @@ class UsersRelationManager extends RelationManager
                     ->modalHeading('Invite Organisation Admin')
                     ->modalDescription('Fill in the details below. The invitee will receive an email to set their password.')
                     ->modalIcon('heroicon-o-envelope')
+                    ->modalIconColor('success')
+                    ->modalSubmitActionLabel('Send invite')
+                    ->modalCancelActionLabel('Cancel')
+                    ->stickyModalHeader()
+                    ->stickyModalFooter()
+                    ->extraModalWindowAttributes(['class' => 'ihsan-admin-editor-modal'])
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['role'] = UserRole::NgoAdmin;
                         $data['password'] = bcrypt(Str::random(40));
@@ -96,12 +108,22 @@ class UsersRelationManager extends RelationManager
                 EditAction::make()
                     ->modalWidth(Width::Large)
                     ->modalHeading('Edit Organisation Admin')
-                    ->modalDescription('Update the admin\'s details below.')
-                    ->modalIcon('heroicon-o-user-circle'),
+                    ->modalDescription('Update profile details used for organisation panel access.')
+                    ->modalIcon('heroicon-o-user-circle')
+                    ->modalIconColor('primary')
+                    ->modalSubmitActionLabel('Save admin')
+                    ->modalCancelActionLabel('Cancel')
+                    ->stickyModalHeader()
+                    ->stickyModalFooter()
+                    ->extraModalWindowAttributes(['class' => 'ihsan-admin-editor-modal']),
                 DeleteAction::make()
                     ->modalWidth(Width::Medium)
                     ->modalHeading('Remove Organisation Admin')
-                    ->modalDescription('This will permanently remove this admin from the organisation. They will lose access to the panel.'),
+                    ->modalDescription('This will permanently remove this admin from the organisation. They will lose access to the panel.')
+                    ->modalIcon('heroicon-o-user-minus')
+                    ->modalIconColor('danger')
+                    ->modalCancelActionLabel('Cancel')
+                    ->extraModalWindowAttributes(['class' => 'ihsan-admin-editor-modal']),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

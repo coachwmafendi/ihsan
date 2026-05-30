@@ -128,6 +128,38 @@
     @apply rounded-md font-semibold;
 }
 
+.fi-panel-admin .ihsan-admin-editor-modal {
+    @apply overflow-hidden rounded-xl border border-stone-200 bg-ihsan-cream shadow-xl ring-1 ring-black/5 dark:border-stone-800 dark:bg-stone-900 dark:ring-white/10;
+}
+
+.fi-panel-admin .ihsan-admin-editor-modal .fi-modal-header {
+    @apply border-b border-stone-200/80 bg-white/75 px-6 py-5 dark:border-stone-800 dark:bg-stone-900/90;
+}
+
+.fi-panel-admin .ihsan-admin-editor-modal .fi-modal-icon-bg {
+    @apply rounded-lg ring-1 ring-black/5 dark:ring-white/10;
+}
+
+.fi-panel-admin .ihsan-admin-editor-modal .fi-modal-heading {
+    @apply text-base font-semibold tracking-normal text-ihsan-ink dark:text-white;
+}
+
+.fi-panel-admin .ihsan-admin-editor-modal .fi-modal-description {
+    @apply mt-1 max-w-xl text-sm leading-6 text-ihsan-muted dark:text-stone-400;
+}
+
+.fi-panel-admin .ihsan-admin-editor-modal .fi-modal-content {
+    @apply bg-ihsan-paper/70 px-6 py-5 dark:bg-stone-950/40;
+}
+
+.fi-panel-admin .ihsan-admin-editor-modal .fi-modal-footer {
+    @apply border-t border-stone-200/80 bg-white/80 px-6 py-4 dark:border-stone-800 dark:bg-stone-900/90;
+}
+
+.fi-panel-admin .ihsan-admin-editor-modal .fi-section {
+    @apply border-stone-200 bg-white/80 shadow-sm dark:border-stone-800 dark:bg-stone-900;
+}
+
 .ihsan-admin-page {
     @apply space-y-5;
 }
