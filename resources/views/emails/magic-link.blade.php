@@ -3,7 +3,7 @@
 <head><meta charset="utf-8"></head>
 <body style="font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; color: #1a1a2e;">
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #0f766e;">{{ $organization->name }} — Donor Portal</h1>
+        <h2 style="color: #0f766e; margin: 0 0 16px 0;">{{ $organization->name }} — Donor Portal</h2>
 
         <p>Hi <strong>{{ $donor->name }}</strong>,</p>
 

@@ -34,6 +34,11 @@ class SyncDonationStripeDetails
             $shouldRetrieveMissingChargeDetails,
         );
 
+        $donorFeeCovered = (float) ($donation->donor_fee_covered ?? 0);
+        if ($donorFeeCovered > 0 && $exchangeRate !== null) {
+            $donorFeeCovered = round($donorFeeCovered * $exchangeRate, 2);
+        }
+
         $donation->update([
             'stripe_charge_id' => $chargeId,
             'stripe_fee' => $stripeFee,
@@ -52,7 +57,7 @@ class SyncDonationStripeDetails
             'base_currency' => 'myr',
             'base_amount' => $baseAmount,
             'exchange_rate' => $exchangeRate,
-            'net_amount' => (float) ($baseAmount ?? $donation->gross_amount) + (float) ($donation->donor_fee_covered ?? 0) - $stripeFee - $processingFee,
+            'net_amount' => (float) ($baseAmount ?? $donation->gross_amount) + $donorFeeCovered - $stripeFee - $processingFee,
         ]);
 
         $this->syncDonorAddress($donation, $pmDetails, $paymentIntent);
