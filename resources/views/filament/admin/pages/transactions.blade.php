@@ -1,3 +1,5 @@
 <x-filament-panels::page>
-    {{ $this->table }}
+    <div class="ihsan-admin-page">
+        {{ $this->table }}
+    </div>
 </x-filament-panels::page>

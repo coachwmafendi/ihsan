@@ -22,6 +22,16 @@ it('shows platform overview to super admins only', function () {
         ->assertRedirect(route('filament.admin.pages.platform-overview'));
 });
 
+it('renders the admin operations layout', function () {
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+    $this->actingAs($user)
+        ->get('/admin/platform-overview')
+        ->assertSuccessful()
+        ->assertSee('ihsan-admin-page', false)
+        ->assertSee('ihsan-admin-metric-card', false);
+});
+
 it('denies platform overview to ngo admins', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);

@@ -36,6 +36,8 @@ it('shows revenue metrics to super admins', function () {
     $this->actingAs($user)
         ->get('/admin/revenue')
         ->assertSuccessful()
+        ->assertSee('ihsan-admin-toolbar', false)
+        ->assertSee('ihsan-admin-segmented', false)
         ->assertSee('3.00');
 });
 

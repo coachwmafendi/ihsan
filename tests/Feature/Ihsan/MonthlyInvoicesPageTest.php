@@ -12,8 +12,10 @@ beforeEach(function () {
 });
 
 it('can render the page', function () {
-    Livewire::test(MonthlyInvoices::class)
-        ->assertSuccessful();
+    $this->get('/admin/monthly-invoices')
+        ->assertSuccessful()
+        ->assertSee('ihsan-admin-page', false)
+        ->assertSee('ihsan-admin-metric-card', false);
 });
 
 it('displays monthly invoices', function () {

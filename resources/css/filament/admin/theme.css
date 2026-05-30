@@ -3,8 +3,222 @@
 @source '../../../../app/Filament/Pages/**/*';
 @source '../../../../app/Filament/Resources/**/*';
 @source '../../../../app/Filament/Widgets/**/*';
+@source '../../../views/components/admin/**/*';
 @source '../../../views/filament/admin/**/*';
 @source '../../../../vendor/filament/**/*.blade.php';
+
+@theme {
+    --color-ihsan-paper: #f7f2ea;
+    --color-ihsan-cream: #fffaf3;
+    --color-ihsan-espresso: #251811;
+    --color-ihsan-espresso-soft: #3a281f;
+    --color-ihsan-terracotta: #b65f3a;
+    --color-ihsan-terracotta-dark: #8f4429;
+    --color-ihsan-ink: #241b16;
+    --color-ihsan-muted: #75685d;
+}
+
+.fi-panel-admin {
+    @apply bg-ihsan-paper text-ihsan-ink antialiased dark:bg-stone-950 dark:text-stone-100;
+}
+
+.fi-panel-admin .fi-layout,
+.fi-panel-admin .fi-main-ctn {
+    @apply bg-ihsan-paper dark:bg-stone-950;
+}
+
+.fi-panel-admin .fi-main {
+    @apply px-4 py-5 sm:px-6 lg:px-8;
+}
+
+.fi-panel-admin .fi-sidebar {
+    @apply border-r border-black/10 bg-ihsan-espresso text-ihsan-cream shadow-none dark:border-white/10 dark:bg-[#1d130e];
+}
+
+.fi-panel-admin .fi-sidebar-header-ctn,
+.fi-panel-admin .fi-sidebar-header,
+.fi-panel-admin .fi-sidebar-nav,
+.fi-panel-admin .fi-sidebar-footer {
+    @apply bg-transparent;
+}
+
+.fi-panel-admin .fi-sidebar-nav {
+    @apply px-3 py-4;
+}
+
+.fi-panel-admin .fi-sidebar-group-label {
+    @apply px-3 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#d8c3ad]/75;
+}
+
+.fi-panel-admin .fi-sidebar-item-btn {
+    @apply min-h-10 rounded-lg px-3 text-[#f7eadb]/82 transition hover:bg-white/10 hover:text-white;
+}
+
+.fi-panel-admin .fi-sidebar-item-icon {
+    @apply text-[#e5c7ad]/75;
+}
+
+.fi-panel-admin .fi-sidebar-item-label {
+    @apply text-sm font-medium text-[#f7eadb]/82 transition-colors;
+}
+
+.fi-panel-admin .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
+    @apply bg-ihsan-cream text-ihsan-terracotta-dark shadow-sm ring-1 ring-black/5 hover:bg-white hover:text-ihsan-terracotta-dark;
+}
+
+.fi-panel-admin .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label {
+    @apply text-ihsan-terracotta-dark;
+}
+
+.fi-panel-admin .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-icon {
+    @apply text-ihsan-terracotta;
+}
+
+.fi-panel-admin .fi-topbar {
+    @apply border-b border-stone-200/80 bg-ihsan-paper/95 shadow-none backdrop-blur dark:border-stone-800 dark:bg-stone-950/95;
+}
+
+.fi-panel-admin .fi-header {
+    @apply rounded-lg border border-stone-200 bg-ihsan-cream px-5 py-4 shadow-sm dark:border-stone-800 dark:bg-stone-900;
+}
+
+.fi-panel-admin .fi-header-heading {
+    @apply text-xl font-semibold tracking-normal text-ihsan-ink dark:text-white;
+}
+
+.fi-panel-admin .fi-header-subheading {
+    @apply mt-1 max-w-3xl text-sm text-ihsan-muted dark:text-stone-400;
+}
+
+.fi-panel-admin .fi-section,
+.fi-panel-admin .fi-ta {
+    @apply rounded-lg border border-stone-200 bg-ihsan-cream shadow-sm ring-0 dark:border-stone-800 dark:bg-stone-900;
+}
+
+.fi-panel-admin .fi-section-header {
+    @apply border-b border-stone-200/70 px-5 py-4 dark:border-stone-800;
+}
+
+.fi-panel-admin .fi-section-content {
+    @apply px-5 py-5;
+}
+
+.fi-panel-admin .fi-ta-header,
+.fi-panel-admin .fi-ta-content-header {
+    @apply bg-ihsan-cream dark:bg-stone-900;
+}
+
+.fi-panel-admin .fi-ta-table thead {
+    @apply bg-stone-100/80 dark:bg-stone-800/70;
+}
+
+.fi-panel-admin .fi-ta-table thead th {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-stone-600 dark:text-stone-300;
+}
+
+.fi-panel-admin .fi-ta-row {
+    @apply transition-colors hover:bg-stone-50 dark:hover:bg-stone-800/70;
+}
+
+.fi-panel-admin .fi-btn.fi-color-primary {
+    @apply bg-ihsan-terracotta text-white hover:bg-ihsan-terracotta-dark;
+}
+
+.fi-panel-admin .fi-badge {
+    @apply rounded-md font-semibold;
+}
+
+.ihsan-admin-page {
+    @apply space-y-5;
+}
+
+.ihsan-admin-toolbar {
+    @apply flex flex-col gap-4 rounded-lg border border-stone-200 bg-ihsan-cream p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-stone-800 dark:bg-stone-900;
+}
+
+.ihsan-admin-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-ihsan-terracotta dark:text-orange-300;
+}
+
+.ihsan-admin-title {
+    @apply mt-1 text-lg font-semibold tracking-normal text-ihsan-ink dark:text-white;
+}
+
+.ihsan-admin-description {
+    @apply mt-1 max-w-3xl text-sm leading-6 text-ihsan-muted dark:text-stone-400;
+}
+
+.ihsan-admin-metric-card {
+    @apply overflow-hidden rounded-lg border border-stone-200 bg-ihsan-cream p-5 shadow-sm ring-0 dark:border-stone-800 dark:bg-stone-900;
+}
+
+.ihsan-admin-metric-header {
+    @apply flex items-center gap-2 text-sm font-medium text-ihsan-muted dark:text-stone-400;
+}
+
+.ihsan-admin-metric-icon {
+    @apply flex size-8 shrink-0 items-center justify-center rounded-md bg-stone-100 text-ihsan-terracotta ring-1 ring-stone-200 dark:bg-stone-800 dark:text-orange-300 dark:ring-stone-700;
+}
+
+.ihsan-admin-metric-value {
+    @apply mt-3 text-2xl font-semibold tracking-normal text-ihsan-ink dark:text-white;
+}
+
+.ihsan-admin-metric-note {
+    @apply mt-1.5 text-xs leading-5 text-ihsan-muted dark:text-stone-400;
+}
+
+.ihsan-admin-stat-tile {
+    @apply rounded-lg border border-stone-200 bg-white/70 p-4 dark:border-stone-800 dark:bg-stone-950/40;
+}
+
+.ihsan-admin-list {
+    @apply divide-y divide-stone-200/80 dark:divide-stone-800;
+}
+
+.ihsan-admin-list-row {
+    @apply flex items-center justify-between gap-4 py-3;
+}
+
+.ihsan-admin-table {
+    @apply w-full min-w-[760px];
+}
+
+.ihsan-admin-table thead tr {
+    @apply border-b border-stone-200 bg-stone-100/70 text-left text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-stone-600 dark:border-stone-800 dark:bg-stone-800/70 dark:text-stone-300;
+}
+
+.ihsan-admin-table th {
+    @apply px-4 py-3;
+}
+
+.ihsan-admin-table td {
+    @apply px-4 py-3.5;
+}
+
+.ihsan-admin-table tbody {
+    @apply divide-y divide-stone-200/80 dark:divide-stone-800;
+}
+
+.ihsan-admin-table tbody tr {
+    @apply text-sm transition-colors hover:bg-stone-50 dark:hover:bg-stone-800/60;
+}
+
+.ihsan-admin-segmented {
+    @apply inline-flex max-w-full overflow-x-auto rounded-lg border border-stone-200 bg-white p-1 shadow-sm dark:border-stone-700 dark:bg-stone-900;
+}
+
+.ihsan-admin-segmented-button {
+    @apply relative shrink-0 rounded-md px-3 py-2 text-xs font-semibold transition;
+}
+
+.ihsan-admin-segmented-button-active {
+    @apply bg-ihsan-terracotta text-white shadow-sm;
+}
+
+.ihsan-admin-segmented-button-idle {
+    @apply text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800;
+}
 
 /* Demo-style tabs for Organizations */
 .ihsan-org-tabs {
