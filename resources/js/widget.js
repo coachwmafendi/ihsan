@@ -584,6 +584,17 @@
       ].join(";");
     }
 
+    var action = s.action || "open_campaign_page";
+    if (action === "checkout_modal" || action === "open_checkout_modal") {
+      link.href = "#";
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+        showCheckoutModal(el);
+      });
+    }
+
     link.addEventListener("mouseenter", function () {
       if (style === "button") {
         link.style.transform = "scale(1.04)";
