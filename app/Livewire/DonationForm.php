@@ -152,6 +152,21 @@ class DonationForm extends Component
         } else {
             abort(404);
         }
+
+        $this->overrideFromQueryParams();
+    }
+
+    private function overrideFromQueryParams(): void
+    {
+        $amount = request()->query('amount');
+        if ($amount !== null && is_numeric($amount) && (float) $amount > 0) {
+            $this->amount = (float) $amount;
+        }
+
+        $frequency = request()->query('frequency');
+        if ($frequency !== null && in_array($frequency, ['one_time', 'monthly'], strict: true)) {
+            $this->frequency = $frequency;
+        }
     }
 
     private function setElementPresentationMode(Element $element): void

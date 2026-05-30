@@ -67,7 +67,7 @@
     window.open(el.campaign_url || checkoutUrl(el), "_blank", "noopener");
   }
 
-  function showCheckoutModal(el) {
+  function showCheckoutModal(el, overrideUrl) {
     var isMobileView = window.innerWidth <= 768;
     var overlay = document.createElement("div");
     overlay.setAttribute("role", "dialog");
@@ -85,7 +85,7 @@
       "transition:opacity .2s",
     ].join(";");
 
-    var checkUrl = checkoutUrl(el, true);
+    var checkUrl = overrideUrl || checkoutUrl(el, true);
     var iframe = document.createElement("iframe");
     iframe.src = checkUrl;
     iframe.setAttribute("allow", "payment *");
@@ -499,9 +499,14 @@
     wrapper.appendChild(iframe);
 
     window.addEventListener("message", function (e) {
-      if (e.data && e.data.type === "ihsan:open-modal") {
-        showCheckoutModal(el);
-      }
+      if (!e.data || e.data.type !== "ihsan:open-modal") return;
+      var qs = "?popup=1&step=2";
+      if (e.data.amount) qs += "&amount=" + encodeURIComponent(e.data.amount);
+      if (e.data.frequency) qs += "&frequency=" + encodeURIComponent(e.data.frequency);
+      var modalUrl = el.campaign_form_parameter
+        ? baseUrl + "/donate/campaign/" + el.campaign_form_parameter + qs
+        : baseUrl + "/donate/" + el.token + qs;
+      showCheckoutModal(el, modalUrl);
     });
 
     if (script.parentNode) {

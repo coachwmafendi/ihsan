@@ -198,7 +198,7 @@
                     @endif
                 >
                     <div
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount))"
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)))"
                     >
 
                         {{-- Step progress indicator --}}
@@ -358,7 +358,7 @@
 
                              <button
                                  type="button"
-                                 x-on:click="{{ $isEmbed ? 'window.parent.postMessage({type:\'ihsan:open-modal\'}, \'*\')' : 'nextStep()' }}"
+                                 x-on:click="{{ $isEmbed ? 'validateStep1() && window.parent.postMessage({type:\'ihsan:open-modal\',amount:amount,frequency:$wire.frequency}, \'*\')' : 'nextStep()' }}"
                                  x-bind:disabled="processing"
                                  class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98] disabled:opacity-60"
                              >
@@ -558,7 +558,7 @@
 
 @script
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5) => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1) => {
         let stripe = null;
         let cardElement = null;
 
@@ -570,7 +570,7 @@
             donorPhone: initialPhone,
             minimumAmount: initialMinimumAmount,
             processing: false,
-            currentStep: 1,
+            currentStep: initialStep > 1 ? initialStep : 1,
             stepErrors: {},
             cardError: '',
 
