@@ -64,6 +64,7 @@ class ElementsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
+                    ->slideOver()
                     ->closeModalByClickingAway(false)
                     ->using(function (array $data) {
                         $campaign = $this->getOwnerRecord();
@@ -79,7 +80,8 @@ class ElementsRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->slideOver(),
                 DissociateAction::make(),
                 DeleteAction::make(),
             ])
