@@ -90,13 +90,21 @@
     iframe.setAttribute("allow", "payment *");
     iframe.style.cssText = [
       "width:100%",
-      isMobileView ? "max-width:100%" : "max-width:1100px",
-      isMobileView ? "height:100%" : "height:90vh",
-      isMobileView ? "max-height:100%" : "max-height:820px",
+      "height:100%",
       "border:0",
       isMobileView ? "border-radius:0" : "border-radius:16px",
       "background:#fff",
       "box-shadow:0 24px 80px rgba(15,23,42,.35)",
+      "display:block",
+    ].join(";");
+
+    var modalWrap = document.createElement("div");
+    modalWrap.style.cssText = [
+      "position:relative",
+      "width:100%",
+      isMobileView ? "max-width:100%" : "max-width:1100px",
+      isMobileView ? "height:100%" : "height:90vh",
+      isMobileView ? "max-height:100%" : "max-height:820px",
     ].join(";");
 
     var closeBtn = document.createElement("button");
@@ -104,29 +112,32 @@
     closeBtn.innerHTML = "&times;";
     closeBtn.style.cssText = [
       "position:absolute",
-      "top:12px",
-      "right:12px",
-      "width:32px",
-      "height:32px",
+      isMobileView ? "top:8px" : "top:-16px",
+      isMobileView ? "right:8px" : "right:-16px",
+      "width:36px",
+      "height:36px",
       "border:0",
       "border-radius:50%",
-      "background:rgba(15,23,42,.08)",
+      "background:#fff",
       "color:#475569",
-      "font-size:20px",
+      "font-size:22px",
       "line-height:1",
       "cursor:pointer",
       "display:flex",
       "align-items:center",
       "justify-content:center",
-      "transition:background .15s",
-      "z-index:1",
+      "transition:background .15s,color .15s",
+      "z-index:10",
+      "box-shadow:0 2px 8px rgba(0,0,0,.18)",
     ].join(";");
 
     closeBtn.addEventListener("mouseenter", function () {
-      closeBtn.style.background = "rgba(15,23,42,.14)";
+      closeBtn.style.background = "#f1f5f9";
+      closeBtn.style.color = "#0f172a";
     });
     closeBtn.addEventListener("mouseleave", function () {
-      closeBtn.style.background = "rgba(15,23,42,.08)";
+      closeBtn.style.background = "#fff";
+      closeBtn.style.color = "#475569";
     });
     closeBtn.addEventListener("click", function () {
       overlay.remove();
@@ -135,8 +146,9 @@
       if (e.target === overlay) overlay.remove();
     });
 
-    overlay.appendChild(closeBtn);
-    overlay.appendChild(iframe);
+    modalWrap.appendChild(iframe);
+    modalWrap.appendChild(closeBtn);
+    overlay.appendChild(modalWrap);
     document.body.appendChild(overlay);
     fadeIn(overlay);
   }
@@ -430,11 +442,42 @@
     schedule();
   }
 
+  function renderForm(el) {
+    var formUrl = el.campaign_form_parameter
+      ? baseUrl + "/donate/campaign/" + el.campaign_form_parameter + "?embed=1"
+      : baseUrl + "/donate/" + el.token + "?embed=1";
+
+    var wrapper = document.createElement("div");
+    wrapper.style.cssText = "max-width:100%;";
+
+    var iframe = document.createElement("iframe");
+    iframe.src = formUrl;
+    iframe.setAttribute("width", "100%");
+    iframe.setAttribute("height", "600");
+    iframe.setAttribute("frameborder", "0");
+    iframe.setAttribute("allow", "payment *");
+    iframe.setAttribute("scrolling", "no");
+    iframe.style.cssText = "border:0;border-radius:16px;display:block;overflow:hidden;";
+
+    wrapper.appendChild(iframe);
+
+    window.addEventListener("message", function (e) {
+      if (e.data && e.data.type === "ihsan:open-modal") {
+        showCheckoutModal(el);
+      }
+    });
+
+    if (script.parentNode) {
+      script.parentNode.replaceChild(wrapper, script);
+    }
+  }
+
   var renderers = {
     "floating-button": renderFloatingButton,
     floating_button: renderFloatingButton,
     button: renderButton,
     popup: renderPopup,
+    form: renderForm,
   };
 
   function renderFromData(el) {

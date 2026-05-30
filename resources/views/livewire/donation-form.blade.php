@@ -358,7 +358,7 @@
 
                              <button
                                  type="button"
-                                 x-on:click="nextStep()"
+                                 x-on:click="{{ $isEmbed ? 'window.parent.postMessage({type:\'ihsan:open-modal\'}, \'*\')' : 'nextStep()' }}"
                                  x-bind:disabled="processing"
                                  class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98] disabled:opacity-60"
                              >

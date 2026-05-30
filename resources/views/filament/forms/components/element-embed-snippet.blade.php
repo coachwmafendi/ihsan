@@ -11,20 +11,7 @@
         </p>
 
         @php
-            $embedCode = $type === 'form'
-                ? implode("\n", [
-                    '<div style="max-width:440px;margin:0 auto;">',
-                    '  <iframe',
-                    '    src="'.url('/donate/'.$element->token.'?embed=1').'"',
-                    '    width="100%"',
-                    '    height="700"',
-                    '    frameborder="0"',
-                    '    allow="payment *"',
-                    '    style="border:0;border-radius:16px;"',
-                    '  ></iframe>',
-                    '</div>',
-                ])
-                : '<script src="'.$widgetSrc.'" data-token="'.$element->token.'"></script>';
+            $embedCode = '<script src="'.$widgetSrc.'" data-token="'.$element->token.'"></script>';
         @endphp
 
         @if ($embedCode)
