@@ -31,12 +31,12 @@ class CampaignForm
                         Tab::make('Overview')
                             ->icon('heroicon-o-document-text')
                             ->schema([
-                                Section::make('Umum')
-                                    ->description('Nama, status dan salinan kempen untuk penderma.')
+                                Section::make('General')
+                                    ->description('Campaign name, status, and copy for donors.')
                                     ->columns(2)
                                     ->schema([
                                         TextInput::make('title')
-                                            ->label('Nama kempen')
+                                            ->label('Campaign name')
                                             ->required()
                                             ->maxLength(255)
                                             ->columnSpanFull(),
@@ -45,17 +45,17 @@ class CampaignForm
                                             ->required()
                                             ->options(CampaignStatus::class),
                                     ]),
-                                Section::make('Kisah & media')
-                                    ->description('Kandungan halaman kempen dan gambar utama.')
+                                Section::make('Story & Media')
+                                    ->description('Campaign page content and hero image.')
                                     ->schema([
                                         FileUpload::make('image_path')
-                                            ->label('Gambar utama')
+                                            ->label('Hero image')
                                             ->image()
                                             ->directory('campaigns')
-                                            ->helperText('Saiz disyorkan: 1920 × 1060 px')
+                                            ->helperText('Recommended size: 1920 × 1060 px')
                                             ->columnSpanFull(),
                                         RichEditor::make('description')
-                                            ->label('Penerangan')
+                                            ->label('Description')
                                             ->columnSpanFull()
                                             ->extraInputAttributes(['style' => 'min-height: 300px;'])
                                             ->live(debounce: 1500)
@@ -68,49 +68,49 @@ class CampaignForm
                                 Grid::make()
                                     ->columns(2)
                                     ->schema([
-                                        Section::make('Tetapan Derma')
-                                            ->description('Kawal kekerapan derma, jumlah khas dan jumlah minima.')
+                                        Section::make('Donation Settings')
+                                            ->description('Control donation frequency, custom amounts, and minimum amount.')
                                             ->columnSpan(1)
                                             ->columns(2)
                                             ->schema([
                                                 Toggle::make('allow_recurring')
-                                                    ->label('Benarkan derma bulanan'),
+                                                    ->label('Enable monthly donations'),
                                                 Toggle::make('allow_custom_amount')
-                                                    ->label('Benarkan jumlah khas'),
+                                                    ->label('Allow custom amount'),
                                                 TextInput::make('minimum_amount')
-                                                    ->label('Jumlah minima')
-                                                    ->helperText('Jumlah minimum untuk setiap derma.')
+                                                    ->label('Minimum amount')
+                                                    ->helperText('Minimum amount for each donation.')
                                                     ->numeric()
                                                     ->minValue(0)
                                                     ->step(1)
                                                     ->default(5),
                                             ]),
-                                        Section::make('Jumlah')
-                                            ->description('Tetapkan sasaran dan tempoh kempen.')
+                                        Section::make('Goal & Duration')
+                                            ->description('Set campaign target and duration.')
                                             ->columnSpan(1)
                                             ->columns(2)
                                             ->schema([
                                                 Toggle::make('has_target')
-                                                    ->label('Tetapkan sasaran kutipan')
+                                                    ->label('Set fundraising target')
                                                     ->live()
                                                     ->columnSpanFull(),
                                                 TextInput::make('target_amount')
-                                                    ->label('Jumlah sasaran')
+                                                    ->label('Target amount')
                                                     ->numeric()
                                                     ->prefix('MYR')
                                                     ->disabled(fn ($get) => ! $get('has_target'))
                                                     ->columnSpan(1),
                                                 DatePicker::make('end_date')
-                                                    ->label('Tarikh tamat')
+                                                    ->label('End date')
                                                     ->format('Y-m-d')
                                                     ->displayFormat('d/m/Y'),
                                             ]),
                                     ]),
-                                Section::make('Jumlah disarankan')
-                                    ->description('Butang jumlah tersedia di halaman checkout.')
+                                Section::make('Suggested Amounts')
+                                    ->description('Preset amount buttons on the checkout page.')
                                     ->schema([
                                         SuggestedAmounts::make('suggested_amounts')
-                                            ->label('Jumlah disarankan')
+                                            ->label('Suggested amounts')
                                             ->acceptedCurrencies(fn ($record): array => (
                                                 $record?->organization?->settings['accepted_currencies']
                                                 ?? auth()->user()?->organization?->settings['accepted_currencies']
@@ -125,7 +125,7 @@ class CampaignForm
                             ->columns(3)
                             ->schema([
                                 Placeholder::make('collected_amount')
-                                    ->label('Jumlah terkumpul')
+                                    ->label('Amount raised')
                                     ->content(fn ($record) => new HtmlString(
                                         '<span class="text-2xl font-bold text-emerald-600">RM '.number_format(
                                             $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount') ?? 0,
@@ -133,12 +133,12 @@ class CampaignForm
                                         ).'</span>'
                                     )),
                                 Placeholder::make('donation_count')
-                                    ->label('Jumlah derma')
+                                    ->label('Donations')
                                     ->content(fn ($record) => new HtmlString(
                                         '<span class="text-2xl font-bold text-zinc-900">'.$record->donations()->count().'</span>'
                                     )),
                                 Placeholder::make('progress_bar')
-                                    ->label('Prestasi kempen')
+                                    ->label('Campaign performance')
                                     ->columnSpanFull()
                                     ->content(fn ($record) => new HtmlString(
                                         static::progressBarHtml($record)
@@ -151,7 +151,7 @@ class CampaignForm
     private static function progressBarHtml($record): string
     {
         if (! $record || ! $record->has_target || ! $record->target_amount) {
-            return '<p style="font-size: 0.875rem; color: #71717a;">Tiada sasaran ditetapkan untuk kempen ini.</p>';
+            return '<p style="font-size: 0.875rem; color: #71717a;">No target set for this campaign.</p>';
         }
 
         $collected = (float) $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount');
@@ -163,14 +163,14 @@ class CampaignForm
         return '<div style="display: flex; flex-direction: column; gap: 0.75rem;">'
             .'<div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem;">'
             .'<span style="font-weight: 500; color: #18181b;">RM '.number_format($collected, 2).'</span>'
-            .'<span style="color: #71717a;">daripada RM '.number_format($target, 2).'</span>'
+            .'<span style="color: #71717a;">of RM '.number_format($target, 2).'</span>'
             .'</div>'
             .'<div style="height: 20px; width: 100%; overflow: hidden; border-radius: 9999px; background-color: #e4e4e7;">'
             .'<div style="height: 100%; border-radius: 9999px; transition: all 0.5s; width: '.$barWidth.'%; background-color: '.$barColor.';"></div>'
             .'</div>'
             .'<div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; line-height: 1rem;">'
-            .'<span style="font-weight: 600; color: #3f3f46;">'.$percentage.'% terkumpul</span>'
-            .'<span style="color: #71717a;">'.($percentage >= 100 ? 'Sasaran tercapai!' : 'Baki: RM '.number_format(max($target - $collected, 0), 2)).'</span>'
+            .'<span style="font-weight: 600; color: #3f3f46;">'.$percentage.'% raised</span>'
+            .'<span style="color: #71717a;">'.($percentage >= 100 ? 'Goal reached!' : 'Remaining: RM '.number_format(max($target - $collected, 0), 2)).'</span>'
             .'</div>'
             .'</div>';
     }
@@ -181,7 +181,7 @@ class CampaignForm
 
         if ($elements->isEmpty()) {
             if (! $record->checkout_modal_enabled) {
-                return '<p class="text-sm text-zinc-500">Tiada element dikaitkan. Cipta element terlebih dahulu, atau aktifkan modal derma untuk pautan terus.</p>';
+                return '<p class="text-sm text-zinc-500">No element linked. Create an element first, or enable the donation modal for a direct link.</p>';
             }
 
             return self::shareableUrlHtml(route('donations.campaign-show', ['campaign' => $record->form_parameter]));
@@ -205,16 +205,16 @@ class CampaignForm
         return '<div class="space-y-4">'
             .'<div x-data="{ copied: false }" data-url="'.e($url).'" class="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">'
             .'<code class="flex-1 truncate text-sm text-zinc-700">'.e($url).'</code>'
-            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100 transition" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
-            .'<a href="'.e($url).'" target="_blank" rel="noopener" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100 transition">Buka →</a>'
+            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100 transition" x-text="copied ? \'Copied!\' : \'Copy\'"></button>'
+            .'<a href="'.e($url).'" target="_blank" rel="noopener" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100 transition">Open →</a>'
             .'</div>'
             .'<div class="flex items-start gap-6">'
             .'<div class="shrink-0 text-center">'
             .'<img src="'.e($qrUrl).'" width="140" height="140" loading="lazy" class="rounded-lg border border-zinc-200" alt="QR Code">'
-            .'<p class="mt-1.5 text-xs text-zinc-400">Imbas untuk derma</p>'
+            .'<p class="mt-1.5 text-xs text-zinc-400">Scan to donate</p>'
             .'</div>'
             .'<div class="flex-1 space-y-3 pt-1">'
-            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Kongsi</p>'
+            .'<p class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Share</p>'
             .'<a href="'.e($waUrl).'" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 transition">'
             .$waIcon.'WhatsApp'
             .'</a>'
@@ -251,26 +251,26 @@ class CampaignForm
 
         if ($elements->isEmpty()) {
             if (! $record->checkout_modal_enabled) {
-                return '<p class="text-sm text-zinc-500">Tiada element — cipta element terlebih dahulu, atau aktifkan modal derma untuk benaman.</p>';
+                return '<p class="text-sm text-zinc-500">No element — create an element first, or enable the donation modal for embedding.</p>';
             }
 
             $url = route('donations.campaign-show', ['campaign' => $record->form_parameter]);
             $iframe = self::embedIframeHtml($url, $record->form_parameter);
 
-            return '<p class="text-sm text-zinc-500 mb-4">Letak kod berikut dalam mana-mana halaman web untuk benamkan borang derma terus tanpa pop-up.</p>'
-                .self::copyableSnippet('Kod benam', $iframe)
-                .'<p class="text-xs text-zinc-400 mt-3">Laraskan <code class="bg-zinc-100 px-1 rounded">height</code> mengikut keperluan. Nilai <code class="bg-zinc-100 px-1 rounded">700</code> sesuai untuk kebanyakan skrin.</p>';
+            return '<p class="text-sm text-zinc-500 mb-4">Paste the following code into any web page to embed the donation form directly without a pop-up.</p>'
+                .self::copyableSnippet('Embed code', $iframe)
+                .'<p class="text-xs text-zinc-400 mt-3">Adjust <code class="bg-zinc-100 px-1 rounded">height</code> as needed. A value of <code class="bg-zinc-100 px-1 rounded">700</code> fits most screens.</p>';
         }
 
-        $parts = ['<p class="text-sm text-zinc-500 mb-4">Letak kod berikut dalam mana-mana halaman web untuk benamkan borang derma terus tanpa pop-up.</p>'];
+        $parts = ['<p class="text-sm text-zinc-500 mb-4">Paste the following code into any web page to embed the donation form directly without a pop-up.</p>'];
 
         foreach ($elements as $element) {
             $url = route('donations.show', $element);
             $iframe = self::embedIframeHtml($url, $element->token);
-            $parts[] = self::copyableSnippet('Kod benam', $iframe);
+            $parts[] = self::copyableSnippet('Embed code', $iframe);
         }
 
-        $parts[] = '<p class="text-xs text-zinc-400 mt-3">Laraskan <code class="bg-zinc-100 px-1 rounded">height</code> mengikut keperluan. Nilai <code class="bg-zinc-100 px-1 rounded">700</code> sesuai untuk kebanyakan skrin.</p>';
+        $parts[] = '<p class="text-xs text-zinc-400 mt-3">Adjust <code class="bg-zinc-100 px-1 rounded">height</code> as needed. A value of <code class="bg-zinc-100 px-1 rounded">700</code> fits most screens.</p>';
 
         return implode('', $parts);
     }
@@ -281,7 +281,7 @@ class CampaignForm
 
         if ($elements->isEmpty()) {
             if (! $record->checkout_modal_enabled) {
-                return '<p class="text-sm text-zinc-500">Tiada URL — kempen belum ada element atau modal derma tidak diaktifkan.</p>';
+                return '<p class="text-sm text-zinc-500">No URL — the campaign has no element or the donation modal is not enabled.</p>';
             }
 
             $base = route('donations.campaign-show', ['campaign' => $record->form_parameter]);
@@ -305,8 +305,8 @@ class CampaignForm
         return '<div class="flex items-center gap-2 py-1" x-data="{ copied: false }" data-url=\''.e($url).'\'>'
             .'<span class="w-14 shrink-0 text-xs font-medium text-zinc-400">'.$label.'</span>'
             .'<code class="flex-1 truncate text-sm text-zinc-600">'.e($url).'</code>'
-            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Disalin!\' : \'Salin\'"></button>'
-            .'<a href="'.e($url).'" target="_blank" rel="noopener" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200">Buka →</a>'
+            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.url).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200" x-text="copied ? \'Copied!\' : \'Copy\'"></button>'
+            .'<a href="'.e($url).'" target="_blank" rel="noopener" class="shrink-0 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200">Open →</a>'
             .'</div>';
     }
 
@@ -316,8 +316,8 @@ class CampaignForm
 
         $script = '<script src="'.url('/embed.js').'" async></script>';
         $btnStyle = 'display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#0d9488;color:#fff;font:600 14px/1 system-ui,sans-serif;border:0;border-radius:8px;cursor:pointer;text-decoration:none;box-shadow:0 2px 6px rgba(13,148,136,.3);transition:background .15s,transform .15s;letter-spacing:.01em;white-space:nowrap;width:auto';
-        $button = '<button data-ihsan-form="'.$formParameter.'" style="'.$btnStyle.'" onmouseover="this.style.background=\'#0f766e\'" onmouseout="this.style.background=\'#0d9488\'" onmousedown="this.style.transform=\'scale(.97)\'" onmouseup="this.style.transform=\'\'">Derma</button>';
-        $link = '<a href="?form='.$formParameter.'" style="'.$btnStyle.'" onmouseover="this.style.background=\'#0f766e\'" onmouseout="this.style.background=\'#0d9488\'" onmousedown="this.style.transform=\'scale(.97)\'" onmouseup="this.style.transform=\'\'">Derma</a>';
+        $button = '<button data-ihsan-form="'.$formParameter.'" style="'.$btnStyle.'" onmouseover="this.style.background=\'#0f766e\'" onmouseout="this.style.background=\'#0d9488\'" onmousedown="this.style.transform=\'scale(.97)\'" onmouseup="this.style.transform=\'\'">Donate</button>';
+        $link = '<a href="?form='.$formParameter.'" style="'.$btnStyle.'" onmouseover="this.style.background=\'#0f766e\'" onmouseout="this.style.background=\'#0d9488\'" onmousedown="this.style.transform=\'scale(.97)\'" onmouseup="this.style.transform=\'\'">Donate</a>';
 
         $step = fn (int $n, string $title, string $body) => '<div class="flex gap-4">'
             .'<div class="shrink-0 flex size-7 items-center justify-center rounded-full bg-teal-600 text-white text-xs font-bold">'.$n.'</div>'
@@ -328,28 +328,28 @@ class CampaignForm
         return '<div class="space-y-0">'
 
             .($step)(1,
-                'Pasang skrip Ihsan (sekali sahaja)',
-                'Salin kod berikut dan letak dalam laman web organisasi, sebelum penutup tag <code class="text-xs bg-zinc-100 px-1 rounded">&lt;/body&gt;</code>.'
+                'Install the Ihsan script (once only)',
+                'Copy the following code and paste it into your organisation\'s website, before the closing <code class="text-xs bg-zinc-100 px-1 rounded">&lt;/body&gt;</code> tag.'
             )
-            .self::copyableSnippet('Skrip', $script)
+            .self::copyableSnippet('Script', $script)
             .'</div></div>'
 
             .($step)(2,
-                'Tambah butang atau pautan derma',
-                'Letak mana-mana satu kod ini di laman web. Apabila diklik, borang derma terbuka sebagai pop-up secara automatik.'
+                'Add a donation button or link',
+                'Place either of these codes on your website. When clicked, the donation form opens automatically as a pop-up.'
             )
-            .self::copyableSnippet('Butang', $button)
-            .self::copyableSnippet('Pautan', $link)
+            .self::copyableSnippet('Button', $button)
+            .self::copyableSnippet('Link', $link)
             .'</div></div>'
 
             .($step)(3,
-                'Daftarkan domain laman web',
-                'Dalam bahagian <strong>Domain dibenarkan</strong> di atas, masukkan domain laman web organisasi (contoh: <code class="text-xs bg-zinc-100 px-1 rounded">mumzatuttaqwa.com</code>). Borang tidak akan buka dari domain yang tidak didaftarkan.'
+                'Register your website domain',
+                'In the <strong>Allowed Domains</strong> section above, enter your organisation\'s website domain (e.g. <code class="text-xs bg-zinc-100 px-1 rounded">example.com</code>). The form will not open from unregistered domains.'
             )
             .'</div></div>'
 
             .'<div class="ml-11 rounded-lg bg-amber-50 border border-amber-200 p-3">'
-            .'<p class="text-sm text-amber-700"><strong>Penting:</strong> Pastikan "Aktifkan modal derma" dihidupkan dan domain sudah didaftarkan sebelum menggunakan kod ini.</p>'
+            .'<p class="text-sm text-amber-700"><strong>Important:</strong> Make sure "Enable donation modal" is turned on and the domain is registered before using this code.</p>'
             .'</div>'
 
             .'</div>';
@@ -360,7 +360,7 @@ class CampaignForm
         return '<div x-data="{ copied: false }" data-code="'.e($code).'" class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">'
             .'<div class="mb-2 flex items-center justify-between gap-3">'
             .'<span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">'.e($label).'</span>'
-            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Disalin\' : \'Salin\'"></button>'
+            .'<button type="button" x-on:click="navigator.clipboard.writeText($root.dataset.code).then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-100" x-text="copied ? \'Copied\' : \'Copy\'"></button>'
             .'</div>'
             .'<code class="block whitespace-pre-wrap break-all rounded-md bg-white p-2 text-xs text-zinc-700 ring-1 ring-zinc-200">'.e($code).'</code>'
             .'</div>';
@@ -375,10 +375,10 @@ class CampaignForm
         $color = $remaining >= 0 ? 'text-zinc-500' : 'text-danger-600';
         $weight = $remaining < 0 ? 'font-bold' : '';
 
-        $label = "{$wordCount} / 100 patah perkataan";
+        $label = "{$wordCount} / 100 words";
 
         if ($remaining < 0) {
-            $label .= " (lebih {$remaining} patah perkataan)";
+            $label .= ' (over by '.abs($remaining).' words)';
         }
 
         return "<span class=\"{$color} {$weight} text-sm\">{$label}</span>";

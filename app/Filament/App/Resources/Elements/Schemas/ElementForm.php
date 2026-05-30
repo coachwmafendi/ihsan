@@ -6,6 +6,7 @@ use App\Enums\ElementType;
 use App\Filament\App\Resources\Elements\ElementResource;
 use App\Models\Element;
 use BackedEnum;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -76,7 +77,7 @@ class ElementForm
                 'frequency' => 'once_per_day',
                 'visibility' => 'desktop_mobile',
                 'layout' => 'simple',
-                'image' => 'campaign',
+                'image' => null,
                 'color' => 'campaign',
             ],
             'qr_code' => [
@@ -146,13 +147,7 @@ class ElementForm
                             ->default(true)
                             ->inlineLabel(false)
                             ->helperText('Enable or disable this element'),
-                        View::make('filament.forms.components.embed-token')
-                            ->viewData(fn (?Element $record): array => [
-                                'token' => $record?->token,
-                                'url' => $record?->token ? url('/donate/'.$record->token) : null,
-                            ])
-                            ->visible(fn (Get $get, ?Element $record): bool => $record !== null && in_array($get('type') ?? $record->type->value, ['form', 'popup', 'qr_code'], true))
-                            ->columnSpanFull(),
+
                         View::make('filament.forms.components.element-embed-snippet')
                             ->viewData(function (Get $get, ?Element $record): array {
                                 $recordConfig = $record?->config ?? [];
@@ -344,44 +339,53 @@ class ElementForm
                                 'config' => self::previewConfig($get),
                             ]),
                     ]),
-                Grid::make()
+                Grid::make([
+                    'default' => 1,
+                    'xl' => 12,
+                ])
                     ->columnSpanFull()
+                    ->extraAttributes(['class' => 'ihsan-builder-shell'])
                     ->visible(fn (Get $get): bool => $get('type') === ElementType::Popup->value)
                     ->schema([
                         Grid::make()
+                            ->columnSpan([
+                                'default' => 1,
+                                'xl' => 7,
+                            ])
                             ->statePath('config')
-                            ->columnSpanFull()
+                            ->extraAttributes(['class' => 'ihsan-builder-editor space-y-4'])
                             ->schema([
                                 Section::make('Content')
-                                    ->columns(2)
                                     ->icon('heroicon-m-document-text')
                                     ->schema([
                                         TextInput::make('title')
                                             ->label('Title')
                                             ->required()
-                                            ->live(),
+                                            ->live()
+                                            ->columnSpanFull(),
                                         Textarea::make('message')
                                             ->label('Message')
                                             ->rows(3)
                                             ->live()
                                             ->columnSpanFull(),
-                                        TextInput::make('button_text')
-                                            ->label('Button text')
-                                            ->required()
-                                            ->live(),
-                                    ]),
-                                Section::make('Action')
-                                    ->icon('heroicon-m-cursor-arrow-rays')
-                                    ->schema([
-                                        Select::make('action')
-                                            ->label('Action')
-                                            ->options([
-                                                'campaign_page' => 'Open campaign page',
-                                                'checkout_modal' => 'Open checkout modal',
-                                            ])
-                                            ->default('checkout_modal')
-                                            ->live()
-                                            ->native(false),
+                                        Grid::make()
+                                            ->columns(2)
+                                            ->columnSpanFull()
+                                            ->schema([
+                                                TextInput::make('button_text')
+                                                    ->label('Button text')
+                                                    ->required()
+                                                    ->live(),
+                                                Select::make('action')
+                                                    ->label('Action')
+                                                    ->options([
+                                                        'campaign_page' => 'Open campaign page',
+                                                        'checkout_modal' => 'Open checkout modal',
+                                                    ])
+                                                    ->default('checkout_modal')
+                                                    ->live()
+                                                    ->native(false),
+                                            ]),
                                     ]),
                                 Section::make('Display Rules')
                                     ->columns(2)
@@ -440,15 +444,6 @@ class ElementForm
                                             ->default('simple')
                                             ->live()
                                             ->native(false),
-                                        Select::make('image')
-                                            ->label('Image')
-                                            ->options([
-                                                'campaign' => 'Use campaign image',
-                                                'none' => 'No image',
-                                            ])
-                                            ->default('campaign')
-                                            ->live()
-                                            ->native(false),
                                         Select::make('color')
                                             ->label('Color')
                                             ->options([
@@ -464,6 +459,28 @@ class ElementForm
                                             ->default('campaign')
                                             ->live()
                                             ->native(false),
+                                        FileUpload::make('image')
+                                            ->label('Image')
+                                            ->image()
+                                            ->disk('public')
+                                            ->directory('elements/popups')
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/avif'])
+                                            ->helperText('Saiz ideal: 960 x 540 px. JPG, PNG, WebP, AVIF.')
+                                            ->live()
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
+                        Section::make('Live Preview')
+                            ->columnSpan([
+                                'default' => 1,
+                                'xl' => 5,
+                            ])
+                            ->extraAttributes(['class' => 'ihsan-builder-preview xl:sticky xl:top-6'])
+                            ->schema([
+                                View::make('filament.forms.components.element-preview')
+                                    ->viewData(fn (Get $get): array => [
+                                        'type' => $get('type'),
+                                        'config' => self::previewConfig($get),
                                     ]),
                             ]),
                     ]),
@@ -473,7 +490,7 @@ class ElementForm
                 ])
                     ->columnSpanFull()
                     ->extraAttributes(['class' => 'ihsan-builder-shell'])
-                    ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::Form->value)
+                    ->visible(fn (Get $get): bool => $get('type') === ElementType::Form->value)
                     ->schema([
                         Tabs::make('Donation Form Workbench')
                             ->columnSpan([

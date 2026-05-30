@@ -83,9 +83,9 @@
         <div class="border-b border-zinc-200 bg-zinc-50/80 px-4 py-5 dark:border-white/10 dark:bg-white/5 sm:px-6">
             <div class="space-y-4">
                 <div class="mx-auto max-w-lg space-y-1 text-center">
-                    <p class="text-sm font-semibold text-zinc-950 dark:text-white">Pra-set kekerapan & mata wang</p>
+                    <p class="text-sm font-semibold text-zinc-950 dark:text-white">Preset frequency & currency</p>
                     <p class="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-                        Tetapkan butang derma untuk setiap mata wang yang diterima.
+                        Set donation buttons for each accepted currency.
                     </p>
                 </div>
 
@@ -116,14 +116,14 @@
                         :aria-selected="activeTab === 'one-time'"
                         :class="activeTab === 'one-time' ? 'bg-white text-zinc-950 shadow-sm dark:bg-zinc-950 dark:text-white' : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'"
                         class="rounded-md px-4 py-2 text-sm font-semibold transition"
-                    >Sekali sahaja</button>
+                    >One-time</button>
                     <button
                         type="button" role="tab"
                         @click="activeTab = 'monthly'"
                         :aria-selected="activeTab === 'monthly'"
                         :class="activeTab === 'monthly' ? 'bg-white text-zinc-950 shadow-sm dark:bg-zinc-950 dark:text-white' : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'"
                         class="rounded-md px-4 py-2 text-sm font-semibold transition"
-                    >Bulanan</button>
+                    >Monthly</button>
                 </div>
             </div>
         </div>
@@ -132,12 +132,12 @@
             <div class="mx-auto max-w-xl space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h4 class="text-sm font-semibold text-zinc-950 dark:text-white">Jumlah pra-set</h4>
-                        <p class="text-sm text-zinc-500 dark:text-zinc-400" x-text="activeTab === 'monthly' ? 'Dipaparkan apabila penyokong memilih derma bulanan.' : 'Dipaparkan apabila penyokong memilih derma satu masa.'"></p>
+                        <h4 class="text-sm font-semibold text-zinc-950 dark:text-white">Preset amounts</h4>
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400" x-text="activeTab === 'monthly' ? 'Shown when supporters choose monthly donations.' : 'Shown when supporters choose one-time donations.'"></p>
                     </div>
-                    <span class="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400" x-text="(activeTab === 'one-time' ? oneTimeAmounts.length : monthlyAmounts.length) + ' pilihan'"></span>
+                    <span class="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400" x-text="(activeTab === 'one-time' ? oneTimeAmounts.length : monthlyAmounts.length) + ' options'"></span>
                 </div>
-                <p class="text-xs text-zinc-400 dark:text-zinc-500">Minimum <span x-text="minAmounts"></span> pilihan dan maksimum <span x-text="maxAmounts"></span> pilihan.</p>
+                <p class="text-xs text-zinc-400 dark:text-zinc-500">Minimum <span x-text="minAmounts"></span> options and maximum <span x-text="maxAmounts"></span> options.</p>
 
                 <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
                     <template x-for="(amount, index) in currentAmounts" :key="`${activeCurrency}-${activeTab}-${index}`">
@@ -147,13 +147,13 @@
                                 @click="if (canRemove) removeAmount(index)"
                                 :class="canRemove ? 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500' : 'bg-zinc-300 dark:bg-zinc-600 cursor-not-allowed'"
                                 class="absolute -right-1.5 -top-1.5 hidden size-5 items-center justify-center rounded-full text-white shadow-sm transition group-hover:flex"
-                                :aria-label="canRemove ? 'Buang jumlah' : 'Minimum 3 pilihan diperlukan'"
-                                :title="canRemove ? '' : 'Minimum 3 pilihan diperlukan'"
+                                :aria-label="canRemove ? 'Remove amount' : 'Minimum 3 options required'"
+                                :title="canRemove ? '' : 'Minimum 3 options required'"
                             >
                                 <svg class="size-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
 
-                            <span class="mb-2 block text-xs font-medium text-zinc-500 dark:text-zinc-400" x-text="'Pilihan ' + (index + 1)"></span>
+                            <span class="mb-2 block text-xs font-medium text-zinc-500 dark:text-zinc-400" x-text="'Option ' + (index + 1)"></span>
                             <span class="flex min-h-11 items-center rounded-md border border-zinc-200 bg-white shadow-xs transition group-focus-within:border-primary-500 dark:border-white/10 dark:bg-zinc-900">
                                 <span class="flex h-full items-center border-r border-zinc-200 px-3 text-sm font-semibold text-zinc-500 dark:border-white/10 dark:text-zinc-400">
                                     <span x-text="symbolFor(activeCurrency)"></span>
@@ -177,10 +177,10 @@
                     @click="if (canAdd) addAmount()"
                     :class="canAdd ? 'border-zinc-300 hover:border-primary-400 hover:text-primary-600 dark:border-white/20 dark:hover:border-primary-500 dark:hover:text-primary-400' : 'border-zinc-200 text-zinc-400 dark:border-white/5 dark:text-zinc-600 cursor-not-allowed'"
                     class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-3 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                    :title="canAdd ? '' : 'Maksimum 6 pilihan'"
+                    :title="canAdd ? '' : 'Maximum 6 options'"
                 >
                     <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                    Tambah jumlah
+                    Add amount
                 </button>
             </div>
 
@@ -192,10 +192,10 @@
                 <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
                     <div class="space-y-1">
                         <label class="text-sm font-semibold text-zinc-950 dark:text-white" :for="'suggested-amounts-default-monthly-' + activeCurrency">
-                            Bulanan lalai
+                            Default monthly
                         </label>
                         <p class="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-                            Penderma lihat jumlah ini sebagai pra-pilih untuk derma bulanan.
+                            Donors see this amount as pre-selected for monthly donations.
                         </p>
                     </div>
                     <div class="flex min-h-11 w-full items-center rounded-md border border-primary-200 bg-white shadow-xs focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/20 dark:border-primary-500/30 dark:bg-zinc-950 lg:w-44">

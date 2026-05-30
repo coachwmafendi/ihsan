@@ -6,6 +6,7 @@ use App\Enums\ElementType;
 use App\Models\Element;
 use App\Support\Currency;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class PublicElementController extends Controller
 {
@@ -60,11 +61,38 @@ class PublicElementController extends Controller
                 'frequency' => 'once_per_day',
                 'visibility' => 'desktop_mobile',
                 'layout' => 'simple',
-                'image' => 'campaign',
+                'image' => null,
                 'color' => 'campaign',
             ], $settings);
 
-            if ($element->campaign?->image_path) {
+            $imagePath = null;
+            $rawImage = $settings['image'] ?? null;
+            if (is_string($rawImage) && $rawImage !== '' && ! in_array($rawImage, ['campaign', 'none'], true)) {
+                $imagePath = $rawImage;
+            } elseif (is_array($rawImage)) {
+                foreach ($rawImage as $item) {
+                    if (is_string($item) && $item !== '' && ! in_array($item, ['campaign', 'none'], true)) {
+                        $imagePath = $item;
+                        break;
+                    }
+                    if (is_array($item) || is_object($item)) {
+                        foreach ((array) $item as $v) {
+                            if (is_string($v) && $v !== '' && ! in_array($v, ['campaign', 'none'], true) && str_starts_with($v, 'elements/')) {
+                                $imagePath = $v;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+            if ($imagePath) {
+                if (Storage::disk('public')->exists($imagePath)) {
+                    $settings['image_url'] = Storage::disk('public')->url($imagePath);
+                } elseif (Storage::disk('local')->exists($imagePath)) {
+                    $settings['image_url'] = Storage::disk('local')->url($imagePath);
+                }
+            }
+            if (empty($settings['image_url']) && $element->campaign?->image_path) {
                 $settings['image_url'] = url('/donate/campaign/'.$element->campaign->form_parameter.'/image');
             }
         }

@@ -28,7 +28,7 @@ class EditCampaign extends EditRecord
         $wordCount = str_word_count(strip_tags($text));
 
         if ($wordCount > 100) {
-            $this->addError('data.description', 'Penerangan tidak boleh melebihi 100 patah perkataan.');
+            $this->addError('data.description', 'Description cannot exceed 100 words.');
             $this->halt();
         }
     }

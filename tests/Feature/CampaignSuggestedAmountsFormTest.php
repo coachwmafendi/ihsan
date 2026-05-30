@@ -20,21 +20,21 @@ it('renders a polished suggested amounts editor on the campaign form', function 
         ->assertOk()
         ->assertSee('Overview')
         ->assertSee('Checkout Modal Settings')
-        ->assertSee('Umum')
-        ->assertSee('Jumlah disarankan')
-        ->assertSee('Pra-set kekerapan')
+        ->assertSee('General')
+        ->assertSee('Suggested Amounts')
+        ->assertSee('Preset frequency')
         ->assertSee('RM (MYR)')
         ->assertSee('$ (USD)')
         ->assertSee('S$ (SGD)')
-        ->assertSee('Tetapkan butang derma untuk setiap mata wang yang diterima.')
-        ->assertSee('Sekali sahaja')
-        ->assertSee('Bulanan')
-        ->assertSee('Jumlah pra-set')
+        ->assertSee('Set donation buttons for each accepted currency.')
+        ->assertSee('One-time')
+        ->assertSee('Monthly')
+        ->assertSee('Preset amounts')
         ->assertSee(':key="`${activeCurrency}-${activeTab}-${index}`"', false)
         ->assertSee('symbolFor(activeCurrency)', false)
-        ->assertSee('Tambah jumlah')
-        ->assertSee('Bulanan lalai')
-        ->assertSee('Penderma lihat jumlah ini sebagai pra-pilih untuk derma bulanan.');
+        ->assertSee('Add amount')
+        ->assertSee('Default monthly')
+        ->assertSee('Donors see this amount as pre-selected for monthly donations.');
 });
 
 it('saves checkout modal settings on the campaign form', function () {

@@ -453,14 +453,24 @@
         ? '<p style="margin:0 0 20px;color:#475569;font-size:14px;line-height:1.6;">' + esc(s.message) + "</p>"
         : "";
       var btnText = esc(s.button_text || s.text || "Derma Sekarang");
+      var hasImage = !!s.image_url;
+      var isFull = s.layout === "full";
+      var closeBtn = '<button data-close style="position:absolute;top:12px;right:12px;width:32px;height:32px;border:0;border-radius:50%;background:rgba(15,23,42,.06);color:#64748b;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;z-index:2;">&times;</button>';
+      var ctaBtn = '<button data-cta style="display:inline-block;background:' + color + ";color:#fff;padding:12px 32px;border:0;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.14);" + '">' + btnText + "</button>";
 
-      overlay.innerHTML =
-        '<div style="background:#fff;border-radius:16px;padding:32px;max-width:420px;width:100%;box-shadow:0 24px 80px rgba(15,23,42,.28);text-align:center;position:relative;">' +
-        '<button data-close style="position:absolute;top:12px;right:12px;width:32px;height:32px;border:0;border-radius:50%;background:rgba(15,23,42,.06);color:#64748b;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;">&times;</button>' +
-        heading +
-        msg +
-        '<button data-cta style="display:inline-block;background:' + color + ";color:#fff;padding:12px 32px;border:0;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.14);" + '">' + btnText + "</button>" +
-        "</div>";
+      var cardHtml = '<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;box-shadow:0 24px 80px rgba(15,23,42,.28);text-align:center;position:relative;overflow:hidden;">';
+      if (isFull && hasImage) {
+        cardHtml += '<div style="height:180px;background:url(' + esc(s.image_url) + ') center/cover no-repeat;"></div>';
+      }
+      cardHtml += '<div style="padding:32px;position:relative;">';
+      cardHtml += closeBtn;
+      if (!isFull && hasImage) {
+        cardHtml += '<img src="' + esc(s.image_url) + '" style="width:100%;height:150px;object-fit:cover;border-radius:12px;margin-bottom:16px;">';
+      }
+      cardHtml += heading + msg + ctaBtn;
+      cardHtml += "</div></div>";
+
+      overlay.innerHTML = cardHtml;
 
       overlay.addEventListener("click", function (e) {
         var target = e.target;

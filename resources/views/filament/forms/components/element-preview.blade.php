@@ -165,7 +165,92 @@
                 </div>
             </div>
 
-        @elseif(in_array($type, ['form', 'popup'], true))
+        @elseif($type === 'popup')
+            @php
+                $popupTitle = $config['title'] ?? 'Support Our Campaign Today';
+                $popupMessage = $config['message'] ?? '';
+                $popupButton = $config['button_text'] ?? 'Donate Now';
+                $popupLayout = $config['layout'] ?? 'simple';
+                $imagePath = null;
+                $popupImage = $config['image'] ?? null;
+                if (is_string($popupImage) && $popupImage !== '' && ! in_array($popupImage, ['campaign', 'none'], true)) {
+                    $imagePath = $popupImage;
+                } elseif (is_array($popupImage)) {
+                    foreach ($popupImage as $item) {
+                        if (is_string($item) && $item !== '' && ! in_array($item, ['campaign', 'none'], true)) {
+                            $imagePath = $item;
+                            break;
+                        }
+                        if (is_array($item) || is_object($item)) {
+                            foreach ((array) $item as $v) {
+                                if (is_string($v) && $v !== '' && ! in_array($v, ['campaign', 'none'], true) && str_starts_with($v, 'elements/')) {
+                                    $imagePath = $v;
+                                    break 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                $imageUrl = null;
+                if ($imagePath) {
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($imagePath)) {
+                        $imageUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($imagePath);
+                    } elseif (\Illuminate\Support\Facades\Storage::disk('local')->exists($imagePath)) {
+                        $imageUrl = \Illuminate\Support\Facades\Storage::disk('local')->url($imagePath);
+                    }
+                }
+                // Handle livewire temporary upload preview
+                $rawImage = $config['image'] ?? null;
+                if (! $imageUrl && is_array($rawImage) && count($rawImage) > 0) {
+                    $first = $rawImage[0];
+                    if (is_array($first) && isset($first['path']) && str_starts_with($first['path'], 'livewire-tmp/')) {
+                        try {
+                            $imageUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                                'livewire.preview-file',
+                                now()->addMinutes(30),
+                                ['filename' => basename($first['path'])]
+                            );
+                        } catch (\Exception $e) {
+                            $imageUrl = null;
+                        }
+                    }
+                }
+                $popupColor = $config['color'] ?? 'campaign';
+                $colors = ['campaign' => '#16a34a', 'blue' => '#2563eb', 'teal' => '#0d9488', 'green' => '#16a34a', 'orange' => '#ea580c', 'red' => '#dc2626', 'purple' => '#9333ea', 'dark' => '#1e293b'];
+                $accentColor = $colors[$popupColor] ?? '#16a34a';
+            @endphp
+            <div class="relative flex min-h-[300px] w-full items-center justify-center rounded-xl bg-zinc-50/80 p-4">
+                <div class="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-zinc-200/60">
+                    <button type="button" class="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-zinc-100/80 text-zinc-400 transition hover:bg-zinc-200 hover:text-zinc-600">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                    @if($imageUrl && $popupLayout === 'full')
+                        <div class="relative h-48 w-full">
+                            <img src="{{ $imageUrl }}" class="h-full w-full object-cover" alt="">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                        </div>
+                    @endif
+                    <div class="p-6 text-center">
+                        @if($imageUrl && $popupLayout === 'simple')
+                            <div class="mb-5 overflow-hidden rounded-xl">
+                                <img src="{{ $imageUrl }}" class="h-40 w-full object-cover" alt="">
+                            </div>
+                        @endif
+                        <h3 class="text-lg font-bold tracking-tight text-zinc-900">{{ $popupTitle }}</h3>
+                        @if($popupMessage)
+                            <p class="mt-3 text-sm leading-relaxed text-zinc-500">{{ $popupMessage }}</p>
+                        @endif
+                        <div class="mt-6 flex items-center justify-center gap-3">
+                            <button type="button" class="rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700">Maybe later</button>
+                            <button type="button" class="min-w-[160px] rounded-lg px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg hover:opacity-90" style="background-color: {{ $accentColor }}">
+                                {{ $popupButton }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        @elseif($type === 'form')
             <div
                 x-data="{
                     selectedAmount: @js($defaultAmount),
