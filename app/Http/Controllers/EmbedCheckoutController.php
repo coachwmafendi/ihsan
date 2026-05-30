@@ -28,7 +28,8 @@ class EmbedCheckoutController extends Controller
 
     public function script(Request $request): Response
     {
-        $checkoutBaseUrl = url('/checkout');
+        $checkoutBaseUrl = $request->getSchemeAndHttpHost().'/checkout';
+        $donateBaseUrl = $request->getSchemeAndHttpHost().'/donate/campaign';
 
         $script = <<<'JS'
 (function () {
@@ -37,7 +38,13 @@ class EmbedCheckoutController extends Controller
     }
 
     var checkoutBaseUrl = CHECKOUT_BASE_URL;
+    var donateBaseUrl = DONATE_BASE_URL;
     var modalId = 'ihsan-checkout-modal';
+    var mobileBreakpoint = 768;
+
+    function isMobile() {
+        return window.innerWidth <= mobileBreakpoint;
+    }
 
     function formFromUrl(url) {
         try {
@@ -84,9 +91,14 @@ class EmbedCheckoutController extends Controller
                 return;
             }
 
+            if (isMobile()) {
+                window.location.href = donateBaseUrl + '/' + encodeURIComponent(form);
+                return;
+            }
+
             var modal = ensureModal();
             var frame = modal.querySelector('[data-ihsan-frame]');
-            frame.src = checkoutBaseUrl + '/' + encodeURIComponent(form) + '?embed=1';
+            frame.src = checkoutBaseUrl + '/' + encodeURIComponent(form) + '?popup=1';
             modal.style.display = 'flex';
             document.documentElement.style.overflow = 'hidden';
         },
@@ -128,17 +140,27 @@ class EmbedCheckoutController extends Controller
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {
-            window.IhsanCheckout.open(formFromUrl(window.location.href));
+            var form = formFromUrl(window.location.href);
+            if (form) {
+                window.IhsanCheckout.open(form);
+            }
         });
     } else {
-        window.IhsanCheckout.open(formFromUrl(window.location.href));
+        var form = formFromUrl(window.location.href);
+        if (form) {
+            window.IhsanCheckout.open(form);
+        }
     }
 })();
 JS;
 
-        return response(str_replace('CHECKOUT_BASE_URL', Js::from($checkoutBaseUrl), $script), 200)
+        return response(str_replace(
+            ['CHECKOUT_BASE_URL', 'DONATE_BASE_URL'],
+            [Js::from($checkoutBaseUrl), Js::from($donateBaseUrl)],
+            $script,
+        ), 200)
             ->header('Content-Type', 'application/javascript; charset=UTF-8')
-            ->header('Cache-Control', 'public, max-age=300');
+            ->header('Cache-Control', 'no-cache');
     }
 
     public function checkout(Request $request, string $form): mixed
@@ -152,12 +174,17 @@ JS;
             ->with('campaign')
             ->first();
 
+        $params = ['embed' => 1];
+        if ($request->has('popup')) {
+            $params['popup'] = $request->input('popup');
+        }
+
         if ($element) {
             if (! $this->isAllowedReferer($request, $element->campaign->checkout_allowed_domains ?? [])) {
                 abort(403);
             }
 
-            return redirect()->route('donations.show', ['element' => $element->token, 'embed' => 1]);
+            return redirect()->route('donations.show', ['element' => $element->token, ...$params]);
         }
 
         $campaign = Campaign::query()
@@ -174,7 +201,7 @@ JS;
             abort(403);
         }
 
-        return redirect()->route('donations.campaign-show', ['campaign' => $campaign->form_parameter, 'embed' => 1]);
+        return redirect()->route('donations.campaign-show', ['campaign' => $campaign->form_parameter, ...$params]);
     }
 
     /**
