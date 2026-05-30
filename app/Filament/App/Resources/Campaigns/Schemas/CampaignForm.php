@@ -4,14 +4,12 @@ namespace App\Filament\App\Resources\Campaigns\Schemas;
 
 use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
-use App\Enums\PaymentGateway;
 use App\Filament\Forms\Components\SuggestedAmounts;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
@@ -64,7 +62,7 @@ class CampaignForm
                                             ->hint(fn ($state): HtmlString => new HtmlString(static::wordCountHint($state))),
                                     ]),
                             ]),
-                        Tab::make('Settings')
+                        Tab::make('Checkout Modal Settings')
                             ->icon('heroicon-o-cog-6-tooth')
                             ->schema([
                                 Grid::make()
@@ -120,99 +118,6 @@ class CampaignForm
                                             ))
                                             ->columnSpanFull(),
                                     ]),
-                                Section::make('Pembayaran')
-                                    ->description('Pilih cara pemprosesan derma.')
-                                    ->columns(2)
-                                    ->schema([
-                                        Select::make('payment_gateway')
-                                            ->label('Pemproses pembayaran')
-                                            ->options(PaymentGateway::class)
-                                            ->default(PaymentGateway::Stripe),
-                                    ]),
-                                Section::make('Pengalaman penyokong')
-                                    ->description('Konfigurasi mesej selepas derma dan redirect.')
-                                    ->columns(2)
-                                    ->schema([
-
-                                    ]),
-                            ]),
-                        Tab::make('Checkout Modal')
-                            ->icon('heroicon-o-credit-card')
-                            ->schema([
-                                Section::make('Konfigurasi')
-                                    ->description('Aktifkan modal derma dan hadkan domain yang dibenarkan.')
-                                    ->columns(2)
-                                    ->schema([
-                                        Toggle::make('checkout_modal_enabled')
-                                            ->label('Aktifkan modal derma')
-                                            ->helperText('Penderma boleh buka borang ini sebagai pop-up terus dari laman web organisasi.')
-                                            ->default(false)
-                                            ->columnSpanFull(),
-                                        TagsInput::make('checkout_allowed_domains')
-                                            ->label('Domain dibenarkan')
-                                            ->helperText('Masukkan domain laman web organisasi, contoh: abc.com — Borang tidak akan dibuka dari domain lain.')
-                                            ->placeholder('Tambah domain')
-                                            ->default(function (): array {
-                                                $org = auth()->user()->organization;
-                                                $domains = $org?->settings['allowed_domains'] ?? [];
-
-                                                if (! empty($domains)) {
-                                                    return $domains;
-                                                }
-
-                                                if ($org?->website_url) {
-                                                    $host = parse_url($org->website_url, PHP_URL_HOST);
-                                                    if ($host) {
-                                                        return [$host];
-                                                    }
-                                                }
-
-                                                return [];
-                                            }),
-                                    ]),
-                                Section::make('Cara pasang di laman web')
-                                    ->description('Ikuti langkah di bawah untuk benamkan borang derma di laman web organisasi.')
-                                    ->schema([
-                                        Placeholder::make('embed_modal_note')
-                                            ->hiddenLabel()
-                                            ->content(fn ($record) => new HtmlString(self::embedSnippetHtml($record?->form_parameter)))
-                                            ->columnSpanFull(),
-                                    ]),
-                            ]),
-                        Tab::make('Campaign Page')
-                            ->icon('heroicon-o-globe-alt')
-                            ->visible(fn ($record) => $record !== null)
-                            ->schema([
-                                Grid::make()
-                                    ->columns(2)
-                                    ->schema([
-                                        Section::make('Pautan kempen')
-                                            ->description('URL terus, QR code dan pautan kongsi untuk kempen ini.')
-                                            ->columnSpan(1)
-                                            ->schema([
-                                                Placeholder::make('hosted_page_note')
-                                                    ->hiddenLabel()
-                                                    ->content(fn ($record) => new HtmlString(
-                                                        $record
-                                                            ? static::campaignPageShareHtml($record)
-                                                            : '<p class="text-sm text-zinc-500">Simpan kempen untuk menjana URL halaman derma.</p>'
-                                                    ))
-                                                    ->columnSpanFull(),
-                                            ]),
-                                        Section::make('Benam dalam laman web')
-                                            ->description('Borang derma terus dalam halaman — tanpa pop-up.')
-                                            ->columnSpan(1)
-                                            ->schema([
-                                                Placeholder::make('inline_embed_note')
-                                                    ->hiddenLabel()
-                                                    ->content(fn ($record) => new HtmlString(
-                                                        $record
-                                                            ? static::inlineEmbedHtml($record)
-                                                            : '<p class="text-sm text-zinc-500">Simpan kempen untuk mendapatkan kod benam.</p>'
-                                                    ))
-                                                    ->columnSpanFull(),
-                                            ]),
-                                    ]),
                             ]),
                         Tab::make('Stats')
                             ->icon('heroicon-o-chart-bar')
@@ -232,12 +137,6 @@ class CampaignForm
                                     ->content(fn ($record) => new HtmlString(
                                         '<span class="text-2xl font-bold text-zinc-900">'.$record->donations()->count().'</span>'
                                     )),
-                                Placeholder::make('campaign_url')
-                                    ->label('URL kempen')
-                                    ->content(fn ($record) => new HtmlString(
-                                        static::donateUrlsCopyableHtml($record)
-                                    ))
-                                    ->columnSpan(2),
                                 Placeholder::make('progress_bar')
                                     ->label('Prestasi kempen')
                                     ->columnSpanFull()

@@ -19,20 +19,9 @@ it('renders a polished suggested amounts editor on the campaign form', function 
     Livewire::test(CreateCampaign::class)
         ->assertOk()
         ->assertSee('Overview')
-        ->assertSee('Settings')
-        ->assertSee('Checkout Modal')
+        ->assertSee('Checkout Modal Settings')
         ->assertSee('Umum')
-        ->assertSee('Pembayaran')
-        ->assertSee('Pengalaman penyokong')
         ->assertSee('Jumlah disarankan')
-        ->assertSee('Aktifkan modal derma')
-        ->assertSee('Domain dibenarkan')
-        ->assertSee('Cara pasang di laman web')
-        ->assertSee('Skrip')
-        ->assertSee('Butang')
-        ->assertSee('Pautan')
-        ->assertSee('<script src="https://ihsan.test/embed.js" async></script>')
-        ->assertSee('data-ihsan-form="FORM_PARAMETER"')
         ->assertSee('Pra-set kekerapan')
         ->assertSee('RM (MYR)')
         ->assertSee('$ (USD)')
@@ -61,11 +50,6 @@ it('saves checkout modal settings on the campaign form', function () {
         ->fillForm([
             'title' => 'Ramadan Relief Fund',
             'status' => 'active',
-            'checkout_modal_enabled' => true,
-            'checkout_allowed_domains' => [
-                'mumzatuttaqwa.com',
-                'www.mumzatuttaqwa.com',
-            ],
         ])
         ->call('create')
         ->assertHasNoFormErrors()
@@ -75,10 +59,5 @@ it('saves checkout modal settings on the campaign form', function () {
     $campaign = $organization->campaigns()->latest()->firstOrFail();
 
     expect($campaign->organization_id)->toBe($organization->getKey())
-        ->and($campaign->checkout_modal_enabled)->toBeTrue()
-        ->and($campaign->form_parameter)->toMatch('/^[A-Z0-9]{5}$/')
-        ->and($campaign->checkout_allowed_domains)->toBe([
-            'mumzatuttaqwa.com',
-            'www.mumzatuttaqwa.com',
-        ]);
+        ->and($campaign->form_parameter)->toMatch('/^[A-Z0-9]{5}$/');
 });
