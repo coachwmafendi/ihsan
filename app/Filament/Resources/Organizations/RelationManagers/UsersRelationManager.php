@@ -13,6 +13,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
@@ -31,12 +32,14 @@ class UsersRelationManager extends RelationManager
             ->components([
                 TextInput::make('name')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->placeholder('e.g. Ahmad bin Ali'),
                 TextInput::make('email')
                     ->required()
                     ->email()
                     ->maxLength(255)
-                    ->unique(ignoreRecord: true),
+                    ->unique(ignoreRecord: true)
+                    ->placeholder('admin@example.com'),
             ]);
     }
 
@@ -65,11 +68,13 @@ class UsersRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('Invite Organisation Admin')
+                    ->label('Invite Admin')
                     ->icon('heroicon-o-user-plus')
                     ->color('success')
+                    ->modalWidth(Width::Large)
                     ->modalHeading('Invite Organisation Admin')
-                    ->modalDescription('They will receive an email to set their password.')
+                    ->modalDescription('Fill in the details below. The invitee will receive an email to set their password.')
+                    ->modalIcon('heroicon-o-envelope')
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['role'] = UserRole::NgoAdmin;
                         $data['password'] = bcrypt(Str::random(40));
@@ -88,8 +93,15 @@ class UsersRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                EditAction::make()
+                    ->modalWidth(Width::Large)
+                    ->modalHeading('Edit Organisation Admin')
+                    ->modalDescription('Update the admin\'s details below.')
+                    ->modalIcon('heroicon-o-user-circle'),
+                DeleteAction::make()
+                    ->modalWidth(Width::Medium)
+                    ->modalHeading('Remove Organisation Admin')
+                    ->modalDescription('This will permanently remove this admin from the organisation. They will lose access to the panel.'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

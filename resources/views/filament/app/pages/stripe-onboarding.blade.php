@@ -10,7 +10,7 @@
         </div>
 
         <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Selesaikan Onboarding Stripe Connect
+            Complete Stripe Connect Onboarding
         </h1>
 
         @php
@@ -21,11 +21,11 @@
 
         @if ($hasAccountPending)
             <p class="mt-3 max-w-md text-base text-amber-600 dark:text-amber-400">
-                Akaun Stripe Connect telah disimpan tetapi belum lengkap.
+                Stripe Connect account has been created but is not yet complete.
             </p>
 
             <p class="mt-2 max-w-md text-sm text-gray-500 dark:text-gray-400">
-                Sila selesaikan proses pengesahan (KYC) di dashboard Stripe Connect, kemudian semak semula.
+                Please complete the verification (KYC) process in the Stripe Connect dashboard, then check back.
             </p>
 
             <div class="mt-8">
@@ -39,18 +39,18 @@
                         class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
                     >
                         <x-heroicon-o-arrow-right-circle class="size-5" />
-                        Sambung Stripe Connect
+                        Continue Stripe Connect
                     </a>
                 @else
                     <p class="text-sm text-gray-400">
-                        Muat semula halaman ini selepas melengkapkan KYC di Stripe Connect.
+                        Reload this page after completing KYC in Stripe Connect.
                     </p>
                 @endif
             </div>
         @else
             <p class="mt-3 max-w-md text-base text-gray-500 dark:text-gray-400">
-                Anda perlu menyambung akaun Stripe sebelum boleh menggunakan panel ini.
-                Stripe Connect digunakan untuk memproses derma dalam talian dengan selamat.
+                You need to connect a Stripe account before using this panel.
+                Stripe Connect is used to process online donations securely.
             </p>
 
             <a
@@ -58,12 +58,12 @@
                 class="mt-10 inline-flex items-center gap-2 rounded-lg bg-teal-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             >
                 <x-heroicon-o-link class="size-5" />
-                Sambung Akaun Stripe Connect
+                Connect Stripe Account
             </a>
         @endif
 
         <p class="mt-8 text-sm text-gray-400">
-            Perlukan bantuan? Sila hubungi admin organisasi anda.
+            Need help? Please contact your organization admin.
         </p>
     </div>
 </x-filament::page>

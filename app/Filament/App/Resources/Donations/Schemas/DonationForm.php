@@ -60,6 +60,10 @@ class DonationForm
                                 'refunded' => 'Refunded',
                             ])
                             ->disabled(),
+                        TextInput::make('refunded_at')
+                            ->label('Refunded At')
+                            ->disabled()
+                            ->visible(fn ($record) => $record?->refunded_at !== null),
                         Toggle::make('is_anonymous')
                             ->label('Anonymous')
                             ->disabled(),

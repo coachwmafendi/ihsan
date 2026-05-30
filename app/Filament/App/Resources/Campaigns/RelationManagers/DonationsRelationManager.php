@@ -102,6 +102,9 @@ class DonationsRelationManager extends RelationManager
                 TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn (DonationStatus $state): string => str($state->value)->headline()->toString())
+                    ->tooltip(fn ($record): ?string => $record->status->value === 'refunded' && $record->refunded_at
+                        ? 'Refunded on '.$record->refunded_at->format('d M Y, h:i A')
+                        : null)
                     ->searchable()
                     ->colors([
                         'success' => 'succeeded',

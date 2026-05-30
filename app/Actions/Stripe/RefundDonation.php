@@ -2,6 +2,7 @@
 
 namespace App\Actions\Stripe;
 
+use App\Enums\DonationStatus;
 use App\Models\Donation;
 use Stripe\Refund;
 use Stripe\Stripe;
@@ -27,5 +28,10 @@ class RefundDonation
         Refund::create([
             'charge' => $donation->stripe_charge_id,
         ], $stripeOptions);
+
+        $donation->update([
+            'status' => DonationStatus::Refunded,
+            'refunded_at' => now(),
+        ]);
     }
 }

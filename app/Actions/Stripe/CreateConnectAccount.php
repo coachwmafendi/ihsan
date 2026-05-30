@@ -54,7 +54,7 @@ class CreateConnectAccount
         } catch (ApiErrorException) {
             return [
                 'valid' => false,
-                'reason' => 'Akaun ini tidak disambungkan ke platform kami. Sila gunakan butang "Buat akaun Stripe baru" untuk mencipta akaun Connect yang serasi.',
+                'reason' => 'This account is not connected to our platform. Please use the "Create new Stripe account" button to create a compatible Connect account.',
             ];
         }
 

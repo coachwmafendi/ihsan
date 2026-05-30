@@ -126,6 +126,9 @@ class DonationsTable
                     ->badge()
                     ->sortable()
                     ->getStateUsing(fn ($record): string => ucfirst($record->status->value))
+                    ->tooltip(fn ($record): ?string => $record->status->value === 'refunded' && $record->refunded_at
+                        ? 'Refunded on '.$record->refunded_at->format('d M Y, h:i A')
+                        : null)
                     ->color(fn ($state): string => match ((string) $state) {
                         'Pending' => 'gray',
                         'Succeeded' => 'success',
@@ -186,7 +189,7 @@ class DonationsTable
                             app(RefundDonation::class)->handle($record);
 
                             Notification::make()
-                                ->title('Refund initiated. Status will update once Stripe confirms.')
+                                ->title('Refund successful.')
                                 ->success()
                                 ->send();
                         } catch (\Exception $e) {
@@ -211,10 +214,11 @@ class DonationsTable
                             ->modalHeading('Refund Donation')
                             ->modalDescription(fn () => 'Refund '.strtoupper($record->currency).' '.number_format((float) $record->gross_amount, 2).' to '.$record->donor?->name.'? This cannot be undone.')
                             ->modalSubmitActionLabel('Refund')
-                            ->action(function () use ($record): void {
+                            ->action(function ($livewire) use ($record): void {
                                 try {
                                     app(RefundDonation::class)->handle($record);
-                                    Notification::make()->title('Refund initiated. Status will update once Stripe confirms.')->success()->send();
+                                    Notification::make()->title('Refund successful.')->success()->send();
+                                    $livewire->redirect($livewire->getUrl());
                                 } catch (\Exception $e) {
                                     Notification::make()->title('Refund failed: '.$e->getMessage())->danger()->send();
                                 }
@@ -429,6 +433,16 @@ class DonationsTable
 
                                         return $state ?? '—';
                                     }),
+                            ]),
+
+                        // ── Refund ───────────────────────────────────────
+                        Section::make('Refund')
+                            ->visible(fn ($record): bool => $record->status->value === 'refunded')
+                            ->columns(2)
+                            ->schema([
+                                TextEntry::make('refunded_at')
+                                    ->label('Refunded At')
+                                    ->dateTime('d M Y, h:i A'),
                             ]),
 
                         // ── Stripe Details (collapsed) ───────────────────

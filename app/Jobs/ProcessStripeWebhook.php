@@ -323,6 +323,7 @@ class ProcessStripeWebhook implements ShouldQueue
 
         $donation->update([
             'status' => DonationStatus::Refunded,
+            'refunded_at' => now(),
         ]);
 
         SendRefundNotification::dispatch($donation);

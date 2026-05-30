@@ -25,7 +25,7 @@ class StripeConnectController extends Controller
 
         if (! $clientId) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'Ciri Connect Stripe belum dikonfigurasi.');
+                ->with('error', 'Stripe Connect feature not configured.');
         }
 
         $state = Str::random(40);
@@ -50,24 +50,24 @@ class StripeConnectController extends Controller
 
         if ($error) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'Penyambungan Stripe dibatalkan.');
+                ->with('error', 'Stripe connection was cancelled.');
         }
 
         if (! $code || ! $state) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'Parameter tidak lengkap.');
+                ->with('error', 'Incomplete parameters.');
         }
 
         if ($state !== session('stripe_connect_state')) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'State parameter tidak sah. Sila cuba lagi.');
+                ->with('error', 'Invalid state parameter. Please try again.');
         }
 
         $org = Organization::query()->find(session('stripe_connect_org_id'));
 
         if ($org === null) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'Organisasi tidak dijumpai.');
+                ->with('error', 'Organization not found.');
         }
 
         Stripe::setApiKey(config('services.stripe.secret'));
@@ -79,14 +79,14 @@ class StripeConnectController extends Controller
             ]);
         } catch (\Throwable $e) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'Gagal menyambung akaun Stripe Connect. Sila cuba lagi.');
+                ->with('error', 'Failed to connect Stripe Connect account. Please try again.');
         }
 
         $stripeUserId = $response->stripe_user_id;
 
         if (! $stripeUserId) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'Tiada stripe_user_id dalam respons OAuth.');
+                ->with('error', 'No stripe_user_id in OAuth response.');
         }
 
         $org->update([
@@ -110,7 +110,7 @@ class StripeConnectController extends Controller
         }
 
         $notification = Notification::make()
-            ->title('Akaun Stripe berjaya disambung')
+            ->title('Stripe account connected successfully')
             ->success()
             ->toArray();
 

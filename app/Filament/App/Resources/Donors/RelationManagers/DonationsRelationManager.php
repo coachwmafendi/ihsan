@@ -43,6 +43,9 @@ class DonationsRelationManager extends RelationManager
                     ->label('Status')
                     ->sortable()
                     ->getStateUsing(fn ($record): string => ucfirst($record->status->value))
+                    ->tooltip(fn ($record): ?string => $record->status->value === 'refunded' && $record->refunded_at
+                        ? 'Refunded on '.$record->refunded_at->format('d M Y, h:i A')
+                        : null)
                     ->color(fn ($state): string => match ((string) $state) {
                         'Pending' => 'gray',
                         'Succeeded' => 'success',
@@ -75,7 +78,7 @@ class DonationsRelationManager extends RelationManager
                             app(RefundDonation::class)->handle($record);
 
                             Notification::make()
-                                ->title('Refund initiated. Status will update once Stripe confirms.')
+                                ->title('Refund successful.')
                                 ->success()
                                 ->send();
                         } catch (\Exception $e) {
@@ -174,6 +177,14 @@ class DonationsRelationManager extends RelationManager
                                 TextEntry::make('net_amount')
                                     ->label('Net')
                                     ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),
+                            ]),
+                        Section::make('Refund')
+                            ->visible(fn ($record): bool => $record->status->value === 'refunded')
+                            ->columns(2)
+                            ->schema([
+                                TextEntry::make('refunded_at')
+                                    ->label('Refunded At')
+                                    ->dateTime('d M Y, h:i A'),
                             ]),
                     ]),
             ])
