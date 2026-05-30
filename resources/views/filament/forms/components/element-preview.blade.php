@@ -60,7 +60,13 @@
 
         @elseif($type === 'qr_code')
             @php
-                $qrSize = $config['size'] ?? 200;
+                $qrSize = is_numeric($config['size'] ?? null) ? (int) $config['size'] : match(strtolower($config['size'] ?? 'medium')) {
+                    'small' => 150,
+                    'medium' => 200,
+                    'large' => 250,
+                    'extra large' => 300,
+                    default => 200,
+                };
                 $qrAlignment = $config['alignment'] ?? 'center';
                 $qrLabel = $config['label'] ?? 'Scan to donate';
                 $alignClass = match($qrAlignment) {
@@ -97,7 +103,7 @@
                     'medium' => ['size' => '56px', 'font' => '14px'],
                     'large' => ['size' => '64px', 'font' => '16px'],
                 ];
-                $sz = $sizes[$config['size'] ?? 'medium'] ?? $sizes['medium'];
+                $sz = $sizes[strtolower($config['size'] ?? 'medium')] ?? $sizes['medium'];
                 $shapes = ['pill' => '9999px', 'circle' => '50%', 'square' => '0', 'rounded' => '12px'];
                 $radius = $shapes[$config['shape'] ?? 'pill'] ?? '9999px';
                 $isPill = ($config['shape'] ?? 'pill') === 'pill';
@@ -142,7 +148,7 @@
                     'medium' => ['font' => '16px', 'padding' => '10px 24px'],
                     'large' => ['font' => '18px', 'padding' => '12px 32px'],
                 ];
-                $ls = $linkSizes[$config['size'] ?? 'medium'] ?? $linkSizes['medium'];
+                $ls = $linkSizes[strtolower($config['size'] ?? 'medium')] ?? $linkSizes['medium'];
                 $alignClass = match($linkAlignment) {
                     'center' => 'text-center',
                     'right' => 'text-right',

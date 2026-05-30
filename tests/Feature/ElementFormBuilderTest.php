@@ -168,7 +168,7 @@ it('shows floating button configuration settings when creating a floating button
             'action' => 'checkout_modal',
             'icon' => 'heart',
             'position' => 'bottom-right',
-            'size' => 'medium',
+            'size' => 'Medium',
             'shape' => 'pill',
             'color' => 'campaign',
             'visible_desktop' => true,
@@ -201,7 +201,7 @@ it('creates a floating button element with organization and token', function () 
             'color' => 'teal',
             'icon' => 'star',
             'shape' => 'circle',
-            'size' => 'large',
+            'size' => 'Large',
             'visible_desktop' => false,
             'visible_mobile' => true,
         ])
@@ -227,7 +227,7 @@ it('creates a floating button element with organization and token', function () 
             'color' => 'teal',
             'icon' => 'star',
             'shape' => 'circle',
-            'size' => 'large',
+            'size' => 'Large',
             'visible_desktop' => false,
             'visible_mobile' => true,
         ]);

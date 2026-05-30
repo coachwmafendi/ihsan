@@ -46,7 +46,7 @@ class PublicElementController extends Controller
                 'visibility' => 'desktop_mobile',
                 'icon' => 'heart',
                 'shape' => 'pill',
-                'size' => 'medium',
+                'size' => 'Medium',
             ], $settings);
         }
 
@@ -129,7 +129,7 @@ class PublicElementController extends Controller
                 'url' => '',
                 'style' => 'button',
                 'color' => 'campaign',
-                'size' => 'medium',
+                'size' => 'Medium',
                 'alignment' => 'left',
             ], $settings);
         }

@@ -48,7 +48,7 @@ class ElementForm
                 'color' => 'campaign',
                 'icon' => 'heart',
                 'shape' => 'pill',
-                'size' => 'medium',
+                'size' => 'Medium',
                 'visible_desktop' => true,
                 'visible_mobile' => true,
             ],
@@ -83,7 +83,7 @@ class ElementForm
                 'color' => 'campaign',
             ],
             'qr_code' => [
-                'size' => 200,
+                'size' => 'Medium',
                 'label' => 'Scan to donate',
                 'alignment' => 'center',
                 'margin_top' => 0,
@@ -95,7 +95,7 @@ class ElementForm
                 'action' => 'checkout_modal',
                 'style' => 'button',
                 'color' => 'campaign',
-                'size' => 'medium',
+                'size' => 'Medium',
                 'alignment' => 'left',
             ],
             default => [],
@@ -287,11 +287,11 @@ class ElementForm
                                         Select::make('size')
                                             ->label('Size')
                                             ->options([
-                                                'small' => 'Small',
-                                                'medium' => 'Medium',
-                                                'large' => 'Large',
+                                                'Small' => 'Small',
+                                                'Medium' => 'Medium',
+                                                'Large' => 'Large',
                                             ])
-                                            ->default('medium')
+                                            ->default('Medium')
                                             ->live()
                                             ->native(false),
                                         Select::make('shape')
@@ -628,10 +628,10 @@ class ElementForm
                                 Select::make('size')
                                     ->label('Size')
                                     ->options([
-                                        150 => 'Small (150px)',
-                                        200 => 'Medium (200px)',
-                                        250 => 'Large (250px)',
-                                        300 => 'Extra Large (300px)',
+                                        'Small' => 'Small (150px)',
+                                        'Medium' => 'Medium (200px)',
+                                        'Large' => 'Large (250px)',
+                                        'Extra Large' => 'Extra Large (300px)',
                                     ])
                                     ->default(200)
                                     ->live()
@@ -729,11 +729,11 @@ class ElementForm
                                 Select::make('size')
                                     ->label('Size')
                                     ->options([
-                                        'small' => 'Small',
-                                        'medium' => 'Medium',
-                                        'large' => 'Large',
+                                        'Small' => 'Small',
+                                        'Medium' => 'Medium',
+                                        'Large' => 'Large',
                                     ])
-                                    ->default('medium')
+                                    ->default('Medium')
                                     ->live()
                                     ->native(false),
                                 Select::make('alignment')
@@ -903,8 +903,17 @@ class ElementForm
         }
 
         if ($type === ElementType::QrCode->value) {
+            $rawSize = $get('config.size');
+            $size = is_numeric($rawSize) ? (int) $rawSize : match (strtolower((string) $rawSize)) {
+                'small' => 150,
+                'medium' => 200,
+                'large' => 250,
+                'extra large' => 300,
+                default => 200,
+            };
+
             return [
-                'size' => $get('config.size'),
+                'size' => $size,
                 'label' => $get('config.label'),
                 'alignment' => $get('config.alignment'),
                 'margin_top' => $get('config.margin_top'),

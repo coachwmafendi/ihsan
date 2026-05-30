@@ -167,7 +167,7 @@
     var s = el.settings;
     var campaignUrl = el.campaign_url || checkoutUrl(el);
     var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=' + (s.size || 200) + 'x' + (s.size || 200) + '&data=' + encodeURIComponent(campaignUrl) + '&bgcolor=ffffff&color=0f172a&qzone=2';
-    var size = s.size || 200;
+    var size = isFinite(s.size) ? parseInt(s.size, 10) : ({ small: 150, medium: 200, large: 250, "extra large": 300 })[(s.size || "medium").toLowerCase()] || 200;
     var alignment = s.alignment || 'center';
     var label = s.label || 'Scan to donate';
     var marginTop = s.margin_top || 0;
@@ -231,7 +231,8 @@
       large: { w: "64px", h: "64px", fs: "16px", pad: "0 24px" },
     };
 
-    var sz = sizes[s.size] || sizes.medium;
+    var sizeKey = (s.size || "medium").toLowerCase();
+    var sz = sizes[sizeKey] || sizes.medium;
 
     var shapeStyles = {
       pill: "border-radius: 9999px",
@@ -549,7 +550,8 @@
       large: { font: "18px", padding: "12px 32px" },
     };
 
-    var sz = sizes[s.size] || sizes.medium;
+    var sizeKey = (s.size || "medium").toLowerCase();
+    var sz = sizes[sizeKey] || sizes.medium;
 
     var link = document.createElement("a");
     link.href = href;
