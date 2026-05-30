@@ -24,8 +24,6 @@ class Pemberitahuan extends Page
 
     public bool $dailyDonationSummary = false;
 
-    public string $dailySummaryTime = '08:00';
-
     public bool $failedPaymentNotification = false;
 
     public bool $notifyNewSubscription = false;
@@ -48,7 +46,6 @@ class Pemberitahuan extends Page
 
         $this->notifyNewDonation = (bool) ($settings['notify_new_donation'] ?? true);
         $this->dailyDonationSummary = (bool) ($settings['daily_donation_summary'] ?? false);
-        $this->dailySummaryTime = $settings['daily_summary_time'] ?? '08:00';
         $this->failedPaymentNotification = (bool) ($settings['failed_payment_notification'] ?? true);
         $this->notifyNewSubscription = (bool) ($settings['notify_new_subscription'] ?? true);
         $this->notifySubscriptionCancelled = (bool) ($settings['notify_subscription_cancelled'] ?? true);
@@ -79,7 +76,6 @@ class Pemberitahuan extends Page
         $settings = array_merge($org->settings ?? [], [
             'notify_new_donation' => $this->notifyNewDonation,
             'daily_donation_summary' => $this->dailyDonationSummary,
-            'daily_summary_time' => $this->dailySummaryTime,
             'failed_payment_notification' => $this->failedPaymentNotification,
             'notify_new_subscription' => $this->notifyNewSubscription,
             'notify_subscription_cancelled' => $this->notifySubscriptionCancelled,

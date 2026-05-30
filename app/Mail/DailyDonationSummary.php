@@ -17,6 +17,10 @@ class DailyDonationSummary extends Mailable
         public Organization $organization,
         public int $donationCount,
         public string $totalAmount,
+        public int $oneTimeCount,
+        public string $oneTimeTotal,
+        public int $recurringCount,
+        public string $recurringTotal,
         public array $campaigns,
     ) {}
 

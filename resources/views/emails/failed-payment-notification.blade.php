@@ -25,6 +25,8 @@
         <p style="font-size: 0.875rem; color: #94a3b8;">
             You are receiving this because your organisation has failed payment notifications enabled.
         </p>
+        <p style="margin-top: 8px; font-size: 12px; color: #94a3b8;">Sent with ❤️ from {{ config('app.name') }}</p>
+
     </div>
 </body>
 </html>
