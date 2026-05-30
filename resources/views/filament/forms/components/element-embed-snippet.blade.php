@@ -11,7 +11,7 @@
         </p>
 
         @php
-            $embedCode = '<script src="'.$widgetSrc.'" data-token="'.$element->token.'"></script>';
+            $embedCode = '<script src="'.$widgetSrc.'" data-token="'.$element->token.'" data-api-base="'.$baseUrl.'"></script>';
         @endphp
 
         @if ($embedCode)

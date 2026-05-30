@@ -36,6 +36,7 @@ class ElementForm
                 'button_color' => 'bg-blue-600 hover:bg-blue-700',
                 'button_size' => 'text-base px-6 py-3',
                 'corner_radius' => 8,
+                'action' => 'checkout_modal',
             ],
             ElementType::FloatingButton->value => [
                 'button_text' => 'Donate Now',
@@ -165,6 +166,15 @@ class ElementForm
                                     ->default('Donate Now')
                                     ->required()
                                     ->live(),
+                                Select::make('action')
+                                    ->label('Action')
+                                    ->options([
+                                        'campaign_page' => 'Open campaign page',
+                                        'checkout_modal' => 'Open checkout modal',
+                                    ])
+                                    ->default('checkout_modal')
+                                    ->live()
+                                    ->native(false),
                                 Select::make('button_color')
                                     ->label('Button Color')
                                     ->options([

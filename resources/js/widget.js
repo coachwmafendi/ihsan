@@ -7,7 +7,8 @@
   var token = script.getAttribute("data-token") || "";
   if (!token) return;
 
-  var baseUrl = (function () {
+  var apiBase = script.getAttribute("data-api-base") || "";
+  var baseUrl = apiBase || (function () {
     var src = script.src || "";
     var m = src.match(/^(https?:\/\/[^\/]+)/);
     return m ? m[1] : window.location.origin;
