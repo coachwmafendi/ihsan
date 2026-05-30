@@ -27,7 +27,7 @@ class SyncDonationStripeDetails
         $hasExpandedCharge = ! is_string($rawCharge) && ($rawCharge->balance_transaction ?? null) !== null;
         $shouldRetrieveMissingChargeDetails = ! $hasExpandedCharge;
 
-        [$chargeId, $stripeFee, $processingFee, $baseAmount, $exchangeRate] = $this->chargeDetails(
+        [$chargeId, $stripeFee, $processingFee, $baseAmount, $exchangeRate, $feeDetails] = $this->chargeDetails(
             $donation,
             $paymentIntent,
             $stripeOptions,
@@ -38,6 +38,7 @@ class SyncDonationStripeDetails
             'stripe_charge_id' => $chargeId,
             'stripe_fee' => $stripeFee,
             'processing_fee' => $processingFee,
+            'stripe_fee_details' => $feeDetails,
             'payment_method_brand' => $pmDetails['brand'],
             'payment_method_type' => $pmDetails['type'],
             'donor_country' => $pmDetails['card_country'],
@@ -51,7 +52,7 @@ class SyncDonationStripeDetails
             'base_currency' => 'myr',
             'base_amount' => $baseAmount,
             'exchange_rate' => $exchangeRate,
-            'net_amount' => (float) ($baseAmount ?? $donation->gross_amount) - $stripeFee,
+            'net_amount' => (float) ($baseAmount ?? $donation->gross_amount) + (float) ($donation->donor_fee_covered ?? 0) - $stripeFee - $processingFee,
         ]);
 
         $this->syncDonorAddress($donation, $pmDetails, $paymentIntent);
@@ -193,7 +194,7 @@ class SyncDonationStripeDetails
 
     /**
      * @param  array<string, string>  $stripeOptions
-     * @return array{0: string|null, 1: float, 2: float, 3: float|null, 4: float|null}
+     * @return array{0: string|null, 1: float, 2: float, 3: float|null, 4: float|null, 5: array<int, array<string, mixed>>|null}
      */
     private function chargeDetails(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions, bool $shouldRetrieveMissingChargeDetails): array
     {
@@ -223,14 +224,15 @@ class SyncDonationStripeDetails
 
         $processingFee = round((float) ($baseAmount ?? $donation->gross_amount) * $this->processingFeePercent() / 100, 2);
         $stripeFee = 0.0;
+        $feeDetails = null;
         $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
 
         if ($balanceTransaction !== null) {
             $balanceTransaction = $this->retrieveBalanceTransaction($balanceTransaction, $stripeOptions);
-            [$stripeFee, $processingFee] = $this->feesFromBalanceTransaction($balanceTransaction, $processingFee);
+            [$stripeFee, $processingFee, $feeDetails] = $this->feesFromBalanceTransaction($balanceTransaction, $processingFee);
         }
 
-        return [$chargeId, $stripeFee, $processingFee, $baseAmount, $exchangeRate];
+        return [$chargeId, $stripeFee, $processingFee, $baseAmount, $exchangeRate, $feeDetails];
     }
 
     /**
@@ -279,11 +281,12 @@ class SyncDonationStripeDetails
     }
 
     /**
-     * @return array{0: float, 1: float}
+     * @return array{0: float, 1: float, 2: array<int, array<string, mixed>>|null}
      */
     private function feesFromBalanceTransaction(mixed $balanceTransaction, float $fallbackProcessingFee): array
     {
-        $feeDetails = collect($balanceTransaction->fee_details ?? []);
+        $rawFeeDetails = $balanceTransaction->fee_details ?? [];
+        $feeDetails = collect($rawFeeDetails);
         $stripeFee = (float) ($feeDetails
             ->filter(fn (mixed $fee): bool => in_array(data_get($fee, 'type'), ['stripe_fee', 'stripe_processing_fee'], true))
             ->sum(fn (mixed $fee): int => (int) data_get($fee, 'amount', 0)) / 100);
@@ -299,7 +302,14 @@ class SyncDonationStripeDetails
             $stripeFee = max((float) ($balanceTransaction->fee / 100) - $processingFee, 0);
         }
 
-        return [$stripeFee, $processingFee];
+        $savedFeeDetails = array_map(fn (mixed $fee): array => [
+            'type' => data_get($fee, 'type'),
+            'amount' => data_get($fee, 'amount'),
+            'currency' => data_get($fee, 'currency'),
+            'description' => data_get($fee, 'description'),
+        ], $rawFeeDetails);
+
+        return [$stripeFee, $processingFee, $savedFeeDetails];
     }
 
     private function processingFeePercent(): float

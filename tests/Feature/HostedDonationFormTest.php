@@ -683,7 +683,7 @@ it('stores connected stripe fees and card details when confirming a payment', fu
         ->and($donation->payment_method_type)->toBe('card')
         ->and($donation->stripe_fee)->toBe('9.04')
         ->and($donation->processing_fee)->toBe('10.05')
-        ->and($donation->net_amount)->toBe('191.96');
+        ->and($donation->net_amount)->toBe('181.91');
 
     expect(collect($stripeClient->requests)->every(
         fn (array $request): bool => in_array('Stripe-Account: acct_connected_test', $request['headers'], true),
