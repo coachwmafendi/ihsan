@@ -58,6 +58,32 @@
                 </button>
             </div>
 
+        @elseif($type === 'qr_code')
+            @php
+                $qrSize = $config['size'] ?? 200;
+                $qrAlignment = $config['alignment'] ?? 'center';
+                $qrLabel = $config['label'] ?? 'Scan to donate';
+                $alignClass = match($qrAlignment) {
+                    'left' => 'text-left',
+                    'right' => 'text-right',
+                    default => 'text-center',
+                };
+            @endphp
+            <div class="flex min-h-[180px] items-center justify-center w-full">
+                <div class="{{ $alignClass }}">
+                    <img 
+                        src="https://api.qrserver.com/v1/create-qr-code/?size={{ $qrSize }}x{{ $qrSize }}&data=https://ihsan.test/donate/demo&bgcolor=ffffff&color=0f172a&qzone=2" 
+                        alt="QR Code" 
+                        width="{{ $qrSize }}" 
+                        height="{{ $qrSize }}"
+                        class="inline-block rounded-xl border border-zinc-200"
+                    >
+                    @if(filled($qrLabel))
+                        <p class="mt-2 text-sm font-medium text-zinc-600">{{ $qrLabel }}</p>
+                    @endif
+                </div>
+            </div>
+
         @elseif($type === 'floating_button')
             @php
                 $colors = [

@@ -79,6 +79,13 @@ class ElementForm
                 'image' => 'campaign',
                 'color' => 'campaign',
             ],
+            'qr_code' => [
+                'size' => 200,
+                'label' => 'Scan to donate',
+                'alignment' => 'center',
+                'margin_top' => 0,
+                'margin_bottom' => 0,
+            ],
             default => [],
         };
 
@@ -112,6 +119,7 @@ class ElementForm
                                 'floating_button' => 'Floating Button',
                                 'form' => 'Form',
                                 'popup' => 'Popup',
+                                'qr_code' => 'QR Code',
                             ])
                             ->placeholder('Select type'),
                         Select::make('campaign_id')
@@ -133,7 +141,7 @@ class ElementForm
                                 'token' => $record?->token,
                                 'url' => $record?->token ? url('/donate/'.$record->token) : null,
                             ])
-                            ->visible(fn (Get $get, ?Element $record): bool => $record !== null && in_array($get('type') ?? $record->type->value, ['form', 'popup'], true))
+                            ->visible(fn (Get $get, ?Element $record): bool => $record !== null && in_array($get('type') ?? $record->type->value, ['form', 'popup', 'qr_code'], true))
                             ->columnSpanFull(),
                         View::make('filament.forms.components.element-embed-snippet')
                             ->viewData(function (Get $get, ?Element $record): array {
@@ -587,6 +595,62 @@ class ElementForm
                                     ]),
                             ]),
                     ]),
+                Section::make('QR Code')
+                    ->description('Configure a scannable QR code that links to your donation page')
+                    ->columnSpanFull()
+                    ->icon('heroicon-m-qr-code')
+                    ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::QrCode->value)
+                    ->schema([
+                        Grid::make()
+                            ->statePath('config')
+                            ->columns(2)
+                            ->schema([
+                                Select::make('size')
+                                    ->label('Size')
+                                    ->options([
+                                        150 => 'Small (150px)',
+                                        200 => 'Medium (200px)',
+                                        250 => 'Large (250px)',
+                                        300 => 'Extra Large (300px)',
+                                    ])
+                                    ->default(200)
+                                    ->live()
+                                    ->native(false),
+                                Select::make('alignment')
+                                    ->label('Alignment')
+                                    ->options([
+                                        'left' => 'Left',
+                                        'center' => 'Center',
+                                        'right' => 'Right',
+                                    ])
+                                    ->default('center')
+                                    ->live()
+                                    ->native(false),
+                                TextInput::make('label')
+                                    ->label('Label text')
+                                    ->default('Scan to donate')
+                                    ->placeholder('Text shown below the QR code')
+                                    ->live(),
+                                TextInput::make('margin_top')
+                                    ->label('Top margin')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->suffix('px')
+                                    ->live(),
+                                TextInput::make('margin_bottom')
+                                    ->label('Bottom margin')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->suffix('px')
+                                    ->live(),
+                            ]),
+                        View::make('filament.forms.components.element-preview')
+                            ->columnSpanFull()
+                            ->viewData(fn (Get $get): array => [
+                                'type' => $get('type'),
+                                'config' => self::previewConfig($get),
+                            ]),
+                    ]),
                 View::make('filament.forms.components.element-form-submit')
                     ->visible(! $hideSubmit)
                     ->columnSpanFull()
@@ -718,6 +782,16 @@ class ElementForm
             }
 
             return $config;
+        }
+
+        if ($type === ElementType::QrCode->value) {
+            return [
+                'size' => $get('config.size'),
+                'label' => $get('config.label'),
+                'alignment' => $get('config.alignment'),
+                'margin_top' => $get('config.margin_top'),
+                'margin_bottom' => $get('config.margin_bottom'),
+            ];
         }
 
         return [

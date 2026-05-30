@@ -16,7 +16,7 @@ class ResolveDonationElement
 
         $element = Element::query()
             ->where('is_active', true)
-            ->whereIn('type', [ElementType::Form, ElementType::Popup])
+            ->whereIn('type', [ElementType::Form, ElementType::Popup, ElementType::QrCode])
             ->where(fn ($q) => $q->where('token', $token)->orWhere('form_slug', $token))
             ->first();
 

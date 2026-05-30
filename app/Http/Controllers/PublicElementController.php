@@ -87,6 +87,16 @@ class PublicElementController extends Controller
             ], $settings);
         }
 
+        if ($element->type === ElementType::QrCode) {
+            $settings = array_merge([
+                'size' => 200,
+                'label' => 'Scan to donate',
+                'alignment' => 'center',
+                'margin_top' => 0,
+                'margin_bottom' => 0,
+            ], $settings);
+        }
+
         $response = [
             'id' => $element->getKey(),
             'type' => $element->type->value,

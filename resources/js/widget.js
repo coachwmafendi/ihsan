@@ -154,6 +154,42 @@
     fadeIn(overlay);
   }
 
+  function renderQrCode(el) {
+    var s = el.settings;
+    var campaignUrl = el.campaign_url || checkoutUrl(el);
+    var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=' + (s.size || 200) + 'x' + (s.size || 200) + '&data=' + encodeURIComponent(campaignUrl) + '&bgcolor=ffffff&color=0f172a&qzone=2';
+    var size = s.size || 200;
+    var alignment = s.alignment || 'center';
+    var label = s.label || 'Scan to donate';
+    var marginTop = s.margin_top || 0;
+    var marginBottom = s.margin_bottom || 0;
+
+    var wrapper = document.createElement("div");
+    wrapper.style.cssText = [
+      "text-align:" + alignment,
+      "margin-top:" + marginTop + "px",
+      "margin-bottom:" + marginBottom + "px",
+    ].join(";");
+
+    var img = document.createElement("img");
+    img.src = qrUrl;
+    img.alt = label;
+    img.width = size;
+    img.height = size;
+    img.style.cssText = "display:block;margin:0 auto;border-radius:12px;border:1px solid #e2e8f0;";
+
+    var caption = document.createElement("p");
+    caption.textContent = label;
+    caption.style.cssText = "margin:8px 0 0;font-size:14px;font-weight:500;color:#475569;text-align:center;";
+
+    wrapper.appendChild(img);
+    wrapper.appendChild(caption);
+
+    if (script.parentNode) {
+      script.parentNode.replaceChild(wrapper, script);
+    }
+  }
+
   function renderFloatingButton(el) {
     var s = el.settings;
     if (!isVisible(s)) return;
@@ -479,6 +515,8 @@
     button: renderButton,
     popup: renderPopup,
     form: renderForm,
+    "qr-code": renderQrCode,
+    qr_code: renderQrCode,
   };
 
   function renderFromData(el) {
