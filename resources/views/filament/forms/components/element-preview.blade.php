@@ -126,6 +126,45 @@
                 <span class="absolute bottom-2 text-xs text-zinc-400">Preview shown centered — on site it floats at configured position</span>
             </div>
 
+        @elseif($type === 'link')
+            @php
+                $linkColors = [
+                    'campaign' => '#16a34a', 'blue' => '#2563eb', 'teal' => '#0d9488',
+                    'green' => '#16a34a', 'orange' => '#ea580c', 'red' => '#dc2626',
+                    'purple' => '#9333ea', 'dark' => '#1e293b',
+                ];
+                $linkColor = $linkColors[$config['color'] ?? 'campaign'] ?? '#16a34a';
+                $linkStyle = $config['style'] ?? 'button';
+                $linkText = $config['text'] ?? 'Derma Sekarang';
+                $linkAlignment = $config['alignment'] ?? 'left';
+                $linkSizes = [
+                    'small' => ['font' => '14px', 'padding' => '8px 16px'],
+                    'medium' => ['font' => '16px', 'padding' => '10px 24px'],
+                    'large' => ['font' => '18px', 'padding' => '12px 32px'],
+                ];
+                $ls = $linkSizes[$config['size'] ?? 'medium'] ?? $linkSizes['medium'];
+                $alignClass = match($linkAlignment) {
+                    'center' => 'text-center',
+                    'right' => 'text-right',
+                    default => 'text-left',
+                };
+            @endphp
+            <div class="flex min-h-[120px] items-center justify-center w-full">
+                <div class="{{ $alignClass }} w-full">
+                    @if($linkStyle === 'button')
+                        <span class="inline-flex items-center justify-center gap-2 font-semibold text-white shadow-sm transition-all" 
+                              style="background:{{ $linkColor }};padding:{{ $ls['padding'] }};font-size:{{ $ls['font'] }};border-radius:8px;min-width:120px;cursor:pointer;">
+                            {{ $linkText }}
+                        </span>
+                    @else
+                        <span class="font-medium underline underline-offset-2" 
+                              style="color:{{ $linkColor }};font-size:{{ $ls['font'] }};">
+                            {{ $linkText }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+
         @elseif(in_array($type, ['form', 'popup'], true))
             <div
                 x-data="{

@@ -9,4 +9,5 @@ enum ElementType: string
     case Popup = 'popup';
     case FloatingButton = 'floating_button';
     case QrCode = 'qr_code';
+    case Link = 'link';
 }

@@ -97,6 +97,17 @@ class PublicElementController extends Controller
             ], $settings);
         }
 
+        if ($element->type === ElementType::Link) {
+            $settings = array_merge([
+                'text' => 'Derma Sekarang',
+                'url' => '',
+                'style' => 'button',
+                'color' => 'campaign',
+                'size' => 'medium',
+                'alignment' => 'left',
+            ], $settings);
+        }
+
         $response = [
             'id' => $element->getKey(),
             'type' => $element->type->value,

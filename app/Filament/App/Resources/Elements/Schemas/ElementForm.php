@@ -86,6 +86,14 @@ class ElementForm
                 'margin_top' => 0,
                 'margin_bottom' => 0,
             ],
+            'link' => [
+                'text' => 'Derma Sekarang',
+                'url' => '',
+                'style' => 'button',
+                'color' => 'campaign',
+                'size' => 'medium',
+                'alignment' => 'left',
+            ],
             default => [],
         };
 
@@ -120,6 +128,7 @@ class ElementForm
                                 'form' => 'Form',
                                 'popup' => 'Popup',
                                 'qr_code' => 'QR Code',
+                                'link' => 'Link',
                             ])
                             ->placeholder('Select type'),
                         Select::make('campaign_id')
@@ -651,6 +660,79 @@ class ElementForm
                                 'config' => self::previewConfig($get),
                             ]),
                     ]),
+                Section::make('Link')
+                    ->description('A simple text link to your donation page')
+                    ->columnSpanFull()
+                    ->icon('heroicon-m-link')
+                    ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::Link->value)
+                    ->schema([
+                        Grid::make()
+                            ->statePath('config')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('text')
+                                    ->label('Link text')
+                                    ->default('Derma Sekarang')
+                                    ->required()
+                                    ->live(),
+                                TextInput::make('url')
+                                    ->label('Custom URL (optional)')
+                                    ->url()
+                                    ->placeholder('https://')
+                                    ->helperText('Leave empty to use campaign donation page')
+                                    ->live(),
+                                Select::make('style')
+                                    ->label('Style')
+                                    ->options([
+                                        'button' => 'Button',
+                                        'text' => 'Plain text link',
+                                    ])
+                                    ->default('button')
+                                    ->live()
+                                    ->native(false),
+                                Select::make('color')
+                                    ->label('Color')
+                                    ->options([
+                                        'campaign' => 'Campaign color',
+                                        'blue' => 'Blue',
+                                        'teal' => 'Teal',
+                                        'green' => 'Green',
+                                        'orange' => 'Orange',
+                                        'red' => 'Red',
+                                        'purple' => 'Purple',
+                                        'dark' => 'Dark',
+                                    ])
+                                    ->default('campaign')
+                                    ->live()
+                                    ->native(false),
+                                Select::make('size')
+                                    ->label('Size')
+                                    ->options([
+                                        'small' => 'Small',
+                                        'medium' => 'Medium',
+                                        'large' => 'Large',
+                                    ])
+                                    ->default('medium')
+                                    ->live()
+                                    ->native(false),
+                                Select::make('alignment')
+                                    ->label('Alignment')
+                                    ->options([
+                                        'left' => 'Left',
+                                        'center' => 'Center',
+                                        'right' => 'Right',
+                                    ])
+                                    ->default('left')
+                                    ->live()
+                                    ->native(false),
+                            ]),
+                        View::make('filament.forms.components.element-preview')
+                            ->columnSpanFull()
+                            ->viewData(fn (Get $get): array => [
+                                'type' => $get('type'),
+                                'config' => self::previewConfig($get),
+                            ]),
+                    ]),
                 View::make('filament.forms.components.element-form-submit')
                     ->visible(! $hideSubmit)
                     ->columnSpanFull()
@@ -791,6 +873,17 @@ class ElementForm
                 'alignment' => $get('config.alignment'),
                 'margin_top' => $get('config.margin_top'),
                 'margin_bottom' => $get('config.margin_bottom'),
+            ];
+        }
+
+        if ($type === ElementType::Link->value) {
+            return [
+                'text' => $get('config.text'),
+                'url' => $get('config.url'),
+                'style' => $get('config.style'),
+                'color' => $get('config.color'),
+                'size' => $get('config.size'),
+                'alignment' => $get('config.alignment'),
             ];
         }
 

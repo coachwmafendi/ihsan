@@ -509,6 +509,89 @@
     }
   }
 
+  function renderLink(el) {
+    var s = el.settings;
+    var campaignUrl = el.campaign_url || checkoutUrl(el);
+    var href = s.url || campaignUrl;
+    var text = s.text || "Derma Sekarang";
+    var alignment = s.alignment || "left";
+    var style = s.style || "button";
+    var color = hexColor(s.color || "campaign");
+
+    var sizes = {
+      small: { font: "14px", padding: "8px 16px" },
+      medium: { font: "16px", padding: "10px 24px" },
+      large: { font: "18px", padding: "12px 32px" },
+    };
+
+    var sz = sizes[s.size] || sizes.medium;
+
+    var link = document.createElement("a");
+    link.href = href;
+    link.textContent = text;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.style.display = "inline-block";
+    link.style.textDecoration = "none";
+    link.style.textAlign = "center";
+
+    if (style === "button") {
+      link.style.cssText = [
+        "display:inline-flex",
+        "align-items:center",
+        "justify-content:center",
+        "gap:6px",
+        "cursor:pointer",
+        "border:0",
+        "outline:none",
+        "box-shadow:0 2px 8px rgba(0,0,0,.12)",
+        "transition:transform .2s,box-shadow .2s,background .2s",
+        "color:#fff",
+        "background:" + color,
+        "padding:" + sz.padding,
+        "font-size:" + sz.font,
+        "font-weight:600",
+        "border-radius:8px",
+        "min-width:120px",
+        "line-height:1.3",
+        "white-space:nowrap",
+        "letter-spacing:.01em",
+        "font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif",
+        "text-decoration:none",
+      ].join(";");
+    } else {
+      link.style.cssText = [
+        "color:" + color,
+        "font-size:" + sz.font,
+        "font-weight:500",
+        "text-decoration:underline",
+        "text-underline-offset:2px",
+      ].join(";");
+    }
+
+    link.addEventListener("mouseenter", function () {
+      if (style === "button") {
+        link.style.transform = "scale(1.04)";
+        link.style.boxShadow = "0 4px 12px rgba(0,0,0,.18)";
+      }
+    });
+    link.addEventListener("mouseleave", function () {
+      if (style === "button") {
+        link.style.transform = "";
+        link.style.boxShadow = "0 2px 8px rgba(0,0,0,.12)";
+      }
+    });
+
+    var wrapper = document.createElement("div");
+    wrapper.style.textAlign = alignment;
+
+    wrapper.appendChild(link);
+
+    if (script.parentNode) {
+      script.parentNode.replaceChild(wrapper, script);
+    }
+  }
+
   var renderers = {
     "floating-button": renderFloatingButton,
     floating_button: renderFloatingButton,
@@ -517,6 +600,7 @@
     form: renderForm,
     "qr-code": renderQrCode,
     qr_code: renderQrCode,
+    link: renderLink,
   };
 
   function renderFromData(el) {
