@@ -430,79 +430,11 @@
     schedule();
   }
 
-  function renderForm(el) {
-    var s = el.settings;
-    var card = document.createElement("div");
-    card.style.cssText = [
-      "max-width:100%",
-      "border-radius:16px",
-      "overflow:hidden",
-      "background:#fff",
-      "box-shadow:0 4px 20px rgba(0,0,0,.1)",
-      "border:1px solid rgba(0,0,0,.06)",
-      "font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif",
-    ].join(";");
-
-    var imgHtml = el.campaign_image_url
-      ? '<img src="' + esc(el.campaign_image_url) + '" style="width:100%;height:220px;object-fit:cover;display:block;" alt=""/>'
-      : "";
-
-    var progressHtml = "";
-    if (el.campaign_has_target && el.campaign_target_amount > 0) {
-      var pct = Math.min(100, Math.round((el.campaign_collected_amount / el.campaign_target_amount) * 100));
-      progressHtml =
-        '<div style="margin-top:12px;">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#64748b;margin-bottom:6px;">' +
-        '<span><strong style="color:#0f172a;">' + (el.campaign_currency_symbol || "RM") + " " + Number(el.campaign_collected_amount || 0).toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</strong> raised</span>" +
-        '<span>Goal ' + (el.campaign_currency_symbol || "RM") + " " + Number(el.campaign_target_amount).toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "</span>" +
-        "</div>" +
-        '<div style="height:8px;border-radius:999px;background:#e2e8f0;overflow:hidden;">' +
-        '<div style="height:100%;border-radius:999px;background:#0d9488;width:' + pct + '%;"></div>' +
-        "</div>" +
-        "</div>";
-    }
-
-    var color = hexColor(s.color || "campaign");
-    var btnText = esc(s.button_text || s.text || "Derma Sekarang");
-
-    card.innerHTML =
-      imgHtml +
-      '<div style="padding:24px;">' +
-      '<p style="margin:0 0 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#94a3b8;">' + esc(el.campaign_org_name || "") + "</p>" +
-      '<h3 style="margin:0 0 12px;font-size:20px;font-weight:700;line-height:1.35;color:#0f172a;">' + esc(el.campaign_name || "") + "</h3>" +
-      progressHtml +
-      '<button data-cta style="margin-top:20px;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border:0;border-radius:999px;background:' + color + ';color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.14);font-family:inherit;">' +
-      '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>' +
-      btnText +
-      "</button>" +
-      "</div>";
-
-    var cta = card.querySelector("[data-cta]");
-    if (cta) {
-      cta.addEventListener("mouseenter", function () {
-        cta.style.transform = "scale(1.02)";
-        cta.style.boxShadow = "0 4px 14px rgba(0,0,0,.2)";
-      });
-      cta.addEventListener("mouseleave", function () {
-        cta.style.transform = "";
-        cta.style.boxShadow = "0 2px 8px rgba(0,0,0,.14)";
-      });
-      cta.addEventListener("click", function () {
-        handleClick(el);
-      });
-    }
-
-    if (script.parentNode) {
-      script.parentNode.replaceChild(card, script);
-    }
-  }
-
   var renderers = {
     "floating-button": renderFloatingButton,
     floating_button: renderFloatingButton,
     button: renderButton,
     popup: renderPopup,
-    form: renderForm,
   };
 
   function renderFromData(el) {
