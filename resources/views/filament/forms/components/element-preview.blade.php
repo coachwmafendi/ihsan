@@ -84,19 +84,20 @@
                 ];
                 $iconPath = $icons[$config['icon'] ?? 'heart'] ?? $icons['heart'];
             @endphp
-            <div class="relative flex min-h-[220px] w-full items-center justify-center rounded-lg border-2 border-dashed border-zinc-200 bg-white/60">
+            <div class="relative flex min-h-[220px] w-full items-center justify-center rounded-lg border-2 border-dashed border-zinc-200 bg-white/60 p-6">
                 <div
-                    class="inline-flex items-center justify-center gap-2 text-white shadow-lg"
-                    style="background:{{ $previewColor }};width:{{ $sz['size'] }};height:{{ $sz['size'] }};font-size:{{ $sz['font'] }};border-radius:{{ $radius }};{{ $isPill ? 'padding:0 20px;width:auto;min-width:'.$sz['size'] : '' }}"
+                    class="inline-flex items-center justify-center gap-3 text-white shadow-2xl transition-transform hover:scale-105"
+                    style="background:{{ $previewColor }};width:{{ $isPill ? 'auto' : $sz['size'] }};height:{{ $sz['size'] }};font-size:{{ $sz['font'] }};border-radius:{{ $radius }};{{ $isPill ? 'padding:0 32px;min-width:'.intval($sz['size'])*1.2 . 'px' : '' }}"
                 >
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">{{ $iconPath }}</svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">{!! $iconPath !!}</svg>
                     @if(($config['shape'] ?? 'pill') === 'pill')
-                        <span style="font-weight:600;white-space:nowrap;font-size:{{ $sz['font'] }}">
+                        <span style="font-weight:700;white-space:nowrap;font-size:{{ $sz['font'] }}">
                             {{ $config['button_text'] ?? 'Derma Sekarang' }}
                         </span>
                     @endif
                 </div>
-                <span class="absolute bottom-2 text-xs text-zinc-300">Preview shown centered — on site it floats at configured position</span>
+                
+                <span class="absolute bottom-2 text-xs text-zinc-400">Preview shown centered — on site it floats at configured position</span>
             </div>
 
         @elseif(in_array($type, ['form', 'popup'], true))

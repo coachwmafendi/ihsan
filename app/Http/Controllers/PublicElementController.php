@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ElementType;
 use App\Models\Element;
+use App\Support\Currency;
 use Illuminate\Http\JsonResponse;
 
 class PublicElementController extends Controller
@@ -77,7 +78,15 @@ class PublicElementController extends Controller
             ], $settings);
         }
 
-        return response()->json([
+        if ($element->type === ElementType::Form) {
+            $settings = array_merge([
+                'button_text' => 'Derma Sekarang',
+                'action' => 'checkout_modal',
+                'color' => 'campaign',
+            ], $settings);
+        }
+
+        $response = [
             'id' => $element->getKey(),
             'type' => $element->type->value,
             'token' => $element->token,
@@ -87,6 +96,21 @@ class PublicElementController extends Controller
             'campaign_url' => $campaignUrl,
             'campaign_form_parameter' => $campaignFormParameter,
             'settings' => $settings,
-        ])->header('Access-Control-Allow-Origin', '*');
+        ];
+
+        if ($element->campaign) {
+            $response['campaign_org_name'] = $element->campaign->organization?->name;
+            $response['campaign_collected_amount'] = (float) $element->campaign->collected_amount;
+            $response['campaign_target_amount'] = $element->campaign->has_target ? (float) $element->campaign->target_amount : 0;
+            $response['campaign_has_target'] = $element->campaign->has_target;
+            $response['campaign_currency_symbol'] = Currency::symbol($element->campaign->organization?->settings['default_currency'] ?? 'myr');
+
+            if ($element->campaign->image_path) {
+                $response['campaign_image_url'] = url('/donate/campaign/'.$element->campaign->form_parameter.'/image');
+            }
+        }
+
+        return response()->json($response)
+            ->header('Access-Control-Allow-Origin', '*');
     }
 }
