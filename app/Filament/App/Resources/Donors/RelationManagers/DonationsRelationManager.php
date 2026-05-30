@@ -170,7 +170,16 @@ class DonationsRelationManager extends RelationManager
                             ->schema([
                                 TextEntry::make('gross_amount')
                                     ->label('Gross')
-                                    ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),
+                                    ->formatStateUsing(function ($state, $record): string {
+                                        $gross = number_format((float) $state, 2);
+                                        if ($record->currency !== 'myr' && $record->base_amount) {
+                                            $converted = number_format((float) $record->base_amount, 2);
+
+                                            return strtoupper($record->currency).' '.$gross.' ≈ MYR '.$converted;
+                                        }
+
+                                        return 'MYR '.$gross;
+                                    }),
                                 TextEntry::make('stripe_fee')
                                     ->label('Stripe Fee')
                                     ->formatStateUsing(fn ($state) => 'MYR '.number_format((float) $state, 2)),

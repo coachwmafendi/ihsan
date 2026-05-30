@@ -48,10 +48,53 @@
             </div>
 
         @elseif($type === 'button')
+            @php
+                $btnEffect = $config['button_effect'] ?? 'none';
+                $gradients = [
+                    'gradient_teal_green'   => 'linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)',
+                    'gradient_blue_purple'  => 'linear-gradient(120deg,#2563eb,#7c3aed,#a855f7,#2563eb)',
+                    'gradient_orange_red'   => 'linear-gradient(120deg,#ea580c,#dc2626,#f97316,#ea580c)',
+                ];
+                $shadows = [
+                    'gradient_teal_green'  => '0 8px 20px rgba(13,148,136,.4)',
+                    'gradient_blue_purple' => '0 8px 20px rgba(37,99,235,.4)',
+                    'gradient_orange_red'  => '0 8px 20px rgba(234,88,12,.4)',
+                ];
+                $hasEffect = $btnEffect !== 'none' && isset($gradients[$btnEffect]);
+                $effectId  = 'btn-' . md5($btnEffect);
+            @endphp
+            @if($hasEffect)
+                <style>
+                    @keyframes ihsan-gradient-{{ $effectId }} {
+                        0%   { background-position: 0% 50%; }
+                        50%  { background-position: 100% 50%; }
+                        100% { background-position: 0% 50%; }
+                    }
+                    .ihsan-effect-{{ $effectId }} {
+                        background: {{ $gradients[$btnEffect] }};
+                        background-size: 300% 300%;
+                        animation: ihsan-gradient-{{ $effectId }} 4s ease infinite;
+                        box-shadow: {{ $shadows[$btnEffect] }};
+                        transition: transform .2s ease, box-shadow .2s ease;
+                    }
+                    .ihsan-effect-{{ $effectId }}:hover {
+                        transform: translateY(-2px);
+                        box-shadow: {{ str_replace('.4)', '.55)', $shadows[$btnEffect]) }};
+                    }
+                    .ihsan-effect-{{ $effectId }}:active { transform: scale(0.97); }
+                </style>
+            @endif
             <div class="flex min-h-[120px] items-center justify-center">
+                @php
+                    $sizeClass = $config['button_size'] ?? 'text-base px-6 py-3';
+                    $colorClass = $config['button_color'] ?? 'bg-blue-600 hover:bg-blue-700';
+                    $btnClass = $hasEffect
+                        ? "ihsan-effect-{$effectId} {$sizeClass}"
+                        : "{$sizeClass} {$colorClass}";
+                @endphp
                 <button
                     type="button"
-                    class="{{ $config['button_size'] ?? 'text-base px-6 py-3' }} {{ $config['button_color'] ?? 'bg-blue-600 hover:bg-blue-700' }} inline-flex items-center justify-center font-semibold text-white shadow-sm transition-all duration-150 focus:outline-none"
+                    class="{{ $btnClass }} inline-flex items-center justify-center font-semibold text-white focus:outline-none"
                     style="border-radius: {{ ($config['corner_radius'] ?? 8) }}px"
                 >
                     {{ $config['button_text'] ?? 'Donate Now' }}

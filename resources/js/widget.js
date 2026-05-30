@@ -346,6 +346,31 @@
     var gap = isMobile ? "5px" : "7px";
     var iconSize = isMobile ? "16" : "18";
 
+    var effect = s.button_effect || "none";
+    var effectGradients = {
+      gradient_teal_green:  "linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)",
+      gradient_blue_purple: "linear-gradient(120deg,#2563eb,#7c3aed,#a855f7,#2563eb)",
+      gradient_orange_red:  "linear-gradient(120deg,#ea580c,#dc2626,#f97316,#ea580c)",
+    };
+    var effectShadows = {
+      gradient_teal_green:  "rgba(13,148,136,.4)",
+      gradient_blue_purple: "rgba(37,99,235,.4)",
+      gradient_orange_red:  "rgba(234,88,12,.4)",
+    };
+    var hasEffect = effect !== "none" && effectGradients[effect];
+
+    if (hasEffect) {
+      var animName = "ihsan-grad-" + effect;
+      if (!document.getElementById("ihsan-style-" + effect)) {
+        var styleEl = document.createElement("style");
+        styleEl.id = "ihsan-style-" + effect;
+        styleEl.textContent = "@keyframes " + animName + "{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}";
+        document.head.appendChild(styleEl);
+      }
+    }
+
+    var shadowColour = hasEffect ? ("0 8px 20px " + effectShadows[effect]) : "0 3px 12px rgba(0,0,0,.15)";
+
     btn.style.cssText = [
       "display:inline-flex",
       "align-items:center",
@@ -354,10 +379,12 @@
       "cursor:pointer",
       "border:0",
       "outline:none",
-      "box-shadow:0 3px 12px rgba(0,0,0,.15)",
-      "transition:transform .2s,box-shadow .2s,background .2s",
+      "box-shadow:" + shadowColour,
+      "transition:transform .2s,box-shadow .2s",
       "color:#fff",
-      "background:" + colour,
+      hasEffect
+        ? "background:" + effectGradients[effect] + ";background-size:300% 300%;animation:" + ("ihsan-grad-" + effect) + " 4s ease infinite"
+        : "background:" + colour,
       "padding:" + padding,
       "font-size:" + fontSize,
       "font-weight:600",
@@ -376,19 +403,20 @@
     var text = esc(s.button_text || s.text || "Donate Now");
     btn.innerHTML = heartIcon + '<span>' + text + '</span>';
 
+    var hoverShadow = hasEffect ? ("0 12px 28px " + effectShadows[effect].replace(".4)", ".55)")) : "0 5px 18px rgba(0,0,0,.22)";
     btn.addEventListener("mouseenter", function () {
-      btn.style.transform = "scale(1.04)";
-      btn.style.boxShadow = "0 5px 18px rgba(0,0,0,.22)";
+      btn.style.transform = "translateY(-2px)";
+      btn.style.boxShadow = hoverShadow;
     });
     btn.addEventListener("mouseleave", function () {
       btn.style.transform = "";
-      btn.style.boxShadow = "0 3px 12px rgba(0,0,0,.15)";
+      btn.style.boxShadow = shadowColour;
     });
     btn.addEventListener("mousedown", function () {
       btn.style.transform = "scale(.97)";
     });
     btn.addEventListener("mouseup", function () {
-      btn.style.transform = "scale(1.04)";
+      btn.style.transform = "translateY(-2px)";
     });
     btn.addEventListener("click", function (e) {
       e.preventDefault();

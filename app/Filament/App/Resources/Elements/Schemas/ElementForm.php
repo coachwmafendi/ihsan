@@ -39,6 +39,7 @@ class ElementForm
                 'button_color' => 'bg-blue-600 hover:bg-blue-700',
                 'button_size' => 'text-base px-6 py-3',
                 'corner_radius' => 8,
+                'button_effect' => 'none',
                 'action' => 'checkout_modal',
             ],
             ElementType::FloatingButton->value => [
@@ -190,6 +191,17 @@ class ElementForm
                                     ->default('checkout_modal')
                                     ->live()
                                     ->native(false),
+                                Select::make('button_effect')
+                                    ->label('Button Effect')
+                                    ->options([
+                                        'none' => 'None (solid color)',
+                                        'gradient_teal_green' => 'Gradient — Teal & Green',
+                                        'gradient_blue_purple' => 'Gradient — Blue & Purple',
+                                        'gradient_orange_red' => 'Gradient — Orange & Red',
+                                    ])
+                                    ->default('none')
+                                    ->live()
+                                    ->native(false),
                                 Select::make('button_color')
                                     ->label('Button Color')
                                     ->options([
@@ -203,7 +215,8 @@ class ElementForm
                                     ])
                                     ->default('bg-blue-600 hover:bg-blue-700')
                                     ->live()
-                                    ->native(false),
+                                    ->native(false)
+                                    ->hidden(fn (Get $get): bool => ($get('button_effect') ?? 'none') !== 'none'),
                                 Select::make('button_size')
                                     ->label('Button Size')
                                     ->options([
@@ -830,6 +843,7 @@ class ElementForm
             'button_color' => $get('config.button_color'),
             'button_size' => $get('config.button_size'),
             'corner_radius' => $get('config.corner_radius'),
+            'button_effect' => $get('config.button_effect'),
         ];
     }
 }
