@@ -43,7 +43,10 @@ class ElementsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('type')
                     ->badge()
-                    ->formatStateUsing(fn (ElementType $state): string => str($state->value)->replace('_', ' ')->title())
+                    ->formatStateUsing(fn (ElementType $state): string => match ($state->value) {
+                        'qr_code' => 'QR Code',
+                        default => str($state->value)->replace('_', ' ')->title(),
+                    })
                     ->searchable(),
                 IconColumn::make('is_active')
                     ->boolean(),
