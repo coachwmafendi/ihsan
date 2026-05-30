@@ -147,6 +147,15 @@
       if (e.target === overlay) overlay.remove();
     });
 
+    function closeOverlay() { overlay.remove(); }
+
+    window.addEventListener("message", function closeHandler(e) {
+      if (e.data && e.data.type === "ihsan:close-modal") {
+        closeOverlay();
+        window.removeEventListener("message", closeHandler);
+      }
+    });
+
     modalWrap.appendChild(iframe);
     modalWrap.appendChild(closeBtn);
     overlay.appendChild(modalWrap);
