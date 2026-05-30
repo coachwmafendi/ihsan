@@ -117,8 +117,6 @@ it('reflects form builder controls in the live preview', function () {
         ->assertDontSee('x-model.number="selectedAmount"', false)
         ->set('data.config.show_dedication', false)
         ->assertDontSee('Dedicate this donation')
-        ->set('data.config.show_comment', false)
-        ->assertDontSee('Add comment')
         ->set('data.config.allow_monthly', false)
         ->assertDontSee('grid grid-cols-2 gap-2', false);
 });
@@ -253,7 +251,6 @@ it('creates a form element with organization, token, and builder configuration',
             'show_shadow' => false,
             'allow_monthly' => true,
             'show_dedication' => true,
-            'show_comment' => true,
             'submit_text' => 'Donate and Support',
         ])
         ->call('create')
@@ -282,7 +279,6 @@ it('creates a form element with organization, token, and builder configuration',
             'show_shadow' => false,
             'allow_monthly' => true,
             'show_dedication' => true,
-            'show_comment' => true,
             'submit_text' => 'Donate and Support',
         ]);
 });
