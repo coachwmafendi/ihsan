@@ -47,6 +47,7 @@ class ElementForm
                 'action' => 'checkout_modal',
                 'position' => 'bottom-right',
                 'color' => 'campaign',
+                'button_effect' => 'none',
                 'icon' => 'heart',
                 'shape' => 'pill',
                 'size' => 'Medium',
@@ -67,8 +68,8 @@ class ElementForm
                 'show_amount_input' => true,
                 'allow_monthly' => true,
                 'show_dedication' => true,
-                'show_comment' => true,
                 'submit_text' => 'Donate and Support',
+                'button_effect' => 'none',
             ],
             ElementType::Popup->value => [
                 'title' => 'Support Our Campaign Today',
@@ -82,6 +83,7 @@ class ElementForm
                 'layout' => 'simple',
                 'image' => null,
                 'color' => 'campaign',
+                'button_effect' => 'none',
             ],
             'qr_code' => [
                 'size' => 'Medium',
@@ -96,6 +98,7 @@ class ElementForm
                 'action' => 'checkout_modal',
                 'style' => 'button',
                 'color' => 'campaign',
+                'button_effect' => 'none',
                 'size' => 'Medium',
                 'alignment' => 'left',
             ],
@@ -198,6 +201,13 @@ class ElementForm
                                         'gradient_teal_green' => 'Gradient — Teal & Green',
                                         'gradient_blue_purple' => 'Gradient — Blue & Purple',
                                         'gradient_orange_red' => 'Gradient — Orange & Red',
+                                        'gradient_rose_pink' => 'Gradient — Rose & Pink',
+                                        'gradient_amber_orange' => 'Gradient — Amber & Orange',
+                                        'gradient_cyan_blue' => 'Gradient — Cyan & Blue',
+                                        'gradient_emerald_teal' => 'Gradient — Emerald & Teal',
+                                        'gradient_indigo_purple' => 'Gradient — Indigo & Purple',
+                                        'gradient_gold_amber' => 'Gradient — Gold & Amber',
+                                        'gradient_pink_purple' => 'Gradient — Pink & Purple',
                                     ])
                                     ->default('none')
                                     ->live()
@@ -216,7 +226,7 @@ class ElementForm
                                     ->default('bg-blue-600 hover:bg-blue-700')
                                     ->live()
                                     ->native(false)
-                                    ->hidden(fn (Get $get): bool => ($get('button_effect') ?? 'none') !== 'none'),
+                                    ->disabled(fn (Get $get): bool => ($get('button_effect') ?? 'none') !== 'none'),
                                 Select::make('button_size')
                                     ->label('Button Size')
                                     ->options([
@@ -322,6 +332,24 @@ class ElementForm
                                 Section::make('Color')
                                     ->compact()
                                     ->schema([
+                                        Select::make('button_effect')
+                                            ->label('Button Effect')
+                                            ->options([
+                                                'none' => 'None (solid color)',
+                                                'gradient_teal_green' => 'Gradient — Teal & Green',
+                                                'gradient_blue_purple' => 'Gradient — Blue & Purple',
+                                                'gradient_orange_red' => 'Gradient — Orange & Red',
+                                                'gradient_rose_pink' => 'Gradient — Rose & Pink',
+                                                'gradient_amber_orange' => 'Gradient — Amber & Orange',
+                                                'gradient_cyan_blue' => 'Gradient — Cyan & Blue',
+                                                'gradient_emerald_teal' => 'Gradient — Emerald & Teal',
+                                                'gradient_indigo_purple' => 'Gradient — Indigo & Purple',
+                                                'gradient_gold_amber' => 'Gradient — Gold & Amber',
+                                                'gradient_pink_purple' => 'Gradient — Pink & Purple',
+                                            ])
+                                            ->default('none')
+                                            ->live()
+                                            ->native(false),
                                         Select::make('color')
                                             ->label('Color scheme')
                                             ->options([
@@ -336,7 +364,8 @@ class ElementForm
                                             ])
                                             ->default('campaign')
                                             ->live()
-                                            ->native(false),
+                                            ->native(false)
+                                            ->disabled(fn (Get $get): bool => ($get('button_effect') ?? 'none') !== 'none'),
                                         Toggle::make('visible_desktop')
                                             ->label('Show on desktop')
                                             ->default(true)
@@ -430,6 +459,25 @@ class ElementForm
                                             ->default('campaign')
                                             ->live()
                                             ->native(false),
+                                        Select::make('button_effect')
+                                            ->label('Button Effect')
+                                            ->options([
+                                                'none' => 'None (solid color)',
+                                                'gradient_teal_green' => 'Gradient — Teal & Green',
+                                                'gradient_blue_purple' => 'Gradient — Blue & Purple',
+                                                'gradient_orange_red' => 'Gradient — Orange & Red',
+                                                'gradient_rose_pink' => 'Gradient — Rose & Pink',
+                                                'gradient_amber_orange' => 'Gradient — Amber & Orange',
+                                                'gradient_cyan_blue' => 'Gradient — Cyan & Blue',
+                                                'gradient_emerald_teal' => 'Gradient — Emerald & Teal',
+                                                'gradient_indigo_purple' => 'Gradient — Indigo & Purple',
+                                                'gradient_gold_amber' => 'Gradient — Gold & Amber',
+                                                'gradient_pink_purple' => 'Gradient — Pink & Purple',
+                                            ])
+                                            ->default('none')
+                                            ->helperText('Overrides the button color above')
+                                            ->live()
+                                            ->native(false),
                                     ]),
                                 Section::make('Display Rules')
                                     ->columns(2)
@@ -519,6 +567,24 @@ class ElementForm
                                             ->default('Donate and Support')
                                             ->required()
                                             ->live(),
+                                        Select::make('button_effect')
+                                            ->label('Button Effect')
+                                            ->options([
+                                                'none' => 'None (teal)',
+                                                'gradient_teal_green' => 'Gradient — Teal & Green',
+                                                'gradient_blue_purple' => 'Gradient — Blue & Purple',
+                                                'gradient_orange_red' => 'Gradient — Orange & Red',
+                                                'gradient_rose_pink' => 'Gradient — Rose & Pink',
+                                                'gradient_amber_orange' => 'Gradient — Amber & Orange',
+                                                'gradient_cyan_blue' => 'Gradient — Cyan & Blue',
+                                                'gradient_emerald_teal' => 'Gradient — Emerald & Teal',
+                                                'gradient_indigo_purple' => 'Gradient — Indigo & Purple',
+                                                'gradient_gold_amber' => 'Gradient — Gold & Amber',
+                                                'gradient_pink_purple' => 'Gradient — Pink & Purple',
+                                            ])
+                                            ->default('none')
+                                            ->live()
+                                            ->native(false),
                                         Select::make('default_frequency')
                                             ->label('Default frequency')
                                             ->options([
@@ -554,10 +620,6 @@ class ElementForm
                                             ->live(),
                                         Toggle::make('show_amount_input')
                                             ->label('Show amount input')
-                                            ->default(true)
-                                            ->live(),
-                                        Toggle::make('show_comment')
-                                            ->label('Show comment field')
                                             ->default(true)
                                             ->live(),
                                     ]),
@@ -687,7 +749,27 @@ class ElementForm
                                     ])
                                     ->default('campaign')
                                     ->live()
-                                    ->native(false),
+                                    ->native(false)
+                                    ->disabled(fn (Get $get): bool => ($get('button_effect') ?? 'none') !== 'none'),
+                                Select::make('button_effect')
+                                    ->label('Button Effect')
+                                    ->options([
+                                        'none' => 'None (solid color)',
+                                        'gradient_teal_green' => 'Gradient — Teal & Green',
+                                        'gradient_blue_purple' => 'Gradient — Blue & Purple',
+                                        'gradient_orange_red' => 'Gradient — Orange & Red',
+                                        'gradient_rose_pink' => 'Gradient — Rose & Pink',
+                                        'gradient_amber_orange' => 'Gradient — Amber & Orange',
+                                        'gradient_cyan_blue' => 'Gradient — Cyan & Blue',
+                                        'gradient_emerald_teal' => 'Gradient — Emerald & Teal',
+                                        'gradient_indigo_purple' => 'Gradient — Indigo & Purple',
+                                        'gradient_gold_amber' => 'Gradient — Gold & Amber',
+                                        'gradient_pink_purple' => 'Gradient — Pink & Purple',
+                                    ])
+                                    ->default('none')
+                                    ->live()
+                                    ->native(false)
+                                    ->visible(fn (Get $get): bool => ($get('style') ?? 'button') === 'button'),
                                 Select::make('size')
                                     ->label('Size')
                                     ->options([
@@ -750,6 +832,7 @@ class ElementForm
                 'size' => $get('config.size'),
                 'shape' => $get('config.shape'),
                 'color' => $get('config.color'),
+                'button_effect' => $get('config.button_effect'),
                 'visible_desktop' => $get('config.visible_desktop'),
                 'visible_mobile' => $get('config.visible_mobile'),
             ];
@@ -783,6 +866,7 @@ class ElementForm
                 'image' => $rawImage,
                 'image_url' => $imageUrl,
                 'color' => $get('config.color'),
+                'button_effect' => $get('config.button_effect'),
             ];
         }
 
@@ -793,7 +877,7 @@ class ElementForm
                 'show_amount_input', 'template', 'title', 'text_color',
                 'background_color', 'icon_color', 'border_size', 'border_radius',
                 'border_color', 'show_shadow', 'suggested_amounts', 'default_amount',
-                'default_frequency', 'allow_monthly', 'show_dedication', 'show_comment',
+                'default_frequency', 'allow_monthly', 'show_dedication',
                 'heading', 'description', 'submit_text', 'show_name', 'show_email',
                 'show_phone', 'show_message', 'suggested_amounts_one_time',
                 'suggested_amounts_monthly', 'show_suggested', 'display_as_popup', 'allow_cover_fee',
@@ -833,6 +917,7 @@ class ElementForm
                 'action' => $get('config.action'),
                 'style' => $get('config.style'),
                 'color' => $get('config.color'),
+                'button_effect' => $get('config.button_effect'),
                 'size' => $get('config.size'),
                 'alignment' => $get('config.alignment'),
             ];

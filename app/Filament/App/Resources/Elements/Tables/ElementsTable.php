@@ -24,7 +24,10 @@ class ElementsTable
                     ->sortable(),
                 TextColumn::make('type')
                     ->badge()
-                    ->formatStateUsing(fn (ElementType $state): string => str($state->value)->replace('_', ' ')->title())
+                    ->formatStateUsing(fn (ElementType $state): string => match ($state->value) {
+                        'qr_code' => 'QR Code',
+                        default => str($state->value)->replace('_', ' ')->title(),
+                    })
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('campaign.title')
@@ -46,6 +49,8 @@ class ElementsTable
                         'floating_button' => 'Floating Button',
                         'form' => 'Form',
                         'popup' => 'Popup',
+                        'qr_code' => 'QR Code',
+                        'link' => 'Link',
                     ]),
                 Filter::make('is_active')
                     ->label('Active only')

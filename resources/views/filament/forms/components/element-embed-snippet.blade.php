@@ -57,7 +57,7 @@
                 </button>
             </div>
             <pre class="overflow-x-auto cursor-pointer select-all p-4 text-xs leading-relaxed text-zinc-700 transition hover:bg-zinc-100/50"
-                 title="Klik untuk salin"
+                 title="Click to copy"
                  x-on:click="navigator.clipboard.writeText(code).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
             ><code x-text="code" class="pointer-events-none"></code></pre>
         </div>

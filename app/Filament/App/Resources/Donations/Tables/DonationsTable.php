@@ -357,18 +357,12 @@ class DonationsTable
                                 TextEntry::make('gross_amount')
                                     ->label('Gross')
                                     ->formatStateUsing(function ($state, $record): string {
+                                        $gross = number_format((float) $state, 2);
                                         if ($record->currency !== 'myr' && $record->base_amount) {
-                                            return '≈ MYR '.number_format((float) $record->base_amount, 2);
+                                            return strtoupper($record->currency).' '.$gross.' ≈ MYR '.number_format((float) $record->base_amount, 2);
                                         }
 
-                                        return 'MYR '.number_format((float) $state, 2);
-                                    })
-                                    ->tooltip(function ($state, $record): ?string {
-                                        if ($record->currency !== 'myr' && $record->base_amount) {
-                                            return strtoupper($record->currency).' '.number_format((float) $state, 2);
-                                        }
-
-                                        return null;
+                                        return strtoupper($record->currency).' '.$gross;
                                     }),
                                 TextEntry::make('effective_fee')
                                     ->label('Total Fees')

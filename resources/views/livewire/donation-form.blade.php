@@ -18,6 +18,21 @@
     $isPopup = $this->isPopup;
     $isEmbed = $this->isEmbed;
     $isCompact = $isPopup || $isEmbed;
+    $btnEffect = $this->config('button_effect', 'none');
+    $btnEffectGradients = [
+        'gradient_teal_green'    => 'linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)',
+        'gradient_blue_purple'   => 'linear-gradient(120deg,#2563eb,#7c3aed,#a855f7,#2563eb)',
+        'gradient_orange_red'    => 'linear-gradient(120deg,#ea580c,#dc2626,#f97316,#ea580c)',
+        'gradient_rose_pink'     => 'linear-gradient(120deg,#f43f5e,#ec4899,#fb7185,#f43f5e)',
+        'gradient_amber_orange'  => 'linear-gradient(120deg,#f59e0b,#ea580c,#fbbf24,#f59e0b)',
+        'gradient_cyan_blue'     => 'linear-gradient(120deg,#06b6d4,#2563eb,#38bdf8,#06b6d4)',
+        'gradient_emerald_teal'  => 'linear-gradient(120deg,#10b981,#0d9488,#34d399,#10b981)',
+        'gradient_indigo_purple' => 'linear-gradient(120deg,#6366f1,#7c3aed,#818cf8,#6366f1)',
+        'gradient_gold_amber'    => 'linear-gradient(120deg,#eab308,#f59e0b,#fcd34d,#eab308)',
+        'gradient_pink_purple'   => 'linear-gradient(120deg,#ec4899,#a855f7,#f472b6,#ec4899)',
+    ];
+    $btnHasEffect = $btnEffect !== 'none' && isset($btnEffectGradients[$btnEffect]);
+    $btnEffectId  = 'ihsan-grad-' . $btnEffect;
     $usesSecureDonationTemplate = $this->config('template', 'secure-donation') === 'secure-donation';
     $usesSecureDonationShell = $usesSecureDonationTemplate && ! $isEmbed;
     $campaignImageUrl = filled($campaign->image_path)
@@ -35,6 +50,22 @@
     $minimumAmount = (float) ($campaign->minimum_amount ?? 5);
     $totalAmount = (float) $this->amount + $this->estimatedFee;
 @endphp
+
+@if($btnHasEffect)
+<style>
+    @keyframes {{ $btnEffectId }} {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .ihsan-submit-effect {
+        background: {{ $btnEffectGradients[$btnEffect] }};
+        background-size: 300% 300%;
+        animation: {{ $btnEffectId }} 4s ease infinite;
+    }
+    .ihsan-submit-effect:hover { opacity: .9; }
+</style>
+@endif
 
 <div>
     @if ($campaign->has_target && (float) $campaign->collected_amount >= (float) $campaign->target_amount)
@@ -360,7 +391,7 @@
                                  type="button"
                                  x-on:click="{{ $isEmbed ? 'validateStep1() && window.parent.postMessage({type:\'ihsan:open-modal\',amount:amount,frequency:$wire.frequency,currency:$wire.currency}, \'*\')' : 'nextStep()' }}"
                                  x-bind:disabled="processing"
-                                 class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98] disabled:opacity-60"
+                                 class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
                              >
                                  Continue &rarr;
                              </button>
@@ -441,7 +472,7 @@
                                  type="button"
                                  x-on:click="nextStep()"
                                  x-bind:disabled="processing"
-                                 class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98] disabled:opacity-60"
+                                 class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
                              >
                                  Continue &rarr;
                              </button>
@@ -479,7 +510,7 @@
                             <form @submit.prevent="handleSubmit">
                                 <button
                                     type="submit"
-                                    class="min-h-12 w-full rounded-lg bg-teal-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98] disabled:opacity-60"
+                                    class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
                                     x-bind:disabled="processing"
                                 >
                                     @if ($usesSecureDonationShell && in_array($submitText, ['Donate and Support', 'Donate Now'], true))

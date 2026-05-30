@@ -21,6 +21,30 @@
     $showDedication = $config['show_dedication'] ?? true;
     $showComment = $config['show_comment'] ?? true;
     $previewFrequency = $allowMonthly ? $defaultFrequency : 'one_time';
+    $effectGradients = [
+        'gradient_teal_green'    => 'linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)',
+        'gradient_blue_purple'   => 'linear-gradient(120deg,#2563eb,#7c3aed,#a855f7,#2563eb)',
+        'gradient_orange_red'    => 'linear-gradient(120deg,#ea580c,#dc2626,#f97316,#ea580c)',
+        'gradient_rose_pink'     => 'linear-gradient(120deg,#f43f5e,#ec4899,#fb7185,#f43f5e)',
+        'gradient_amber_orange'  => 'linear-gradient(120deg,#f59e0b,#ea580c,#fbbf24,#f59e0b)',
+        'gradient_cyan_blue'     => 'linear-gradient(120deg,#06b6d4,#2563eb,#38bdf8,#06b6d4)',
+        'gradient_emerald_teal'  => 'linear-gradient(120deg,#10b981,#0d9488,#34d399,#10b981)',
+        'gradient_indigo_purple' => 'linear-gradient(120deg,#6366f1,#7c3aed,#818cf8,#6366f1)',
+        'gradient_gold_amber'    => 'linear-gradient(120deg,#eab308,#f59e0b,#fcd34d,#eab308)',
+        'gradient_pink_purple'   => 'linear-gradient(120deg,#ec4899,#a855f7,#f472b6,#ec4899)',
+    ];
+    $effectShadows = [
+        'gradient_teal_green'    => '0 8px 20px rgba(13,148,136,.4)',
+        'gradient_blue_purple'   => '0 8px 20px rgba(37,99,235,.4)',
+        'gradient_orange_red'    => '0 8px 20px rgba(234,88,12,.4)',
+        'gradient_rose_pink'     => '0 8px 20px rgba(244,63,94,.4)',
+        'gradient_amber_orange'  => '0 8px 20px rgba(245,158,11,.4)',
+        'gradient_cyan_blue'     => '0 8px 20px rgba(6,182,212,.4)',
+        'gradient_emerald_teal'  => '0 8px 20px rgba(16,185,129,.4)',
+        'gradient_indigo_purple' => '0 8px 20px rgba(99,102,241,.4)',
+        'gradient_gold_amber'    => '0 8px 20px rgba(234,179,8,.4)',
+        'gradient_pink_purple'   => '0 8px 20px rgba(236,72,153,.4)',
+    ];
 @endphp
 
 <div
@@ -50,17 +74,7 @@
         @elseif($type === 'button')
             @php
                 $btnEffect = $config['button_effect'] ?? 'none';
-                $gradients = [
-                    'gradient_teal_green'   => 'linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)',
-                    'gradient_blue_purple'  => 'linear-gradient(120deg,#2563eb,#7c3aed,#a855f7,#2563eb)',
-                    'gradient_orange_red'   => 'linear-gradient(120deg,#ea580c,#dc2626,#f97316,#ea580c)',
-                ];
-                $shadows = [
-                    'gradient_teal_green'  => '0 8px 20px rgba(13,148,136,.4)',
-                    'gradient_blue_purple' => '0 8px 20px rgba(37,99,235,.4)',
-                    'gradient_orange_red'  => '0 8px 20px rgba(234,88,12,.4)',
-                ];
-                $hasEffect = $btnEffect !== 'none' && isset($gradients[$btnEffect]);
+                $hasEffect = $btnEffect !== 'none' && isset($effectGradients[$btnEffect]);
                 $effectId  = 'btn-' . md5($btnEffect);
             @endphp
             @if($hasEffect)
@@ -71,15 +85,15 @@
                         100% { background-position: 0% 50%; }
                     }
                     .ihsan-effect-{{ $effectId }} {
-                        background: {{ $gradients[$btnEffect] }};
+                        background: {{ $effectGradients[$btnEffect] }};
                         background-size: 300% 300%;
                         animation: ihsan-gradient-{{ $effectId }} 4s ease infinite;
-                        box-shadow: {{ $shadows[$btnEffect] }};
+                        box-shadow: {{ $effectShadows[$btnEffect] }};
                         transition: transform .2s ease, box-shadow .2s ease;
                     }
                     .ihsan-effect-{{ $effectId }}:hover {
                         transform: translateY(-2px);
-                        box-shadow: {{ str_replace('.4)', '.55)', $shadows[$btnEffect]) }};
+                        box-shadow: {{ str_replace('.4)', '.55)', $effectShadows[$btnEffect]) }};
                     }
                     .ihsan-effect-{{ $effectId }}:active { transform: scale(0.97); }
                 </style>
@@ -140,6 +154,9 @@
                     'blue' => '#2563eb', 'teal' => '#0d9488', 'green' => '#16a34a',
                     'orange' => '#ea580c', 'red' => '#dc2626', 'purple' => '#9333ea', 'dark' => '#1e293b',
                 ];
+                $fbEffect = $config['button_effect'] ?? 'none';
+                $fbHasEffect = $fbEffect !== 'none' && isset($effectGradients[$fbEffect]);
+                $fbEffectId = 'fb-' . md5($fbEffect);
                 $previewColor = $colors[$config['color'] ?? 'campaign'] ?? '#16a34a';
                 $sizes = [
                     'small' => ['size' => '48px', 'font' => '12px'],
@@ -159,10 +176,25 @@
                 ];
                 $iconPath = $icons[$config['icon'] ?? 'heart'] ?? $icons['heart'];
             @endphp
+            @if($fbHasEffect)
+                <style>
+                    @keyframes ihsan-gradient-{{ $fbEffectId }} {
+                        0%   { background-position: 0% 50%; }
+                        50%  { background-position: 100% 50%; }
+                        100% { background-position: 0% 50%; }
+                    }
+                    .ihsan-effect-{{ $fbEffectId }} {
+                        background: {{ $effectGradients[$fbEffect] }};
+                        background-size: 300% 300%;
+                        animation: ihsan-gradient-{{ $fbEffectId }} 4s ease infinite;
+                        box-shadow: {{ $effectShadows[$fbEffect] }};
+                    }
+                </style>
+            @endif
             <div class="relative flex min-h-[220px] w-full items-center justify-center rounded-lg border-2 border-dashed border-zinc-200 bg-white/60 p-6">
                 <div
-                    class="inline-flex items-center justify-center gap-3 text-white shadow-2xl transition-transform hover:scale-105"
-                    style="background:{{ $previewColor }};width:{{ $isPill ? 'auto' : $sz['size'] }};height:{{ $sz['size'] }};font-size:{{ $sz['font'] }};border-radius:{{ $radius }};{{ $isPill ? 'padding:0 32px;min-width:'.intval($sz['size'])*1.2 . 'px' : '' }}"
+                    class="ihsan-effect-{{ $fbHasEffect ? $fbEffectId : '' }} inline-flex items-center justify-center gap-3 text-white shadow-2xl transition-transform hover:scale-105"
+                    style="{{ $fbHasEffect ? '' : 'background:' . $previewColor . ';' }}width:{{ $isPill ? 'auto' : $sz['size'] }};height:{{ $sz['size'] }};font-size:{{ $sz['font'] }};border-radius:{{ $radius }};{{ $isPill ? 'padding:0 32px;min-width:'.intval($sz['size'])*1.2 . 'px' : '' }}"
                 >
                     <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">{!! $iconPath !!}</svg>
                     @if(($config['shape'] ?? 'pill') === 'pill')
@@ -197,12 +229,31 @@
                     'right' => 'text-right',
                     default => 'text-left',
                 };
+                $linkEffect = $config['button_effect'] ?? 'none';
+                $linkHasEffect = $linkStyle === 'button' && $linkEffect !== 'none' && isset($effectGradients[$linkEffect]);
+                $linkEffectId = 'lnk-' . md5($linkEffect);
             @endphp
+            @if($linkHasEffect)
+                <style>
+                    @keyframes ihsan-gradient-{{ $linkEffectId }} {
+                        0%   { background-position: 0% 50%; }
+                        50%  { background-position: 100% 50%; }
+                        100% { background-position: 0% 50%; }
+                    }
+                    .ihsan-effect-{{ $linkEffectId }} {
+                        background: {{ $effectGradients[$linkEffect] }};
+                        background-size: 300% 300%;
+                        animation: ihsan-gradient-{{ $linkEffectId }} 4s ease infinite;
+                        box-shadow: {{ $effectShadows[$linkEffect] }};
+                        transition: transform .2s ease, box-shadow .2s ease;
+                    }
+                </style>
+            @endif
             <div class="flex min-h-[120px] items-center justify-center w-full">
                 <div class="{{ $alignClass }} w-full">
                     @if($linkStyle === 'button')
-                        <span class="inline-flex items-center justify-center gap-2 font-semibold text-white shadow-sm transition-all" 
-                              style="background:{{ $linkColor }};padding:{{ $ls['padding'] }};font-size:{{ $ls['font'] }};border-radius:8px;min-width:120px;cursor:pointer;">
+                        <span class="ihsan-effect-{{ $linkHasEffect ? $linkEffectId : '' }} inline-flex items-center justify-center gap-2 font-semibold text-white shadow-sm transition-all"
+                              style="{{ $linkHasEffect ? '' : 'background:' . $linkColor . ';' }}padding:{{ $ls['padding'] }};font-size:{{ $ls['font'] }};border-radius:8px;min-width:120px;cursor:pointer;">
                             {{ $linkText }}
                         </span>
                     @else
@@ -224,7 +275,24 @@
                 $popupColor = $config['color'] ?? 'campaign';
                 $colors = ['campaign' => '#16a34a', 'blue' => '#2563eb', 'teal' => '#0d9488', 'green' => '#16a34a', 'orange' => '#ea580c', 'red' => '#dc2626', 'purple' => '#9333ea', 'dark' => '#1e293b'];
                 $accentColor = $colors[$popupColor] ?? '#16a34a';
+                $popupEffect = $config['button_effect'] ?? 'none';
+                $popupHasEffect = $popupEffect !== 'none' && isset($effectGradients[$popupEffect]);
+                $popupEffectId = 'pop-' . md5($popupEffect);
             @endphp
+            @if($popupHasEffect)
+                <style>
+                    @keyframes ihsan-gradient-{{ $popupEffectId }} {
+                        0%   { background-position: 0% 50%; }
+                        50%  { background-position: 100% 50%; }
+                        100% { background-position: 0% 50%; }
+                    }
+                    .ihsan-effect-{{ $popupEffectId }} {
+                        background: {{ $effectGradients[$popupEffect] }} !important;
+                        background-size: 300% 300% !important;
+                        animation: ihsan-gradient-{{ $popupEffectId }} 4s ease infinite;
+                    }
+                </style>
+            @endif
             <div class="relative flex min-h-[300px] w-full items-center justify-center rounded-xl bg-zinc-50/80 p-4">
                 <div class="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-zinc-200/60">
                     <button type="button" class="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-zinc-100/80 text-zinc-400 transition hover:bg-zinc-200 hover:text-zinc-600">
@@ -248,7 +316,7 @@
                         @endif
                         <div class="mt-6 flex items-center justify-center gap-3">
                             <button type="button" class="rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700">Maybe later</button>
-                            <button type="button" class="min-w-[160px] rounded-lg px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg hover:opacity-90" style="background-color: {{ $accentColor }}">
+                            <button type="button" class="ihsan-effect-{{ $popupHasEffect ? $popupEffectId : '' }} min-w-[160px] rounded-lg px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg hover:opacity-90" style="{{ $popupHasEffect ? '' : 'background-color:' . $accentColor }}">
                                 {{ $popupButton }}
                             </button>
                         </div>
@@ -375,10 +443,29 @@
                             </button>
                             @endif
 
+                            @php
+                                $formEffect = $config['button_effect'] ?? 'none';
+                                $formHasEffect = $formEffect !== 'none' && isset($effectGradients[$formEffect]);
+                                $formEffectId = 'frm-' . md5($formEffect);
+                            @endphp
+                            @if($formHasEffect)
+                                <style>
+                                    @keyframes ihsan-gradient-{{ $formEffectId }} {
+                                        0%   { background-position: 0% 50%; }
+                                        50%  { background-position: 100% 50%; }
+                                        100% { background-position: 0% 50%; }
+                                    }
+                                    .ihsan-effect-{{ $formEffectId }} {
+                                        background: {{ $effectGradients[$formEffect] }};
+                                        background-size: 300% 300%;
+                                        animation: ihsan-gradient-{{ $formEffectId }} 4s ease infinite;
+                                    }
+                                </style>
+                            @endif
                             <button
                                 type="button"
                                 x-on:click="submitted = true"
-                                class="w-full rounded-xl bg-teal-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-teal-100 transition-all hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-100 active:scale-[0.98]"
+                                class="ihsan-effect-{{ $formHasEffect ? $formEffectId : '' }} w-full rounded-xl {{ $formHasEffect ? '' : 'bg-teal-600 hover:bg-teal-700 shadow-teal-100 hover:shadow-teal-100' }} px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:shadow-xl active:scale-[0.98]"
                             >
                                 @if(in_array($config['submit_text'] ?? 'Donate and Support', ['Donate and Support', 'Donate Now'], true))
                                     <span x-show="frequency === 'monthly'">Donate monthly</span>

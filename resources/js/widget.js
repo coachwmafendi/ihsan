@@ -214,6 +214,31 @@
     };
 
     var pos = positions[posKey] || positions.bottom_right;
+    var fbEffectGradients = {
+      gradient_teal_green:    "linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)",
+      gradient_blue_purple:   "linear-gradient(120deg,#2563eb,#7c3aed,#a855f7,#2563eb)",
+      gradient_orange_red:    "linear-gradient(120deg,#ea580c,#dc2626,#f97316,#ea580c)",
+      gradient_rose_pink:     "linear-gradient(120deg,#f43f5e,#ec4899,#fb7185,#f43f5e)",
+      gradient_amber_orange:  "linear-gradient(120deg,#f59e0b,#ea580c,#fbbf24,#f59e0b)",
+      gradient_cyan_blue:     "linear-gradient(120deg,#06b6d4,#2563eb,#38bdf8,#06b6d4)",
+      gradient_emerald_teal:  "linear-gradient(120deg,#10b981,#0d9488,#34d399,#10b981)",
+      gradient_indigo_purple: "linear-gradient(120deg,#6366f1,#7c3aed,#818cf8,#6366f1)",
+      gradient_gold_amber:    "linear-gradient(120deg,#eab308,#f59e0b,#fcd34d,#eab308)",
+      gradient_pink_purple:   "linear-gradient(120deg,#ec4899,#a855f7,#f472b6,#ec4899)",
+    };
+    var fbEffect = s.button_effect || "none";
+    var fbHasEffect = fbEffect !== "none" && fbEffectGradients[fbEffect];
+
+    if (fbHasEffect) {
+      var fbAnimName = "ihsan-grad-" + fbEffect;
+      if (!document.getElementById("ihsan-style-" + fbEffect)) {
+        var fbStyleEl = document.createElement("style");
+        fbStyleEl.id = "ihsan-style-" + fbEffect;
+        fbStyleEl.textContent = "@keyframes " + fbAnimName + "{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}";
+        document.head.appendChild(fbStyleEl);
+      }
+    }
+
     var color = hexColor(s.color || s.custom_color || "campaign");
     var isVertical = posKey.indexOf("vertical_") === 0;
 
@@ -277,7 +302,9 @@
       "box-shadow:0 4px 16px rgba(0,0,0,.18)",
       "transition:transform .2s,box-shadow .2s",
       "color:#fff",
-      "background:" + color,
+      fbHasEffect
+        ? "background:" + fbEffectGradients[fbEffect] + ";background-size:300% 300%;animation:" + ("ihsan-grad-" + fbEffect) + " 4s ease infinite"
+        : "background:" + color,
       widthStyle,
       heightStyle,
       "font-size:" + fontSize,
@@ -348,14 +375,28 @@
 
     var effect = s.button_effect || "none";
     var effectGradients = {
-      gradient_teal_green:  "linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)",
-      gradient_blue_purple: "linear-gradient(120deg,#2563eb,#7c3aed,#a855f7,#2563eb)",
-      gradient_orange_red:  "linear-gradient(120deg,#ea580c,#dc2626,#f97316,#ea580c)",
+      gradient_teal_green:    "linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)",
+      gradient_blue_purple:   "linear-gradient(120deg,#2563eb,#7c3aed,#a855f7,#2563eb)",
+      gradient_orange_red:    "linear-gradient(120deg,#ea580c,#dc2626,#f97316,#ea580c)",
+      gradient_rose_pink:     "linear-gradient(120deg,#f43f5e,#ec4899,#fb7185,#f43f5e)",
+      gradient_amber_orange:  "linear-gradient(120deg,#f59e0b,#ea580c,#fbbf24,#f59e0b)",
+      gradient_cyan_blue:     "linear-gradient(120deg,#06b6d4,#2563eb,#38bdf8,#06b6d4)",
+      gradient_emerald_teal:  "linear-gradient(120deg,#10b981,#0d9488,#34d399,#10b981)",
+      gradient_indigo_purple: "linear-gradient(120deg,#6366f1,#7c3aed,#818cf8,#6366f1)",
+      gradient_gold_amber:    "linear-gradient(120deg,#eab308,#f59e0b,#fcd34d,#eab308)",
+      gradient_pink_purple:   "linear-gradient(120deg,#ec4899,#a855f7,#f472b6,#ec4899)",
     };
     var effectShadows = {
-      gradient_teal_green:  "rgba(13,148,136,.4)",
-      gradient_blue_purple: "rgba(37,99,235,.4)",
-      gradient_orange_red:  "rgba(234,88,12,.4)",
+      gradient_teal_green:    "rgba(13,148,136,.4)",
+      gradient_blue_purple:   "rgba(37,99,235,.4)",
+      gradient_orange_red:    "rgba(234,88,12,.4)",
+      gradient_rose_pink:     "rgba(244,63,94,.4)",
+      gradient_amber_orange:  "rgba(245,158,11,.4)",
+      gradient_cyan_blue:     "rgba(6,182,212,.4)",
+      gradient_emerald_teal:  "rgba(16,185,129,.4)",
+      gradient_indigo_purple: "rgba(99,102,241,.4)",
+      gradient_gold_amber:    "rgba(234,179,8,.4)",
+      gradient_pink_purple:   "rgba(236,72,153,.4)",
     };
     var hasEffect = effect !== "none" && effectGradients[effect];
 
@@ -475,6 +516,26 @@
       ].join(";");
 
       var color = hexColor(s.color || "campaign");
+      var popupEffect = s.button_effect || "none";
+      var popupEffectGradients = {
+        gradient_teal_green:    "linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)",
+        gradient_blue_purple:   "linear-gradient(120deg,#2563eb,#7c3aed,#a855f7,#2563eb)",
+        gradient_orange_red:    "linear-gradient(120deg,#ea580c,#dc2626,#f97316,#ea580c)",
+        gradient_rose_pink:     "linear-gradient(120deg,#f43f5e,#ec4899,#fb7185,#f43f5e)",
+        gradient_amber_orange:  "linear-gradient(120deg,#f59e0b,#ea580c,#fbbf24,#f59e0b)",
+        gradient_cyan_blue:     "linear-gradient(120deg,#06b6d4,#2563eb,#38bdf8,#06b6d4)",
+        gradient_emerald_teal:  "linear-gradient(120deg,#10b981,#0d9488,#34d399,#10b981)",
+        gradient_indigo_purple: "linear-gradient(120deg,#6366f1,#7c3aed,#818cf8,#6366f1)",
+        gradient_gold_amber:    "linear-gradient(120deg,#eab308,#f59e0b,#fcd34d,#eab308)",
+        gradient_pink_purple:   "linear-gradient(120deg,#ec4899,#a855f7,#f472b6,#ec4899)",
+      };
+      var popupHasEffect = popupEffect !== "none" && popupEffectGradients[popupEffect];
+      if (popupHasEffect && !document.getElementById("ihsan-style-" + popupEffect)) {
+        var pStyleEl = document.createElement("style");
+        pStyleEl.id = "ihsan-style-" + popupEffect;
+        pStyleEl.textContent = "@keyframes ihsan-grad-" + popupEffect + "{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}";
+        document.head.appendChild(pStyleEl);
+      }
       var heading = s.title
         ? '<h3 style="margin:0 0 6px;font-size:18px;font-weight:700;color:#0f172a;">' + esc(s.title) + "</h3>"
         : "";
@@ -485,7 +546,10 @@
       var hasImage = !!s.image_url;
       var isFull = s.layout === "full";
       var closeBtn = '<button data-close style="position:absolute;top:12px;right:12px;width:32px;height:32px;border:0;border-radius:50%;background:rgba(15,23,42,.06);color:#64748b;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;z-index:2;">&times;</button>';
-      var ctaBtn = '<button data-cta style="display:inline-block;background:' + color + ";color:#fff;padding:12px 32px;border:0;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.14);" + '">' + btnText + "</button>";
+      var ctaBg = popupHasEffect
+        ? popupEffectGradients[popupEffect] + ";background-size:300% 300%;animation:ihsan-grad-" + popupEffect + " 4s ease infinite"
+        : color;
+      var ctaBtn = '<button data-cta style="display:inline-block;background:' + ctaBg + ";color:#fff;padding:12px 32px;border:0;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.14);" + '">' + btnText + "</button>";
 
       var cardHtml = '<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;box-shadow:0 24px 80px rgba(15,23,42,.28);text-align:center;position:relative;overflow:hidden;">';
       if (isFull && hasImage) {
@@ -581,6 +645,27 @@
     var sizeKey = (s.size || "medium").toLowerCase();
     var sz = sizes[sizeKey] || sizes.medium;
 
+    var linkEffectGradients = {
+      gradient_teal_green:    "linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)",
+      gradient_blue_purple:   "linear-gradient(120deg,#2563eb,#7c3aed,#a855f7,#2563eb)",
+      gradient_orange_red:    "linear-gradient(120deg,#ea580c,#dc2626,#f97316,#ea580c)",
+      gradient_rose_pink:     "linear-gradient(120deg,#f43f5e,#ec4899,#fb7185,#f43f5e)",
+      gradient_amber_orange:  "linear-gradient(120deg,#f59e0b,#ea580c,#fbbf24,#f59e0b)",
+      gradient_cyan_blue:     "linear-gradient(120deg,#06b6d4,#2563eb,#38bdf8,#06b6d4)",
+      gradient_emerald_teal:  "linear-gradient(120deg,#10b981,#0d9488,#34d399,#10b981)",
+      gradient_indigo_purple: "linear-gradient(120deg,#6366f1,#7c3aed,#818cf8,#6366f1)",
+      gradient_gold_amber:    "linear-gradient(120deg,#eab308,#f59e0b,#fcd34d,#eab308)",
+      gradient_pink_purple:   "linear-gradient(120deg,#ec4899,#a855f7,#f472b6,#ec4899)",
+    };
+    var linkEffect = s.button_effect || "none";
+    var linkHasEffect = style === "button" && linkEffect !== "none" && linkEffectGradients[linkEffect];
+    if (linkHasEffect && !document.getElementById("ihsan-style-" + linkEffect)) {
+      var lStyleEl = document.createElement("style");
+      lStyleEl.id = "ihsan-style-" + linkEffect;
+      lStyleEl.textContent = "@keyframes ihsan-grad-" + linkEffect + "{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}";
+      document.head.appendChild(lStyleEl);
+    }
+
     var link = document.createElement("a");
     link.href = href;
     link.textContent = text;
@@ -602,7 +687,9 @@
         "box-shadow:0 2px 8px rgba(0,0,0,.12)",
         "transition:transform .2s,box-shadow .2s,background .2s",
         "color:#fff",
-        "background:" + color,
+        linkHasEffect
+          ? "background:" + linkEffectGradients[linkEffect] + ";background-size:300% 300%;animation:ihsan-grad-" + linkEffect + " 4s ease infinite"
+          : "background:" + color,
         "padding:" + sz.padding,
         "font-size:" + sz.font,
         "font-weight:600",
