@@ -13,6 +13,7 @@ use Filament\Actions\DissociateBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -64,7 +65,7 @@ class ElementsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->slideOver()
+                    ->modalWidth(Width::FiveExtraLarge)
                     ->closeModalByClickingAway(false)
                     ->using(function (array $data) {
                         $campaign = $this->getOwnerRecord();
@@ -81,7 +82,7 @@ class ElementsRelationManager extends RelationManager
             ])
             ->recordActions([
                 EditAction::make()
-                    ->slideOver(),
+                    ->modalWidth(Width::FiveExtraLarge),
                 DissociateAction::make(),
                 DeleteAction::make(),
             ])
