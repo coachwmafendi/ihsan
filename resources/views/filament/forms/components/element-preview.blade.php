@@ -124,7 +124,7 @@
                     <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">{!! $iconPath !!}</svg>
                     @if(($config['shape'] ?? 'pill') === 'pill')
                         <span style="font-weight:700;white-space:nowrap;font-size:{{ $sz['font'] }}">
-                            {{ $config['button_text'] ?? 'Derma Sekarang' }}
+                            {{ $config['button_text'] ?? 'Donate Now' }}
                         </span>
                     @endif
                 </div>
@@ -141,7 +141,7 @@
                 ];
                 $linkColor = $linkColors[$config['color'] ?? 'campaign'] ?? '#16a34a';
                 $linkStyle = $config['style'] ?? 'button';
-                $linkText = $config['text'] ?? 'Derma Sekarang';
+                $linkText = $config['text'] ?? 'Donate Now';
                 $linkAlignment = $config['alignment'] ?? 'left';
                 $linkSizes = [
                     'small' => ['font' => '14px', 'padding' => '8px 16px'],

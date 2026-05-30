@@ -90,7 +90,7 @@ class ElementForm
                 'margin_bottom' => 0,
             ],
             'link' => [
-                'text' => 'Derma Sekarang',
+                'text' => 'Donate Now',
                 'url' => '',
                 'action' => 'checkout_modal',
                 'style' => 'button',
@@ -632,7 +632,7 @@ class ElementForm
                             ->schema([
                                 TextInput::make('text')
                                     ->label('Link text')
-                                    ->default('Derma Sekarang')
+                                    ->default('Donate Now')
                                     ->required()
                                     ->live(),
                                 Select::make('action')

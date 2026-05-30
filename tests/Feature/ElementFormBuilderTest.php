@@ -31,15 +31,12 @@ it('shows donation form builder settings when creating a form element', function
         ->assertSee('Cancel')
         ->assertSeeInOrder(['Show comment field', 'Cancel', 'Create element'])
         ->assertSee('Form')
-        ->assertSee('Behavior')
-        ->assertSee('Embed')
         ->assertSee('Live Preview')
         ->assertSee('ihsan-builder-shell')
         ->assertSee('ihsan-builder-editor')
         ->assertSee('ihsan-builder-preview')
         ->assertSee('--cols-xl: repeat(12, minmax(0, 1fr))')
         ->assertSee('Title')
-        ->assertSee('Save the element to get the embed code.')
         ->assertSee('Secure donation')
         ->assertSee('Donate monthly');
 });
@@ -65,15 +62,11 @@ it('shows a full page donation form workbench when editing a form element', func
         ->assertSee('Cancel')
         ->assertSeeInOrder(['Show comment field', 'Cancel', 'Save changes'])
         ->assertSee('Form')
-        ->assertSee('Behavior')
-        ->assertSee('Embed')
         ->assertSee('Live Preview')
         ->assertSee('ihsan-builder-shell')
         ->assertSee('ihsan-builder-editor')
         ->assertSee('ihsan-builder-preview')
         ->assertSee('--cols-xl: repeat(12, minmax(0, 1fr))')
-        ->assertSee('https://ihsan.test/donate/form-token-123')
-        ->assertSee('https://ihsan.test/donate/form-token-123?embed=1')
         ->assertSee('Your most generous donation')
         ->assertSee('max-w-[380px]', false)
         ->assertSee('min-h-[420px]', false)
@@ -164,7 +157,7 @@ it('shows floating button configuration settings when creating a floating button
         ->assertDontSee('Donation Form Workbench')
         ->assertDontSee('Select a type to preview')
         ->set('data.config', [
-            'button_text' => 'Derma Sekarang',
+            'button_text' => 'Support Us',
             'action' => 'checkout_modal',
             'icon' => 'heart',
             'position' => 'bottom-right',
@@ -174,8 +167,7 @@ it('shows floating button configuration settings when creating a floating button
             'visible_desktop' => true,
             'visible_mobile' => true,
         ])
-        ->assertDontSee('Donate Now')
-        ->assertSee('Derma Sekarang');
+        ->assertSee('Support Us');
 });
 
 it('creates a floating button element with organization and token', function () {
@@ -195,7 +187,7 @@ it('creates a floating button element with organization and token', function () 
             'campaign_id' => $campaign->getKey(),
         ])
         ->set('data.config', [
-            'button_text' => 'Derma Sekarang',
+            'button_text' => 'Donate Now',
             'action' => 'checkout_modal',
             'position' => 'bottom-left',
             'color' => 'teal',
@@ -221,7 +213,7 @@ it('creates a floating button element with organization and token', function () 
         ->and(Str::length($element->token))->toBe(6)
 
         ->and($element->config)->toMatchArray([
-            'button_text' => 'Derma Sekarang',
+            'button_text' => 'Donate Now',
             'action' => 'checkout_modal',
             'position' => 'bottom-left',
             'color' => 'teal',

@@ -39,7 +39,7 @@ class PublicElementController extends Controller
 
         if ($element->type === ElementType::FloatingButton) {
             $settings = array_merge([
-                'button_text' => 'Derma Sekarang',
+                'button_text' => 'Donate Now',
                 'action' => 'checkout_modal',
                 'position' => 'bottom-right',
                 'color' => 'campaign',
@@ -52,9 +52,9 @@ class PublicElementController extends Controller
 
         if ($element->type === ElementType::Popup) {
             $settings = array_merge([
-                'title' => 'Bantu Anak Tahfiz Hari Ini',
+                'title' => 'Support Our Cause Today',
                 'message' => null,
-                'button_text' => 'Derma Sekarang',
+                'button_text' => 'Donate Now',
                 'action' => 'checkout_modal',
                 'trigger' => 'after_delay',
                 'delay' => 8,
@@ -107,7 +107,7 @@ class PublicElementController extends Controller
 
         if ($element->type === ElementType::Form) {
             $settings = array_merge([
-                'button_text' => 'Derma Sekarang',
+                'button_text' => 'Donate Now',
                 'action' => 'checkout_modal',
                 'color' => 'campaign',
             ], $settings);
@@ -125,7 +125,7 @@ class PublicElementController extends Controller
 
         if ($element->type === ElementType::Link) {
             $settings = array_merge([
-                'text' => 'Derma Sekarang',
+                'text' => 'Donate Now',
                 'url' => '',
                 'style' => 'button',
                 'color' => 'campaign',
