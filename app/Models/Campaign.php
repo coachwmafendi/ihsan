@@ -22,22 +22,10 @@ class Campaign extends Model
     protected static function booted(): void
     {
         static::saving(function (Campaign $campaign) {
-            if (blank($campaign->form_parameter) && filled($campaign->title)) {
-                $base = Str::of($campaign->title)
-                    ->upper()
-                    ->replaceMatches('/[^A-Z0-9]/', '')
-                    ->substr(0, 20);
-
-                $candidate = $base;
-                $i = 1;
-
-                while (static::where('form_parameter', $candidate)
-                    ->where('id', '!=', $campaign->id)
-                    ->exists()
-                ) {
-                    $candidate = $base.$i;
-                    $i++;
-                }
+            if (blank($campaign->form_parameter)) {
+                do {
+                    $candidate = strtoupper(Str::random(5));
+                } while (static::where('form_parameter', $candidate)->exists());
 
                 $campaign->form_parameter = $candidate;
             }

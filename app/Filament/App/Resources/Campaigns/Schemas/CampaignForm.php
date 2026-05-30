@@ -160,11 +160,6 @@ class CampaignForm
                                             ->helperText('Penderma boleh buka borang ini sebagai pop-up terus dari laman web organisasi.')
                                             ->default(false)
                                             ->columnSpanFull(),
-                                        TextInput::make('form_parameter')
-                                            ->label('Kod kempen')
-                                            ->helperText('Kod unik untuk kempen ini. Dijana secara automatik — boleh ditukar.')
-                                            ->maxLength(255)
-                                            ->unique(ignoreRecord: true),
                                         TagsInput::make('checkout_allowed_domains')
                                             ->label('Domain dibenarkan')
                                             ->helperText('Masukkan domain laman web organisasi, contoh: abc.com — Borang tidak akan dibuka dari domain lain.')
@@ -192,7 +187,7 @@ class CampaignForm
                                     ->schema([
                                         Placeholder::make('embed_modal_note')
                                             ->hiddenLabel()
-                                            ->content(fn ($get) => new HtmlString(self::embedSnippetHtml($get('form_parameter'))))
+                                            ->content(fn ($record) => new HtmlString(self::embedSnippetHtml($record?->form_parameter)))
                                             ->columnSpanFull(),
                                     ]),
                             ]),

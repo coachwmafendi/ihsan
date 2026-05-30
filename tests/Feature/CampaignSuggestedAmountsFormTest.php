@@ -63,7 +63,6 @@ it('saves checkout modal settings on the campaign form', function () {
             'title' => 'Ramadan Relief Fund',
             'status' => 'active',
             'checkout_modal_enabled' => true,
-            'form_parameter' => 'RAMADAN2026',
             'checkout_allowed_domains' => [
                 'mumzatuttaqwa.com',
                 'www.mumzatuttaqwa.com',
@@ -74,13 +73,11 @@ it('saves checkout modal settings on the campaign form', function () {
         ->assertNotified()
         ->assertRedirect();
 
-    $campaign = Campaign::query()
-        ->where('form_parameter', 'RAMADAN2026')
-        ->firstOrFail();
+    $campaign = $organization->campaigns()->latest()->firstOrFail();
 
     expect($campaign->organization_id)->toBe($organization->getKey())
         ->and($campaign->checkout_modal_enabled)->toBeTrue()
-        ->and($campaign->form_parameter)->toBe('RAMADAN2026')
+        ->and($campaign->form_parameter)->toMatch('/^[A-Z0-9]{5}$/')
         ->and($campaign->checkout_allowed_domains)->toBe([
             'mumzatuttaqwa.com',
             'www.mumzatuttaqwa.com',
