@@ -512,6 +512,7 @@
       var qs = "?popup=1&step=2";
       if (e.data.amount) qs += "&amount=" + encodeURIComponent(e.data.amount);
       if (e.data.frequency) qs += "&frequency=" + encodeURIComponent(e.data.frequency);
+      if (e.data.currency) qs += "&currency=" + encodeURIComponent(e.data.currency);
       var modalUrl = el.campaign_form_parameter
         ? baseUrl + "/donate/campaign/" + el.campaign_form_parameter + qs
         : baseUrl + "/donate/" + el.token + qs;

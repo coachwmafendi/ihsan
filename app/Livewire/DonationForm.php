@@ -167,6 +167,11 @@ class DonationForm extends Component
         if ($frequency !== null && in_array($frequency, ['one_time', 'monthly'], strict: true)) {
             $this->frequency = $frequency;
         }
+
+        $currency = request()->query('currency');
+        if ($currency !== null) {
+            $this->selectCurrency(strtolower($currency));
+        }
     }
 
     private function setElementPresentationMode(Element $element): void
