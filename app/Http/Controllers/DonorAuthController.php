@@ -42,10 +42,9 @@ class DonorAuthController extends Controller
     {
         $donor = Donor::query()
             ->where('magic_token', hash('sha256', $token))
-            ->where('magic_token_expires_at', '>', now())
             ->first();
 
-        if ($donor === null) {
+        if ($donor === null || ! $donor->isValidMagicToken($token)) {
             return redirect()->route('donorportal.login', $organization)->with('error', 'Invalid or expired login link.');
         }
 

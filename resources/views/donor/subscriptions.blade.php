@@ -37,7 +37,6 @@
             return;
         }
 
-        // User may have closed modal during fetch
         if (this.paymentModal === null) {
             this.paymentMounting = false;
             return;
@@ -138,289 +137,271 @@
         location.reload();
     }
 }" x-init="$nextTick(() => setTimeout(() => loaded = true, 400))">
-<div class="donor-skeleton" x-show="!loaded" x-transition.opacity.duration.250ms x-cloak aria-hidden="true">
-    <div class="mb-8">
-        <div class="h-8 w-48 animate-pulse rounded-lg bg-slate-200"></div>
-        <div class="mt-1 h-4 w-64 animate-pulse rounded bg-slate-100"></div>
-    </div>
-    <div class="space-y-3">
-        <div class="h-32 animate-pulse rounded-xl bg-slate-100" style="border:1.5px solid transparent;"></div>
-        <div class="h-32 animate-pulse rounded-xl bg-slate-100" style="border:1.5px solid transparent;"></div>
-    </div>
-</div>
-<div>
-    <div class="mb-8">
-        <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Subscriptions</h1>
-        <p class="mt-0.5 text-xs text-slate-500">Manage your recurring donations.</p>
-    </div>
-
-    @if (session('error'))
-        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700">
-            {{ session('error') }}
+    <div class="donor-skeleton" x-show="!loaded" x-transition.opacity.duration.250ms x-cloak aria-hidden="true">
+        <div class="mb-8">
+            <div class="h-8 w-48 animate-pulse rounded-lg bg-slate-200"></div>
+            <div class="mt-1 h-4 w-64 animate-pulse rounded bg-slate-100"></div>
         </div>
-    @endif
+        <div class="space-y-3">
+            <div class="h-32 animate-pulse rounded-xl bg-slate-100 donor-card-skeleton"></div>
+            <div class="h-32 animate-pulse rounded-xl bg-slate-100 donor-card-skeleton"></div>
+        </div>
+    </div>
+    <div>
+        <div class="mb-8">
+            <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Subscriptions</h1>
+            <p class="mt-0.5 text-xs text-slate-500">Manage your recurring donations.</p>
+        </div>
 
-    <div x-show="paymentError" x-cloak
-         class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700"
-         x-text="paymentError"></div>
+        @if (session('error'))
+            <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700">
+                {{ session('error') }}
+            </div>
+        @endif
 
-    <div class="space-y-3">
-        @forelse ($subscriptions as $subscription)
-            <div class="rounded-xl bg-white p-4 transition {{ $subscription->status === \App\Enums\SubscriptionStatus::Cancelled ? 'opacity-60' : 'hover:shadow-md' }}"
-                 style="border:1.5px solid #e2e8f0;">
-                <div class="flex items-start justify-between gap-4">
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-bold text-slate-900">{{ $subscription->campaign->title }}</p>
-                        <p class="mt-0.5 text-xs text-slate-500">{{ $subscription->campaign->organization->name }}</p>
-                    </div>
-                    <div class="flex-shrink-0 text-right">
-                        <p class="text-base font-black text-slate-900">
-                            {{ $subscription->currency_symbol }} {{ number_format($subscription->amount, 2) }}<span class="text-xs font-normal text-slate-400">/{{ $subscription->interval->value }}</span>
-                        </p>
-                        @if ($subscription->current_period_end)
-                            <p class="mt-0.5 text-[11px] text-slate-400">
-                                Next: {{ $subscription->current_period_end->format('d M Y') }}
+        <div x-show="paymentError" x-cloak
+             class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700"
+             x-text="paymentError"></div>
+
+        <div class="space-y-3">
+            @forelse ($subscriptions as $subscription)
+                <div class="rounded-xl bg-white p-4 transition {{ $subscription->status === \App\Enums\SubscriptionStatus::Cancelled ? 'opacity-60' : 'hover:shadow-md' }}"
+                     style="border:1.5px solid #e2e8f0;">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-bold text-slate-900">{{ $subscription->campaign->title }}</p>
+                            <p class="mt-0.5 text-xs text-slate-500">{{ $subscription->campaign->organization->name }}</p>
+                        </div>
+                        <div class="flex-shrink-0 text-right">
+                            <p class="text-base font-black text-slate-900">
+                                {{ $subscription->currency_symbol }} {{ number_format($subscription->amount, 2) }}<span class="text-xs font-normal text-slate-400">/{{ $subscription->interval->value }}</span>
                             </p>
+                            @if ($subscription->current_period_end)
+                                <p class="mt-0.5 text-[11px] text-slate-400">
+                                    Next: {{ $subscription->current_period_end->format('d M Y') }}
+                                </p>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between">
+                        @php
+                            $statusClass = match ($subscription->status) {
+                                \App\Enums\SubscriptionStatus::Active     => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                \App\Enums\SubscriptionStatus::Cancelled  => 'bg-slate-50 text-slate-600 border-slate-200',
+                                \App\Enums\SubscriptionStatus::PastDue    => 'bg-red-50 text-red-600 border-red-200',
+                                \App\Enums\SubscriptionStatus::Paused     => 'bg-amber-50 text-amber-700 border-amber-200',
+                                \App\Enums\SubscriptionStatus::Incomplete => 'bg-slate-50 text-slate-500 border-slate-200',
+                            };
+                            $statusPrefix = $subscription->status === \App\Enums\SubscriptionStatus::Active ? '● ' : '';
+                        @endphp
+                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold {{ $statusClass }}">
+                            {{ $statusPrefix }}{{ str($subscription->status->value)->headline() }}
+                        </span>
+
+                        @if ($subscription->status === \App\Enums\SubscriptionStatus::Active)
+                            <div class="flex items-center gap-2">
+                                <button @click="changeModal = {{ $subscription->getKey() }}; changeAmount = '{{ number_format($subscription->amount, 2, '.', '') }}'"
+                                        class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                                    <x-heroicon name="plus" class="h-3.5 w-3.5" />
+                                    Change Amount
+                                </button>
+                                <button @click="openPayment({{ $subscription->getKey() }})"
+                                        class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                                    <x-heroicon name="credit-card" class="h-3.5 w-3.5" />
+                                    Update Card Details
+                                </button>
+                                <button type="button"
+                                        @click="pauseConfirmId = {{ $subscription->getKey() }}"
+                                        class="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-600 transition hover:bg-amber-100">
+                                    <x-heroicon name="pause" class="h-3.5 w-3.5" />
+                                    Pause
+                                </button>
+                                <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
+                                   class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                                    <x-heroicon name="list-bullet" class="h-3.5 w-3.5" />
+                                    History
+                                </a>
+                                <button type="button"
+                                        @click="cancelConfirmId = {{ $subscription->getKey() }}"
+                                        class="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100">
+                                    <x-heroicon name="x-mark" class="h-3.5 w-3.5" />
+                                    Cancel
+                                </button>
+                            </div>
+                        @elseif ($subscription->status === \App\Enums\SubscriptionStatus::Paused)
+                            <div class="flex items-center gap-2">
+                                <form action="{{ route('donorportal.subscriptions.resume', ['organization' => $organization, 'subscription' => $subscription]) }}"
+                                      method="POST"
+                                      onsubmit="return confirm('Resume this subscription?')"
+                                      class="inline">
+                                    @csrf
+                                    <button type="submit"
+                                            class="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-600 transition hover:bg-emerald-100">
+                                        <x-heroicon name="play" class="h-3.5 w-3.5" />
+                                        Resume
+                                    </button>
+                                </form>
+                                <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
+                                   class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                                    <x-heroicon name="list-bullet" class="h-3.5 w-3.5" />
+                                    History
+                                </a>
+                            </div>
+                        @else
+                            <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
+                               class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                                <x-heroicon name="list-bullet" class="h-3.5 w-3.5" />
+                                History
+                            </a>
                         @endif
                     </div>
                 </div>
-                <div class="mt-3 flex items-center justify-between">
-                    @php
-                        $statusClass = match ($subscription->status) {
-                            \App\Enums\SubscriptionStatus::Active     => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                            \App\Enums\SubscriptionStatus::Cancelled  => 'bg-slate-50 text-slate-600 border-slate-200',
-                            \App\Enums\SubscriptionStatus::PastDue    => 'bg-red-50 text-red-600 border-red-200',
-                            \App\Enums\SubscriptionStatus::Paused     => 'bg-amber-50 text-amber-700 border-amber-200',
-                            \App\Enums\SubscriptionStatus::Incomplete => 'bg-slate-50 text-slate-500 border-slate-200',
-                        };
-                        $statusPrefix = $subscription->status === \App\Enums\SubscriptionStatus::Active ? '● ' : '';
-                    @endphp
-                    <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold {{ $statusClass }}">
-                        {{ $statusPrefix }}{{ str($subscription->status->value)->headline() }}
-                    </span>
-
-                    @if ($subscription->status === \App\Enums\SubscriptionStatus::Active)
-                        <div class="flex items-center gap-2">
-                            <button @click="changeModal = {{ $subscription->getKey() }}; changeAmount = '{{ number_format($subscription->amount, 2, '.', '') }}'"
-                                    class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
-                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
-                                </svg>
-                                Change Amount
-                            </button>
-                            <button @click="openPayment({{ $subscription->getKey() }})"
-                                    class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
-                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                                </svg>
-                                Update Card Details
-                            </button>
-                            <button type="button"
-                                    @click="pauseConfirmId = {{ $subscription->getKey() }}"
-                                    class="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-600 transition hover:bg-amber-100">
-                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
-                                </svg>
-                                Pause
-                            </button>
-                            <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
-                               class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
-                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
-                                </svg>
-                                History
-                            </a>
-                            <button type="button"
-                                    @click="cancelConfirmId = {{ $subscription->getKey() }}"
-                                    class="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100">
-                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                </svg>
-                                Cancel
-                            </button>
-                        </div>
-                    @elseif ($subscription->status === \App\Enums\SubscriptionStatus::Paused)
-                        <div class="flex items-center gap-2">
-                            <form action="{{ route('donorportal.subscriptions.resume', ['organization' => $organization, 'subscription' => $subscription]) }}"
-                                  method="POST"
-                                  onsubmit="return confirm('Resume this subscription?')"
-                                  class="inline">
-                                @csrf
-                                <button type="submit"
-                                        class="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-600 transition hover:bg-emerald-100">
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
-                                    </svg>
-                                    Resume
-                                </button>
-                            </form>
-                            <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
-                               class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
-                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
-                                </svg>
-                                History
-                            </a>
-                        </div>
-                    @else
-                        <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
-                           class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
-                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
-                            </svg>
-                            History
-                        </a>
-                    @endif
+            @empty
+                <div class="rounded-xl bg-white px-8 py-16 text-center donor-card">
+                    <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+                        <x-heroicon name="list-bullet" class="h-7 w-7 text-slate-400" />
+                    </div>
+                    <p class="text-sm font-bold text-slate-700">No subscriptions yet</p>
+                    <p class="mt-1.5 text-xs text-slate-500">Set up a recurring donation to start a subscription.</p>
                 </div>
-            </div>
-        @empty
-            <div class="rounded-xl bg-white px-8 py-16 text-center" style="border:1.5px solid #e2e8f0;">
-                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-                    <svg class="h-7 w-7 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
-                    </svg>
-                </div>
-                <p class="text-sm font-bold text-slate-700">No subscriptions yet</p>
-                <p class="mt-1.5 text-xs text-slate-500">Set up a recurring donation to start a subscription.</p>
-            </div>
-        @endforelse
-    </div>
-
-    @if ($subscriptions->hasPages())
-        <div class="mt-8">{{ $subscriptions->links() }}</div>
-    @endif
-</div>
-
-{{-- Change Amount Modal --}}
-<div x-show="changeModal !== null"
-     x-cloak
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-     @click.self="changeModal = null"
-     x-transition.opacity>
-    <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
-        <h3 class="text-base font-black text-slate-900">Change Amount</h3>
-        <p class="mt-1 text-xs text-slate-500">Enter the new amount for your subscription.</p>
-        <div class="mt-4">
-            <input type="number"
-                   step="0.01"
-                   min="1"
-                   x-model="changeAmount"
-                   class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-0"
-                   placeholder="0.00">
+            @endforelse
         </div>
-        <div x-show="changeError" class="mt-2 text-xs text-red-500" x-text="changeError"></div>
-        <div class="mt-4 flex items-center justify-end gap-2">
-            <button @click="changeModal = null"
-                    class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
-                Cancel
-            </button>
-            <button @click="changeAmountSubmit(changeModal)"
-                    x-text="changeLoading ? 'Saving...' : 'Save'"
-                    :disabled="changeLoading"
-                    class="rounded-lg border border-transparent bg-slate-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-700 disabled:opacity-50">
-                Save
-            </button>
-        </div>
+
+        @if ($subscriptions->hasPages())
+            <div class="mt-8">{{ $subscriptions->links() }}</div>
+        @endif
     </div>
-</div>
 
-{{-- Pause Confirmation Modal --}}
-<div x-show="pauseConfirmId !== null"
-     x-cloak
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-     @click.self="pauseConfirmId = null"
-     x-transition.opacity>
-    <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
-        <h3 class="text-base font-black text-slate-900">Pause Subscription?</h3>
-        <p class="mt-1 text-xs text-slate-500">No further payments will be collected until you resume.</p>
-
-        <form method="POST"
-              x-bind:action="'{{ route('donorportal.subscriptions.pause', ['organization' => $organization, 'subscription' => '__id__']) }}'.replace('__id__', pauseConfirmId)"
-              class="mt-6 flex items-center justify-end gap-2">
-            @csrf
-            <button type="button"
-                    @click="pauseConfirmId = null"
-                    class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
-                Keep Active
-            </button>
-            <button type="submit"
-                    class="rounded-lg border border-transparent bg-amber-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-amber-500">
-                Yes, Pause
-            </button>
-        </form>
-    </div>
-</div>
-
-{{-- Cancel Confirmation Modal --}}
-<div x-show="cancelConfirmId !== null"
-     x-cloak
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-     @click.self="cancelConfirmId = null"
-     x-transition.opacity>
-    <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
-        <h3 class="text-base font-black text-slate-900">Cancel Subscription?</h3>
-        <p class="mt-1 text-xs text-slate-500">Your subscription will stop at the end of the current billing period. No further charges after that.</p>
-
-        <form method="POST"
-              x-bind:action="'{{ route('donorportal.subscriptions.cancel', ['organization' => $organization, 'subscription' => '__id__']) }}'.replace('__id__', cancelConfirmId)"
-              class="mt-6 flex items-center justify-end gap-2">
-            @csrf
-            <button type="button"
-                    @click="cancelConfirmId = null"
-                    class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
-                Keep Active
-            </button>
-            <button type="submit"
-                    class="rounded-lg border border-transparent bg-red-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-red-500">
-                Yes, Cancel
-            </button>
-        </form>
-    </div>
-</div>
-
-{{-- Payment Method Modal --}}
-<div x-show="paymentModal !== null"
-     x-cloak
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-     @click.self="paymentModal = null; paymentMounting = false"
-     x-transition.opacity>
-    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" @click.stop>
-        <h3 class="text-base font-black text-slate-900">Update Card Details</h3>
-        <div class="max-h-[28rem] overflow-y-auto">
+    {{-- Change Amount Modal --}}
+    <div x-show="changeModal !== null"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+         @click.self="changeModal = null"
+         x-transition.opacity>
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
+            <h3 class="text-base font-black text-slate-900">Change Amount</h3>
+            <p class="mt-1 text-xs text-slate-500">Enter the new amount for your subscription.</p>
             <div class="mt-4">
-                <div x-show="paymentMounting" class="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <div class="space-y-2">
-                        <div class="h-3 w-1/3 animate-pulse rounded bg-slate-200"></div>
-                        <div class="h-9 animate-pulse rounded bg-slate-200"></div>
-                        <div class="mt-3 grid grid-cols-2 gap-3">
+                <input type="number"
+                       step="0.01"
+                       min="1"
+                       x-model="changeAmount"
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-0"
+                       placeholder="0.00">
+            </div>
+            <div x-show="changeError" class="mt-2 text-xs text-red-500" x-text="changeError"></div>
+            <div class="mt-4 flex items-center justify-end gap-2">
+                <button @click="changeModal = null"
+                        class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                    Cancel
+                </button>
+                <button @click="changeAmountSubmit(changeModal)"
+                        x-text="changeLoading ? 'Saving...' : 'Save'"
+                        :disabled="changeLoading"
+                        class="rounded-lg border border-transparent bg-slate-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-700 disabled:opacity-50">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Pause Confirmation Modal --}}
+    <div x-show="pauseConfirmId !== null"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+         @click.self="pauseConfirmId = null"
+         x-transition.opacity>
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
+            <h3 class="text-base font-black text-slate-900">Pause Subscription?</h3>
+            <p class="mt-1 text-xs text-slate-500">No further payments will be collected until you resume.</p>
+
+            <form method="POST"
+                  x-bind:action="'{{ route('donorportal.subscriptions.pause', ['organization' => $organization, 'subscription' => '__id__']) }}'.replace('__id__', pauseConfirmId)"
+                  class="mt-6 flex items-center justify-end gap-2">
+                @csrf
+                <button type="button"
+                        @click="pauseConfirmId = null"
+                        class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                    Keep Active
+                </button>
+                <button type="submit"
+                        class="rounded-lg border border-transparent bg-amber-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-amber-500">
+                    Yes, Pause
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {{-- Cancel Confirmation Modal --}}
+    <div x-show="cancelConfirmId !== null"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+         @click.self="cancelConfirmId = null"
+         x-transition.opacity>
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
+            <h3 class="text-base font-black text-slate-900">Cancel Subscription?</h3>
+            <p class="mt-1 text-xs text-slate-500">Your subscription will stop at the end of the current billing period. No further charges after that.</p>
+
+            <form method="POST"
+                  x-bind:action="'{{ route('donorportal.subscriptions.cancel', ['organization' => $organization, 'subscription' => '__id__']) }}'.replace('__id__', cancelConfirmId)"
+                  class="mt-6 flex items-center justify-end gap-2">
+                @csrf
+                <button type="button"
+                        @click="cancelConfirmId = null"
+                        class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                    Keep Active
+                </button>
+                <button type="submit"
+                        class="rounded-lg border border-transparent bg-red-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-red-500">
+                    Yes, Cancel
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {{-- Payment Method Modal --}}
+    <div x-show="paymentModal !== null"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+         @click.self="paymentModal = null; paymentMounting = false"
+         x-transition.opacity>
+        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" @click.stop>
+            <h3 class="text-base font-black text-slate-900">Update Card Details</h3>
+            <div class="max-h-[28rem] overflow-y-auto">
+                <div class="mt-4">
+                    <div x-show="paymentMounting" class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                        <div class="space-y-2">
+                            <div class="h-3 w-1/3 animate-pulse rounded bg-slate-200"></div>
                             <div class="h-9 animate-pulse rounded bg-slate-200"></div>
-                            <div class="h-9 animate-pulse rounded bg-slate-200"></div>
+                            <div class="mt-3 grid grid-cols-2 gap-3">
+                                <div class="h-9 animate-pulse rounded bg-slate-200"></div>
+                                <div class="h-9 animate-pulse rounded bg-slate-200"></div>
+                            </div>
                         </div>
                     </div>
+                    <div id="stripe-card-element" x-show="!paymentMounting" class="rounded-lg border border-gray-300 p-3"></div>
+                    <div id="stripe-card-errors" class="mt-2 text-xs text-red-500"></div>
                 </div>
-                <div id="stripe-card-element" x-show="!paymentMounting" class="rounded-lg border border-gray-300 p-3"></div>
-                <div id="stripe-card-errors" class="mt-2 text-xs text-red-500"></div>
+            </div>
+            <div x-show="paymentLoading" class="mt-2 text-xs text-slate-500">Processing...</div>
+            <div x-show="paymentSuccess" class="mt-2 rounded-lg bg-emerald-50 p-3 text-xs font-bold text-emerald-700">
+                Card updated successfully!
+            </div>
+            <div class="mt-4 flex items-center justify-end gap-2">
+                <button @click="paymentModal = null; paymentMounting = false"
+                        class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                    Close
+                </button>
+                <button @click="submitPayment(paymentModal)"
+                        x-show="!paymentSuccess"
+                        x-text="paymentLoading ? 'Saving...' : 'Save Card'"
+                        :disabled="paymentLoading || paymentClientSecret === null"
+                        class="rounded-lg border border-transparent bg-slate-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-700 disabled:opacity-50">
+                    Save Card
+                </button>
             </div>
         </div>
-        <div x-show="paymentLoading" class="mt-2 text-xs text-slate-500">Processing...</div>
-        <div x-show="paymentSuccess" class="mt-2 rounded-lg bg-emerald-50 p-3 text-xs font-bold text-emerald-700">
-            Card updated successfully!
-        </div>
-        <div class="mt-4 flex items-center justify-end gap-2">
-            <button @click="paymentModal = null; paymentMounting = false"
-                    class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
-                Close
-            </button>
-            <button @click="submitPayment(paymentModal)"
-                    x-show="!paymentSuccess"
-                    x-text="paymentLoading ? 'Saving...' : 'Save Card'"
-                    :disabled="paymentLoading || paymentClientSecret === null"
-                    class="rounded-lg border border-transparent bg-slate-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-700 disabled:opacity-50">
-                Save Card
-            </button>
-        </div>
     </div>
-</div>
 </div>
 @endsection
 

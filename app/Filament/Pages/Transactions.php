@@ -47,7 +47,9 @@ class Transactions extends Page implements HasTable
                     ->label('Campaign')
                     ->searchable()
                     ->sortable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->limit(30)
+                    ->tooltip(fn (Donation $record): string => $record->campaign?->title ?? ''),
                 TextColumn::make('gross_amount')
                     ->label('Amount')
                     ->formatStateUsing(function (string $state, Donation $record): string {

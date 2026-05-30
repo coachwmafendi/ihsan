@@ -66,26 +66,20 @@
     </main>
 
     @if (session('success'))
-        <div id="toast" class="fixed bottom-6 right-6 z-50 max-w-sm rounded-xl border border-emerald-200 bg-white px-5 py-3.5 shadow-xl transition-all duration-500 ease-out opacity-100 translate-y-0">
+        <div x-data="{ show: true }"
+             x-init="setTimeout(() => show = false, 5000)"
+             x-show="show"
+             x-transition:leave="transition ease-in duration-500"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 translate-y-2"
+             class="fixed bottom-6 right-6 z-50 max-w-sm rounded-xl border border-emerald-200 bg-white px-5 py-3.5 shadow-xl">
             <div class="flex items-center gap-3">
                 <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
-                    <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
+                    <x-heroicon name="check" class="h-4 w-4 text-emerald-600" />
                 </div>
                 <p class="text-sm font-semibold text-slate-800">{{ session('success') }}</p>
             </div>
         </div>
-        <script>
-            setTimeout(function() {
-                var e = document.getElementById('toast');
-                if (e) {
-                    e.classList.remove('opacity-100', 'translate-y-0');
-                    e.classList.add('opacity-0', 'translate-y-2');
-                    setTimeout(function() { e.remove(); }, 500);
-                }
-            }, 5000);
-        </script>
     @endif
 
     <footer class="border-t border-slate-200 bg-white">
@@ -93,9 +87,7 @@
             <p class="text-[11px] text-slate-400">&copy; {{ date('Y') }} Ihsan.</p>
             <button type="button" @click="reportOpen = true"
                     class="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400 transition hover:text-slate-700">
-                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                </svg>
+                <x-heroicon name="question-mark-circle" class="h-3.5 w-3.5" />
                 Report a problem
             </button>
         </div>
@@ -111,9 +103,7 @@
                     <h2 class="text-base font-bold text-slate-900">Report a problem</h2>
                     <button type="button" @click="reportOpen = false"
                             class="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <x-heroicon name="x-mark" class="h-5 w-5" />
                     </button>
                 </div>
                 <form method="POST" action="{{ route('donorportal.report-problem', $organization) }}" class="p-6">
@@ -129,8 +119,7 @@
                             Cancel
                         </button>
                         <button type="submit"
-                                class="rounded-lg px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:shadow-md"
-                                style="background:#0d9488;">
+                                class="rounded-lg px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:shadow-md bg-emerald-600">
                             Submit
                         </button>
                     </div>

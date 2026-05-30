@@ -22,7 +22,7 @@ it('allows super admins into the admin panel', function () {
 
     $this->actingAs($user)
         ->get('/admin')
-        ->assertSuccessful();
+        ->assertRedirect(route('filament.admin.pages.platform-overview'));
 });
 
 it('keeps panel roles separated', function () {
@@ -36,6 +36,10 @@ it('keeps panel roles separated', function () {
 
     $this->actingAs($ngoAdmin)
         ->get('/admin')
+        ->assertRedirect(route('filament.admin.pages.platform-overview'));
+
+    $this->actingAs($ngoAdmin)
+        ->get('/admin/platform-overview')
         ->assertForbidden();
 
     $this->actingAs($superAdmin)

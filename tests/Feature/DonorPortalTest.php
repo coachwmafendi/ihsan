@@ -1,14 +1,17 @@
 <?php
 
+use App\Actions\Stripe\ManageStripeSubscription;
 use App\Enums\DonationStatus;
 use App\Enums\ElementType;
 use App\Enums\SubscriptionStatus;
+use App\Enums\UserRole;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 
 it('resolves org-scoped donor portal login page', function () {
@@ -490,10 +493,194 @@ it('updates donor profile with photo', function () {
 it('submits report problem and redirects to dashboard', function () {
     $org = Organization::factory()->create();
     $donor = Donor::factory()->create();
+    User::factory()->create([
+        'organization_id' => $org->getKey(),
+        'role' => UserRole::NgoAdmin,
+    ]);
 
     $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
         ->post(route('donorportal.report-problem', $org), [
             'message' => 'Test problem report',
         ])
         ->assertRedirect(route('donorportal.dashboard', $org));
+});
+
+it('rejects empty message in report problem', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.report-problem', $org), [
+            'message' => '',
+        ])
+        ->assertSessionHasErrors('message');
+});
+
+it('subscribes cancel requires authorization and returns redirect', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => SubscriptionStatus::Active,
+        'stripe_subscription_id' => 'sub_test_cancel',
+    ]);
+
+    $this->mock(ManageStripeSubscription::class)
+        ->shouldReceive('cancel')
+        ->once()
+        ->with(Mockery::on(fn ($s) => $s->getKey() === $subscription->getKey()), false)
+        ->andReturnNull();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.subscriptions.cancel', ['organization' => $org, 'subscription' => $subscription]))
+        ->assertRedirect(route('donorportal.subscriptions', $org))
+        ->assertSessionHas('success');
+});
+
+it('denies cancel subscription from another donor', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $otherDonor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $otherDonor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.subscriptions.cancel', ['organization' => $org, 'subscription' => $subscription]))
+        ->assertForbidden();
+});
+
+it('denies cancel subscription from another organization', function () {
+    $org = Organization::factory()->create();
+    $otherOrg = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $otherOrg->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.subscriptions.cancel', ['organization' => $org, 'subscription' => $subscription]))
+        ->assertForbidden();
+});
+
+it('subscribes pause requires authorization and returns redirect', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    $this->mock(ManageStripeSubscription::class)
+        ->shouldReceive('pause')
+        ->once()
+        ->andReturnNull();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.subscriptions.pause', ['organization' => $org, 'subscription' => $subscription]))
+        ->assertRedirect(route('donorportal.subscriptions', $org))
+        ->assertSessionHas('success');
+});
+
+it('subscribes resume requires authorization and returns redirect', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    $this->mock(ManageStripeSubscription::class)
+        ->shouldReceive('resume')
+        ->once()
+        ->andReturnNull();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.subscriptions.resume', ['organization' => $org, 'subscription' => $subscription]))
+        ->assertRedirect(route('donorportal.subscriptions', $org))
+        ->assertSessionHas('success');
+});
+
+it('subscribes change amount validates and returns redirect', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => SubscriptionStatus::Active,
+        'amount' => 50.00,
+    ]);
+
+    $this->mock(ManageStripeSubscription::class)
+        ->shouldReceive('changeAmount')
+        ->once()
+        ->with(Mockery::on(fn ($s) => $s->getKey() === $subscription->getKey()), 100.0)
+        ->andReturnNull();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.subscriptions.change-amount', ['organization' => $org, 'subscription' => $subscription]), [
+            'new_amount' => 100,
+        ])
+        ->assertRedirect(route('donorportal.subscriptions', $org))
+        ->assertSessionHas('success');
+});
+
+it('rejects invalid amount in change subscription', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.subscriptions.change-amount', ['organization' => $org, 'subscription' => $subscription]), [
+            'new_amount' => 0,
+        ])
+        ->assertSessionHasErrors('new_amount');
+});
+
+it('validates required fields on profile update', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.profile.update', $org), [
+            'name' => '',
+            'email' => 'not-an-email',
+        ])
+        ->assertSessionHasErrors(['name', 'email']);
+});
+
+it('handles subscription action error gracefully', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    $this->mock(ManageStripeSubscription::class)
+        ->shouldReceive('cancel')
+        ->once()
+        ->andThrow(new Exception('Stripe error'));
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.subscriptions.cancel', ['organization' => $org, 'subscription' => $subscription]))
+        ->assertRedirect(route('donorportal.subscriptions', $org))
+        ->assertSessionHas('error');
 });

@@ -49,7 +49,11 @@ Route::get('/stripe/connect/callback', [StripeConnectController::class, 'callbac
     ->name('stripe.connect.callback');
 
 use App\Http\Controllers\DonorAuthController;
+use App\Http\Controllers\DonorDashboardController;
+use App\Http\Controllers\DonorDonationController;
 use App\Http\Controllers\DonorPortalController;
+use App\Http\Controllers\DonorProfileController;
+use App\Http\Controllers\DonorSubscriptionController;
 use App\Models\Donor;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Storage;
@@ -93,21 +97,21 @@ Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(fu
     Route::post('logout', [DonorAuthController::class, 'logout'])->name('logout');
 
     Route::middleware('donor.auth')->group(function () {
-        Route::get('profile', [DonorPortalController::class, 'profile'])->name('profile');
-        Route::post('profile', [DonorPortalController::class, 'updateProfile'])->name('profile.update');
-        Route::get('dashboard', [DonorPortalController::class, 'dashboard'])->name('dashboard');
-        Route::get('donations', [DonorPortalController::class, 'donations'])->name('donations');
+        Route::get('dashboard', [DonorDashboardController::class, 'dashboard'])->name('dashboard');
+        Route::get('donations', [DonorDonationController::class, 'donations'])->name('donations');
         Route::get('donations/{donation}/receipt', [ReceiptDownloadController::class, 'downloadForOrganization'])
             ->name('donations.receipt.download');
-        Route::get('receipts', [DonorPortalController::class, 'downloadAllReceipts'])
-            ->name('receipts.download-all');
-        Route::get('subscriptions', [DonorPortalController::class, 'subscriptions'])->name('subscriptions');
-        Route::post('subscriptions/{subscription}/cancel', [DonorPortalController::class, 'cancelSubscription'])->name('subscriptions.cancel');
-        Route::post('subscriptions/{subscription}/pause', [DonorPortalController::class, 'pauseSubscription'])->name('subscriptions.pause');
-        Route::post('subscriptions/{subscription}/resume', [DonorPortalController::class, 'resumeSubscription'])->name('subscriptions.resume');
-        Route::post('subscriptions/{subscription}/change-amount', [DonorPortalController::class, 'changeSubscriptionAmount'])->name('subscriptions.change-amount');
-        Route::get('subscriptions/{subscription}/payment-method/client-secret', [DonorPortalController::class, 'paymentMethodClientSecret'])->name('subscriptions.payment-method.client-secret');
-        Route::post('subscriptions/{subscription}/payment-method', [DonorPortalController::class, 'updatePaymentMethod'])->name('subscriptions.payment-method.update');
+        Route::get('receipts', [DonorDonationController::class, 'downloadAllReceipts'])
+            ->name('donations.receipts.download-all');
+        Route::get('subscriptions', [DonorSubscriptionController::class, 'subscriptions'])->name('subscriptions');
+        Route::post('subscriptions/{subscription}/cancel', [DonorSubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+        Route::post('subscriptions/{subscription}/pause', [DonorSubscriptionController::class, 'pause'])->name('subscriptions.pause');
+        Route::post('subscriptions/{subscription}/resume', [DonorSubscriptionController::class, 'resume'])->name('subscriptions.resume');
+        Route::post('subscriptions/{subscription}/change-amount', [DonorSubscriptionController::class, 'changeAmount'])->name('subscriptions.change-amount');
+        Route::get('subscriptions/{subscription}/payment-method/client-secret', [DonorSubscriptionController::class, 'paymentMethodClientSecret'])->name('subscriptions.payment-method.client-secret');
+        Route::post('subscriptions/{subscription}/payment-method', [DonorSubscriptionController::class, 'updatePaymentMethod'])->name('subscriptions.payment-method.update');
+        Route::get('profile', [DonorProfileController::class, 'profile'])->name('profile');
+        Route::post('profile', [DonorProfileController::class, 'updateProfile'])->name('profile.update');
         Route::post('report-problem', [DonorPortalController::class, 'reportProblem'])->name('report-problem');
     });
 });

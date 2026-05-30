@@ -19,7 +19,7 @@ it('shows platform overview to super admins only', function () {
 
     $this->actingAs($user)
         ->get('/admin')
-        ->assertSuccessful();
+        ->assertRedirect(route('filament.admin.pages.platform-overview'));
 });
 
 it('denies platform overview to ngo admins', function () {
@@ -27,7 +27,7 @@ it('denies platform overview to ngo admins', function () {
     $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
 
     $this->actingAs($user)
-        ->get('/admin')
+        ->get('/admin/platform-overview')
         ->assertForbidden();
 });
 

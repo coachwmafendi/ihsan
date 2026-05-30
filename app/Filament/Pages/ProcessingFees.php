@@ -51,10 +51,29 @@ class ProcessingFees extends Page implements HasTable
                     ->formatStateUsing(fn (string $state): string => str($state)->headline()->toString())
                     ->sortable()
                     ->toggleable(),
+                TextColumn::make('fee_amount')
+                    ->label('Amount')
+                    ->formatStateUsing(function (string $state, ProcessingFee $record): string {
+                        $currency = strtoupper($record->donation->currency);
+
+                        return $currency.' '.number_format((float) $state, 2);
+                    })
+                    ->tooltip(function (string $state, ProcessingFee $record): ?string {
+                        if ($record->donation->currency !== 'myr' && $record->donation->base_amount !== null && (float) $record->donation->gross_amount > 0) {
+                            $baseFee = number_format((float) $state * ((float) $record->donation->base_amount / (float) $record->donation->gross_amount), 2);
+
+                            return '≈ MYR '.$baseFee;
+                        }
+
+                        return null;
+                    })
+                    ->sortable(),
                 TextColumn::make('donation.campaign.title')
                     ->label('Campaign')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->limit(30)
+                    ->tooltip(fn (ProcessingFee $record): string => $record->donation?->campaign?->title ?? ''),
                 TextColumn::make('donation.donor.name')
                     ->label('Donor')
                     ->searchable()
@@ -80,23 +99,6 @@ class ProcessingFees extends Page implements HasTable
                     })
                     ->sortable()
                     ->toggleable(),
-                TextColumn::make('fee_amount')
-                    ->label('Fee')
-                    ->formatStateUsing(function (string $state, ProcessingFee $record): string {
-                        $currency = strtoupper($record->donation->currency);
-
-                        return $currency.' '.number_format((float) $state, 2);
-                    })
-                    ->tooltip(function (string $state, ProcessingFee $record): ?string {
-                        if ($record->donation->currency !== 'myr' && $record->donation->base_amount !== null && (float) $record->donation->gross_amount > 0) {
-                            $baseFee = number_format((float) $state * ((float) $record->donation->base_amount / (float) $record->donation->gross_amount), 2);
-
-                            return '≈ MYR '.$baseFee;
-                        }
-
-                        return null;
-                    })
-                    ->sortable(),
                 TextColumn::make('fee_percentage')
                     ->label('Rate')
                     ->formatStateUsing(fn (string $state): string => $state.'%')

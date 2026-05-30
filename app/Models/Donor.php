@@ -36,16 +36,6 @@ class Donor extends Model
         return $token;
     }
 
-    protected static function booted(): void
-    {
-        static::creating(function (Donor $donor) {
-            if (! $donor->magic_token) {
-                $donor->magic_token = hash('sha256', Str::random(64));
-                $donor->magic_token_expires_at = now()->addYears(5);
-            }
-        });
-    }
-
     public function isValidMagicToken(string $token): bool
     {
         return $this->magic_token === hash('sha256', $token)

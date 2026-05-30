@@ -71,3 +71,5 @@ select:focus[data-flux-control] {
 [x-cloak] { display: none !important; }
 .donor-wrap { position: relative; }
 .donor-skeleton { position: absolute; inset: 0; z-index: 1; background: #f8fafc; }
+.donor-card { border: 1.5px solid #e2e8f0; }
+.donor-card-skeleton { border: 1.5px solid transparent; }
