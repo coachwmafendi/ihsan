@@ -75,7 +75,7 @@
                             {{ $introTruncated }}{{ $isLongIntro ? '...' : '' }}
                         </div>
                         <div x-show="expanded" x-cloak>
-                            {{ $introText }}
+                            {!! $introText !!}
                         </div>
                         @if ($isLongIntro)
                             <button type="button" x-on:click="expanded = ! expanded" class="mt-1 text-sm font-semibold text-teal-700 hover:text-teal-800">
@@ -165,7 +165,7 @@
                     </div>
 
                     @if ($campaign->description)
-                        <p class="max-w-2xl text-base/7 text-slate-600">{{ $campaign->description }}</p>
+                        <div class="max-w-2xl text-base/7 text-slate-600 [&_p]:mb-4 [&_p:last-child]:mb-0">{!! $campaign->description !!}</div>
                     @endif
 
                     @if ($campaign->has_target)
