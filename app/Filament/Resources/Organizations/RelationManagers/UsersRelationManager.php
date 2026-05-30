@@ -111,7 +111,7 @@ class UsersRelationManager extends RelationManager
                     ->modalDescription('Update profile details used for organisation panel access.')
                     ->modalIcon('heroicon-o-user-circle')
                     ->modalIconColor('primary')
-                    ->modalSubmitActionLabel('Save admin')
+                    ->modalSubmitActionLabel('Save changes')
                     ->modalCancelActionLabel('Cancel')
                     ->stickyModalHeader()
                     ->stickyModalFooter()
