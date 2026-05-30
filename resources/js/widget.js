@@ -50,10 +50,11 @@
     return true;
   }
 
-  function checkoutUrl(el) {
+  function checkoutUrl(el, asPopup) {
+    var qs = asPopup ? "?popup=1" : "?embed=1";
     return el.campaign_form_parameter
-      ? baseUrl + "/donate/campaign/" + el.campaign_form_parameter + "?embed=1"
-      : baseUrl + "/donate/" + el.token + "?embed=1";
+      ? baseUrl + "/donate/campaign/" + el.campaign_form_parameter + qs
+      : baseUrl + "/donate/" + el.token + qs;
   }
 
   function handleClick(el) {
@@ -66,6 +67,7 @@
   }
 
   function showCheckoutModal(el) {
+    var isMobileView = window.innerWidth <= 768;
     var overlay = document.createElement("div");
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-modal", "true");
@@ -77,22 +79,22 @@
       "align-items:center",
       "justify-content:center",
       "background:rgba(15,23,42,.5)",
-      "padding:16px",
+      isMobileView ? "padding:0" : "padding:16px",
       "opacity:0",
       "transition:opacity .2s",
     ].join(";");
 
-    var checkUrl = checkoutUrl(el);
+    var checkUrl = checkoutUrl(el, true);
     var iframe = document.createElement("iframe");
     iframe.src = checkUrl;
     iframe.setAttribute("allow", "payment *");
     iframe.style.cssText = [
       "width:100%",
-      "max-width:480px",
-      "height:90vh",
-      "max-height:700px",
+      isMobileView ? "max-width:100%" : "max-width:1100px",
+      isMobileView ? "height:100%" : "height:90vh",
+      isMobileView ? "max-height:100%" : "max-height:820px",
       "border:0",
-      "border-radius:16px",
+      isMobileView ? "border-radius:0" : "border-radius:16px",
       "background:#fff",
       "box-shadow:0 24px 80px rgba(15,23,42,.35)",
     ].join(";");
@@ -251,37 +253,83 @@
 
   function renderButton(el) {
     var s = el.settings;
+    var isMobile = window.innerWidth <= 640;
+    var isTablet = window.innerWidth > 640 && window.innerWidth <= 1024;
+
     var btn = document.createElement("div");
     btn.setAttribute("role", "button");
     btn.setAttribute("tabindex", "0");
+
+    // Derive colour from button_color (Tailwind class names stored in config)
+    var colour = hexColor(s.colour || s.color || "campaign");
+    var btnColour = s.button_colour || s.button_color || "";
+    if (btnColour.indexOf("blue") !== -1) colour = "#2563eb";
+    else if (btnColour.indexOf("green") !== -1) colour = "#16a34a";
+    else if (btnColour.indexOf("red") !== -1) colour = "#dc2626";
+    else if (btnColour.indexOf("orange") !== -1) colour = "#ea580c";
+    else if (btnColour.indexOf("purple") !== -1) colour = "#9333ea";
+    else if (btnColour.indexOf("teal") !== -1) colour = "#0d9488";
+    else if (btnColour.indexOf("dark") !== -1) colour = "#1e293b";
+
+    var radius = parseInt(s.corner_radius, 10);
+    if (isNaN(radius)) radius = 8;
+
+    var size = s.button_size || "";
+    var padding = isMobile ? "10px 20px" : isTablet ? "11px 24px" : "13px 32px";
+    var fontSize = isMobile ? "14px" : isTablet ? "15px" : "16px";
+    if (size.indexOf("px-4") !== -1)      padding = isMobile ? "8px 16px" : "10px 20px";
+    else if (size.indexOf("px-6") !== -1) padding = isMobile ? "10px 20px" : "12px 28px";
+    else if (size.indexOf("px-8") !== -1) padding = isMobile ? "12px 24px" : "14px 36px";
+    if (size.indexOf("text-sm") !== -1)  fontSize = isMobile ? "13px" : "14px";
+    else if (size.indexOf("text-lg") !== -1) fontSize = isMobile ? "15px" : "17px";
+    else if (size.indexOf("text-xl") !== -1) fontSize = isMobile ? "16px" : "18px";
+
+    var gap = isMobile ? "5px" : "7px";
+    var iconSize = isMobile ? "16" : "18";
+
     btn.style.cssText = [
       "display:inline-flex",
       "align-items:center",
       "justify-content:center",
-      "gap:6px",
+      "gap:" + gap,
       "cursor:pointer",
       "border:0",
       "outline:none",
-      "box-shadow:0 2px 8px rgba(0,0,0,.14)",
-      "transition:transform .2s,box-shadow .2s",
+      "box-shadow:0 3px 12px rgba(0,0,0,.15)",
+      "transition:transform .2s,box-shadow .2s,background .2s",
       "color:#fff",
-      "background:" + hexColor(s.color || "campaign"),
-      "padding:12px 28px",
-      "font-size:15px",
+      "background:" + colour,
+      "padding:" + padding,
+      "font-size:" + fontSize,
       "font-weight:600",
-      "border-radius:9999px",
-      "min-width:100px",
-      "line-height:1.4",
+      "border-radius:" + radius + "px",
+      "min-width:" + (isMobile ? "80px" : "120px"),
+      "max-width:100%",
+      "line-height:1.3",
+      "white-space:nowrap",
+      "letter-spacing:.01em",
+      "font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif",
+      "width:auto",
+      "box-sizing:border-box",
     ].join(";");
-    btn.textContent = s.text || s.button_text || "Donate Now";
+
+    var heartIcon = '<svg viewBox="0 0 24 24" fill="currentColor" width="' + iconSize + '" height="' + iconSize + '"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+    var text = esc(s.button_text || s.text || "Donate Now");
+    btn.innerHTML = heartIcon + '<span>' + text + '</span>';
 
     btn.addEventListener("mouseenter", function () {
       btn.style.transform = "scale(1.04)";
-      btn.style.boxShadow = "0 4px 14px rgba(0,0,0,.18)";
+      btn.style.boxShadow = "0 5px 18px rgba(0,0,0,.22)";
     });
     btn.addEventListener("mouseleave", function () {
       btn.style.transform = "";
-      btn.style.boxShadow = "0 2px 8px rgba(0,0,0,.14)";
+      btn.style.boxShadow = "0 3px 12px rgba(0,0,0,.15)";
+    });
+    btn.addEventListener("mousedown", function () {
+      btn.style.transform = "scale(.97)";
+    });
+    btn.addEventListener("mouseup", function () {
+      btn.style.transform = "scale(1.04)";
     });
     btn.addEventListener("click", function (e) {
       e.preventDefault();

@@ -2,7 +2,6 @@
 
 use App\Enums\UserRole;
 use App\Filament\App\Resources\Campaigns\Pages\CreateCampaign;
-use App\Models\Campaign;
 use App\Models\Organization;
 use App\Models\User;
 use Filament\Facades\Filament;
