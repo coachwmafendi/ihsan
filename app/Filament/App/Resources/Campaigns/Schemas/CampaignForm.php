@@ -12,7 +12,6 @@ use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
@@ -47,9 +46,6 @@ class CampaignForm
                                             ->label('Status')
                                             ->required()
                                             ->options(CampaignStatus::class),
-                                        TextInput::make('headline')
-                                            ->label('Tajuk utama')
-                                            ->maxLength(255),
                                     ]),
                                 Section::make('Kisah & media')
                                     ->description('Kandungan halaman kempen dan gambar utama.')
@@ -137,15 +133,7 @@ class CampaignForm
                                     ->description('Konfigurasi mesej selepas derma dan redirect.')
                                     ->columns(2)
                                     ->schema([
-                                        Textarea::make('thank_you_message')
-                                            ->label('Mesej terima kasih')
-                                            ->rows(3)
-                                            ->columnSpanFull(),
-                                        TextInput::make('redirect_url')
-                                            ->label('URL redirect')
-                                            ->url()
-                                            ->placeholder('https://')
-                                            ->columnSpanFull(),
+
                                     ]),
                             ]),
                         Tab::make('Checkout Modal')
