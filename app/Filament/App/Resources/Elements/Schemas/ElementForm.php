@@ -89,6 +89,7 @@ class ElementForm
             'link' => [
                 'text' => 'Derma Sekarang',
                 'url' => '',
+                'action' => 'checkout_modal',
                 'style' => 'button',
                 'color' => 'campaign',
                 'size' => 'medium',
@@ -675,11 +676,21 @@ class ElementForm
                                     ->default('Derma Sekarang')
                                     ->required()
                                     ->live(),
+                                Select::make('action')
+                                    ->label('Action')
+                                    ->options([
+                                        'checkout_modal' => 'Open checkout modal',
+                                        'campaign_page' => 'Open campaign page',
+                                    ])
+                                    ->default('checkout_modal')
+                                    ->live()
+                                    ->native(false),
                                 TextInput::make('url')
                                     ->label('Custom URL (optional)')
                                     ->url()
                                     ->placeholder('https://')
                                     ->helperText('Leave empty to use campaign donation page')
+                                    ->visible(fn (Get $get): bool => $get('action') !== 'checkout_modal')
                                     ->live(),
                                 Select::make('style')
                                     ->label('Style')
@@ -880,6 +891,7 @@ class ElementForm
             return [
                 'text' => $get('config.text'),
                 'url' => $get('config.url'),
+                'action' => $get('config.action'),
                 'style' => $get('config.style'),
                 'color' => $get('config.color'),
                 'size' => $get('config.size'),
