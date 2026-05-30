@@ -243,7 +243,7 @@ class OrganizationForm
                                         Toggle::make('tax_exempt')
                                             ->label('Tax Exempt')
                                             ->columnSpanFull()
-                                            ->helperText('Organisasi ini dikecualikan cukai (e.g., LHDN exemption)'),
+                                            ->helperText('This organization is exempt from tax (e.g., LHDN exemption)'),
                                     ]),
                             ]),
 

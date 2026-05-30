@@ -25,12 +25,12 @@ class InviteOrganisationAdmin extends Notification
         $token = Password::broker()->createToken($notifiable);
 
         return (new MailMessage)
-            ->subject('Anda telah dijemput — '.config('app.name'))
+            ->subject('You have been invited — '.config('app.name'))
             ->greeting('Assalamualaikum '.$notifiable->name.',')
-            ->line('Anda telah dijemput sebagai pentadbir untuk **'.$this->organizationName.'** di platform '.config('app.name').'.')
-            ->line('Sila tetapkan kata laluan anda melalui butang di bawah untuk mula menggunakan panel.')
-            ->action('Tetapkan Kata Laluan', url(route('password.reset', ['token' => $token, 'email' => $notifiable->getEmailForPasswordReset()], false)))
-            ->line('Pautan ini akan tamat dalam '.config('auth.passwords.'.config('auth.defaults.passwords').'.expire').' minit.')
-            ->line('Jika anda tidak menjangka jemputan ini, sila abaikan email ini.');
+            ->line('You have been invited as an admin for **'.$this->organizationName.'** on the '.config('app.name').' platform.')
+            ->line('Please set your password using the button below to start using the panel.')
+            ->action('Set Password', url(route('password.reset', ['token' => $token, 'email' => $notifiable->getEmailForPasswordReset()], false)))
+            ->line('This link will expire in '.config('auth.passwords.'.config('auth.defaults.passwords').'.expire').' minutes.')
+            ->line('If you did not expect this invitation, please ignore this email.');
     }
 }

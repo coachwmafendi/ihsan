@@ -24,7 +24,7 @@ class EnsureOrganizationIsActive
                 $request->session()->regenerateToken();
 
                 return redirect('/login')
-                    ->with('error', 'Organisasi anda telah dipadam. Sila hubungi admin.');
+                    ->with('error', 'Your organization has been deleted. Please contact admin.');
             }
 
             if ($organization->status === OrganizationStatus::Suspended) {
@@ -34,7 +34,7 @@ class EnsureOrganizationIsActive
                 $request->session()->regenerateToken();
 
                 return redirect('/login')
-                    ->with('error', 'Akaun organisasi anda telah digantung. Sila hubungi admin.');
+                    ->with('error', 'Your organization account has been suspended. Please contact admin.');
             }
         }
 
