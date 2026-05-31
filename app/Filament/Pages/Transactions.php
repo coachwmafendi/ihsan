@@ -30,6 +30,25 @@ class Transactions extends Page implements HasTable
 
     protected static ?int $navigationSort = 15;
 
+    public function getTotalsProperty(): array
+    {
+        $query = $this->getFilteredTableQuery();
+
+        $amount = (float) $query->selectRaw(
+            'COALESCE(SUM(COALESCE(base_amount, gross_amount)), 0) as total'
+        )->value('total');
+
+        $fee = (float) $query->sum('processing_fee');
+
+        $orgReceives = (float) $query->sum('net_amount');
+
+        return [
+            'amount' => $amount,
+            'fee' => $fee,
+            'org_receives' => $orgReceives,
+        ];
+    }
+
     public function table(Table $table): Table
     {
         return $table

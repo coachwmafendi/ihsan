@@ -180,11 +180,7 @@ class CampaignForm
         $elements = $record->elements;
 
         if ($elements->isEmpty()) {
-            if (! $record->checkout_modal_enabled) {
-                return '<p class="text-sm text-zinc-500">No element linked. Create an element first, or enable the donation modal for a direct link.</p>';
-            }
-
-            return self::shareableUrlHtml(route('donations.campaign-show', ['campaign' => $record->form_parameter]));
+            return '<p class="text-sm text-zinc-500">No element linked. Create an element first.</p>';
         }
 
         $parts = [];
@@ -250,16 +246,7 @@ class CampaignForm
         $elements = $record->elements;
 
         if ($elements->isEmpty()) {
-            if (! $record->checkout_modal_enabled) {
-                return '<p class="text-sm text-zinc-500">No element — create an element first, or enable the donation modal for embedding.</p>';
-            }
-
-            $url = route('donations.campaign-show', ['campaign' => $record->form_parameter]);
-            $iframe = self::embedIframeHtml($url, $record->form_parameter);
-
-            return '<p class="text-sm text-zinc-500 mb-4">Paste the following code into any web page to embed the donation form directly without a pop-up.</p>'
-                .self::copyableSnippet('Embed code', $iframe)
-                .'<p class="text-xs text-zinc-400 mt-3">Adjust <code class="bg-zinc-100 px-1 rounded">height</code> as needed. A value of <code class="bg-zinc-100 px-1 rounded">700</code> fits most screens.</p>';
+            return '<p class="text-sm text-zinc-500">No element — create an element first.</p>';
         }
 
         $parts = ['<p class="text-sm text-zinc-500 mb-4">Paste the following code into any web page to embed the donation form directly without a pop-up.</p>'];
@@ -280,14 +267,7 @@ class CampaignForm
         $elements = $record->elements;
 
         if ($elements->isEmpty()) {
-            if (! $record->checkout_modal_enabled) {
-                return '<p class="text-sm text-zinc-500">No URL — the campaign has no element or the donation modal is not enabled.</p>';
-            }
-
-            $base = route('donations.campaign-show', ['campaign' => $record->form_parameter]);
-
-            return self::labeledUrlRow('Wide', $base.'?popup=1')
-                .self::labeledUrlRow('Compact', $base);
+            return '<p class="text-sm text-zinc-500">No URL — create an element first.</p>';
         }
 
         $parts = [];
