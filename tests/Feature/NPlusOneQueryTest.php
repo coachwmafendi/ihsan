@@ -64,7 +64,7 @@ it('does not trigger N+1 queries on the platform overview page', function () {
         $this->get(route('filament.admin.pages.platform-overview'))->assertOk();
     });
 
-    expect($queryCount)->toBeLessThanOrEqual(14);
+    expect($queryCount)->toBeLessThanOrEqual(17);
 });
 
 function countQueries(callable $callback): int

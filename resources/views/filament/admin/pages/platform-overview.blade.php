@@ -84,5 +84,12 @@
                 @endforelse
             </div>
         </x-filament::section>
+
+        <div class="grid gap-6 xl:grid-cols-2">
+            @livewire(\App\Filament\Widgets\DonationTrendChart::class)
+            @livewire(\App\Filament\Widgets\ProcessingFeeTrendChart::class)
+            @livewire(\App\Filament\Widgets\TopOrganizationsChart::class)
+            @livewire(\App\Filament\Widgets\PaymentMethodChart::class)
+        </div>
     </div>
 </x-filament-panels::page>

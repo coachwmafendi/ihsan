@@ -8,6 +8,10 @@ use App\Filament\Pages\PlatformOverview;
 use App\Filament\Pages\ProcessingFees;
 use App\Filament\Pages\Revenue;
 use App\Filament\Pages\Transactions;
+use App\Filament\Widgets\DonationTrendChart;
+use App\Filament\Widgets\PaymentMethodChart;
+use App\Filament\Widgets\ProcessingFeeTrendChart;
+use App\Filament\Widgets\TopOrganizationsChart;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -58,10 +62,13 @@ class AdminPanelProvider extends PanelProvider
                 MonthlyInvoices::class,
                 Revenue::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,
+                DonationTrendChart::class,
+                ProcessingFeeTrendChart::class,
+                TopOrganizationsChart::class,
+                PaymentMethodChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,
