@@ -16,7 +16,7 @@
                     <x-filament::badge color="gray">{{ $totalOrganizations }} total</x-filament::badge>
                 </x-slot>
 
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-5 gap-3">
                     <div class="ihsan-admin-stat-tile">
                         <div class="text-lg font-semibold text-amber-700 dark:text-amber-300">{{ $pendingOrganizations }}</div>
                         <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">Pending</div>
@@ -28,6 +28,14 @@
                     <div class="ihsan-admin-stat-tile">
                         <div class="text-lg font-semibold text-red-700 dark:text-red-300">{{ $suspendedOrganizations }}</div>
                         <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">Suspended</div>
+                    </div>
+                    <div class="ihsan-admin-stat-tile">
+                        <div class="text-lg font-semibold text-sky-700 dark:text-sky-300">{{ $newOrganizationsThisMonth }}</div>
+                        <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">New this month</div>
+                    </div>
+                    <div class="ihsan-admin-stat-tile">
+                        <div class="text-lg font-semibold text-violet-700 dark:text-violet-300">{{ $stripeOnboardedOrganizations }}</div>
+                        <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">Stripe onboarded</div>
                     </div>
                 </div>
             </x-filament::section>

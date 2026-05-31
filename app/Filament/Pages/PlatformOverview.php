@@ -29,6 +29,10 @@ class PlatformOverview extends Page
 
     public int $suspendedOrganizations = 0;
 
+    public int $newOrganizationsThisMonth = 0;
+
+    public int $stripeOnboardedOrganizations = 0;
+
     public string $totalDonationsVolume = '0.00';
 
     public int $totalDonationsCount = 0;
@@ -55,6 +59,12 @@ class PlatformOverview extends Page
         $this->pendingOrganizations = Organization::query()->where('status', 'pending')->count();
         $this->activeOrganizations = Organization::query()->where('status', 'active')->count();
         $this->suspendedOrganizations = Organization::query()->where('status', 'suspended')->count();
+        $this->newOrganizationsThisMonth = Organization::query()
+            ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
+            ->count();
+        $this->stripeOnboardedOrganizations = Organization::query()
+            ->where('stripe_onboarded', true)
+            ->count();
 
         $succeededDonations = Donation::query()->where('status', DonationStatus::Succeeded);
 
