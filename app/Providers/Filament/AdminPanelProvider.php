@@ -34,6 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->spa()
+            ->breadcrumbs(false)
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('16rem')
             ->brandLogo(asset('logo-ihsan.png'))

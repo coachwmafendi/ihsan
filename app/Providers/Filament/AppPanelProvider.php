@@ -133,6 +133,7 @@ class AppPanelProvider extends PanelProvider
             ->id('app')
             ->path('app')
             ->spa()
+            ->breadcrumbs(false)
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('240px')
             ->brandLogo(asset('logo-ihsan.png'))

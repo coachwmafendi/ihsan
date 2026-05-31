@@ -21,6 +21,7 @@
                 'label' => 'Reports',
                 'items' => [
                     ['label' => 'Daily donation summary (12:00 AM)', 'prop' => 'dailyDonationSummary'],
+                    ['label' => 'Weekly report (Mon 08:00 AM)', 'prop' => 'weeklyReport'],
                     ['label' => 'Campaign milestone', 'prop' => 'notifyCampaignMilestone'],
                     ['label' => 'Monthly report', 'prop' => 'monthlyReport'],
                 ],

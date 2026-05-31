@@ -35,12 +35,9 @@ class ElementsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('name')
+            ->defaultSort('created_at', 'desc')
             ->columns([
-                TextColumn::make('organization.name')
-                    ->searchable(),
                 TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('token')
                     ->searchable(),
                 TextColumn::make('type')
                     ->badge()

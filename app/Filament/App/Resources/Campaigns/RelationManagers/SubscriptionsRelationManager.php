@@ -69,10 +69,6 @@ class SubscriptionsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('donor.name')
                     ->searchable(),
-                TextColumn::make('stripe_subscription_id')
-                    ->searchable(),
-                TextColumn::make('stripe_price_id')
-                    ->searchable(),
                 TextColumn::make('amount')
                     ->formatStateUsing(function ($record) {
                         $symbol = Currency::symbol($record->currency);
@@ -116,6 +112,8 @@ class SubscriptionsRelationManager extends RelationManager
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('created_at', 'desc')
+            ->modifyQueryUsing(fn ($query) => $query->orderBy('created_at', 'desc'))
             ->filters([
                 //
             ]);

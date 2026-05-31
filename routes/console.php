@@ -10,4 +10,5 @@ Artisan::command('inspire', function () {
 
 Schedule::command('ihsan:generate-monthly-invoices')->monthlyOn(1, '08:00');
 Schedule::command('ihsan:send-daily-summary')->dailyAt('00:00');
+Schedule::command('ihsan:send-weekly-summary')->weeklyOn(1, '08:00');
 Schedule::command('ihsan:send-monthly-report')->monthlyOn(1, '09:00');
