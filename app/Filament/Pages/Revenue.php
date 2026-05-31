@@ -150,6 +150,10 @@ class Revenue extends Page
     {
         return match ($this->period) {
             'today' => [today()->toDateString(), today()->toDateString()],
+            'yesterday' => [today()->subDay()->toDateString(), today()->subDay()->toDateString()],
+            'last_7_days' => [today()->subDays(6)->toDateString(), today()->toDateString()],
+            'last_30_days' => [today()->subDays(29)->toDateString(), today()->toDateString()],
+            'last_90_days' => [today()->subDays(89)->toDateString(), today()->toDateString()],
             'this_week' => [today()->startOfWeek()->toDateString(), today()->endOfWeek()->toDateString()],
             'this_month' => [today()->startOfMonth()->toDateString(), today()->endOfMonth()->toDateString()],
             'this_year' => [today()->startOfYear()->toDateString(), today()->endOfYear()->toDateString()],

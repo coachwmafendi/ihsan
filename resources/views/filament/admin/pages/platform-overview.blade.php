@@ -16,7 +16,7 @@
                     <x-filament::badge color="gray">{{ $totalOrganizations }} total</x-filament::badge>
                 </x-slot>
 
-                <div class="grid grid-cols-5 gap-3">
+                <div class="grid grid-cols-3 gap-3">
                     <div class="ihsan-admin-stat-tile">
                         <div class="text-lg font-semibold text-amber-700 dark:text-amber-300">{{ $pendingOrganizations }}</div>
                         <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">Pending</div>
@@ -29,6 +29,8 @@
                         <div class="text-lg font-semibold text-red-700 dark:text-red-300">{{ $suspendedOrganizations }}</div>
                         <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">Suspended</div>
                     </div>
+                </div>
+                <div class="mt-3 grid grid-cols-2 gap-3">
                     <div class="ihsan-admin-stat-tile">
                         <div class="text-lg font-semibold text-sky-700 dark:text-sky-300">{{ $newOrganizationsThisMonth }}</div>
                         <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">New this month</div>
@@ -36,6 +38,20 @@
                     <div class="ihsan-admin-stat-tile">
                         <div class="text-lg font-semibold text-violet-700 dark:text-violet-300">{{ $stripeOnboardedOrganizations }}</div>
                         <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">Stripe onboarded</div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <div class="mb-2 text-xs font-semibold uppercase tracking-wider text-ihsan-muted dark:text-stone-400">Top 5 by donations</div>
+                    <div class="ihsan-admin-list">
+                        @forelse ($topOrganizations as $org)
+                            <div class="ihsan-admin-list-row">
+                                <span class="truncate text-sm font-medium text-ihsan-ink dark:text-white">{{ $org['name'] }}</span>
+                                <span class="shrink-0 text-sm font-semibold text-ihsan-ink dark:text-white">{{ $org['total'] }}</span>
+                            </div>
+                        @empty
+                            <div class="py-3 text-sm text-ihsan-muted dark:text-stone-400">No data yet.</div>
+                        @endforelse
                     </div>
                 </div>
             </x-filament::section>

@@ -9,7 +9,7 @@ class ProcessingFeeTrendChart extends ChartWidget
 {
     protected ?string $heading = 'Processing Fee Trend';
 
-    protected string $color = 'teal';
+    protected string $color = 'warning';
 
     protected ?string $pollingInterval = null;
 

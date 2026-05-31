@@ -53,6 +53,11 @@ class PlatformOverview extends Page
      */
     public array $recentDonations = [];
 
+    /**
+     * @var array<int, array{name: string, total: string}>
+     */
+    public array $topOrganizations = [];
+
     public function mount(): void
     {
         $this->totalOrganizations = Organization::query()->count();
@@ -90,6 +95,21 @@ class PlatformOverview extends Page
                 'email' => $org->contact_email ?? '—',
                 'status' => $org->status->value,
                 'created_at' => $org->created_at->diffForHumans(),
+            ])
+            ->all();
+
+        $this->topOrganizations = Organization::query()
+            ->select('organizations.name')
+            ->selectRaw('COALESCE(SUM(CASE WHEN donations.status = ? THEN donations.base_amount ELSE 0 END), 0) as total', [DonationStatus::Succeeded->value])
+            ->leftJoin('campaigns', 'organizations.id', '=', 'campaigns.organization_id')
+            ->leftJoin('donations', 'campaigns.id', '=', 'donations.campaign_id')
+            ->groupBy('organizations.id', 'organizations.name')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get()
+            ->map(fn (Organization $org): array => [
+                'name' => $org->name,
+                'total' => 'MYR '.number_format((float) $org->total, 2, '.', ''),
             ])
             ->all();
 
