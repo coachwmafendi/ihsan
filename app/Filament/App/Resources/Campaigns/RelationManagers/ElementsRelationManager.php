@@ -17,6 +17,7 @@ use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 
 class ElementsRelationManager extends RelationManager
@@ -48,6 +49,11 @@ class ElementsRelationManager extends RelationManager
                     ->searchable(),
                 IconColumn::make('is_active')
                     ->boolean(),
+                TextColumn::make('token')
+                    ->label('Embed Code')
+                    ->action(null)
+                    ->formatStateUsing(fn ($record): ?View => $record ? view('filament.tables.columns.embed-code-column', ['record' => $record]) : null)
+                    ->extraAttributes(['class' => 'max-w-md']),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

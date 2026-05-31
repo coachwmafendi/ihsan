@@ -12,6 +12,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\View\View;
 
 class ElementsTable
 {
@@ -36,8 +37,10 @@ class ElementsTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('token')
-                    ->copyable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->label('Embed Code')
+                    ->action(null)
+                    ->formatStateUsing(fn ($record): ?View => $record ? view('filament.tables.columns.embed-code-column', ['record' => $record]) : null)
+                    ->extraAttributes(['class' => 'max-w-md']),
                 IconColumn::make('is_active')
                     ->boolean()
                     ->label('Active'),
