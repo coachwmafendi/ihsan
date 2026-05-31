@@ -30,17 +30,24 @@ class Transactions extends Page implements HasTable
 
     protected static ?int $navigationSort = 15;
 
+    public string $dateRange = 'all';
+
+    public function setDateRange(string $range): void
+    {
+        $this->dateRange = $range;
+    }
+
     public function getTotalsProperty(): array
     {
-        $query = $this->getFilteredTableQuery();
+        $base = $this->getFilteredTableQuery();
 
-        $amount = (float) $query->selectRaw(
+        $amount = (float) (clone $base)->selectRaw(
             'COALESCE(SUM(COALESCE(base_amount, gross_amount)), 0) as total'
         )->value('total');
 
-        $fee = (float) $query->sum('processing_fee');
+        $fee = (float) (clone $base)->sum('processing_fee');
 
-        $orgReceives = (float) $query->sum('net_amount');
+        $orgReceives = (float) (clone $base)->sum('net_amount');
 
         return [
             'amount' => $amount,
@@ -49,10 +56,37 @@ class Transactions extends Page implements HasTable
         ];
     }
 
+    public function getActivePeriodLabelProperty(): string
+    {
+        return match ($this->dateRange) {
+            'today' => 'Today',
+            'yesterday' => 'Yesterday',
+            '7_days' => 'Last 7 days',
+            '14_days' => 'Last 14 days',
+            '30_days' => 'Last 30 days',
+            'this_month' => 'This month',
+            'last_month' => 'Last month',
+            default => 'All time',
+        };
+    }
+
     public function table(Table $table): Table
     {
         return $table
-            ->query(Donation::query()->with(['campaign.organization', 'donor']))
+            ->query(function (): Builder {
+                $query = Donation::query()->with(['campaign.organization', 'donor']);
+
+                return match ($this->dateRange) {
+                    'today' => $query->whereDate('created_at', today()),
+                    'yesterday' => $query->whereDate('created_at', today()->subDay()),
+                    '7_days' => $query->whereDate('created_at', '>=', today()->subDays(7)),
+                    '14_days' => $query->whereDate('created_at', '>=', today()->subDays(14)),
+                    '30_days' => $query->whereDate('created_at', '>=', today()->subDays(30)),
+                    'this_month' => $query->whereMonth('created_at', today()->month)->whereYear('created_at', today()->year),
+                    'last_month' => $query->whereMonth('created_at', today()->subMonth()->month)->whereYear('created_at', today()->subMonth()->year),
+                    default => $query,
+                };
+            })
             ->columns([
                 TextColumn::make('donor.name')
                     ->label('Donor')
@@ -119,29 +153,6 @@ class Transactions extends Page implements HasTable
                     ->label('Organisation')
                     ->relationship('campaign.organization', 'name')
                     ->searchable(),
-                SelectFilter::make('period')
-                    ->label('Period')
-                    ->options([
-                        'today' => 'Today',
-                        'yesterday' => 'Yesterday',
-                        '7_days' => '7 Days',
-                        '14_days' => '14 Days',
-                        '30_days' => '30 Days',
-                        'this_month' => 'This Month',
-                        'last_month' => 'Last Month',
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return match ($data['value'] ?? null) {
-                            'today' => $query->whereDate('created_at', today()),
-                            'yesterday' => $query->whereDate('created_at', today()->subDay()),
-                            '7_days' => $query->whereDate('created_at', '>=', today()->subDays(7)),
-                            '14_days' => $query->whereDate('created_at', '>=', today()->subDays(14)),
-                            '30_days' => $query->whereDate('created_at', '>=', today()->subDays(30)),
-                            'this_month' => $query->whereMonth('created_at', today()->month)->whereYear('created_at', today()->year),
-                            'last_month' => $query->whereMonth('created_at', today()->subMonth()->month)->whereYear('created_at', today()->subMonth()->year),
-                            default => $query,
-                        };
-                    }),
                 SelectFilter::make('status')
                     ->options(DonationStatus::class),
                 SelectFilter::make('type')
