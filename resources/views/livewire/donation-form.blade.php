@@ -389,7 +389,7 @@
 
                              <button
                                  type="button"
-                                 x-on:click="{{ $isEmbed ? 'validateStep1() && window.parent.postMessage({type:\'ihsan:open-modal\',amount:amount,frequency:$wire.frequency,currency:$wire.currency}, \'*\')' : 'nextStep()' }}"
+                                 x-on:click="nextStep()"
                                  x-bind:disabled="processing"
                                  class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
                              >
