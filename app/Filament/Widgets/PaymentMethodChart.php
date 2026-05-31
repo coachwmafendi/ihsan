@@ -21,10 +21,10 @@ class PaymentMethodChart extends ChartWidget
             ->sortDesc();
 
         $colors = [
-            'visa' => '#2563eb',
-            'mastercard' => '#dc2626',
-            'amex' => '#059669',
-            'unknown' => '#a8a29e',
+            'visa' => '#3b82f6',
+            'mastercard' => '#ef4444',
+            'amex' => '#10b981',
+            'unknown' => '#78716c',
         ];
 
         return [
@@ -32,9 +32,9 @@ class PaymentMethodChart extends ChartWidget
                 [
                     'data' => $methods->values()->toArray(),
                     'backgroundColor' => $methods->keys()->map(
-                        fn (string $brand) => $colors[$brand] ?? '#a8a29e'
+                        fn (string $brand) => $colors[$brand] ?? '#78716c'
                     )->toArray(),
-                    'borderColor' => '#ffffff',
+                    'borderColor' => 'var(--gray-50)',
                     'borderWidth' => 2,
                 ],
             ],

@@ -9,6 +9,8 @@ class ProcessingFeeTrendChart extends ChartWidget
 {
     protected ?string $heading = 'Processing Fee Trend';
 
+    protected string $color = 'teal';
+
     protected ?string $pollingInterval = null;
 
     protected function getData(): array
@@ -34,8 +36,6 @@ class ProcessingFeeTrendChart extends ChartWidget
                 [
                     'label' => 'Processing Fees (MYR)',
                     'data' => $data->values()->toArray(),
-                    'borderColor' => '#0f766e',
-                    'backgroundColor' => 'rgba(15, 118, 110, 0.1)',
                     'fill' => true,
                     'tension' => 0.3,
                 ],

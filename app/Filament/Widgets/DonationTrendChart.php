@@ -9,6 +9,8 @@ class DonationTrendChart extends ChartWidget
 {
     protected ?string $heading = 'Donation Trend';
 
+    protected string $color = 'gray';
+
     protected ?string $pollingInterval = null;
 
     protected function getData(): array
@@ -34,8 +36,6 @@ class DonationTrendChart extends ChartWidget
                 [
                     'label' => 'Donation Volume (MYR)',
                     'data' => $data->values()->toArray(),
-                    'borderColor' => '#292524',
-                    'backgroundColor' => 'rgba(41, 37, 36, 0.1)',
                     'fill' => true,
                     'tension' => 0.3,
                 ],

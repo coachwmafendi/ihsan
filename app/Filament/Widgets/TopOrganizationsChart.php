@@ -10,6 +10,8 @@ class TopOrganizationsChart extends ChartWidget
 {
     protected ?string $heading = 'Top Organizations by Volume';
 
+    protected string $color = 'gray';
+
     protected ?string $pollingInterval = null;
 
     protected function getData(): array
@@ -29,7 +31,6 @@ class TopOrganizationsChart extends ChartWidget
                 [
                     'label' => 'Donation Volume (MYR)',
                     'data' => $orgs->values()->toArray(),
-                    'backgroundColor' => '#292524',
                     'borderRadius' => 4,
                 ],
             ],
