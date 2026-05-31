@@ -105,6 +105,7 @@ class ProcessingFees extends Page implements HasTable
                     ->toggleable(),
                 TextColumn::make('status')
                     ->badge()
+                    ->formatStateUsing(fn (string $state): string => str($state)->headline()->toString())
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'warning',
                         'invoiced' => 'info',

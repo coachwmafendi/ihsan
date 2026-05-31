@@ -5,18 +5,14 @@ namespace App\Filament\Pages;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Models\Donation;
-use Carbon\Carbon;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
+use App\Models\Organization;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class Transactions extends Page implements HasTable
 {
@@ -30,11 +26,78 @@ class Transactions extends Page implements HasTable
 
     protected static ?int $navigationSort = 15;
 
-    public string $dateRange = 'all';
+    public string $quickPeriod = '';
 
-    public function setDateRange(string $range): void
+    public string $quickStatus = '';
+
+    public string $quickType = '';
+
+    public string $quickOrganization = '';
+
+    public string $advancedDateFrom = '';
+
+    public string $advancedDateTo = '';
+
+    public string $advancedMinAmount = '';
+
+    public string $advancedMaxAmount = '';
+
+    public bool $advancedIsAnonymous = false;
+
+    public ?string $advancedPaymentMethod = null;
+
+    public bool $filtersApplied = false;
+
+    public function getOrganizationOptionsProperty(): Collection
     {
-        $this->dateRange = $range;
+        return Organization::query()
+            ->whereHas('campaigns.donations')
+            ->orderBy('name')
+            ->pluck('name', 'id');
+    }
+
+    public function applyFilters(
+        string $period = '',
+        string $status = '',
+        string $type = '',
+        string $organization = '',
+        string $dateFrom = '',
+        string $dateTo = '',
+        string $minAmount = '',
+        string $maxAmount = '',
+        bool $isAnonymous = false,
+        ?string $paymentMethod = null,
+    ): void {
+        $this->quickPeriod = $period;
+        $this->quickStatus = $status;
+        $this->quickType = $type;
+        $this->quickOrganization = $organization;
+        $this->advancedDateFrom = $dateFrom;
+        $this->advancedDateTo = $dateTo;
+        $this->advancedMinAmount = $minAmount;
+        $this->advancedMaxAmount = $maxAmount;
+        $this->advancedIsAnonymous = $isAnonymous;
+        $this->advancedPaymentMethod = $paymentMethod;
+        $this->filtersApplied = true;
+
+        $this->resetPage();
+    }
+
+    public function clearAllFilters(): void
+    {
+        $this->quickPeriod = '';
+        $this->quickStatus = '';
+        $this->quickType = '';
+        $this->quickOrganization = '';
+        $this->advancedDateFrom = '';
+        $this->advancedDateTo = '';
+        $this->advancedMinAmount = '';
+        $this->advancedMaxAmount = '';
+        $this->advancedIsAnonymous = false;
+        $this->advancedPaymentMethod = null;
+        $this->filtersApplied = false;
+
+        $this->resetPage();
     }
 
     public function getTotalsProperty(): array
@@ -56,36 +119,66 @@ class Transactions extends Page implements HasTable
         ];
     }
 
-    public function getActivePeriodLabelProperty(): string
-    {
-        return match ($this->dateRange) {
-            'today' => 'Today',
-            'yesterday' => 'Yesterday',
-            '7_days' => 'Last 7 days',
-            '14_days' => 'Last 14 days',
-            '30_days' => 'Last 30 days',
-            'this_month' => 'This month',
-            'last_month' => 'Last month',
-            default => 'All time',
-        };
-    }
-
     public function table(Table $table): Table
     {
         return $table
             ->query(function (): Builder {
                 $query = Donation::query()->with(['campaign.organization', 'donor']);
 
-                return match ($this->dateRange) {
-                    'today' => $query->whereDate('created_at', today()),
-                    'yesterday' => $query->whereDate('created_at', today()->subDay()),
-                    '7_days' => $query->whereDate('created_at', '>=', today()->subDays(7)),
-                    '14_days' => $query->whereDate('created_at', '>=', today()->subDays(14)),
-                    '30_days' => $query->whereDate('created_at', '>=', today()->subDays(30)),
-                    'this_month' => $query->whereMonth('created_at', today()->month)->whereYear('created_at', today()->year),
-                    'last_month' => $query->whereMonth('created_at', today()->subMonth()->month)->whereYear('created_at', today()->subMonth()->year),
-                    default => $query,
-                };
+                if (! $this->filtersApplied) {
+                    return $query;
+                }
+
+                if ($this->advancedDateFrom) {
+                    $query->whereDate('created_at', '>=', $this->advancedDateFrom);
+                }
+
+                if ($this->advancedDateTo) {
+                    $query->whereDate('created_at', '<=', $this->advancedDateTo);
+                }
+
+                if ($this->advancedMinAmount !== '') {
+                    $query->where('gross_amount', '>=', (float) $this->advancedMinAmount);
+                }
+
+                if ($this->advancedMaxAmount !== '') {
+                    $query->where('gross_amount', '<=', (float) $this->advancedMaxAmount);
+                }
+
+                if ($this->advancedIsAnonymous) {
+                    $query->where('is_anonymous', true);
+                }
+
+                if ($this->advancedPaymentMethod) {
+                    $query->where('payment_method_brand', $this->advancedPaymentMethod);
+                }
+
+                if ($this->quickPeriod) {
+                    $query = match ($this->quickPeriod) {
+                        'today' => $query->whereDate('created_at', today()),
+                        'yesterday' => $query->whereDate('created_at', today()->subDay()),
+                        '7_days' => $query->whereDate('created_at', '>=', today()->subDays(7)),
+                        '14_days' => $query->whereDate('created_at', '>=', today()->subDays(14)),
+                        '30_days' => $query->whereDate('created_at', '>=', today()->subDays(30)),
+                        'this_month' => $query->whereMonth('created_at', today()->month)->whereYear('created_at', today()->year),
+                        'last_month' => $query->whereMonth('created_at', today()->subMonth()->month)->whereYear('created_at', today()->subMonth()->year),
+                        default => $query,
+                    };
+                }
+
+                if ($this->quickStatus) {
+                    $query->where('status', $this->quickStatus);
+                }
+
+                if ($this->quickType) {
+                    $query->where('type', $this->quickType);
+                }
+
+                if ($this->quickOrganization) {
+                    $query->whereHas('campaign', fn (Builder $q) => $q->where('organization_id', $this->quickOrganization));
+                }
+
+                return $query;
             })
             ->columns([
                 TextColumn::make('donor.name')
@@ -124,7 +217,7 @@ class Transactions extends Page implements HasTable
                     })
                     ->sortable(),
                 TextColumn::make('processing_fee')
-                    ->label('Fee')
+                    ->label('Processing Fee')
                     ->formatStateUsing(function (string $state, Donation $record): string {
                         $currency = strtoupper($record->currency);
 
@@ -147,113 +240,6 @@ class Transactions extends Page implements HasTable
                     ->label('Date')
                     ->dateTime()
                     ->sortable(),
-            ])
-            ->filters([
-                SelectFilter::make('organization')
-                    ->label('Organisation')
-                    ->relationship('campaign.organization', 'name')
-                    ->searchable(),
-                SelectFilter::make('status')
-                    ->options(DonationStatus::class),
-                SelectFilter::make('type')
-                    ->options(DonationType::class),
-                Filter::make('created_at')
-                    ->form([
-                        DatePicker::make('date_from')
-                            ->label('From'),
-                        DatePicker::make('date_to')
-                            ->label('To'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['date_from'] ?? null,
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
-                            )
-                            ->when(
-                                $data['date_to'] ?? null,
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
-                            );
-                    })
-                    ->indicateUsing(function (array $data): array {
-                        $indicators = [];
-
-                        if ($data['date_from'] ?? null) {
-                            $indicators[] = 'From: '.Carbon::parse($data['date_from'])->toFormattedDateString();
-                        }
-
-                        if ($data['date_to'] ?? null) {
-                            $indicators[] = 'To: '.Carbon::parse($data['date_to'])->toFormattedDateString();
-                        }
-
-                        return $indicators;
-                    }),
-                Filter::make('amount_range')
-                    ->form([
-                        TextInput::make('min_amount')
-                            ->label('Min Amount')
-                            ->numeric()
-                            ->prefix('MYR'),
-                        TextInput::make('max_amount')
-                            ->label('Max Amount')
-                            ->numeric()
-                            ->prefix('MYR'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['min_amount'] ?? null,
-                                fn (Builder $query, $amount): Builder => $query->where('gross_amount', '>=', $amount),
-                            )
-                            ->when(
-                                $data['max_amount'] ?? null,
-                                fn (Builder $query, $amount): Builder => $query->where('gross_amount', '<=', $amount),
-                            );
-                    })
-                    ->indicateUsing(function (array $data): array {
-                        $indicators = [];
-
-                        if ($data['min_amount'] ?? null) {
-                            $indicators[] = 'Min: MYR '.number_format((float) $data['min_amount'], 2);
-                        }
-
-                        if ($data['max_amount'] ?? null) {
-                            $indicators[] = 'Max: MYR '.number_format((float) $data['max_amount'], 2);
-                        }
-
-                        return $indicators;
-                    }),
-                Filter::make('is_anonymous')
-                    ->form([
-                        Toggle::make('is_anonymous')
-                            ->label('Anonymous only'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query->when(
-                            $data['is_anonymous'] ?? false,
-                            fn (Builder $query): Builder => $query->where('is_anonymous', true),
-                        );
-                    })
-                    ->indicateUsing(function (array $data): ?string {
-                        if ($data['is_anonymous'] ?? false) {
-                            return 'Anonymous';
-                        }
-
-                        return null;
-                    }),
-                SelectFilter::make('payment_method')
-                    ->label('Payment Method')
-                    ->options([
-                        'visa' => 'Visa',
-                        'mastercard' => 'Mastercard',
-                        'amex' => 'American Express',
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query->when(
-                            $data['value'] ?? null,
-                            fn (Builder $query, $brand): Builder => $query->where('payment_method_brand', $brand),
-                        );
-                    }),
             ])
             ->defaultSort('created_at', 'desc');
     }
