@@ -51,23 +51,23 @@
     $totalAmount = (float) $this->amount + $this->estimatedFee;
 @endphp
 
-@if($btnHasEffect)
-<style>
-    @keyframes {{ $btnEffectId }} {
-        0%   { background-position: 0% 50%; }
-        50%  { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    .ihsan-submit-effect {
-        background: {{ $btnEffectGradients[$btnEffect] }};
-        background-size: 300% 300%;
-        animation: {{ $btnEffectId }} 4s ease infinite;
-    }
-    .ihsan-submit-effect:hover { opacity: .9; }
-</style>
-@endif
-
 <div>
+    @if($btnHasEffect)
+        <style>
+            @keyframes {{ $btnEffectId }} {
+                0%   { background-position: 0% 50%; }
+                50%  { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+            .ihsan-submit-effect {
+                background: {{ $btnEffectGradients[$btnEffect] }};
+                background-size: 300% 300%;
+                animation: {{ $btnEffectId }} 4s ease infinite;
+            }
+            .ihsan-submit-effect:hover { opacity: .9; }
+        </style>
+    @endif
+
     @if ($campaign->has_target && (float) $campaign->collected_amount >= (float) $campaign->target_amount)
         <div class="flex items-center gap-2 bg-emerald-600 px-4 py-2.5 text-center text-sm font-bold text-white">
             <span>🎉</span>

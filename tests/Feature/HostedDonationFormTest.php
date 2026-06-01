@@ -129,6 +129,27 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertSee('Secure donation');
 });
 
+it('keeps popup gradient styles inside the livewire root', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'image_path' => 'campaigns/popup-hero.png',
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Popup,
+        'config' => [
+            'template' => 'secure-donation',
+            'button_effect' => 'gradient_blue_purple',
+        ],
+    ]);
+
+    $html = $this->get(route('donations.show', ['element' => $element, 'popup' => 1]))
+        ->assertOk()
+        ->getContent();
+
+    expect(strpos($html, '<div wire:snapshot'))->toBeLessThan(strpos($html, '@keyframes ihsan-grad-gradient_blue_purple'))
+        ->and($html)->toContain('@keyframes ihsan-grad-gradient_blue_purple');
+});
+
 it('hides the left panel on mobile in popup mode', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create([

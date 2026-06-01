@@ -596,12 +596,18 @@
     var formUrl = baseUrl + "/donate/" + el.token + "?embed=1";
 
     var wrapper = document.createElement("div");
-    wrapper.style.cssText = "max-width:100%;";
+    wrapper.id = "ihsan-form-" + el.token;
+    wrapper.style.cssText = "width:100%;max-width:100%;";
+
+    var customWidth = script.getAttribute("data-width");
+    var customMaxWidth = script.getAttribute("data-max-width");
+    if (customWidth) wrapper.style.width = customWidth;
+    if (customMaxWidth) wrapper.style.maxWidth = customMaxWidth;
 
     var iframe = document.createElement("iframe");
     iframe.src = formUrl;
     iframe.setAttribute("width", "100%");
-    iframe.setAttribute("height", "600");
+    iframe.setAttribute("height", script.getAttribute("data-height") || "600");
     iframe.setAttribute("frameborder", "0");
     iframe.setAttribute("allow", "payment *");
     iframe.setAttribute("scrolling", "no");
