@@ -4,45 +4,57 @@ use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
+    private const SIZE_MAP = [
+        'small' => 'Small',
+        'medium' => 'Medium',
+        'large' => 'Large',
+    ];
+
     public function up(): void
     {
         DB::table('elements')
-            ->where('config', 'like', '%"size":"small"%')
-            ->update([
-                'config' => DB::raw("REPLACE(config, '\"size\":\"small\"', '\"size\":\"Small\"')"),
-            ]);
+            ->where(function ($query) {
+                foreach (self::SIZE_MAP as $old => $new) {
+                    $query->orWhere('config', 'like', '%"size":"'.$old.'"%');
+                }
+            })
+            ->get()
+            ->each(function (object $element): void {
+                $config = is_string($element->config)
+                    ? json_decode($element->config, true)
+                    : (array) $element->config;
 
-        DB::table('elements')
-            ->where('config', 'like', '%"size":"medium"%')
-            ->update([
-                'config' => DB::raw("REPLACE(config, '\"size\":\"medium\"', '\"size\":\"Medium\"')"),
-            ]);
-
-        DB::table('elements')
-            ->where('config', 'like', '%"size":"large"%')
-            ->update([
-                'config' => DB::raw("REPLACE(config, '\"size\":\"large\"', '\"size\":\"Large\"')"),
-            ]);
+                if (isset($config['size'], self::SIZE_MAP[$config['size']])) {
+                    $config['size'] = self::SIZE_MAP[$config['size']];
+                    DB::table('elements')
+                        ->where('id', $element->id)
+                        ->update(['config' => json_encode($config)]);
+                }
+            });
     }
 
     public function down(): void
     {
-        DB::table('elements')
-            ->where('config', 'like', '%"size\":\"Small\"%')
-            ->update([
-                'config' => DB::raw("REPLACE(config, '\"size\":\"Small\"', '\"size\":\"small\"')"),
-            ]);
+        $reverse = array_flip(self::SIZE_MAP);
 
         DB::table('elements')
-            ->where('config', 'like', '%"size\":\"Medium\"%')
-            ->update([
-                'config' => DB::raw("REPLACE(config, '\"size\":\"Medium\"', '\"size\":\"medium\"')"),
-            ]);
+            ->where(function ($query) use ($reverse) {
+                foreach ($reverse as $new => $old) {
+                    $query->orWhere('config', 'like', '%"size":"'.$new.'"%');
+                }
+            })
+            ->get()
+            ->each(function (object $element) use ($reverse): void {
+                $config = is_string($element->config)
+                    ? json_decode($element->config, true)
+                    : (array) $element->config;
 
-        DB::table('elements')
-            ->where('config', 'like', '%"size\":\"Large\"%')
-            ->update([
-                'config' => DB::raw("REPLACE(config, '\"size\":\"Large\"', '\"size\":\"large\"')"),
-            ]);
+                if (isset($config['size'], $reverse[$config['size']])) {
+                    $config['size'] = $reverse[$config['size']];
+                    DB::table('elements')
+                        ->where('id', $element->id)
+                        ->update(['config' => json_encode($config)]);
+                }
+            });
     }
 };
