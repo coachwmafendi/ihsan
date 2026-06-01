@@ -6,6 +6,7 @@ use App\Models\Organization;
 use Filament\Notifications\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Stripe\Account;
 use Stripe\OAuth;
@@ -48,19 +49,28 @@ class StripeConnectController extends Controller
         $state = $request->query('state');
         $error = $request->query('error');
 
+        Log::info('Stripe Connect callback', [
+            'has_code' => (bool) $code,
+            'has_state' => (bool) $state,
+            'has_error' => (bool) $error,
+            'session_state' => session('stripe_connect_state') ? 'present' : 'missing',
+            'session_org_id' => session('stripe_connect_org_id'),
+            'auth_user' => auth()->id(),
+        ]);
+
         if ($error) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'Stripe connection was cancelled.');
+                ->with('error', 'Stripe connection was cancelled: '.$error);
         }
 
         if (! $code || ! $state) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'Incomplete parameters.');
+                ->with('error', 'Incomplete parameters (code='.($code ? 'yes' : 'no').', state='.($state ? 'yes' : 'no').').');
         }
 
         if ($state !== session('stripe_connect_state')) {
             return redirect()->route('filament.app.pages.stripe-onboarding')
-                ->with('error', 'Invalid state parameter. Please try again.');
+                ->with('error', 'Invalid state parameter. Session state: '.(session('stripe_connect_state') ? 'present but mismatch' : 'missing').'.');
         }
 
         $org = Organization::query()->find(session('stripe_connect_org_id'));

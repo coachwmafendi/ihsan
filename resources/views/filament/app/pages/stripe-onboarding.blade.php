@@ -1,5 +1,10 @@
 <x-filament::page>
     <div class="flex flex-col items-center justify-center py-16 text-center">
+        @if (session('error'))
+            <div class="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                {{ session('error') }}
+            </div>
+        @endif
         <div class="mx-auto mb-8 flex items-center justify-center gap-4">
             <div class="flex h-10 w-24 items-center justify-center rounded-lg bg-white px-3 dark:bg-gray-800">
                 <img src="https://www.kleer.se/wp-content/uploads/2025/10/Stripe-Emblem-scaled.png" alt="Stripe" class="h-full w-full object-contain">
