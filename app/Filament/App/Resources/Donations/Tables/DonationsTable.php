@@ -28,6 +28,7 @@ class DonationsTable
     {
         return $table
             ->defaultSort('created_at', 'desc')
+            ->recordAction('view')
             ->columns([
                 TextColumn::make('created_at')
                     ->date('d M Y')
