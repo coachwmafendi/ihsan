@@ -420,7 +420,10 @@ class DonationForm extends Component
             return 0.0;
         }
 
-        return round((float) $this->amount * 0.03 + 0.50, 2);
+        $fixedFees = ['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50];
+        $fixedFee = $fixedFees[$this->currency] ?? 0.50;
+
+        return round((float) $this->amount * 0.03 + $fixedFee, 2);
     }
 
     public function render()

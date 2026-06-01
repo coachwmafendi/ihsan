@@ -229,7 +229,7 @@
                     @endif
                 >
                     <div
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')))"
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee))"
                     >
 
                         {{-- Step progress indicator --}}
@@ -367,7 +367,7 @@
                                             <span class="flex flex-col gap-0.5">
                                                     <span class="text-sm font-medium text-slate-700">
                                                         I'll cover the processing fee
-                                                        <span class="text-teal-700" x-text="`(+${currencySymbol}${(parseFloat(amount) > 0 ? (parseFloat(amount) * 0.03 + 0.50).toFixed(2) : '0.00')})`"></span>
+                                                        <span class="text-teal-700" x-text="`(+${currencySymbol}${(parseFloat(amount) > 0 ? (parseFloat(amount) * 0.03 + fixedFee).toFixed(2) : '0.00')})`"></span>
                                                     </span>
                                                 <span class="text-xs text-slate-400">Help ensure 100% of your donation reaches us.</span>
                                             </span>
@@ -483,12 +483,10 @@
 
                             {{-- Summary bar --}}
                             <div class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3 text-sm">
-                                <span class="font-semibold text-slate-800">
-                                    {{ $currencySymbol }} {{ number_format($totalAmount, 2) }}
-                                </span>
-                                <span class="text-slate-500">
-                                    {{ $this->frequency === 'monthly' ? 'Monthly' : 'One-time' }}
-                                </span>
+                                <span class="font-semibold text-slate-800"
+                                    x-text="currencySymbol + ' ' + (parseFloat(amount) + (coverFee ? parseFloat(amount) * 0.03 + fixedFee : 0)).toFixed(2)"
+                                ></span>
+                                <span class="text-slate-500" x-text="frequency === 'monthly' ? 'Monthly' : 'One-time'"></span>
                             </div>
 
                             <div wire:ignore>
@@ -504,7 +502,7 @@
                                     x-bind:disabled="processing"
                                 >
                                     @if ($usesSecureDonationShell && in_array($submitText, ['Donate and Support', 'Donate Now'], true))
-                                        <span x-show="!processing">{{ $this->frequency === 'monthly' ? 'Donate monthly' : 'Donate once' }}</span>
+                                        <span x-show="!processing" x-text="frequency === 'monthly' ? 'Donate monthly' : 'Donate once'"></span>
                                     @else
                                         <span x-show="!processing">{{ $submitText }}</span>
                                     @endif
@@ -579,7 +577,7 @@
 
 @script
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = []) => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true) => {
         let stripe = null;
         let cardElement = null;
 
@@ -594,10 +592,16 @@
             donorEmail: initialEmail,
             donorPhone: initialPhone,
             minimumAmount: initialMinimumAmount,
+            feeConfig: initialFeeConfig,
+            coverFee: initialCoverFee,
             processing: false,
             currentStep: initialStep > 1 ? initialStep : 1,
             stepErrors: {},
             cardError: '',
+
+            get fixedFee() {
+                return this.feeConfig[this.currency] ?? 0.50;
+            },
 
             get currentAmounts() {
                 return this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
@@ -750,6 +754,10 @@
                     if (monthlyAmounts) this.monthlyAmounts = monthlyAmounts;
                     const amounts = this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
                     this.setAmount(amount ?? (amounts.length > 0 ? amounts[0] : this.amount));
+                });
+
+                $wire.watch('coverFee', (value) => {
+                    this.coverFee = value;
                 });
 
                 stripe = connectedStripeAccountId
