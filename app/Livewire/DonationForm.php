@@ -86,7 +86,9 @@ class DonationForm extends Component
         $this->amount = $amounts[0] ?? $this->amount;
 
         $this->dispatch('currency-updated',
+            currency: $currency,
             symbol: Currency::symbol($currency),
+            amount: $this->amount,
             oneTimeAmounts: $this->suggestedAmounts('one_time'),
             monthlyAmounts: $this->suggestedAmounts('monthly'),
         );

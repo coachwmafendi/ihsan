@@ -229,7 +229,7 @@
                     @endif
                 >
                     <div
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')))"
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')))"
                     >
 
                         {{-- Step progress indicator --}}
@@ -267,12 +267,12 @@
 
                             @if ($this->config('show_suggested', true))
                                 <div class="grid grid-cols-3 gap-2">
-                                    <template x-for="amt in currentAmounts" :key="amt">
+                                    <template x-for="amt in currentAmounts" :key="amountOptionKey(amt)">
                                         <button
                                             type="button"
                                             x-on:click="selectAmount(amt)"
                                             class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
-                                            :class="parseFloat(amount) === parseFloat(amt) ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
+                                            :class="isSelectedAmount(amt) ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
                                             x-text="currencySymbol + ' ' + Number(amt).toLocaleString('en')"
                                         ></button>
                                     </template>
@@ -285,7 +285,8 @@
                                     <div class="flex min-h-14 items-center rounded-xl border border-slate-300 bg-white px-4 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/20">
                                         <span class="{{ $usesSecureDonationShell ? 'text-2xl' : 'text-base' }} font-semibold text-slate-700">{{ $currencySymbol }}</span>
                                         <input
-                                            x-model="amount"
+                                            x-ref="amountInput"
+                                            x-bind:value="amount"
                                             type="text"
                                             inputmode="decimal"
                                             @keydown="
@@ -306,8 +307,8 @@
                                                 const intPart = p[0].replace(/^0+(?=\d)/, '');
                                                 if (intPart.length > 5) v = intPart.slice(0, 5) + (p[1] !== undefined ? '.' + p[1] : '');
                                                 if (p[1] !== undefined && p[1].length > 2) v = p[0] + '.' + p[1].slice(0, 2);
-                                                if ($el.value !== v) { $el.value = v; amount = v; }
-                                                $wire.set('amount', v, false);
+                                                if ($el.value !== v) $el.value = v;
+                                                setAmount(v);
                                             "
                                             class="min-w-0 flex-1 border-0 bg-transparent px-2 text-3xl/none font-bold text-slate-950 outline-none placeholder:text-slate-300 sm:px-3"
                                         />
@@ -578,12 +579,13 @@
 
 @script
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialOneTimeAmounts = [], initialMonthlyAmounts = []) => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = []) => {
         let stripe = null;
         let cardElement = null;
 
         return {
-            amount: initialAmount,
+            amount: String(initialAmount ?? ''),
+            currency: initialCurrency,
             currencySymbol: @js($currencySymbol),
             frequency: initialFrequency,
             oneTimeAmounts: initialOneTimeAmounts,
@@ -601,17 +603,44 @@
                 return this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
             },
 
+            amountNumber(value = this.amount) {
+                const parsed = parseFloat(value);
+
+                return Number.isFinite(parsed) ? parsed : null;
+            },
+
+            amountOptionKey(amt) {
+                return `${this.currency}-${this.frequency}-${amt}`;
+            },
+
+            isSelectedAmount(amt) {
+                const selected = this.amountNumber();
+                const option = this.amountNumber(amt);
+
+                return selected !== null && option !== null && selected === option;
+            },
+
+            setAmount(value) {
+                this.amount = String(value ?? '');
+                $wire.set('amount', this.amount, false);
+
+                this.$nextTick(() => {
+                    if (this.$refs.amountInput && this.$refs.amountInput.value !== this.amount) {
+                        this.$refs.amountInput.value = this.amount;
+                    }
+                });
+            },
+
             selectAmount(amt) {
-                this.amount = amt;
-                $wire.set('amount', amt, false);
+                this.setAmount(amt);
             },
 
             selectFrequency(freq) {
                 this.frequency = freq;
                 const amounts = freq === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
-                this.amount = amounts.length > 0 ? amounts[0] : this.amount;
+                const amount = amounts.length > 0 ? amounts[0] : this.amount;
                 $wire.set('frequency', freq, false);
-                $wire.set('amount', this.amount, false);
+                this.setAmount(amount);
             },
 
             launchHearts(event) {
@@ -711,18 +740,16 @@
 
             async init() {
                 $wire.on('amount-updated', ({ amount }) => {
-                    this.amount = amount;
+                    this.setAmount(amount);
                 });
 
-                $wire.on('currency-updated', ({ symbol, oneTimeAmounts, monthlyAmounts }) => {
+                $wire.on('currency-updated', ({ currency, symbol, amount, oneTimeAmounts, monthlyAmounts }) => {
+                    if (currency) this.currency = currency;
                     this.currencySymbol = symbol;
                     if (oneTimeAmounts) this.oneTimeAmounts = oneTimeAmounts;
                     if (monthlyAmounts) this.monthlyAmounts = monthlyAmounts;
                     const amounts = this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
-                    if (amounts.length > 0 && !amounts.map(Number).includes(parseFloat(this.amount))) {
-                        this.amount = amounts[0];
-                        $wire.set('amount', this.amount, false);
-                    }
+                    this.setAmount(amount ?? (amounts.length > 0 ? amounts[0] : this.amount));
                 });
 
                 stripe = connectedStripeAccountId

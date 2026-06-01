@@ -154,6 +154,34 @@ it('keeps popup gradient styles inside the livewire root', function () {
         ->and($rootPosition)->toBeLessThan($gradientPosition);
 });
 
+it('renders amount controls with stable alpine bindings for currency switches', function () {
+    $organization = Organization::factory()->create([
+        'settings' => ['accepted_currencies' => ['myr', 'usd', 'sgd']],
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'suggested_amounts' => [
+            'myr' => [
+                'one_time' => [50, 100, 200],
+                'monthly' => [30, 50, 100],
+            ],
+            'usd' => [
+                'one_time' => [10, 20, 50],
+                'monthly' => [30, 50, 100],
+            ],
+        ],
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Popup,
+        'config' => ['template' => 'secure-donation'],
+    ]);
+
+    $this->get(route('donations.show', ['element' => $element, 'popup' => 1]))
+        ->assertOk()
+        ->assertSee(':key="amountOptionKey(amt)"', false)
+        ->assertSee('isSelectedAmount(amt)', false)
+        ->assertSee('x-bind:value="amount"', false);
+});
+
 it('hides the left panel on mobile in popup mode', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create([
