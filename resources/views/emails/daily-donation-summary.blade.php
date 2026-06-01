@@ -18,11 +18,11 @@
         <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 16px; overflow: hidden; display: flex; flex-wrap: wrap;">
             <div style="flex: 1; padding: 20px; min-width: 140px; box-sizing: border-box; border-bottom: 1px solid #e2e8f0;">
                 <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Total Donations</div>
-                <div style="font-size: 22px; font-weight: 700; color: #0f766e;">{{ $donationCount }}</div>
+                <div style="font-size: 20px; font-weight: 700; color: #0f766e;">{{ $donationCount }}</div>
             </div>
             <div style="flex: 1; padding: 20px; min-width: 140px; box-sizing: border-box;">
                 <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Total Amount</div>
-                <div style="font-size: 22px; font-weight: 700; color: #0f766e;">RM {{ $totalAmount }}</div>
+                <div style="font-size: 20px; font-weight: 700; color: #0f766e;">RM {{ $totalAmount }}</div>
             </div>
         </div>
 
