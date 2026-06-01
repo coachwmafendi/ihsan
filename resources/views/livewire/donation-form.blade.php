@@ -792,11 +792,15 @@
                     clientSecret = await $wire.submit();
                 } catch (e) {
                     this.processing = false;
+                    this.currentStep = 'error';
+                    this.cardError = 'Unable to start payment. Please try again.';
                     return;
                 }
 
                 if (!clientSecret) {
                     this.processing = false;
+                    this.currentStep = 'error';
+                    this.cardError = 'Unable to start payment. Please try again.';
                     return;
                 }
 
@@ -813,10 +817,20 @@
                 }
 
                 if (paymentIntent.status === 'succeeded') {
-                    await $wire.confirmPayment(paymentIntent.id);
+                    try {
+                        await $wire.confirmPayment(paymentIntent.id);
+                    } catch (e) {
+                        console.error('Donation finalization failed after Stripe success', e);
+                    }
+
                     this.processing = false;
                     this.currentStep = 'success';
+                    return;
                 }
+
+                this.processing = false;
+                this.currentStep = 'error';
+                this.cardError = 'Payment could not be completed. Please try again.';
             },
         };
     });

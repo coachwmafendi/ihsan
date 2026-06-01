@@ -844,6 +844,26 @@ it('renders payment step with summary bar and card element', function () {
         ->assertSee('stripe.createPaymentMethod', false);
 });
 
+it('renders payment success handling that recovers from livewire finalization failures', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Popup,
+        'config' => ['default_amount' => 50],
+    ]);
+
+    $html = html_entity_decode(
+        $this->get(route('donations.show', ['element' => $element, 'popup' => 1]))
+            ->assertOk()
+            ->getContent(),
+    );
+
+    expect($html)
+        ->toContain('Donation finalization failed after Stripe success')
+        ->toContain('this.currentStep = \'success\';')
+        ->toContain('this.processing = false;');
+});
+
 it('renders a hosted donation form for an active campaign without element', function () {
     $organization = Organization::factory()->create([
         'name' => 'Maahad Tahfiz Mumtazatut Taqwa',
