@@ -19,7 +19,7 @@ class Revenue extends Page
 
     protected static ?int $navigationSort = 20;
 
-    public string $period = 'all_time';
+    public string $period = 'today';
 
     public string $totalProcessingFees = '0.00';
 
