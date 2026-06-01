@@ -261,7 +261,7 @@ class OrganizationForm
                                             ->disabled()
                                             ->dehydrated(false)
                                             ->placeholder('Not connected')
-                                            ->prefixIcon(fn ($record) => $record->stripe_onboarded ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+                                            ->prefixIcon(fn ($record) => $record?->stripe_onboarded ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
                                             ->prefixIconColor(fn ($record) => $record->stripe_onboarded ? 'success' : 'danger'),
 
                                         Grid::make(2)
@@ -271,7 +271,7 @@ class OrganizationForm
                                                     ->disabled()
                                                     ->dehydrated(false)
                                                     ->placeholder('—')
-                                                    ->formatStateUsing(fn ($state, $record) => $record->stripe_onboarded_at?->format('d/m/Y H:i') ?? '—'),
+                                                    ->formatStateUsing(fn ($state, $record) => $record?->stripe_onboarded_at?->format('d/m/Y H:i') ?? '—'),
 
                                                 Toggle::make('stripe_onboarded')
                                                     ->label('Status')
