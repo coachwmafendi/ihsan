@@ -128,7 +128,7 @@ class DonationsTable
                         ? ($record->utm_params['element_name'] ?? null)
                         : null)
                     ->placeholder('—')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->badge()
                     ->sortable()
