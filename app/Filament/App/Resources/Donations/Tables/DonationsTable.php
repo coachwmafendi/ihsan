@@ -337,15 +337,14 @@ class DonationsTable
                                     ->formatStateUsing(fn (?string $state): string => $state ?? '—')
                                     ->copyable()
                                     ->copyMessage('Copied'),
-                                TextEntry::make('element_token')
+                                TextEntry::make('utm_params')
                                     ->label('Element')
                                     ->columnSpanFull()
                                     ->visible(fn ($record): bool => is_array($record->utm_params) && ($record->utm_params['source'] ?? null) === 'element')
-                                    ->formatStateUsing(function ($record): string {
-                                        $utm = is_array($record->utm_params) ? $record->utm_params : [];
-
-                                        return ucwords(str_replace('_', ' ', $utm['element_type'] ?? '')).' - '.($utm['element_name'] ?? '—');
-                                    }),
+                                    ->formatStateUsing(function (array $state): string {
+                                        return ucwords(str_replace('_', ' ', $state['element_type'] ?? '')).' - '.($state['element_name'] ?? '—');
+                                    })
+                                    ->placeholder('—'),
                             ]),
 
                         // ── Receipt & Transaction ────────────────────────
