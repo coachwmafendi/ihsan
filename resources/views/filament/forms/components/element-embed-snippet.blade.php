@@ -14,28 +14,14 @@
             default => $type,
         };
 
-        if (in_array($cleanType, ['button', 'floating_button', 'popup', 'link'], true)) {
-            $embedCode = '<script src="'.$widgetSrc.'" data-token="'.$token.'" data-api-base="'.$baseUrl.'"></script>';
-        } elseif ($cleanType === 'form') {
-            $embedId = 'ihsan-'.e($token);
-            $embedCode = '<div id="'.$embedId.'" style="width:100%;">'."\n"
-                .'<iframe'."\n"
-                .'  src="'.e($baseUrl.'/donate/'.$token.'?embed=1').'"'."\n"
-                .'  width="100%"'."\n"
-                .'  height="700"'."\n"
-                .'  frameborder="0"'."\n"
-                .'  allow="payment *"'."\n"
-                .'  style="border:0;border-radius:16px;"'."\n"
-                .'></iframe>'."\n"
-                .'</div>'."\n"
-                .'<style>@media(min-width:768px){#'.$embedId.'{max-width:50%;margin:0 auto}}</style>';
-        } elseif ($cleanType === 'qr_code') {
+        if ($cleanType === 'qr_code') {
             $embedCode = '<img src="'.e($baseUrl.'/donate/'.$token.'/qr').'" alt="QR Code" width="200" height="200">';
         } else {
             $embedCode = '<script src="'.$widgetSrc.'" data-token="'.$token.'" data-api-base="'.$baseUrl.'"></script>';
         }
     @endphp
 
+    @if ($embedCode)
     <div class="col-span-full space-y-4">
         <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">
             Embed code — {{ ucwords(str_replace('_', ' ', $type)) }}
@@ -62,4 +48,5 @@
             ><code x-text="code" class="pointer-events-none"></code></pre>
         </div>
     </div>
+    @endif
 @endif

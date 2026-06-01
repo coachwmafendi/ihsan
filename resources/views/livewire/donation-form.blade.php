@@ -229,7 +229,7 @@
                     @endif
                 >
                     <div
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)))"
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')))"
                     >
 
                         {{-- Step progress indicator --}}
@@ -244,12 +244,9 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
-                                    wire:click="selectFrequency('one_time')"
-                                    @class([
-                                        'min-h-10 rounded-lg border px-3 text-sm font-semibold transition',
-                                        'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' => $frequency === 'one_time',
-                                        'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50' => $frequency !== 'one_time',
-                                    ])
+                                    x-on:click="selectFrequency('one_time')"
+                                    class="min-h-10 rounded-lg border px-3 text-sm font-semibold transition"
+                                    :class="frequency === 'one_time' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                                 >
                                     Give once
                                 </button>
@@ -257,13 +254,9 @@
                                 @if ($allowMonthly)
                                     <button
                                         type="button"
-                                        wire:click="selectFrequency('monthly')"
-                                        x-on:click="launchHearts($event)"
-                                        @class([
-                                            'relative min-h-10 rounded-lg border px-3 text-sm font-semibold transition overflow-visible',
-                                            'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' => $frequency === 'monthly',
-                                            'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50' => $frequency !== 'monthly',
-                                        ])
+                                        x-on:click="selectFrequency('monthly'); launchHearts($event)"
+                                        class="relative min-h-10 rounded-lg border px-3 text-sm font-semibold transition overflow-visible"
+                                        :class="frequency === 'monthly' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                                     >
                                         <span style="color: {{ $iconColor }};">&hearts;</span>
                                         Monthly
@@ -274,19 +267,15 @@
 
                             @if ($this->config('show_suggested', true))
                                 <div class="grid grid-cols-3 gap-2">
-                                    @foreach ($this->suggestedAmounts($this->frequency) as $amt)
+                                    <template x-for="amt in currentAmounts" :key="amt">
                                         <button
                                             type="button"
-                                            wire:click="selectAmount({{ $amt }})"
-                                            @class([
-                                                'min-h-12 rounded-lg border px-2 text-sm font-semibold transition',
-                                                'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' => (float) $this->amount === (float) $amt,
-                                                'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50' => (float) $this->amount !== (float) $amt,
-                                            ])
-                                        >
-                                            {{ $currencySymbol }} {{ number_format($amt) }}
-                                        </button>
-                                    @endforeach
+                                            x-on:click="selectAmount(amt)"
+                                            class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
+                                            :class="parseFloat(amount) === parseFloat(amt) ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
+                                            x-text="currencySymbol + ' ' + Number(amt).toLocaleString('en')"
+                                        ></button>
+                                    </template>
                                 </div>
                             @endif
 
@@ -589,13 +578,16 @@
 
 @script
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1) => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialOneTimeAmounts = [], initialMonthlyAmounts = []) => {
         let stripe = null;
         let cardElement = null;
 
         return {
             amount: initialAmount,
             currencySymbol: @js($currencySymbol),
+            frequency: initialFrequency,
+            oneTimeAmounts: initialOneTimeAmounts,
+            monthlyAmounts: initialMonthlyAmounts,
             donorName: initialName,
             donorEmail: initialEmail,
             donorPhone: initialPhone,
@@ -604,6 +596,23 @@
             currentStep: initialStep > 1 ? initialStep : 1,
             stepErrors: {},
             cardError: '',
+
+            get currentAmounts() {
+                return this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
+            },
+
+            selectAmount(amt) {
+                this.amount = amt;
+                $wire.set('amount', amt, false);
+            },
+
+            selectFrequency(freq) {
+                this.frequency = freq;
+                const amounts = freq === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
+                this.amount = amounts.length > 0 ? amounts[0] : this.amount;
+                $wire.set('frequency', freq, false);
+                $wire.set('amount', this.amount, false);
+            },
 
             launchHearts(event) {
                 const btn = event.currentTarget;
@@ -705,8 +714,15 @@
                     this.amount = amount;
                 });
 
-                $wire.on('currency-updated', ({ symbol }) => {
+                $wire.on('currency-updated', ({ symbol, oneTimeAmounts, monthlyAmounts }) => {
                     this.currencySymbol = symbol;
+                    if (oneTimeAmounts) this.oneTimeAmounts = oneTimeAmounts;
+                    if (monthlyAmounts) this.monthlyAmounts = monthlyAmounts;
+                    const amounts = this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
+                    if (amounts.length > 0 && !amounts.map(Number).includes(parseFloat(this.amount))) {
+                        this.amount = amounts[0];
+                        $wire.set('amount', this.amount, false);
+                    }
                 });
 
                 stripe = connectedStripeAccountId
@@ -738,6 +754,7 @@
                     return;
                 }
 
+                $wire.$set('frequency', this.frequency, false);
                 $wire.$set('amount', this.amount, false);
                 $wire.$set('name', this.donorName, false);
                 $wire.$set('email', this.donorEmail, false);
