@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
 
+Route::get('/_test-widget', fn () => response('<!DOCTYPE html><html><body style="padding:40px"><h2>Widget Test</h2><script src="/e/widget.js" data-token="sgxqLo" data-api-base="https://ihsan.test"></script></body></html>')->header('Content-Type', 'text/html'));
+
 Route::get('/language/{locale}', function (string $locale) {
     if (in_array($locale, ['en', 'ms'])) {
         session(['locale' => $locale]);

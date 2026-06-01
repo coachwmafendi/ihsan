@@ -22,6 +22,7 @@ use App\Support\ClientInfo;
 use App\Support\Currency;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Renderless;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Stripe\PaymentIntent as StripePaymentIntent;
@@ -208,6 +209,8 @@ class DonationForm extends Component
 
     public function confirmPayment(string $paymentIntentId, ?StripePaymentIntent $paymentIntent = null): void
     {
+        $this->skipRender();
+
         Stripe::setApiKey(config('services.stripe.secret'));
 
         $donation = Donation::query()
@@ -265,6 +268,7 @@ class DonationForm extends Component
         return ['stripe_account' => $organization->stripe_account_id];
     }
 
+    #[Renderless]
     public function submit(): string
     {
         $validated = $this->validate();

@@ -95,10 +95,6 @@ class ProfilOrganisasi extends Page
                                     ->nullable()
                                     ->maxLength(255)
                                     ->placeholder('https://example.com'),
-                                TagsInput::make('settings.allowed_domains')
-                                    ->label('Allowed domains')
-                                    ->helperText('Organisation website domains. Used as the default domain for new campaigns.')
-                                    ->placeholder('Add domain'),
                                 TextInput::make('contact_email')
                                     ->label('Contact email')
                                     ->email()
@@ -121,6 +117,17 @@ class ProfilOrganisasi extends Page
                                     ->imageCropAspectRatio('1:1')
                                     ->imageResizeTargetWidth('256')
                                     ->imageResizeTargetHeight('256'),
+                            ]),
+
+                        Tab::make('Allowed Domains')
+                            ->icon('heroicon-o-globe-alt')
+                            ->columns(1)
+                            ->schema([
+                                TagsInput::make('settings.allowed_domains')
+                                    ->label('Allowed domains')
+                                    ->required()
+                                    ->helperText('Organisation website domains. Used as the default domain for new campaigns. Enter the bare domain without www or protocol (e.g. abc.org).')
+                                    ->placeholder('Add domain'),
                             ]),
 
                         Tab::make('Address')
@@ -291,14 +298,47 @@ class ProfilOrganisasi extends Page
 
         $settings = array_merge($org->settings ?? [], $data['settings'] ?? []);
 
+        $settings['allowed_domains'] = $this->normalizeAllowedDomains($settings['allowed_domains'] ?? []);
+
         $org->update(array_merge(
             collect($data)->except('settings')->toArray(),
             ['settings' => $settings],
         ));
 
+        $this->form->fill(array_merge($org->fresh()->toArray(), [
+            'settings' => $settings,
+        ]));
+
         Notification::make()
             ->title('Organisation profile saved')
             ->success()
             ->send();
+    }
+
+    /**
+     * @param  array<int, string>  $domains
+     * @return array<int, string>
+     */
+    private function normalizeAllowedDomains(array $domains): array
+    {
+        $normalized = collect($domains)
+            ->filter()
+            ->map(function (string $domain): string {
+                $domain = trim($domain);
+
+                // Extract host from full URLs
+                $host = parse_url($domain, PHP_URL_HOST);
+                if ($host) {
+                    $domain = $host;
+                }
+
+                // Strip www. prefix
+                return ltrim(strtolower($domain), 'www.');
+            })
+            ->unique()
+            ->values()
+            ->all();
+
+        return $normalized;
     }
 }

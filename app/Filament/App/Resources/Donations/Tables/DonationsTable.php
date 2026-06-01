@@ -94,34 +94,56 @@ class DonationsTable
                     ->searchable()
                     ->sortable()
                     ->formatStateUsing(function ($state, $record): HtmlString {
-                        $deviceIcon = match ($record->device_type) {
-                            'mobile' => 'heroicon-o-device-phone-mobile',
-                            'tablet' => 'heroicon-o-device-tablet',
-                            'desktop' => 'heroicon-o-computer-desktop',
-                            default => null,
-                        };
+                        $isFromElement = is_array($record->utm_params) && ($record->utm_params['source'] ?? null) === 'element';
 
-                        $deviceLabel = match ($record->device_type) {
-                            'mobile' => 'Mobile donation',
-                            'tablet' => 'Tablet donation',
-                            'desktop' => 'Desktop donation',
-                            default => null,
-                        };
+                        if ($isFromElement) {
+                            $elementType = $record->utm_params['element_type'] ?? null;
+                            $elementName = $record->utm_params['element_name'] ?? null;
 
-                        $iconColor = 'text-gray-400';
+                            $icon = match ($elementType) {
+                                'button' => 'heroicon-o-cursor-arrow-rays',
+                                'floating_button' => 'heroicon-o-bars-3-bottom-right',
+                                'popup' => 'heroicon-o-window',
+                                'form' => 'heroicon-o-document-text',
+                                'qr_code' => 'heroicon-o-qr-code',
+                                'link' => 'heroicon-o-link',
+                                default => 'heroicon-o-cube',
+                            };
 
-                        $result = e($state);
+                            $label = match ($elementType) {
+                                'button' => 'Button',
+                                'floating_button' => 'Floating Button',
+                                'popup' => 'Popup',
+                                'form' => 'Form',
+                                'qr_code' => 'QR Code',
+                                'link' => 'Link',
+                                default => 'Element',
+                            };
 
-                        if ($deviceIcon && $deviceLabel) {
-                            $result .= ' <span title="'.$deviceLabel.'">'.Blade::render('<x-'.$deviceIcon.' class="inline-block size-3.5 '.$iconColor.'" />').'</span>';
+                            $tooltip = $label;
+                            if ($elementName) {
+                                $tooltip .= ' · '.$elementName;
+                            }
+
+                            $result = e($state);
+                            $result .= ' <span title="'.$tooltip.'">'.Blade::render('<x-'.$icon.' class="inline-block size-3.5 text-gray-400" />').'</span>';
+
+                            return new HtmlString($result);
                         }
 
-                        return new HtmlString($result);
+                        return new HtmlString(e($state));
                     }),
                 TextColumn::make('campaign.title')
                     ->label('Campaign')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('element_name')
+                    ->label('Element')
+                    ->getStateUsing(fn ($record): ?string => is_array($record->utm_params) && ($record->utm_params['source'] ?? null) === 'element'
+                        ? ($record->utm_params['element_name'] ?? null)
+                        : null)
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
                     ->badge()
                     ->sortable()
@@ -162,6 +184,15 @@ class DonationsTable
                         'recurring' => 'Recurring',
                     ])
                     ->attribute('type'),
+                SelectFilter::make('source')
+                    ->label('Source')
+                    ->options([
+                        'element' => 'Element (Widget)',
+                        'direct' => 'Direct',
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => $data['value']
+                        ? $query->where('utm_params->source', $data['value'])
+                        : $query),
                 Filter::make('created_at')
                     ->label('Date Range')
                     ->form([
@@ -268,24 +299,44 @@ class DonationsTable
                                 TextEntry::make('donor.name')
                                     ->label('Supporter')
                                     ->formatStateUsing(function ($state, $record): HtmlString {
-                                        $icon = match ($record->device_type) {
-                                            'mobile' => 'heroicon-o-device-phone-mobile',
-                                            'tablet' => 'heroicon-o-device-tablet',
-                                            'desktop' => 'heroicon-o-computer-desktop',
-                                            default => null,
-                                        };
-                                        $label = match ($record->device_type) {
-                                            'mobile' => 'Mobile donation',
-                                            'tablet' => 'Tablet donation',
-                                            'desktop' => 'Desktop donation',
-                                            default => null,
-                                        };
-                                        $result = e($state);
-                                        if ($icon && $label) {
-                                            $result .= ' <span title="'.$label.'">'.Blade::render('<x-'.$icon.' class="inline-block size-4 text-gray-400" />').'</span>';
+                                        $isFromElement = is_array($record->utm_params) && ($record->utm_params['source'] ?? null) === 'element';
+
+                                        if ($isFromElement) {
+                                            $elementType = $record->utm_params['element_type'] ?? null;
+                                            $elementName = $record->utm_params['element_name'] ?? null;
+
+                                            $icon = match ($elementType) {
+                                                'button' => 'heroicon-o-cursor-arrow-rays',
+                                                'floating_button' => 'heroicon-o-bars-3-bottom-right',
+                                                'popup' => 'heroicon-o-window',
+                                                'form' => 'heroicon-o-document-text',
+                                                'qr_code' => 'heroicon-o-qr-code',
+                                                'link' => 'heroicon-o-link',
+                                                default => 'heroicon-o-cube',
+                                            };
+
+                                            $label = match ($elementType) {
+                                                'button' => 'Button',
+                                                'floating_button' => 'Floating Button',
+                                                'popup' => 'Popup',
+                                                'form' => 'Form',
+                                                'qr_code' => 'QR Code',
+                                                'link' => 'Link',
+                                                default => 'Element',
+                                            };
+
+                                            $tooltip = $label;
+                                            if ($elementName) {
+                                                $tooltip .= ' · '.$elementName;
+                                            }
+
+                                            $result = e($state);
+                                            $result .= ' <span title="'.$tooltip.'">'.Blade::render('<x-'.$icon.' class="inline-block size-4 text-gray-400" />').'</span>';
+
+                                            return new HtmlString($result);
                                         }
 
-                                        return new HtmlString($result);
+                                        return new HtmlString(e($state));
                                     }),
                                 TextEntry::make('campaign.title')
                                     ->label('Campaign'),

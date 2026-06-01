@@ -27,9 +27,7 @@ class PublicElementController extends Controller
         $campaignFormParameter = null;
 
         if ($element->campaign) {
-            $campaignUrl = $element->campaign->checkout_modal_enabled
-                ? url('/donate/campaign/'.$element->campaign->form_parameter)
-                : url('/donate/'.$element->token);
+            $campaignUrl = url('/donate/'.$element->token);
             $campaignFormParameter = $element->campaign->checkout_modal_enabled
                 ? $element->campaign->form_parameter
                 : null;

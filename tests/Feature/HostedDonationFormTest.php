@@ -811,6 +811,49 @@ it('renders a hosted donation form for an active campaign without element', func
         ->assertSee('wire:click="selectAmount', false);
 });
 
+it('tracks element source in utm_params for all element types', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'suggested_amounts' => [200, 100, 50, 30, 10, 5],
+    ]);
+
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'utm-test-token',
+        'type' => ElementType::Button,
+        'name' => 'Donation Button A',
+        'config' => ['default_amount' => 50, 'allow_monthly' => false],
+    ]);
+
+    $paymentIntent = PaymentIntent::constructFrom([
+        'id' => 'pi_utm_test_456',
+        'client_secret' => 'pi_utm_test_456_secret_def',
+    ]);
+
+    $this->mock(CreatePaymentIntent::class, function ($mock) use ($paymentIntent): void {
+        $mock->shouldReceive('create')->once()->andReturn($paymentIntent);
+    });
+
+    Livewire::test(DonationForm::class, ['element' => $element])
+        ->set('frequency', 'one_time')
+        ->set('amount', 50)
+        ->set('name', 'Test Donor')
+        ->set('email', 'test@utm.test')
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    $donation = Donation::query()->whereHas('donor', fn ($q) => $q->where('email', 'test@utm.test'))->firstOrFail();
+
+    expect($donation->utm_params)->toMatchArray([
+        'source' => 'element',
+        'element_id' => $element->getKey(),
+        'element_token' => 'utm-test-token',
+        'element_type' => 'button',
+        'element_name' => 'Donation Button A',
+        'frequency' => 'one_time',
+        'dedicate' => false,
+    ]);
+});
+
 it('validates hosted donation input before creating records', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();
