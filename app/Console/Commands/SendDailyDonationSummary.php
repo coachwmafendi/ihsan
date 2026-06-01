@@ -31,7 +31,7 @@ class SendDailyDonationSummary extends Command
             $donations = Donation::query()
                 ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->getKey()))
                 ->where('status', DonationStatus::Succeeded)
-                ->whereDate('created_at', today())
+                ->whereDate('created_at', today()->subDay())
                 ->get();
 
             $donationsByCampaign = $donations->groupBy('campaign_id');
