@@ -146,8 +146,12 @@ it('keeps popup gradient styles inside the livewire root', function () {
         ->assertOk()
         ->getContent();
 
-    expect(strpos($html, '<div wire:snapshot'))->toBeLessThan(strpos($html, '@keyframes ihsan-grad-gradient_blue_purple'))
-        ->and($html)->toContain('@keyframes ihsan-grad-gradient_blue_purple');
+    $rootPosition = strpos($html, '<div wire:snapshot');
+    $gradientPosition = strpos($html, '@keyframes ihsan-grad-gradient_blue_purple');
+
+    expect($rootPosition)->not->toBeFalse()
+        ->and($gradientPosition)->not->toBeFalse()
+        ->and($rootPosition)->toBeLessThan($gradientPosition);
 });
 
 it('hides the left panel on mobile in popup mode', function () {
