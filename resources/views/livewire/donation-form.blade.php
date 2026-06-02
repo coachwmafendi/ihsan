@@ -229,6 +229,7 @@
                     @endif
                 >
                     <div
+                        wire:ignore.self
                         x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed))"
                     >
 
@@ -240,7 +241,7 @@
                         </div>
 
                         {{-- Step 1: Amount & Frequency --}}
-                        <div x-show="currentStep === 1" wire:ignore class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
+                        <div x-show="currentStep === 1" class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
                             <div class="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
