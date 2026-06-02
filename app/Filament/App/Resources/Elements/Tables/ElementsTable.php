@@ -19,6 +19,7 @@ class ElementsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->reorderableColumns()
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
