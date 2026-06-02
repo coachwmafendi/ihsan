@@ -114,7 +114,7 @@
             {{-- Bottom --}}
             <div class="relative z-10 flex items-center gap-2">
                 <div class="h-1.5 w-1.5 rounded-full" style="background-color: rgba(182, 95, 58, 0.7);"></div>
-                <p class="text-sm" style="color: rgba(255,255,255,0.45);">Empowering generosity across Malaysia</p>
+                <p class="text-sm" style="color: rgba(255,255,255,0.45);">Empowering generosity across the world</p>
             </div>
         </div>
     </div>
