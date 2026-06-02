@@ -28,7 +28,7 @@ class DonationForm
                             ->label('Element')
                             ->disabled()
                             ->columnSpan(['md' => 2, 'xl' => 3])
-                            ->visible(fn ($record) => filled(data_get($record?->utm_params, 'element_name')))
+                            ->visible(true)
                             ->formatStateUsing(function ($state): ?string {
                                 $utm = is_string($state) ? json_decode($state, true) ?? [] : ($state ?? []);
 

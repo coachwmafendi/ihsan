@@ -123,11 +123,17 @@ class DonationsTable
                     ->label('Campaign')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('element_name')
+                TextColumn::make('utm_params')
                     ->label('Element')
-                    ->getStateUsing(fn ($record): ?string => is_array($record->utm_params) && ($record->utm_params['source'] ?? null) === 'element'
-                        ? ($record->utm_params['element_name'] ?? null)
-                        : null)
+                    ->getStateUsing(function ($state): ?string {
+                        $utm = is_string($state) ? json_decode($state, true) ?? [] : ($state ?? []);
+
+                        if (! $utm || ($utm['source'] ?? null) !== 'element') {
+                            return null;
+                        }
+
+                        return $utm['element_name'] ?? null;
+                    })
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('status')
@@ -340,9 +346,12 @@ class DonationsTable
                                 TextEntry::make('utm_params')
                                     ->label('Element')
                                     ->columnSpanFull()
-                                    ->visible(fn ($record): bool => is_array($record->utm_params) && ($record->utm_params['source'] ?? null) === 'element')
-                                    ->formatStateUsing(function ($state): string {
+                                    ->formatStateUsing(function ($state): ?string {
                                         $utm = is_string($state) ? json_decode($state, true) ?? [] : ($state ?? []);
+
+                                        if (! $utm || ($utm['source'] ?? null) !== 'element') {
+                                            return null;
+                                        }
 
                                         return ucwords(str_replace('_', ' ', $utm['element_type'] ?? '')).' - '.($utm['element_name'] ?? '—');
                                     })
