@@ -44,9 +44,9 @@ class DonationCampaignImageController extends Controller
     private function imageDisk(string $imagePath): ?string
     {
         $disks = Arr::whereNotNull([
-            'local',
-            'public',
             config('filesystems.default'),
+            'public',
+            'local',
         ]);
 
         foreach (array_unique($disks) as $disk) {
