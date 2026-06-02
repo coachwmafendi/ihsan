@@ -26,6 +26,20 @@ class DonorDashboardController extends Controller
             return ['href' => $home, 'desktop' => $home, 'mobile' => $home];
         }
 
+        $portalElement = Element::query()
+            ->where('campaign_id', $campaign->getKey())
+            ->where('is_active', true)
+            ->where('is_donor_portal_default', true)
+            ->first();
+
+        if ($portalElement !== null) {
+            return [
+                'href' => route('donations.show', ['element' => $portalElement, 'popup' => 1]),
+                'desktop' => route('donations.show', ['element' => $portalElement, 'popup' => 1]),
+                'mobile' => route('donations.show', $portalElement),
+            ];
+        }
+
         $elements = Element::query()
             ->where('campaign_id', $campaign->getKey())
             ->where('is_active', true)

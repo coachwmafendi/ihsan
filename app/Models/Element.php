@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['organization_id', 'campaign_id', 'name', 'token', 'type', 'config', 'is_active', 'form_slug'])]
+#[Fillable(['organization_id', 'campaign_id', 'name', 'token', 'type', 'config', 'is_active', 'is_donor_portal_default', 'form_slug'])]
 class Element extends Model
 {
     /** @use HasFactory<ElementFactory> */
@@ -35,6 +35,7 @@ class Element extends Model
         return [
             'config' => 'array',
             'is_active' => 'boolean',
+            'is_donor_portal_default' => 'boolean',
             'type' => ElementType::class,
         ];
     }
