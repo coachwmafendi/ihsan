@@ -20,6 +20,7 @@ class ElementsTable
     {
         return $table
             ->reorderableColumns()
+            ->deferColumnManager(false)
             ->columns([
                 TextColumn::make('name')
                     ->searchable()

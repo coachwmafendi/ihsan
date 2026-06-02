@@ -28,6 +28,7 @@ class DonationsTable
     {
         return $table
             ->reorderableColumns()
+            ->deferColumnManager(false)
             ->defaultSort('created_at', 'desc')
             ->recordAction('view')
             ->columns([

@@ -20,6 +20,7 @@ class DonorsTable
     {
         return $table
             ->reorderableColumns()
+            ->deferColumnManager(false)
             ->modifyQueryUsing(fn (Builder $query) => $query
                 ->withAggregate('donations', 'created_at', 'min')
                 ->withAggregate('donations', 'created_at', 'max')
