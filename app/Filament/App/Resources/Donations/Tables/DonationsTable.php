@@ -337,12 +337,6 @@ class DonationsTable
                                     ->label('Element')
                                     ->columnSpanFull()
                                     ->placeholder('—'),
-                            ]),
-
-                        // ── Receipt & Transaction ────────────────────────
-                        Section::make('Receipt')
-                            ->columns(2)
-                            ->schema([
                                 TextEntry::make('invoice_number')
                                     ->label('Receipt No.')
                                     ->copyable()
