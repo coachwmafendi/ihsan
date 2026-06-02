@@ -2,6 +2,7 @@
 
 namespace App\Filament\App\Resources\Donors\Tables;
 
+use App\Models\Donation;
 use Carbon\Carbon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -9,17 +10,24 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Filters\MultiSelectFilter;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class DonorsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query
+            ->modifyQueryUsing(fn (Builder $query) => $query
                 ->withAggregate('donations', 'created_at', 'min')
-                ->withAggregate('donations', 'created_at', 'max'))
+                ->withAggregate('donations', 'created_at', 'max')
+                ->selectSub(
+                    Donation::whereColumn('donor_id', 'donors.id')
+                        ->selectRaw('COALESCE(SUM(COALESCE(base_amount, gross_amount)), 0)'),
+                    'lifetime_total_myr'
+                ))
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
@@ -29,10 +37,23 @@ class DonorsTable
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
-                TextColumn::make('donations_sum_gross_amount')
+                TextColumn::make('lifetime_total_myr')
                     ->label('Lifetime Donated')
-                    ->sum('donations', 'gross_amount')
-                    ->money('MYR')
+                    ->formatStateUsing(fn ($state): string => 'MYR '.number_format((float) $state, 2))
+                    ->tooltip(function ($record): ?string {
+                        $breakdown = $record->donations()
+                            ->selectRaw('currency, SUM(COALESCE(base_amount, gross_amount)) as total_myr, SUM(gross_amount) as total_original')
+                            ->groupBy('currency')
+                            ->get();
+
+                        if ($breakdown->count() < 2) {
+                            return null;
+                        }
+
+                        return $breakdown
+                            ->map(fn ($d) => strtoupper($d->currency).' '.number_format((float) $d->total_original, 2))
+                            ->implode(' + ');
+                    })
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('donations_min_created_at')
