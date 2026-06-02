@@ -168,31 +168,34 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    function initDonutChart() {
         var canvas = document.getElementById('campaignDonut');
-        if (canvas && typeof Chart !== 'undefined') {
-            var chartData = @json($campaignChartData);
-            var colors = ['#10b981', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16', '#d946ef'];
-            new Chart(canvas.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: chartData.map(function(d) { return d.campaign; }),
-                    datasets: [{
-                        data: chartData.map(function(d) { return d.total; }),
-                        backgroundColor: colors.slice(0, chartData.length),
-                        borderWidth: 0,
-                    }]
+        if (!canvas || typeof Chart === 'undefined') return;
+        var existing = Chart.getChart(canvas);
+        if (existing) existing.destroy();
+        var chartData = @json($campaignChartData);
+        var colors = ['#10b981', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16', '#d946ef'];
+        new Chart(canvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: chartData.map(function(d) { return d.campaign; }),
+                datasets: [{
+                    data: chartData.map(function(d) { return d.total; }),
+                    backgroundColor: colors.slice(0, chartData.length),
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '65%',
+                plugins: {
+                    legend: { display: false },
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    cutout: '65%',
-                    plugins: {
-                        legend: { display: false },
-                    },
-                },
-            });
-        }
-    });
+            },
+        });
+    }
+    document.addEventListener('DOMContentLoaded', initDonutChart);
+    document.addEventListener('livewire:navigated', initDonutChart);
 </script>
 @endpush

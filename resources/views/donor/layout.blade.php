@@ -8,7 +8,7 @@
     @livewireScripts
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="min-h-screen bg-slate-50 antialiased" x-data="{ reportOpen: false }">
+<body class="flex min-h-screen flex-col bg-slate-50 antialiased" x-data="{ reportOpen: false }">
     <header class="bg-slate-900">
         <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
             @if (isset($organization) && filled($organization->logo_path))
@@ -61,7 +61,7 @@
         </div>
     </header>
 
-    <main class="mx-auto max-w-5xl px-6 py-8">
+    <main class="mx-auto w-full max-w-5xl flex-1 px-6 py-8">
         @yield('content')
     </main>
 
