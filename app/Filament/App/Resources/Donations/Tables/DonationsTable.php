@@ -37,14 +37,14 @@ class DonationsTable
                 TextColumn::make('gross_amount')
                     ->label('Donation')
                     ->formatStateUsing(function ($state, $record): HtmlString {
-                        $isForeign = $record->currency !== 'myr';
                         $gross = number_format((float) $state, 2);
                         $currency = strtoupper($record->currency);
+                        $isForeign = $currency !== 'MYR';
+
+                        $amount = $currency.' '.$gross;
 
                         if ($isForeign && $record->base_amount) {
-                            $amount = '≈ MYR '.number_format((float) $record->base_amount, 2);
-                        } else {
-                            $amount = 'MYR '.$gross;
+                            $amount .= ' (≈ MYR '.number_format((float) $record->base_amount, 2).')';
                         }
 
                         $paymentIcon = match ($record->payment_method_type) {
