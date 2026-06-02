@@ -23,6 +23,11 @@ class ElementsTable
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('created_at')
+                    ->label('Created')
+                    ->date('d M Y')
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('type')
                     ->badge()
                     ->formatStateUsing(fn (ElementType $state): string => match ($state->value) {
