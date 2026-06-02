@@ -597,27 +597,44 @@
 
     var wrapper = document.createElement("div");
     wrapper.id = "ihsan-form-" + el.token;
-    wrapper.style.cssText = "width:100%;max-width:100%;";
 
     var customWidth = script.getAttribute("data-width");
     var customMaxWidth = script.getAttribute("data-max-width");
-    if (customWidth) wrapper.style.width = customWidth;
-    if (customMaxWidth) wrapper.style.maxWidth = customMaxWidth;
+    wrapper.style.cssText = [
+      "width:" + (customWidth || "100%"),
+      "max-width:" + (customMaxWidth || "520px"),
+      "min-width:320px",
+    ].join(";");
 
     var iframe = document.createElement("iframe");
     iframe.src = formUrl;
     iframe.setAttribute("width", "100%");
-    iframe.setAttribute("height", script.getAttribute("data-height") || "600");
+    iframe.setAttribute("height", script.getAttribute("data-height") || "540");
     iframe.setAttribute("frameborder", "0");
     iframe.setAttribute("allow", "payment *");
     iframe.setAttribute("scrolling", "no");
-    iframe.style.cssText = "border:0;border-radius:16px;display:block;overflow:hidden;";
+    iframe.style.cssText = "border:0;border-radius:16px;display:block;overflow:hidden;width:100%;";
 
     wrapper.appendChild(iframe);
 
     if (script.parentNode) {
       script.parentNode.replaceChild(wrapper, script);
     }
+
+    // Listen for embed step-continue: open full modal at step 2 with donor's selections
+    window.addEventListener("message", function (e) {
+      if (!e.data || e.data.type !== "ihsan:step-continue") return;
+      var d = e.data;
+      var qs = [
+        "popup=1",
+        "step=2",
+        "amount=" + encodeURIComponent(d.amount || ""),
+        "frequency=" + encodeURIComponent(d.frequency || "one_time"),
+        "currency=" + encodeURIComponent(d.currency || ""),
+        "cover_fee=" + (d.coverFee ? "1" : "0"),
+      ].join("&");
+      showCheckoutModal(el, baseUrl + "/donate/" + el.token + "?" + qs);
+    });
   }
 
   function renderLink(el) {

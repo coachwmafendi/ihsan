@@ -175,6 +175,11 @@ class DonationForm extends Component
         if ($currency !== null) {
             $this->selectCurrency(strtolower($currency));
         }
+
+        $coverFee = request()->query('cover_fee');
+        if ($coverFee !== null) {
+            $this->coverFee = (bool) (int) $coverFee;
+        }
     }
 
     private function setElementPresentationMode(Element $element): void

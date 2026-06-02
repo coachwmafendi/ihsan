@@ -724,6 +724,19 @@
                 if (this.currentStep === 1 && !this.validateStep1()) return;
                 if (this.currentStep === 2 && !this.validateStep2()) return;
                 if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
+
+                // Embed step 1: hand off to parent modal instead of advancing in iframe
+                if ($wire.isEmbed && this.currentStep === 1) {
+                    window.parent.postMessage({
+                        type: 'ihsan:step-continue',
+                        amount: this.amount,
+                        frequency: this.frequency,
+                        currency: this.currency,
+                        coverFee: this.coverFee ? 1 : 0,
+                    }, '*');
+                    return;
+                }
+
                 this.currentStep++;
                 if (this.currentStep === 3) {
                     this.$nextTick(() => this.mountCardElement());
