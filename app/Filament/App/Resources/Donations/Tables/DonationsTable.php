@@ -339,13 +339,9 @@ class DonationsTable
                                     ->placeholder('—'),
                                 TextEntry::make('invoice_number')
                                     ->label('Receipt No.')
-                                    ->copyable()
-                                    ->copyMessage('Copied')
-                                    ->icon('heroicon-o-receipt-percent')
                                     ->suffixAction(
                                         Action::make('download')
                                             ->icon('heroicon-o-arrow-down-tray')
-                                            ->iconSize('xs')
                                             ->label('Download Receipt')
                                             ->color('gray')
                                             ->size('xs')
