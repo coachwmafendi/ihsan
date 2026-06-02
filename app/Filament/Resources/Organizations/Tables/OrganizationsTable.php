@@ -19,6 +19,7 @@ class OrganizationsTable
     {
         return $table
             ->reorderableColumns()
+            ->deferColumnManager(false)
             ->columns([
                 TextColumn::make('code')
                     ->label('Code')

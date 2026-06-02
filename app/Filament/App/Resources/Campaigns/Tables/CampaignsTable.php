@@ -23,6 +23,7 @@ class CampaignsTable
     {
         return $table
             ->reorderableColumns()
+            ->deferColumnManager(false)
             ->columns([
                 TextColumn::make('title')
                     ->searchable()

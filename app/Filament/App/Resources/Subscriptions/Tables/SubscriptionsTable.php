@@ -16,6 +16,7 @@ class SubscriptionsTable
     {
         return $table
             ->reorderableColumns()
+            ->deferColumnManager(false)
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('created_at')
