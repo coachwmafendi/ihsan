@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Enums\SubscriptionStatus;
 use App\Models\Organization;
+use App\Models\Subscription;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Stripe\Customer;
 use Stripe\Stripe;
+use Stripe\Subscription as StripeSubscription;
 
 class DonorProfileController extends Controller
 {
@@ -86,6 +88,23 @@ class DonorProfileController extends Controller
                     'country' => $data['country'] ?? '',
                 ],
             ], $stripeOptions);
+
+            $donor->subscriptions()
+                ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Paused])
+                ->whereHas('campaign', fn ($q) => $q->where('organization_id', $organization->getKey()))
+                ->each(function (Subscription $subscription) use ($donor, $stripeOptions) {
+                    if ($subscription->stripe_subscription_id === null) {
+                        return;
+                    }
+
+                    StripeSubscription::update($subscription->stripe_subscription_id, [
+                        'metadata' => [
+                            'donor_name' => $donor->name,
+                            'donor_email' => $donor->email,
+                            'donor_phone' => $donor->phone ?? '',
+                        ],
+                    ], $stripeOptions);
+                });
         }
 
         return redirect()->route('donorportal.profile', $organization)
