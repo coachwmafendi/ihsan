@@ -620,7 +620,6 @@
 
             setAmount(value) {
                 this.amount = String(value ?? '');
-                $wire.set('amount', this.amount, false);
 
                 this.$nextTick(() => {
                     if (this.$refs.amountInput && this.$refs.amountInput.value !== this.amount) {
@@ -637,7 +636,6 @@
                 this.frequency = freq;
                 const amounts = freq === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
                 const amount = amounts.length > 0 ? amounts[0] : this.amount;
-                $wire.set('frequency', freq, false);
                 this.setAmount(amount);
             },
 
