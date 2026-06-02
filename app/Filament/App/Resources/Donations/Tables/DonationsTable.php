@@ -27,6 +27,7 @@ class DonationsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->reorderableColumns()
             ->defaultSort('created_at', 'desc')
             ->recordAction('view')
             ->columns([
