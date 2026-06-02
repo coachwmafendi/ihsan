@@ -54,10 +54,14 @@ class DonorProfileController extends Controller
 
         if (request()->hasFile('photo')) {
             if ($donor->photo_path !== null) {
-                Storage::disk('local')->delete($donor->photo_path);
+                $disk = Storage::disk();
+
+                if (! $disk->delete($donor->photo_path)) {
+                    Storage::disk('local')->delete($donor->photo_path);
+                }
             }
 
-            $data['photo_path'] = request()->file('photo')->store('donor-photos', 'local');
+            $data['photo_path'] = request()->file('photo')->store('donor-photos');
         }
 
         $donor->update($data);

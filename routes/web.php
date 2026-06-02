@@ -67,7 +67,13 @@ Route::get('/org/{organization}/logo', function (Organization $organization): ?S
         abort(404);
     }
 
-    return Storage::disk('local')->response($organization->logo_path);
+    $disk = Storage::disk();
+
+    if (! $disk->exists($organization->logo_path)) {
+        $disk = Storage::disk('local');
+    }
+
+    return $disk->response($organization->logo_path);
 })->name('organization.logo');
 
 // Donor photo (served from private storage)
@@ -83,7 +89,13 @@ Route::get('/donor/{donor}/photo', function (Donor $donor): ?StreamedResponse {
         abort(404);
     }
 
-    return Storage::disk('local')->response($donor->photo_path);
+    $disk = Storage::disk();
+
+    if (! $disk->exists($donor->photo_path)) {
+        $disk = Storage::disk('local');
+    }
+
+    return $disk->response($donor->photo_path);
 })->name('donor.photo');
 
 // Donor portal
