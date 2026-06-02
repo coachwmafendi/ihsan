@@ -728,7 +728,7 @@
                 if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
 
                 // Embed step 1: hand off to parent modal instead of advancing in iframe
-                if (window !== window.parent && this.currentStep === 1) {
+                if (this.isEmbed && this.currentStep === 1) {
                     window.parent.postMessage({
                         type: 'ihsan:step-continue',
                         amount: this.amount,
