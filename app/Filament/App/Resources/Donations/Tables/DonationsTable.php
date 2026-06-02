@@ -339,17 +339,14 @@ class DonationsTable
                                     ->placeholder('—'),
                                 TextEntry::make('invoice_number')
                                     ->label('Receipt No.')
-                                    ->suffixAction(
-                                        Action::make('download')
-                                            ->icon('heroicon-o-arrow-down-tray')
-                                            ->label('Download Receipt')
-                                            ->color('gray')
-                                            ->size('xs')
-                                            ->link()
-                                            ->visible(fn ($record): bool => $record->status->value === 'succeeded')
-                                            ->url(fn ($record): string => route('donations.receipt.download', $record))
-                                            ->openUrlInNewTab(),
-                                    ),
+                                    ->formatStateUsing(fn ($record): HtmlString => new HtmlString(
+                                        e($record->invoice_number)
+                                        .($record->status->value === 'succeeded'
+                                            ? ' <a href="'.e(route('donations.receipt.download', $record)).'" target="_blank" rel="noopener" class="inline-flex items-center gap-0.5 ms-1 align-middle text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors">'
+                                              .Blade::render('<x-heroicon-o-arrow-down-tray class="size-3" />')
+                                              .'Download Receipt</a>'
+                                            : '')
+                                    )),
                                 TextEntry::make('id')
                                     ->label('Donation ID')
                                     ->copyable()
