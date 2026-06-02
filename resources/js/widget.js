@@ -84,6 +84,8 @@
       isMobileView ? "padding:0" : "padding:16px",
       "opacity:0",
       "transition:opacity .2s",
+      "-webkit-overflow-scrolling:touch",
+      "overflow-y:auto",
     ].join(";");
 
     var checkUrl = overrideUrl || checkoutUrl(el, true);
@@ -98,6 +100,7 @@
       "background:#fff",
       "box-shadow:0 24px 80px rgba(15,23,42,.35)",
       "display:block",
+      "pointer-events:auto",
     ].join(";");
 
     var modalWrap = document.createElement("div");
@@ -107,6 +110,8 @@
       isMobileView ? "max-width:100%" : "max-width:1100px",
       isMobileView ? "height:100%" : "height:90vh",
       isMobileView ? "max-height:100%" : "max-height:820px",
+      "-webkit-overflow-scrolling:touch",
+      "overflow:hidden",
     ].join(";");
 
     var closeBtn = document.createElement("button");
