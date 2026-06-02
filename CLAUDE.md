@@ -1,3 +1,11 @@
+## Git Workflow
+
+- Default working branch is `dev`. All commits and pushes go to `dev` unless told otherwise.
+- Never push directly to `main` unless I explicitly say "deploy to production" or "merge to main".
+- Production = `main` branch → auto-deploys to Laravel Cloud.
+- Feature branches: `feature/name` → merge to `dev` when done.
+- Hotfixes: `hotfix/name` → merge to both `main` and `dev`.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
