@@ -6,15 +6,8 @@
 
     if (! $record || ! $type || ! $token) return;
 
-    $fullCode = match ($type) {
-        'qr_code' => '<img src="'.$baseUrl.'/donate/'.$token.'/qr" alt="QR Code" width="200" height="200">',
-        default => '<script src="'.$widgetSrc.'" data-token="'.$token.'" data-api-base="'.$baseUrl.'"></script>',
-    };
-
-    $shortCode = match ($type) {
-        'qr_code' => '<img src="…/donate/'.$token.'/qr" …>',
-        default => '<script src="jsdelivr…widget.js" data-token="'.$token.'"></script>',
-    };
+    $fullCode = '<script src="'.$widgetSrc.'" data-token="'.$token.'" data-api-base="'.$baseUrl.'"></script>';
+    $shortCode = '<script src="jsdelivr…widget.js" data-token="'.$token.'"></script>';
 @endphp
 
 <div class="flex items-center gap-1" style="max-width:260px;overflow:hidden">

@@ -14,11 +14,7 @@
             default => $type,
         };
 
-        if ($cleanType === 'qr_code') {
-            $embedCode = '<img src="'.e($baseUrl.'/donate/'.$token.'/qr').'" alt="QR Code" width="200" height="200">';
-        } else {
-            $embedCode = '<script src="'.$widgetSrc.'" data-token="'.$token.'" data-api-base="'.$baseUrl.'"></script>';
-        }
+        $embedCode = '<script src="'.$widgetSrc.'" data-token="'.$token.'" data-api-base="'.$baseUrl.'"></script>';
     @endphp
 
     @if ($embedCode)
