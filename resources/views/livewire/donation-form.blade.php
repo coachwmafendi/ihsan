@@ -349,26 +349,20 @@
                                         @endif
                                     </div>
                                     @if ($this->config('allow_cover_fee', true))
-                                        <label class="mt-2 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-slate-300 hover:bg-slate-100">
-                                            <input
-                                                type="checkbox"
-                                                wire:model.live="coverFee"
-                                                class="sr-only"
-                                            />
+                                        <label class="mt-2 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-slate-300 hover:bg-slate-100"
+                                            x-on:click.prevent="coverFee = !coverFee"
+                                        >
                                             <span
-                                                wire:ignore
-                                                x-data="{ checked: false }"
-                                                x-init="$watch('$wire.coverFee', v => checked = v); checked = $wire.coverFee"
-                                                :class="checked ? 'border-teal-600 bg-teal-600' : 'border-slate-500 bg-white'"
+                                                :class="coverFee ? 'border-teal-600 bg-teal-600' : 'border-slate-500 bg-white'"
                                                 class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded border-2 transition"
                                             >
-                                                <svg x-show="checked" class="size-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                <svg x-show="coverFee" class="size-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                             </span>
                                             <span class="flex flex-col gap-0.5">
-                                                    <span class="text-sm font-medium text-slate-700">
-                                                        I'll cover the processing fee
-                                                        <span class="text-teal-700" x-text="`(+${currencySymbol}${(parseFloat(amount) > 0 ? (parseFloat(amount) * 0.03 + fixedFee).toFixed(2) : '0.00')})`"></span>
-                                                    </span>
+                                                <span class="text-sm font-medium text-slate-700">
+                                                    I'll cover the processing fee
+                                                    <span class="text-teal-700" x-text="`(+${currencySymbol}${(parseFloat(amount) > 0 ? (parseFloat(amount) * 0.03 + fixedFee).toFixed(2) : '0.00')})`"></span>
+                                                </span>
                                                 <span class="text-xs text-slate-400">Help ensure 100% of your donation reaches us.</span>
                                             </span>
                                         </label>
@@ -756,10 +750,6 @@
                     this.setAmount(amount ?? (amounts.length > 0 ? amounts[0] : this.amount));
                 });
 
-                $wire.watch('coverFee', (value) => {
-                    this.coverFee = value;
-                });
-
                 stripe = connectedStripeAccountId
                     ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
                     : Stripe(window.stripePublishableKey);
@@ -791,6 +781,7 @@
 
                 $wire.$set('frequency', this.frequency, false);
                 $wire.$set('amount', this.amount, false);
+                $wire.$set('coverFee', this.coverFee, false);
                 $wire.$set('name', this.donorName, false);
                 $wire.$set('email', this.donorEmail, false);
                 $wire.$set('phone', this.donorPhone, false);
