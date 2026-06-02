@@ -341,20 +341,21 @@ class DonationsTable
                                     ->label('Receipt No.')
                                     ->copyable()
                                     ->copyMessage('Copied')
-                                    ->icon('heroicon-o-receipt-percent'),
+                                    ->icon('heroicon-o-receipt-percent')
+                                    ->suffixAction(
+                                        Action::make('download')
+                                            ->icon('heroicon-o-arrow-down-tray')
+                                            ->label('Download Receipt')
+                                            ->color('gray')
+                                            ->link()
+                                            ->visible(fn ($record): bool => $record->status->value === 'succeeded')
+                                            ->url(fn ($record): string => route('donations.receipt.download', $record))
+                                            ->openUrlInNewTab(),
+                                    ),
                                 TextEntry::make('id')
                                     ->label('Donation ID')
                                     ->copyable()
                                     ->copyMessage('Copied'),
-                                TextEntry::make('receipt_download_link')
-                                    ->hiddenLabel()
-                                    ->columnSpanFull()
-                                    ->visible(fn ($record): bool => $record->status->value === 'succeeded')
-                                    ->getStateUsing(fn ($record): string => route('donations.receipt.download', $record))
-                                    ->formatStateUsing(fn (string $state): HtmlString => new HtmlString(
-                                        '<a href="'.e($state).'" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-colors">'.
-                                        Blade::render('<x-heroicon-o-arrow-down-tray class="size-3.5 text-gray-500" />').'Download Receipt</a>'
-                                    )),
                             ]),
 
                         // ── Payment & Fees ───────────────────────────────
