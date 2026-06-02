@@ -415,6 +415,10 @@ class DonationForm extends Component
             return data_get($this->element->config ?? [], $key, $default);
         }
 
+        if ($this->campaign) {
+            return data_get($this->campaign->config ?? [], $key, $default);
+        }
+
         return $default;
     }
 

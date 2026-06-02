@@ -118,6 +118,32 @@ class CampaignForm
                                             ))
                                             ->columnSpanFull(),
                                     ]),
+                                Section::make('Donation Form Defaults')
+                                    ->description('Default behavior when the donation form opens via campaign link (no element override).')
+                                    ->columns(2)
+                                    ->statePath('config')
+                                    ->schema([
+                                        Select::make('default_frequency')
+                                            ->label('Default frequency')
+                                            ->options([
+                                                'monthly' => 'Monthly',
+                                                'one_time' => 'One-time',
+                                            ])
+                                            ->default('monthly')
+                                            ->native(false),
+                                        TextInput::make('default_amount')
+                                            ->label('Default amount')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->default(30),
+                                        Toggle::make('allow_monthly')
+                                            ->label('Allow monthly donations')
+                                            ->default(true),
+                                        Toggle::make('allow_cover_fee')
+                                            ->label('Allow donors to cover processing fee')
+                                            ->helperText('Donors see a pre-checked option to cover the Stripe fee (~3% + RM 0.50).')
+                                            ->default(true),
+                                    ]),
                             ]),
                         Tab::make('Stats')
                             ->icon('heroicon-o-chart-bar')
