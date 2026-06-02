@@ -341,8 +341,10 @@ class DonationsTable
                                     ->label('Element')
                                     ->columnSpanFull()
                                     ->visible(fn ($record): bool => is_array($record->utm_params) && ($record->utm_params['source'] ?? null) === 'element')
-                                    ->formatStateUsing(function (array $state): string {
-                                        return ucwords(str_replace('_', ' ', $state['element_type'] ?? '')).' - '.($state['element_name'] ?? '—');
+                                    ->formatStateUsing(function ($state): string {
+                                        $utm = is_string($state) ? json_decode($state, true) ?? [] : ($state ?? []);
+
+                                        return ucwords(str_replace('_', ' ', $utm['element_type'] ?? '')).' - '.($utm['element_name'] ?? '—');
                                     })
                                     ->placeholder('—'),
                             ]),

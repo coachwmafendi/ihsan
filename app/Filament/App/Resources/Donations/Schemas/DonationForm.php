@@ -29,14 +29,16 @@ class DonationForm
                             ->disabled()
                             ->columnSpan(['md' => 2, 'xl' => 3])
                             ->visible(fn ($record) => filled(data_get($record?->utm_params, 'element_name')))
-                            ->formatStateUsing(function (?array $state): ?string {
-                                if (! $state || ($state['source'] ?? null) !== 'element') {
+                            ->formatStateUsing(function ($state): ?string {
+                                $utm = is_string($state) ? json_decode($state, true) ?? [] : ($state ?? []);
+
+                                if (! $utm || ($utm['source'] ?? null) !== 'element') {
                                     return null;
                                 }
 
-                                $name = $state['element_name'] ?? '—';
-                                $token = $state['element_token'] ?? null;
-                                $type = $state['element_type'] ?? null;
+                                $name = $utm['element_name'] ?? '—';
+                                $token = $utm['element_token'] ?? null;
+                                $type = $utm['element_type'] ?? null;
 
                                 $parts = [$name];
                                 if ($type) {
