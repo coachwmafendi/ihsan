@@ -36,7 +36,22 @@ class SubscriptionsTable
                     ->toggleable(),
                 TextColumn::make('amount')
                     ->label('Amount')
-                    ->formatStateUsing(fn (string $state, $record): string => $record->currency_symbol.' '.number_format((float) $state, 2))
+                    ->formatStateUsing(function ($state, $record): string {
+                        $formatted = $record->currency_symbol.' '.number_format((float) $state, 2);
+
+                        if ($record->currency !== 'myr') {
+                            $rate = $record->donations()
+                                ->whereNotNull('exchange_rate')
+                                ->value('exchange_rate');
+
+                            if ($rate) {
+                                $myr = (float) $state * (float) $rate;
+                                $formatted .= ' (≈ MYR '.number_format($myr, 2).')';
+                            }
+                        }
+
+                        return $formatted;
+                    })
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('donations_count')
@@ -46,8 +61,8 @@ class SubscriptionsTable
                     ->toggleable(),
                 TextColumn::make('donations_sum_gross_amount')
                     ->label('Total')
-                    ->formatStateUsing(fn ($state, $record): string => $record->currency_symbol.' '.number_format((float) ($state ?? 0), 2))
                     ->sum('donations', 'gross_amount')
+                    ->formatStateUsing(fn ($state): string => 'MYR '.number_format((float) ($state ?? 0), 2))
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('campaign.title')
