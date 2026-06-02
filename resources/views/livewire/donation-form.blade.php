@@ -229,7 +229,7 @@
                     @endif
                 >
                     <div
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee))"
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed))"
                     >
 
                         {{-- Step progress indicator --}}
@@ -571,7 +571,7 @@
 
 @script
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true) => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false) => {
         let stripe = null;
         let cardElement = null;
 
@@ -588,6 +588,7 @@
             minimumAmount: initialMinimumAmount,
             feeConfig: initialFeeConfig,
             coverFee: initialCoverFee,
+            isEmbed: initialIsEmbed,
             processing: false,
             currentStep: initialStep > 1 ? initialStep : 1,
             stepErrors: {},
@@ -726,7 +727,7 @@
                 if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
 
                 // Embed step 1: hand off to parent modal instead of advancing in iframe
-                if ($wire.isEmbed && this.currentStep === 1) {
+                if (this.isEmbed && this.currentStep === 1) {
                     window.parent.postMessage({
                         type: 'ihsan:step-continue',
                         amount: this.amount,
