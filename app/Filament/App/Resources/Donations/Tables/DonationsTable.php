@@ -41,10 +41,10 @@ class DonationsTable
                         $currency = strtoupper($record->currency);
                         $isForeign = $currency !== 'MYR';
 
-                        $amount = $currency.' '.$gross;
-
                         if ($isForeign && $record->base_amount) {
-                            $amount .= ' (≈ MYR '.number_format((float) $record->base_amount, 2).')';
+                            $amount = '≈ MYR '.number_format((float) $record->base_amount, 2);
+                        } else {
+                            $amount = $currency.' '.$gross;
                         }
 
                         $paymentIcon = match ($record->payment_method_type) {
@@ -80,11 +80,8 @@ class DonationsTable
                         return new HtmlString($result);
                     })
                     ->tooltip(function ($state, $record): ?string {
-                        if ($record->currency !== 'myr' && $record->base_amount) {
-                            $gross = number_format((float) $state, 2);
-                            $currency = strtoupper($record->currency);
-
-                            return $currency.' '.$gross;
+                        if ($record->currency !== 'myr') {
+                            return strtoupper($record->currency).' '.number_format((float) $state, 2);
                         }
 
                         return null;
