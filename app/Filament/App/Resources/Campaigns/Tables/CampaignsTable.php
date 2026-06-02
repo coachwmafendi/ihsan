@@ -22,6 +22,7 @@ class CampaignsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->reorderableColumns()
             ->columns([
                 TextColumn::make('title')
                     ->searchable()

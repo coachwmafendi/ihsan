@@ -19,6 +19,7 @@ class DonorsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->reorderableColumns()
             ->modifyQueryUsing(fn (Builder $query) => $query
                 ->withAggregate('donations', 'created_at', 'min')
                 ->withAggregate('donations', 'created_at', 'max')
