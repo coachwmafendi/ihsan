@@ -54,6 +54,23 @@ class Donation extends Model
         return Attribute::get(fn () => Currency::symbol($this->currency));
     }
 
+    public function elementLabel(): Attribute
+    {
+        return Attribute::get(function () {
+            $utm = $this->utm_params;
+            $utm = is_string($utm) ? json_decode($utm, true) ?? [] : ($utm ?? []);
+
+            if (! $utm || ($utm['source'] ?? null) !== 'element') {
+                return null;
+            }
+
+            $type = ucwords(str_replace('_', ' ', $utm['element_type'] ?? ''));
+            $name = $utm['element_name'] ?? '—';
+
+            return "{$type} - {$name}";
+        });
+    }
+
     public function formattedAmount(): Attribute
     {
         return Attribute::get(fn () => $this->currency_symbol.' '.number_format((float) $this->gross_amount, 2));

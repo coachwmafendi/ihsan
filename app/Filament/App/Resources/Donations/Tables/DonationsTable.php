@@ -123,17 +123,8 @@ class DonationsTable
                     ->label('Campaign')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('utm_params')
+                TextColumn::make('element_label')
                     ->label('Element')
-                    ->getStateUsing(function ($state): ?string {
-                        $utm = is_string($state) ? json_decode($state, true) ?? [] : ($state ?? []);
-
-                        if (! $utm || ($utm['source'] ?? null) !== 'element') {
-                            return null;
-                        }
-
-                        return $utm['element_name'] ?? null;
-                    })
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('status')
@@ -343,18 +334,9 @@ class DonationsTable
                                     ->formatStateUsing(fn (?string $state): string => $state ?? '—')
                                     ->copyable()
                                     ->copyMessage('Copied'),
-                                TextEntry::make('utm_params')
+                                TextEntry::make('element_label')
                                     ->label('Element')
                                     ->columnSpanFull()
-                                    ->formatStateUsing(function ($state): ?string {
-                                        $utm = is_string($state) ? json_decode($state, true) ?? [] : ($state ?? []);
-
-                                        if (! $utm || ($utm['source'] ?? null) !== 'element') {
-                                            return null;
-                                        }
-
-                                        return ucwords(str_replace('_', ' ', $utm['element_type'] ?? '')).' - '.($utm['element_name'] ?? '—');
-                                    })
                                     ->placeholder('—'),
                             ]),
 

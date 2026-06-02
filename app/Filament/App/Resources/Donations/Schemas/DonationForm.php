@@ -24,32 +24,10 @@ class DonationForm
                             ->relationship('campaign', 'title')
                             ->disabled()
                             ->columnSpan(['md' => 2, 'xl' => 3]),
-                        TextInput::make('utm_params')
+                        TextInput::make('element_label')
                             ->label('Element')
                             ->disabled()
-                            ->columnSpan(['md' => 2, 'xl' => 3])
-                            ->visible(true)
-                            ->formatStateUsing(function ($state): ?string {
-                                $utm = is_string($state) ? json_decode($state, true) ?? [] : ($state ?? []);
-
-                                if (! $utm || ($utm['source'] ?? null) !== 'element') {
-                                    return null;
-                                }
-
-                                $name = $utm['element_name'] ?? '—';
-                                $token = $utm['element_token'] ?? null;
-                                $type = $utm['element_type'] ?? null;
-
-                                $parts = [$name];
-                                if ($type) {
-                                    $parts[] = ucwords(str_replace('_', ' ', $type));
-                                }
-                                if ($token) {
-                                    $parts[] = '('.$token.')';
-                                }
-
-                                return implode(' · ', $parts);
-                            }),
+                            ->columnSpan(['md' => 2, 'xl' => 3]),
                         Select::make('donor_id')
                             ->label('Supporter')
                             ->relationship('donor', 'name')
