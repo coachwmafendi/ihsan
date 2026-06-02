@@ -136,12 +136,17 @@ class CampaignForm
                                             ->numeric()
                                             ->minValue(1)
                                             ->default(30),
-                                        Toggle::make('allow_monthly')
-                                            ->label('Allow monthly donations')
-                                            ->default(true),
                                         Toggle::make('allow_cover_fee')
                                             ->label('Allow donors to cover processing fee')
                                             ->helperText('Donors see a pre-checked option to cover the Stripe fee (~3% + RM 0.50).')
+                                            ->default(true),
+                                        Toggle::make('show_dedication')
+                                            ->label('Dedicate this donation')
+                                            ->helperText('Show the dedication option on the checkout form.')
+                                            ->default(true),
+                                        Toggle::make('show_comment')
+                                            ->label('Comment (optional)')
+                                            ->helperText('Show the comment/message field on the checkout form.')
                                             ->default(true),
                                     ]),
                             ]),
