@@ -345,8 +345,10 @@ class DonationsTable
                                     ->suffixAction(
                                         Action::make('download')
                                             ->icon('heroicon-o-arrow-down-tray')
+                                            ->iconSize('xs')
                                             ->label('Download Receipt')
                                             ->color('gray')
+                                            ->size('xs')
                                             ->link()
                                             ->visible(fn ($record): bool => $record->status->value === 'succeeded')
                                             ->url(fn ($record): string => route('donations.receipt.download', $record))
