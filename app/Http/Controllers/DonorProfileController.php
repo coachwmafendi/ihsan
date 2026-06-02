@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Enums\SubscriptionStatus;
 use App\Models\Organization;
+use App\Models\Subscription;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Stripe\Customer;
 use Stripe\Stripe;
+use Stripe\Subscription as StripeSubscription;
 
 class DonorProfileController extends Controller
 {

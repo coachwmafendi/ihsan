@@ -62,7 +62,7 @@ class SubscriptionsTable
                 TextColumn::make('donations_sum_gross_amount')
                     ->label('Total')
                     ->sum('donations', 'gross_amount')
-                    ->formatStateUsing(fn ($state): string => 'MYR '.number_format((float) ($state ?? 0), 2))
+                    ->formatStateUsing(fn ($state, $record): string => $record->currency_symbol.' '.number_format((float) ($state ?? 0), 2))
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('campaign.title')

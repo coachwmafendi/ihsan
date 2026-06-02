@@ -229,7 +229,8 @@
                     @endif
                 >
                     <div
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed))"
+                        wire:ignore.self
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($currencySymbol))"
                     >
 
                         {{-- Step progress indicator --}}
@@ -240,7 +241,7 @@
                         </div>
 
                         {{-- Step 1: Amount & Frequency --}}
-                        <div x-show="currentStep === 1" wire:ignore class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
+                        <div x-show="currentStep === 1" class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
                             <div class="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
@@ -570,15 +571,16 @@
 </div>
 
 @script
+{{-- donationStep Alpine component registered in layouts/donation.blade.php via alpine:init --}}
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false) => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialCurrencySymbol = 'RM') => {
         let stripe = null;
         let cardElement = null;
 
         return {
             amount: String(initialAmount ?? ''),
             currency: initialCurrency,
-            currencySymbol: @js($currencySymbol),
+            currencySymbol: initialCurrencySymbol,
             frequency: initialFrequency,
             oneTimeAmounts: initialOneTimeAmounts,
             monthlyAmounts: initialMonthlyAmounts,
@@ -727,7 +729,7 @@
                 if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
 
                 // Embed step 1: hand off to parent modal instead of advancing in iframe
-                if (window !== window.parent && this.currentStep === 1) {
+                if (this.isEmbed && this.currentStep === 1) {
                     window.parent.postMessage({
                         type: 'ihsan:step-continue',
                         amount: this.amount,
