@@ -256,18 +256,17 @@
                         </div>
                     </div>
 
-                    @if ($hasActiveSubscriptions)
-                        <div class="rounded-xl bg-blue-50 p-5 donor-card">
-                            <div class="flex items-start gap-3">
-                                <input type="checkbox" name="sync_stripe" id="sync_stripe" value="1"
-                                       class="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                                <div>
-                                    <label for="sync_stripe" class="text-sm font-bold text-slate-900 cursor-pointer">Update recurring plans</label>
-                                    <p class="mt-0.5 text-xs text-slate-500">Applies changes to all your active recurring plans.</p>
-                                </div>
-                            </div>
+                    <div class="rounded-xl bg-blue-50 p-5 donor-card">
+                        <div class="mb-3">
+                            <h3 class="text-sm font-bold text-slate-900">Update recurring plans</h3>
+                            <p class="mt-0.5 text-xs text-slate-500">Applies changes to all your active recurring plans.</p>
                         </div>
-                    @endif
+                        <label class="flex cursor-pointer items-start gap-3">
+                            <input type="checkbox" name="sync_stripe" value="1"
+                                   class="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                            <span class="text-sm font-medium text-slate-700">Apply changes to all my recurring plans</span>
+                        </label>
+                    </div>
 
                     <div class="flex items-center justify-end gap-3">
                         <button type="button" @click="editing = false"
