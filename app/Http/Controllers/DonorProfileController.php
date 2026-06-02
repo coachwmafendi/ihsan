@@ -67,25 +67,46 @@ class DonorProfileController extends Controller
         $donor->update($data);
 
         if ($syncStripe && $donor->stripe_customer_id) {
-            Stripe::setApiKey(config('services.stripe.secret'));
+            try {
+                Stripe::setApiKey(config('services.stripe.secret'));
 
-            $stripeOptions = $organization->stripe_account_id
-                ? ['stripe_account' => $organization->stripe_account_id]
-                : [];
+                $stripeOptions = $organization->stripe_account_id
+                    ? ['stripe_account' => $organization->stripe_account_id]
+                    : [];
 
-            Customer::update($donor->stripe_customer_id, [
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'phone' => $data['phone'] ?? '',
-                'address' => [
-                    'line1' => $data['address_line1'] ?? '',
-                    'line2' => $data['address_line2'] ?? '',
-                    'city' => $data['address_city'] ?? '',
-                    'state' => $data['address_state'] ?? '',
-                    'postal_code' => $data['address_postal_code'] ?? '',
-                    'country' => $data['country'] ?? '',
-                ],
-            ], $stripeOptions);
+                Customer::update($donor->stripe_customer_id, [
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'phone' => $data['phone'] ?? '',
+                    'address' => [
+                        'line1' => $data['address_line1'] ?? '',
+                        'line2' => $data['address_line2'] ?? '',
+                        'city' => $data['address_city'] ?? '',
+                        'state' => $data['address_state'] ?? '',
+                        'postal_code' => $data['address_postal_code'] ?? '',
+                        'country' => $data['country'] ?? '',
+                    ],
+                ], $stripeOptions);
+
+                $donor->subscriptions()
+                    ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Paused])
+                    ->whereHas('campaign', fn ($q) => $q->where('organization_id', $organization->getKey()))
+                    ->each(function (Subscription $subscription) use ($donor, $stripeOptions) {
+                        if ($subscription->stripe_subscription_id === null) {
+                            return;
+                        }
+
+                        StripeSubscription::update($subscription->stripe_subscription_id, [
+                            'metadata' => [
+                                'donor_name' => $donor->name,
+                                'donor_email' => $donor->email,
+                                'donor_phone' => $donor->phone ?? '',
+                            ],
+                        ], $stripeOptions);
+                    });
+            } catch (\Exception $e) {
+                report($e);
+            }
         }
 
         return redirect()->route('donorportal.profile', $organization)
