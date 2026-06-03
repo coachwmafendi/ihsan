@@ -100,10 +100,13 @@ class ProcessStripeWebhook implements ShouldQueue
             'status' => DonationStatus::Succeeded,
         ]);
 
+        $donation->refresh();
+
         if ($wasPending) {
             $campaign = $donation->campaign;
             $previousCollected = (float) $campaign->collected_amount;
-            $campaign->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
+            $incrementAmount = (float) ($donation->base_amount ?? $donation->gross_amount);
+            $campaign->increment('collected_amount', $incrementAmount);
             $campaign->refresh();
 
             SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
@@ -213,9 +216,12 @@ class ProcessStripeWebhook implements ShouldQueue
 
         app(SyncDonationStripeDetails::class)->sync($donation, null, $stripeOptions);
 
+        $donation->refresh();
+
         $campaign = $donation->campaign;
         $previousCollected = (float) $campaign->collected_amount;
-        $campaign->increment('collected_amount', (float) ($donation->base_amount ?? $grossAmount));
+        $incrementAmount = (float) ($donation->base_amount ?? $grossAmount);
+        $campaign->increment('collected_amount', $incrementAmount);
         $campaign->refresh();
 
         SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
@@ -323,10 +329,19 @@ class ProcessStripeWebhook implements ShouldQueue
             return;
         }
 
+        $donation->loadMissing('campaign');
+        $campaign = $donation->campaign;
+
         $donation->update([
             'status' => DonationStatus::Refunded,
             'refunded_at' => now(),
         ]);
+
+        if ($campaign !== null) {
+            $decrementAmount = (float) ($donation->base_amount ?? $donation->gross_amount);
+            $newAmount = max(0, (float) $campaign->collected_amount - $decrementAmount);
+            $campaign->update(['collected_amount' => $newAmount]);
+        }
 
         SendRefundNotification::dispatch($donation);
     }

@@ -24,7 +24,8 @@ class RecalculateCampaignCollectedAmount extends Command
         foreach ($campaigns as $campaign) {
             $actual = Donation::where('campaign_id', $campaign->id)
                 ->where('status', DonationStatus::Succeeded)
-                ->sum('base_amount');
+                ->get()
+                ->sum(fn ($d) => (float) ($d->base_amount ?? $d->gross_amount));
 
             $current = (float) $campaign->collected_amount;
             $actualFloat = (float) $actual;

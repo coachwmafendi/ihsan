@@ -121,7 +121,8 @@
                     @php
                         $targetAmount = max((float) $campaign->target_amount, 1);
                         $collectedAmount = (float) $campaign->collected_amount;
-                        $progress = min(100, round(($collectedAmount / $targetAmount) * 100));
+                        $progressPercent = min(100, round(($collectedAmount / $targetAmount) * 100));
+                        $progressWidth = $progressPercent > 0 ? max(2, $progressPercent) : 0;
                     @endphp
 
                     <div class="mt-5">
@@ -130,7 +131,7 @@
                             <span class="text-slate-500">Goal {{ $currencySymbol }} {{ number_format($targetAmount, 2) }}</span>
                         </div>
                         <div class="h-3 rounded-full bg-slate-200">
-                            <div class="h-3 rounded-full bg-teal-600" style="width: {{ $progress }}%"></div>
+                            <div class="h-3 rounded-full bg-teal-600" style="width: {{ $progressWidth }}%"></div>
                         </div>
                     </div>
                 @endif
@@ -173,7 +174,8 @@
                 @php
                     $targetAmount = max((float) $campaign->target_amount, 1);
                     $collectedAmount = (float) $campaign->collected_amount;
-                    $progress = min(100, round(($collectedAmount / $targetAmount) * 100));
+                    $progressPercent = min(100, round(($collectedAmount / $targetAmount) * 100));
+                    $progressWidth = $progressPercent > 0 ? max(2, $progressPercent) : 0;
                 @endphp
 
                 <div class="mb-3">
@@ -182,7 +184,7 @@
                         <span class="text-slate-500">Goal {{ $currencySymbol }} {{ number_format($targetAmount, 2) }}</span>
                     </div>
                     <div class="h-3 rounded-full bg-slate-200">
-                        <div class="h-3 rounded-full bg-teal-700" style="width: {{ $progress }}%"></div>
+                        <div class="h-3 rounded-full bg-teal-700" style="width: {{ $progressWidth }}%"></div>
                     </div>
                 </div>
             @endif
@@ -203,7 +205,8 @@
                         @php
                             $targetAmount = max((float) $campaign->target_amount, 1);
                             $collectedAmount = (float) $campaign->collected_amount;
-                            $progress = min(100, round(($collectedAmount / $targetAmount) * 100));
+                            $progressPercent = min(100, round(($collectedAmount / $targetAmount) * 100));
+                            $progressWidth = $progressPercent > 0 ? max(2, $progressPercent) : 0;
                         @endphp
 
                         <div class="mt-6 max-w-2xl">
@@ -212,7 +215,7 @@
                                 <span class="text-slate-500">Goal {{ $currencySymbol }} {{ number_format($targetAmount, 2) }}</span>
                             </div>
                             <div class="h-3 rounded-full bg-slate-200">
-                                <div class="h-3 rounded-full bg-teal-700" style="width: {{ $progress }}%"></div>
+                                <div class="h-3 rounded-full bg-teal-700" style="width: {{ $progressWidth }}%"></div>
                             </div>
                         </div>
                     @endif
