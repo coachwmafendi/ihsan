@@ -41,12 +41,14 @@ it('renders element embed snippets from the first-party widget route', function 
         'liveType' => 'button',
     ])->render())
         ->toContain('https:\/\/ihsan.test\/e\/widget.js')
+        ->toContain('?v=')
         ->not->toContain('cdn.jsdelivr');
 
     expect(view('filament.tables.columns.embed-code-column', [
         'record' => $element,
     ])->render())
         ->toContain('https://ihsan.test/e/widget.js')
+        ->toContain('?v=')
         ->not->toContain('cdn.jsdelivr');
 });
 

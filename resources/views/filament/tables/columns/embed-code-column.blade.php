@@ -1,13 +1,15 @@
 @php
+    use App\Support\EmbedWidget;
+
     $type = $record?->type?->value;
     $token = $record?->token;
     $baseUrl = config('app.url');
-    $widgetSrc = url('/e/widget.js');
+    $widgetSrc = EmbedWidget::scriptUrl();
 
     if (! $record || ! $type || ! $token) return;
 
     $fullCode = '<script src="'.$widgetSrc.'" data-token="'.$token.'" data-api-base="'.$baseUrl.'"></script>';
-    $shortCode = '<script src="/e/widget.js" data-token="'.$token.'"></script>';
+    $shortCode = '<script src="/e/widget.js?v='.EmbedWidget::version().'" data-token="'.$token.'"></script>';
 @endphp
 
 <div class="flex items-center gap-1" style="max-width:260px;overflow:hidden">
