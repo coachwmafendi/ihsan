@@ -411,12 +411,19 @@ class DonationForm extends Component
 
     public function config(string $key, mixed $default = null): mixed
     {
+        $sentinel = new \stdClass;
+
         if ($this->element) {
-            return data_get($this->element->config ?? [], $key, $default);
+            $value = data_get($this->element->config ?? [], $key, $sentinel);
+            if ($value !== $sentinel) {
+                return $value;
+            }
         }
 
-        if ($this->campaign) {
-            return data_get($this->campaign->config ?? [], $key, $default);
+        $campaign = $this->campaign ?? $this->element?->campaign;
+
+        if ($campaign) {
+            return data_get($campaign->config ?? [], $key, $default);
         }
 
         return $default;
