@@ -21,8 +21,33 @@ it('serves the widget script with checkout modal skeleton loading states', funct
         ->assertOk()
         ->assertHeader('content-type', 'application/javascript')
         ->assertSee('createCheckoutSkeleton', false)
+        ->assertSee('preloadCheckoutImage', false)
         ->assertSee('data-ihsan-checkout-skeleton', false)
         ->assertSee('ihsan:donation-ready', false);
+});
+
+it('renders element embed snippets from the first-party widget route', function () {
+    config(['app.url' => 'https://ihsan.test']);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'abc123',
+        'type' => 'button',
+    ]);
+
+    expect(view('filament.forms.components.element-embed-snippet', [
+        'element' => $element,
+        'liveType' => 'button',
+    ])->render())
+        ->toContain('https:\/\/ihsan.test\/e\/widget.js')
+        ->not->toContain('cdn.jsdelivr');
+
+    expect(view('filament.tables.columns.embed-code-column', [
+        'record' => $element,
+    ])->render())
+        ->toContain('https://ihsan.test/e/widget.js')
+        ->not->toContain('cdn.jsdelivr');
 });
 
 it('serves the codex embed smoke test page', function () {

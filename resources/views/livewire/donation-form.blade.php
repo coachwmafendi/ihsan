@@ -36,9 +36,7 @@
     $usesSecureDonationTemplate = $this->config('template', 'secure-donation') === 'secure-donation';
     $usesSecureDonationShell = $usesSecureDonationTemplate && ! $isEmbed;
     $campaignImageUrl = filled($campaign->image_path)
-        ? ($element
-            ? route('donations.campaign-image', $element)
-            : route('donations.campaign-image-campaign', $campaign))
+        ? route('donations.campaign-image-campaign', $campaign)
         : null;
     $introTitle = filled($campaign->headline) ? $campaign->headline : $campaign->title;
     $introText = $campaign->description ?? '';
@@ -87,6 +85,7 @@
                     <img
                         src="{{ $campaignImageUrl }}"
                         alt="{{ $campaign->title }}"
+                        data-ihsan-ready-media
                         class="h-56 w-full rounded-2xl object-cover sm:h-64 {{ $isPopup ? 'lg:h-[330px]' : '' }}"
                     />
                 </div>
@@ -147,6 +146,7 @@
                         <img
                             src="{{ $campaignImageUrl }}"
                             alt="{{ $campaign->title }}"
+                            data-ihsan-ready-media
                             class="h-48 w-full object-cover"
                         />
                     </div>
@@ -770,10 +770,42 @@
                     : Stripe(window.stripePublishableKey);
 
                 if (this.isPopup || this.isEmbed) {
+                    await this.waitForReadyMedia();
+
                     requestAnimationFrame(() => {
                         window.parent.postMessage({ type: 'ihsan:donation-ready' }, '*');
                     });
                 }
+            },
+
+            waitForReadyMedia() {
+                const images = Array.from(this.$root.querySelectorAll('[data-ihsan-ready-media]'));
+
+                if (images.length === 0) {
+                    return Promise.resolve();
+                }
+
+                const waits = images.map((image) => {
+                    if (image.complete && image.naturalWidth > 0) {
+                        return image.decode ? image.decode().catch(() => {}) : Promise.resolve();
+                    }
+
+                    return new Promise((resolve) => {
+                        const finish = () => {
+                            image.removeEventListener('load', finish);
+                            image.removeEventListener('error', finish);
+                            resolve();
+                        };
+
+                        image.addEventListener('load', finish, { once: true });
+                        image.addEventListener('error', finish, { once: true });
+                    });
+                });
+
+                return Promise.race([
+                    Promise.all(waits),
+                    new Promise((resolve) => setTimeout(resolve, 1800)),
+                ]);
             },
 
             async handleSubmit() {
