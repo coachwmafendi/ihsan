@@ -246,7 +246,7 @@
                                 <button
                                     type="button"
                                     x-on:click="selectFrequency('one_time')"
-                                    class="min-h-10 rounded-lg border px-3 text-sm font-semibold transition"
+                                    class="min-h-10 rounded-lg border px-3 text-base font-semibold transition"
                                     :class="frequency === 'one_time' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                                 >
                                     Give once
@@ -256,7 +256,7 @@
                                     <button
                                         type="button"
                                         x-on:click="selectFrequency('monthly'); launchHearts($event)"
-                                        class="relative min-h-10 rounded-lg border px-3 text-sm font-semibold transition overflow-visible"
+                                        class="relative min-h-10 rounded-lg border px-3 text-base font-semibold transition overflow-visible"
                                         :class="frequency === 'monthly' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                                     >
                                         <span style="color: {{ $iconColor }};">&hearts;</span>
@@ -272,7 +272,7 @@
                                         <button
                                             type="button"
                                             x-on:click="selectAmount(amt)"
-                                            class="min-h-12 rounded-lg border px-2 text-sm font-semibold transition"
+                                            class="min-h-12 rounded-lg border px-2 text-base font-semibold transition"
                                             :class="isSelectedAmount(amt) ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
                                             x-text="currencySymbol + ' ' + Number(amt).toLocaleString('en')"
                                         ></button>
@@ -376,7 +376,7 @@
                                  type="button"
                                  x-on:click="nextStep()"
                                  x-bind:disabled="processing"
-                                 class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
+                                 class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
                              >
                                  Continue &rarr;
                              </button>
@@ -457,7 +457,7 @@
                                  type="button"
                                  x-on:click="nextStep()"
                                  x-bind:disabled="processing"
-                                 class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
+                                 class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
                              >
                                  Continue &rarr;
                              </button>
