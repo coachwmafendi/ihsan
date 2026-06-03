@@ -771,11 +771,20 @@
 
                 if (this.isPopup || this.isEmbed) {
                     await this.waitForReadyMedia();
+                    await this.waitForReadyPaint();
 
                     requestAnimationFrame(() => {
                         window.parent.postMessage({ type: 'ihsan:donation-ready' }, '*');
                     });
                 }
+            },
+
+            waitForReadyPaint() {
+                return new Promise((resolve) => {
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(resolve);
+                    });
+                });
             },
 
             waitForReadyMedia() {

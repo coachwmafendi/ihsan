@@ -23,7 +23,9 @@ it('serves the widget script with checkout modal skeleton loading states', funct
         ->assertSee('createCheckoutSkeleton', false)
         ->assertSee('preloadCheckoutImage', false)
         ->assertSee('data-ihsan-checkout-skeleton', false)
-        ->assertSee('ihsan:donation-ready', false);
+        ->assertSee('ihsan:donation-ready', false)
+        ->assertSee('setTimeout(hideSkeleton, 3200)', false)
+        ->assertDontSee('setTimeout(hideSkeleton, 450)', false);
 });
 
 it('renders element embed snippets from the first-party widget route', function () {

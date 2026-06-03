@@ -125,6 +125,7 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertSee('lg:border-r lg:border-slate-200', false)
         ->assertSee('data-ihsan-ready-media', false)
         ->assertSee('waitForReadyMedia', false)
+        ->assertSee('waitForReadyPaint', false)
         ->assertSee('ihsan:donation-ready', false);
 
     Livewire::test(DonationForm::class, ['element' => $element])
