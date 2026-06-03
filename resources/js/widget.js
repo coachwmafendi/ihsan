@@ -68,6 +68,53 @@
     window.open(el.campaign_url || checkoutUrl(el), "_blank", "noopener");
   }
 
+  function createCheckoutSkeleton(isMobileView) {
+    var skeleton = document.createElement("div");
+    skeleton.setAttribute("data-ihsan-checkout-skeleton", "true");
+    skeleton.setAttribute("aria-live", "polite");
+    skeleton.style.cssText = [
+      "position:absolute",
+      "inset:0",
+      "z-index:2",
+      "display:flex",
+      "align-items:stretch",
+      "background:#fff",
+      isMobileView ? "border-radius:0" : "border-radius:16px",
+      "overflow:hidden",
+      "transition:opacity .18s ease",
+      "pointer-events:none",
+      "font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif",
+    ].join(";");
+
+    var baseBlock = "background:linear-gradient(90deg,#e2e8f0 0%,#f8fafc 45%,#e2e8f0 90%);background-size:220% 100%;animation:ihsan-skeleton-shimmer 1.25s ease-in-out infinite;";
+    var imageColumn = isMobileView ? "" : '<div style="flex:1;min-width:0;border-right:1px solid #e2e8f0;padding:18px;"><div style="' + baseBlock + 'height:330px;border-radius:16px;"></div><div style="' + baseBlock + 'height:16px;width:48%;border-radius:999px;margin-top:26px;"></div><div style="' + baseBlock + 'height:30px;width:82%;border-radius:10px;margin-top:12px;"></div><div style="' + baseBlock + 'height:14px;width:94%;border-radius:999px;margin-top:20px;"></div><div style="' + baseBlock + 'height:14px;width:78%;border-radius:999px;margin-top:10px;"></div></div>';
+    var mobileImage = isMobileView ? '<div style="' + baseBlock + 'height:148px;margin:-20px -20px 20px;border-radius:0;"></div>' : "";
+    var amountButtons = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;"><div style="' + baseBlock + 'height:44px;border-radius:10px;"></div><div style="' + baseBlock + 'height:44px;border-radius:10px;"></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;"><div style="' + baseBlock + 'height:48px;border-radius:12px;"></div><div style="' + baseBlock + 'height:48px;border-radius:12px;"></div><div style="' + baseBlock + 'height:48px;border-radius:12px;"></div></div>';
+
+    skeleton.innerHTML = [
+      imageColumn,
+      '<div style="width:100%;max-width:' + (isMobileView ? "none" : "440px") + ';padding:' + (isMobileView ? "20px" : "28px") + ';box-sizing:border-box;">',
+      mobileImage,
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;"><div style="' + baseBlock + 'width:36px;height:36px;border-radius:999px;"></div><div style="' + baseBlock + 'height:22px;width:54%;border-radius:999px;"></div></div>',
+      '<div style="' + baseBlock + 'height:14px;width:34%;border-radius:999px;"></div>',
+      amountButtons,
+      '<div style="' + baseBlock + 'height:46px;border-radius:12px;margin-top:18px;"></div>',
+      '<div style="' + baseBlock + 'height:46px;border-radius:12px;margin-top:10px;"></div>',
+      '<div style="' + baseBlock + 'height:48px;border-radius:12px;margin-top:18px;"></div>',
+      '<p style="margin:14px 0 0;color:#64748b;font-size:13px;text-align:center;">Loading donation form...</p>',
+      '</div>',
+    ].join("");
+
+    if (!document.getElementById("ihsan-skeleton-style")) {
+      var style = document.createElement("style");
+      style.id = "ihsan-skeleton-style";
+      style.textContent = "@keyframes ihsan-skeleton-shimmer{0%{background-position:140% 0}100%{background-position:-140% 0}}";
+      document.head.appendChild(style);
+    }
+
+    return skeleton;
+  }
+
   function showCheckoutModal(el, overrideUrl) {
     var isMobileView = window.innerWidth <= 768;
     var overlay = document.createElement("div");
@@ -101,6 +148,8 @@
       "box-shadow:0 24px 80px rgba(15,23,42,.35)",
       "display:block",
       "pointer-events:auto",
+      "opacity:0",
+      "transition:opacity .18s ease",
     ].join(";");
 
     var modalWrap = document.createElement("div");
@@ -113,6 +162,18 @@
       "-webkit-overflow-scrolling:touch",
       "overflow:hidden",
     ].join(";");
+    var skeleton = createCheckoutSkeleton(isMobileView);
+    var skeletonHidden = false;
+
+    function hideSkeleton() {
+      if (skeletonHidden) return;
+      skeletonHidden = true;
+      iframe.style.opacity = "1";
+      skeleton.style.opacity = "0";
+      setTimeout(function () {
+        if (skeleton.parentNode) skeleton.remove();
+      }, 220);
+    }
 
     var closeBtn = document.createElement("button");
     closeBtn.setAttribute("aria-label", "Close");
@@ -147,21 +208,34 @@
       closeBtn.style.color = "#475569";
     });
     closeBtn.addEventListener("click", function () {
-      overlay.remove();
+      closeOverlay();
     });
     overlay.addEventListener("click", function (e) {
-      if (e.target === overlay) overlay.remove();
+      if (e.target === overlay) closeOverlay();
     });
 
-    function closeOverlay() { overlay.remove(); }
+    function closeOverlay() {
+      window.removeEventListener("message", modalMessageHandler);
+      overlay.remove();
+    }
 
-    window.addEventListener("message", function closeHandler(e) {
+    iframe.addEventListener("load", function () {
+      setTimeout(hideSkeleton, 450);
+    });
+
+    function modalMessageHandler(e) {
       if (e.data && e.data.type === "ihsan:close-modal") {
         closeOverlay();
-        window.removeEventListener("message", closeHandler);
       }
-    });
 
+      if (e.data && e.data.type === "ihsan:donation-ready") {
+        hideSkeleton();
+      }
+    }
+
+    window.addEventListener("message", modalMessageHandler);
+
+    modalWrap.appendChild(skeleton);
     modalWrap.appendChild(iframe);
     modalWrap.appendChild(closeBtn);
     overlay.appendChild(modalWrap);
