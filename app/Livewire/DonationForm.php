@@ -444,6 +444,14 @@ class DonationForm extends Component
 
     public function render()
     {
+        if ($this->element !== null && $this->element->campaign !== null) {
+            $this->element->campaign = Campaign::query()->find($this->element->campaign->getKey());
+        }
+
+        if ($this->campaign !== null) {
+            $this->campaign = Campaign::query()->find($this->campaign->getKey());
+        }
+
         return view('livewire.donation-form')
             ->layout($this->isEmbed ? 'layouts.embed' : ($this->isPopup ? 'layouts.popup' : 'layouts.donation'));
     }
