@@ -322,8 +322,9 @@
                                                 <button
                                                     type="button"
                                                     x-on:click.stop="open = !open"
-                                                    class="flex cursor-pointer select-none items-center gap-0.5"
+                                                    class="flex cursor-pointer select-none items-center gap-1.5"
                                                 >
+                                                    <x-currency-flag :currency="$this->currency" style="width:20px;height:14px"/>
                                                     <span class="text-sm font-medium text-slate-500">{{ strtoupper($this->currency) }}</span>
                                                     <svg class="mt-0.5 size-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -342,6 +343,7 @@
                                                             x-on:click="open = false"
                                                             class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-semibold transition hover:bg-slate-50 {{ $this->currency === $code ? 'text-teal-700' : 'text-slate-700' }}"
                                                         >
+                                                            <x-currency-flag :currency="$code" style="width:20px;height:14px"/>
                                                             <span>{{ $currencyDropdownLabels[$code] ?? strtoupper($code) }}</span>
                                                             <span class="text-xs font-normal text-slate-400">{{ strtoupper($code) }}</span>
                                                         </button>
