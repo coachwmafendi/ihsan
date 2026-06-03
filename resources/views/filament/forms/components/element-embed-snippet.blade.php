@@ -1,7 +1,7 @@
 @php
     $type = $liveType ?? ($element?->type?->value ?? null);
     $baseUrl = config('app.url');
-    $widgetSrc = 'https://cdn.jsdelivr.net/gh/coachwmafendi/ihsan-widget@main/widget.js';
+    $widgetSrc = url('/e/widget.js');
     $token = $element?->token;
 @endphp
 

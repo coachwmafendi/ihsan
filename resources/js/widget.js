@@ -68,6 +68,15 @@
     window.open(el.campaign_url || checkoutUrl(el), "_blank", "noopener");
   }
 
+  function preloadCheckoutImage(el) {
+    var url = el.campaign_image_url || (el.settings && el.settings.image_url);
+    if (!url) return;
+
+    var image = new Image();
+    image.decoding = "async";
+    image.src = url;
+  }
+
   function createCheckoutSkeleton(isMobileView) {
     var skeleton = document.createElement("div");
     skeleton.setAttribute("data-ihsan-checkout-skeleton", "true");
@@ -846,6 +855,8 @@
   };
 
   function renderFromData(el) {
+    preloadCheckoutImage(el);
+
     var renderer = renderers[el.type] || renderers[el.type.replace(/-/g, "_")];
     if (renderer) renderer(el);
   }

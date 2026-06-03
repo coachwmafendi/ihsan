@@ -88,7 +88,7 @@ it('uses the saved secure donation template for standard form elements', functio
         ->assertOk()
         ->assertSee('You Will Make a Difference')
         ->assertSee('Secure donation')
-        ->assertSee(route('donations.campaign-image', $element), false)
+        ->assertSee(route('donations.campaign-image-campaign', $campaign), false)
         ->assertSee('Donate monthly')
         ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
 });
@@ -117,12 +117,15 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertOk()
         ->assertSee('You Will Make a Difference')
         ->assertSee('Secure donation')
-        ->assertSee(route('donations.campaign-image', $element), false)
+        ->assertSee(route('donations.campaign-image-campaign', $campaign), false)
         ->assertSee('Donate monthly')
         ->assertSee('lg:max-w-6xl', false)
         ->assertSee('bg-black/35 backdrop-blur-[1px]', false)
         ->assertSee('lg:grid-cols-[minmax(0,1fr)_440px]', false)
-        ->assertSee('lg:border-r lg:border-slate-200', false);
+        ->assertSee('lg:border-r lg:border-slate-200', false)
+        ->assertSee('data-ihsan-ready-media', false)
+        ->assertSee('waitForReadyMedia', false)
+        ->assertSee('ihsan:donation-ready', false);
 
     Livewire::test(DonationForm::class, ['element' => $element])
         ->assertSet('isPopup', true)
@@ -267,7 +270,7 @@ it('renders the hosted donation form as an image-led popup', function () {
         ->assertOk()
         ->assertSee('You Will Make a Difference')
         ->assertSee('Secure donation')
-        ->assertSee(route('donations.campaign-image', $element), false)
+        ->assertSee(route('donations.campaign-image-campaign', $campaign), false)
         ->assertSee('Give once')
         ->assertSee('Monthly')
         ->assertSee('[300,200,30]', false)
