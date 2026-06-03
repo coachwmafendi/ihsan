@@ -1,7 +1,9 @@
 @php
+    use App\Support\EmbedWidget;
+
     $type = $liveType ?? ($element?->type?->value ?? null);
     $baseUrl = config('app.url');
-    $widgetSrc = url('/e/widget.js');
+    $widgetSrc = EmbedWidget::scriptUrl();
     $token = $element?->token;
 @endphp
 
