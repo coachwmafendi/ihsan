@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
@@ -59,12 +60,20 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     public function getFilamentAvatarUrl(): ?string
     {
-        return $this->avatar_url ? asset('storage/'.$this->avatar_url) : null;
+        if ($this->avatar_url === null) {
+            return null;
+        }
+
+        return Storage::url($this->avatar_url);
     }
 
     public function avatarUrl(): ?string
     {
-        return $this->avatar_url ? asset('storage/'.$this->avatar_url) : null;
+        if ($this->avatar_url === null) {
+            return null;
+        }
+
+        return Storage::url($this->avatar_url);
     }
 
     /**
