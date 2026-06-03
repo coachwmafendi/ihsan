@@ -51,6 +51,16 @@
                 </a>
             </nav>
             <div class="flex items-center gap-3">
+                @php $headerDonor = request()->donor; @endphp
+                @if ($headerDonor && $headerDonor->photo_url)
+                    <a href="{{ route('donorportal.profile', $organization) }}" wire:navigate class="h-8 w-8 overflow-hidden rounded-full ring-2 ring-white/20 transition hover:ring-white/40">
+                        <img src="{{ $headerDonor->photo_url }}" alt="{{ $headerDonor->name }}" class="h-full w-full object-cover">
+                    </a>
+                @elseif ($headerDonor)
+                    <a href="{{ route('donorportal.profile', $organization) }}" wire:navigate class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 ring-2 ring-white/20 text-xs font-bold text-white transition hover:ring-white/40">
+                        {{ strtoupper(substr($headerDonor->name, 0, 1)) }}
+                    </a>
+                @endif
                 <form method="POST" action="{{ route('donorportal.logout', $organization) }}">
                     @csrf
                     <button type="submit" class="text-xs font-medium text-white/30 transition hover:text-white/60">
