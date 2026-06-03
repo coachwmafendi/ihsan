@@ -230,7 +230,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($currencySymbol))"
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol))"
                     >
 
                         {{-- Step progress indicator --}}
@@ -573,7 +573,7 @@
 @script
 {{-- donationStep Alpine component registered in layouts/donation.blade.php via alpine:init --}}
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialCurrencySymbol = 'RM') => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM') => {
         let stripe = null;
         let cardElement = null;
 
@@ -591,6 +591,7 @@
             feeConfig: initialFeeConfig,
             coverFee: initialCoverFee,
             isEmbed: initialIsEmbed,
+            isPopup: initialIsPopup,
             processing: false,
             currentStep: initialStep > 1 ? initialStep : 1,
             stepErrors: {},
@@ -767,6 +768,12 @@
                 stripe = connectedStripeAccountId
                     ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
                     : Stripe(window.stripePublishableKey);
+
+                if (this.isPopup || this.isEmbed) {
+                    requestAnimationFrame(() => {
+                        window.parent.postMessage({ type: 'ihsan:donation-ready' }, '*');
+                    });
+                }
             },
 
             async handleSubmit() {

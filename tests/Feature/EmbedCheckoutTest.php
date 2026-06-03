@@ -16,6 +16,15 @@ it('serves the embed script as javascript', function () {
         ->assertSee('/checkout', false);
 });
 
+it('serves the widget script with checkout modal skeleton loading states', function () {
+    $this->get(route('widget.script'))
+        ->assertOk()
+        ->assertHeader('content-type', 'application/javascript')
+        ->assertSee('createCheckoutSkeleton', false)
+        ->assertSee('data-ihsan-checkout-skeleton', false)
+        ->assertSee('ihsan:donation-ready', false);
+});
+
 it('serves the codex embed smoke test page', function () {
     $html = file_get_contents(public_path('codex-embed-test.html'));
 
