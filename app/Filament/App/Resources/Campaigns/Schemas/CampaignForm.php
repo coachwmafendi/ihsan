@@ -140,10 +140,6 @@ class CampaignForm
                                             ->label('Allow donors to cover processing fee')
                                             ->helperText('Donors see a pre-checked option to cover the Stripe fee (~3% + RM 0.50).')
                                             ->default(true),
-                                        Toggle::make('show_dedication')
-                                            ->label('Dedicate this donation')
-                                            ->helperText('Show the dedication option on the checkout form.')
-                                            ->default(true),
                                         Toggle::make('show_comment')
                                             ->label('Comment (optional)')
                                             ->helperText('Show the comment/message field on the checkout form.')

@@ -13,7 +13,7 @@
     $borderRadius = (int) $this->config('border_radius', 6);
     $showShadow = (bool) $this->config('show_shadow', false);
     $allowMonthly = (bool) $this->config('allow_monthly', true);
-    $showDedication = (bool) $this->config('show_dedication', true);
+    $showDedication = (bool) $this->config('show_dedication', false);
     $showComment = (bool) $this->config('show_comment', true);
     $isPopup = $this->isPopup;
     $isEmbed = $this->isEmbed;
