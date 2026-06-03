@@ -5,6 +5,7 @@ namespace App\Filament\App\Resources\Campaigns\Schemas;
 use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
 use App\Filament\Forms\Components\SuggestedAmounts;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
@@ -136,11 +137,11 @@ class CampaignForm
                                             ->numeric()
                                             ->minValue(1)
                                             ->default(30),
-                                        Toggle::make('allow_cover_fee')
+                                        Checkbox::make('allow_cover_fee')
                                             ->label('Allow donors to cover processing fee')
                                             ->helperText('Donors see a pre-checked option to cover the Stripe fee (~3% + RM 0.50).')
                                             ->default(true),
-                                        Toggle::make('show_comment')
+                                        Checkbox::make('show_comment')
                                             ->label('Comment (optional)')
                                             ->helperText('Show the comment/message field on the checkout form.')
                                             ->default(true),
