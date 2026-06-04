@@ -229,7 +229,7 @@
     }
 
     iframe.addEventListener("load", function () {
-      setTimeout(hideSkeleton, 3200);
+      setTimeout(hideSkeleton, 9000);
     });
 
     function modalMessageHandler(e) {

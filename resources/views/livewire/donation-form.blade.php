@@ -82,12 +82,30 @@
         @endif
             @if ($campaignImageUrl)
                 <div class="p-2.5 pb-0 sm:p-3 sm:pb-0 {{ $isPopup ? 'lg:p-4 lg:pb-0' : '' }}">
+                    <div
+                        x-data="{ imageLoaded: false }"
+                        x-init="$nextTick(() => { imageLoaded = $refs.readyImage?.complete && $refs.readyImage?.naturalWidth > 0 })"
+                        data-ihsan-media-frame
+                        class="relative overflow-hidden rounded-2xl bg-slate-100"
+                    >
+                        <div
+                            x-show="! imageLoaded"
+                            class="absolute inset-0 animate-pulse bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100"
+                        ></div>
                     <img
+                        x-ref="readyImage"
                         src="{{ $campaignImageUrl }}"
                         alt="{{ $campaign->title }}"
                         data-ihsan-ready-media
-                        class="h-56 w-full rounded-2xl object-cover sm:h-64 {{ $isPopup ? 'lg:h-[330px]' : '' }}"
+                        loading="eager"
+                        fetchpriority="high"
+                        decoding="async"
+                        x-on:load="imageLoaded = true"
+                        x-on:error="imageLoaded = true"
+                        x-bind:class="imageLoaded ? 'opacity-100' : 'opacity-0'"
+                        class="relative h-56 w-full rounded-2xl object-cover transition-opacity duration-200 sm:h-64 {{ $isPopup ? 'lg:h-[330px]' : '' }}"
                     />
+                    </div>
                 </div>
             @endif
 
@@ -144,12 +162,30 @@
             <section class="border-t border-slate-200 px-6 py-6 {{ $isPopup ? 'lg:border-t-0 lg:px-7 lg:py-7' : '' }}">
                 @if ($isPopup && $campaignImageUrl)
                     <div class="mb-5 -mx-6 -mt-6 lg:hidden">
+                        <div
+                            x-data="{ imageLoaded: false }"
+                            x-init="$nextTick(() => { imageLoaded = $refs.readyImage?.complete && $refs.readyImage?.naturalWidth > 0 })"
+                            data-ihsan-media-frame
+                            class="relative overflow-hidden bg-slate-100"
+                        >
+                            <div
+                                x-show="! imageLoaded"
+                                class="absolute inset-0 animate-pulse bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100"
+                            ></div>
                         <img
+                            x-ref="readyImage"
                             src="{{ $campaignImageUrl }}"
                             alt="{{ $campaign->title }}"
                             data-ihsan-ready-media
-                            class="h-48 w-full object-cover"
+                            loading="eager"
+                            fetchpriority="high"
+                            decoding="async"
+                            x-on:load="imageLoaded = true"
+                            x-on:error="imageLoaded = true"
+                            x-bind:class="imageLoaded ? 'opacity-100' : 'opacity-0'"
+                            class="relative h-48 w-full object-cover transition-opacity duration-200"
                         />
+                        </div>
                     </div>
                 @endif
                 <div class="mb-5 flex items-center gap-3">
@@ -818,7 +854,7 @@
 
                 return Promise.race([
                     Promise.all(waits),
-                    new Promise((resolve) => setTimeout(resolve, 1800)),
+                    new Promise((resolve) => setTimeout(resolve, 8000)),
                 ]);
             },
 
