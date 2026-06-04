@@ -152,7 +152,10 @@ class PublicElementController extends Controller
             $response['campaign_currency_symbol'] = Currency::symbol($element->campaign->organization?->settings['default_currency'] ?? 'myr');
 
             if ($element->campaign->image_path) {
-                $response['campaign_image_url'] = url('/donate/campaign/'.$element->campaign->form_parameter.'/image');
+                $response['campaign_image_url'] = route('donations.campaign-image-campaign', [
+                    'campaign' => $element->campaign,
+                    'variant' => 'modal',
+                ]);
             }
         }
 

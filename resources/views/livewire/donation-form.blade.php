@@ -35,8 +35,12 @@
     $btnEffectId  = 'ihsan-grad-' . $btnEffect;
     $usesSecureDonationTemplate = $this->config('template', 'secure-donation') === 'secure-donation';
     $usesSecureDonationShell = $usesSecureDonationTemplate && ! $isEmbed;
+    $campaignImageRouteParameters = ['campaign' => $campaign];
+    if ($isCompact) {
+        $campaignImageRouteParameters['variant'] = 'modal';
+    }
     $campaignImageUrl = filled($campaign->image_path)
-        ? route('donations.campaign-image-campaign', $campaign)
+        ? route('donations.campaign-image-campaign', $campaignImageRouteParameters)
         : null;
     $introTitle = filled($campaign->headline) ? $campaign->headline : $campaign->title;
     $introText = $campaign->description ?? '';

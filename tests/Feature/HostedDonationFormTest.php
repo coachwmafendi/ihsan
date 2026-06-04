@@ -117,7 +117,7 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertOk()
         ->assertSee('You Will Make a Difference')
         ->assertSee('Secure donation')
-        ->assertSee(route('donations.campaign-image-campaign', $campaign), false)
+        ->assertSee(route('donations.campaign-image-campaign', ['campaign' => $campaign, 'variant' => 'modal']), false)
         ->assertSee('Donate monthly')
         ->assertSee('lg:max-w-6xl', false)
         ->assertSee('bg-black/35 backdrop-blur-[1px]', false)

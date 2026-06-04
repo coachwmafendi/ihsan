@@ -69,6 +69,25 @@ it('includes campaign url for elements with a campaign', function () {
         ]);
 });
 
+it('returns an optimized campaign image url for widget preloading', function () {
+    $org = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create([
+        'form_parameter' => 'IMAGE2026',
+        'image_path' => 'campaigns/form-hero.jpg',
+        'checkout_modal_enabled' => true,
+    ]);
+    $element = Element::factory()->for($org)->for($campaign)->create([
+        'type' => ElementType::FloatingButton,
+    ]);
+
+    $this->getJson(route('api.public.elements.show', $element->token))
+        ->assertOk()
+        ->assertJsonPath(
+            'campaign_image_url',
+            url('/donate/campaign/IMAGE2026/image?variant=modal')
+        );
+});
+
 it('returns element data with merged default settings for floating button', function () {
     $org = Organization::factory()->create();
     $element = Element::factory()->for($org)->create([
