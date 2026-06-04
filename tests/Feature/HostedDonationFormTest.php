@@ -124,6 +124,9 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertSee('lg:grid-cols-[minmax(0,1fr)_440px]', false)
         ->assertSee('lg:border-r lg:border-slate-200', false)
         ->assertSee('data-ihsan-ready-media', false)
+        ->assertSee('data-ihsan-media-frame', false)
+        ->assertSee('imageLoaded', false)
+        ->assertSee('fetchpriority="high"', false)
         ->assertSee('waitForReadyMedia', false)
         ->assertSee('waitForReadyPaint', false)
         ->assertSee('ihsan:donation-ready', false);
