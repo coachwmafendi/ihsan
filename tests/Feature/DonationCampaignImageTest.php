@@ -4,6 +4,7 @@ use App\Enums\ElementType;
 use App\Models\Campaign;
 use App\Models\Element;
 use App\Models\Organization;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 it('serves a campaign image for an active donation form token', function () {
@@ -65,6 +66,32 @@ it('serves campaign images from public storage when local storage is missing the
         ->assertOk();
 
     expect($response->streamedContent())->toBe('fake public image contents');
+});
+
+it('serves an optimized modal image variant as webp', function () {
+    Storage::fake('local');
+
+    $image = UploadedFile::fake()->image('form-hero.jpg', 2000, 1000);
+    Storage::disk('local')->put('campaigns/form-hero.jpg', file_get_contents($image->getRealPath()));
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'form_parameter' => 'MODAL2026',
+        'image_path' => 'campaigns/form-hero.jpg',
+    ]);
+
+    $response = $this->get(route('donations.campaign-image-campaign', [
+        'campaign' => $campaign,
+        'variant' => 'modal',
+    ]))
+        ->assertOk()
+        ->assertHeader('content-type', 'image/webp');
+
+    $content = $response->getContent();
+
+    expect($content)->not->toBeFalse()
+        ->and(substr($content, 0, 4))->toBe('RIFF')
+        ->and(substr($content, 8, 4))->toBe('WEBP');
 });
 
 it('does not serve campaign images for inactive forms', function () {
