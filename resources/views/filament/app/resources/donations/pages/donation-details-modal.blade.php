@@ -51,8 +51,8 @@
                 </div>
                 <div class="px-0">
                     {{-- Amount --}}
-                    <div class="flex items-baseline px-5 py-3">
-                        <p class="w-[30%] text-sm text-gray-500 dark:text-gray-400 shrink-0">Donation amount</p>
+                    <div class="flex items-baseline px-5 py-3 gap-3">
+                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Donation amount</p>
                         <div class="flex-1 text-sm text-gray-900 dark:text-gray-100">
                             @if ($record->currency !== 'myr' && $record->base_amount)
                                 {{ strtoupper($record->currency) }} {{ number_format((float) $record->gross_amount, 2) }}
@@ -64,8 +64,8 @@
                     </div>
 
                     {{-- Donation ID --}}
-                    <div class="flex items-center px-5 py-3">
-                        <p class="w-[30%] text-sm text-gray-500 dark:text-gray-400 shrink-0">Donation ID</p>
+                    <div class="flex items-center px-5 py-3 gap-3">
+                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Donation ID</p>
                         <div class="flex-1 flex items-center gap-1.5 group">
                             <p class="text-sm text-gray-900 dark:text-gray-100">{{ $record->invoice_number }}</p>
                             <button
@@ -80,8 +80,8 @@
                     </div>
 
                     {{-- Status --}}
-                    <div class="flex items-center px-5 py-3">
-                        <p class="w-[30%] text-sm text-gray-500 dark:text-gray-400 shrink-0">Status</p>
+                    <div class="flex items-center px-5 py-3 gap-3">
+                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Status</p>
                         <div class="flex-1">
                             @php
                                 $statusColor = match (ucfirst($record->status->value)) {
@@ -99,8 +99,8 @@
                     </div>
 
                     {{-- Supporter --}}
-                    <div class="flex items-center px-5 py-3">
-                        <p class="w-[30%] text-sm text-gray-500 dark:text-gray-400 shrink-0">Supporter</p>
+                    <div class="flex items-center px-5 py-3 gap-3">
+                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Supporter</p>
                         <div class="flex-1">
                             <a href="#" class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
                                 {{ $record->donor?->name ?? '—' }}
@@ -109,8 +109,8 @@
                     </div>
 
                     {{-- Campaign --}}
-                    <div class="flex items-baseline px-5 py-3">
-                        <p class="w-[30%] text-sm text-gray-500 dark:text-gray-400 shrink-0">Campaign</p>
+                    <div class="flex items-baseline px-5 py-3 gap-3">
+                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Campaign</p>
                         <div class="flex-1">
                             <a href="#" class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
                                 {{ $record->campaign?->title ?? '—' }}
@@ -119,35 +119,35 @@
                     </div>
 
                     {{-- Element --}}
-                    <div class="flex items-center px-5 py-3">
-                        <p class="w-[30%] text-sm text-gray-500 dark:text-gray-400 shrink-0">Element</p>
+                    <div class="flex items-center px-5 py-3 gap-3">
+                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Element</p>
                         <p class="flex-1 text-sm text-gray-900 dark:text-gray-100">{{ $record->element_label ?? '—' }}</p>
                     </div>
 
                     {{-- Donation date --}}
-                    <div class="flex items-center px-5 py-3">
-                        <p class="w-[30%] text-sm text-gray-500 dark:text-gray-400 shrink-0">Donation date</p>
+                    <div class="flex items-center px-5 py-3 gap-3">
+                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Donation date</p>
                         <p class="flex-1 text-sm text-gray-900 dark:text-gray-100">{{ $record->created_at->format('M d, Y, h:i A') }}</p>
                     </div>
 
                     {{-- Success date (same as created if succeeded) --}}
                     @if ($record->status->value !== 'pending')
-                        <div class="flex items-center px-5 py-3">
-                            <p class="w-[30%] text-sm text-gray-500 dark:text-gray-400 shrink-0">Success date</p>
+                        <div class="flex items-center px-5 py-3 gap-3">
+                            <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Success date</p>
                             <p class="flex-1 text-sm text-gray-900 dark:text-gray-100">{{ $record->created_at->format('M d, Y, h:i A') }}</p>
                         </div>
                     @endif
 
                     {{-- Frequency --}}
-                    <div class="flex items-center px-5 py-3">
-                        <p class="w-[30%] text-sm text-gray-500 dark:text-gray-400 shrink-0">Frequency</p>
+                    <div class="flex items-center px-5 py-3 gap-3">
+                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Frequency</p>
                         <p class="flex-1 text-sm text-gray-900 dark:text-gray-100">{{ $record->type->value === 'recurring' ? 'Recurring' : 'Once' }}</p>
                     </div>
 
                     @if ($record->status->value === 'refunded')
                         {{-- Refunded At --}}
-                        <div class="flex items-center px-5 py-3 border-t border-gray-100 dark:border-gray-800">
-                            <p class="w-[30%] text-sm text-gray-500 dark:text-gray-400 shrink-0">Refunded date</p>
+                        <div class="flex items-center px-5 py-3 gap-3 border-t border-gray-100 dark:border-gray-800">
+                            <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Refunded date</p>
                             <p class="flex-1 text-sm text-gray-900 dark:text-gray-100">{{ $record->refunded_at->format('M d, Y, h:i A') }}</p>
                         </div>
                     @endif
