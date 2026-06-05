@@ -1,3 +1,0 @@
-- generic [ref=e4]:
-  - button "Close" [ref=e5]
-  - generic [ref=e10]

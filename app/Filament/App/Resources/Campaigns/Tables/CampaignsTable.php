@@ -149,7 +149,7 @@ class CampaignsTable
                     ->icon('heroicon-o-document-duplicate')
                     ->color('gray')
                     ->action(function ($record) {
-                        $replica = $record->replicate();
+                        $replica = $record->replicate(['donations_count']);
                         $replica->title = $record->title.' (Copy)';
                         $replica->collected_amount = 0;
                         $replica->save();
