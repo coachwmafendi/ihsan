@@ -49,40 +49,24 @@
                     <x-heroicon-o-information-circle class="size-5 text-gray-400 dark:text-gray-500" />
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">General</h3>
                 </div>
-                <div class="px-0">
+                <div class="px-6 py-4 space-y-2 text-sm">
                     {{-- Amount --}}
-                    <div class="flex items-baseline px-5 py-3 gap-3">
-                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Donation amount</p>
-                        <div class="flex-1 text-sm text-gray-900 dark:text-gray-100">
+                    <div class="flex items-baseline gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Amount</span>
+                        <span class="text-gray-900 dark:text-gray-100">
                             @if ($record->currency !== 'myr' && $record->base_amount)
                                 {{ strtoupper($record->currency) }} {{ number_format((float) $record->gross_amount, 2) }}
-                                <span class="text-gray-400 dark:text-gray-500 ml-2">≈ MYR {{ number_format((float) $record->base_amount, 2) }}</span>
+                                <span class="text-gray-400 dark:text-gray-500 ml-1.5">≈ MYR {{ number_format((float) $record->base_amount, 2) }}</span>
                             @else
                                 {{ strtoupper($record->currency) }} {{ number_format((float) $record->gross_amount, 2) }}
                             @endif
-                        </div>
-                    </div>
-
-                    {{-- Donation ID --}}
-                    <div class="flex items-center px-5 py-3 gap-3">
-                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Donation ID</p>
-                        <div class="flex-1 flex items-center gap-1.5 group">
-                            <p class="text-sm text-gray-900 dark:text-gray-100">{{ $record->invoice_number }}</p>
-                            <button
-                                type="button"
-                                @click="navigator.clipboard.writeText('{{ $record->invoice_number }}'); $dispatch('notify', { message: 'Copied' })"
-                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                                title="Copy"
-                            >
-                                <x-heroicon-o-clipboard-document class="size-3.5" />
-                            </button>
-                        </div>
+                        </span>
                     </div>
 
                     {{-- Status --}}
-                    <div class="flex items-center px-5 py-3 gap-3">
-                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Status</p>
-                        <div class="flex-1">
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Status</span>
+                        <span>
                             @php
                                 $statusColor = match (ucfirst($record->status->value)) {
                                     'Pending' => 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
@@ -92,65 +76,53 @@
                                     default => 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
                                 };
                             @endphp
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium {{ $statusColor }}">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium {{ $statusColor }}">
                                 {{ ucfirst($record->status->value) }}
                             </span>
+                        </span>
+                    </div>
+
+                    {{-- Type --}}
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Type</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ str($record->type->value)->headline() }}</span>
+                    </div>
+
+                    {{-- Date --}}
+                    <div class="flex items-baseline gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Date</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $record->created_at->format('d M Y, h:i A') }}</span>
+                    </div>
+
+                    {{-- Receipt No. --}}
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Receipt No.</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-900 dark:text-gray-100">{{ $record->invoice_number }}</span>
+                            @if ($record->status->value === 'succeeded')
+                                <a href="{{ route('donations.receipt.download', $record) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                                    <x-heroicon-o-arrow-down-tray class="size-3" />
+                                    Download Receipt
+                                </a>
+                            @endif
                         </div>
                     </div>
 
-                    {{-- Supporter --}}
-                    <div class="flex items-center px-5 py-3 gap-3">
-                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Supporter</p>
-                        <div class="flex-1">
-                            <a href="#" class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
-                                {{ $record->donor?->name ?? '—' }}
-                            </a>
+                    {{-- Donation ID --}}
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Donation ID</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-gray-900 dark:text-gray-100">{{ $record->id }}</span>
+                            <button
+                                type="button"
+                                @click="navigator.clipboard.writeText('{{ $record->id }}'); $dispatch('notify', { message: 'Copied' })"
+                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                title="Copy"
+                            >
+                                <x-heroicon-o-clipboard-document class="size-3.5" />
+                            </button>
                         </div>
                     </div>
-
-                    {{-- Campaign --}}
-                    <div class="flex items-baseline px-5 py-3 gap-3">
-                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Campaign</p>
-                        <div class="flex-1">
-                            <a href="#" class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
-                                {{ $record->campaign?->title ?? '—' }}
-                            </a>
-                        </div>
-                    </div>
-
-                    {{-- Element --}}
-                    <div class="flex items-center px-5 py-3 gap-3">
-                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Element</p>
-                        <p class="flex-1 text-sm text-gray-900 dark:text-gray-100">{{ $record->element_label ?? '—' }}</p>
-                    </div>
-
-                    {{-- Donation date --}}
-                    <div class="flex items-center px-5 py-3 gap-3">
-                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Donation date</p>
-                        <p class="flex-1 text-sm text-gray-900 dark:text-gray-100">{{ $record->created_at->format('M d, Y, h:i A') }}</p>
-                    </div>
-
-                    {{-- Success date (same as created if succeeded) --}}
-                    @if ($record->status->value !== 'pending')
-                        <div class="flex items-center px-5 py-3 gap-3">
-                            <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Success date</p>
-                            <p class="flex-1 text-sm text-gray-900 dark:text-gray-100">{{ $record->created_at->format('M d, Y, h:i A') }}</p>
-                        </div>
-                    @endif
-
-                    {{-- Frequency --}}
-                    <div class="flex items-center px-5 py-3 gap-3">
-                        <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Frequency</p>
-                        <p class="flex-1 text-sm text-gray-900 dark:text-gray-100">{{ $record->type->value === 'recurring' ? 'Recurring' : 'Once' }}</p>
-                    </div>
-
-                    @if ($record->status->value === 'refunded')
-                        {{-- Refunded At --}}
-                        <div class="flex items-center px-5 py-3 gap-3 border-t border-gray-100 dark:border-gray-800">
-                            <p class="w-40 text-sm text-gray-500 dark:text-gray-400 shrink-0">Refunded date</p>
-                            <p class="flex-1 text-sm text-gray-900 dark:text-gray-100">{{ $record->refunded_at->format('M d, Y, h:i A') }}</p>
-                        </div>
-                    @endif
                 </div>
             </div>
         </section>
