@@ -494,7 +494,7 @@
                     @click.prevent="scrollTo('{{ $item['id'] }}')"
                     class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
                     :class="activeSection === '{{ $item['id'] }}'
-                        ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400'
+                        ? 'bg-primary-600 text-white shadow-sm dark:bg-primary-500'
                         : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50'"
                 >
                     <x-dynamic-component :component="$item['icon']" class="size-4 shrink-0" />
