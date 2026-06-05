@@ -84,9 +84,15 @@
 
     <footer class="border-t border-slate-200 bg-white">
         <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-            <p class="text-sm text-slate-400">&copy; {{ date('Y') }} {{ $organization->name }}.</p>
-            <button type="button" @click="reportOpen = true"
-                    class="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400 transition hover:text-slate-700">
+            <p class="text-sm text-slate-400">
+                @if (date('Y') > 2026)
+                    &copy; 2026 - {{ date('Y') }} {{ $organization->name }}.
+                @else
+                    &copy; 2026 {{ $organization->name }}.
+                @endif
+            </p>
+                <button type="button" @click="reportOpen = true"
+                        class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 transition hover:text-slate-700">
                 <x-heroicon name="question-mark-circle" class="h-3.5 w-3.5" />
                 Report a problem
             </button>
