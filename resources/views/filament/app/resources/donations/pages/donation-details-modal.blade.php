@@ -49,11 +49,11 @@
                     <x-heroicon-o-information-circle class="size-5 text-gray-400 dark:text-gray-500" />
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">General</h3>
                 </div>
-                <div class="p-5 grid grid-cols-2 gap-x-6 gap-y-4">
+                <div class="p-5 space-y-3">
                     {{-- Amount --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Amount</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Amount</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">
                             @if ($record->currency !== 'myr' && $record->base_amount)
                                 {{ strtoupper($record->currency) }} {{ number_format((float) $record->gross_amount, 2) }}
                                 <span class="text-sm font-normal text-gray-500 dark:text-gray-400">≈ MYR {{ number_format((float) $record->base_amount, 2) }}</span>
@@ -64,8 +64,8 @@
                     </div>
 
                     {{-- Status --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Status</p>
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Status</p>
                         @php
                             $statusColor = match (ucfirst($record->status->value)) {
                                 'Pending' => 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
@@ -81,22 +81,22 @@
                     </div>
 
                     {{-- Type --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Type</p>
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Type</p>
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
                             {{ str($record->type->value)->headline() }}
                         </span>
                     </div>
 
                     {{-- Date --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Date</p>
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Date</p>
                         <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->created_at->format('d M Y, h:i A') }}</p>
                     </div>
 
                     {{-- Receipt No. --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Receipt No.</p>
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Receipt No.</p>
                         <div class="flex items-center gap-1.5">
                             <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->invoice_number }}</p>
                             @if ($record->status->value === 'succeeded')
@@ -109,13 +109,13 @@
                     </div>
 
                     {{-- Donation ID --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Donation ID</p>
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Donation ID</p>
                         <div class="flex items-center gap-1.5 group">
                             <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->id }}</p>
                             <button
                                 type="button"
-                                @click="navigator.clipboard.writeText('{{ $record->id }}'); $dispatch('notify', { message: 'Copied' })"
+                                @click="navigator.clipboard.writeText({{ $record->id }}); $dispatch('notify', { message: 'Copied' })"
                                 class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                                 title="Copy"
                             >
@@ -126,8 +126,8 @@
 
                     @if ($record->status->value === 'refunded')
                         {{-- Refunded At --}}
-                        <div class="col-span-2">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Refunded At</p>
+                        <div class="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-800">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Refunded At</p>
                             <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->refunded_at->format('d M Y, h:i A') }}</p>
                         </div>
                     @endif
