@@ -10,13 +10,13 @@
             <div class="mt-2 h-4 w-80 animate-pulse rounded bg-slate-100"></div>
             <div class="mt-6 h-10 w-48 animate-pulse rounded-full bg-slate-200"></div>
         </div>
-        <div class="mb-6 grid grid-cols-3 gap-3">
+        <div class="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div class="h-24 animate-pulse rounded-xl bg-slate-100 donor-card-skeleton"></div>
             <div class="h-24 animate-pulse rounded-xl bg-slate-100 donor-card-skeleton"></div>
             <div class="h-24 animate-pulse rounded-xl bg-slate-100 donor-card-skeleton"></div>
         </div>
         <div class="mb-6 h-32 animate-pulse rounded-xl bg-slate-100 donor-card-skeleton"></div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="h-64 animate-pulse rounded-xl bg-slate-100 donor-card-skeleton"></div>
             <div class="h-64 animate-pulse rounded-xl bg-slate-100 donor-card-skeleton"></div>
         </div>
@@ -61,7 +61,7 @@
                  aria-modal="true"
                  @click.self="donationModalOpen = false"
                  @keydown.escape.window="donationModalOpen = false">
-                <div class="relative mx-auto flex w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white/80 backdrop-blur-xl shadow-2xl">
+                 <div class="relative mx-auto flex w-full max-w-6xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white/80 backdrop-blur-xl shadow-2xl">
                     <div class="flex items-center justify-end border-b border-slate-100 px-4 py-2">
                         <button type="button"
                                 class="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
@@ -78,17 +78,17 @@
             </div>
         </div>
 
-        <div class="mb-6 grid grid-cols-3 gap-3">
+        <div class="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <a href="{{ route('donorportal.donations', $organization) }}" wire:navigate
                class="block rounded-xl bg-white p-4 transition hover:bg-slate-50 donor-card">
-                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Given</p>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Given</p>
                 @if (count($currencyBreakdown) > 1)
                     <p class="mt-1.5 text-xl font-black text-emerald-700">{{ implode(' + ', $currencyBreakdown) }}</p>
-                    <p class="mt-1 text-[10px] text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
+                    <p class="mt-1 text-xs text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
                 @else
                     <p class="mt-1.5 text-xl font-black text-emerald-700">{{ reset($currencyBreakdown) ?? 'RM 0.00' }}</p>
                     @if (count($currencyBreakdown) === 1 && array_key_first($currencyBreakdown) !== 'myr')
-                        <p class="mt-1 text-[10px] text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
+                        <p class="mt-1 text-xs text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
                     @endif
                 @endif
             </a>
@@ -98,7 +98,7 @@
             @else
                 <div class="rounded-xl bg-white p-4 donor-card">
             @endif
-                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active Plans</p>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Active Plans</p>
                 <p class="mt-1.5 text-xl font-black text-slate-900">{{ $activeSubscriptions }}</p>
             @if ($activeSubscriptions > 0)
                 </a>
@@ -106,7 +106,7 @@
                 </div>
             @endif
             <div class="rounded-xl bg-white p-4 donor-card">
-                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Monthly</p>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Monthly</p>
                 @if (count($monthlyRecurringFormatted) > 1)
                     <p class="mt-1.5 text-xl font-black text-emerald-700">{{ implode(' + ', $monthlyRecurringFormatted) }}</p>
                 @else
@@ -117,7 +117,7 @@
 
         <div class="mb-6 rounded-xl bg-white p-5 donor-card">
             <h2 class="mb-4 text-sm font-bold text-slate-900">Giving by Campaign</h2>
-            <div class="flex items-center gap-6">
+            <div class="flex flex-col sm:flex-row items-center gap-6">
                 <div class="mx-auto w-48 shrink-0">
                     <canvas id="campaignDonut"></canvas>
                 </div>
@@ -150,7 +150,7 @@
                         <div class="flex items-center justify-between py-2 first:pt-0 last:pb-0">
                             <div class="min-w-0 flex-1 pr-3">
                                 <p class="truncate text-xs font-bold text-slate-900">{{ $donation->campaign->title }}</p>
-                                <p class="text-[11px] text-slate-400">{{ $donation->created_at->diffForHumans() }}</p>
+                                <p class="text-xs text-slate-400">{{ $donation->created_at->diffForHumans() }}</p>
                             </div>
                             <p class="flex-shrink-0 text-xs font-black text-slate-900">
                                 {{ $donation->formatted_amount }}

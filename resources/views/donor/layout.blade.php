@@ -9,8 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="flex min-h-screen flex-col bg-slate-50 antialiased" x-data="{ reportOpen: false }">
-    <header class="bg-slate-900">
-        <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+    <header class="bg-slate-900" x-data="{ mobileNavOpen: false }">
+        <div class="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6 py-4">
             @if (isset($organization) && filled($organization->logo_path))
                 <a href="{{ route('donorportal.dashboard', $organization) }}" wire:navigate class="flex items-center">
                     <img src="{{ route('organization.logo', $organization) }}"
@@ -28,7 +28,9 @@
                     Ihsan.
                 </a>
             @endif
-            <nav class="flex gap-2">
+
+            {{-- Desktop Nav --}}
+            <nav class="hidden md:flex gap-2">
                 <a href="{{ route('donorportal.dashboard', $organization) }}" wire:navigate
                    class="rounded-md px-5 py-2.5 text-sm font-medium transition
                    {{ request()->routeIs('donorportal.dashboard') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
@@ -50,7 +52,8 @@
                     Profile
                 </a>
             </nav>
-            <div class="flex items-center gap-3">
+
+            <div class="hidden md:flex items-center gap-3">
                 @php $headerDonor = request()->donor; @endphp
                 @if ($headerDonor && $headerDonor->photo_url)
                     <a href="{{ route('donorportal.profile', $organization) }}" wire:navigate class="h-8 w-8 overflow-hidden rounded-full ring-2 ring-white/20 transition hover:ring-white/40">
@@ -68,10 +71,73 @@
                     </button>
                 </form>
             </div>
+
+            {{-- Mobile Hamburger --}}
+            <button type="button" @click="mobileNavOpen = !mobileNavOpen"
+                    class="md:hidden relative inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-slate-800 transition h-10 w-10">
+                <x-heroicon name="bars-3" class="h-6 w-6 transition-opacity duration-200"
+                            x-show="!mobileNavOpen"
+                            x-cloak
+                            x-transition:enter="transition-opacity duration-200"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            x-transition:leave="transition-opacity duration-200"
+                            x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0" />
+                <x-heroicon name="x-mark" class="h-6 w-6 transition-opacity duration-200 absolute inset-0 m-auto"
+                            x-show="mobileNavOpen"
+                            x-cloak
+                            x-transition:enter="transition-opacity duration-200"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            x-transition:leave="transition-opacity duration-200"
+                            x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0" />
+            </button>
+        </div>
+
+        {{-- Mobile Menu --}}
+        <div x-show="mobileNavOpen"
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="md:hidden border-t border-slate-800 bg-slate-900 px-4 py-3 space-y-1">
+            <a href="{{ route('donorportal.dashboard', $organization) }}" wire:navigate @click="mobileNavOpen = false"
+               class="block rounded-md px-3 py-2.5 text-sm font-medium transition
+               {{ request()->routeIs('donorportal.dashboard') ? 'bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                Dashboard
+            </a>
+            <a href="{{ route('donorportal.donations', $organization) }}" wire:navigate @click="mobileNavOpen = false"
+               class="block rounded-md px-3 py-2.5 text-sm font-medium transition
+               {{ request()->routeIs('donorportal.donations') ? 'bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                Donations
+            </a>
+            <a href="{{ route('donorportal.subscriptions', $organization) }}" wire:navigate @click="mobileNavOpen = false"
+               class="block rounded-md px-3 py-2.5 text-sm font-medium transition
+               {{ request()->routeIs('donorportal.subscriptions') ? 'bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                Subscriptions
+            </a>
+            <a href="{{ route('donorportal.profile', $organization) }}" wire:navigate @click="mobileNavOpen = false"
+               class="block rounded-md px-3 py-2.5 text-sm font-medium transition
+               {{ request()->routeIs('donorportal.profile*') ? 'bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                Profile
+            </a>
+            <div class="pt-2 mt-2 border-t border-slate-800">
+                <form method="POST" action="{{ route('donorportal.logout', $organization) }}">
+                    @csrf
+                    <button type="submit" class="w-full text-left rounded-md px-3 py-2.5 text-sm font-medium text-white/80 hover:bg-slate-800 hover:text-white transition">
+                        Sign out
+                    </button>
+                </form>
+            </div>
         </div>
     </header>
 
-    <main class="mx-auto w-full max-w-5xl flex-1 px-6 py-8">
+    <main class="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 py-8">
         @yield('content')
     </main>
 
@@ -93,8 +159,8 @@
     @endif
 
     <footer class="border-t border-slate-200 bg-white">
-        <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-            <p class="text-sm text-slate-400">
+        <div class="mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 max-w-5xl px-4 sm:px-6 py-4">
+            <p class="text-sm text-slate-400 text-center sm:text-left">
                 @if (date('Y') > 2026)
                     &copy; 2026 - {{ date('Y') }} {{ $organization->name }}.
                 @else
@@ -114,7 +180,7 @@
          class="fixed inset-0 z-50" aria-modal="true" role="dialog">
         <div class="fixed inset-0 bg-black/40" @click="reportOpen = false"></div>
         <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+            <div class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
                     <h2 class="text-base font-bold text-slate-900">Report a problem</h2>
                     <button type="button" @click="reportOpen = false"

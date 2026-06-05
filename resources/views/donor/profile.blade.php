@@ -15,7 +15,7 @@
         </div>
     </div>
     <div>
-        <div class="mb-8 flex items-center justify-between">
+        <div class="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Profile</h1>
                 <p class="mt-0.5 text-xs text-slate-500">Manage your personal information and preferences.</p>
@@ -41,7 +41,7 @@
                             <x-heroicon name="user" class="h-4 w-4 text-slate-500" />
                             <span class="text-sm font-bold text-slate-900">Personal Information</span>
                         </div>
-                        <div class="flex items-center gap-6">
+                        <div class="flex flex-col sm:flex-row items-center gap-6">
                             <div class="h-28 w-28 flex-shrink-0 overflow-hidden rounded-full">
                                 @if ($donor->photo_url)
                                     <img src="{{ $donor->photo_url }}" class="h-full w-full rounded-full object-cover">
@@ -51,7 +51,7 @@
                                     </div>
                                 @endif
                             </div>
-                            <div>
+                            <div class="text-center sm:text-left">
                                 <p class="text-lg font-bold text-slate-900">{{ $donor->title ? $donor->title.' ' : '' }}{{ $donor->name }}</p>
                                 <p class="text-sm text-slate-500">{{ $donor->email }}</p>
                                 @if ($donor->phone)
@@ -63,7 +63,7 @@
                         <div class="grid gap-3 sm:grid-cols-2">
                             @if ($donor->occupation)
                                 <div>
-                                    <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Occupation</p>
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Occupation</p>
                                     <p class="mt-0.5 text-sm text-slate-900">{{ $donor->occupation }}</p>
                                 </div>
                             @endif
@@ -97,7 +97,7 @@
                         </div>
                         <div class="grid gap-3 sm:grid-cols-2">
                             <div>
-                                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Language</p>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Language</p>
                                 <p class="mt-0.5 text-sm text-slate-900">{{ $donor->locale === 'ms' ? 'Bahasa Melayu' : 'English' }}</p>
                             </div>
                         </div>
@@ -113,7 +113,7 @@
                             <x-heroicon name="user" class="h-4 w-4 text-slate-500" />
                             <span class="text-sm font-bold text-slate-900">Personal Information</span>
                         </div>
-                        <div class="mb-6 flex items-center gap-6" x-data="{ preview: null }">
+                        <div class="mb-6 flex flex-col sm:flex-row items-center gap-6" x-data="{ preview: null }">
                             <div class="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-full">
                                 <template x-if="preview">
                                     <img :src="preview" class="h-full w-full rounded-full object-cover">
@@ -138,13 +138,13 @@
                                            class="hidden"
                                            @change="preview = URL.createObjectURL($event.target.files[0])">
                                 </label>
-                                <p class="mt-1 text-[10px] text-slate-400">JPEG, PNG or WebP. Max 2MB.</p>
+                                <p class="mt-1 text-xs text-slate-400">JPEG, PNG or WebP. Max 2MB.</p>
                                 @error('photo') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
                         </div>
                         <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="sm:col-span-2 flex gap-4">
-                                <div class="w-28 flex-shrink-0">
+                            <div class="sm:col-span-2 flex flex-col sm:flex-row gap-4">
+                                <div class="w-full sm:w-28 flex-shrink-0">
                                     <label class="mb-1 block text-xs font-semibold text-slate-600">Title</label>
                                     <select name="title"
                                             class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('title') border-red-300 @enderror">

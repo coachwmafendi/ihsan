@@ -167,23 +167,23 @@
             @forelse ($subscriptions as $subscription)
                 <div class="rounded-xl bg-white p-4 transition {{ $subscription->status === \App\Enums\SubscriptionStatus::Cancelled ? 'opacity-60' : 'hover:shadow-md' }}"
                      style="border:1.5px solid #e2e8f0;">
-                    <div class="flex items-start justify-between gap-4">
+                    <div class="flex flex-col sm:flex-row items-start justify-between gap-4">
                         <div class="min-w-0 flex-1">
                             <p class="text-sm font-bold text-slate-900">{{ $subscription->campaign->title }}</p>
                             <p class="mt-0.5 text-xs text-slate-500">{{ $subscription->campaign->organization->name }}</p>
                         </div>
-                        <div class="flex-shrink-0 text-right">
+                        <div class="flex-shrink-0 sm:text-right text-left">
                             <p class="text-base font-black text-slate-900">
                                 {{ $subscription->currency_symbol }} {{ number_format($subscription->amount, 2) }}<span class="text-xs font-normal text-slate-400">/{{ $subscription->interval->value }}</span>
                             </p>
                             @if ($subscription->current_period_end)
-                                <p class="mt-0.5 text-[11px] text-slate-400">
+                                <p class="mt-0.5 text-xs text-slate-400">
                                     Next: {{ $subscription->current_period_end->format('d M Y') }}
                                 </p>
                             @endif
                         </div>
                     </div>
-                    <div class="mt-3 flex items-center justify-between">
+                    <div class="mt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         @php
                             $statusClass = match ($subscription->status) {
                                 \App\Enums\SubscriptionStatus::Active     => 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -194,12 +194,12 @@
                             };
                             $statusPrefix = $subscription->status === \App\Enums\SubscriptionStatus::Active ? '● ' : '';
                         @endphp
-                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold {{ $statusClass }}">
+                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold {{ $statusClass }}">
                             {{ $statusPrefix }}{{ str($subscription->status->value)->headline() }}
                         </span>
 
                         @if ($subscription->status === \App\Enums\SubscriptionStatus::Active)
-                            <div class="flex items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
                                 <button @click="changeModal = {{ $subscription->getKey() }}; changeAmount = '{{ number_format($subscription->amount, 2, '.', '') }}'"
                                         class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                     <x-heroicon name="plus" class="h-3.5 w-3.5" />
@@ -229,7 +229,7 @@
                                 </button>
                             </div>
                         @elseif ($subscription->status === \App\Enums\SubscriptionStatus::Paused)
-                            <div class="flex items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
                                 <form action="{{ route('donorportal.subscriptions.resume', ['organization' => $organization, 'subscription' => $subscription]) }}"
                                       method="POST"
                                       onsubmit="return confirm('Resume this subscription?')"
@@ -275,10 +275,10 @@
     {{-- Change Amount Modal --}}
     <div x-show="changeModal !== null"
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
          @click.self="changeModal = null"
          x-transition.opacity>
-        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
+        <div class="w-full max-w-sm mx-auto max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl" @click.stop>
             <h3 class="text-base font-black text-slate-900">Change Amount</h3>
             <p class="mt-1 text-xs text-slate-500">Enter the new amount for your subscription.</p>
             <div class="mt-4">
@@ -308,10 +308,10 @@
     {{-- Pause Confirmation Modal --}}
     <div x-show="pauseConfirmId !== null"
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
          @click.self="pauseConfirmId = null"
          x-transition.opacity>
-        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
+        <div class="w-full max-w-sm mx-auto max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl" @click.stop>
             <h3 class="text-base font-black text-slate-900">Pause Subscription?</h3>
             <p class="mt-1 text-xs text-slate-500">No further payments will be collected until you resume.</p>
 
@@ -335,10 +335,10 @@
     {{-- Cancel Confirmation Modal --}}
     <div x-show="cancelConfirmId !== null"
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
          @click.self="cancelConfirmId = null"
          x-transition.opacity>
-        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" @click.stop>
+        <div class="w-full max-w-sm mx-auto max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl" @click.stop>
             <h3 class="text-base font-black text-slate-900">Cancel Subscription?</h3>
             <p class="mt-1 text-xs text-slate-500">Your subscription will stop at the end of the current billing period. No further charges after that.</p>
 
@@ -362,10 +362,10 @@
     {{-- Payment Method Modal --}}
     <div x-show="paymentModal !== null"
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
          @click.self="paymentModal = null; paymentMounting = false"
          x-transition.opacity>
-        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" @click.stop>
+        <div class="w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl" @click.stop>
             <h3 class="text-base font-black text-slate-900">Update Card Details</h3>
             <div class="max-h-[28rem] overflow-y-auto">
                 <div class="mt-4">

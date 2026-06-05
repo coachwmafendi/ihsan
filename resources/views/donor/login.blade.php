@@ -20,7 +20,7 @@
             <p class="mt-1 text-sm text-slate-500">Donor Portal</p>
         </div>
 
-        <div class="rounded-2xl bg-white p-10 shadow-[0_4px_24px_rgba(15,23,42,0.08)]"
+        <div class="rounded-2xl bg-white p-6 sm:p-10 shadow-[0_4px_24px_rgba(15,23,42,0.08)]"
              style="border:1.5px solid #e2e8f0;">
             <h1 class="text-xl font-black text-slate-900">Welcome back</h1>
             <p class="mt-2 text-sm leading-relaxed text-slate-500">

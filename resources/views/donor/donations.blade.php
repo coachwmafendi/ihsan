@@ -9,7 +9,7 @@
             <div class="h-8 w-48 animate-pulse rounded-lg bg-slate-200"></div>
             <div class="mt-1 h-4 w-72 animate-pulse rounded bg-slate-100"></div>
         </div>
-        <div class="mb-6 grid grid-cols-2 gap-3">
+        <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="h-24 animate-pulse rounded-xl bg-slate-100 donor-card-skeleton"></div>
             <div class="h-24 animate-pulse rounded-xl bg-slate-100 donor-card-skeleton"></div>
         </div>
@@ -19,7 +19,7 @@
         </div>
     </x-slot:skeleton>
     <div>
-        <div class="mb-8 flex items-center justify-between">
+        <div class="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-black tracking-tight text-slate-900 [letter-spacing:-0.02em]">Donations</h1>
                 @if ($subscription !== null)
@@ -45,21 +45,21 @@
             @endif
         </div>
 
-        <div class="mb-6 grid grid-cols-2 gap-3">
+        <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="rounded-xl bg-white p-4 donor-card">
-                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Given</p>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Given</p>
                 @if (count($currencyBreakdown) > 1)
                     <p class="mt-1.5 text-xl font-black text-emerald-700">{{ implode(' + ', $currencyBreakdown) }}</p>
-                    <p class="mt-1 text-[10px] text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
+                    <p class="mt-1 text-xs text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
                 @else
                     <p class="mt-1.5 text-xl font-black text-emerald-700">{{ reset($currencyBreakdown) ?? 'RM 0.00' }}</p>
                     @if (count($currencyBreakdown) === 1 && array_key_first($currencyBreakdown) !== 'myr')
-                        <p class="mt-1 text-[10px] text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
+                        <p class="mt-1 text-xs text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
                     @endif
                 @endif
             </div>
             <div class="rounded-xl bg-white p-4 donor-card">
-                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Donations</p>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Donations</p>
                 <p class="mt-1.5 text-xl font-black text-slate-900">{{ $donationCount }}</p>
             </div>
         </div>
@@ -74,7 +74,7 @@
                         </div>
                         <div class="flex-shrink-0 text-right">
                             <p class="text-base font-black text-slate-900">{{ $donation->formatted_amount }}</p>
-                            <p class="mt-0.5 text-[11px] text-slate-400">{{ $donation->created_at->format('d M Y') }}</p>
+                            <p class="mt-0.5 text-xs text-slate-400">{{ $donation->created_at->format('d M Y') }}</p>
                         </div>
                     </div>
                     <div class="mt-3 flex flex-wrap items-center gap-2">
@@ -92,15 +92,15 @@
                                 : 'bg-amber-50 text-amber-700 border-amber-200';
                             $typeLabel = $donation->type === \App\Enums\DonationType::Recurring ? 'Recurring' : 'One-time';
                         @endphp
-                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold {{ $statusClass }}">
+                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold {{ $statusClass }}">
                             {{ $statusLabel }}
                         </span>
-                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold {{ $typeClass }}">
+                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold {{ $typeClass }}">
                             {{ $typeLabel }}
                         </span>
                         @if ($donation->status === \App\Enums\DonationStatus::Succeeded)
                             <a href="{{ route('donorportal.donations.receipt.download', ['organization' => $organization, 'donation' => $donation]) }}"
-                               class="ml-auto inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[11px] font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">
+                               class="ml-auto inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">
                                 <x-heroicon name="arrow-down-tray" class="h-3.5 w-3.5" />
                                 Receipt
                             </a>
