@@ -16,11 +16,11 @@
         setTimeout(() => {
             const container = $el.closest('.fi-modal-window-ctn') || $el.closest('.fi-modal') || $el.parentElement;
             const sections = $el.querySelectorAll('section[id]');
-            
+
             const updateActive = () => {
                 const containerTop = container.getBoundingClientRect().top + 120;
                 let current = sections[0]?.id || 'general';
-                
+
                 for (const section of sections) {
                     const sectionTop = section.getBoundingClientRect().top;
                     if (sectionTop <= containerTop) {
@@ -29,10 +29,10 @@
                         break;
                     }
                 }
-                
+
                 activeSection = current;
             };
-            
+
             container?.addEventListener('scroll', updateActive, { passive: true });
             updateActive();
         }, 300);
@@ -134,12 +134,12 @@
                     <x-heroicon-o-user-group class="size-5 text-gray-400 dark:text-gray-500" />
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Donor & Campaign</h3>
                 </div>
-                <div class="p-5 grid grid-cols-2 gap-x-6 gap-y-4">
+                <div class="px-6 py-4 space-y-2 text-sm">
                     {{-- Supporter --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Supporter</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Supporter</span>
                         <div class="flex items-center gap-1.5">
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->donor?->name ?? '—' }}</p>
+                            <span class="text-gray-900 dark:text-gray-100">{{ $record->donor?->name ?? '—' }}</span>
                             @php
                                 $deviceIcon = match ($record->device_type) {
                                     'mobile' => 'heroicon-o-device-phone-mobile',
@@ -163,16 +163,16 @@
                     </div>
 
                     {{-- Campaign --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Campaign</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->campaign?->title ?? '—' }}</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Campaign</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $record->campaign?->title ?? '—' }}</span>
                     </div>
 
                     {{-- Email --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Email</p>
-                        <div class="flex items-center gap-1.5 group">
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->donor?->email ?? '—' }}</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Email</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-gray-900 dark:text-gray-100">{{ $record->donor?->email ?? '—' }}</span>
                             @if ($record->donor?->email)
                                 <button
                                     type="button"
@@ -187,47 +187,39 @@
                     </div>
 
                     {{-- Phone --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Phone</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->donor?->phone ?? '—' }}</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Phone</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $record->donor?->phone ?? '—' }}</span>
                     </div>
 
                     {{-- Payment Method --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Payment Method</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Payment Method</span>
+                        <span class="text-gray-900 dark:text-gray-100">
                             {{ collect([
                                 $record->payment_method_brand ? str($record->payment_method_brand)->headline()->toString() : null,
                                 $record->payment_method_last4 ? '•••• '.$record->payment_method_last4 : null,
                             ])->filter()->join(' ') ?: '—' }}
-                        </p>
+                        </span>
                     </div>
 
                     {{-- Anonymous --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Anonymous</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->is_anonymous ? 'Yes' : 'No' }}</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Anonymous</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $record->is_anonymous ? 'Yes' : 'No' }}</span>
                     </div>
 
                     {{-- Element --}}
-                    <div class="col-span-2">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Element</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->element_label ?? '—' }}</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Element</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $record->element_label ?? '—' }}</span>
                     </div>
 
-                    {{-- Message --}}
-                    @if ($record->donor_message)
-                        <div class="col-span-2">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Message</p>
-                            <p class="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{{ $record->donor_message }}</p>
-                        </div>
-                    @endif
-
                     {{-- URL --}}
-                    <div class="col-span-2">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">URL</p>
-                        <div class="flex items-center gap-1.5 group">
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ $record->page_url ?? '—' }}</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">URL</span>
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="text-gray-900 dark:text-gray-100 truncate">{{ $record->page_url ?? '—' }}</span>
                             @if ($record->page_url)
                                 <button
                                     type="button"
@@ -240,6 +232,14 @@
                             @endif
                         </div>
                     </div>
+
+                    {{-- Message --}}
+                    @if ($record->donor_message)
+                        <div class="flex items-start gap-8 py-1">
+                            <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400 pt-0.5">Message</span>
+                            <span class="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{{ $record->donor_message }}</span>
+                        </div>
+                    @endif
                 </div>
             </div>
         </section>
@@ -251,61 +251,59 @@
                     <x-heroicon-o-banknotes class="size-5 text-gray-400 dark:text-gray-500" />
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Payment & Fee</h3>
                 </div>
-                <div class="p-5">
-                    <div class="grid grid-cols-3 gap-x-6 gap-y-4 mb-4">
-                        {{-- Gross --}}
-                        <div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Gross</p>
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                @if ($record->currency !== 'myr' && $record->base_amount)
-                                    {{ strtoupper($record->currency) }} {{ number_format((float) $record->gross_amount, 2) }}
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">≈ MYR {{ number_format((float) $record->base_amount, 2) }}</span>
-                                @else
-                                    MYR {{ number_format((float) $record->gross_amount, 2) }}
-                                @endif
-                            </p>
-                        </div>
-
-                        {{-- Stripe Fee --}}
-                        <div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Stripe Fee</p>
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">MYR {{ number_format((float) ($record->stripe_fee ?? 0), 2) }}</p>
-                        </div>
-
-                        {{-- Processing Fee --}}
-                        <div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Processing Fee</p>
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">MYR {{ number_format((float) ($record->processing_fee ?? 0), 2) }}</p>
-                        </div>
+                <div class="px-6 py-4 space-y-2 text-sm">
+                    {{-- Gross --}}
+                    <div class="flex items-baseline gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Gross</span>
+                        <span class="text-gray-900 dark:text-gray-100">
+                            @if ($record->currency !== 'myr' && $record->base_amount)
+                                {{ strtoupper($record->currency) }} {{ number_format((float) $record->gross_amount, 2) }}
+                                <span class="text-gray-400 dark:text-gray-500 ml-1.5">≈ MYR {{ number_format((float) $record->base_amount, 2) }}</span>
+                            @else
+                                MYR {{ number_format((float) $record->gross_amount, 2) }}
+                            @endif
+                        </span>
                     </div>
 
-                    <div class="border-t border-gray-100 dark:border-gray-800 pt-4 grid grid-cols-3 gap-x-6 gap-y-4">
-                        {{-- Total Fees --}}
-                        <div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Total Fees</p>
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">MYR {{ number_format((float) ($record->stripe_fee ?? 0) + (float) ($record->processing_fee ?? 0), 2) }}</p>
-                        </div>
+                    {{-- Stripe Fee --}}
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Stripe Fee</span>
+                        <span class="text-gray-900 dark:text-gray-100">MYR {{ number_format((float) ($record->stripe_fee ?? 0), 2) }}</span>
+                    </div>
 
-                        {{-- Net --}}
-                        <div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Net</p>
-                            <p class="text-sm font-bold text-gray-900 dark:text-white">MYR {{ number_format((float) $record->net_amount, 2) }}</p>
-                        </div>
+                    {{-- Processing Fee --}}
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Processing Fee</span>
+                        <span class="text-gray-900 dark:text-gray-100">MYR {{ number_format((float) ($record->processing_fee ?? 0), 2) }}</span>
+                    </div>
 
-                        {{-- Fee Covered by Donor --}}
-                        <div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Fee Covered by Donor</p>
-                            @php
-                                $feeCovered = (float) ($record->donor_fee_covered ?? 0);
-                            @endphp
-                            @if ($feeCovered > 0)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                                    MYR {{ number_format($feeCovered, 2) }}
-                                </span>
-                            @else
-                                <span class="text-sm text-gray-500 dark:text-gray-400">No</span>
-                            @endif
-                        </div>
+                    <div class="border-t border-gray-100 dark:border-gray-800 my-2"></div>
+
+                    {{-- Total Fees --}}
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Total Fees</span>
+                        <span class="text-gray-900 dark:text-gray-100">MYR {{ number_format((float) ($record->stripe_fee ?? 0) + (float) ($record->processing_fee ?? 0), 2) }}</span>
+                    </div>
+
+                    {{-- Net --}}
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Net</span>
+                        <span class="text-gray-900 dark:text-gray-100 font-semibold">MYR {{ number_format((float) $record->net_amount, 2) }}</span>
+                    </div>
+
+                    {{-- Fee Covered by Donor --}}
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Fee Covered by Donor</span>
+                        @php
+                            $feeCovered = (float) ($record->donor_fee_covered ?? 0);
+                        @endphp
+                        @if ($feeCovered > 0)
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                MYR {{ number_format($feeCovered, 2) }}
+                            </span>
+                        @else
+                            <span class="text-gray-500 dark:text-gray-400">No</span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -318,12 +316,12 @@
                     <x-heroicon-o-chart-pie class="size-5 text-gray-400 dark:text-gray-500" />
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Insights</h3>
                 </div>
-                <div class="p-5 grid grid-cols-2 gap-x-6 gap-y-4">
+                <div class="px-6 py-4 space-y-2 text-sm">
                     {{-- IP Address --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">IP Address</p>
-                        <div class="flex items-center gap-1.5 group">
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->ip_address ?? '—' }}</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">IP Address</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-gray-900 dark:text-gray-100">{{ $record->ip_address ?? '—' }}</span>
                             @if ($record->ip_address)
                                 <button
                                     type="button"
@@ -338,8 +336,8 @@
                     </div>
 
                     {{-- Device --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Device</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Device</span>
                         <div class="flex items-center gap-1.5">
                             @php
                                 $deviceIcon2 = match ($record->device_type) {
@@ -358,26 +356,26 @@
                             @if ($deviceIcon2)
                                 <x-dynamic-component :component="$deviceIcon2" class="size-4 text-gray-400 dark:text-gray-500" />
                             @endif
-                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $deviceLabel2 ?? '—' }}</p>
+                            <span class="text-gray-900 dark:text-gray-100">{{ $deviceLabel2 ?? '—' }}</span>
                         </div>
                     </div>
 
                     {{-- Browser --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Browser</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->browser ?? '—' }}</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Browser</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $record->browser ?? '—' }}</span>
                     </div>
 
                     {{-- OS --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">OS</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $record->os ?? '—' }}</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">OS</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $record->os ?? '—' }}</span>
                     </div>
 
                     {{-- Location --}}
-                    <div class="col-span-2">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Location</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Location</span>
+                        <span class="text-gray-900 dark:text-gray-100">
                             @if ($record->geo_city && $record->geo_region)
                                 {{ $record->geo_city }}, {{ $record->geo_region }}
                             @elseif ($record->geo_city)
@@ -385,7 +383,7 @@
                             @else
                                 —
                             @endif
-                        </p>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -398,12 +396,12 @@
                     <x-heroicon-o-credit-card class="size-5 text-gray-400 dark:text-gray-500" />
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Stripe Info</h3>
                 </div>
-                <div class="p-5 grid grid-cols-2 gap-x-6 gap-y-4">
+                <div class="px-6 py-4 space-y-2 text-sm">
                     {{-- Payment Intent ID --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Payment Intent ID</p>
-                        <div class="flex items-center gap-1.5 group">
-                            <p class="text-sm font-mono font-medium text-gray-900 dark:text-gray-100 truncate">{{ $record->stripe_payment_intent_id ?? '—' }}</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Payment Intent ID</span>
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="text-gray-900 dark:text-gray-100 font-mono truncate">{{ $record->stripe_payment_intent_id ?? '—' }}</span>
                             @if ($record->stripe_payment_intent_id)
                                 <button
                                     type="button"
@@ -418,10 +416,10 @@
                     </div>
 
                     {{-- Charge ID --}}
-                    <div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Charge ID</p>
-                        <div class="flex items-center gap-1.5 group">
-                            <p class="text-sm font-mono font-medium text-gray-900 dark:text-gray-100 truncate">{{ $record->stripe_charge_id ?? '—' }}</p>
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Charge ID</span>
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="text-gray-900 dark:text-gray-100 font-mono truncate">{{ $record->stripe_charge_id ?? '—' }}</span>
                             @if ($record->stripe_charge_id)
                                 <button
                                     type="button"
@@ -437,10 +435,10 @@
 
                     {{-- Subscription ID --}}
                     @if ($record->subscription_id)
-                        <div class="col-span-2">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Subscription ID</p>
-                            <div class="flex items-center gap-1.5 group">
-                                <p class="text-sm font-mono font-medium text-gray-900 dark:text-gray-100 truncate">{{ $record->subscription_id }}</p>
+                        <div class="flex items-center gap-8 py-1">
+                            <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Subscription ID</span>
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <span class="text-gray-900 dark:text-gray-100 font-mono truncate">{{ $record->subscription_id }}</span>
                                 <button
                                     type="button"
                                     @click="navigator.clipboard.writeText('{{ $record->subscription_id }}'); $dispatch('notify', { message: 'Copied' })"

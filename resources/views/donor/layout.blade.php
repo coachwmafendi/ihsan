@@ -10,42 +10,42 @@
 </head>
 <body class="flex min-h-screen flex-col bg-slate-50 antialiased" x-data="{ reportOpen: false }">
     <header class="bg-slate-900">
-        <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
+        <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
             @if (isset($organization) && filled($organization->logo_path))
                 <a href="{{ route('donorportal.dashboard', $organization) }}" wire:navigate class="flex items-center">
                     <img src="{{ route('organization.logo', $organization) }}"
                          alt="{{ $organization->name }}"
-                         class="h-8 w-auto object-contain">
+                         class="h-9 w-auto object-contain">
                 </a>
             @elseif (isset($organization))
                 <a href="{{ route('donorportal.dashboard', $organization) }}" wire:navigate
-                   class="text-sm font-black text-white [letter-spacing:-0.02em]">
+                   class="text-lg font-black text-white [letter-spacing:-0.02em]">
                     {{ $organization->name }}
                 </a>
             @else
                 <a href="#"
-                   class="text-sm font-black text-white [letter-spacing:-0.02em]">
+                   class="text-lg font-black text-white [letter-spacing:-0.02em]">
                     Ihsan.
                 </a>
             @endif
-            <nav class="flex gap-1">
+            <nav class="flex gap-2">
                 <a href="{{ route('donorportal.dashboard', $organization) }}" wire:navigate
-                   class="rounded-md px-3 py-1.5 text-xs font-medium transition
+                   class="rounded-md px-5 py-2.5 text-sm font-medium transition
                    {{ request()->routeIs('donorportal.dashboard') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Dashboard
                 </a>
                 <a href="{{ route('donorportal.donations', $organization) }}" wire:navigate
-                   class="rounded-md px-3 py-1.5 text-xs font-medium transition
+                   class="rounded-md px-5 py-2.5 text-sm font-medium transition
                    {{ request()->routeIs('donorportal.donations') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Donations
                 </a>
                 <a href="{{ route('donorportal.subscriptions', $organization) }}" wire:navigate
-                   class="rounded-md px-3 py-1.5 text-xs font-medium transition
+                   class="rounded-md px-5 py-2.5 text-sm font-medium transition
                    {{ request()->routeIs('donorportal.subscriptions') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Subscriptions
                 </a>
                 <a href="{{ route('donorportal.profile', $organization) }}" wire:navigate
-                   class="rounded-md px-3 py-1.5 text-xs font-medium transition
+                   class="rounded-md px-5 py-2.5 text-sm font-medium transition
                    {{ request()->routeIs('donorportal.profile*') ? 'border border-emerald-500/30 bg-emerald-500/15 font-bold text-emerald-400' : 'text-white/40 hover:text-white/70' }}">
                     Profile
                 </a>
@@ -53,7 +53,7 @@
             <div class="flex items-center gap-3">
                 <form method="POST" action="{{ route('donorportal.logout', $organization) }}">
                     @csrf
-                    <button type="submit" class="text-xs font-medium text-white/30 transition hover:text-white/60">
+                    <button type="submit" class="text-sm font-medium text-white/30 transition hover:text-white/60">
                         Sign out
                     </button>
                 </form>
@@ -84,7 +84,7 @@
 
     <footer class="border-t border-slate-200 bg-white">
         <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-            <p class="text-[11px] text-slate-400">&copy; {{ date('Y') }} Ihsan.</p>
+            <p class="text-sm text-slate-400">&copy; {{ date('Y') }} {{ $organization->name }}.</p>
             <button type="button" @click="reportOpen = true"
                     class="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400 transition hover:text-slate-700">
                 <x-heroicon name="question-mark-circle" class="h-3.5 w-3.5" />
