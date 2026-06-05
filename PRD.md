@@ -1,10 +1,10 @@
 # Product Requirements Document (PRD)
 ## Ihsan — Platform Derma & Fundraising Berulang untuk NGO Malaysia
 
-**Version:** 1.2  
-**Tarikh:** 18 Mei 2026  
-**Status:** Draft  
-**Pemilik Produk:** TBD  
+**Version:** 1.3
+**Tarikh:** 3 Jun 2026
+**Status:** Draft
+**Pemilik Produk:** TBD
 
 ---
 
@@ -108,7 +108,8 @@ MVP ini bertujuan membuktikan nilai produk kepada segmen awal (early adopters) d
 2. NGO admin boleh cipta kempen dan donation element tanpa bantuan developer.
 3. NGO admin boleh pantau donation, recurring subscription, donor, dan payout/revenue secara harian.
 4. Donor boleh membuat one-time atau recurring donation melalui hosted donation page atau embedded element.
-5. Platform owner boleh approve NGO dan memantau transaksi asas.
+5. NGO admin boleh kawal tetapan pembayaran dan email notification organisasi tanpa bantuan developer.
+6. Platform owner boleh approve NGO, mengurus kadar processing fee, dan memantau transaksi asas.
 
 ---
 
@@ -164,24 +165,30 @@ Fokus MVP pertama ialah **admin experience untuk NGO**, dengan donation flow min
 - [ ] Senarai recurring plans/subscriptions dengan status aktif, past due, paused, cancelled
 - [ ] Senarai transaksi dengan filter campaign, status, tarikh, dan type
 - [ ] Eksport CSV untuk donors dan transactions
-- [ ] Settings organisasi: profil, logo, warna brand, bank/Stripe, email receipt settings
+- [ ] Settings organisasi berpecah kepada Profil Organisasi, Pembayaran / Stripe Connect, dan Pemberitahuan
+- [ ] Email notification settings disimpan dalam `organizations.settings` dan auto-save apabila toggle berubah
 
 #### 4.1.4 Donation Elements & Checkout
 - [ ] Suggested amounts (3 pilihan + custom amount)
 - [ ] Pilihan: One-time atau Recurring (weekly / monthly / yearly)
-- [ ] Payment via **Stripe** (Visa/Mastercard, Apple Pay, Google Pay)
-- [ ] Embeddable donation element — JavaScript snippet yang NGO boleh letak di website sendiri
+- [ ] Payment via **Stripe Connect** (kad, Apple Pay, Google Pay apabila tersedia)
+- [ ] Donor boleh memilih untuk cover estimated Stripe processing fee apabila kempen/element membenarkan
+- [ ] Embeddable donation elements: Button, Floating Button, Form, dan Popup
+- [ ] Semua embed script menggunakan widget tunggal `/e/widget.js` dengan `data-token` dan `data-type`
 - [ ] Standalone donation page (hosted di Ihsan)
-- [ ] Email resit automatik kepada donor selepas bayar
+- [ ] Email resit automatik kepada donor selepas bayar, termasuk PDF receipt formal untuk download
 
 #### 4.1.5 Recurring Subscription Management
 - [ ] Stripe Subscription untuk handle auto-billing
 - [ ] Smart dunning — retry bayaran gagal pada hari ke-3, 7, dan 14
 - [ ] Notifikasi email kepada donor bila bayaran gagal
-- [ ] **Donor Portal Lite** — login tanpa password (magic link), boleh:
+- [ ] **Donor Portal** — login tanpa password (magic link), boleh:
   - Lihat sejarah derma
   - Cancel derma
-- [ ] Pause dan tukar amount boleh dibuat oleh NGO admin dalam MVP pertama; self-service donor penuh masuk fasa selepas MVP jika perlu.
+  - Pause / resume recurring subscription
+  - Tukar amount
+  - Update payment method
+  - Muat turun receipt individu atau semua receipt
 
 #### 4.1.6 Admin Platform (Super Admin)
 - [ ] Senarai semua NGO dan status (pending/active/suspended)
@@ -195,12 +202,10 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 
 | Feature | Fasa |
 |---------|------|
-| Donor cover processing fee (opt-in checkbox untuk absorb Stripe fee) | V2 |
 | FPX / DuitNow / TNG eWallet | V2 |
 | Zakat & Sedekah module | V2 |
 | LHDN tax-exempt receipt automation | V2 |
 | White-label (NGO guna domain sendiri) | V2 |
-| Donor Portal penuh: tukar amount, pause sendiri, update payment method | V2 |
 | Advanced conversion analytics seperti benchmark Fundraise Up | V2 |
 | Designations | V2 |
 | Virtual Terminal | V2 |
@@ -232,10 +237,11 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 | Keperluan | Keterangan |
 |-----------|------------|
 | Payment gateway | Stripe (Malaysia-enabled account) |
-| One-time payment | Stripe Checkout atau Stripe Elements |
+| One-time payment | Stripe Elements / PaymentIntent melalui connected account |
 | Recurring payment | Stripe Subscriptions + Stripe Billing |
-| Webhook handling | Stripe webhooks untuk event: `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted` |
-| Platform fee | Deducted via Stripe Connect (NGO connect account) |
+| Webhook handling | Stripe webhooks untuk event utama: `payment_intent.succeeded`, `payment_intent.payment_failed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`, `customer.subscription.updated`, `charge.refunded`, `account.updated` |
+| Processing fee | Default 2.5% daripada jumlah kasar; boleh dikonfigurasi oleh platform owner dan override per organisasi |
+| Fee collection | Rekod dalam `processing_fees`; boleh dikutip sebagai application fee / monthly invoice bergantung aliran pembayaran |
 | Payout ke NGO | Stripe Connect — auto payout setiap 7 hari |
 | Refund | Manual oleh NGO Admin dalam 7 hari |
 
@@ -250,21 +256,49 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 | Subscription dibatalkan | Donor + NGO Admin | Pengesahan pembatalan |
 | NGO diluluskan | NGO Admin | Welcome email + link setup |
 | Donor baru | NGO Admin | Notifikasi donor baru |
+| Derma besar | NGO Admin | Alert bila jumlah derma melepasi threshold organisasi |
+| Refund | NGO Admin | Notifikasi bila charge dikembalikan |
+| Campaign milestone | NGO Admin | Alert apabila kempen mencapai milestone kutipan |
+| Daily summary | NGO Admin | Ringkasan derma harian, jika diaktifkan |
+| Weekly report | NGO Admin | Ringkasan mingguan, jika diaktifkan |
+| Monthly report | NGO Admin | Ringkasan bulanan, jika diaktifkan |
+
+Tetapan notification disimpan dalam `organizations.settings`. Default MVP:
+
+| Key | Default |
+|-----|---------|
+| `notify_new_donation` | ON |
+| `daily_donation_summary` | OFF |
+| `failed_payment_notification` | ON |
+| `notify_new_subscription` | ON |
+| `notify_subscription_cancelled` | ON |
+| `notify_large_donation` | OFF |
+| `large_donation_threshold` | 1000 |
+| `notify_refund` | ON |
+| `notify_campaign_milestone` | OFF |
+| `weekly_report` | OFF |
+| `monthly_report` | OFF |
 
 ### 5.4 Embeddable Widget
 
 ```html
-<!-- Cara NGO embed widget Ihsan di website mereka -->
-<script src="https://ihsan.my/widget.js" 
-        data-campaign="abc123"
-        data-theme="light">
+<!-- Cara NGO embed element Ihsan di website mereka -->
+<script
+    src="https://ihsan.my/e/widget.js"
+    data-token="ELEMENT_TOKEN"
+    data-type="floating_button"
+    data-api-base="https://ihsan.my"
+    async>
 </script>
 ```
 
-- Widget render dalam `<iframe>` sandboxed
+- Widget fetch public config melalui `/api/public/elements/{token}` dan render berdasarkan `elements.type`
+- Fallback boleh render daripada `data-*` attributes jika API tidak tersedia
+- Form embed render dalam `<iframe>`; Button, Floating Button, dan Popup render sebagai host-page widget
 - Responsive (mobile-first, minimum 320px width)
-- Customizable: warna primary, logo NGO
+- Customizable: text, action, trigger, frequency, visibility, layout, image, color, dan button effect mengikut type
 - Load async — tidak block website host
+- Embed code dipaparkan selepas element disimpan dan copy menggunakan Alpine `@js()` supaya HTML entities tidak rosak ketika paste
 
 ---
 
@@ -321,7 +355,7 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 - Elements — donation forms/buttons/popups (`/elements`)
 - Supporters / Donors (`/supporters`)
 - Exports / CSV export (`/exports`)
-- Tetapan — profil NGO, bank/Stripe, branding, receipt settings (`/settings`)
+- Tetapan — Profil Organisasi, Pembayaran / Stripe Connect, Pemberitahuan (`/app/profil-organisasi`, `/app/pembayaran`, `/app/pemberitahuan`)
 
 **Untuk Super Admin**
 - Admin panel (`/admin`)
@@ -360,9 +394,11 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 organizations          → NGO/badan amal berdaftar
   campaigns            → Kempen fundraising
   donors               → Profil donor (boleh derma kepada berbilang NGO)
-  donations            → Rekod setiap transaksi (one-time)
+  donations            → Rekod setiap transaksi, termasuk receipt, fee, card country, UTM, device, dan geo fields
   subscriptions        → Recurring subscription (link ke Stripe Subscription)
-  platform_fees        → Rekod fee yang dikutip platform
+  elements             → Button, Floating Button, Form, Popup, QR Code, Link
+  processing_fees      → Rekod fee yang dikutip platform
+  monthly_invoices     → Invois bulanan untuk accumulated processing fees
   webhook_logs         → Log semua Stripe webhook events
 ```
 
@@ -370,6 +406,8 @@ Hubungan penting:
 - `donor` → boleh ada banyak `subscriptions` kepada banyak `campaigns`
 - `subscription` → ada banyak `donations` recurring (satu donation per billing cycle)
 - `campaign` → belongs to `organization`, ada banyak `donations` dan `subscriptions`
+- `processing_fee` → belongs to `donation`, `organization`, dan optional `monthly_invoice`
+- `organization.settings` → menyimpan notification preferences, default currency, dan konfigurasi ringan organisasi
 
 ---
 
@@ -379,9 +417,9 @@ Hubungan penting:
 
 | Jenis | Kadar |
 |-------|-------|
-| Platform fee | 3% per transaksi |
-| Stripe processing fee | 2.2% + RM 1.30 per transaksi |
-| **Total donor tanggung** | ~5.2% + RM 1.30 |
+| Ihsan processing fee | 2.5% per transaksi secara default, boleh dikonfigurasi |
+| Stripe processing fee | Anggaran kad tempatan dalam UI: ~3% + RM 0.50; nilai sebenar disync daripada Stripe BalanceTransaction |
+| Donor cover fee | Optional, pre-checked jika campaign/element mengaktifkannya |
 | Monthly subscription (NGO) | **Percuma** semasa MVP |
 
 > **Nota:** Semasa MVP, tiada monthly fee dikenakan kepada NGO. Ini untuk kurangkan barrier onboarding. Selepas terbukti nilai, plan berbayar boleh diperkenalkan.
@@ -389,10 +427,11 @@ Hubungan penting:
 ### 10.2 Aliran Wang (Stripe Connect)
 
 1. Donor bayar RM 100 kepada kempen NGO
-2. Stripe potong 2.2% + RM 1.30 = RM 3.50
-3. Platform Ihsan potong 3% dari jumlah kasar = RM 3.00 (via Stripe application_fee_amount)
-4. NGO terima RM 93.50 terus dalam Stripe Connect account mereka
-5. Payout automatik ke akaun bank NGO setiap 7 hari
+2. Stripe fee sebenar disync daripada Stripe BalanceTransaction
+3. Ihsan processing fee default 2.5% = RM 2.50, direkod dalam `processing_fees`
+4. NGO menerima baki bersih selepas Stripe fee dan processing fee yang berkaitan
+5. Payout automatik ke akaun bank NGO mengikut jadual Stripe Connect
+6. Processing fee boleh direkonsiliasi melalui `monthly_invoices` jika ia dikutip secara invois bulanan
 
 ---
 
@@ -422,10 +461,10 @@ Hubungan penting:
 ### Fasa 2 — Campaigns, Elements & Core Donation Flow (Minggu 4–6)
 
 - [ ] Campaign CRUD
-- [ ] Elements CRUD (form/button/popup config asas)
+- [ ] Elements CRUD (Button, Floating Button, Form, Popup config asas)
 - [ ] Donation form (one-time + recurring)
-- [ ] Stripe Checkout integration
-- [ ] Webhook handler (`invoice.paid`, `payment_failed`, `subscription.deleted`)
+- [ ] Stripe Elements / PaymentIntent integration
+- [ ] Webhook handler (`payment_intent.succeeded`, `invoice.paid`, `invoice.payment_failed`, `subscription.deleted`, `charge.refunded`)
 - [ ] Email resit automatik
 
 ### Fasa 3 — NGO Operations Dashboard (Minggu 7–9)
@@ -433,18 +472,27 @@ Hubungan penting:
 - [ ] Insights page: total raised chart, first installments, one-time donations, recurring revenue, payment methods
 - [ ] Donations, Supporters, dan Recurring list pages
 - [ ] Recurring subscription list dan status management
-- [ ] Donor Portal Lite (magic link, history, cancel)
+- [ ] Donor Portal (magic link, history, receipts, cancel, pause/resume, change amount, update payment method)
 - [ ] CSV export
 - [ ] Smart dunning logic
 
 ### Fasa 4 — Widget, Super Admin & Polish (Minggu 10–12)
 
-- [ ] Embeddable JavaScript widget
+- [ ] Embeddable JavaScript widget `/e/widget.js`
 - [ ] Super Admin panel
 - [ ] QA testing menyeluruh
 - [ ] Onboard 3 early adopter NGO (beta)
 
-### 12.1 Rujukan Screenshot Fundraise Up
+### 12.1 Status Implementasi Semasa (3 Jun 2026)
+
+- Settings NGO telah dipecahkan kepada Profil Organisasi, Pembayaran, dan Pemberitahuan.
+- Notification preferences auto-save ke `organizations.settings` dan email dihantar melalui queued jobs.
+- Donation list mempunyai period filter gaya Insights dan menyimpan `donor_country` untuk analitik negara.
+- Popup element form telah diringkaskan kepada Content, Action, Display Rules, Appearance, dan Status.
+- Widget endpoint `/e/widget.js` dan public element API tersedia untuk Button, Floating Button, Form, dan Popup.
+- Revenue/processing fee page menggunakan kadar config-driven 2.5% dan mengira effective rate daripada data sebenar.
+
+### 12.2 Rujukan Screenshot Fundraise Up
 
 Pemilik produk mempunyai akses login Fundraise Up dan boleh menyediakan screenshot/menu sebagai rujukan. Setiap screenshot yang diterima akan diklasifikasikan kepada:
 
@@ -470,7 +518,7 @@ MVP dianggap **selesai** apabila:
 2. ✅ Seorang donor boleh buat one-time donation dan terima resit email dalam < 2 minit
 3. ✅ NGO admin boleh cipta campaign dan donation element tanpa bantuan developer
 4. ✅ Seorang donor boleh setup recurring donation bulanan dan platform auto-charge bulan berikutnya tanpa intervensi manual
-5. ✅ Donor boleh cancel subscription melalui Donor Portal Lite
+5. ✅ Donor boleh urus subscription melalui Donor Portal
 6. ✅ NGO boleh lihat MRR, senarai donor, recurring subscriptions, transactions, dan eksport CSV dari dashboard
 7. ✅ Widget berfungsi bila embed di website luaran
 8. ✅ Semua email notification berfungsi (resit, payment failed, cancellation)
