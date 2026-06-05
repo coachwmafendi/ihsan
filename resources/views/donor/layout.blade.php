@@ -74,23 +74,22 @@
 
             {{-- Mobile Hamburger --}}
             <button type="button" @click="mobileNavOpen = !mobileNavOpen"
-                    class="md:hidden relative inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-slate-800 transition h-10 w-10">
-                <x-heroicon name="bars-3" class="h-6 w-6 transition-opacity duration-200"
+                    class="md:hidden inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-slate-800 transition">
+                <x-heroicon name="bars-3" class="h-6 w-6"
                             x-show="!mobileNavOpen"
-                            x-cloak
-                            x-transition:enter="transition-opacity duration-200"
+                            x-transition:enter="transition-opacity duration-100"
                             x-transition:enter-start="opacity-0"
                             x-transition:enter-end="opacity-100"
-                            x-transition:leave="transition-opacity duration-200"
+                            x-transition:leave="transition-opacity duration-100"
                             x-transition:leave-start="opacity-100"
                             x-transition:leave-end="opacity-0" />
-                <x-heroicon name="x-mark" class="h-6 w-6 transition-opacity duration-200 absolute inset-0 m-auto"
+                <x-heroicon name="x-mark" class="h-6 w-6"
                             x-show="mobileNavOpen"
                             x-cloak
-                            x-transition:enter="transition-opacity duration-200"
+                            x-transition:enter="transition-opacity duration-100"
                             x-transition:enter-start="opacity-0"
                             x-transition:enter-end="opacity-100"
-                            x-transition:leave="transition-opacity duration-200"
+                            x-transition:leave="transition-opacity duration-100"
                             x-transition:leave-start="opacity-100"
                             x-transition:leave-end="opacity-0" />
             </button>

@@ -152,6 +152,7 @@ class CampaignsTable
                         $replica = $record->replicate(['donations_count']);
                         $replica->title = $record->title.' (Copy)';
                         $replica->collected_amount = 0;
+                        $replica->form_parameter = null;
                         $replica->save();
                     }),
             ])
