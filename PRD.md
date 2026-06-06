@@ -1,8 +1,8 @@
 # Product Requirements Document (PRD)
 ## Ihsan — Platform Derma & Fundraising Berulang untuk NGO Malaysia
 
-**Version:** 1.3
-**Tarikh:** 3 Jun 2026
+**Version:** 1.4
+**Tarikh:** 6 Jun 2026
 **Status:** Draft
 **Pemilik Produk:** TBD
 
@@ -145,44 +145,53 @@ MVP ini bertujuan membuktikan nilai produk kepada segmen awal (early adopters) d
 Fokus MVP pertama ialah **admin experience untuk NGO**, dengan donation flow minimum yang cukup untuk menghasilkan transaksi sebenar.
 
 #### 4.1.1 Onboarding NGO
-- [ ] Borang pendaftaran NGO (nama, ROB/ROS number, maklumat bank)
-- [ ] Upload dokumen pengesahan (sijil pendaftaran)
-- [ ] Approval manual oleh platform admin
-- [ ] Setup profil organisasi (logo, penerangan, kategori)
+- [x] Borang pendaftaran NGO (nama, ROB/ROS number, maklumat bank)
+- [x] Upload dokumen pengesahan (sijil pendaftaran)
+- [x] Approval manual oleh platform admin
+- [x] Setup profil organisasi (logo, penerangan, kategori)
 
 #### 4.1.2 Pengurusan Kempen
-- [ ] Buat kempen dengan tajuk, penerangan, target amount, dan tarikh tutup
-- [ ] Upload gambar kempen
-- [ ] Toggle: kempen dengan target / tanpa target (general fund)
-- [ ] Share link kempen (URL unik per kempen)
+- [x] Buat kempen dengan tajuk, penerangan, target amount, dan tarikh tutup
+- [x] Upload gambar kempen
+- [x] Toggle: kempen dengan target / tanpa target (general fund)
+- [x] Share link kempen (URL unik per kempen)
 
 #### 4.1.3 NGO Admin Console
-- [ ] Insights ringkasan: total raised, MRR, active recurring donors, donor baru, donation conversion signal asas
-- [ ] Navigation utama: Insights, Donations, Recurring, Campaigns, Supporters/Donors, Elements, Exports, Settings
-- [ ] Insights dengan filter asas: date range, aggregation (daily/weekly/monthly), campaign, source/UTM, frequency
-- [ ] Insights sections MVP: Overview, Performance, Recurring plans, Recurring revenue, Retention asas, Payment methods, Elements, URL, UTM
-- [ ] Senarai donor/supporter dengan status, total given, last donation, dan recurring status
-- [ ] Senarai recurring plans/subscriptions dengan status aktif, past due, paused, cancelled
-- [ ] Senarai transaksi dengan filter campaign, status, tarikh, dan type
+- [x] Insights ringkasan: total raised, MRR, active recurring donors, donor baru, donation conversion signal asas
+- [x] Navigation utama: Insights, Donations, Recurring, Campaigns, Supporters/Donors, Elements, Exports, Settings
+- [x] Insights dengan filter asas: date range, aggregation (daily/weekly/monthly), campaign, source/UTM, frequency
+- [x] Insights sections MVP: Overview, Performance, Recurring plans, Recurring revenue, Retention asas, Payment methods, Elements, URL, UTM
+- [x] Senarai donor/supporter dengan status, total given, last donation, dan recurring status
+- [x] Senarai recurring plans/subscriptions dengan status aktif, past due, paused, cancelled
+- [x] Senarai transaksi dengan filter campaign, status, tarikh, dan type
 - [ ] Eksport CSV untuk donors dan transactions
-- [ ] Settings organisasi berpecah kepada Profil Organisasi, Pembayaran / Stripe Connect, dan Pemberitahuan
-- [ ] Email notification settings disimpan dalam `organizations.settings` dan auto-save apabila toggle berubah
+- [x] Settings organisasi berpecah kepada Profil Organisasi, Pembayaran / Stripe Connect, dan Pemberitahuan
+- [x] Email notification settings disimpan dalam `organizations.settings` dan auto-save apabila toggle berubah
+- [x] Fraud Prevention dashboard untuk super admin — senarai peraturan fraud, cubaan yang ditandakan/blocked, dan blocked donations yang menunggu semakan
 
-#### 4.1.4 Donation Elements & Checkout
-- [ ] Suggested amounts (3 pilihan + custom amount)
-- [ ] Pilihan: One-time atau Recurring (weekly / monthly / yearly)
-- [ ] Payment via **Stripe Connect** (kad, Apple Pay, Google Pay apabila tersedia)
-- [ ] Donor boleh memilih untuk cover estimated Stripe processing fee apabila kempen/element membenarkan
-- [ ] Embeddable donation elements: Button, Floating Button, Form, dan Popup
-- [ ] Semua embed script menggunakan widget tunggal `/e/widget.js` dengan `data-token` dan `data-type`
-- [ ] Standalone donation page (hosted di Ihsan)
-- [ ] Email resit automatik kepada donor selepas bayar, termasuk PDF receipt formal untuk download
+#### 4.1.4 Fraud Prevention & Security
+- [x] Sistem fraud detection secara real-time semasa checkout — menilai risk score berdasarkan peraturan configurable
+- [x] Peraturan fraud global dan per-organisasi: velocity, amount threshold, country block, card fingerprint, dan pattern matching
+- [x] Tindakan automatik: `flag` (tandakan untuk semakan), `block` (halang transaksi), atau `notify` (hantar alert sahaja)
+- [x] Blocked donations disemak oleh super admin — boleh `release` jika kesilapan positif (false positive)
+- [x] Fraud alert email dihantar kepada super admin apabila transaksi ditandakan atau dihalang
+- [x] Log semua fraud attempts dalam `fraud_attempts` untuk audit dan analisis trend
 
-#### 4.1.5 Recurring Subscription Management
-- [ ] Stripe Subscription untuk handle auto-billing
+#### 4.1.5 Donation Elements & Checkout
+- [x] Suggested amounts (3 pilihan + custom amount)
+- [x] Pilihan: One-time atau Recurring (weekly / monthly / yearly)
+- [x] Payment via **Stripe Connect** (kad, Apple Pay, Google Pay apabila tersedia)
+- [x] Donor boleh memilih untuk cover estimated Stripe processing fee apabila kempen/element membenarkan
+- [x] Embeddable donation elements: Button, Floating Button, Form, dan Popup
+- [x] Semua embed script menggunakan widget tunggal `/e/widget.js` dengan `data-token` dan `data-type`
+- [x] Standalone donation page (hosted di Ihsan)
+- [x] Email resit automatik kepada donor selepas bayar, termasuk PDF receipt formal untuk download
+
+#### 4.1.6 Recurring Subscription Management
+- [x] Stripe Subscription untuk handle auto-billing
 - [ ] Smart dunning — retry bayaran gagal pada hari ke-3, 7, dan 14
-- [ ] Notifikasi email kepada donor bila bayaran gagal
-- [ ] **Donor Portal** — login tanpa password (magic link), boleh:
+- [x] Notifikasi email kepada donor bila bayaran gagal
+- [x] **Donor Portal** — login tanpa password (magic link), boleh:
   - Lihat sejarah derma
   - Cancel derma
   - Pause / resume recurring subscription
@@ -190,11 +199,11 @@ Fokus MVP pertama ialah **admin experience untuk NGO**, dengan donation flow min
   - Update payment method
   - Muat turun receipt individu atau semua receipt
 
-#### 4.1.6 Admin Platform (Super Admin)
-- [ ] Senarai semua NGO dan status (pending/active/suspended)
-- [ ] Approve/reject permohonan NGO baru
-- [ ] Lihat semua transaksi platform
-- [ ] Overview revenue (platform fees collected)
+#### 4.1.7 Admin Platform (Super Admin)
+- [x] Senarai semua NGO dan status (pending/active/suspended)
+- [x] Approve/reject permohonan NGO baru
+- [x] Lihat semua transaksi platform
+- [x] Overview revenue (platform fees collected)
 
 ### 4.2 Luar Skop MVP (Backlog)
 
@@ -244,6 +253,8 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 | Fee collection | Rekod dalam `processing_fees`; boleh dikutip sebagai application fee / monthly invoice bergantung aliran pembayaran |
 | Payout ke NGO | Stripe Connect — auto payout setiap 7 hari |
 | Refund | Manual oleh NGO Admin dalam 7 hari |
+| Fraud detection | Penilaian real-time semasa checkout berdasarkan `fraud_rules` — flag, block, atau notify |
+| Blocked donation review | Super admin boleh semak dan release blocked donations dari Fraud Prevention dashboard |
 
 ### 5.3 Email Notifications
 
@@ -262,6 +273,7 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 | Daily summary | NGO Admin | Ringkasan derma harian, jika diaktifkan |
 | Weekly report | NGO Admin | Ringkasan mingguan, jika diaktifkan |
 | Monthly report | NGO Admin | Ringkasan bulanan, jika diaktifkan |
+| Fraud alert | Super Admin | Alert apabila transaksi ditandakan (flagged) atau dihalang (blocked) oleh sistem fraud detection |
 
 Tetapan notification disimpan dalam `organizations.settings`. Default MVP:
 
@@ -394,12 +406,16 @@ Tetapan notification disimpan dalam `organizations.settings`. Default MVP:
 organizations          → NGO/badan amal berdaftar
   campaigns            → Kempen fundraising
   donors               → Profil donor (boleh derma kepada berbilang NGO)
-  donations            → Rekod setiap transaksi, termasuk receipt, fee, card country, UTM, device, dan geo fields
+  donations            → Rekod setiap transaksi, termasuk receipt, fee, card country, UTM, device, geo, dan fraud fields
   subscriptions        → Recurring subscription (link ke Stripe Subscription)
   elements             → Button, Floating Button, Form, Popup, QR Code, Link
   processing_fees      → Rekod fee yang dikutip platform
   monthly_invoices     → Invois bulanan untuk accumulated processing fees
   webhook_logs         → Log semua Stripe webhook events
+  fraud_rules          → Peraturan deteksi penipuan (global atau per organisasi)
+  fraud_attempts       → Log cubaan transaksi yang ditandakan/dihalang
+  blocked_donations    → Rekod donation yang dihalang untuk semakan super admin
+  settings             → Tetapan global aplikasi (key-value)
 ```
 
 Hubungan penting:
@@ -452,38 +468,39 @@ Hubungan penting:
 
 ### Fasa 1 — NGO Admin Foundation (Minggu 1–3)
 
-- [ ] Setup Laravel project, database migrations, seeding
-- [ ] Auth system (NGO Admin + Super Admin)
-- [ ] Stripe Connect integration (test mode)
-- [ ] Organization onboarding flow
-- [ ] NGO Admin shell: navigation, settings, dashboard kosong
+- [x] Setup Laravel project, database migrations, seeding
+- [x] Auth system (NGO Admin + Super Admin)
+- [x] Stripe Connect integration (test mode)
+- [x] Organization onboarding flow
+- [x] NGO Admin shell: navigation, settings, dashboard kosong
 
 ### Fasa 2 — Campaigns, Elements & Core Donation Flow (Minggu 4–6)
 
-- [ ] Campaign CRUD
-- [ ] Elements CRUD (Button, Floating Button, Form, Popup config asas)
-- [ ] Donation form (one-time + recurring)
-- [ ] Stripe Elements / PaymentIntent integration
-- [ ] Webhook handler (`payment_intent.succeeded`, `invoice.paid`, `invoice.payment_failed`, `subscription.deleted`, `charge.refunded`)
-- [ ] Email resit automatik
+- [x] Campaign CRUD
+- [x] Elements CRUD (Button, Floating Button, Form, Popup config asas)
+- [x] Donation form (one-time + recurring)
+- [x] Stripe Elements / PaymentIntent integration
+- [x] Webhook handler (`payment_intent.succeeded`, `invoice.paid`, `invoice.payment_failed`, `subscription.deleted`, `charge.refunded`)
+- [x] Email resit automatik
 
 ### Fasa 3 — NGO Operations Dashboard (Minggu 7–9)
 
-- [ ] Insights page: total raised chart, first installments, one-time donations, recurring revenue, payment methods
-- [ ] Donations, Supporters, dan Recurring list pages
-- [ ] Recurring subscription list dan status management
-- [ ] Donor Portal (magic link, history, receipts, cancel, pause/resume, change amount, update payment method)
+- [x] Insights page: total raised chart, first installments, one-time donations, recurring revenue, payment methods
+- [x] Donations, Supporters, dan Recurring list pages
+- [x] Recurring subscription list dan status management
+- [x] Donor Portal (magic link, history, receipts, cancel, pause/resume, change amount, update payment method)
 - [ ] CSV export
 - [ ] Smart dunning logic
 
 ### Fasa 4 — Widget, Super Admin & Polish (Minggu 10–12)
 
-- [ ] Embeddable JavaScript widget `/e/widget.js`
-- [ ] Super Admin panel
+- [x] Embeddable JavaScript widget `/e/widget.js`
+- [x] Super Admin panel
+- [x] Fraud Prevention dashboard
 - [ ] QA testing menyeluruh
 - [ ] Onboard 3 early adopter NGO (beta)
 
-### 12.1 Status Implementasi Semasa (3 Jun 2026)
+### 12.1 Status Implementasi Semasa (6 Jun 2026)
 
 - Settings NGO telah dipecahkan kepada Profil Organisasi, Pembayaran, dan Pemberitahuan.
 - Notification preferences auto-save ke `organizations.settings` dan email dihantar melalui queued jobs.
@@ -491,6 +508,11 @@ Hubungan penting:
 - Popup element form telah diringkaskan kepada Content, Action, Display Rules, Appearance, dan Status.
 - Widget endpoint `/e/widget.js` dan public element API tersedia untuk Button, Floating Button, Form, dan Popup.
 - Revenue/processing fee page menggunakan kadar config-driven 2.5% dan mengira effective rate daripada data sebenar.
+- **Fraud Prevention** — dashboard super admin, peraturan configurable (velocity/amount/country/card/pattern), tindakan automatik flag/block/notify, blocked donation review, dan fraud alert email.
+- Monthly invoice generation (`ihsan:generate-monthly-invoices`) menghasilkan Stripe Invoice untuk accumulated processing fees dan menghantar `PlatformInvoiceCreated` melalui queue.
+- Webhook `invoice.paid` untuk processing fee invoices mengemaskini status dan menghantar `PlatformInvoicePaid` melalui queue.
+- Subscription edit page dengan pause/resume, cancel (immediate/period end), dan update payment method.
+- Embed code menggunakan Alpine `@js()` untuk copy supaya HTML entities tidak rosak ketika paste.
 
 ### 12.2 Rujukan Screenshot Fundraise Up
 

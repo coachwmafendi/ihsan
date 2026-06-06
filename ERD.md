@@ -1,8 +1,8 @@
 # Entity Relationship Diagram (ERD)
 ## Ihsan — MVP Database Design
 
-**Version:** 1.6
-**Tarikh:** 3 Jun 2026
+**Version:** 1.7
+**Tarikh:** 6 Jun 2026
 **Database:** SQLite untuk local dev, MySQL 8/PostgreSQL untuk production
 **Framework:** Laravel 13
 
@@ -127,6 +127,7 @@ erDiagram
         json checkout_allowed_domains "nullable"
         json milestones_notified "nullable"
         json config "nullable"
+        boolean has_end_date
         timestamps created_at updated_at
     }
 
@@ -192,6 +193,11 @@ erDiagram
         string billing_address_state "nullable"
         string billing_address_postal_code "nullable"
         string billing_country "nullable"
+        integer risk_score "nullable"
+        string risk_level "nullable"
+        string avs_result "nullable"
+        string cvc_result "nullable"
+        string fraud_status "nullable - clean|flagged|blocked"
         json stripe_fee_details "nullable"
         timestamps created_at updated_at
     }
@@ -269,6 +275,48 @@ erDiagram
         timestamps created_at updated_at
     }
 
+    FRAUD_RULES {
+        bigint id PK
+        bigint organization_id FK "nullable - null = global rule"
+        string rule_type "velocity|amount|pattern|country|card"
+        json config "threshold, window, countries, patterns, dll"
+        string action "flag|block|notify"
+        boolean is_active
+        timestamps created_at updated_at
+    }
+
+    FRAUD_ATTEMPTS {
+        bigint id PK
+        bigint donor_id FK "nullable"
+        string email
+        string ip_address
+        string card_fingerprint "nullable"
+        decimal amount
+        string currency
+        string reason
+        string action "flagged|blocked"
+        json metadata "nullable"
+        timestamps created_at updated_at
+    }
+
+    BLOCKED_DONATIONS {
+        bigint id PK
+        bigint donation_id FK
+        string reason
+        enum review_status "pending|reviewed|released"
+        bigint reviewed_by FK "nullable - FK to users"
+        timestamp reviewed_at "nullable"
+        text review_notes "nullable"
+        timestamps created_at updated_at
+    }
+
+    SETTINGS {
+        bigint id PK
+        string key UK
+        text value
+        timestamps created_at updated_at
+    }
+
     %% Relationships
     USERS }o--|| ORGANIZATIONS : "belongs to (ngo_admin)"
     ORGANIZATIONS ||--o{ ORGANIZATION_DOCUMENTS : "has many"
@@ -284,7 +332,11 @@ erDiagram
     SUBSCRIPTIONS ||--o{ DONATIONS : "generates recurring"
     DONATIONS ||--|| PROCESSING_FEES : "generates one"
     MONTHLY_INVOICES ||--o{ PROCESSING_FEES : "collects"
-```
+    ORGANIZATIONS ||--o{ FRAUD_RULES : "defines"
+    DONORS ||--o{ FRAUD_ATTEMPTS : "triggers"
+    DONATIONS ||--|| BLOCKED_DONATIONS : "may be blocked"
+    USERS ||--o{ BLOCKED_DONATIONS : "reviews"
+    ```
 
 ---
 
@@ -339,6 +391,7 @@ Kempen fundraising yang dibuat oleh NGO. Satu NGO boleh ada berbilang kempen akt
 | `checkout_allowed_domains` | json nullable | Senarai domain yang dibenarkan membuka checkout modal |
 | `milestones_notified` | json nullable | Senarai milestone kempen yang sudah dihantar notification |
 | `config` | json nullable | Konfigurasi tambahan campaign yang tidak memerlukan kolum khusus |
+| `has_end_date` | boolean | TRUE bila kempen mempunyai tarikh tutup; FALSE = kempen berterusan (general fund) |
 | `status` | enum | `draft` = belum published; `active` = live |
 
 ---
@@ -390,6 +443,11 @@ Rekod setiap transaksi tunggal — sama ada one-time atau satu bayaran daripada 
 | `stripe_fee_details` | json nullable | Pecahan fee daripada Stripe BalanceTransaction |
 | `utm_params` | json | Track sumber traffic: `{source, medium, campaign}` |
 | `is_anonymous` | boolean | TRUE = nama donor tidak dipaparkan di halaman kempen |
+| `risk_score` | integer nullable | Skor risiko dari 0–100 oleh sistem fraud detection |
+| `risk_level` | string nullable | `low`, `medium`, `high` — dikira daripada `risk_score` |
+| `avs_result` | string nullable | Keputusan Address Verification Service daripada Stripe |
+| `cvc_result` | string nullable | Keputusan CVC check daripada Stripe |
+| `fraud_status` | string nullable | `clean`, `flagged` (untuk semakan), atau `blocked` (dihalang) |
 
 ---
 
@@ -418,7 +476,7 @@ Rekod asing untuk setiap fee yang dikutip Ihsan. Memudahkan rekonsiliasi kewanga
 | `stripe_transfer_id` | string | ID Stripe Transfer bila fee dipindahkan ke akaun platform Ihsan |
 | `fee_percentage` | decimal | Snapshot kadar fee semasa transaksi (in case kadar berubah masa depan) |
 | `monthly_invoice_id` | FK nullable | Link kepada `monthly_invoices` jika fee dikutip melalui invois bulanan |
-| `status` | enum | `pending`, `paid`, atau `failed` |
+| `status` | enum | `pending`, `invoiced`, `paid`, atau `failed` |
 
 ---
 
@@ -479,6 +537,59 @@ Log semua Stripe webhook events yang diterima. Kritikal untuk debugging dan mema
 
 ---
 
+### 2.11 `fraud_rules`
+Peraturan deteksi penipuan (fraud detection) yang boleh ditakrif oleh super admin atau per organisasi. Mengandungi logik threshold, velocity check, dan pattern matching.
+
+| Kolum | Jenis | Keterangan |
+|-------|-------|------------|
+| `rule_type` | string | Jenis peraturan: `velocity` (terlalu banyak cubaan), `amount` (jumlah luar biasa), `pattern` (corak mencurigakan), `country` (negara berisiko), `card` (kad berulang) |
+| `config` | json | Konfigurasi spesifik peraturan: threshold amount, time window, senarai negara/card yang diblok, dll |
+| `action` | string | `flag` = tandakan untuk semakan; `block` = halang terus; `notify` = hantar alert sahaja |
+| `is_active` | boolean | TRUE = peraturan aktif dan digunakan semasa penilaian transaksi |
+| `organization_id` | FK nullable | NULL = peraturan global untuk semua NGO; ada nilai = khusus untuk NGO tersebut |
+
+---
+
+### 2.12 `fraud_attempts`
+Log setiap cubaan transaksi yang ditandakan atau dihalang oleh sistem fraud detection. Digunakan untuk audit dan analisis trend penipuan.
+
+| Kolum | Jenis | Keterangan |
+|-------|-------|------------|
+| `donor_id` | FK nullable | Link kepada donor jika dikenal pasti; NULL untuk guest/checkout awal |
+| `email` | string | Email yang digunakan semasa cubaan |
+| `ip_address` | string | Alamat IP sumber |
+| `card_fingerprint` | string nullable | Fingerprint kad daripada Stripe untuk mengesan kad yang sama digunakan berulang kali |
+| `amount` / `currency` | decimal/string | Jumlah dan mata wang cubaan |
+| `reason` | string | Sebab tindakan diambil — contoh: "Velocity threshold exceeded" |
+| `action` | string | `flagged` atau `blocked` |
+| `metadata` | json nullable | Butiran lanjut tentang peraturan yang dipicu |
+
+---
+
+### 2.13 `blocked_donations`
+Rekod donation yang dihalang (blocked) oleh sistem fraud. Donation tetap wujud dalam jadual `donations` dengan `fraud_status = blocked`, tetapi bayaran tidak diproses. Super admin boleh menyemak dan melepaskan (release) sekiranya kesilapan.
+
+| Kolum | Jenis | Keterangan |
+|-------|-------|------------|
+| `donation_id` | FK | Link kepada donation yang dihalang |
+| `reason` | string | Sebab blockage — sama dengan `fraud_attempts.reason` |
+| `review_status` | enum | `pending` = belum disemak; `reviewed` = disemak dan kekal blocked; `released` = dilepaskan oleh super admin |
+| `reviewed_by` | FK nullable | Super admin yang menyemak |
+| `reviewed_at` | timestamp nullable | Masa semakan dibuat |
+| `review_notes` | text nullable | Nota semakan |
+
+---
+
+### 2.14 `settings`
+Jadual global untuk tetapan aplikasi yang tidak berkaitan dengan organisasi tertentu (kecuali dipersetujui untuk V2). MVP menggunakan ini untuk konfigurasi platform asas yang boleh diubah tanpa deploy kod.
+
+| Kolum | Jenis | Keterangan |
+|-------|-------|------------|
+| `key` | string unique | Nama tetapan |
+| `value` | text | Nilai tetapan (string/JSON) |
+
+---
+
 ## 3. Hubungan Penting
 
 ### 3.1 Global Donor → Multi-NGO (melalui campaigns)
@@ -531,7 +642,7 @@ Stripe memproses bayaran
 
 | Event | Tindakan |
 |-------|----------|
-| `payment_intent.succeeded` | Sync Stripe fee/card details, tandakan donation berjaya, increment campaign, hantar receipt dan NGO notifications |
+| `payment_intent.succeeded` | Sync Stripe fee/card details, tandakan donation berjaya, increment campaign, hantar receipt dan NGO notifications. Jalankan fraud detection — jika blocked, catat dalam `blocked_donations` dan hantar fraud alert. |
 | `payment_intent.payment_failed` | Tandakan donation gagal; jika recurring, hantar failed payment notification |
 | `invoice.paid` | Jika donor subscription: cipta recurring `donations`; jika processing fee invoice: update `monthly_invoices` dan `processing_fees` |
 | `invoice.payment_failed` | Tambah `retry_count`, email donor, update `status = past_due` |
@@ -595,6 +706,20 @@ CREATE INDEX idx_monthly_invoice_period ON monthly_invoices(period);
 CREATE INDEX idx_webhook_event_id ON webhook_logs(stripe_event_id);
 CREATE INDEX idx_webhook_type ON webhook_logs(event_type);
 CREATE INDEX idx_webhook_status ON webhook_logs(status);
+
+-- fraud_rules
+CREATE INDEX idx_fraud_rule_org ON fraud_rules(organization_id);
+CREATE INDEX idx_fraud_rule_type ON fraud_rules(rule_type);
+CREATE INDEX idx_fraud_rule_active ON fraud_rules(is_active);
+
+-- fraud_attempts
+CREATE INDEX idx_fraud_attempt_email ON fraud_attempts(email);
+CREATE INDEX idx_fraud_attempt_ip ON fraud_attempts(ip_address);
+CREATE INDEX idx_fraud_attempt_created ON fraud_attempts(created_at);
+
+-- blocked_donations
+CREATE INDEX idx_blocked_donation ON blocked_donations(donation_id);
+CREATE INDEX idx_blocked_review_status ON blocked_donations(review_status);
 ```
 
 ---

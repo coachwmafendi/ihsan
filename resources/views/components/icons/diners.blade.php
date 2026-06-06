@@ -1,0 +1,5 @@
+<svg {{ $attributes->merge(['class' => '']) }} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="8" fill="white" stroke="#E5E5E5" stroke-width="1"/>
+  <rect x="8" y="16" width="32" height="16" rx="2" fill="white" stroke="#0079BE" stroke-width="2"/>
+  <text x="24" y="27.5" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#0079BE" text-anchor="middle">DINERS</text>
+</svg>

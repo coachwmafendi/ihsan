@@ -7,7 +7,6 @@ use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Filament\App\Resources\Subscriptions\SubscriptionResource;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -37,6 +36,7 @@ class ViewSubscription extends ViewRecord
             ->columns(1)
             ->components([
                 Section::make('Recurring Plan')
+                    ->icon('heroicon-o-arrow-path')
                     ->extraAttributes(['class' => 'scroll-mt-6'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.recurring-plan')
@@ -44,33 +44,23 @@ class ViewSubscription extends ViewRecord
                     ]),
 
                 Section::make('Personal Information')
+                    ->icon('heroicon-o-user')
                     ->extraAttributes(['class' => 'scroll-mt-6'])
                     ->schema([
-                        Placeholder::make('donor_name')
-                            ->label('Name')
-                            ->content(fn () => $this->getRecord()->donor?->name ?? '—'),
-                        Placeholder::make('donor_email')
-                            ->label('Email')
-                            ->content(fn () => $this->getRecord()->donor?->email ?? '—'),
-                        Placeholder::make('donor_phone')
-                            ->label('Phone')
-                            ->content(fn () => $this->getRecord()->donor?->phone ?? '—'),
-                    ])
-                    ->columns(['md' => 2]),
+                        View::make('filament.app.resources.subscriptions.partials.personal-information')
+                            ->viewData(['record' => $this->getRecord()]),
+                    ]),
 
                 Section::make('Sources')
+                    ->icon('heroicon-o-globe-alt')
                     ->extraAttributes(['class' => 'scroll-mt-6'])
                     ->schema([
-                        Placeholder::make('campaign')
-                            ->label('Campaign')
-                            ->content(fn () => $this->getRecord()->campaign?->title ?? '—'),
-                        Placeholder::make('element')
-                            ->label('Element')
-                            ->content(fn () => $this->getRecord()->element_label ?? '—'),
-                    ])
-                    ->columns(['md' => 2]),
+                        View::make('filament.app.resources.subscriptions.partials.sources')
+                            ->viewData(['record' => $this->getRecord()]),
+                    ]),
 
                 Section::make('Installments')
+                    ->icon('heroicon-o-calendar-days')
                     ->extraAttributes(['class' => 'scroll-mt-6'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.installments')
@@ -78,6 +68,7 @@ class ViewSubscription extends ViewRecord
                     ]),
 
                 Section::make('Receipts')
+                    ->icon('heroicon-o-document-text')
                     ->extraAttributes(['class' => 'scroll-mt-6'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.receipts')
