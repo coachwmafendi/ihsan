@@ -56,7 +56,8 @@ class DonorAuthController extends Controller
 
     public function logout(Organization $organization)
     {
-        session()->forget(['donor_id', 'organization_id']);
+        session()->invalidate();
+        session()->regenerateToken();
 
         return redirect()->route('donorportal.login', $organization);
     }
