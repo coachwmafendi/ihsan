@@ -97,7 +97,7 @@
                 {{-- Menu Nav --}}
                 @foreach ([
                     ['id' => 'supporter-information', 'label' => 'Information', 'icon' => 'heroicon-o-user', 'type' => 'scroll'],
-                    ['id' => 'donations', 'label' => 'Donations', 'icon' => 'heroicon-o-gift', 'type' => 'tab', 'tabLabel' => 'donations'],
+                    ['id' => 'donations', 'label' => 'Donations', 'icon' => 'heroicon-o-currency-dollar', 'type' => 'tab', 'tabLabel' => 'donations'],
                     ['id' => 'recurring-plans', 'label' => 'Recurring plans', 'icon' => 'heroicon-o-arrow-path', 'type' => 'tab', 'tabLabel' => 'subscriptions'],
                     ['id' => 'receipts', 'label' => 'Receipts', 'icon' => 'heroicon-o-document-text', 'type' => 'tab', 'tabLabel' => 'donations'],
                 ] as $item)
