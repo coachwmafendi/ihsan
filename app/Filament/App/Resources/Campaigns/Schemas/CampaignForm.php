@@ -62,6 +62,32 @@ class CampaignForm
                                             ->live(debounce: 1500)
                                             ->hint(fn ($state): HtmlString => new HtmlString(static::wordCountHint($state))),
                                     ]),
+                                Section::make('Goal & Duration')
+                                    ->description('Set campaign target and duration.')
+                                    ->columns(2)
+                                    ->schema([
+                                        Toggle::make('has_target')
+                                            ->label('Set fundraising target')
+                                            ->live()
+                                            ->columnSpanFull(),
+                                        TextInput::make('target_amount')
+                                            ->label('Target amount')
+                                            ->numeric()
+                                            ->prefix('MYR')
+                                            ->disabled(fn ($get) => ! $get('has_target'))
+                                            ->columnSpan(1),
+                                        Toggle::make('has_end_date')
+                                            ->label('Select a date for this campaign to end')
+                                            ->live()
+                                            ->columnSpanFull(),
+                                        DatePicker::make('end_date')
+                                            ->label('Campaign end date')
+                                            ->helperText('On that date, the campaign will be disabled and moved to your archive.')
+                                            ->format('Y-m-d')
+                                            ->displayFormat('d/m/Y')
+                                            ->disabled(fn ($get) => ! $get('has_end_date'))
+                                            ->columnSpan(1),
+                                    ]),
                             ]),
                         Tab::make('Checkout Modal Settings')
                             ->icon('heroicon-o-cog-6-tooth')
@@ -85,26 +111,6 @@ class CampaignForm
                                                     ->minValue(0)
                                                     ->step(1)
                                                     ->default(5),
-                                            ]),
-                                        Section::make('Goal & Duration')
-                                            ->description('Set campaign target and duration.')
-                                            ->columnSpan(1)
-                                            ->columns(2)
-                                            ->schema([
-                                                Toggle::make('has_target')
-                                                    ->label('Set fundraising target')
-                                                    ->live()
-                                                    ->columnSpanFull(),
-                                                TextInput::make('target_amount')
-                                                    ->label('Target amount')
-                                                    ->numeric()
-                                                    ->prefix('MYR')
-                                                    ->disabled(fn ($get) => ! $get('has_target'))
-                                                    ->columnSpan(1),
-                                                DatePicker::make('end_date')
-                                                    ->label('End date')
-                                                    ->format('Y-m-d')
-                                                    ->displayFormat('d/m/Y'),
                                             ]),
                                     ]),
                                 Section::make('Suggested Amounts')

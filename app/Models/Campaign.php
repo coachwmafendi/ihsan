@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
-#[Fillable(['organization_id', 'title', 'description', 'headline', 'short_summary', 'image_path', 'target_amount', 'minimum_amount', 'allow_custom_amount', 'collected_amount', 'has_target', 'allow_recurring', 'payment_gateway', 'thank_you_message', 'redirect_url', 'end_date', 'status', 'suggested_amounts', 'suggested_amounts_one_time', 'suggested_amounts_monthly', 'impact_descriptions_enabled', 'default_monthly_amount', 'form_parameter', 'checkout_modal_enabled', 'checkout_allowed_domains', 'config'])]
+#[Fillable(['organization_id', 'title', 'description', 'headline', 'short_summary', 'image_path', 'target_amount', 'minimum_amount', 'allow_custom_amount', 'collected_amount', 'has_target', 'has_end_date', 'allow_recurring', 'payment_gateway', 'thank_you_message', 'redirect_url', 'end_date', 'status', 'suggested_amounts', 'suggested_amounts_one_time', 'suggested_amounts_monthly', 'impact_descriptions_enabled', 'default_monthly_amount', 'form_parameter', 'checkout_modal_enabled', 'checkout_allowed_domains', 'config'])]
 class Campaign extends Model
 {
     /** @use HasFactory<CampaignFactory> */
@@ -65,6 +65,7 @@ class Campaign extends Model
             'default_monthly_amount' => 'decimal:2',
             'collected_amount' => 'decimal:2',
             'has_target' => 'boolean',
+            'has_end_date' => 'boolean',
             'allow_recurring' => 'boolean',
             'allow_custom_amount' => 'boolean',
             'checkout_modal_enabled' => 'boolean',
