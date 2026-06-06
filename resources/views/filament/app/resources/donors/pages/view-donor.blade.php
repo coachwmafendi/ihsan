@@ -17,6 +17,7 @@
         collect([$record->address_city, $record->address_state, $record->address_postal_code])->filter()->join(', '),
         $countryCode ? $countryName : null,
     ])->filter();
+
 @endphp
 
 <x-filament-panels::page>
@@ -44,8 +45,11 @@
 
             .supporter-view-nav {
                 display: block;
+                position: sticky;
+                top: 6rem;
                 width: 15rem;
                 flex: 0 0 15rem;
+                align-self: flex-start;
             }
         }
     </style>
@@ -78,93 +82,71 @@
                 id="supporter-information"
                 class="scroll-mt-24 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
             >
-                <div class="flex flex-wrap items-center justify-between gap-4 px-8 py-6">
-                    <div class="flex items-center gap-5">
-                        <x-heroicon-o-user class="size-8 shrink-0 text-gray-950 dark:text-white" />
-                        <div>
-                            <h2 class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white">
-                                Information
-                            </h2>
-                            <p class="mt-1 text-base text-gray-500 dark:text-gray-400">
-                                {{ $record->email }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <span class="rounded-md bg-gray-100 px-4 py-2 text-base font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                        {{ $record->public_id ?? '#'.$record->getKey() }}
-                    </span>
+                <div class="flex items-center gap-3 border-b border-gray-200 p-4 sm:px-6 dark:border-white/10">
+                    <x-heroicon-o-user class="size-5 shrink-0 text-gray-950 dark:text-white" />
+                    <h2 class="text-base leading-6 font-semibold text-gray-950 dark:text-white">Information</h2>
                 </div>
 
-                <div class="border-t border-gray-200 dark:border-gray-800">
-                    <!-- Name / Email row -->
-                    <div class="flex gap-6 border-b border-gray-200 px-8 py-5 dark:border-gray-800">
-                        <div class="w-[240px] shrink-0">
-                            <p class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Name</p>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-lg font-medium text-gray-950 dark:text-white">{{ $record->name }}</p>
-                        </div>
+                <div class="border-t border-gray-100 px-6 py-4 space-y-2 text-sm dark:border-gray-800">
+                    <div class="flex items-baseline gap-8 py-1">
+                        <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Name</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $record->name }}</span>
                     </div>
 
-                    <!-- Email row -->
-                    <div class="flex gap-6 border-b border-gray-200 px-8 py-5 dark:border-gray-800">
-                        <div class="w-[240px] shrink-0">
-                            <p class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Email</p>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-lg font-medium text-gray-950 dark:text-white">{{ $record->email }}</p>
-                        </div>
+                    <div class="flex items-baseline gap-8 py-1">
+                        <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Email</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $record->email }}</span>
                     </div>
 
-                    <!-- Phone row -->
-                    <div class="flex gap-6 border-b border-gray-200 px-8 py-5 dark:border-gray-800">
-                        <div class="w-[240px] shrink-0">
-                            <p class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Phone</p>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-lg font-medium text-gray-950 dark:text-white">{{ $record->phone ?: '—' }}</p>
-                        </div>
+                    <div class="flex items-baseline gap-8 py-1">
+                        <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Phone</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $record->phone ?: '—' }}</span>
                     </div>
 
-                    <!-- Country row -->
-                    <div class="flex gap-6 border-b border-gray-200 px-8 py-5 dark:border-gray-800">
-                        <div class="w-[240px] shrink-0">
-                            <p class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Country</p>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-lg font-medium text-gray-950 dark:text-white">{{ $countryName }}</p>
-                        </div>
+                    <div class="flex items-baseline gap-8 py-1">
+                        <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Country</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $countryName }}</span>
                     </div>
 
-                    <!-- Mailing Address row -->
-                    <div class="flex gap-6 px-8 py-5">
-                        <div class="w-[240px] shrink-0">
-                            <p class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Mailing Address</p>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="text-lg font-medium leading-8 text-gray-950 dark:text-white">
-                                @forelse ($addressLines as $line)
-                                    <p>{{ $line }}</p>
-                                @empty
-                                    <p>—</p>
-                                @endforelse
-                            </div>
-                        </div>
+                    <div class="flex items-baseline gap-8 py-1">
+                        <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Mailing Address</span>
+                        <span class="leading-6 text-gray-900 dark:text-gray-100">
+                            @forelse ($addressLines as $line)
+                                <span class="block">{{ $line }}</span>
+                            @empty
+                                —
+                            @endforelse
+                        </span>
                     </div>
                 </div>
             </section>
+
+            @if ($hasDonations)
+                <section id="donations-section" class="scroll-mt-24">
+                    @livewire(DonationsRelationManager::class, [
+                        'ownerRecord' => $record,
+                        'pageClass' => $pageClass,
+                    ], key('supporter-donations-'.$record->getKey()))
+                </section>
+            @endif
+
+            @if ($hasRecurringPlans)
+                <section id="recurring-plans-section" class="scroll-mt-24">
+                    @livewire(SubscriptionsRelationManager::class, [
+                        'ownerRecord' => $record,
+                        'pageClass' => $pageClass,
+                    ], key('supporter-recurring-plans-'.$record->getKey()))
+                </section>
+            @endif
 
             @if ($hasReceipts)
                 <section
                     id="receipts-section"
                     class="scroll-mt-24 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
                 >
-                    <div class="flex items-center gap-3 border-b border-gray-200 px-6 py-5 dark:border-gray-800">
-                        <x-heroicon-o-receipt-percent class="size-6 text-gray-900 dark:text-gray-100" />
-                        <h2 class="text-xl font-semibold tracking-tight text-gray-950 dark:text-white">
-                            Receipts
-                        </h2>
+                    <div class="flex items-center gap-3 border-b border-gray-200 p-4 sm:px-6 dark:border-white/10">
+                        <x-heroicon-o-receipt-percent class="size-5 shrink-0 text-gray-950 dark:text-white" />
+                        <h2 class="text-base leading-6 font-semibold text-gray-950 dark:text-white">Receipts</h2>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -227,51 +209,21 @@
                     </div>
                 </section>
             @endif
-
-            @if ($hasDonations)
-                <div id="donations-section" class="scroll-mt-24">
-                    @livewire(DonationsRelationManager::class, [
-                        'ownerRecord' => $record,
-                        'pageClass' => $pageClass,
-                    ], key('supporter-donations-'.$record->getKey()))
-                </div>
-            @endif
-
-            @if ($hasRecurringPlans)
-                <div id="recurring-plans-section" class="scroll-mt-24">
-                    @livewire(SubscriptionsRelationManager::class, [
-                        'ownerRecord' => $record,
-                        'pageClass' => $pageClass,
-                    ], key('supporter-recurring-plans-'.$record->getKey()))
-                </div>
-            @endif
         </div>
 
         <aside class="supporter-view-nav">
-            <div class="sticky top-24 space-y-1 rounded-lg border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="space-y-1 rounded-lg border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <button
                     type="button"
                     x-on:click="scrollTo('supporter-information')"
                     x-bind:class="activeSection === 'supporter-information'
                         ? 'bg-gray-950 text-white dark:bg-white dark:text-gray-950'
                         : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800'"
-                    class="w-full rounded-md px-3 py-2 text-left text-sm font-medium transition"
+                    class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm font-medium transition"
                 >
+                    <x-heroicon-o-user class="size-4 shrink-0" />
                     Information
                 </button>
-
-                @if ($hasReceipts)
-                    <button
-                        type="button"
-                        x-on:click="scrollTo('receipts-section')"
-                        x-bind:class="activeSection === 'receipts-section'
-                            ? 'bg-gray-950 text-white dark:bg-white dark:text-gray-950'
-                            : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800'"
-                        class="w-full rounded-md px-3 py-2 text-left text-sm font-medium transition"
-                    >
-                        Receipts
-                    </button>
-                @endif
 
                 @if ($hasDonations)
                     <button
@@ -280,8 +232,9 @@
                         x-bind:class="activeSection === 'donations-section'
                             ? 'bg-gray-950 text-white dark:bg-white dark:text-gray-950'
                             : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800'"
-                        class="w-full rounded-md px-3 py-2 text-left text-sm font-medium transition"
+                        class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm font-medium transition"
                     >
+                        <x-heroicon-o-currency-dollar class="size-4 shrink-0" />
                         Donations
                     </button>
                 @endif
@@ -293,9 +246,24 @@
                         x-bind:class="activeSection === 'recurring-plans-section'
                             ? 'bg-gray-950 text-white dark:bg-white dark:text-gray-950'
                             : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800'"
-                        class="w-full rounded-md px-3 py-2 text-left text-sm font-medium transition"
+                        class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm font-medium transition"
                     >
+                        <x-heroicon-o-arrow-path class="size-4 shrink-0" />
                         Recurring
+                    </button>
+                @endif
+
+                @if ($hasReceipts)
+                    <button
+                        type="button"
+                        x-on:click="scrollTo('receipts-section')"
+                        x-bind:class="activeSection === 'receipts-section'
+                            ? 'bg-gray-950 text-white dark:bg-white dark:text-gray-950'
+                            : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800'"
+                        class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm font-medium transition"
+                    >
+                        <x-heroicon-o-receipt-percent class="size-4 shrink-0" />
+                        Receipts
                     </button>
                 @endif
             </div>
