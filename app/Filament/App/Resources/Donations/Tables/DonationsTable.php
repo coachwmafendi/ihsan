@@ -9,6 +9,7 @@ use App\Models\Campaign;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
@@ -28,7 +29,6 @@ class DonationsTable
             ->reorderableColumns()
             ->deferColumnManager(false)
             ->defaultSort('created_at', 'desc')
-            ->recordAction('view')
             ->columns([
                 TextColumn::make('created_at')
                     ->date('d M Y')
@@ -210,14 +210,7 @@ class DonationsTable
                                 ->send();
                         }
                     }),
-                Action::make('view')
-                    ->icon('heroicon-o-eye')
-                    ->color('gray')
-                    ->modalHeading('Donation Details')
-                    ->modalSubmitAction(false)
-                    ->modalCancelAction(false)
-                    ->modalWidth('5xl')
-                    ->modalContent(fn ($record) => view('filament.app.resources.donations.pages.donation-details-modal', compact('record'))),
+                ViewAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

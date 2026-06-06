@@ -5,6 +5,7 @@ namespace App\Filament\App\Resources\Donations;
 use App\Filament\App\Resources\Donations\Pages\CreateDonation;
 use App\Filament\App\Resources\Donations\Pages\EditDonation;
 use App\Filament\App\Resources\Donations\Pages\ListDonations;
+use App\Filament\App\Resources\Donations\Pages\ViewDonation;
 use App\Filament\App\Resources\Donations\Schemas\DonationForm;
 use App\Filament\App\Resources\Donations\Tables\DonationsTable;
 use App\Models\Donation;
@@ -84,6 +85,7 @@ class DonationResource extends Resource
         return [
             'index' => ListDonations::route('/'),
             'create' => CreateDonation::route('/create'),
+            'view' => ViewDonation::route('/{record}'),
             'edit' => EditDonation::route('/{record}/edit'),
         ];
     }

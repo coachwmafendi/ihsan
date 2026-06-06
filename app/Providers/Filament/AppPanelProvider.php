@@ -11,6 +11,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -140,6 +141,13 @@ class AppPanelProvider extends PanelProvider
             ->brandLogoHeight('2rem')
             ->globalSearch(position: GlobalSearchPosition::Sidebar)
             ->profile(EditProfile::class, isSimple: false)
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label('Donor Portal')
+                    ->icon('heroicon-o-globe-alt')
+                    ->url(fn (): string => route('donorportal.dashboard', auth()->user()->organization))
+                    ->openUrlInNewTab(),
+            ])
             ->homeUrl(fn (): string => route('filament.app.pages.insights'))
             ->darkMode(false)
             ->databaseNotifications()
