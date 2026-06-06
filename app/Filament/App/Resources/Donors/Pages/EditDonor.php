@@ -19,6 +19,11 @@ class EditDonor extends EditRecord
         return false;
     }
 
+    protected function getFormActions(): array
+    {
+        return [];
+    }
+
     public function getHeading(): string | Htmlable
     {
         $donor = $this->record;
