@@ -64,11 +64,11 @@ class SubscriptionsRelationManager extends RelationManager
                 //
             ])
             ->recordActions([
-                Action::make('edit')
-                    ->label('Edit')
-                    ->icon('heroicon-o-pencil-square')
+                Action::make('view')
+                    ->label('View')
+                    ->icon('heroicon-o-eye')
                     ->color('gray')
-                    ->url(fn ($record): string => route('filament.app.resources.subscriptions.edit', $record)),
+                    ->url(fn ($record): string => route('filament.app.resources.subscriptions.view', $record)),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
