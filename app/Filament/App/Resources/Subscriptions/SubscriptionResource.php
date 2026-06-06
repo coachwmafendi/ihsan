@@ -3,7 +3,6 @@
 namespace App\Filament\App\Resources\Subscriptions;
 
 use App\Filament\App\Resources\Subscriptions\Pages\CreateSubscription;
-use App\Filament\App\Resources\Subscriptions\Pages\EditSubscription;
 use App\Filament\App\Resources\Subscriptions\Pages\ListSubscriptions;
 use App\Filament\App\Resources\Subscriptions\Pages\ViewSubscription;
 use App\Filament\App\Resources\Subscriptions\Schemas\SubscriptionForm;
@@ -26,11 +25,23 @@ class SubscriptionResource extends Resource
 
     protected static ?int $navigationSort = 30;
 
-    protected static ?string $recordTitleAttribute = 'id';
+    protected static ?string $recordRouteKeyName = 'public_id';
+
+    public static function getRecordTitle(?Model $record = null): string
+    {
+        if ($record === null) {
+            return 'Subscription';
+        }
+
+        $currency = strtoupper($record->currency ?? 'MYR');
+        $amount = number_format((float) $record->amount, 2);
+
+        return "{$currency}{$amount} / {$record->interval->value} — #{$record->public_id}";
+    }
 
     public static function getGlobalSearchResultTitle(Model $record): string
     {
-        return 'Subscription #'.$record->id;
+        return 'Subscription #'.$record->public_id;
     }
 
     public static function getGloballySearchableAttributes(): array

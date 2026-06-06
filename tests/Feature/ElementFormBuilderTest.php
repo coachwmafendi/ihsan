@@ -56,7 +56,7 @@ it('shows a full page donation form workbench when editing a form element', func
     $this->actingAs($user);
     Filament::setCurrentPanel(Filament::getPanel('app'));
 
-    Livewire::test(EditElement::class, ['record' => $element->getKey()])
+    Livewire::test(EditElement::class, ['record' => $element->public_id])
         ->assertOk()
         ->assertSee('Save changes')
         ->assertSee('Cancel')
@@ -95,7 +95,7 @@ it('reflects form builder controls in the live preview', function () {
     $this->actingAs($user);
     Filament::setCurrentPanel(Filament::getPanel('app'));
 
-    Livewire::test(EditElement::class, ['record' => $element->getKey()])
+    Livewire::test(EditElement::class, ['record' => $element->public_id])
         ->set('data.config.title', 'Dana kilat')
         ->set('data.config.submit_text', 'Teruskan derma')
         ->set('data.config.suggested_amounts_one_time', [300, 90, 30])

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\PublicIdGenerator;
 use Database\Factories\DonorFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,11 +10,25 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'email', 'phone', 'title', 'occupation', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale', 'photo_path'])]
+#[Fillable(['public_id', 'name', 'email', 'phone', 'title', 'occupation', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale', 'photo_path'])]
 class Donor extends Model
 {
     /** @use HasFactory<DonorFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::creating(function (Donor $donor) {
+            if (! $donor->public_id) {
+                $donor->public_id = PublicIdGenerator::generate(static::class);
+            }
+        });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'public_id';
+    }
 
     public function donations(): HasMany
     {

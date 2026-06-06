@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\PublicIdGenerator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +14,7 @@ class MonthlyInvoice extends Model
 
     protected $fillable = [
         'organization_id',
+        'public_id',
         'stripe_invoice_id',
         'invoice_number',
         'period',
@@ -22,6 +24,15 @@ class MonthlyInvoice extends Model
         'stripe_invoice_url',
         'stripe_invoice_pdf',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (MonthlyInvoice $invoice) {
+            if (! $invoice->public_id) {
+                $invoice->public_id = PublicIdGenerator::generate(static::class);
+            }
+        });
+    }
 
     public function organization(): BelongsTo
     {

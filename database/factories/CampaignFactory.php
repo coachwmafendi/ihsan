@@ -21,6 +21,7 @@ class CampaignFactory extends Factory
     {
         return [
             'organization_id' => Organization::factory(),
+            'public_id' => null,
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),
             'target_amount' => 10000.00,

@@ -27,6 +27,7 @@ class UserFactory extends Factory
     {
         return [
             'organization_id' => null,
+            'public_id' => null,
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'role' => UserRole::NgoAdmin,

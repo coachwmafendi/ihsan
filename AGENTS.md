@@ -241,6 +241,32 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 2. Build the JS widget that renders floating button/popup/button elements from data attributes — **DONE**
 3. Verify embed code renders correctly on external sites
 
+### Done: `public_id` Implementation
+Add `public_id` to 7 tables for public-facing UI and URLs (hide auto-increment IDs). **All tasks completed — 213 tests passing.**
+
+#### Format Rules
+- **8 characters total**, uppercase A–Z + digits **1–9** (no 0).
+- **Prefix per table** (fixed) + random characters.
+- Must be **unique** per table; retry on collision (max 10 attempts).
+
+| Table | Prefix | Random Characters | Example |
+|-------|--------|-------------------|---------|
+| `users` | `U` | 7 | `UAB3C9D2` |
+| `campaigns` | `IH` | 6 | `IH7A3B9C` |
+| `donors` | `DR` | 6 | `DR2E8F1G` |
+| `donations` | `D` | 7 | `D4H5I6J7` |
+| `subscriptions` | `R` | 7 | `R8K9L1M2` |
+| `elements` | `E` | 7 | `E3N4O5P6` |
+| `monthly_invoices` | `I` | 7 | `I7Q8R9S1` |
+
+#### Tasks Completed
+1. **Migrations** — `2026_06_06_092454_add_public_id_to_multiple_tables.php` adds nullable `public_id` VARCHAR(8) with unique index to all 7 tables.
+2. **ID Generator Service** — `app/Services/PublicIdGenerator.php`: configurable prefix/length per model, charset `A-Z,1-9`, existence check + retry loop.
+3. **Backfill Command** — `php artisan app:backfill-public-ids` processes all 7 models with chunked queries and progress bars.
+4. **Model Observers** — `booted()` `creating` hook on all 7 models auto-generates `public_id` if blank.
+5. **Factories** — all 7 factories include `'public_id' => null` so observer generates it during tests.
+6. **Tests** — `tests/Unit/PublicIdGeneratorTest.php` (format validation, unsupported model exception) + `tests/Feature/PublicIdModelTest.php` (auto-generation for all 7 models, collision retry, manual override, uniqueness, backfill command).
+
 ### Critical Context
 - `php artisan test` exit code 0 — 111 passed, 2 skipped (pre-existing cURL timeout in `PlatformInvoicePaid` mail test from factory-generated fake URLs)
 - Livewire 4: `wire:model.blur` without `.live` only syncs client-side (Alpine `$wire` proxy), does not send a network request — `updated()` hook never fires

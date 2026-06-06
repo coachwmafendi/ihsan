@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\CampaignStatus;
 use App\Enums\PaymentGateway;
+use App\Services\PublicIdGenerator;
 use Database\Factories\CampaignFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
-#[Fillable(['organization_id', 'title', 'description', 'headline', 'short_summary', 'image_path', 'target_amount', 'minimum_amount', 'allow_custom_amount', 'collected_amount', 'has_target', 'has_end_date', 'allow_recurring', 'payment_gateway', 'thank_you_message', 'redirect_url', 'end_date', 'status', 'suggested_amounts', 'suggested_amounts_one_time', 'suggested_amounts_monthly', 'impact_descriptions_enabled', 'default_monthly_amount', 'form_parameter', 'checkout_modal_enabled', 'checkout_allowed_domains', 'config'])]
+#[Fillable(['organization_id', 'public_id', 'title', 'description', 'headline', 'short_summary', 'image_path', 'target_amount', 'minimum_amount', 'allow_custom_amount', 'collected_amount', 'has_target', 'has_end_date', 'allow_recurring', 'payment_gateway', 'thank_you_message', 'redirect_url', 'end_date', 'status', 'suggested_amounts', 'suggested_amounts_one_time', 'suggested_amounts_monthly', 'impact_descriptions_enabled', 'default_monthly_amount', 'form_parameter', 'checkout_modal_enabled', 'checkout_allowed_domains', 'config'])]
 class Campaign extends Model
 {
     /** @use HasFactory<CampaignFactory> */
@@ -21,6 +22,12 @@ class Campaign extends Model
 
     protected static function booted(): void
     {
+        static::creating(function (Campaign $campaign) {
+            if (! $campaign->public_id) {
+                $campaign->public_id = PublicIdGenerator::generate(static::class);
+            }
+        });
+
         static::saving(function (Campaign $campaign) {
             if (blank($campaign->form_parameter)) {
                 do {

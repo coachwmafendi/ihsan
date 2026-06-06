@@ -1,7 +1,7 @@
 # Entity Relationship Diagram (ERD)
 ## Ihsan — MVP Database Design
 
-**Version:** 1.7
+**Version:** 1.8
 **Tarikh:** 6 Jun 2026
 **Database:** SQLite untuk local dev, MySQL 8/PostgreSQL untuk production
 **Framework:** Laravel 13
@@ -40,6 +40,7 @@ erDiagram
 
     USERS {
         bigint id PK
+        string public_id UK "U + 7 chars - public-facing ID"
         bigint organization_id FK "nullable - null for super_admin"
         string name
         string email UK
@@ -100,6 +101,7 @@ erDiagram
 
     CAMPAIGNS {
         bigint id PK
+        string public_id UK "IH + 6 chars - public-facing ID"
         bigint organization_id FK
         string title
         text description
@@ -133,6 +135,7 @@ erDiagram
 
     DONORS {
         bigint id PK
+        string public_id UK "DR + 6 chars - public-facing ID"
         string title "nullable - Mr|Mrs|Ms|etc"
         string name
         string occupation "nullable"
@@ -154,6 +157,7 @@ erDiagram
 
     DONATIONS {
         bigint id PK
+        string public_id UK "D + 7 chars - public-facing ID"
         bigint campaign_id FK
         bigint donor_id FK
         bigint subscription_id FK "nullable - null if one-time"
@@ -204,6 +208,7 @@ erDiagram
 
     SUBSCRIPTIONS {
         bigint id PK
+        string public_id UK "R + 7 chars - public-facing ID"
         bigint campaign_id FK
         bigint donor_id FK
         string stripe_subscription_id UK
@@ -238,6 +243,7 @@ erDiagram
 
     MONTHLY_INVOICES {
         bigint id PK
+        string public_id UK "I + 7 chars - public-facing ID"
         bigint organization_id FK
         string stripe_invoice_id UK
         string invoice_number UK
@@ -252,6 +258,7 @@ erDiagram
 
     ELEMENTS {
         bigint id PK
+        string public_id UK "E + 7 chars - public-facing ID"
         bigint organization_id FK
         bigint campaign_id FK "nullable"
         string name
@@ -347,6 +354,7 @@ Pengguna platform yang ada akses kepada admin panel — bukan donor. Donor diuru
 
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
+| `public_id` | string unique | ID public-facing 8 aksara: `U` + 7 aksara rawak (A–Z, 1–9). Digunakan di UI dan URL untuk menyembunyikan auto-increment ID |
 | `role` | enum | `super_admin` = pemilik platform Ihsan; `ngo_admin` = pentadbir NGO |
 | `organization_id` | FK nullable | NULL untuk super_admin |
 | `two_factor_*` | text/timestamp nullable | Fortify 2FA fields untuk admin access |
@@ -379,6 +387,7 @@ Kempen fundraising yang dibuat oleh NGO. Satu NGO boleh ada berbilang kempen akt
 
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
+| `public_id` | string unique | ID public-facing 8 aksara: `IH` + 6 aksara rawak (A–Z, 1–9). Digunakan di URL kempen dan share link |
 | `has_target` | boolean | FALSE = general fund tanpa target |
 | `collected_amount` | decimal | Dikemas kini setiap kali `donations.status = succeeded` |
 | `suggested_amounts` | json | Legacy/default suggested amount set |
@@ -401,6 +410,7 @@ Kempen fundraising yang dibuat oleh NGO. Satu NGO boleh ada berbilang kempen akt
 
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
+| `public_id` | string unique | ID public-facing 8 aksara: `DR` + 6 aksara rawak (A–Z, 1–9). Digunakan di donor portal dan receipt |
 | `title` | string nullable | Panggilan hormat: `Mr`, `Mrs`, `Ms`, `Miss`, `Dr`, dll |
 | `name` | string | Nama penuh donor |
 | `occupation` | string nullable | Pekerjaan: `Employed`, `Self-employed`, `Business owner`, `Student`, `Retired`, `Unemployed`, `Other` |
@@ -427,6 +437,7 @@ Rekod setiap transaksi tunggal — sama ada one-time atau satu bayaran daripada 
 
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
+| `public_id` | string unique | ID public-facing 8 aksara: `D` + 7 aksara rawak (A–Z, 1–9). Digunakan di receipt, URL, dan komunikasi dengan donor |
 | `subscription_id` | FK nullable | NULL = one-time; ada nilai = dijana oleh subscription |
 | `type` | enum | `one_time` atau `recurring` |
 | `gross_amount` | decimal | Jumlah yang donor bayar |
@@ -456,6 +467,7 @@ Rekod recurring subscription. Satu subscription = satu donor → satu campaign d
 
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
+| `public_id` | string unique | ID public-facing 8 aksara: `R` + 7 aksara rawak (A–Z, 1–9). Digunakan di donor portal untuk manage subscription |
 | `stripe_subscription_id` | string unique | ID dari Stripe untuk sync status |
 | `status` | enum | Sync dengan Stripe Subscription status |
 | `retry_count` | tinyint | Bilangan kali bayaran gagal dicuba (max 3, dunning logic) |
@@ -485,6 +497,7 @@ Rekod Stripe Invoice untuk accumulated processing fees setiap organisasi dan per
 
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
+| `public_id` | string unique | ID public-facing 8 aksara: `I` + 7 aksara rawak (A–Z, 1–9). Digunakan di URL invois dan download link |
 | `period` | date | Bulan invois, disimpan sebagai tarikh permulaan bulan |
 | `total_fees` | decimal | Jumlah `processing_fees` yang dimasukkan ke invoice |
 | `stripe_status` | string | Status invoice dari Stripe |
@@ -499,6 +512,7 @@ Donation element instances yang dibuat oleh NGO untuk embed di website mereka. S
 
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
+| `public_id` | string unique | ID public-facing 8 aksara: `E` + 7 aksara rawak (A–Z, 1–9). Digunakan di URL element dan share link |
 | `token` | string unique | Public token untuk widget script: `data-token="TOKEN"` |
 | `type` | enum | `button`, `floating_button`, `form`, `popup`, `qr_code`, `link` |
 | `config` | json | Warna, copy, action, trigger, layout, image, behavior, dll |
@@ -619,7 +633,33 @@ Setiap donation berjaya (`status = succeeded`) boleh menjana tepat satu rekod `p
 
 ---
 
-## 4. Stripe Connect Money Flow
+## 4. Sistem `public_id`
+
+`public_id` ialah pengenal unik berorientasi public untuk 7 entiti utama. Ia menyembunyikan auto-increment `id` daripada pengguna akhir dan URL, meningkatkan keselamatan dan estetik.
+
+### Format
+- **8 aksara total**, huruf besar A–Z + digit **1–9** (tiada 0).
+- **Prefix tetap** per table + aksara rawak.
+
+| Table | Prefix | Contoh |
+|-------|--------|--------|
+| `users` | `U` | `UAB3C9D2` |
+| `campaigns` | `IH` | `IH7A3B9C` |
+| `donors` | `DR` | `DR2E8F1G` |
+| `donations` | `D` | `D4H5I6J7` |
+| `subscriptions` | `R` | `R8K9L1M2` |
+| `elements` | `E` | `E3N4O5P6` |
+| `monthly_invoices` | `I` | `I7Q8R9S1` |
+
+### Penjanaan
+- Di-generate secara automatik oleh model observer semasa `creating`.
+- Retry on collision (max 10 attempts).
+- Boleh di-assign manual; observer tidak menimpa nilai sedia ada.
+- Backfill command: `php artisan app:backfill-public-ids` untuk rekod lama.
+
+---
+
+## 5. Stripe Connect Money Flow
 
 ```text
 Donor bayar RM 100
@@ -638,7 +678,7 @@ Stripe memproses bayaran
 
 ---
 
-## 5. Stripe Webhook Events
+## 6. Stripe Webhook Events
 
 | Event | Tindakan |
 |-------|----------|
@@ -653,7 +693,22 @@ Stripe memproses bayaran
 
 ---
 
-## 6. Indeks Database
+## 7. Indeks Database
+
+### 6.1 Indeks `public_id`
+Setiap table dengan `public_id` mempunyai unique index:
+
+```sql
+CREATE UNIQUE INDEX idx_users_public_id ON users(public_id);
+CREATE UNIQUE INDEX idx_campaigns_public_id ON campaigns(public_id);
+CREATE UNIQUE INDEX idx_donors_public_id ON donors(public_id);
+CREATE UNIQUE INDEX idx_donations_public_id ON donations(public_id);
+CREATE UNIQUE INDEX idx_subscriptions_public_id ON subscriptions(public_id);
+CREATE UNIQUE INDEX idx_elements_public_id ON elements(public_id);
+CREATE UNIQUE INDEX idx_monthly_invoices_public_id ON monthly_invoices(public_id);
+```
+
+### 6.2 Indeks Lain
 
 ```sql
 -- organizations
@@ -724,7 +779,7 @@ CREATE INDEX idx_blocked_review_status ON blocked_donations(review_status);
 
 ---
 
-## 7. Query Penting
+## 8. Query Penting
 
 ### MRR per NGO
 ```sql

@@ -17,6 +17,7 @@ class MonthlyInvoiceFactory extends Factory
     {
         return [
             'organization_id' => Organization::factory(),
+            'public_id' => null,
             'stripe_invoice_id' => 'in_'.fake()->regexify('[A-Za-z0-9]{24}'),
             'invoice_number' => 'INV-'.now()->format('Ymd').'-'.str_pad((string) fake()->unique()->numberBetween(1, 999), 3, '0', STR_PAD_LEFT),
             'period' => now()->startOfMonth()->subMonth(),

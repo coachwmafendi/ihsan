@@ -48,6 +48,11 @@ class ElementResource extends Resource
         return ElementsTable::configure($table);
     }
 
+    public static function getRecordRouteKeyName(): string
+    {
+        return 'public_id';
+    }
+
     public static function getRelations(): array
     {
         return [

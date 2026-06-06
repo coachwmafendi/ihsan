@@ -25,6 +25,20 @@ class DonationResource extends Resource
 
     protected static ?int $navigationSort = 20;
 
+    protected static ?string $recordRouteKeyName = 'public_id';
+
+    public static function getRecordTitle(?Model $record = null): string
+    {
+        if ($record === null) {
+            return 'Donation';
+        }
+
+        $currency = strtoupper($record->currency ?? 'MYR');
+        $amount = number_format((float) $record->gross_amount, 2);
+
+        return "{$currency} {$amount} — #{$record->public_id}";
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

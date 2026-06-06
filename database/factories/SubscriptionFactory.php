@@ -24,6 +24,7 @@ class SubscriptionFactory extends Factory
         return [
             'campaign_id' => Campaign::factory(),
             'donor_id' => Donor::factory(),
+            'public_id' => null,
             'stripe_subscription_id' => 'sub_'.fake()->unique()->bothify('????????????'),
             'stripe_price_id' => 'price_'.fake()->unique()->bothify('????????????'),
             'amount' => 30.00,

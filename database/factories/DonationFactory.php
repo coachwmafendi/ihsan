@@ -24,6 +24,7 @@ class DonationFactory extends Factory
         return [
             'campaign_id' => Campaign::factory(),
             'donor_id' => Donor::factory(),
+            'public_id' => null,
             'subscription_id' => null,
             'gross_amount' => 100.00,
             'base_amount' => 100.00,

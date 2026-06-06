@@ -23,6 +23,7 @@ class ElementFactory extends Factory
         return [
             'organization_id' => Organization::factory(),
             'campaign_id' => null,
+            'public_id' => null,
             'name' => fake()->words(2, true),
             'token' => Str::random(6),
             'type' => ElementType::Form,

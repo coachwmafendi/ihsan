@@ -18,6 +18,7 @@ class DonorFactory extends Factory
     public function definition(): array
     {
         return [
+            'public_id' => null,
             'name' => fake()->name(),
             'title' => fake()->optional()->randomElement(['Mr', 'Ms', 'Mrs', 'Dr']),
             'occupation' => fake()->optional()->jobTitle(),

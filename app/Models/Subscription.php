@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
+use App\Services\PublicIdGenerator;
 use App\Support\Currency;
 use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -13,11 +14,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['campaign_id', 'donor_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'cancel_at_period_end', 'cover_fee', 'cancel_at', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at'])]
+#[Fillable(['campaign_id', 'donor_id', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'cancel_at_period_end', 'cover_fee', 'cancel_at', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::creating(function (Subscription $subscription) {
+            if (! $subscription->public_id) {
+                $subscription->public_id = PublicIdGenerator::generate(static::class);
+            }
+        });
+    }
 
     public function campaign(): BelongsTo
     {
