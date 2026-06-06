@@ -195,11 +195,34 @@
                     {{-- Payment Method --}}
                     <div class="flex items-center gap-8 py-1">
                         <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Payment Method</span>
-                        <span class="text-gray-900 dark:text-gray-100">
-                            {{ collect([
-                                $record->payment_method_brand ? str($record->payment_method_brand)->headline()->toString() : null,
-                                $record->payment_method_last4 ? '•••• '.$record->payment_method_last4 : null,
-                            ])->filter()->join(' ') ?: '—' }}
+                        <span class="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                            @php
+                                $brand = strtolower($record->payment_method_brand ?? '');
+                                $iconMap = [
+                                    'visa' => 'icons.visa',
+                                    'mastercard' => 'icons.mastercard',
+                                    'amex' => 'icons.amex',
+                                    'american express' => 'icons.amex',
+                                    'discover' => 'icons.discover',
+                                    'jcb' => 'icons.jcb',
+                                    'diners' => 'icons.diners',
+                                    'diners club' => 'icons.diners',
+                                    'unionpay' => 'icons.unionpay',
+                                    'maestro' => 'icons.maestro',
+                                ];
+                                $iconComponent = $iconMap[$brand] ?? null;
+                            @endphp
+                            @if ($iconComponent)
+                                <x-dynamic-component :component="$iconComponent" class="w-8 h-5" />
+                            @else
+                                <x-heroicon-o-credit-card class="w-5 h-5 text-gray-400" />
+                            @endif
+                            <span>
+                                {{ collect([
+                                    $record->payment_method_brand ? str($record->payment_method_brand)->headline()->toString() : null,
+                                    $record->payment_method_last4 ? '•••• '.$record->payment_method_last4 : null,
+                                ])->filter()->join(' ') ?: '—' }}
+                            </span>
                         </span>
                     </div>
 
