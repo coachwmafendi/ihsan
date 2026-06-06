@@ -20,6 +20,11 @@ class Campaign extends Model
     /** @use HasFactory<CampaignFactory> */
     use HasFactory;
 
+    public function getRouteKeyName(): string
+    {
+        return 'public_id';
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Campaign $campaign) {

@@ -35,6 +35,11 @@ class CampaignResource extends Resource
         return $record->title;
     }
 
+    public static function getRecordRouteKeyName(): string
+    {
+        return 'public_id';
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

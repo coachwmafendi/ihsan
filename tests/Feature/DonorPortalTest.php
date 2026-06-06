@@ -386,7 +386,7 @@ it('filters donations page by subscription id', function () {
     ]);
 
     $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
-        ->get(route('donorportal.donations', ['organization' => $org, 'subscription' => $subscription->getKey()]))
+        ->get(route('donorportal.donations', ['organization' => $org, 'subscription' => $subscription->public_id]))
         ->assertOk()
         ->assertSee('Payment history for')
         ->assertSee($relatedDonation->campaign->title)
@@ -424,7 +424,7 @@ it('does not filter donations by another organizations subscription id', functio
     ]);
 
     $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
-        ->get(route('donorportal.donations', ['organization' => $org, 'subscription' => $otherSubscription->getKey()]))
+        ->get(route('donorportal.donations', ['organization' => $org, 'subscription' => $otherSubscription->public_id]))
         ->assertOk()
         ->assertSee($orgDonation->campaign->title)
         ->assertDontSee('Payment history for')
@@ -444,7 +444,7 @@ it('shows history button for subscriptions in donor portal', function () {
     $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
         ->get(route('donorportal.subscriptions', $org))
         ->assertSee('History')
-        ->assertSee(route('donorportal.donations', ['organization' => $org, 'subscription' => $subscription->getKey()]), false);
+        ->assertSee(route('donorportal.donations', ['organization' => $org, 'subscription' => $subscription->public_id]), false);
 });
 
 it('renders profile page with view and edit mode', function () {

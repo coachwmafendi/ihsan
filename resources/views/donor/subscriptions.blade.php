@@ -200,29 +200,29 @@
 
                         @if ($subscription->status === \App\Enums\SubscriptionStatus::Active)
                             <div class="flex flex-wrap items-center gap-2">
-                                <button @click="changeModal = {{ $subscription->getKey() }}; changeAmount = '{{ number_format($subscription->amount, 2, '.', '') }}'"
+                                <button @click="changeModal = '{{ $subscription->public_id }}'; changeAmount = '{{ number_format($subscription->amount, 2, '.', '') }}'"
                                         class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                     <x-heroicon name="plus" class="h-3.5 w-3.5" />
                                     Change Amount
                                 </button>
-                                <button @click="openPayment({{ $subscription->getKey() }})"
+                                <button @click="openPayment('{{ $subscription->public_id }}')"
                                         class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                     <x-heroicon name="credit-card" class="h-3.5 w-3.5" />
                                     Update Card Details
                                 </button>
                                 <button type="button"
-                                        @click="pauseConfirmId = {{ $subscription->getKey() }}"
+                                        @click="pauseConfirmId = '{{ $subscription->public_id }}'"
                                         class="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-600 transition hover:bg-amber-100">
                                     <x-heroicon name="pause" class="h-3.5 w-3.5" />
                                     Pause
                                 </button>
-                                <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
+                                <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->public_id]) }}"
                                    class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                     <x-heroicon name="list-bullet" class="h-3.5 w-3.5" />
                                     History
                                 </a>
                                 <button type="button"
-                                        @click="cancelConfirmId = {{ $subscription->getKey() }}"
+                                        @click="cancelConfirmId = '{{ $subscription->public_id }}'"
                                         class="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100">
                                     <x-heroicon name="x-mark" class="h-3.5 w-3.5" />
                                     Cancel
@@ -241,14 +241,14 @@
                                         Resume
                                     </button>
                                 </form>
-                                <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
+                                <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->public_id]) }}"
                                    class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                     <x-heroicon name="list-bullet" class="h-3.5 w-3.5" />
                                     History
                                 </a>
                             </div>
                         @else
-                            <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->getKey()]) }}"
+                            <a href="{{ route('donorportal.donations', ['organization' => $organization, 'subscription' => $subscription->public_id]) }}"
                                class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                 <x-heroicon name="list-bullet" class="h-3.5 w-3.5" />
                                 History

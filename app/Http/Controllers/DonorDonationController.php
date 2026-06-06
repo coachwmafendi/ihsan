@@ -20,7 +20,7 @@ class DonorDonationController extends Controller
         $query = $this->scopeToOrg($donor->donations(), $organization)->with('campaign.organization');
 
         if ($subscriptionFilter !== null) {
-            $subscription = $this->scopeToOrg($donor->subscriptions(), $organization)->find($subscriptionFilter);
+            $subscription = $this->scopeToOrg($donor->subscriptions(), $organization)->where('public_id', $subscriptionFilter)->first();
             if ($subscription !== null) {
                 $query->where('subscription_id', $subscription->getKey());
             }

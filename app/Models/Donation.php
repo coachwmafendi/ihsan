@@ -20,6 +20,11 @@ class Donation extends Model
     /** @use HasFactory<DonationFactory> */
     use HasFactory;
 
+    public function getRouteKeyName(): string
+    {
+        return 'public_id';
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Donation $donation) {

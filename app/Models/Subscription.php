@@ -20,6 +20,11 @@ class Subscription extends Model
     /** @use HasFactory<SubscriptionFactory> */
     use HasFactory;
 
+    public function getRouteKeyName(): string
+    {
+        return 'public_id';
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Subscription $subscription) {
