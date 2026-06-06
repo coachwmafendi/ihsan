@@ -9,14 +9,21 @@
                     const top = el.getBoundingClientRect().top + window.scrollY - offset;
                     window.scrollTo({ top, behavior: 'smooth' });
                 }
+            },
+            switchTab(label) {
+                const tabs = document.querySelectorAll('.fi-tabs button, .fi-tabs a');
+                tabs.forEach(tab => {
+                    if (tab.textContent.trim().toLowerCase().includes(label.toLowerCase())) {
+                        tab.click();
+                        this.activeSection = label === 'subscriptions' ? 'recurring-plans' : 'receipts';
+                    }
+                });
             }
         }"
         x-init="$nextTick(() => {
             const sectionMap = {
                 'Supporter Information': 'supporter-information',
                 'Mailing Address': 'mailing-address',
-                'Subscriptions': 'recurring-plans',
-                'Donations': 'receipts',
             };
 
             // Assign IDs to section wrappers based on their heading text
@@ -56,12 +63,8 @@
             <div class="sticky top-24 space-y-1">
                 {{-- Actions --}}
                 <div class="pb-2 mb-2 border-b border-gray-100 dark:border-gray-800 space-y-1">
-                    @php
-                        $organization = auth()->user()->organization;
-                        $elementToken = $organization?->elements()->first()?->token ?? 'default';
-                    @endphp
                     <a
-                        href="{{ route('donations.show', ['element' => $elementToken]) }}"
+                        href="{{ route('donations.show', ['element' => $this->record->organization->elements()->first()?->token ?? 'default']) }}"
                         target="_blank"
                         class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 transition-colors"
                     >
@@ -83,14 +86,18 @@
 
                 {{-- Menu Nav --}}
                 @foreach ([
-                    ['id' => 'supporter-information', 'label' => 'Information', 'icon' => 'heroicon-o-user'],
-                    ['id' => 'mailing-address', 'label' => 'Mailing Address', 'icon' => 'heroicon-o-map-pin'],
-                    ['id' => 'recurring-plans', 'label' => 'Recurring plans', 'icon' => 'heroicon-o-arrow-path'],
-                    ['id' => 'receipts', 'label' => 'Receipts', 'icon' => 'heroicon-o-document-text'],
+                    ['id' => 'supporter-information', 'label' => 'Information', 'icon' => 'heroicon-o-user', 'type' => 'scroll'],
+                    ['id' => 'mailing-address', 'label' => 'Mailing Address', 'icon' => 'heroicon-o-map-pin', 'type' => 'scroll'],
+                    ['id' => 'recurring-plans', 'label' => 'Recurring plans', 'icon' => 'heroicon-o-arrow-path', 'type' => 'tab', 'tabLabel' => 'subscriptions'],
+                    ['id' => 'receipts', 'label' => 'Receipts', 'icon' => 'heroicon-o-document-text', 'type' => 'tab', 'tabLabel' => 'donations'],
                 ] as $item)
                     <button
                         type="button"
-                        @click.prevent="scrollTo('{{ $item['id'] }}')"
+                        @if ($item['type'] === 'scroll')
+                            @click.prevent="scrollTo('{{ $item['id'] }}')"
+                        @else
+                            @click.prevent="switchTab('{{ $item['tabLabel'] }}')"
+                        @endif
                         class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
                         :class="activeSection === '{{ $item['id'] }}'
                             ? 'bg-primary-600 text-white shadow-sm dark:bg-primary-500'
