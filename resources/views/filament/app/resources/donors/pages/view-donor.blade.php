@@ -1,6 +1,6 @@
 <x-filament-panels::page>
     @php
-        $pageClass = App\Filament\App\Resources\Donors\Pages\EditDonor::class;
+        $pageClass = App\Filament\App\Resources\Donors\Pages\ViewDonor::class;
     @endphp
 
     <div
@@ -25,7 +25,6 @@
                 'supporter-information': 'supporter-information',
                 'donations-section': 'donations',
                 'recurring-plans-section': 'recurring-plans',
-                'receipts-section': 'receipts',
             };
 
             // Assign IDs to form section wrappers based on their heading text
@@ -41,7 +40,6 @@
                 document.getElementById('supporter-information'),
                 document.getElementById('donations-section'),
                 document.getElementById('recurring-plans-section'),
-                document.getElementById('receipts-section'),
             ].filter(Boolean);
 
             if (!sections.length) return;
@@ -73,13 +71,6 @@
             {{-- Subscriptions / Recurring Plans Table --}}
             <div id="recurring-plans-section" class="scroll-mt-6">
                 @livewire(App\Filament\App\Resources\Donors\RelationManagers\SubscriptionsRelationManager::class, ['ownerRecord' => $this->record, 'pageClass' => $pageClass])
-            </div>
-
-            {{-- Receipts Table --}}
-            <div id="receipts-section" class="scroll-mt-6">
-                @include('filament.app.resources.donors.partials.donor-receipts', [
-                    'donations' => $this->getReceiptDonations(),
-                ])
             </div>
         </div>
 
@@ -119,7 +110,7 @@
                     ['id' => 'supporter-information', 'label' => 'Information', 'icon' => 'heroicon-o-user', 'target' => 'supporter-information'],
                     ['id' => 'donations', 'label' => 'Donations', 'icon' => 'heroicon-o-currency-dollar', 'target' => 'donations-section'],
                     ['id' => 'recurring-plans', 'label' => 'Recurring plans', 'icon' => 'heroicon-o-arrow-path', 'target' => 'recurring-plans-section'],
-                    ['id' => 'receipts', 'label' => 'Receipts', 'icon' => 'heroicon-o-document-text', 'target' => 'receipts-section'],
+                    ['id' => 'receipts', 'label' => 'Receipts', 'icon' => 'heroicon-o-document-text', 'target' => 'donations-section'],
                 ] as $item)
                     <button
                         type="button"

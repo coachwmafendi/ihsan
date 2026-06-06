@@ -5,6 +5,7 @@ namespace App\Filament\App\Resources\Donors;
 use App\Filament\App\Resources\Donors\Pages\CreateDonor;
 use App\Filament\App\Resources\Donors\Pages\EditDonor;
 use App\Filament\App\Resources\Donors\Pages\ListDonors;
+use App\Filament\App\Resources\Donors\Pages\ViewDonor;
 use App\Filament\App\Resources\Donors\RelationManagers\DonationsRelationManager;
 use App\Filament\App\Resources\Donors\RelationManagers\SubscriptionsRelationManager;
 use App\Filament\App\Resources\Donors\Schemas\DonorForm;
@@ -75,6 +76,7 @@ class DonorResource extends Resource
         return [
             'index' => ListDonors::route('/'),
             'create' => CreateDonor::route('/create'),
+            'view' => ViewDonor::route('/{record}'),
             'edit' => EditDonor::route('/{record}/edit'),
         ];
     }

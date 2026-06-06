@@ -6,7 +6,6 @@ use App\Models\Donation;
 use Carbon\Carbon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
@@ -69,6 +68,7 @@ class DonorsTable
                     ->toggleable(),
             ])
             ->defaultSort('donations_max_created_at', 'desc')
+            ->recordUrl(fn ($record) => route('filament.app.resources.supporters.view', $record))
             ->filters([
                 Filter::make('donation_date')
                     ->label('Date')
@@ -166,7 +166,7 @@ class DonorsTable
                     ->query(fn ($query) => $query->whereHas('subscriptions')),
             ])
             ->recordActions([
-                EditAction::make(),
+                ViewAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

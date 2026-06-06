@@ -2,12 +2,16 @@
 
 namespace App\Filament\App\Resources\Donors\Pages;
 
+use App\Enums\DonationStatus;
 use App\Filament\App\Resources\Donors\DonorResource;
+use App\Models\Donation;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 
 class EditDonor extends EditRecord
@@ -29,6 +33,21 @@ class EditDonor extends EditRecord
     protected function getFormActions(): array
     {
         return [];
+    }
+
+    /**
+     * @return Collection<int, Donation>
+     */
+    public function getReceiptDonations(): Collection
+    {
+        return $this->record
+            ->donations()
+            ->whereHas('campaign', fn (Builder $query) => $query
+                ->where('organization_id', auth()->user()->organization_id))
+            ->where('status', DonationStatus::Succeeded)
+            ->whereNotNull('invoice_number')
+            ->latest('created_at')
+            ->get();
     }
 
     public function content(Schema $schema): Schema
