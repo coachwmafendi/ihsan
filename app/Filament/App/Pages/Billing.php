@@ -29,9 +29,11 @@ class Billing extends Page
 
     public string $amountProcessed = '0.00';
 
-    public string $processingFee = '0.00';
+    public string $donorFeeCovered = '0.00';
 
     public string $stripeFee = '0.00';
+
+    public string $processingFee = '0.00';
 
     public string $netReceived = '0.00';
 
@@ -69,10 +71,11 @@ class Billing extends Page
             ->when($to, fn (Builder $q) => $q->whereDate('donations.created_at', '<=', $to));
 
         $this->totalTransactions = (clone $donations)->count();
-        $this->amountProcessed = number_format((float) (clone $donations)->sum('gross_amount'), 2, '.', '');
-        $this->stripeFee = number_format((float) (clone $donations)->sum('stripe_fee'), 2, '.', '');
-        $this->processingFee = number_format((float) (clone $donations)->sum('processing_fee'), 2, '.', '');
-        $this->netReceived = number_format((float) (clone $donations)->sum('net_amount'), 2, '.', '');
+        $this->amountProcessed = (float) (clone $donations)->sum('base_amount');
+        $this->donorFeeCovered = (float) (clone $donations)->sum('donor_fee_covered');
+        $this->stripeFee = (float) (clone $donations)->sum('stripe_fee');
+        $this->processingFee = (float) (clone $donations)->sum('processing_fee');
+        $this->netReceived = (float) (clone $donations)->sum('net_amount');
     }
 
     /**
