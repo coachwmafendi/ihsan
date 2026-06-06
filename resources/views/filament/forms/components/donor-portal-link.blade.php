@@ -17,7 +17,7 @@ $portalUrl = $org ? route('donorportal.dashboard', $org) : null;
         >
             <x-heroicon-o-clipboard-document x-show="!copied" class="size-4" />
             <x-heroicon-o-check x-show="copied" x-cloak class="size-4 text-green-600" />
-            <span x-text="copied ? 'Link sudah dicopy' : 'Copy'"></span>
+            <span x-text="copied ? 'Link copied' : 'Copy'"></span>
         </button>
         <a
             href="{{ $portalUrl }}"
