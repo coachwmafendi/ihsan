@@ -5,8 +5,7 @@ namespace App\Filament\App\Resources\Donors\Pages;
 use App\Enums\DonationStatus;
 use App\Filament\App\Resources\Donors\DonorResource;
 use App\Models\Donation;
-use Filament\Actions\DeleteAction;
-use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
@@ -14,7 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 
-class EditDonor extends EditRecord
+class EditDonor extends ViewRecord
 {
     protected static string $resource = DonorResource::class;
 
@@ -129,13 +128,6 @@ class EditDonor extends EditRecord
                 </div>
             </div>
         HTML);
-    }
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            DeleteAction::make(),
-        ];
     }
 
     public function getBreadcrumbs(): array
