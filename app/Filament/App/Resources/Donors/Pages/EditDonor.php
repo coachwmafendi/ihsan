@@ -10,6 +10,13 @@ class EditDonor extends EditRecord
 {
     protected static string $resource = DonorResource::class;
 
+    protected string $view = 'filament.app.resources.donors.pages.edit-donor';
+
+    public function hasFormWrapper(): bool
+    {
+        return false;
+    }
+
     protected function getHeaderActions(): array
     {
         return [

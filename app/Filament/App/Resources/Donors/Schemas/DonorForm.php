@@ -32,6 +32,7 @@ class DonorForm
             ->components([
                 Section::make('Supporter Information')
                     ->icon('heroicon-o-user')
+                    ->extraAttributes(['id' => 'supporter-information', 'class' => 'scroll-mt-6'])
                     ->columns(['md' => 2])
                     ->schema([
                         TextInput::make('name')
@@ -50,6 +51,7 @@ class DonorForm
                     ]),
                 Section::make('Mailing Address')
                     ->icon('heroicon-o-map-pin')
+                    ->extraAttributes(['id' => 'mailing-address', 'class' => 'scroll-mt-6'])
                     ->columns(['md' => 2])
                     ->schema([
                         TextInput::make('address_line1')
