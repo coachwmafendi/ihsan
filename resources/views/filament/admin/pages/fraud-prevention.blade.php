@@ -107,8 +107,36 @@
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Fraud Rules</h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Active rules and their configurations.</p>
             </div>
-            <div class="p-5">
-                {{ $this->rulesTable }}
+            <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                @forelse ($this->rules as $rule)
+                    <div class="flex items-center justify-between px-5 py-3">
+                        <div class="flex items-center gap-3">
+                            <div class="flex size-8 items-center justify-center rounded-full {{ $rule['is_active'] ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-800' }}">
+                                <x-heroicon-o-check-circle class="size-4 {{ $rule['is_active'] ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500' }}" />
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $rule['type'] }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $rule['config'] }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                {{ match($rule['action']) {
+                                    'block' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                                    'flag' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                                    default => 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
+                                } }}">
+                                {{ ucfirst($rule['action']) }}
+                            </span>
+                            <p class="mt-1 text-xs text-gray-400">{{ $rule['organization'] }}</p>
+                        </div>
+                    </div>
+                @empty
+                    <div class="px-5 py-8 text-center">
+                        <x-heroicon-o-cog-6-tooth class="mx-auto size-8 text-gray-400 dark:text-gray-600" />
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No fraud rules configured.</p>
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>
