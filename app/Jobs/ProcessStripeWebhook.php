@@ -9,6 +9,8 @@ use App\Enums\DonationType;
 use App\Enums\SubscriptionStatus;
 use App\Mail\PlatformInvoicePaid;
 use App\Models\Donation;
+use App\Models\Fraud\BlockedDonation;
+use App\Models\Fraud\FraudAttempt;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
@@ -217,6 +219,37 @@ class ProcessStripeWebhook implements ShouldQueue
         app(SyncDonationStripeDetails::class)->sync($donation, null, $stripeOptions);
 
         $donation->refresh();
+
+        if ($donation->fraud_status !== 'blocked' && $donation->risk_score !== null) {
+            $riskThreshold = (int) ($campaign->organization?->settings['risk_score_threshold'] ?? 80);
+
+            if ($donation->risk_score >= $riskThreshold) {
+                BlockedDonation::create([
+                    'donation_id' => $donation->id,
+                    'reason' => "Stripe Radar risk score: {$donation->risk_score}",
+                    'review_status' => 'pending',
+                ]);
+
+                $donation->update([
+                    'fraud_status' => 'blocked',
+                    'status' => DonationStatus::Refunded, // atau failed
+                ]);
+
+                FraudAttempt::create([
+                    'donor_id' => $donation->donor_id,
+                    'email' => $donation->donor?->email,
+                    'amount' => $donation->gross_amount,
+                    'currency' => $donation->currency,
+                    'reason' => 'Stripe Radar high risk score',
+                    'action' => 'blocked',
+                    'metadata' => ['risk_score' => $donation->risk_score],
+                ]);
+
+                // Hantar notification ke admin
+                // Chargeback prevention: refund via Stripe
+                return;
+            }
+        }
 
         $campaign = $donation->campaign;
         $previousCollected = (float) $campaign->collected_amount;

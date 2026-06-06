@@ -18,12 +18,12 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
+use App\Services\FraudDetectionService;
 use App\Support\ClientInfo;
 use App\Support\Currency;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Renderless;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\Stripe;
@@ -309,6 +309,31 @@ class DonationForm extends Component
             'page_url' => $this->pageUrl,
         ];
 
+        $fraudService = new FraudDetectionService($donor);
+        $fraudResult = $fraudService->assess([
+            'amount' => $validated['amount'],
+            'billing_country' => null, // captured after Stripe
+        ]);
+
+        if ($fraudResult['action'] === 'block') {
+            FraudDetectionService::logAttempt([
+                'donor_id' => $donor->getKey(),
+                'email' => $email,
+                'amount' => $validated['amount'],
+                'currency' => $this->currency,
+                'reason' => $fraudResult['matches'][0]['reason'] ?? 'Unknown',
+                'action' => 'blocked',
+                'metadata' => $fraudResult['matches'],
+            ]);
+
+            throw new \RuntimeException('This transaction has been blocked for security review. Please contact support.');
+        }
+
+        $fraudStatus = match ($fraudResult['action']) {
+            'flag' => 'flagged',
+            default => 'clean',
+        };
+
         $donation = Donation::query()->create([
             'campaign_id' => $campaignId,
             'donor_id' => $donor->getKey(),
@@ -322,6 +347,7 @@ class DonationForm extends Component
             'type' => $validated['frequency'] === 'monthly' ? DonationType::Recurring : DonationType::OneTime,
             'donor_message' => filled($validated['comment'] ?? null) ? $validated['comment'] : null,
             'is_anonymous' => false,
+            'fraud_status' => $fraudStatus,
             'utm_params' => $utmParams,
             ...$clientInfo,
         ]);

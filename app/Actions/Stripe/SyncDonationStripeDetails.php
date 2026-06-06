@@ -39,6 +39,8 @@ class SyncDonationStripeDetails
             $donorFeeCovered = round($donorFeeCovered * $exchangeRate, 2);
         }
 
+        $riskData = $this->extractRiskData($paymentIntent, $rawCharge);
+
         $donation->update([
             'stripe_charge_id' => $chargeId,
             'stripe_fee' => $stripeFee,
@@ -57,6 +59,10 @@ class SyncDonationStripeDetails
             'base_currency' => 'myr',
             'base_amount' => $baseAmount,
             'exchange_rate' => $exchangeRate,
+            'risk_score' => $riskData['risk_score'],
+            'risk_level' => $riskData['risk_level'],
+            'avs_result' => $riskData['avs_result'],
+            'cvc_result' => $riskData['cvc_result'],
             'net_amount' => (float) ($baseAmount ?? $donation->gross_amount) + $donorFeeCovered - $stripeFee - $processingFee,
         ]);
 
@@ -315,6 +321,44 @@ class SyncDonationStripeDetails
         ], $rawFeeDetails);
 
         return [$stripeFee, $processingFee, $savedFeeDetails];
+    }
+
+    private function extractRiskData(mixed $paymentIntent, mixed $charge): array
+    {
+        $riskScore = null;
+        $riskLevel = null;
+        $avs = null;
+        $cvc = null;
+
+        if (! is_string($charge) && $charge !== null) {
+            $outcome = $charge->outcome ?? null;
+            if ($outcome !== null) {
+                $riskScore = $outcome->risk_score ?? null;
+                $riskLevel = $outcome->risk_level ?? null;
+            }
+
+            $paymentMethodDetails = $charge->payment_method_details ?? null;
+            if ($paymentMethodDetails !== null && $paymentMethodDetails->card !== null) {
+                $checks = $paymentMethodDetails->card->checks ?? null;
+                if ($checks !== null) {
+                    $avs = $checks->address_line1_check ??
+                           $checks->address_postal_code_check ??
+                           null;
+                    $cvc = $checks->cvc_check ?? null;
+                }
+            }
+        }
+
+        if ($riskScore === null && ! is_string($paymentIntent) && $paymentIntent !== null) {
+            $riskScore = $paymentIntent->risk_score ?? null;
+        }
+
+        return [
+            'risk_score' => $riskScore,
+            'risk_level' => $riskLevel,
+            'avs_result' => $avs,
+            'cvc_result' => $cvc,
+        ];
     }
 
     private function processingFeePercent(): float

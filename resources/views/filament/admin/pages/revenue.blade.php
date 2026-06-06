@@ -23,6 +23,10 @@
                         'last_7_days' => 'Last 7 days',
                         'last_30_days' => 'Last 30 days',
                         'last_90_days' => 'Last 90 days',
+                        'last_week' => 'Last week',
+                        'last_month' => 'Last month',
+                        'last_6_months' => 'Last 6 months',
+                        'last_year' => 'Last year',
                     ];
                 @endphp
                 @foreach ($quickPeriods as $key => $label)
