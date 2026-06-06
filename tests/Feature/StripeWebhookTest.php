@@ -7,6 +7,7 @@ use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendNewSubscriptionNotification;
 use App\Jobs\SyncDonationStripeDetailsJob;
+use App\Mail\PlatformInvoicePaid;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -15,6 +16,7 @@ use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\WebhookLog;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Stripe\ApiRequestor;
 use Stripe\HttpClient\ClientInterface;
@@ -405,6 +407,8 @@ it('syncs stripe details for an already succeeded connected donation without dup
 });
 
 it('marks platform fee invoices as paid from stripe webhook', function () {
+    Mail::fake();
+
     $organization = Organization::factory()->create(['contact_email' => 'ngo@example.com']);
     $invoice = MonthlyInvoice::factory()->create([
         'organization_id' => $organization->id,
@@ -461,6 +465,8 @@ it('marks platform fee invoices as paid from stripe webhook', function () {
         ->and($invoice->paid_at)->not->toBeNull()
         ->and($fee1->status)->toBe('paid')
         ->and($fee2->status)->toBe('paid');
+
+    Mail::assertQueued(PlatformInvoicePaid::class, fn (PlatformInvoicePaid $mailable) => $mailable->invoice->id === $invoice->id);
 });
 
 function paymentIntentSucceededPayload(Donation $donation, string $eventId): string

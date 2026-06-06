@@ -301,7 +301,7 @@ class ProcessStripeWebhook implements ShouldQueue
 
         if ($monthlyInvoice->organization?->contact_email) {
             Mail::to($monthlyInvoice->organization->contact_email)
-                ->send(new PlatformInvoicePaid($monthlyInvoice));
+                ->queue(new PlatformInvoicePaid($monthlyInvoice));
         }
     }
 

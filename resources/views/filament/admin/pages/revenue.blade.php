@@ -44,11 +44,12 @@
                     </button>
                 @endforeach
 
-                <div x-data="{ open: false }" class="relative">
+                <div x-data="{ open: false, rect: {} }" class="relative">
                     <button
                         wire:loading.attr="disabled"
                         type="button"
-                        @click="open = !open"
+                        x-ref="moreBtn"
+                        @click="open = !open; rect = $refs.moreBtn.getBoundingClientRect()"
                         @class([
                             'ihsan-admin-segmented-button',
                             'ihsan-admin-segmented-button-active' => in_array($period, array_keys($morePeriods)),
@@ -58,34 +59,37 @@
                         More
                         <x-heroicon-o-chevron-down class="inline size-3.5" />
                     </button>
-                    <div
-                        x-show="open"
-                        @click.away="open = false"
-                        x-transition:enter="transition duration-150 ease-out"
-                        x-transition:enter-start="scale-95 opacity-0"
-                        x-transition:enter-end="scale-100 opacity-100"
-                        x-transition:leave="transition duration-100 ease-in"
-                        x-transition:leave-start="scale-100 opacity-100"
-                        x-transition:leave-end="scale-95 opacity-0"
-                        class="absolute right-0 top-full z-50 mt-1 min-w-40 overflow-hidden rounded-lg border border-stone-200 bg-white py-1 shadow-lg dark:border-stone-700 dark:bg-stone-900"
-                        style="display: none;"
-                    >
-                        @foreach ($morePeriods as $key => $label)
-                            <button
-                                wire:click="$set('period', '{{ $key }}')"
-                                wire:loading.attr="disabled"
-                                type="button"
-                                @click="open = false"
-                                @class([
-                                    'w-full px-3 py-2 text-left text-xs font-semibold transition',
-                                    'bg-ihsan-terracotta/10 text-ihsan-terracotta dark:bg-ihsan-terracotta/20 dark:text-orange-300' => $period === $key,
-                                    'text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800' => $period !== $key,
-                                ])
-                            >
-                                {{ $label }}
-                            </button>
-                        @endforeach
-                    </div>
+                    <template x-teleport="body">
+                        <div
+                            x-show="open"
+                            @click.away="open = false"
+                            x-transition:enter="transition duration-150 ease-out"
+                            x-transition:enter-start="scale-95 opacity-0"
+                            x-transition:enter-end="scale-100 opacity-100"
+                            x-transition:leave="transition duration-100 ease-in"
+                            x-transition:leave-start="scale-100 opacity-100"
+                            x-transition:leave-end="scale-95 opacity-0"
+                            :style="`position:fixed; top:${rect.bottom + 4}px; right:${window.innerWidth - rect.right}px; z-index:9999`"
+                            class="min-w-40 overflow-hidden rounded-lg border border-stone-200 bg-white py-1 shadow-lg dark:border-stone-700 dark:bg-stone-900"
+                            style="display: none;"
+                        >
+                            @foreach ($morePeriods as $key => $label)
+                                <button
+                                    wire:click="$set('period', '{{ $key }}')"
+                                    wire:loading.attr="disabled"
+                                    type="button"
+                                    @click="open = false"
+                                    @class([
+                                        'w-full px-3 py-2 text-left text-xs font-semibold transition',
+                                        'bg-ihsan-terracotta/10 text-ihsan-terracotta dark:bg-ihsan-terracotta/20 dark:text-orange-300' => $period === $key,
+                                        'text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800' => $period !== $key,
+                                    ])
+                                >
+                                    {{ $label }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>

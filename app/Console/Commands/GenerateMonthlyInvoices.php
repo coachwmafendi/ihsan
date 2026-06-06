@@ -120,7 +120,7 @@ class GenerateMonthlyInvoices extends Command
                 ]);
 
                 Mail::to($organization->contact_email)
-                    ->send(new PlatformInvoiceCreated($monthlyInvoice));
+                    ->queue(new PlatformInvoiceCreated($monthlyInvoice));
 
                 $this->info("Invoice {$invoiceNumber} sent to {$organization->name}: MYR {$totalFees}");
 
