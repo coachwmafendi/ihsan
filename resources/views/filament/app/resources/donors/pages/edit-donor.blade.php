@@ -22,13 +22,11 @@
         }"
         x-init="$nextTick(() => {
             const sectionMap = {
-                'Supporter Information': 'supporter-information',
-                'Mailing Address': 'mailing-address',
+                'Information': 'supporter-information',
             };
 
             const navMap = {
                 'supporter-information': 'supporter-information',
-                'mailing-address': 'supporter-information',
             };
 
             // Assign IDs to section wrappers based on their heading text
