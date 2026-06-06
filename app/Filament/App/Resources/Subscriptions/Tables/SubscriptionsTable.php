@@ -5,7 +5,7 @@ namespace App\Filament\App\Resources\Subscriptions\Tables;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -85,7 +85,7 @@ class SubscriptionsTable
                     ->options(SubscriptionInterval::class),
             ])
             ->recordActions([
-                EditAction::make(),
+                ViewAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([]),

@@ -7,23 +7,17 @@ use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Filament\App\Resources\Subscriptions\SubscriptionResource;
 use Filament\Actions\Action;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
-use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 
-class EditSubscription extends EditRecord
+class ViewSubscription extends ViewRecord
 {
     protected static string $resource = SubscriptionResource::class;
-
-    protected string $view = 'filament.app.resources.subscriptions.pages.edit-subscription';
 
     public ?string $paymentClientSecret = null;
 
@@ -32,7 +26,7 @@ class EditSubscription extends EditRecord
         $currency = strtoupper($this->record->currency ?? 'MYR');
         $amount = number_format((float) $this->record->amount, 2);
 
-        return "Edit {$currency}{$amount} recurring plan";
+        return "{$currency}{$amount} recurring plan";
     }
 
     public function form(Schema $schema): Schema
@@ -41,59 +35,14 @@ class EditSubscription extends EditRecord
             ->columns(1)
             ->components([
                 Section::make('Recurring Plan')
-                    ->extraAttributes(['id' => 'recurring-plan', 'class' => 'scroll-mt-6'])
+                    ->extraAttributes(['class' => 'scroll-mt-6'])
                     ->schema([
-                        TextInput::make('amount')
-                            ->prefix(fn () => strtoupper($this->getRecord()->currency ?? 'MYR'))
-                            ->disabled()
-                            ->dehydrated(),
-                        Select::make('interval')
-                            ->options(SubscriptionInterval::class)
-                            ->disabled()
-                            ->dehydrated(),
-                        Select::make('status')
-                            ->options(SubscriptionStatus::class)
-                            ->disabled()
-                            ->dehydrated(),
-                        TextInput::make('stripe_subscription_id')
-                            ->label('Stripe Subscription ID')
-                            ->disabled()
-                            ->dehydrated()
-                            ->visible(fn () => $this->getRecord()->stripe_subscription_id !== null),
-                        TextInput::make('stripe_price_id')
-                            ->label('Stripe Price ID')
-                            ->disabled()
-                            ->dehydrated()
-                            ->visible(fn () => $this->getRecord()->stripe_price_id !== null),
-                        DatePicker::make('current_period_start')
-                            ->label('Period Start')
-                            ->disabled()
-                            ->dehydrated(),
-                        DatePicker::make('current_period_end')
-                            ->label('Period End')
-                            ->disabled()
-                            ->dehydrated(),
-                        DatePicker::make('paused_until')
-                            ->label('Paused Until')
-                            ->disabled()
-                            ->dehydrated()
-                            ->visible(fn () => $this->getRecord()->paused_until !== null),
-                        DatePicker::make('cancelled_at')
-                            ->label('Cancelled At')
-                            ->disabled()
-                            ->dehydrated()
-                            ->visible(fn () => $this->getRecord()->cancelled_at !== null),
-                        Placeholder::make('cancel_at_period_end_display')
-                            ->label('Cancel at Period End')
-                            ->content(fn () => $this->getRecord()->cancel_at_period_end ? 'Yes' : 'No'),
-                        Placeholder::make('cover_fee_display')
-                            ->label('Cover Fee')
-                            ->content(fn () => $this->getRecord()->cover_fee ? 'Yes' : 'No'),
-                    ])
-                    ->columns(['md' => 2]),
+                        View::make('filament.app.resources.subscriptions.partials.recurring-plan')
+                            ->viewData(['record' => $this->getRecord()]),
+                    ]),
 
                 Section::make('Personal Information')
-                    ->extraAttributes(['id' => 'personal-information', 'class' => 'scroll-mt-6'])
+                    ->extraAttributes(['class' => 'scroll-mt-6'])
                     ->schema([
                         Placeholder::make('donor_name')
                             ->label('Name')
@@ -108,7 +57,7 @@ class EditSubscription extends EditRecord
                     ->columns(['md' => 2]),
 
                 Section::make('Sources')
-                    ->extraAttributes(['id' => 'sources', 'class' => 'scroll-mt-6'])
+                    ->extraAttributes(['class' => 'scroll-mt-6'])
                     ->schema([
                         Placeholder::make('campaign')
                             ->label('Campaign')
@@ -120,14 +69,14 @@ class EditSubscription extends EditRecord
                     ->columns(['md' => 2]),
 
                 Section::make('Installments')
-                    ->extraAttributes(['id' => 'installments', 'class' => 'scroll-mt-6'])
+                    ->extraAttributes(['class' => 'scroll-mt-6'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.installments')
                             ->viewData(['record' => $this->getRecord()]),
                     ]),
 
                 Section::make('Receipts')
-                    ->extraAttributes(['id' => 'receipts', 'class' => 'scroll-mt-6'])
+                    ->extraAttributes(['class' => 'scroll-mt-6'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.receipts')
                             ->viewData(['record' => $this->getRecord()]),
@@ -182,7 +131,6 @@ class EditSubscription extends EditRecord
                     try {
                         app(ManageStripeSubscription::class)->pause($this->record);
                         $this->record->refresh();
-                        $this->refreshFormData(['paused_until']);
                         Notification::make()->title('Installments skipped. Subscription paused.')->success()->send();
                     } catch (\Exception $e) {
                         Notification::make()->title('Failed to skip installments: '.$e->getMessage())->danger()->send();
@@ -229,7 +177,6 @@ class EditSubscription extends EditRecord
                             immediately: $data['cancel_type'] === 'immediate',
                         );
                         $this->record->refresh();
-                        $this->refreshFormData(['status', 'cancel_at_period_end', 'cancelled_at']);
                         Notification::make()
                             ->title($data['cancel_type'] === 'immediate'
                                 ? 'Subscription cancelled immediately.'
@@ -252,7 +199,6 @@ class EditSubscription extends EditRecord
                     try {
                         app(ManageStripeSubscription::class)->pause($this->record);
                         $this->record->refresh();
-                        $this->refreshFormData(['paused_until']);
                         Notification::make()->title('Payment collection paused.')->success()->send();
                     } catch (\Exception $e) {
                         Notification::make()->title('Failed to pause: '.$e->getMessage())->danger()->send();
@@ -270,7 +216,6 @@ class EditSubscription extends EditRecord
                     try {
                         app(ManageStripeSubscription::class)->resume($this->record);
                         $this->record->refresh();
-                        $this->refreshFormData(['paused_until']);
                         Notification::make()->title('Subscription resumed.')->success()->send();
                     } catch (\Exception $e) {
                         Notification::make()->title('Failed to resume: '.$e->getMessage())->danger()->send();
@@ -298,11 +243,6 @@ class EditSubscription extends EditRecord
             ]);
 
             $this->record->refresh();
-            $this->refreshFormData([
-                'amount', 'interval', 'stripe_price_id',
-                'current_period_start', 'current_period_end',
-                'cancel_at_period_end', 'status', 'paused_until', 'cancelled_at',
-            ]);
 
             Notification::make()->title('Subscription details updated.')->success()->send();
         } catch (\Exception $e) {
@@ -318,10 +258,5 @@ class EditSubscription extends EditRecord
         } catch (\Exception $e) {
             Notification::make()->title('Failed to update payment method: '.$e->getMessage())->danger()->send();
         }
-    }
-
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        return $data;
     }
 }
