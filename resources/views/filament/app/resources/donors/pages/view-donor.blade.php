@@ -90,7 +90,7 @@
                 <div class="border-t border-gray-100 px-6 py-4 space-y-2 text-sm dark:border-gray-800">
                     <div class="flex items-baseline gap-8 py-1">
                         <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Name</span>
-                        <span class="text-gray-900 dark:text-gray-100">{{ $record->name }}</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ str($record->name)->title() }}</span>
                     </div>
 
                     <div class="flex items-baseline gap-8 py-1">
