@@ -2,6 +2,7 @@
 
 namespace App\Filament\App\Pages;
 
+use App\Filament\Forms\Components\DonorPortalLink;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -10,6 +11,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
@@ -260,6 +262,12 @@ class ProfilOrganisasi extends Page
                             ->icon('heroicon-o-globe-alt')
                             ->columns(2)
                             ->schema([
+                                Section::make('Portal Link')
+                                    ->description('Share this link with your donors so they can view their donation history and download receipts.')
+                                    ->columnSpanFull()
+                                    ->schema([
+                                        DonorPortalLink::make('donor_portal_link'),
+                                    ]),
                                 TextInput::make('settings.portal_tagline')
                                     ->label('Welcome tagline')
                                     ->nullable()
