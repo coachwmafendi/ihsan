@@ -6,7 +6,6 @@ use App\Enums\DonationStatus;
 use App\Filament\App\Resources\Donors\DonorResource;
 use App\Models\Donation;
 use Carbon\CarbonInterface;
-use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
@@ -55,13 +54,6 @@ class ViewDonor extends ViewRecord
     public function getBreadcrumbs(): array
     {
         return [];
-    }
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            EditAction::make(),
-        ];
     }
 
     public function getRelationManagers(): array
