@@ -83,16 +83,12 @@ class EditSubscription extends EditRecord
                             ->disabled()
                             ->dehydrated()
                             ->visible(fn () => $this->getRecord()->cancelled_at !== null),
-                        ToggleButtons::make('cancel_at_period_end')
+                        Placeholder::make('cancel_at_period_end_display')
                             ->label('Cancel at Period End')
-                            ->boolean()
-                            ->disabled()
-                            ->dehydrated(),
-                        ToggleButtons::make('cover_fee')
+                            ->content(fn () => $this->getRecord()->cancel_at_period_end ? 'Yes' : 'No'),
+                        Placeholder::make('cover_fee_display')
                             ->label('Cover Fee')
-                            ->boolean()
-                            ->disabled()
-                            ->dehydrated(),
+                            ->content(fn () => $this->getRecord()->cover_fee ? 'Yes' : 'No'),
                     ])
                     ->columns(['md' => 2]),
 

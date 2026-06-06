@@ -42,7 +42,7 @@
             <div class="sticky top-24 space-y-1">
                 {{-- Actions --}}
                 <div class="pb-2 mb-2 border-b border-gray-100 dark:border-gray-800 space-y-1">
-                    @if (! $this->record->status->value === 'cancelled')
+                    @if ($this->record->status->value !== 'cancelled')
                         <button
                             type="button"
                             wire:click="mountAction('updatePaymentDetails')"
@@ -64,7 +64,7 @@
                         </button>
                     @endif
 
-                    @if (! $this->record->status->value === 'cancelled')
+                    @if ($this->record->status->value !== 'cancelled')
                         <button
                             type="button"
                             wire:click="mountAction('offerPlanUpgrade')"
@@ -75,7 +75,7 @@
                         </button>
                     @endif
 
-                    @if (! $this->record->status->value === 'cancelled')
+                    @if ($this->record->status->value !== 'cancelled')
                         <button
                             type="button"
                             wire:click="mountAction('cancel')"
