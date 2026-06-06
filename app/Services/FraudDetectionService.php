@@ -58,6 +58,16 @@ class FraudDetectionService
     {
         $orgId = $this->donation?->campaign?->organization_id;
 
+        // Fallback: try to get org from donor's recent donations
+        if ($orgId === null && $this->donor !== null) {
+            $recentDonation = $this->donor->donations()
+                ->with('campaign')
+                ->latest()
+                ->first();
+
+            $orgId = $recentDonation?->campaign?->organization_id;
+        }
+
         if ($orgId === null) {
             return [];
         }
