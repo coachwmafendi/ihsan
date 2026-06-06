@@ -8,4 +8,6 @@ use Filament\Resources\Pages\ListRecords;
 class ListSubscriptions extends ListRecords
 {
     protected static string $resource = SubscriptionResource::class;
+
+    protected static ?string $title = 'Recurring plans';
 }
