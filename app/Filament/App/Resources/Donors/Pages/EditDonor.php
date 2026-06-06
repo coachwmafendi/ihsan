@@ -5,6 +5,8 @@ namespace App\Filament\App\Resources\Donors\Pages;
 use App\Filament\App\Resources\Donors\DonorResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
 
@@ -19,12 +21,27 @@ class EditDonor extends EditRecord
         return false;
     }
 
+    public function getRelationManagers(): array
+    {
+        return [];
+    }
+
     protected function getFormActions(): array
     {
         return [];
     }
 
-    public function getHeading(): string | Htmlable
+    public function content(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Group::make([
+                    $this->getFormContentComponent(),
+                ]),
+            ]);
+    }
+
+    public function getHeading(): string|Htmlable
     {
         $donor = $this->record;
         $organizationId = auth()->user()->organization_id;
