@@ -10,12 +10,12 @@
                     window.scrollTo({ top, behavior: 'smooth' });
                 }
             },
-            switchTab(label) {
+            switchTab(label, id) {
                 const tabs = document.querySelectorAll('.fi-tabs button, .fi-tabs a');
                 tabs.forEach(tab => {
                     if (tab.textContent.trim().toLowerCase().includes(label.toLowerCase())) {
                         tab.click();
-                        this.activeSection = label === 'subscriptions' ? 'recurring-plans' : 'receipts';
+                        this.activeSection = id;
                     }
                 });
             }
@@ -97,6 +97,7 @@
                 {{-- Menu Nav --}}
                 @foreach ([
                     ['id' => 'supporter-information', 'label' => 'Information', 'icon' => 'heroicon-o-user', 'type' => 'scroll'],
+                    ['id' => 'donations', 'label' => 'Donations', 'icon' => 'heroicon-o-gift', 'type' => 'tab', 'tabLabel' => 'donations'],
                     ['id' => 'recurring-plans', 'label' => 'Recurring plans', 'icon' => 'heroicon-o-arrow-path', 'type' => 'tab', 'tabLabel' => 'subscriptions'],
                     ['id' => 'receipts', 'label' => 'Receipts', 'icon' => 'heroicon-o-document-text', 'type' => 'tab', 'tabLabel' => 'donations'],
                 ] as $item)
@@ -105,7 +106,7 @@
                         @if ($item['type'] === 'scroll')
                             @click.prevent="scrollTo('{{ $item['id'] }}')"
                         @else
-                            @click.prevent="switchTab('{{ $item['tabLabel'] }}')"
+                            @click.prevent="switchTab('{{ $item['tabLabel'] }}', '{{ $item['id'] }}')"
                         @endif
                         class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
                         :class="activeSection === '{{ $item['id'] }}'
