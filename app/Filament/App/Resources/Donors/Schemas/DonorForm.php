@@ -15,7 +15,7 @@ class DonorForm
             ->components([
                 Section::make('Information')
                     ->icon('heroicon-o-user')
-                    ->extraAttributes(['id' => 'supporter-information', 'class' => 'scroll-mt-6'])
+                    ->extraAttributes(['id' => 'supporter-information', 'class' => 'scroll-mt-6 !max-w-none'])
                     ->schema([
                         View::make('filament.app.resources.donors.partials.donor-information')
                             ->viewData(fn (?Donor $record): array => [

@@ -66,16 +66,18 @@ class EditDonor extends EditRecord
                                 \$el.querySelector('.check-icon').classList.add('hidden');
                             }, 2000);
                         "
-                        class="inline-flex items-center justify-center p-0.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                        class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors cursor-pointer text-xs font-medium text-gray-600 dark:text-gray-400"
                         title="Copy ID"
                     >
-                        <svg class="copy-icon w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V12.5a1.5 1.5 0 01-1.5 1.5h-1v-3.879a1.5 1.5 0 01-.44-1.06L9.62 7.5H8.5A1.5 1.5 0 017 6.5v-3zM5.5 7h1.75l1.75 1.75V12.5a1.5 1.5 0 01-1.5 1.5h-1A1.5 1.5 0 015 12.5v-4A1.5 1.5 0 015.5 7z" />
-                            <path d="M4.5 15.75a1.5 1.5 0 001.5 1.5h6a1.5 1.5 0 001.5-1.5V13h-1v2.75a.5.5 0 01-.5.5h-6a.5.5 0 01-.5-.5v-6a.5.5 0 01.5-.5H7v-1H5.5a1.5 1.5 0 00-1.5 1.5v6z" />
+                        <svg class="copy-icon w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
-                        <svg class="check-icon hidden w-4 h-4 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
+                        <svg class="check-icon hidden w-4 h-4 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
+                        <span class="copy-text">Copy</span>
+                        <span class="check-text hidden text-green-600">Copied!</span>
                     </button>
                     <span class="mx-1">·</span>
                     <span>Lifetime donated</span>
