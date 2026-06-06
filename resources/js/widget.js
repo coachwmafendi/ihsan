@@ -189,8 +189,8 @@
     closeBtn.innerHTML = "&times;";
     closeBtn.style.cssText = [
       "position:absolute",
-      isMobileView ? "top:8px" : "top:-16px",
-      isMobileView ? "right:8px" : "right:-16px",
+      "top:12px",
+      "right:12px",
       "width:36px",
       "height:36px",
       "border:0",
