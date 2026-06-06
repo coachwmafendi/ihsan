@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\AdminLogin;
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Pages\FraudPrevention;
 use App\Filament\Pages\MonthlyInvoices;
 use App\Filament\Pages\PlatformOverview;
 use App\Filament\Pages\ProcessingFees;
@@ -62,6 +63,7 @@ class AdminPanelProvider extends PanelProvider
                 ProcessingFees::class,
                 MonthlyInvoices::class,
                 Revenue::class,
+                FraudPrevention::class,
             ])
             ->widgets([
                 AccountWidget::class,
