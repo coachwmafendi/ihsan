@@ -211,7 +211,29 @@
             @endif
         </div>
 
-        <aside class="supporter-view-nav">
+        <aside class="supporter-view-nav space-y-4">
+            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <a
+                    href="#"
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                    <x-heroicon-o-currency-dollar class="size-5 shrink-0" />
+                    Make donation
+                </a>
+
+                <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+                <a
+                    href="#"
+                    target="_blank"
+                    rel="noopener"
+                    class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                    <x-heroicon-o-face-smile class="size-5 shrink-0" />
+                    Open Donor Portal
+                </a>
+            </div>
+
             <div class="space-y-1 rounded-lg border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <button
                     type="button"
