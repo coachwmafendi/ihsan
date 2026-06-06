@@ -1,4 +1,8 @@
 <x-filament-panels::page>
+    @php
+        $pageClass = App\Filament\App\Resources\Donors\Pages\EditDonor::class;
+    @endphp
+
     <div
         x-data="{
             activeSection: 'supporter-information',
@@ -9,27 +13,21 @@
                     const top = el.getBoundingClientRect().top + window.scrollY - offset;
                     window.scrollTo({ top, behavior: 'smooth' });
                 }
-            },
-            switchTab(label, id) {
-                const tabs = document.querySelectorAll('.fi-tabs button, .fi-tabs a');
-                tabs.forEach(tab => {
-                    if (tab.textContent.trim().toLowerCase().includes(label.toLowerCase())) {
-                        tab.click();
-                        this.activeSection = id;
-                    }
-                });
             }
         }"
         x-init="$nextTick(() => {
             const sectionMap = {
-                'Information': 'supporter-information',
+                'Supporter Information': 'supporter-information',
+                'Mailing Address': 'supporter-information',
             };
 
             const navMap = {
                 'supporter-information': 'supporter-information',
+                'donations-section': 'donations',
+                'recurring-plans-section': 'recurring-plans',
             };
 
-            // Assign IDs to section wrappers based on their heading text
+            // Assign IDs to form section wrappers based on their heading text
             document.querySelectorAll('.fi-sc-section').forEach(section => {
                 const heading = section.querySelector('h2');
                 if (heading) {
@@ -38,9 +36,12 @@
                 }
             });
 
-            const sections = Object.values(sectionMap)
-                .map(id => document.getElementById(id))
-                .filter(Boolean);
+            const sections = [
+                document.getElementById('supporter-information'),
+                document.getElementById('donations-section'),
+                document.getElementById('recurring-plans-section'),
+            ].filter(Boolean);
+
             if (!sections.length) return;
 
             const observer = new IntersectionObserver((entries) => {
@@ -61,6 +62,16 @@
         {{-- Left Content --}}
         <div class="flex-1 min-w-0 space-y-6 pb-4">
             {{ $this->content }}
+
+            {{-- Donations Table --}}
+            <div id="donations-section" class="scroll-mt-6">
+                @livewire(App\Filament\App\Resources\Donors\RelationManagers\DonationsRelationManager::class, ['ownerRecord' => $this->record, 'pageClass' => $pageClass])
+            </div>
+
+            {{-- Subscriptions / Recurring Plans Table --}}
+            <div id="recurring-plans-section" class="scroll-mt-6">
+                @livewire(App\Filament\App\Resources\Donors\RelationManagers\SubscriptionsRelationManager::class, ['ownerRecord' => $this->record, 'pageClass' => $pageClass])
+            </div>
         </div>
 
         {{-- Right Sticky Sidebar --}}
@@ -96,18 +107,14 @@
 
                 {{-- Menu Nav --}}
                 @foreach ([
-                    ['id' => 'supporter-information', 'label' => 'Information', 'icon' => 'heroicon-o-user', 'type' => 'scroll'],
-                    ['id' => 'donations', 'label' => 'Donations', 'icon' => 'heroicon-o-currency-dollar', 'type' => 'tab', 'tabLabel' => 'donations'],
-                    ['id' => 'recurring-plans', 'label' => 'Recurring plans', 'icon' => 'heroicon-o-arrow-path', 'type' => 'tab', 'tabLabel' => 'subscriptions'],
-                    ['id' => 'receipts', 'label' => 'Receipts', 'icon' => 'heroicon-o-document-text', 'type' => 'tab', 'tabLabel' => 'donations'],
+                    ['id' => 'supporter-information', 'label' => 'Information', 'icon' => 'heroicon-o-user', 'target' => 'supporter-information'],
+                    ['id' => 'donations', 'label' => 'Donations', 'icon' => 'heroicon-o-currency-dollar', 'target' => 'donations-section'],
+                    ['id' => 'recurring-plans', 'label' => 'Recurring plans', 'icon' => 'heroicon-o-arrow-path', 'target' => 'recurring-plans-section'],
+                    ['id' => 'receipts', 'label' => 'Receipts', 'icon' => 'heroicon-o-document-text', 'target' => 'donations-section'],
                 ] as $item)
                     <button
                         type="button"
-                        @if ($item['type'] === 'scroll')
-                            @click.prevent="scrollTo('{{ $item['id'] }}')"
-                        @else
-                            @click.prevent="switchTab('{{ $item['tabLabel'] }}', '{{ $item['id'] }}')"
-                        @endif
+                        @click.prevent="scrollTo('{{ $item['target'] }}')"
                         class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
                         :class="activeSection === '{{ $item['id'] }}'
                             ? 'bg-primary-600 text-white shadow-sm dark:bg-primary-500'
