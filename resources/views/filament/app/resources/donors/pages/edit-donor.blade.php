@@ -26,6 +26,11 @@
                 'Mailing Address': 'mailing-address',
             };
 
+            const navMap = {
+                'supporter-information': 'supporter-information',
+                'mailing-address': 'supporter-information',
+            };
+
             // Assign IDs to section wrappers based on their heading text
             document.querySelectorAll('.fi-sc-section').forEach(section => {
                 const heading = section.querySelector('h2');
@@ -35,13 +40,15 @@
                 }
             });
 
-            const sections = Object.values(sectionMap).map(id => document.getElementById(id)).filter(Boolean);
+            const sections = Object.values(sectionMap)
+                .map(id => document.getElementById(id))
+                .filter(Boolean);
             if (!sections.length) return;
 
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        activeSection = entry.target.id;
+                        activeSection = navMap[entry.target.id] ?? entry.target.id;
                     }
                 });
             }, {
@@ -64,7 +71,7 @@
                 {{-- Actions --}}
                 <div class="pb-2 mb-2 border-b border-gray-100 dark:border-gray-800 space-y-1">
                     <a
-                        href="{{ route('donations.show', ['element' => $this->record->organization->elements()->first()?->token ?? 'default']) }}"
+                        href="{{ route('donations.show', ['element' => $this->record->donations()->first()?->campaign?->organization?->elements()->first()?->token ?? 'default']) }}"
                         target="_blank"
                         class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 transition-colors"
                     >
@@ -72,9 +79,14 @@
                         Make donation
                     </a>
 
-                    @if ($organization)
+                    @php
+                        $donorOrganization = $this->record->donations()->first()?->campaign?->organization
+                            ?? $this->record->subscriptions()->first()?->campaign?->organization;
+                    @endphp
+
+                    @if ($donorOrganization)
                         <a
-                            href="{{ route('donorportal.login', $organization) }}"
+                            href="{{ route('donorportal.login', $donorOrganization) }}"
                             target="_blank"
                             class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 transition-colors"
                         >
@@ -87,7 +99,6 @@
                 {{-- Menu Nav --}}
                 @foreach ([
                     ['id' => 'supporter-information', 'label' => 'Information', 'icon' => 'heroicon-o-user', 'type' => 'scroll'],
-                    ['id' => 'mailing-address', 'label' => 'Mailing Address', 'icon' => 'heroicon-o-map-pin', 'type' => 'scroll'],
                     ['id' => 'recurring-plans', 'label' => 'Recurring plans', 'icon' => 'heroicon-o-arrow-path', 'type' => 'tab', 'tabLabel' => 'subscriptions'],
                     ['id' => 'receipts', 'label' => 'Receipts', 'icon' => 'heroicon-o-document-text', 'type' => 'tab', 'tabLabel' => 'donations'],
                 ] as $item)
