@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Mail\FraudAlertNotification;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Fraud\BlockedDonation;
 use App\Models\Fraud\FraudAttempt;
 use App\Models\Fraud\FraudRule;
+use Illuminate\Support\Facades\Mail;
 
 class FraudDetectionService
 {
@@ -178,6 +180,26 @@ class FraudDetectionService
                 ],
                 $rule
             );
+        }
+    }
+
+    public static function notifyAdmins(Donation $donation, string $reason, string $action): void
+    {
+        $organization = $donation->campaign?->organization;
+
+        $recipients = [];
+
+        if ($organization?->contact_email) {
+            $recipients[] = $organization->contact_email;
+        }
+
+        $superAdminEmail = config('app.admin_email');
+        if ($superAdminEmail) {
+            $recipients[] = $superAdminEmail;
+        }
+
+        foreach (array_unique($recipients) as $email) {
+            Mail::to($email)->queue(new FraudAlertNotification($donation, $reason, $action));
         }
     }
 }

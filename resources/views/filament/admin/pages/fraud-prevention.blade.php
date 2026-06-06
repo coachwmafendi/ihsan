@@ -100,5 +100,16 @@
                 @endforelse
             </div>
         </div>
+
+        {{-- Fraud Rules --}}
+        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+            <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Fraud Rules</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Active rules and their configurations.</p>
+            </div>
+            <div class="p-5">
+                {{ $this->rulesTable }}
+            </div>
+        </div>
     </div>
 </x-filament::page>

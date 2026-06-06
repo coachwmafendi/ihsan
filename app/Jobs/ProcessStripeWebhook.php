@@ -16,6 +16,7 @@ use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\WebhookLog;
+use App\Services\FraudDetectionService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -245,8 +246,12 @@ class ProcessStripeWebhook implements ShouldQueue
                     'metadata' => ['risk_score' => $donation->risk_score],
                 ]);
 
-                // Hantar notification ke admin
-                // Chargeback prevention: refund via Stripe
+                FraudDetectionService::notifyAdmins(
+                    $donation,
+                    "Stripe Radar risk score: {$donation->risk_score}",
+                    'blocked'
+                );
+
                 return;
             }
         }

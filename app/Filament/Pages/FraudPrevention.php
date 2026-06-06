@@ -5,7 +5,9 @@ namespace App\Filament\Pages;
 use App\Models\Donation;
 use App\Models\Fraud\BlockedDonation;
 use App\Models\Fraud\FraudAttempt;
+use App\Models\Fraud\FraudRule;
 use Filament\Pages\Page;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -127,6 +129,49 @@ class FraudPrevention extends Page implements HasTable
             ->actions([
                 // Actions will be added here later
             ]);
+    }
+
+    public function rulesTable(Table $table): Table
+    {
+        return $table
+            ->query(function (): Builder {
+                return FraudRule::query()->with('organization');
+            })
+            ->columns([
+                TextColumn::make('organization.name')
+                    ->label('Organisation')
+                    ->default('Global'),
+                TextColumn::make('rule_type')
+                    ->label('Rule Type')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => str($state)->headline()->toString()),
+                TextColumn::make('config')
+                    ->label('Configuration')
+                    ->formatStateUsing(function ($state): string {
+                        if (is_string($state)) {
+                            $state = json_decode($state, true) ?? [];
+                        }
+
+                        return collect($state)
+                            ->map(fn ($value, $key) => "{$key}: {$value}")
+                            ->join(', ');
+                    }),
+                TextColumn::make('action')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'block' => 'danger',
+                        'flag' => 'warning',
+                        '3ds' => 'info',
+                        default => 'gray',
+                    }),
+                IconColumn::make('is_active')
+                    ->boolean(),
+                TextColumn::make('created_at')
+                    ->label('Created')
+                    ->dateTime('M j, Y')
+                    ->toggleable(),
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     /**

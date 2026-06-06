@@ -352,6 +352,15 @@ class DonationForm extends Component
             ...$clientInfo,
         ]);
 
+        // Send fraud notifications for flagged donations (blocked donations throw before this)
+        if ($fraudStatus === 'flagged') {
+            FraudDetectionService::notifyAdmins(
+                $donation,
+                $fraudResult['matches'][0]['reason'] ?? 'Flagged by fraud rules',
+                'flagged'
+            );
+        }
+
         try {
             $paymentIntent = app(CreatePaymentIntent::class)->create($donation);
             $donation->update(['stripe_payment_intent_id' => $paymentIntent->id]);
