@@ -2,11 +2,13 @@
 
 namespace App\Filament\App\Resources\Donors\Tables;
 
+use App\Filament\App\Resources\Donors\DonorResource;
 use App\Models\Donation;
+use App\Models\Donor;
 use Carbon\Carbon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
@@ -29,6 +31,7 @@ class DonorsTable
                         ->selectRaw('COALESCE(SUM(COALESCE(base_amount, gross_amount)), 0)'),
                     'lifetime_total_myr'
                 ))
+            ->recordUrl(fn (Donor $record): string => DonorResource::getUrl('view', ['record' => DonorResource::getRecordUrlKey($record)]))
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
@@ -166,7 +169,8 @@ class DonorsTable
                     ->query(fn ($query) => $query->whereHas('subscriptions')),
             ])
             ->recordActions([
-                EditAction::make(),
+                ViewAction::make()
+                    ->url(fn (Donor $record): string => DonorResource::getUrl('view', ['record' => DonorResource::getRecordUrlKey($record)])),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

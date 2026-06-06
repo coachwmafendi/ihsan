@@ -12,6 +12,7 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class SubscriptionsRelationManager extends RelationManager
 {
@@ -22,6 +23,9 @@ class SubscriptionsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query
+                ->whereHas('campaign', fn (Builder $campaignQuery) => $campaignQuery
+                    ->where('organization_id', auth()->user()->organization_id)))
             ->columns([
                 TextColumn::make('created_at')
                     ->date('d M Y')
