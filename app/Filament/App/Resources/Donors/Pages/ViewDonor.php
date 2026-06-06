@@ -21,7 +21,7 @@ class ViewDonor extends ViewRecord
 
     public function getTitle(): string
     {
-        return $this->record->name;
+        return str($this->record->name)->title();
     }
 
     public function getSubheading(): string|Htmlable|null
