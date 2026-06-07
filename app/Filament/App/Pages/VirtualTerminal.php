@@ -8,8 +8,6 @@ use App\Models\Campaign;
 use App\Models\Donor;
 use App\Models\Organization;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Validator;
@@ -30,6 +28,9 @@ class VirtualTerminal extends Page
 
     public ?Donor $preloadedSupporter = null;
 
+    public ?Organization $organization = null;
+
+    /** @var array<string, mixed> */
     public array $formData = [
         'campaign_id' => null,
         'frequency' => 'once',
@@ -40,8 +41,14 @@ class VirtualTerminal extends Page
         'payment_method' => 'new_card',
     ];
 
+    public static function canAccess(): bool
+    {
+        return auth()->check() && auth()->user()->organization_id !== null;
+    }
+
     public function mount(): void
     {
+        $this->organization = auth()->user()->organization;
         $this->preloadedSupporterPublicId = request()->query('vt-supporter');
 
         if ($this->preloadedSupporterPublicId) {
@@ -53,12 +60,8 @@ class VirtualTerminal extends Page
 
     public function loadPreloadedSupporter(): void
     {
-        /** @var Organization $organization */
-        $organization = auth()->user()->organization;
-
         $this->preloadedSupporter = Donor::query()
             ->where('public_id', $this->preloadedSupporterPublicId)
-            ->whereHas('donations.campaign', fn ($q) => $q->where('organization_id', $organization->getKey()))
             ->first();
 
         if ($this->preloadedSupporter) {
@@ -71,11 +74,8 @@ class VirtualTerminal extends Page
 
     public function loadDefaultCampaign(): void
     {
-        /** @var Organization $organization */
-        $organization = auth()->user()->organization;
-
         $defaultCampaign = Campaign::query()
-            ->where('organization_id', $organization->getKey())
+            ->where('organization_id', $this->organization->getKey())
             ->where('status', 'active')
             ->latest()
             ->first();
@@ -96,11 +96,8 @@ class VirtualTerminal extends Page
 
     public function getCampaigns(): array
     {
-        /** @var Organization $organization */
-        $organization = auth()->user()->organization;
-
         return Campaign::query()
-            ->where('organization_id', $organization->getKey())
+            ->where('organization_id', $this->organization->getKey())
             ->where('status', 'active')
             ->pluck('title', 'id')
             ->toArray();
@@ -116,14 +113,14 @@ class VirtualTerminal extends Page
         $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
         $fee = $amount * $feePercent / 100;
 
-        return 'MYR ' . number_format($fee, 2);
+        return 'MYR '.number_format($fee, 2);
     }
 
     public function getTotalAmount(): string
     {
         $amount = (float) $this->formData['amount'];
 
-        return 'MYR ' . number_format($amount, 2);
+        return 'MYR '.number_format($amount, 2);
     }
 
     public function processDonationAction(): Action
@@ -132,8 +129,10 @@ class VirtualTerminal extends Page
             ->label('Make a donation')
             ->color('gray')
             ->action(function () {
-                $validator = Validator::make($this->formData, [
-                    'campaign_id' => ['required', 'exists:campaigns,id'],
+                $data = $this->formData;
+                $campaignId = (int) $data['campaign_id'];
+                $validator = Validator::make($data, [
+                    'campaign_id' => ['required', "exists:campaigns,id,organization_id,{$this->organization->getKey()}"],
                     'frequency' => ['required', 'in:once,monthly'],
                     'amount' => ['required', 'numeric', 'min:1'],
                     'first_name' => ['required', 'string', 'max:255'],
@@ -151,8 +150,7 @@ class VirtualTerminal extends Page
                 }
 
                 $data = $validator->validated();
-                /** @var Organization $organization */
-                $organization = auth()->user()->organization;
+                $formattedAmount = number_format((float) $data['amount'], 2);
 
                 try {
                     if ($data['frequency'] === 'once') {
@@ -162,11 +160,11 @@ class VirtualTerminal extends Page
                             firstName: $data['first_name'],
                             lastName: $data['last_name'],
                             email: $data['email'],
-                            organization: $organization,
+                            organization: $this->organization,
                         );
 
                         Notification::make()
-                            ->title("Donation of MYR {$data['amount']} processed successfully.")
+                            ->title("Donation of MYR {$formattedAmount} processed successfully.")
                             ->success()
                             ->send();
                     } else {
@@ -176,11 +174,11 @@ class VirtualTerminal extends Page
                             firstName: $data['first_name'],
                             lastName: $data['last_name'],
                             email: $data['email'],
-                            organization: $organization,
+                            organization: $this->organization,
                         );
 
                         Notification::make()
-                            ->title("Monthly donation of MYR {$data['amount']} set up successfully.")
+                            ->title("Monthly donation of MYR {$formattedAmount} set up successfully.")
                             ->success()
                             ->send();
                     }
@@ -190,7 +188,7 @@ class VirtualTerminal extends Page
                     report($e);
 
                     Notification::make()
-                        ->title('Payment failed: ' . $e->getMessage())
+                        ->title('Payment failed. Please try again.')
                         ->danger()
                         ->send();
                 }

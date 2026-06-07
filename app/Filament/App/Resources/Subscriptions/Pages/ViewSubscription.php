@@ -26,6 +26,8 @@ class ViewSubscription extends ViewRecord
 
     public ?string $paymentClientSecret = null;
 
+    public ?string $upgradeLink = null;
+
     public function getHeading(): string
     {
         $currency = strtoupper($this->record->currency ?? 'MYR');
@@ -41,7 +43,7 @@ class ViewSubscription extends ViewRecord
             ->components([
                 Section::make('Recurring Plan')
                     ->icon('heroicon-o-arrow-path')
-                    ->extraAttributes(['class' => 'scroll-mt-6'])
+                    ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.recurring-plan')
                             ->viewData(['record' => $this->getRecord()]),
@@ -49,7 +51,7 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Personal Information')
                     ->icon('heroicon-o-user')
-                    ->extraAttributes(['class' => 'scroll-mt-6'])
+                    ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.personal-information')
                             ->viewData(['record' => $this->getRecord()]),
@@ -57,7 +59,7 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Sources')
                     ->icon('heroicon-o-globe-alt')
-                    ->extraAttributes(['class' => 'scroll-mt-6'])
+                    ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.sources')
                             ->viewData(['record' => $this->getRecord()]),
@@ -65,7 +67,7 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Installments')
                     ->icon('heroicon-o-calendar-days')
-                    ->extraAttributes(['class' => 'scroll-mt-6'])
+                    ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.installments')
                             ->viewData(['record' => $this->getRecord()]),
@@ -73,7 +75,7 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Receipts')
                     ->icon('heroicon-o-document-text')
-                    ->extraAttributes(['class' => 'scroll-mt-6'])
+                    ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.receipts')
                             ->viewData(['record' => $this->getRecord()]),
@@ -197,11 +199,30 @@ class ViewSubscription extends ViewRecord
             ->label('Offer Plan Upgrade')
             ->icon('heroicon-o-arrow-trending-up')
             ->color('success')
-            ->modalHeading('Offer plan upgrade')
-            ->modalDescription('This will prepare an upgrade offer for the donor.')
-            ->requiresConfirmation()
-            ->action(function () {
-                Notification::make()->title('Upgrade offer prepared (placeholder).')->info()->send();
+            ->modalHeading('Recurring plan upgrade options')
+            ->modalWidth(Width::TwoExtraLarge)
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Close')
+            ->modalContent(fn () => view('filament.app.resources.subscriptions.upgrade-links-modal', [
+                'subscription' => $this->record,
+                'donor' => $this->record->donor,
+                'upgradeLink' => $this->upgradeLink,
+            ]))
+            ->mountUsing(function () {
+                $this->record->loadMissing(['donor', 'campaign.organization']);
+                $organization = $this->record->campaign->organization;
+                $donor = $this->record->donor;
+
+                $token = $donor->generateMagicToken();
+                $increaseUrl = route('donorportal.subscriptions.increase', [
+                    'organization' => $organization->code,
+                    'subscription' => $this->record->public_id ?? $this->record->getKey(),
+                ]);
+
+                $this->upgradeLink = route('donorportal.magic-login', [
+                    'organization' => $organization->code,
+                    'token' => $token,
+                ]).'?redirect='.urlencode(parse_url($increaseUrl, PHP_URL_PATH));
             })
             ->hidden(fn () => $this->record->status === SubscriptionStatus::Cancelled);
     }

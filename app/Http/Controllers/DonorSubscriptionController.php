@@ -116,6 +116,34 @@ class DonorSubscriptionController extends Controller
         );
     }
 
+    public function showIncrease(Organization $organization, Subscription $subscription)
+    {
+        $subscription->loadMissing('campaign');
+        $this->authorizeSubscriptionAction($organization, $subscription, request()->donor);
+
+        $currentAmount = (float) $subscription->amount;
+        $currency = $subscription->currency;
+        $symbol = $subscription->currency_symbol;
+        $interval = $subscription->interval->value;
+
+        $presetOptions = [
+            ['increment' => 5, 'label' => '+ '.$symbol.'5'],
+            ['increment' => 80, 'label' => '+ '.$symbol.'80'],
+            ['increment' => 100, 'label' => '+ '.$symbol.'100'],
+        ];
+
+        return view('donor.subscription-increase', [
+            'donor' => request()->donor,
+            'organization' => $organization,
+            'subscription' => $subscription,
+            'currentAmount' => $currentAmount,
+            'currency' => $currency,
+            'symbol' => $symbol,
+            'interval' => $interval,
+            'presetOptions' => $presetOptions,
+        ]);
+    }
+
     public function paymentMethodClientSecret(Organization $organization, Subscription $subscription)
     {
         $subscription->loadMissing('campaign');

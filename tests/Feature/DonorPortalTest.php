@@ -684,3 +684,80 @@ it('handles subscription action error gracefully', function () {
         ->assertRedirect(route('donorportal.subscriptions', $org))
         ->assertSessionHas('error');
 });
+
+it('renders subscription increase page for authenticated donor', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => SubscriptionStatus::Active,
+        'amount' => 108.00,
+        'currency' => 'myr',
+        'interval' => 'monthly',
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.subscriptions.increase', ['organization' => $org, 'subscription' => $subscription]))
+        ->assertOk()
+        ->assertSee('Boost your impact by increasing your donations')
+        ->assertSee('RM 108.00 MYR/mo')
+        ->assertSee('+ RM5')
+        ->assertSee('+ RM80')
+        ->assertSee('+ RM100')
+        ->assertSee('Other amount')
+        ->assertSee('Confirm')
+        ->assertSee('No, thanks');
+});
+
+it('requires authentication for subscription increase page', function () {
+    $org = Organization::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $campaign->getKey(),
+    ]);
+
+    $this->get(route('donorportal.subscriptions.increase', ['organization' => $org, 'subscription' => $subscription]))
+        ->assertRedirect(route('donorportal.login', $org));
+});
+
+it('denies subscription increase page for another donor subscription', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $otherDonor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $otherDonor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.subscriptions.increase', ['organization' => $org, 'subscription' => $subscription]))
+        ->assertForbidden();
+});
+
+it('submits subscription increase from dedicated page', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => SubscriptionStatus::Active,
+        'amount' => 108.00,
+    ]);
+
+    $this->mock(ManageStripeSubscription::class)
+        ->shouldReceive('changeAmount')
+        ->once()
+        ->with(Mockery::on(fn ($s) => $s->getKey() === $subscription->getKey()), 188.0)
+        ->andReturnNull();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.subscriptions.change-amount', ['organization' => $org, 'subscription' => $subscription]), [
+            'new_amount' => 188,
+        ])
+        ->assertRedirect(route('donorportal.subscriptions', $org))
+        ->assertSessionHas('success');
+});

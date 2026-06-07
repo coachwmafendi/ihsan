@@ -5,7 +5,6 @@
 @section('content')
 <div class="donor-wrap" x-data="{
     loaded: false,
-    changeModal: null,
     paymentModal: null,
     pauseConfirmId: null,
     cancelConfirmId: null,
@@ -15,9 +14,6 @@
     paymentLoading: false,
     paymentSuccess: false,
     paymentError: null,
-    changeAmount: '',
-    changeLoading: false,
-    changeError: null,
     async openPayment(subscriptionId) {
         this.paymentModal = subscriptionId;
         this.paymentSuccess = false;
@@ -110,31 +106,6 @@
         this.paymentSuccess = true;
         this.paymentLoading = false;
         setTimeout(() => { location.reload(); }, 1000);
-    },
-    async changeAmountSubmit(subscriptionId) {
-        if (!this.changeAmount || parseFloat(this.changeAmount) <= 0) return;
-        this.changeLoading = true;
-        this.changeError = null;
-
-        const res = await fetch('{{ route('donorportal.subscriptions.change-amount', ['organization' => $organization, 'subscription' => '__id__']) }}'.replace('__id__', subscriptionId), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            },
-            body: JSON.stringify({ new_amount: this.changeAmount }),
-        });
-
-        if (!res.ok) {
-            const data = await res.json();
-            this.changeError = data.error || 'Failed to change amount.';
-            this.changeLoading = false;
-            return;
-        }
-
-        this.changeLoading = false;
-        this.changeModal = null;
-        location.reload();
     }
 }" x-init="$nextTick(() => setTimeout(() => loaded = true, 400))">
     <div class="donor-skeleton" x-show="!loaded" x-transition.opacity.duration.250ms x-cloak aria-hidden="true">
@@ -200,11 +171,11 @@
 
                         @if ($subscription->status === \App\Enums\SubscriptionStatus::Active)
                             <div class="flex flex-wrap items-center gap-2">
-                                <button @click="changeModal = '{{ $subscription->public_id }}'; changeAmount = '{{ number_format($subscription->amount, 2, '.', '') }}'"
-                                        class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                                <a href="{{ route('donorportal.subscriptions.increase', ['organization' => $organization, 'subscription' => $subscription]) }}"
+                                   class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                     <x-heroicon name="plus" class="h-3.5 w-3.5" />
                                     Change Amount
-                                </button>
+                                </a>
                                 <button @click="openPayment('{{ $subscription->public_id }}')"
                                         class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                     <x-heroicon name="credit-card" class="h-3.5 w-3.5" />
@@ -270,39 +241,6 @@
         @if ($subscriptions->hasPages())
             <div class="mt-8">{{ $subscriptions->links() }}</div>
         @endif
-    </div>
-
-    {{-- Change Amount Modal --}}
-    <div x-show="changeModal !== null"
-         x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-         @click.self="changeModal = null"
-         x-transition.opacity>
-        <div class="w-full max-w-sm mx-auto max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl" @click.stop>
-            <h3 class="text-base font-black text-slate-900">Change Amount</h3>
-            <p class="mt-1 text-xs text-slate-500">Enter the new amount for your subscription.</p>
-            <div class="mt-4">
-                <input type="number"
-                       step="0.01"
-                       min="1"
-                       x-model="changeAmount"
-                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-0"
-                       placeholder="0.00">
-            </div>
-            <div x-show="changeError" class="mt-2 text-xs text-red-500" x-text="changeError"></div>
-            <div class="mt-4 flex items-center justify-end gap-2">
-                <button @click="changeModal = null"
-                        class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
-                    Cancel
-                </button>
-                <button @click="changeAmountSubmit(changeModal)"
-                        x-text="changeLoading ? 'Saving...' : 'Save'"
-                        :disabled="changeLoading"
-                        class="rounded-lg border border-transparent bg-slate-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-700 disabled:opacity-50">
-                    Save
-                </button>
-            </div>
-        </div>
     </div>
 
     {{-- Pause Confirmation Modal --}}
