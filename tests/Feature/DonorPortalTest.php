@@ -5,6 +5,7 @@ use App\Enums\DonationStatus;
 use App\Enums\ElementType;
 use App\Enums\SubscriptionStatus;
 use App\Enums\UserRole;
+use App\Mail\SubscriptionAmountChangedNotification;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -13,6 +14,7 @@ use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 
 it('resolves org-scoped donor portal login page', function () {
     $org = Organization::factory()->create();
@@ -755,9 +757,49 @@ it('submits subscription increase from dedicated page', function () {
         ->andReturnNull();
 
     $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
-        ->post(route('donorportal.subscriptions.change-amount', ['organization' => $org, 'subscription' => $subscription]), [
+        ->postJson(route('donorportal.subscriptions.change-amount', ['organization' => $org, 'subscription' => $subscription]), [
             'new_amount' => 188,
         ])
-        ->assertRedirect(route('donorportal.subscriptions', $org))
-        ->assertSessionHas('success');
+        ->assertOk()
+        ->assertJson([
+            'success' => true,
+            'new_amount' => 188.0,
+        ]);
+});
+
+it('sends amount change notification to donor and org admins', function () {
+    Mail::fake();
+
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $admin = User::factory()->create([
+        'organization_id' => $org->getKey(),
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => SubscriptionStatus::Active,
+        'amount' => 50.00,
+    ]);
+
+    $this->mock(ManageStripeSubscription::class)
+        ->shouldReceive('changeAmount')
+        ->once()
+        ->andReturnNull();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->postJson(route('donorportal.subscriptions.change-amount', ['organization' => $org, 'subscription' => $subscription]), [
+            'new_amount' => 100,
+        ])
+        ->assertOk();
+
+    Mail::assertQueued(SubscriptionAmountChangedNotification::class, 2);
+    Mail::assertQueued(SubscriptionAmountChangedNotification::class, function ($mail) use ($donor) {
+        return $mail->hasTo($donor->email);
+    });
+    Mail::assertQueued(SubscriptionAmountChangedNotification::class, function ($mail) use ($admin) {
+        return $mail->hasTo($admin->email);
+    });
 });

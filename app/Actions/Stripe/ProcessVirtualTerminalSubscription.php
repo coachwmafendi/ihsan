@@ -9,6 +9,9 @@ use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
 use Stripe\Customer;
+use Stripe\Exception\ApiErrorException;
+use Stripe\Exception\CardException;
+use Stripe\Exception\InvalidRequestException;
 use Stripe\Price;
 use Stripe\Stripe;
 use Stripe\Subscription as StripeSubscription;
@@ -23,6 +26,7 @@ class ProcessVirtualTerminalSubscription
         string $email,
         Organization $organization,
         ?string $savedCardId = null,
+        string $source = 'virtual_terminal',
     ): Subscription {
         Stripe::setApiKey(config('services.stripe.secret'));
 
@@ -37,67 +41,76 @@ class ProcessVirtualTerminalSubscription
             ? ['stripe_account' => $organization->stripe_account_id]
             : [];
 
-        if (! $donor->stripe_customer_id) {
-            $customer = Customer::create([
-                'name' => $donor->name,
-                'email' => $donor->email,
-                'metadata' => [
-                    'donor_id' => (string) $donor->getKey(),
-                    'organization_id' => (string) $organization->getKey(),
-                ],
-            ], $stripeOptions);
+        try {
+            if (! $donor->stripe_customer_id) {
+                $customer = Customer::create([
+                    'name' => $donor->name,
+                    'email' => $donor->email,
+                    'metadata' => [
+                        'donor_id' => (string) $donor->getKey(),
+                        'organization_id' => (string) $organization->getKey(),
+                    ],
+                ], $stripeOptions);
 
-            $donor->update(['stripe_customer_id' => $customer->id]);
-        }
+                $donor->update(['stripe_customer_id' => $customer->id]);
+            }
 
-        $unitAmount = (int) ($amount * 100);
+            $unitAmount = (int) ($amount * 100);
 
-        $existingPrices = Price::all([
-            'product' => $campaign->stripe_product_id,
-            'unit_amount' => $unitAmount,
-            'currency' => 'myr',
-        ], $stripeOptions);
-
-        $price = $existingPrices->data[0] ?? null;
-
-        if ($price && $price->recurring->interval !== 'month') {
-            $price = null;
-        }
-
-        if (! $price) {
-            $price = Price::create([
+            $existingPrices = Price::all([
+                'product' => $campaign->stripe_product_id,
                 'unit_amount' => $unitAmount,
                 'currency' => 'myr',
-                'recurring' => ['interval' => 'month'],
-                'product' => $campaign->stripe_product_id,
             ], $stripeOptions);
+
+            $price = $existingPrices->data[0] ?? null;
+
+            if ($price && $price->recurring->interval !== 'month') {
+                $price = null;
+            }
+
+            if (! $price) {
+                $price = Price::create([
+                    'unit_amount' => $unitAmount,
+                    'currency' => 'myr',
+                    'recurring' => ['interval' => 'month'],
+                    'product' => $campaign->stripe_product_id,
+                ], $stripeOptions);
+            }
+
+            $subscriptionParams = [
+                'customer' => $donor->stripe_customer_id,
+                'items' => [['price' => $price->id]],
+                'metadata' => [
+                    'campaign_id' => (string) $campaign->getKey(),
+                    'donor_public_id' => $donor->public_id,
+                    'source' => 'virtual_terminal',
+                    'organization_id' => (string) $organization->getKey(),
+                ],
+            ];
+
+            if ($savedCardId) {
+                $subscriptionParams['default_payment_method'] = $savedCardId;
+            }
+
+            if ($organization->stripe_account_id && $organization->fee_collection_method === 'upfront') {
+                $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
+                $subscriptionParams['application_fee_percent'] = $feePercent;
+            }
+
+            $stripeSubscription = StripeSubscription::create($subscriptionParams, $stripeOptions);
+        } catch (CardException $e) {
+            throw new \RuntimeException('Card declined: '.$e->getMessage());
+        } catch (InvalidRequestException $e) {
+            throw new \RuntimeException('Invalid payment request. Please check your details.');
+        } catch (ApiErrorException $e) {
+            throw new \RuntimeException('Payment service error. Please try again.');
         }
-
-        $subscriptionParams = [
-            'customer' => $donor->stripe_customer_id,
-            'items' => [['price' => $price->id]],
-            'metadata' => [
-                'campaign_id' => (string) $campaign->getKey(),
-                'donor_public_id' => $donor->public_id,
-                'source' => 'virtual_terminal',
-                'organization_id' => (string) $organization->getKey(),
-            ],
-        ];
-
-        if ($savedCardId) {
-            $subscriptionParams['default_payment_method'] = $savedCardId;
-        }
-
-        if ($organization->stripe_account_id && $organization->fee_collection_method === 'upfront') {
-            $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
-            $subscriptionParams['application_fee_percent'] = $feePercent;
-        }
-
-        $stripeSubscription = StripeSubscription::create($subscriptionParams, $stripeOptions);
 
         $subscription = Subscription::create([
             'campaign_id' => $campaign->getKey(),
             'donor_id' => $donor->getKey(),
+            'source' => $source,
             'amount' => $amount,
             'currency' => 'myr',
             'interval' => SubscriptionInterval::Monthly,
@@ -107,6 +120,8 @@ class ProcessVirtualTerminalSubscription
             'started_at' => now(),
             'current_period_start' => now(),
         ]);
+
+        // TODO: Send subscription confirmation email
 
         return $subscription;
     }

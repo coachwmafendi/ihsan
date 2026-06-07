@@ -26,6 +26,8 @@ class VirtualTerminal extends Page
 
     public ?string $preloadedSupporterPublicId = null;
 
+    public ?Donor $searchedDonor = null;
+
     public ?Donor $preloadedSupporter = null;
 
     public ?Organization $organization = null;
@@ -35,6 +37,7 @@ class VirtualTerminal extends Page
         'campaign_id' => null,
         'frequency' => 'once',
         'amount' => '',
+        'scheduled_for' => null,
         'first_name' => '',
         'last_name' => '',
         'email' => '',
@@ -94,6 +97,35 @@ class VirtualTerminal extends Page
         $this->formData['email'] = '';
     }
 
+    public function searchDonorByEmail(): void
+    {
+        $email = $this->formData['email'] ?? '';
+        if (empty($email) || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->searchedDonor = null;
+
+            return;
+        }
+
+        $organization = $this->organization;
+
+        $this->searchedDonor = Donor::query()
+            ->where('email', $email)
+            ->whereHas('donations.campaign', fn ($q) => $q->where('organization_id', $organization->getKey()))
+            ->first();
+    }
+
+    public function loadSearchedDonor(): void
+    {
+        if ($this->searchedDonor) {
+            $names = explode(' ', $this->searchedDonor->name, 2);
+            $this->formData['first_name'] = $names[0] ?? '';
+            $this->formData['last_name'] = $names[1] ?? '';
+            $this->formData['email'] = $this->searchedDonor->email;
+            $this->preloadedSupporter = $this->searchedDonor;
+            $this->searchedDonor = null;
+        }
+    }
+
     public function getCampaigns(): array
     {
         return Campaign::query()
@@ -138,6 +170,7 @@ class VirtualTerminal extends Page
                     'first_name' => ['required', 'string', 'max:255'],
                     'last_name' => ['required', 'string', 'max:255'],
                     'email' => ['required', 'email', 'max:255'],
+                    'payment_method' => ['nullable', 'string'],
                 ]);
 
                 if ($validator->fails()) {
@@ -161,6 +194,8 @@ class VirtualTerminal extends Page
                             lastName: $data['last_name'],
                             email: $data['email'],
                             organization: $this->organization,
+                            savedCardId: $data['payment_method'] !== 'new_card' ? $data['payment_method'] : null,
+                            source: 'virtual_terminal',
                         );
 
                         Notification::make()
@@ -175,6 +210,8 @@ class VirtualTerminal extends Page
                             lastName: $data['last_name'],
                             email: $data['email'],
                             organization: $this->organization,
+                            savedCardId: $data['payment_method'] !== 'new_card' ? $data['payment_method'] : null,
+                            source: 'virtual_terminal',
                         );
 
                         Notification::make()
@@ -201,6 +238,7 @@ class VirtualTerminal extends Page
             'campaign_id' => $this->formData['campaign_id'],
             'frequency' => 'once',
             'amount' => '',
+            'scheduled_for' => null,
             'first_name' => $this->preloadedSupporter ? $this->formData['first_name'] : '',
             'last_name' => $this->preloadedSupporter ? $this->formData['last_name'] : '',
             'email' => $this->preloadedSupporter ? $this->formData['email'] : '',

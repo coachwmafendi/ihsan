@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Stripe\ManageStripeSubscription;
+use App\Jobs\SendSubscriptionAmountChangedNotification;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
@@ -104,16 +105,40 @@ class DonorSubscriptionController extends Controller
             'new_amount' => 'required|numeric|min:1',
         ]);
 
-        return $this->handleSubscriptionAction(
-            $organization,
-            $subscription,
-            fn () => app(ManageStripeSubscription::class)->changeAmount(
+        $isJson = request()->wantsJson()
+            || request()->header('X-Requested-With') === 'XMLHttpRequest'
+            || request()->boolean('ajax');
+
+        $previousAmount = (float) $subscription->amount;
+
+        try {
+            app(ManageStripeSubscription::class)->changeAmount(
                 $subscription,
                 (float) $data['new_amount'],
-            ),
-            'Subscription amount updated.',
-            'Unable to update subscription amount. Please try again later.',
-        );
+            );
+        } catch (\Exception $e) {
+            if ($isJson) {
+                return response()->json([
+                    'error' => 'Unable to update subscription amount. Please try again later.',
+                ], 500);
+            }
+
+            return redirect()->route('donorportal.subscriptions', $organization)
+                ->with('error', 'Unable to update subscription amount. Please try again later.');
+        }
+
+        dispatch(new SendSubscriptionAmountChangedNotification($subscription, $previousAmount));
+
+        if ($isJson) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Subscription amount updated.',
+                'new_amount' => (float) $data['new_amount'],
+            ]);
+        }
+
+        return redirect()->route('donorportal.subscriptions', $organization)
+            ->with('success', 'Subscription amount updated.');
     }
 
     public function showIncrease(Organization $organization, Subscription $subscription)
