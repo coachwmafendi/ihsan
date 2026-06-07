@@ -238,7 +238,7 @@ class VirtualTerminal extends Page
                 $validator = Validator::make($data, [
                     'campaign_id' => ['required', "exists:campaigns,id,organization_id,{$this->organization->getKey()}"],
                     'frequency' => ['required', 'in:once,monthly'],
-                    'amount' => ['required', 'numeric', 'min:1'],
+                    'amount' => ['required', 'numeric', 'min:1', 'max:99999.99'],
                     'first_name' => ['required', 'string', 'max:255'],
                     'last_name' => ['required', 'string', 'max:255'],
                     'email' => ['required', 'email', 'max:255'],
