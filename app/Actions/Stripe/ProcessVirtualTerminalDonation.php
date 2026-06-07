@@ -8,6 +8,7 @@ use App\Mail\DonationReceipt;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Mail;
 use Stripe\Customer;
@@ -15,6 +16,7 @@ use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 use Stripe\Exception\InvalidRequestException;
 use Stripe\PaymentIntent;
+use Stripe\PaymentMethod;
 use Stripe\Stripe;
 
 class ProcessVirtualTerminalDonation
@@ -26,6 +28,7 @@ class ProcessVirtualTerminalDonation
         string $lastName,
         string $email,
         Organization $organization,
+        string $currency = 'myr',
         ?string $savedCardId = null,
         ?string $paymentMethodId = null,
         string $source = 'virtual_terminal',
@@ -59,7 +62,7 @@ class ProcessVirtualTerminalDonation
 
             $params = [
                 'amount' => (int) ($amount * 100),
-                'currency' => 'myr',
+                'currency' => strtolower($currency),
                 'customer' => $donor->stripe_customer_id,
                 'description' => (string) str($campaign->title)->limit(200),
                 'metadata' => [
@@ -103,7 +106,7 @@ class ProcessVirtualTerminalDonation
             'source' => $source,
             'gross_amount' => $amount,
             'base_amount' => $amount,
-            'currency' => 'myr',
+            'currency' => strtolower($currency),
             'base_currency' => 'myr',
             'status' => DonationStatus::Succeeded,
             'type' => DonationType::OneTime,

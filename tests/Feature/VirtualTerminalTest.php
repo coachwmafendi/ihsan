@@ -10,6 +10,7 @@ use App\Filament\App\Pages\VirtualTerminal;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
@@ -40,6 +41,123 @@ test('virtual terminal page preloads supporter from query param', function () {
     $response->assertOk();
     $response->assertSee('Ahmad Ali');
     $response->assertSee('ahmad@example.com');
+});
+
+test('virtual terminal shows saved cards for preloaded supporter', function () {
+    $donor = Donor::factory()->create([
+        'name' => 'Nur Aisyah',
+        'email' => 'aisyah@example.test',
+    ]);
+
+    DonorPaymentMethod::create([
+        'donor_id' => $donor->id,
+        'stripe_payment_method_id' => 'pm_saved_card',
+        'brand' => 'visa',
+        'last4' => '4242',
+        'exp_month' => 12,
+        'exp_year' => 2030,
+        'country' => 'MY',
+        'is_default' => true,
+    ]);
+
+    $response = $this->get("/app/virtual-terminal?vt-supporter={$donor->public_id}");
+
+    $response->assertOk();
+    $response->assertSee('Existing debit/credit card');
+    $response->assertSee('Visa');
+    $response->assertSee('4242');
+});
+
+test('virtual terminal selects default saved card for preloaded supporter', function () {
+    $donor = Donor::factory()->create([
+        'name' => 'Nur Aisyah',
+        'email' => 'aisyah@example.test',
+    ]);
+
+    DonorPaymentMethod::create([
+        'donor_id' => $donor->id,
+        'stripe_payment_method_id' => 'pm_saved_backup',
+        'brand' => 'mastercard',
+        'last4' => '5555',
+        'exp_month' => 10,
+        'exp_year' => 2029,
+        'is_default' => false,
+    ]);
+
+    DonorPaymentMethod::create([
+        'donor_id' => $donor->id,
+        'stripe_payment_method_id' => 'pm_saved_default',
+        'brand' => 'visa',
+        'last4' => '4242',
+        'exp_month' => 12,
+        'exp_year' => 2030,
+        'is_default' => true,
+    ]);
+
+    Livewire::withQueryParams(['vt-supporter' => $donor->public_id])
+        ->test(VirtualTerminal::class)
+        ->assertSet('formData.payment_method', 'pm_saved_default');
+});
+
+test('virtual terminal amount field uses decimal text input and organization currencies', function () {
+    $this->organization->update([
+        'settings' => ['accepted_currencies' => ['myr', 'sgd']],
+    ]);
+
+    $response = $this->get('/app/virtual-terminal');
+
+    $response->assertOk();
+    $response->assertSee('inputmode="decimal"', false);
+    $response->assertSee('pattern="[0-9]+(\\.[0-9]{1,2})?"', false);
+    $response->assertSee('<option value="myr"', false);
+    $response->assertSee('<option value="sgd"', false);
+    $response->assertDontSee('<option value="usd"', false);
+});
+
+test('virtual terminal uses selected currency in computed totals', function () {
+    $this->organization->update([
+        'settings' => ['accepted_currencies' => ['myr', 'sgd']],
+    ]);
+
+    Livewire::test(VirtualTerminal::class)
+        ->assertSet('formData.currency', 'myr')
+        ->set('formData.currency', 'sgd')
+        ->set('formData.amount', '25.50')
+        ->assertSee('SGD 25.50');
+});
+
+test('virtual terminal loads saved cards from Stripe when local cache is empty', function () {
+    $this->organization->update([
+        'stripe_account_id' => 'acct_connected_test',
+    ]);
+
+    $donor = Donor::factory()->create([
+        'name' => 'Joe Dollah',
+        'email' => 'joe345@gmail.com',
+        'stripe_customer_id' => 'cus_connected_test',
+    ]);
+
+    app()->instance('App\\Actions\\Stripe\\LoadDonorSavedCards', new class
+    {
+        public function handle(Donor $donor, Organization $organization): array
+        {
+            expect($donor->stripe_customer_id)->toBe('cus_connected_test');
+            expect($organization->stripe_account_id)->toBe('acct_connected_test');
+
+            return [[
+                'id' => 'pm_connected_card',
+                'brand' => 'Mastercard',
+                'last4' => '4444',
+                'exp_month' => 3,
+                'exp_year' => 2040,
+            ]];
+        }
+    });
+
+    Livewire::withQueryParams(['vt-supporter' => $donor->public_id])
+        ->test(VirtualTerminal::class)
+        ->assertSet('savedCards.0.id', 'pm_connected_card')
+        ->assertSet('formData.payment_method', 'pm_connected_card');
 });
 
 test('one-time donation creates donation record for existing donor', function () {

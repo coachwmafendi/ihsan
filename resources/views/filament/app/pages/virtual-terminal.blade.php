@@ -3,6 +3,7 @@
 
     $campaigns = $this->getCampaigns();
     $preloadedSupporter = $this->preloadedSupporter;
+    $acceptedCurrencies = $this->getAcceptedCurrencies();
 @endphp
 
 <x-filament-panels::page>
@@ -11,10 +12,16 @@
             max-width: none !important;
             width: 100% !important;
         }
+
+        .fi-page-header-main-ctn,
+        .fi-header-heading {
+            margin-inline: auto;
+            text-align: center;
+        }
     </style>
     <div x-data="vtPayment()" x-init="initStripe(@js($this->stripePublishableKey))" class="max-w-7xl mx-auto">
         {{-- Header --}}
-        <div class="mb-6">
+        <div class="mb-6 text-center">
             <h1 class="text-2xl font-semibold text-gray-950 dark:text-white">Virtual Terminal — {{ auth()->user()?->organization?->name ?? 'Ihsan' }}</h1>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Use the Virtual Terminal to process an in-person or over the phone donation.
@@ -68,18 +75,30 @@
                                 <div class="flex">
                                     <input
                                         id="amount"
-                                        type="number"
-                                        step="0.01"
-                                        min="1"
-                                        max="99999.99"
-                                        oninput="this.value = this.value.match(/^\\d{0,5}(\\.\\d{0,2})?/) ? this.value.match(/^\\d{0,5}(\\.\\d{0,2})?/)[0] : ''"
+                                        type="text"
+                                        inputmode="decimal"
+                                        pattern="[0-9]+(\.[0-9]{1,2})?"
+                                        oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1').replace(/^(\d{0,5})(\.\d{0,2})?.*$/, '$1$2')"
+                                        onblur="if (this.value !== '') { this.value = Number(this.value).toFixed(2); $wire.set('formData.amount', this.value) }"
                                         wire:model.live="formData.amount"
                                         class="flex-1 rounded-l-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                                         placeholder="0.00"
                                     />
-                                    <span class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-                                        {{ $this->getCurrency() }}
-                                    </span>
+                                    @if (count($acceptedCurrencies) > 1)
+                                        <select
+                                            aria-label="Currency"
+                                            wire:model.live="formData.currency"
+                                            class="rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 px-3 text-sm font-medium text-gray-600 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                        >
+                                            @foreach ($acceptedCurrencies as $currency)
+                                                <option value="{{ $currency }}">{{ strtoupper($currency) }}</option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        <span class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                                            {{ $this->getCurrency() }}
+                                        </span>
+                                    @endif
                                 </div>
                                 @error('formData.amount')
                                     <p class="mt-1 text-sm text-danger-600">{{ $message }}</p>
@@ -214,18 +233,18 @@
                 <section>
                     <h2 class="text-base font-semibold text-gray-950 dark:text-white mb-3">Payment method</h2>
                     <div class="space-y-3">
-                        @if ($preloadedSupporter && $preloadedSupporter->stripe_customer_id && count($this->savedCards) > 0)
+                        @if ($preloadedSupporter && count($this->savedCards) > 0)
                             @foreach ($this->savedCards as $card)
                                 <label class="flex items-center gap-3 cursor-pointer">
                                     <input
                                         type="radio"
                                         name="payment_method"
                                         value="{{ $card['id'] }}"
-                                        wire:model="formData.payment_method"
+                                        wire:model.live="formData.payment_method"
                                         class="h-4 w-4 text-primary-600"
                                     />
                                     <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                                        <span class="text-gray-600 dark:text-gray-400">Existing credit card</span>
+                                        <span class="text-gray-600 dark:text-gray-400">Existing debit/credit card</span>
                                         <span class="font-medium">{{ $card['brand'] }}</span>
                                         <span>&bull;&bull;{{ $card['last4'] }}</span>
                                         <span class="text-gray-400 dark:text-gray-500">Exp. {{ $card['exp_month'] }}/{{ $card['exp_year'] }}</span>
@@ -239,7 +258,7 @@
                                 type="radio"
                                 name="payment_method"
                                 value="new_card"
-                                wire:model="formData.payment_method"
+                                wire:model.live="formData.payment_method"
                                 class="h-4 w-4 text-primary-600"
                             />
                             <span class="text-sm text-gray-700 dark:text-gray-300">New credit card</span>

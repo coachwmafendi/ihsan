@@ -27,6 +27,7 @@ class ProcessVirtualTerminalSubscription
         string $lastName,
         string $email,
         Organization $organization,
+        string $currency = 'myr',
         ?string $savedCardId = null,
         ?string $paymentMethodId = null,
         string $source = 'virtual_terminal',
@@ -63,7 +64,7 @@ class ProcessVirtualTerminalSubscription
             $existingPrices = Price::all([
                 'product' => $campaign->stripe_product_id,
                 'unit_amount' => $unitAmount,
-                'currency' => 'myr',
+                'currency' => strtolower($currency),
             ], $stripeOptions);
 
             $price = $existingPrices->data[0] ?? null;
@@ -75,7 +76,7 @@ class ProcessVirtualTerminalSubscription
             if (! $price) {
                 $price = Price::create([
                     'unit_amount' => $unitAmount,
-                    'currency' => 'myr',
+                    'currency' => strtolower($currency),
                     'recurring' => ['interval' => 'month'],
                     'product' => $campaign->stripe_product_id,
                 ], $stripeOptions);
@@ -122,7 +123,7 @@ class ProcessVirtualTerminalSubscription
             'donor_id' => $donor->getKey(),
             'source' => $source,
             'amount' => $amount,
-            'currency' => 'myr',
+            'currency' => strtolower($currency),
             'interval' => SubscriptionInterval::Monthly,
             'status' => SubscriptionStatus::Active,
             'stripe_subscription_id' => $stripeSubscription->id,

@@ -2,6 +2,7 @@
 
 namespace App\Filament\App\Pages;
 
+use App\Actions\Stripe\LoadDonorSavedCards;
 use App\Actions\Stripe\ProcessVirtualTerminalDonation;
 use App\Actions\Stripe\ProcessVirtualTerminalSubscription;
 use App\Models\Campaign;
@@ -11,8 +12,6 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Validator;
-use Stripe\PaymentMethod;
-use Stripe\Stripe;
 
 class VirtualTerminal extends Page
 {
@@ -36,6 +35,11 @@ class VirtualTerminal extends Page
         return 'filament-panels::components.layout.simple';
     }
 
+    public function getHeading(): string
+    {
+        return '';
+    }
+
     public ?string $preloadedSupporterPublicId = null;
 
     public ?Donor $searchedDonor = null;
@@ -54,6 +58,7 @@ class VirtualTerminal extends Page
         'campaign_id' => null,
         'frequency' => 'once',
         'amount' => '',
+        'currency' => 'myr',
         'scheduled_for' => null,
         'first_name' => '',
         'last_name' => '',
@@ -77,6 +82,7 @@ class VirtualTerminal extends Page
             $this->loadPreloadedSupporter();
         }
 
+        $this->formData['currency'] = $this->getAcceptedCurrencies()[0] ?? 'myr';
         $this->loadDefaultCampaign();
         $this->formData['scheduled_for'] = now()->format('Y-m-d');
     }
@@ -99,36 +105,49 @@ class VirtualTerminal extends Page
     public function loadSavedCards(): void
     {
         $donor = $this->preloadedSupporter;
-        if (! $donor || ! $donor->stripe_customer_id) {
+        if (! $donor) {
             $this->savedCards = [];
+            $this->formData['payment_method'] = 'new_card';
 
             return;
         }
 
-        try {
-            Stripe::setApiKey(config('services.stripe.secret'));
+        $this->savedCards = $donor->paymentMethods()
+            ->orderByDesc('is_default')
+            ->latest('id')
+            ->get()
+            ->map(fn ($paymentMethod): array => [
+                'id' => $paymentMethod->stripe_payment_method_id,
+                'brand' => ucfirst((string) $paymentMethod->brand),
+                'last4' => $paymentMethod->last4,
+                'exp_month' => $paymentMethod->exp_month,
+                'exp_year' => $paymentMethod->exp_year,
+            ])
+            ->all();
 
-            $stripeOptions = $this->organization?->stripe_account_id
-                ? ['stripe_account' => $this->organization->stripe_account_id]
-                : [];
+        if ($this->savedCards === [] && $donor->stripe_customer_id && $this->organization) {
+            try {
+                $this->savedCards = app(LoadDonorSavedCards::class)->handle($donor, $this->organization);
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        }
 
-            $paymentMethods = PaymentMethod::all([
-                'customer' => $donor->stripe_customer_id,
-                'type' => 'card',
-            ], $stripeOptions);
+        $this->selectDefaultSavedCard();
+    }
 
-            $this->savedCards = collect($paymentMethods->data)->map(function ($pm) {
-                return [
-                    'id' => $pm->id,
-                    'brand' => ucfirst($pm->card->brand),
-                    'last4' => $pm->card->last4,
-                    'exp_month' => $pm->card->exp_month,
-                    'exp_year' => $pm->card->exp_year,
-                ];
-            })->toArray();
-        } catch (\Throwable $e) {
-            report($e);
-            $this->savedCards = [];
+    private function selectDefaultSavedCard(): void
+    {
+        if ($this->savedCards === []) {
+            $this->formData['payment_method'] = 'new_card';
+
+            return;
+        }
+
+        $savedCardIds = collect($this->savedCards)->pluck('id');
+
+        if (! $savedCardIds->contains($this->formData['payment_method'])) {
+            $this->formData['payment_method'] = (string) $savedCardIds->first();
         }
     }
 
@@ -154,6 +173,7 @@ class VirtualTerminal extends Page
         $this->formData['last_name'] = '';
         $this->formData['email'] = '';
         $this->formData['payment_method'] = 'new_card';
+        $this->formData['payment_method_id'] = '';
     }
 
     public function searchDonorByEmail(): void
@@ -210,14 +230,25 @@ class VirtualTerminal extends Page
 
     public function getCurrency(): string
     {
+        return strtoupper((string) ($this->formData['currency'] ?? 'myr'));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getAcceptedCurrencies(): array
+    {
         $settings = $this->organization?->settings ?? [];
         $currencies = $settings['accepted_currencies'] ?? [];
 
         if (! empty($currencies)) {
-            return strtoupper($currencies[0]);
+            return collect($currencies)
+                ->map(fn (string $currency): string => strtolower($currency))
+                ->values()
+                ->all();
         }
 
-        return 'MYR';
+        return ['myr'];
     }
 
     public function getTotalAmount(): string
@@ -239,6 +270,7 @@ class VirtualTerminal extends Page
                     'campaign_id' => ['required', "exists:campaigns,id,organization_id,{$this->organization->getKey()}"],
                     'frequency' => ['required', 'in:once,monthly'],
                     'amount' => ['required', 'numeric', 'min:1', 'max:99999.99'],
+                    'currency' => ['required', 'string', 'in:'.implode(',', $this->getAcceptedCurrencies())],
                     'first_name' => ['required', 'string', 'max:255'],
                     'last_name' => ['required', 'string', 'max:255'],
                     'email' => ['required', 'email', 'max:255'],
@@ -267,6 +299,7 @@ class VirtualTerminal extends Page
                             lastName: $data['last_name'],
                             email: $data['email'],
                             organization: $this->organization,
+                            currency: $data['currency'],
                             savedCardId: $data['payment_method'] !== 'new_card' ? $data['payment_method'] : null,
                             paymentMethodId: $data['payment_method_id'] ?? null,
                             source: 'virtual_terminal',
@@ -284,6 +317,7 @@ class VirtualTerminal extends Page
                             lastName: $data['last_name'],
                             email: $data['email'],
                             organization: $this->organization,
+                            currency: $data['currency'],
                             savedCardId: $data['payment_method'] !== 'new_card' ? $data['payment_method'] : null,
                             paymentMethodId: $data['payment_method_id'] ?? null,
                             source: 'virtual_terminal',
@@ -313,11 +347,12 @@ class VirtualTerminal extends Page
             'campaign_id' => $this->formData['campaign_id'],
             'frequency' => 'once',
             'amount' => '',
+            'currency' => $this->formData['currency'],
             'scheduled_for' => null,
             'first_name' => $this->preloadedSupporter ? $this->formData['first_name'] : '',
             'last_name' => $this->preloadedSupporter ? $this->formData['last_name'] : '',
             'email' => $this->preloadedSupporter ? $this->formData['email'] : '',
-            'payment_method' => 'new_card',
+            'payment_method' => $this->savedCards !== [] ? (string) collect($this->savedCards)->pluck('id')->first() : 'new_card',
             'payment_method_id' => '',
         ];
     }
