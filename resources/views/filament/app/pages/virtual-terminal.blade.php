@@ -247,12 +247,12 @@
                             x-show="$wire.formData.payment_method === 'new_card'"
                             x-cloak
                             x-transition
-                            x-init="$watch('$wire.formData.payment_method', v => { if(v === 'new_card') mountCard() })"
+                            x-init="$watch('$wire.formData.payment_method', v => { if(v === 'new_card') mountCard() }); if ($wire.formData.payment_method === 'new_card') { $nextTick(() => mountCard()) }"
                             class="mt-4 space-y-4"
                         >
                             <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Card details</label>
-                                <div id="card-element" class="p-3 border border-gray-300 rounded-lg dark:border-gray-600"></div>
+                                <div id="card-element" class="p-3 border border-gray-300 rounded-lg min-h-[44px] dark:border-gray-600"></div>
                                 <div class="text-danger-600 text-sm mt-2" role="alert" x-text="errorMessage"></div>
                             </div>
                         </div>
@@ -333,10 +333,6 @@
                     this.cardElement.on('change', (event) => {
                         this.errorMessage = event.error ? event.error.message : '';
                     });
-                    // If already on new_card, mount immediately
-                    if ($wire.formData.payment_method === 'new_card') {
-                        this.mountCard();
-                    }
                 },
 
                 async mountCard() {
