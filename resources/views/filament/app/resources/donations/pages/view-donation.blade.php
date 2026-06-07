@@ -38,16 +38,22 @@
     {{-- Main Content --}}
     <div class="flex-1 min-w-0 space-y-6 pb-4">
 
-        {{-- General --}}
+        {{-- Donation --}}
         <section id="general" class="scroll-mt-24">
             <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
                     <x-heroicon-o-information-circle class="size-5 text-gray-400 dark:text-gray-500" />
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">General</h3>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Donation</h3>
+                    <a
+                        href="{{ route('filament.app.resources.donations.edit', $this->record->public_id) }}"
+                        class="ml-auto text-sm font-medium text-primary-600 transition hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                    >
+                        Edit
+                    </a>
                 </div>
                 <div class="px-6 py-4 space-y-2 text-sm">
                     <div class="flex items-baseline gap-8 py-1">
-                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Amount</span>
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Donation Amount</span>
                         <span class="text-gray-900 dark:text-gray-100">
                             @if ($this->record->currency !== 'myr' && $this->record->base_amount)
                                 {{ strtoupper($this->record->currency) }} {{ number_format((float) $this->record->gross_amount, 2) }}
@@ -56,6 +62,21 @@
                                 {{ strtoupper($this->record->currency) }} {{ number_format((float) $this->record->gross_amount, 2) }}
                             @endif
                         </span>
+                    </div>
+
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Donation ID</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-gray-900 dark:text-gray-100">{{ $this->record->public_id }}</span>
+                            <button
+                                type="button"
+                                @click="navigator.clipboard.writeText('{{ $this->record->public_id }}'); $dispatch('notify', { message: 'Copied' })"
+                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                title="Copy"
+                            >
+                                <x-heroicon-o-clipboard-document class="size-3.5" />
+                            </button>
+                        </div>
                     </div>
 
                     <div class="flex items-center gap-8 py-1">
@@ -77,34 +98,115 @@
                     </div>
 
                     <div class="flex items-center gap-8 py-1">
-                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Type</span>
-                        <span class="text-gray-900 dark:text-gray-100">{{ str($this->record->type->value)->headline() }}</span>
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Supporter</span>
+                        @if ($this->record->donor)
+                            <a
+                                href="{{ route('filament.app.resources.supporters.view', $this->record->donor->public_id) }}"
+                                class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                            >
+                                {{ $this->record->donor->name }}
+                            </a>
+                        @else
+                            <span class="text-gray-900 dark:text-gray-100">—</span>
+                        @endif
+                    </div>
+
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Campaign</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $this->record->campaign?->title ?? '—' }}</span>
                     </div>
 
                     <div class="flex items-baseline gap-8 py-1">
-                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Date</span>
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Donation Date</span>
                         <span class="text-gray-900 dark:text-gray-100">{{ $this->record->created_at->format('d M Y, h:i A') }}</span>
                     </div>
 
-                    <div class="flex items-center gap-8 py-1">
-                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Receipt No.</span>
-                        <span class="text-gray-900 dark:text-gray-100">{{ $this->record->invoice_number }}</span>
+                    <div class="flex items-baseline gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Success Date</span>
+                        <span class="text-gray-900 dark:text-gray-100">
+                            @if ($this->record->status->value === 'succeeded')
+                                {{ ($this->record->receipt_sent_at ?? $this->record->updated_at)?->format('d M Y, h:i A') ?? '—' }}
+                            @else
+                                —
+                            @endif
+                        </span>
                     </div>
 
                     <div class="flex items-center gap-8 py-1">
-                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Donation ID</span>
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Frequency</span>
+                        <span class="text-gray-900 dark:text-gray-100">
+                            @if ($this->record->subscription)
+                                {{ str($this->record->subscription->interval->value)->headline() }}
+                            @else
+                                {{ str($this->record->type->value)->headline() }}
+                            @endif
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {{-- Personal Information --}}
+        <section id="personal-info" class="scroll-mt-24">
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
+                    <x-heroicon-o-user class="size-5 text-gray-400 dark:text-gray-500" />
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Personal Information</h3>
+                </div>
+                <div class="px-6 py-4 space-y-2 text-sm">
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Name</span>
+                        <span class="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                            {{ $this->record->donor?->name ?? '—' }}
+                            @if ($this->record->is_anonymous)
+                                <span class="text-xs text-gray-400 dark:text-gray-500 italic">Anonymous donation</span>
+                            @endif
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Email</span>
                         <div class="flex items-center gap-1.5">
-                            <span class="text-gray-900 dark:text-gray-100">{{ $this->record->public_id }}</span>
-                            <button
-                                type="button"
-                                @click="navigator.clipboard.writeText('{{ $this->record->public_id }}'); $dispatch('notify', { message: 'Copied' })"
-                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                                title="Copy"
-                            >
-                                <x-heroicon-o-clipboard-document class="size-3.5" />
-                            </button>
+                            <span class="text-gray-900 dark:text-gray-100">{{ $this->record->donor?->email ?? '—' }}</span>
+                            @if ($this->record->donor?->email)
+                                <button
+                                    type="button"
+                                    @click="navigator.clipboard.writeText('{{ $this->record->donor->email }}'); $dispatch('notify', { message: 'Copied' })"
+                                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                    title="Copy"
+                                >
+                                    <x-heroicon-o-clipboard-document class="size-3.5" />
+                                </button>
+                            @endif
                         </div>
                     </div>
+
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Phone</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $this->record->donor?->phone ?? '—' }}</span>
+                    </div>
+
+                    @php
+                        $donorCountryCode = $this->record->donor?->country ?? $this->record->donor_country;
+                        $donorCountryCode = $donorCountryCode ? strtoupper($donorCountryCode) : null;
+                        $donorCountryName = $donorCountryCode ? (\Locale::getDisplayRegion('-'.$donorCountryCode, 'en') ?: $donorCountryCode) : '—';
+                    @endphp
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Country</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $donorCountryName }}</span>
+                    </div>
+
+                    @if ($this->record->donor?->title || $this->record->donor?->occupation)
+                        <div class="flex items-center gap-8 py-1">
+                            <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Title</span>
+                            <span class="text-gray-900 dark:text-gray-100">{{ $this->record->donor->title ?? '—' }}</span>
+                        </div>
+
+                        <div class="flex items-center gap-8 py-1">
+                            <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Occupation</span>
+                            <span class="text-gray-900 dark:text-gray-100">{{ $this->record->donor->occupation ?? '—' }}</span>
+                        </div>
+                    @endif
                 </div>
             </div>
         </section>
@@ -429,7 +531,7 @@
     </div>
 
     {{-- Right Sticky Nav --}}
-    <div class="w-44 shrink-0 hidden md:block">
+    <div class="w-56 shrink-0 hidden md:block">
         <div class="sticky top-24 space-y-3">
             @if ($this->record->status === \App\Enums\DonationStatus::Succeeded)
                 <div class="space-y-2 px-3 py-2">
@@ -458,7 +560,8 @@
 
             <div class="space-y-1">
             @foreach ([
-                ['id' => 'general', 'label' => 'General', 'icon' => 'heroicon-o-information-circle'],
+                ['id' => 'general', 'label' => 'Donation', 'icon' => 'heroicon-o-information-circle'],
+                ['id' => 'personal-info', 'label' => 'Personal Information', 'icon' => 'heroicon-o-user'],
                 ['id' => 'donor-campaign', 'label' => 'Donor & Campaign', 'icon' => 'heroicon-o-user-group'],
                 ['id' => 'payment-fee', 'label' => 'Payment & Fee', 'icon' => 'heroicon-o-banknotes'],
                 ['id' => 'insights', 'label' => 'Insights', 'icon' => 'heroicon-o-chart-pie'],

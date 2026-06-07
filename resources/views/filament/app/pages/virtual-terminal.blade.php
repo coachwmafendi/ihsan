@@ -53,6 +53,7 @@
                                 <option value="monthly">Monthly</option>
                             </select>
                         </div>
+
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -76,6 +77,17 @@
                                     <p class="mt-1 text-sm text-danger-600">{{ $message }}</p>
                                 @enderror
                             </div>
+                            <div>
+                                <label for="scheduled_for" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Scheduled for
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    id="scheduled_for"
+                                    wire:model="formData.scheduled_for"
+                                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                                />
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -97,6 +109,11 @@
                                     <p class="text-xs text-gray-500 dark:text-gray-400">
                                         {{ $preloadedSupporter->email }}
                                     </p>
+                                    @if ($preloadedSupporter->donations()->exists())
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            Last donated {{ $preloadedSupporter->donations()->latest()->first()->created_at->diffForHumans() }}
+                                        </p>
+                                    @endif
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                         ID: {{ $preloadedSupporter->public_id }}
                                     </p>
@@ -108,6 +125,28 @@
                                     class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                                 >
                                     <x-heroicon-o-x-mark class="size-5" />
+                                </button>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($this->searchedDonor && ! $this->preloadedSupporter)
+                        <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 mb-4 dark:border-blue-900 dark:bg-blue-900/20">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-xs text-blue-800 dark:text-blue-200">
+                                        We found an existing supporter with this email.
+                                    </p>
+                                    <p class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                                        {{ $this->searchedDonor->name }}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    wire:click="loadSearchedDonor"
+                                    class="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                                >
+                                    Load details
                                 </button>
                             </div>
                         </div>
@@ -153,12 +192,37 @@
                             id="email"
                             type="email"
                             wire:model="formData.email"
+                            wire:blur="searchDonorByEmail"
                             autocomplete="email"
                             class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                         />
                         @error('formData.email')
                             <p class="mt-1 text-sm text-danger-600">{{ $message }}</p>
                         @enderror
+                    </div>
+                </section>
+
+                {{-- Payment method --}}
+                <section>
+                    <h2 class="text-base font-semibold text-gray-950 dark:text-white mb-3">Payment method</h2>
+                    <div class="space-y-3">
+                        @if ($preloadedSupporter && $preloadedSupporter->stripe_customer_id)
+                            {{-- Saved cards would go here --}}
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Saved cards will be loaded here.
+                            </p>
+                        @endif
+
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input
+                                type="radio"
+                                name="payment_method"
+                                value="new_card"
+                                wire:model="formData.payment_method"
+                                class="h-4 w-4 text-primary-600"
+                            />
+                            <span class="text-sm text-gray-700 dark:text-gray-300">New credit card</span>
+                        </label>
                     </div>
                 </section>
 
@@ -195,7 +259,13 @@
                         wire:click="mountAction('processDonation')"
                         wire:loading.attr="disabled"
                         wire:target="mountAction('processDonation')"
-                        @disabled(empty($this->formData['amount']) || empty($this->formData['campaign_id']))
+                        @disabled(
+                            empty($this->formData['amount'])
+                            || empty($this->formData['campaign_id'])
+                            || empty($this->formData['first_name'])
+                            || empty($this->formData['last_name'])
+                            || empty($this->formData['email'])
+                        )
                         class="mt-6 w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100"
                     >
                         <span wire:loading.remove wire:target="mountAction('processDonation')">Make a donation</span>

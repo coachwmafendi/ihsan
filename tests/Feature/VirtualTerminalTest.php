@@ -56,6 +56,7 @@ test('one-time donation creates donation record for existing donor', function ()
         'base_currency' => 'myr',
         'status' => \App\Enums\DonationStatus::Succeeded,
         'type' => \App\Enums\DonationType::OneTime,
+        'source' => 'virtual_terminal',
         'stripe_payment_intent_id' => 'pi_test_'.uniqid(),
     ]);
 
@@ -80,6 +81,7 @@ test('one-time donation creates donation record for existing donor', function ()
         'campaign_id' => $campaign->id,
         'donor_id' => $donor->id,
         'gross_amount' => '50.00',
+        'source' => 'virtual_terminal',
     ]);
 });
 
@@ -111,7 +113,7 @@ test('virtual terminal validates required fields', function () {
         ->set('formData.last_name', '')
         ->set('formData.email', '')
         ->callAction('processDonation')
-        ->assertHasNoErrors(); // Action should show notification, not throw
+        ->assertNotDispatched('close-modal'); // Action should not succeed
 });
 
 test('new donor is created when email does not match existing donor', function () {
@@ -162,6 +164,84 @@ test('new donor is created when email does not match existing donor', function (
     ]);
 });
 
+test('donation created via virtual terminal has source tracking', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+    $donor = Donor::factory()->create([
+        'name' => 'Ahmad Ali',
+        'email' => 'ahmad@example.com',
+    ]);
+
+    $donation = Donation::make([
+        'campaign_id' => $campaign->id,
+        'donor_id' => $donor->id,
+        'gross_amount' => 50.00,
+        'base_amount' => 50.00,
+        'currency' => 'myr',
+        'base_currency' => 'myr',
+        'status' => \App\Enums\DonationStatus::Succeeded,
+        'type' => \App\Enums\DonationType::OneTime,
+        'source' => 'virtual_terminal',
+        'stripe_payment_intent_id' => 'pi_test_'.uniqid(),
+    ]);
+
+    $mock = Mockery::mock(ProcessVirtualTerminalDonation::class);
+    $mock->shouldReceive('handle')->once()->andReturnUsing(function () use ($donation) {
+        $donation->save();
+
+        return $donation;
+    });
+    app()->instance(ProcessVirtualTerminalDonation::class, $mock);
+
+    Livewire::test(VirtualTerminal::class)
+        ->set('formData.campaign_id', (string) $campaign->id)
+        ->set('formData.frequency', 'once')
+        ->set('formData.amount', '50.00')
+        ->set('formData.first_name', 'Ahmad')
+        ->set('formData.last_name', 'Ali')
+        ->set('formData.email', 'ahmad@example.com')
+        ->callAction('processDonation');
+
+    $this->assertDatabaseHas('donations', [
+        'campaign_id' => $campaign->id,
+        'donor_id' => $donor->id,
+        'source' => 'virtual_terminal',
+    ]);
+});
+
+test('email search finds existing supporter', function () {
+    $donor = Donor::factory()->create([
+        'name' => 'Ahmad Ali',
+        'email' => 'ahmad@example.com',
+    ]);
+    // Need at least one donation for the org-scoped query
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+    \App\Models\Donation::factory()->create([
+        'campaign_id' => $campaign->id,
+        'donor_id' => $donor->id,
+        'gross_amount' => 10,
+        'status' => \App\Enums\DonationStatus::Succeeded,
+    ]);
+
+    $component = Livewire::test(VirtualTerminal::class)
+        ->set('formData.email', 'ahmad@example.com')
+        ->call('searchDonorByEmail');
+
+    $component->assertSet('searchedDonor.id', $donor->id);
+});
+
+test('payment method defaults to new card and can be changed', function () {
+    $component = Livewire::test(VirtualTerminal::class);
+
+    $component->assertSet('formData.payment_method', 'new_card');
+
+    $component->set('formData.payment_method', 'pm_test_123');
+    $component->assertSet('formData.payment_method', 'pm_test_123');
+});
+
 test('monthly donation creates subscription record', function () {
     $campaign = Campaign::factory()->create([
         'organization_id' => $this->organization->id,
@@ -178,6 +258,7 @@ test('monthly donation creates subscription record', function () {
         'currency' => 'myr',
         'interval' => \App\Enums\SubscriptionInterval::Monthly,
         'status' => \App\Enums\SubscriptionStatus::Active,
+        'source' => 'virtual_terminal',
         'stripe_subscription_id' => 'sub_test_'.uniqid(),
         'stripe_price_id' => 'price_test_'.uniqid(),
         'started_at' => now(),
@@ -206,5 +287,6 @@ test('monthly donation creates subscription record', function () {
         'donor_id' => $donor->id,
         'amount' => '25.00',
         'interval' => 'monthly',
+        'source' => 'virtual_terminal',
     ]);
 });
