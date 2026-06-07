@@ -417,7 +417,8 @@ class ViewDonor extends ViewRecord
                     ->success()
                     ->send();
 
-                $this->redirect(DonorResource::getUrl('view', ['record' => $this->record]));
+                $this->record->refresh();
+                $this->redirect(DonorResource::getUrl('view', ['record' => $this->record]), navigate: true);
             });
     }
 
