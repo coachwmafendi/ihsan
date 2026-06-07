@@ -12,16 +12,10 @@
             max-width: none !important;
             width: 100% !important;
         }
-
-        .fi-page-header-main-ctn,
-        .fi-header-heading {
-            margin-inline: auto;
-            text-align: center;
-        }
     </style>
     <div x-data="vtPayment()" x-init="initStripe(@js($this->stripePublishableKey))" class="max-w-7xl mx-auto">
         {{-- Header --}}
-        <div class="mb-6 text-center">
+        <div class="mb-6 text-left">
             <h1 class="text-2xl font-semibold text-gray-950 dark:text-white">Virtual Terminal — {{ auth()->user()?->organization?->name ?? 'Ihsan' }}</h1>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Use the Virtual Terminal to process an in-person or over the phone donation.
