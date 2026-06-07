@@ -125,25 +125,28 @@
 
                     @if ($preloadedSupporter)
                         <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 mb-4 dark:border-yellow-900 dark:bg-yellow-900/20">
-                            <div class="flex items-start justify-between">
-                                <div>
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="min-w-0 flex-1 text-left">
                                     <p class="text-xs text-yellow-800 dark:text-yellow-200">
                                         The donation will be processed for an existing supporter.
                                     </p>
-                                    <p class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
-                                        {{ $preloadedSupporter->name }}
-                                    </p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                                        {{ $preloadedSupporter->email }}
-                                    </p>
-                                    @if ($preloadedSupporter->donations()->exists())
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                                            Last donated {{ $preloadedSupporter->donations()->latest()->first()->created_at->diffForHumans() }}
+
+                                    <div class="mt-3 space-y-1">
+                                        <p class="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                                            {{ $preloadedSupporter->name }}
                                         </p>
-                                    @endif
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                        ID: {{ $preloadedSupporter->public_id }}
-                                    </p>
+                                        <p class="break-all text-xs text-gray-500 dark:text-gray-400">
+                                            {{ $preloadedSupporter->email }}
+                                        </p>
+                                        @if ($preloadedSupporter->donations()->exists())
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                Last donated {{ $preloadedSupporter->donations()->latest()->first()->created_at->diffForHumans() }}
+                                            </p>
+                                        @endif
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            ID: {{ $preloadedSupporter->public_id }}
+                                        </p>
+                                    </div>
                                 </div>
                                 <button
                                     type="button"

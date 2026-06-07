@@ -41,6 +41,7 @@ test('virtual terminal page preloads supporter from query param', function () {
     $response->assertOk();
     $response->assertSee('Ahmad Ali');
     $response->assertSee('ahmad@example.com');
+    $response->assertSee('min-w-0 flex-1 text-left', false);
 });
 
 test('virtual terminal shows saved cards for preloaded supporter', function () {
