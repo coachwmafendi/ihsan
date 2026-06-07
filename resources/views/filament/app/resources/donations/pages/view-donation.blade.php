@@ -271,7 +271,7 @@
                                 $cardIcon = $iconMap[$brand] ?? null;
                             @endphp
                             @if ($cardIcon)
-                                <x-dynamic-component :component="$cardIcon" class="w-10 h-6" />
+                                <x-dynamic-component :component="$cardIcon" class="h-6 w-auto" />
                             @elseif ($brand)
                                 <x-heroicon-o-credit-card class="size-4 text-gray-400" />
                             @endif
