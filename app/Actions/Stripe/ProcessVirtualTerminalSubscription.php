@@ -60,6 +60,10 @@ class ProcessVirtualTerminalSubscription
 
         $price = $existingPrices->data[0] ?? null;
 
+        if ($price && $price->recurring->interval !== 'month') {
+            $price = null;
+        }
+
         if (! $price) {
             $price = Price::create([
                 'unit_amount' => $unitAmount,

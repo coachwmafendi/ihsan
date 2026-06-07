@@ -78,10 +78,6 @@ class ProcessVirtualTerminalDonation
 
         $paymentIntent = PaymentIntent::create($params, $stripeOptions);
 
-        if ($savedCardId) {
-            $paymentIntent->confirm($stripeOptions);
-        }
-
         $donation = Donation::create([
             'campaign_id' => $campaign->getKey(),
             'donor_id' => $donor->getKey(),

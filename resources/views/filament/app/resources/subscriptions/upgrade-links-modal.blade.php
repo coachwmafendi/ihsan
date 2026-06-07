@@ -1,10 +1,10 @@
-<div class="space-y-5 text-sm text-gray-700 dark:text-gray-300">
+<div class="space-y-6 text-sm text-gray-700 dark:text-gray-300">
     <p>
-        Upgrade links direct to pages where supporters can increase their recurring plan amount or cover transaction costs.
+        Share these links with the supporter to let them increase their recurring amount or cover transaction costs.
     </p>
 
     <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
-        Sharing these links with supporters can lead to a 35–65% increase in recurring donation revenue. Upgrade links are unique to each recurring plan, but can be accessed by anyone. Ensure these links below are specifically sent to the supporter with the email
+        These links can't be accessed by anyone — send them only to
         <span class="font-semibold">{{ $donor?->email ?? '—' }}</span>.
     </div>
 

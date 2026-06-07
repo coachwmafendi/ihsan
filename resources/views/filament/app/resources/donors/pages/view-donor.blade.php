@@ -221,7 +221,7 @@
         <aside class="supporter-view-nav space-y-4">
             <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <a
-                    href="#"
+                    href="{{ \App\Filament\App\Pages\VirtualTerminal::getUrl(['vt-supporter' => $record->public_id]) }}"
                     class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800"
                 >
                     <x-heroicon-o-currency-dollar class="size-5 shrink-0" />
