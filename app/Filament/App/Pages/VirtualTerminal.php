@@ -16,8 +16,6 @@ class VirtualTerminal extends Page
 {
     protected string $view = 'filament.app.pages.virtual-terminal';
 
-    protected static bool $shouldRegisterNavigation = false;
-
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
 
     protected static ?string $navigationLabel = 'Virtual Terminal';
@@ -25,6 +23,11 @@ class VirtualTerminal extends Page
     protected static ?string $title = 'Virtual Terminal';
 
     protected static ?int $navigationSort = 10;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public ?string $preloadedSupporterPublicId = null;
 
