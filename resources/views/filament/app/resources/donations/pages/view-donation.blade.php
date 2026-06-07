@@ -341,6 +341,13 @@
                 <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
                     <x-heroicon-o-user class="size-5 text-gray-400 dark:text-gray-500" />
                     <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Personal Information</h3>
+                    <button
+                        type="button"
+                        wire:click="mountAction('editSupporter')"
+                        class="ml-auto text-sm font-medium text-primary-600 transition hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                    >
+                        Edit
+                    </button>
                 </div>
                 <div class="px-6 py-4 space-y-2 text-sm">
                     <div class="flex items-center gap-8 py-1">

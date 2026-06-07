@@ -6,6 +6,7 @@ use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
 use App\Models\Donor;
+use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Models\Subscription;
 use Stripe\Customer;
@@ -132,7 +133,43 @@ class ProcessVirtualTerminalSubscription
 
         // TODO: Send subscription confirmation email
 
+        // Sync payment method details to local cache
+        $pmId = $paymentMethodId ?? $savedCardId;
+        $this->syncPaymentMethod($donor, $pmId, $stripeOptions);
+
         return $subscription;
+    }
+
+    private function syncPaymentMethod(Donor $donor, ?string $stripePaymentMethodId, array $stripeOptions): void
+    {
+        if (! $stripePaymentMethodId || ! $donor->stripe_customer_id) {
+            return;
+        }
+
+        // Skip if already cached
+        if (DonorPaymentMethod::where('stripe_payment_method_id', $stripePaymentMethodId)->exists()) {
+            return;
+        }
+
+        try {
+            $pm = PaymentMethod::retrieve($stripePaymentMethodId, $stripeOptions);
+
+            if ($pm->type !== 'card' || ! $pm->card) {
+                return;
+            }
+
+            DonorPaymentMethod::create([
+                'donor_id' => $donor->getKey(),
+                'stripe_payment_method_id' => $pm->id,
+                'brand' => ucfirst($pm->card->brand),
+                'last4' => $pm->card->last4,
+                'exp_month' => $pm->card->exp_month,
+                'exp_year' => $pm->card->exp_year,
+                'country' => $pm->card->country ?? null,
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     private function resolveOrCreateDonor(

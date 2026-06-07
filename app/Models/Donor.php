@@ -40,6 +40,11 @@ class Donor extends Model
         return $this->hasMany(Subscription::class);
     }
 
+    public function paymentMethods(): HasMany
+    {
+        return $this->hasMany(DonorPaymentMethod::class);
+    }
+
     public function generateMagicToken(): string
     {
         $token = Str::random(64);

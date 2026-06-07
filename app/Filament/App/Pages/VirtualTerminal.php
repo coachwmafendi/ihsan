@@ -11,8 +11,6 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Validator;
-use Stripe\PaymentMethod;
-use Stripe\Stripe;
 
 class VirtualTerminal extends Page
 {
@@ -88,38 +86,24 @@ class VirtualTerminal extends Page
     public function loadSavedCards(): void
     {
         $donor = $this->preloadedSupporter;
-        if (! $donor || ! $donor->stripe_customer_id) {
+        if (! $donor) {
             $this->savedCards = [];
 
             return;
         }
 
-        try {
-            $organization = $this->organization;
-            Stripe::setApiKey(config('services.stripe.secret'));
-
-            $stripeOptions = $organization->stripe_account_id
-                ? ['stripe_account' => $organization->stripe_account_id]
-                : [];
-
-            $paymentMethods = PaymentMethod::all([
-                'customer' => $donor->stripe_customer_id,
-                'type' => 'card',
-            ], $stripeOptions);
-
-            $this->savedCards = collect($paymentMethods->data)->map(function ($pm) {
+        $this->savedCards = $donor->paymentMethods()
+            ->get()
+            ->map(function ($pm) {
                 return [
-                    'id' => $pm->id,
-                    'brand' => ucfirst($pm->card->brand),
-                    'last4' => $pm->card->last4,
-                    'exp_month' => $pm->card->exp_month,
-                    'exp_year' => $pm->card->exp_year,
+                    'id' => $pm->stripe_payment_method_id,
+                    'brand' => $pm->brand,
+                    'last4' => $pm->last4,
+                    'exp_month' => $pm->exp_month,
+                    'exp_year' => $pm->exp_year,
                 ];
-            })->toArray();
-        } catch (\Throwable $e) {
-            report($e);
-            $this->savedCards = [];
-        }
+            })
+            ->toArray();
     }
 
     public function loadDefaultCampaign(): void

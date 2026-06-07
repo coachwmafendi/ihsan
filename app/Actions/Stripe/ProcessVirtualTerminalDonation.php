@@ -110,6 +110,9 @@ class ProcessVirtualTerminalDonation
             'stripe_payment_intent_id' => $paymentIntent->id,
         ]);
 
+        // Sync payment method details to local cache
+        $this->syncPaymentMethod($donor, $paymentIntent->payment_method, $stripeOptions);
+
         Mail::to($donor->email)->queue(new DonationReceipt($donation));
 
         return $donation;
@@ -136,5 +139,37 @@ class ProcessVirtualTerminalDonation
             'name' => $fullName,
             'email' => $email,
         ]);
+    }
+
+    private function syncPaymentMethod(Donor $donor, ?string $stripePaymentMethodId, array $stripeOptions): void
+    {
+        if (! $stripePaymentMethodId || ! $donor->stripe_customer_id) {
+            return;
+        }
+
+        // Skip if already cached
+        if (DonorPaymentMethod::where('stripe_payment_method_id', $stripePaymentMethodId)->exists()) {
+            return;
+        }
+
+        try {
+            $pm = PaymentMethod::retrieve($stripePaymentMethodId, $stripeOptions);
+
+            if ($pm->type !== 'card' || ! $pm->card) {
+                return;
+            }
+
+            DonorPaymentMethod::create([
+                'donor_id' => $donor->getKey(),
+                'stripe_payment_method_id' => $pm->id,
+                'brand' => ucfirst($pm->card->brand),
+                'last4' => $pm->card->last4,
+                'exp_month' => $pm->card->exp_month,
+                'exp_year' => $pm->card->exp_year,
+                'country' => $pm->card->country ?? null,
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }
