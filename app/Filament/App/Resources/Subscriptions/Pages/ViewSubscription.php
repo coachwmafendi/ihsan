@@ -43,6 +43,7 @@ class ViewSubscription extends ViewRecord
             ->components([
                 Section::make('Recurring Plan')
                     ->icon('heroicon-o-arrow-path')
+                    ->id('recurring-plan')
                     ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.recurring-plan')
@@ -51,6 +52,7 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Personal Information')
                     ->icon('heroicon-o-user')
+                    ->id('personal-information')
                     ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.personal-information')
@@ -59,6 +61,7 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Sources')
                     ->icon('heroicon-o-globe-alt')
+                    ->id('sources')
                     ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.sources')
@@ -67,6 +70,7 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Installments')
                     ->icon('heroicon-o-calendar-days')
+                    ->id('installments')
                     ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.installments')
@@ -75,6 +79,7 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Receipts')
                     ->icon('heroicon-o-document-text')
+                    ->id('receipts')
                     ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.receipts')

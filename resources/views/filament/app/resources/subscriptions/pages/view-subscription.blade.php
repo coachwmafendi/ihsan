@@ -5,6 +5,7 @@
             isManualScroll: false,
             scrollTimeout: null,
             observer: null,
+            sectionIds: ['recurring-plan', 'personal-information', 'sources', 'installments', 'receipts'],
             scrollTo(id) {
                 this.isManualScroll = true;
                 this.activeSection = id;
@@ -19,28 +20,12 @@
                     this.isManualScroll = false;
                 }, 900);
             },
-            initObserver() {
+            startObserver() {
                 if (this.observer) {
                     this.observer.disconnect();
                 }
 
-                const sectionMap = {
-                    'Recurring Plan': 'recurring-plan',
-                    'Personal Information': 'personal-information',
-                    'Sources': 'sources',
-                    'Installments': 'installments',
-                    'Receipts': 'receipts',
-                };
-
-                document.querySelectorAll('.fi-sc-section').forEach(section => {
-                    const heading = section.querySelector('h2');
-                    if (heading) {
-                        const id = sectionMap[heading.textContent.trim()];
-                        if (id && !section.id) section.id = id;
-                    }
-                });
-
-                const sections = Object.values(sectionMap)
+                const sections = this.sectionIds
                     .map(id => document.getElementById(id))
                     .filter(Boolean);
 
@@ -62,17 +47,8 @@
                 sections.forEach(section => this.observer.observe(section));
             }
         }"
-        x-init="
-            $nextTick(() => initObserver());
-
-            if (typeof Livewire !== 'undefined') {
-                Livewire.hook('commit', ({ succeed }) => {
-                    succeed(() => {
-                        $nextTick(() => initObserver());
-                    });
-                });
-            }
-        "
+        x-init="$nextTick(() => startObserver())"
+        x-on:livewire-updated.window="$nextTick(() => startObserver())"
         class="flex gap-6"
     >
         {{-- Left Content --}}
