@@ -40,21 +40,26 @@ class ManageStripeSubscription
         }
     }
 
-    public function pause(Subscription $subscription): void
+    public function pause(Subscription $subscription, int $months = 1): void
     {
         Stripe::setApiKey(config('services.stripe.secret'));
 
         $subscription->loadMissing('campaign.organization');
         $stripeOptions = $this->stripeOptions($subscription);
 
+        $resumeAt = $subscription->current_period_end
+            ? $subscription->current_period_end->addMonths($months)
+            : now()->addMonths($months);
+
         StripeSubscription::update($subscription->stripe_subscription_id, [
             'pause_collection' => [
                 'behavior' => 'mark_uncollectible',
+                'resumes_at' => $resumeAt->timestamp,
             ],
         ], $stripeOptions);
 
         $subscription->update([
-            'paused_until' => now()->addMonth(),
+            'paused_until' => $resumeAt,
         ]);
     }
 
