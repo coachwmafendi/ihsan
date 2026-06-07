@@ -6,7 +6,7 @@
 @endphp
 
 <x-filament-panels::page>
-    <div class="max-w-7xl mx-auto">
+    <div x-data="vtPayment()" x-init="initStripe(@js($this->stripePublishableKey))" class="max-w-7xl mx-auto">
         {{-- Header --}}
         <div class="mb-6">
             <h1 class="text-2xl font-semibold text-gray-950 dark:text-white">Virtual Terminal</h1>
@@ -206,11 +206,23 @@
                 <section>
                     <h2 class="text-base font-semibold text-gray-950 dark:text-white mb-3">Payment method</h2>
                     <div class="space-y-3">
-                        @if ($preloadedSupporter && $preloadedSupporter->stripe_customer_id)
-                            {{-- Saved cards would go here --}}
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                Saved cards will be loaded here.
-                            </p>
+                        @if ($preloadedSupporter && $preloadedSupporter->stripe_customer_id && count($this->savedCards) > 0)
+                            @foreach ($this->savedCards as $card)
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="payment_method"
+                                        value="{{ $card['id'] }}"
+                                        wire:model="formData.payment_method"
+                                        class="h-4 w-4 text-primary-600"
+                                    />
+                                    <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                        <span class="font-medium">{{ $card['brand'] }}</span>
+                                        <span>&bull;&bull;{{ $card['last4'] }}</span>
+                                        <span class="text-gray-400 dark:text-gray-500">Exp. {{ $card['exp_month'] }}/{{ $card['exp_year'] }}</span>
+                                    </div>
+                                </label>
+                            @endforeach
                         @endif
 
                         <label class="flex items-center gap-3 cursor-pointer">
@@ -223,6 +235,14 @@
                             />
                             <span class="text-sm text-gray-700 dark:text-gray-300">New credit card</span>
                         </label>
+
+                        <div x-show="$wire.formData.payment_method === 'new_card'" x-cloak class="mt-4 space-y-4">
+                            <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Card details</label>
+                                <div id="card-element" class="p-3 border border-gray-300 rounded-lg dark:border-gray-600"></div>
+                                <div class="text-danger-600 text-sm mt-2" role="alert" x-text="errorMessage"></div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -256,23 +276,90 @@
                     </div>
                     <button
                         type="button"
-                        wire:click="mountAction('processDonation')"
                         wire:loading.attr="disabled"
                         wire:target="mountAction('processDonation')"
-                        @disabled(
-                            empty($this->formData['amount'])
-                            || empty($this->formData['campaign_id'])
-                            || empty($this->formData['first_name'])
-                            || empty($this->formData['last_name'])
-                            || empty($this->formData['email'])
-                        )
+                        x-on:click="submitPayment()"
+                        :disabled="processing ||
+                            empty($wire.formData.amount) ||
+                            empty($wire.formData.campaign_id) ||
+                            empty($wire.formData.first_name) ||
+                            empty($wire.formData.last_name) ||
+                            empty($wire.formData.email)"
                         class="mt-6 w-full rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100"
                     >
-                        <span wire:loading.remove wire:target="mountAction('processDonation')">Make a donation</span>
-                        <span wire:loading wire:target="mountAction('processDonation')">Processing...</span>
+                        <span x-show="!processing">Make a donation</span>
+                        <span x-show="processing">Processing...</span>
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        function vtPayment() {
+            return {
+                stripe: null,
+                cardElement: null,
+                processing: false,
+                errorMessage: '',
+
+                initStripe(publishableKey) {
+                    if (!publishableKey) return;
+
+                    this.stripe = Stripe(publishableKey);
+                    const elements = this.stripe.elements();
+                    this.cardElement = elements.create('card', {
+                        style: {
+                            base: {
+                                fontSize: '14px',
+                                color: '#1f2937',
+                                '::placeholder': { color: '#9ca3af' }
+                            }
+                        }
+                    });
+
+                    this.$nextTick(() => {
+                        const container = document.getElementById('card-element');
+                        if (container) {
+                            this.cardElement.mount('#card-element');
+                        }
+                    });
+
+                    this.cardElement.on('change', (event) => {
+                        this.errorMessage = event.error ? event.error.message : '';
+                    });
+                },
+
+                async submitPayment() {
+                    const paymentMethod = $wire.formData.payment_method;
+
+                    this.processing = true;
+                    this.errorMessage = '';
+
+                    try {
+                        if (paymentMethod === 'new_card') {
+                            const { paymentMethod: stripePM, error } = await this.stripe.createPaymentMethod({
+                                type: 'card',
+                                card: this.cardElement,
+                            });
+
+                            if (error) {
+                                this.errorMessage = error.message;
+                                this.processing = false;
+                                return;
+                            }
+
+                            await $wire.set('formData.payment_method_id', stripePM.id);
+                        }
+
+                        await $wire.mountAction('processDonation');
+                    } catch (e) {
+                        this.errorMessage = 'Payment failed. Please try again.';
+                    }
+                    this.processing = false;
+                }
+            };
+        }
+    </script>
 </x-filament-panels::page>

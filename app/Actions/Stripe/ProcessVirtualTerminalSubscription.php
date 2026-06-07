@@ -12,6 +12,7 @@ use Stripe\Customer;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 use Stripe\Exception\InvalidRequestException;
+use Stripe\PaymentMethod;
 use Stripe\Price;
 use Stripe\Stripe;
 use Stripe\Subscription as StripeSubscription;
@@ -26,6 +27,7 @@ class ProcessVirtualTerminalSubscription
         string $email,
         Organization $organization,
         ?string $savedCardId = null,
+        ?string $paymentMethodId = null,
         string $source = 'virtual_terminal',
     ): Subscription {
         Stripe::setApiKey(config('services.stripe.secret'));
@@ -78,6 +80,11 @@ class ProcessVirtualTerminalSubscription
                 ], $stripeOptions);
             }
 
+            if ($paymentMethodId) {
+                $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
+                $paymentMethod->attach(['customer' => $donor->stripe_customer_id], $stripeOptions);
+            }
+
             $subscriptionParams = [
                 'customer' => $donor->stripe_customer_id,
                 'items' => [['price' => $price->id]],
@@ -91,6 +98,8 @@ class ProcessVirtualTerminalSubscription
 
             if ($savedCardId) {
                 $subscriptionParams['default_payment_method'] = $savedCardId;
+            } elseif ($paymentMethodId) {
+                $subscriptionParams['default_payment_method'] = $paymentMethodId;
             }
 
             if ($organization->stripe_account_id && $organization->fee_collection_method === 'upfront') {

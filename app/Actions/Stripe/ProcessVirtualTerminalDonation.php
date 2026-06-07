@@ -27,6 +27,7 @@ class ProcessVirtualTerminalDonation
         string $email,
         Organization $organization,
         ?string $savedCardId = null,
+        ?string $paymentMethodId = null,
         string $source = 'virtual_terminal',
     ): Donation {
         Stripe::setApiKey(config('services.stripe.secret'));
@@ -70,7 +71,11 @@ class ProcessVirtualTerminalDonation
                 'receipt_email' => $donor->email,
             ];
 
-            if ($savedCardId) {
+            if ($paymentMethodId) {
+                $params['payment_method'] = $paymentMethodId;
+                $params['off_session'] = true;
+                $params['confirm'] = true;
+            } elseif ($savedCardId) {
                 $params['payment_method'] = $savedCardId;
                 $params['off_session'] = true;
                 $params['confirm'] = true;

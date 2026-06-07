@@ -11,6 +11,8 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Validator;
+use Stripe\PaymentMethod;
+use Stripe\Stripe;
 
 class VirtualTerminal extends Page
 {
@@ -32,6 +34,11 @@ class VirtualTerminal extends Page
 
     public ?Organization $organization = null;
 
+    public string $stripePublishableKey = '';
+
+    /** @var array<int, array<string, mixed>> */
+    public array $savedCards = [];
+
     /** @var array<string, mixed> */
     public array $formData = [
         'campaign_id' => null,
@@ -42,6 +49,7 @@ class VirtualTerminal extends Page
         'last_name' => '',
         'email' => '',
         'payment_method' => 'new_card',
+        'payment_method_id' => '',
     ];
 
     public static function canAccess(): bool
@@ -52,6 +60,7 @@ class VirtualTerminal extends Page
     public function mount(): void
     {
         $this->organization = auth()->user()->organization;
+        $this->stripePublishableKey = config('services.stripe.key');
         $this->preloadedSupporterPublicId = request()->query('vt-supporter');
 
         if ($this->preloadedSupporterPublicId) {
@@ -72,6 +81,44 @@ class VirtualTerminal extends Page
             $this->formData['first_name'] = $names[0] ?? '';
             $this->formData['last_name'] = $names[1] ?? '';
             $this->formData['email'] = $this->preloadedSupporter->email;
+            $this->loadSavedCards();
+        }
+    }
+
+    public function loadSavedCards(): void
+    {
+        $donor = $this->preloadedSupporter;
+        if (! $donor || ! $donor->stripe_customer_id) {
+            $this->savedCards = [];
+
+            return;
+        }
+
+        try {
+            $organization = $this->organization;
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            $stripeOptions = $organization->stripe_account_id
+                ? ['stripe_account' => $organization->stripe_account_id]
+                : [];
+
+            $paymentMethods = PaymentMethod::all([
+                'customer' => $donor->stripe_customer_id,
+                'type' => 'card',
+            ], $stripeOptions);
+
+            $this->savedCards = collect($paymentMethods->data)->map(function ($pm) {
+                return [
+                    'id' => $pm->id,
+                    'brand' => ucfirst($pm->card->brand),
+                    'last4' => $pm->card->last4,
+                    'exp_month' => $pm->card->exp_month,
+                    'exp_year' => $pm->card->exp_year,
+                ];
+            })->toArray();
+        } catch (\Throwable $e) {
+            report($e);
+            $this->savedCards = [];
         }
     }
 
@@ -171,6 +218,7 @@ class VirtualTerminal extends Page
                     'last_name' => ['required', 'string', 'max:255'],
                     'email' => ['required', 'email', 'max:255'],
                     'payment_method' => ['nullable', 'string'],
+                    'payment_method_id' => ['nullable', 'string'],
                 ]);
 
                 if ($validator->fails()) {
@@ -195,6 +243,7 @@ class VirtualTerminal extends Page
                             email: $data['email'],
                             organization: $this->organization,
                             savedCardId: $data['payment_method'] !== 'new_card' ? $data['payment_method'] : null,
+                            paymentMethodId: $data['payment_method_id'] ?? null,
                             source: 'virtual_terminal',
                         );
 
@@ -211,6 +260,7 @@ class VirtualTerminal extends Page
                             email: $data['email'],
                             organization: $this->organization,
                             savedCardId: $data['payment_method'] !== 'new_card' ? $data['payment_method'] : null,
+                            paymentMethodId: $data['payment_method_id'] ?? null,
                             source: 'virtual_terminal',
                         );
 
@@ -243,6 +293,7 @@ class VirtualTerminal extends Page
             'last_name' => $this->preloadedSupporter ? $this->formData['last_name'] : '',
             'email' => $this->preloadedSupporter ? $this->formData['email'] : '',
             'payment_method' => 'new_card',
+            'payment_method_id' => '',
         ];
     }
 }
