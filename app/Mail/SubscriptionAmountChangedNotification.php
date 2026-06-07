@@ -17,6 +17,7 @@ class SubscriptionAmountChangedNotification extends Mailable
         public Subscription $subscription,
         public float $previousAmount,
         public string $amountDisplay,
+        public bool $isDonor = false,
     ) {}
 
     public function envelope(): Envelope

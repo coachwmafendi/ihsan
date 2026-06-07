@@ -43,6 +43,14 @@
         <p style="font-size: 0.875rem; color: #94a3b8;">
             You are receiving this because a recurring donation amount was updated.
         </p>
+
+        @if ($isDonor)
+            <p style="font-size: 0.875rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 24px;">
+                <a href="{{ route('donorportal.dashboard', $subscription->campaign->organization) }}" style="color: #0d9488; text-decoration: underline;">Go to your donor portal</a>
+                to view your donation history, manage subscriptions, and download receipts.
+            </p>
+        @endif
+
         <p style="margin-top: 8px; font-size: 12px; color: #94a3b8;">Sent with ❤️ from {{ config('app.name') }}</p>
     </div>
 </body>

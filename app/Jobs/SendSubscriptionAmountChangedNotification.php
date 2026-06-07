@@ -37,16 +37,17 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
 
         $amountDisplay = $subscription->currency_symbol.' '.number_format($subscription->amount, 2);
 
-        $mailable = new SubscriptionAmountChangedNotification(
-            $subscription,
-            $this->previousAmount,
-            $amountDisplay,
-        );
-
         // Notify donor
         if (filled($subscription->donor?->email)) {
+            $donorMail = new SubscriptionAmountChangedNotification(
+                $subscription,
+                $this->previousAmount,
+                $amountDisplay,
+                true,
+            );
+
             Mail::to($subscription->donor->email)
-                ->queue($mailable->with('recipientName', $subscription->donor->name));
+                ->queue($donorMail);
         }
 
         // Notify org admins
@@ -56,8 +57,15 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
             ->get();
 
         foreach ($admins as $admin) {
+            $adminMail = new SubscriptionAmountChangedNotification(
+                $subscription,
+                $this->previousAmount,
+                $amountDisplay,
+                false,
+            );
+
             Mail::to($admin->email)
-                ->queue($mailable->with('recipientName', $admin->name));
+                ->queue($adminMail);
         }
     }
 }
