@@ -6,6 +6,12 @@
 @endphp
 
 <x-filament-panels::page>
+    <style>
+        .fi-simple-layout .fi-simple-main {
+            max-width: none !important;
+            width: 100% !important;
+        }
+    </style>
     <div x-data="vtPayment()" x-init="initStripe(@js($this->stripePublishableKey))" class="max-w-7xl mx-auto">
         {{-- Header --}}
         <div class="mb-6">
