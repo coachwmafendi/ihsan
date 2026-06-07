@@ -248,7 +248,7 @@
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Card details</label>
 
                                 {{-- Skeleton loader --}}
-                                <div x-show="cardLoading" x-cloak class="animate-pulse space-y-2">
+                                <div x-show="cardLoading" class="animate-pulse space-y-2">
                                     <div class="h-10 bg-gray-200 rounded-lg dark:bg-gray-700"></div>
                                     <div class="flex gap-3">
                                         <div class="h-10 flex-1 bg-gray-200 rounded-lg dark:bg-gray-700"></div>
@@ -256,7 +256,8 @@
                                     </div>
                                 </div>
 
-                                <div x-show="!cardLoading" x-cloak>
+                                {{-- Always in DOM so Stripe can mount; invisible only while loading --}}
+                                <div :class="cardLoading ? 'invisible h-0 overflow-hidden' : ''">
                                     <div id="card-element" class="p-3 border border-gray-300 rounded-lg dark:border-gray-600"></div>
                                     <div class="text-danger-600 text-sm mt-2" role="alert" x-text="errorMessage"></div>
                                 </div>
@@ -350,32 +351,23 @@
                     if (this.cardMounted) return;
 
                     this.cardLoading = true;
+                    await this.$nextTick();
 
-                    // Wait for container to exist (retry up to 10 times, 100ms apart)
-                    let retries = 0;
-                    const maxRetries = 10;
-
-                    while (retries < maxRetries) {
-                        const container = document.getElementById('card-element');
-                        if (container && container.offsetParent !== null) {
-                            try {
-                                // Unmount first if previously mounted
-                                this.cardElement.unmount();
-                            } catch (e) {
-                                // Not mounted yet, ignore
-                            }
-                            this.cardElement.mount('#card-element');
-                            this.cardMounted = true;
-                            this.cardLoading = false;
-                            return;
-                        }
-                        await new Promise(r => setTimeout(r, 100));
-                        retries++;
+                    const container = document.getElementById('card-element');
+                    if (!container) {
+                        this.cardLoading = false;
+                        this.errorMessage = 'Could not load card form. Please try again.';
+                        return;
                     }
 
-                    // Failed to mount after retries
+                    try {
+                        this.cardElement.unmount();
+                    } catch (e) {
+                        // Not previously mounted, ignore
+                    }
+                    this.cardElement.mount('#card-element');
+                    this.cardMounted = true;
                     this.cardLoading = false;
-                    this.errorMessage = 'Could not load card form. Please try again.';
                 },
 
                 async submitPayment() {

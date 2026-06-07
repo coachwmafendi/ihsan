@@ -16,6 +16,8 @@ class VirtualTerminal extends Page
 {
     protected string $view = 'filament.app.pages.virtual-terminal';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
 
     protected static ?string $navigationLabel = 'Virtual Terminal';
@@ -123,9 +125,11 @@ class VirtualTerminal extends Page
     {
         $this->preloadedSupporter = null;
         $this->preloadedSupporterPublicId = null;
+        $this->savedCards = [];
         $this->formData['first_name'] = '';
         $this->formData['last_name'] = '';
         $this->formData['email'] = '';
+        $this->formData['payment_method'] = 'new_card';
     }
 
     public function searchDonorByEmail(): void
@@ -154,6 +158,7 @@ class VirtualTerminal extends Page
             $this->formData['email'] = $this->searchedDonor->email;
             $this->preloadedSupporter = $this->searchedDonor;
             $this->searchedDonor = null;
+            $this->loadSavedCards();
         }
     }
 

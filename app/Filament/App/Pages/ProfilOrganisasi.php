@@ -3,6 +3,7 @@
 namespace App\Filament\App\Pages;
 
 use App\Filament\Forms\Components\DonorPortalLink;
+use App\Filament\Forms\Components\VirtualTerminalLink;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -256,6 +257,18 @@ class ProfilOrganisasi extends Page
                                     ->label('Account number')
                                     ->nullable()
                                     ->maxLength(255),
+                            ]),
+
+                        Tab::make('Virtual Terminal')
+                            ->icon('heroicon-o-credit-card')
+                            ->columns(1)
+                            ->schema([
+                                Section::make('Virtual Terminal Link')
+                                    ->description('Process in-person or over-the-phone donations using the Virtual Terminal.')
+                                    ->columnSpanFull()
+                                    ->schema([
+                                        VirtualTerminalLink::make('virtual_terminal_link'),
+                                    ]),
                             ]),
 
                         Tab::make('Donor Portal')
