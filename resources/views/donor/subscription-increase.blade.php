@@ -73,9 +73,9 @@
 
     {{-- Custom amount input --}}
     <div x-show="selected === 'custom'" x-transition.opacity.duration.200ms class="mb-8">
-        <label class="block text-sm font-semibold text-slate-700 mb-2">Custom increase amount</label>
-        <div class="relative max-w-xs">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">{{ $symbol }}</span>
+        <label class="block text-base font-bold text-slate-900 mb-3">Custom increase amount</label>
+        <div class="relative max-w-sm">
+            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-base font-bold text-slate-900">{{ $symbol }}</span>
             <input
                 type="number"
                 step="0.01"
@@ -83,12 +83,12 @@
                 x-ref="customInput"
                 x-model="customAmount"
                 placeholder="0.00"
-                class="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-8 pr-4 text-sm font-bold text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                class="block w-full appearance-none rounded-xl border-2 border-slate-900 bg-white py-3 pl-11 pr-4 text-base font-bold text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-blue-600 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             >
         </div>
-        <p class="mt-2 text-sm text-slate-600">
+        <p class="mt-3 text-sm text-slate-600">
             Future donations will be
-            <span class="font-semibold" x-text="symbol + ' ' + newTotal.toFixed(2) + ' ' + '{{ strtoupper($currency) }}'.toUpperCase() + '/' + interval"></span>
+            <span class="font-bold text-slate-900" x-text="symbol + ' ' + newTotal.toFixed(2) + ' ' + '{{ strtoupper($currency) }}'.toUpperCase() + '/' + interval"></span>
         </p>
     </div>
 
