@@ -75,7 +75,7 @@
     <div x-show="selected === 'custom'" x-transition.opacity.duration.200ms class="mb-8">
         <label class="block text-base font-bold text-slate-900 mb-3">Custom increase amount</label>
         <div class="relative max-w-sm">
-            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-base font-bold text-slate-900">{{ $symbol }}</span>
+            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-base font-bold text-slate-400">{{ $symbol }}</span>
             <input
                 type="number"
                 step="0.01"
