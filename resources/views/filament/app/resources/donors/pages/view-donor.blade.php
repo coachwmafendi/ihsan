@@ -85,6 +85,13 @@
                 <div class="flex items-center gap-3 border-b border-gray-200 p-4 sm:px-6 dark:border-white/10">
                     <x-heroicon-o-user class="size-5 shrink-0 text-gray-950 dark:text-white" />
                     <h2 class="text-base leading-6 font-semibold text-gray-950 dark:text-white">Information</h2>
+                    <button
+                        type="button"
+                        wire:click="mountAction('editSupporter')"
+                        class="ml-auto text-sm font-medium text-primary-600 transition hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                    >
+                        Edit
+                    </button>
                 </div>
 
                 <div class="border-t border-gray-100 px-6 py-4 space-y-2 text-sm dark:border-gray-800">
