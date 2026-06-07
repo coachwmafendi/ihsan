@@ -453,6 +453,14 @@ class ViewDonor extends ViewRecord
             ->get();
     }
 
+    public function getDonorPortalUrl(): string
+    {
+        $organization = auth()->user()->organization;
+        $token = $this->record->generateMagicToken();
+
+        return route('donorportal.magic-login', [$organization, $token]);
+    }
+
     public function getLifetimeDonatedMyr(): string
     {
         $total = $this->record->donations()

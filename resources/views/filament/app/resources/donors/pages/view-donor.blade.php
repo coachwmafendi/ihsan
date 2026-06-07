@@ -231,7 +231,7 @@
                 <div class="border-t border-gray-200 dark:border-gray-800"></div>
 
                 <a
-                    href="#"
+                    href="{{ $this->getDonorPortalUrl() }}"
                     target="_blank"
                     rel="noopener"
                     class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800"
