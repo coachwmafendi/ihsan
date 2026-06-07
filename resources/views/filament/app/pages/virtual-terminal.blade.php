@@ -249,6 +249,7 @@
                             x-transition
                             x-init="$watch('$wire.formData.payment_method', v => { if(v === 'new_card') mountCard() }); if ($wire.formData.payment_method === 'new_card') { $nextTick(() => mountCard()) }"
                             class="mt-4 space-y-4"
+                            wire:ignore
                         >
                             <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Card details</label>
