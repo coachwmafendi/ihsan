@@ -82,7 +82,7 @@
                                     Scheduled for
                                 </label>
                                 <input
-                                    type="datetime-local"
+                                    type="date"
                                     id="scheduled_for"
                                     wire:model="formData.scheduled_for"
                                     class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
@@ -217,6 +217,7 @@
                                         class="h-4 w-4 text-primary-600"
                                     />
                                     <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                        <span class="text-gray-600 dark:text-gray-400">Existing credit card</span>
                                         <span class="font-medium">{{ $card['brand'] }}</span>
                                         <span>&bull;&bull;{{ $card['last4'] }}</span>
                                         <span class="text-gray-400 dark:text-gray-500">Exp. {{ $card['exp_month'] }}/{{ $card['exp_year'] }}</span>
@@ -236,11 +237,29 @@
                             <span class="text-sm text-gray-700 dark:text-gray-300">New credit card</span>
                         </label>
 
-                        <div x-show="$wire.formData.payment_method === 'new_card'" x-cloak class="mt-4 space-y-4">
+                        <div
+                            x-show="$wire.formData.payment_method === 'new_card'"
+                            x-cloak
+                            x-transition
+                            x-init="$watch('$wire.formData.payment_method', v => { if(v === 'new_card') mountCard() })"
+                            class="mt-4 space-y-4"
+                        >
                             <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Card details</label>
-                                <div id="card-element" class="p-3 border border-gray-300 rounded-lg dark:border-gray-600"></div>
-                                <div class="text-danger-600 text-sm mt-2" role="alert" x-text="errorMessage"></div>
+
+                                {{-- Skeleton loader --}}
+                                <div x-show="cardLoading" x-cloak class="animate-pulse space-y-2">
+                                    <div class="h-10 bg-gray-200 rounded-lg dark:bg-gray-700"></div>
+                                    <div class="flex gap-3">
+                                        <div class="h-10 flex-1 bg-gray-200 rounded-lg dark:bg-gray-700"></div>
+                                        <div class="h-10 w-24 bg-gray-200 rounded-lg dark:bg-gray-700"></div>
+                                    </div>
+                                </div>
+
+                                <div x-show="!cardLoading" x-cloak>
+                                    <div id="card-element" class="p-3 border border-gray-300 rounded-lg dark:border-gray-600"></div>
+                                    <div class="text-danger-600 text-sm mt-2" role="alert" x-text="errorMessage"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -303,13 +322,13 @@
                 cardElement: null,
                 processing: false,
                 errorMessage: '',
+                cardLoading: false,
+                cardMounted: false,
 
                 initStripe(publishableKey) {
                     if (!publishableKey) return;
-
                     this.stripe = Stripe(publishableKey);
-                    const elements = this.stripe.elements();
-                    this.cardElement = elements.create('card', {
+                    this.cardElement = this.stripe.elements().create('card', {
                         style: {
                             base: {
                                 fontSize: '14px',
@@ -318,17 +337,45 @@
                             }
                         }
                     });
-
-                    this.$nextTick(() => {
-                        const container = document.getElementById('card-element');
-                        if (container) {
-                            this.cardElement.mount('#card-element');
-                        }
-                    });
-
                     this.cardElement.on('change', (event) => {
                         this.errorMessage = event.error ? event.error.message : '';
                     });
+                    // If already on new_card, mount immediately
+                    if ($wire.formData.payment_method === 'new_card') {
+                        this.mountCard();
+                    }
+                },
+
+                async mountCard() {
+                    if (this.cardMounted) return;
+
+                    this.cardLoading = true;
+
+                    // Wait for container to exist (retry up to 10 times, 100ms apart)
+                    let retries = 0;
+                    const maxRetries = 10;
+
+                    while (retries < maxRetries) {
+                        const container = document.getElementById('card-element');
+                        if (container && container.offsetParent !== null) {
+                            try {
+                                // Unmount first if previously mounted
+                                this.cardElement.unmount();
+                            } catch (e) {
+                                // Not mounted yet, ignore
+                            }
+                            this.cardElement.mount('#card-element');
+                            this.cardMounted = true;
+                            this.cardLoading = false;
+                            return;
+                        }
+                        await new Promise(r => setTimeout(r, 100));
+                        retries++;
+                    }
+
+                    // Failed to mount after retries
+                    this.cardLoading = false;
+                    this.errorMessage = 'Could not load card form. Please try again.';
                 },
 
                 async submitPayment() {

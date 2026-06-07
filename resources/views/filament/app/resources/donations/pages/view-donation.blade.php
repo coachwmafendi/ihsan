@@ -228,6 +228,30 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-8 py-1">
+                        <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Transaction ID</span>
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            @if ($this->record->stripe_charge_id)
+                                @php
+                                    $stripeAccountId = $this->record->campaign?->organization?->stripe_account_id;
+                                    $chargeUrl = $stripeAccountId
+                                        ? 'https://dashboard.stripe.com/connect/accounts/'.$stripeAccountId.'/charges/'.$this->record->stripe_charge_id
+                                        : 'https://dashboard.stripe.com/charges/'.$this->record->stripe_charge_id;
+                                @endphp
+                                <a
+                                    href="{{ $chargeUrl }}"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="inline-flex items-center gap-1.5 font-mono text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors truncate"
+                                >
+                                    {{ $this->record->stripe_charge_id }}
+                                    <x-heroicon-o-arrow-top-right-on-square class="size-3.5 shrink-0" />
+                                </a>
+                            @else
+                                <span class="text-gray-900 dark:text-gray-100">—</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-8 py-1">
                         <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Payment Processor</span>
                         <span class="flex items-center gap-2 text-gray-900 dark:text-gray-100">
                             <x-icons.stripe class="h-5 w-auto rounded" />
@@ -377,6 +401,62 @@
         </section>
 
 
+        {{-- Sources --}}
+        <section id="sources" class="scroll-mt-24">
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
+                    <x-heroicon-o-globe-alt class="size-5 text-gray-400 dark:text-gray-500" />
+                    <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Sources</h3>
+                </div>
+                <div class="px-6 py-4 space-y-2 text-sm">
+                    @php
+                        $utmParams = $this->record->utm_params;
+                        if (is_string($utmParams)) { $utmParams = json_decode($utmParams, true); }
+                        $utmParams = is_array($utmParams) ? $utmParams : [];
+                    @endphp
+
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[160px] shrink-0 text-gray-500 dark:text-gray-400">Page URL</span>
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="text-gray-900 dark:text-gray-100 truncate">{{ $this->record->page_url ?? '—' }}</span>
+                            @if ($this->record->page_url)
+                                <button type="button" @click="navigator.clipboard.writeText('{{ $this->record->page_url }}'); $dispatch('notify', { message: 'Copied' })" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors shrink-0" title="Copy">
+                                    <x-heroicon-o-clipboard-document class="size-3.5" />
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[160px] shrink-0 text-gray-500 dark:text-gray-400">Element</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $this->record->element_label ?? '—' }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[160px] shrink-0 text-gray-500 dark:text-gray-400">UTM Source</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $utmParams['source'] ?? '—' }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[160px] shrink-0 text-gray-500 dark:text-gray-400">UTM Medium</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $utmParams['medium'] ?? '—' }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-8 py-1">
+                        <span class="w-[160px] shrink-0 text-gray-500 dark:text-gray-400">UTM Campaign</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $utmParams['campaign'] ?? '—' }}</span>
+                    </div>
+
+                    @if ($this->record->donor_message)
+                        <div class="flex items-start gap-8 py-1">
+                            <span class="w-[160px] shrink-0 text-gray-500 dark:text-gray-400 pt-0.5">Donor Message</span>
+                            <span class="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{{ $this->record->donor_message }}</span>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </section>
+
         {{-- Insights --}}
         <section id="insights" class="scroll-mt-24">
             <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
@@ -452,133 +532,36 @@
             </div>
         </section>
 
-        {{-- Stripe Info --}}
-        <section id="stripe-info" class="scroll-mt-24">
+        {{-- Receipts --}}
+        <section id="receipts" class="scroll-mt-24">
             <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-                    <x-heroicon-o-credit-card class="size-5 text-gray-400 dark:text-gray-500" />
-                    <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Stripe Info</h3>
+                    <x-heroicon-o-document-text class="size-5 text-gray-400 dark:text-gray-500" />
+                    <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Receipts</h3>
                 </div>
                 <div class="px-6 py-4 space-y-2 text-sm">
                     <div class="flex items-center gap-8 py-1">
-                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Payment Intent ID</span>
-                        <div class="flex items-center gap-1.5 min-w-0">
-                            <span class="text-gray-900 dark:text-gray-100 font-mono truncate">{{ $this->record->stripe_payment_intent_id ?? '—' }}</span>
-                            @if ($this->record->stripe_payment_intent_id)
-                                <button
-                                    type="button"
-                                    @click="navigator.clipboard.writeText('{{ $this->record->stripe_payment_intent_id }}'); $dispatch('notify', { message: 'Copied' })"
-                                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors shrink-0"
-                                    title="Copy"
-                                >
-                                    <x-heroicon-o-clipboard-document class="size-3.5" />
-                                </button>
-                            @endif
-                        </div>
+                        <span class="w-[160px] shrink-0 text-gray-500 dark:text-gray-400">Receipt No.</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $this->record->invoice_number ?? '—' }}</span>
                     </div>
 
-                    <div class="flex items-center gap-8 py-1">
-                        <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Charge ID</span>
-                        <div class="flex items-center gap-1.5 min-w-0">
-                            <span class="text-gray-900 dark:text-gray-100 font-mono truncate">{{ $this->record->stripe_charge_id ?? '—' }}</span>
-                            @if ($this->record->stripe_charge_id)
-                                <button
-                                    type="button"
-                                    @click="navigator.clipboard.writeText('{{ $this->record->stripe_charge_id }}'); $dispatch('notify', { message: 'Copied' })"
-                                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors shrink-0"
-                                    title="Copy"
-                                >
-                                    <x-heroicon-o-clipboard-document class="size-3.5" />
-                                </button>
-                            @endif
-                        </div>
+                    <div class="flex items-baseline gap-8 py-1">
+                        <span class="w-[160px] shrink-0 text-gray-500 dark:text-gray-400">Receipt Sent</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ $this->record->receipt_sent_at?->format('d M Y, h:i A') ?? '—' }}</span>
                     </div>
 
-                    @if ($this->record->subscription_id)
+                    @if ($this->record->status === \App\Enums\DonationStatus::Succeeded)
                         <div class="flex items-center gap-8 py-1">
-                            <span class="w-[120px] shrink-0 text-gray-500 dark:text-gray-400">Subscription</span>
-                            <div class="flex items-center gap-1.5 min-w-0">
-                                <span class="text-gray-900 dark:text-gray-100 font-mono truncate">{{ $this->record->subscription?->public_id ?? $this->record->subscription_id }}</span>
-                            </div>
+                            <span class="w-[160px] shrink-0 text-gray-500 dark:text-gray-400">Download</span>
+                            <a href="{{ route('donations.receipt.download', $this->record) }}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors">
+                                <x-heroicon-o-arrow-down-tray class="size-4" />
+                                Download Receipt
+                            </a>
                         </div>
                     @endif
                 </div>
             </div>
         </section>
-
-        @if ($this->record->subscription)
-            @php $sub = $this->record->subscription; @endphp
-            {{-- Recurring Plan --}}
-            <section id="recurring-plan" class="scroll-mt-24">
-                <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
-                    <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-                        <x-heroicon-o-arrow-path class="size-5 text-gray-400 dark:text-gray-500" />
-                        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Recurring Plan</h3>
-                        <a
-                            href="{{ route('filament.app.resources.subscriptions.view', $sub->public_id) }}"
-                            class="ml-auto text-sm font-medium text-primary-600 transition hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-                        >
-                            View Plan
-                        </a>
-                    </div>
-                    <div class="px-6 py-4 space-y-2 text-sm">
-                        <div class="flex items-center gap-8 py-1">
-                            <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Plan ID</span>
-                            <span class="font-mono text-gray-900 dark:text-gray-100">{{ $sub->public_id }}</span>
-                        </div>
-
-                        <div class="flex items-center gap-8 py-1">
-                            <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Status</span>
-                            @php
-                                $subStatusColor = match ($sub->status->value) {
-                                    'active' => 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                                    'past_due' => 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-                                    'cancelled' => 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                                    default => 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-                                };
-                            @endphp
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium {{ $subStatusColor }}">
-                                {{ str($sub->status->value)->headline() }}
-                            </span>
-                        </div>
-
-                        <div class="flex items-center gap-8 py-1">
-                            <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Amount</span>
-                            <span class="text-gray-900 dark:text-gray-100">{{ strtoupper($sub->currency ?? 'MYR') }} {{ number_format((float) $sub->amount, 2) }}</span>
-                        </div>
-
-                        <div class="flex items-center gap-8 py-1">
-                            <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Frequency</span>
-                            <span class="text-gray-900 dark:text-gray-100">{{ str($sub->interval->value)->headline() }}</span>
-                        </div>
-
-                        <div class="flex items-baseline gap-8 py-1">
-                            <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Next Billing Date</span>
-                            <span class="text-gray-900 dark:text-gray-100">{{ $sub->current_period_end?->format('d M Y, h:i A') ?? '—' }}</span>
-                        </div>
-
-                        @if ($sub->paused_until)
-                            <div class="flex items-baseline gap-8 py-1">
-                                <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Paused Until</span>
-                                <span class="text-amber-700 dark:text-amber-400">{{ $sub->paused_until->format('d M Y') }}</span>
-                            </div>
-                        @endif
-
-                        @if ($sub->cancel_at)
-                            <div class="flex items-baseline gap-8 py-1">
-                                <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Ends On</span>
-                                <span class="text-red-600 dark:text-red-400">{{ $sub->cancel_at->format('d M Y') }}</span>
-                            </div>
-                        @endif
-
-                        <div class="flex items-baseline gap-8 py-1">
-                            <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Started</span>
-                            <span class="text-gray-900 dark:text-gray-100">{{ $sub->created_at->format('d M Y') }}</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        @endif
 
     </div>
 
@@ -613,15 +596,17 @@
             @php
                 $navItems = [
                     ['id' => 'general', 'label' => 'Donation', 'icon' => 'heroicon-o-information-circle'],
-                    ['id' => 'personal-info', 'label' => 'Personal Information', 'icon' => 'heroicon-o-user'],
-                    ['id' => 'donor-campaign', 'label' => 'Donor & Campaign', 'icon' => 'heroicon-o-user-group'],
-                    ['id' => 'payment-fee', 'label' => 'Payment & Fee', 'icon' => 'heroicon-o-banknotes'],
-                    ['id' => 'insights', 'label' => 'Insights', 'icon' => 'heroicon-o-chart-pie'],
-                    ['id' => 'stripe-info', 'label' => 'Stripe Info', 'icon' => 'heroicon-o-credit-card'],
+                    ['id' => 'payment-fee', 'label' => 'Payment & Fees', 'icon' => 'heroicon-o-banknotes'],
                 ];
                 if ($this->record->subscription) {
                     $navItems[] = ['id' => 'recurring-plan', 'label' => 'Recurring Plan', 'icon' => 'heroicon-o-arrow-path'];
                 }
+                $navItems = array_merge($navItems, [
+                    ['id' => 'personal-info', 'label' => 'Personal Information', 'icon' => 'heroicon-o-user'],
+                    ['id' => 'sources', 'label' => 'Sources', 'icon' => 'heroicon-o-globe-alt'],
+                    ['id' => 'insights', 'label' => 'Insights', 'icon' => 'heroicon-o-chart-pie'],
+                    ['id' => 'receipts', 'label' => 'Receipts', 'icon' => 'heroicon-o-document-text'],
+                ]);
             @endphp
             <div class="space-y-1">
             @foreach ($navItems as $item)
