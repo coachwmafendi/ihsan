@@ -19,9 +19,9 @@ $vtUrl = route('filament.app.pages.virtual-terminal');
     </button>
     <button
         type="button"
-        @click="window.open('{{ $vtUrl }}', '_blank')"
+        @click="window.open('{{ $vtUrl }}', '_blank', 'width=1200,height=900,location=yes,scrollbars=yes,resizable=yes')"
         class="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-        title="Open in new tab"
+        title="Open in new window"
     >
         <x-heroicon-o-arrow-top-right-on-square class="size-4" />
         Open

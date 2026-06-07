@@ -16,17 +16,22 @@ class VirtualTerminal extends Page
 {
     protected string $view = 'filament.app.pages.virtual-terminal';
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
+    protected static string|\BackedEnum|null $navigationIcon = null;
 
-    protected static ?string $navigationLabel = 'Virtual Terminal';
+    protected static ?string $navigationLabel = null;
 
     protected static ?string $title = 'Virtual Terminal';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = null;
 
     public static function shouldRegisterNavigation(): bool
     {
         return false;
+    }
+
+    public function getLayout(): string
+    {
+        return 'filament-panels::components.layout.simple';
     }
 
     public ?string $preloadedSupporterPublicId = null;

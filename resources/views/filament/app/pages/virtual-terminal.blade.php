@@ -246,21 +246,8 @@
                         >
                             <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Card details</label>
-
-                                {{-- Skeleton loader --}}
-                                <div x-show="cardLoading" class="animate-pulse space-y-2">
-                                    <div class="h-10 bg-gray-200 rounded-lg dark:bg-gray-700"></div>
-                                    <div class="flex gap-3">
-                                        <div class="h-10 flex-1 bg-gray-200 rounded-lg dark:bg-gray-700"></div>
-                                        <div class="h-10 w-24 bg-gray-200 rounded-lg dark:bg-gray-700"></div>
-                                    </div>
-                                </div>
-
-                                {{-- Always in DOM so Stripe can mount; invisible only while loading --}}
-                                <div :class="cardLoading ? 'invisible h-0 overflow-hidden' : ''">
-                                    <div id="card-element" class="p-3 border border-gray-300 rounded-lg dark:border-gray-600"></div>
-                                    <div class="text-danger-600 text-sm mt-2" role="alert" x-text="errorMessage"></div>
-                                </div>
+                                <div id="card-element" class="p-3 border border-gray-300 rounded-lg dark:border-gray-600"></div>
+                                <div class="text-danger-600 text-sm mt-2" role="alert" x-text="errorMessage"></div>
                             </div>
                         </div>
                     </div>
@@ -323,7 +310,6 @@
                 cardElement: null,
                 processing: false,
                 errorMessage: '',
-                cardLoading: false,
                 cardMounted: false,
 
                 initStripe(publishableKey) {
@@ -350,24 +336,19 @@
                 async mountCard() {
                     if (this.cardMounted) return;
 
-                    this.cardLoading = true;
-                    await this.$nextTick();
+                    await new Promise(r => setTimeout(r, 100));
 
                     const container = document.getElementById('card-element');
                     if (!container) {
-                        this.cardLoading = false;
                         this.errorMessage = 'Could not load card form. Please try again.';
                         return;
                     }
 
                     try {
                         this.cardElement.unmount();
-                    } catch (e) {
-                        // Not previously mounted, ignore
-                    }
+                    } catch (e) {}
                     this.cardElement.mount('#card-element');
                     this.cardMounted = true;
-                    this.cardLoading = false;
                 },
 
                 async submitPayment() {
