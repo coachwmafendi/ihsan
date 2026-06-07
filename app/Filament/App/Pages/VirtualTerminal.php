@@ -11,6 +11,8 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Validator;
+use Stripe\PaymentMethod;
+use Stripe\Stripe;
 
 class VirtualTerminal extends Page
 {
@@ -76,6 +78,7 @@ class VirtualTerminal extends Page
         }
 
         $this->loadDefaultCampaign();
+        $this->formData['scheduled_for'] = now()->format('Y-m-d');
     }
 
     public function loadPreloadedSupporter(): void
@@ -96,24 +99,37 @@ class VirtualTerminal extends Page
     public function loadSavedCards(): void
     {
         $donor = $this->preloadedSupporter;
-        if (! $donor) {
+        if (! $donor || ! $donor->stripe_customer_id) {
             $this->savedCards = [];
 
             return;
         }
 
-        $this->savedCards = $donor->paymentMethods()
-            ->get()
-            ->map(function ($pm) {
+        try {
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            $stripeOptions = $this->organization?->stripe_account_id
+                ? ['stripe_account' => $this->organization->stripe_account_id]
+                : [];
+
+            $paymentMethods = PaymentMethod::all([
+                'customer' => $donor->stripe_customer_id,
+                'type' => 'card',
+            ], $stripeOptions);
+
+            $this->savedCards = collect($paymentMethods->data)->map(function ($pm) {
                 return [
-                    'id' => $pm->stripe_payment_method_id,
-                    'brand' => $pm->brand,
-                    'last4' => $pm->last4,
-                    'exp_month' => $pm->exp_month,
-                    'exp_year' => $pm->exp_year,
+                    'id' => $pm->id,
+                    'brand' => ucfirst($pm->card->brand),
+                    'last4' => $pm->card->last4,
+                    'exp_month' => $pm->card->exp_month,
+                    'exp_year' => $pm->card->exp_year,
                 ];
-            })
-            ->toArray();
+            })->toArray();
+        } catch (\Throwable $e) {
+            report($e);
+            $this->savedCards = [];
+        }
     }
 
     public function loadDefaultCampaign(): void
@@ -183,20 +199,32 @@ class VirtualTerminal extends Page
     {
         $amount = (float) $this->formData['amount'];
         if ($amount <= 0) {
-            return 'MYR 0.00';
+            return $this->getCurrency().' 0.00';
         }
 
         $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
         $fee = $amount * $feePercent / 100;
 
-        return 'MYR '.number_format($fee, 2);
+        return $this->getCurrency().' '.number_format($fee, 2);
+    }
+
+    public function getCurrency(): string
+    {
+        $settings = $this->organization?->settings ?? [];
+        $currencies = $settings['accepted_currencies'] ?? [];
+
+        if (! empty($currencies)) {
+            return strtoupper($currencies[0]);
+        }
+
+        return 'MYR';
     }
 
     public function getTotalAmount(): string
     {
         $amount = (float) $this->formData['amount'];
 
-        return 'MYR '.number_format($amount, 2);
+        return $this->getCurrency().' '.number_format($amount, 2);
     }
 
     public function processDonationAction(): Action
@@ -245,7 +273,7 @@ class VirtualTerminal extends Page
                         );
 
                         Notification::make()
-                            ->title("Donation of MYR {$formattedAmount} processed successfully.")
+                            ->title("Donation of {$this->getCurrency()} {$formattedAmount} processed successfully.")
                             ->success()
                             ->send();
                     } else {
@@ -262,7 +290,7 @@ class VirtualTerminal extends Page
                         );
 
                         Notification::make()
-                            ->title("Monthly donation of MYR {$formattedAmount} set up successfully.")
+                            ->title("Monthly donation of {$this->getCurrency()} {$formattedAmount} set up successfully.")
                             ->success()
                             ->send();
                     }

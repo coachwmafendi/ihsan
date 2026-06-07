@@ -76,7 +76,7 @@
                                         placeholder="0.00"
                                     />
                                     <span class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-                                        MYR
+                                        {{ $this->getCurrency() }}
                                     </span>
                                 </div>
                                 @error('formData.amount')
