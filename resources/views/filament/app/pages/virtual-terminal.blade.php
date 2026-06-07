@@ -15,7 +15,7 @@
     <div x-data="vtPayment()" x-init="initStripe(@js($this->stripePublishableKey))" class="max-w-7xl mx-auto">
         {{-- Header --}}
         <div class="mb-6">
-            <h1 class="text-2xl font-semibold text-gray-950 dark:text-white">Virtual Terminal</h1>
+            <h1 class="text-2xl font-semibold text-gray-950 dark:text-white">Virtual Terminal — {{ auth()->user()?->organization?->name ?? 'Ihsan' }}</h1>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Use the Virtual Terminal to process an in-person or over the phone donation.
             </p>
@@ -282,7 +282,7 @@
                             </span>
                             <span class="text-gray-900 dark:text-white">{{ $this->getTotalAmount() }}</span>
                         </div>
-                        <div class="border-t border-gray-200 pt-3 flex justify-between text-sm font-semibold dark:border-gray-700">
+                        <div class="border-t border-gray-200 pt-3 flex justify-between text-sm font-semibold gap-x-4 dark:border-gray-700">
                             <span class="text-gray-900 dark:text-white">Total donation amount</span>
                             <span class="text-gray-900 dark:text-white">{{ $this->getTotalAmount() }}</span>
                         </div>
