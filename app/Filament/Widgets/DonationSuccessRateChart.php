@@ -35,7 +35,7 @@ class DonationSuccessRateChart extends ChartWidget
             }
 
             $total = $group->count();
-            $succeeded = $group->where('status', DonationStatus::Succeeded->value)->count();
+            $succeeded = $group->where('status', DonationStatus::Succeeded)->count();
 
             return round(($succeeded / $total) * 100, 1);
         });
