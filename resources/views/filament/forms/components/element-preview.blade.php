@@ -135,7 +135,7 @@
             <div class="flex min-h-[180px] items-center justify-center w-full">
                 <div class="{{ $alignClass }}">
                     <img 
-                        src="https://api.qrserver.com/v1/create-qr-code/?size={{ $qrSize }}x{{ $qrSize }}&data=https://ihsan.test/donate/demo&bgcolor=ffffff&color=0f172a&qzone=2" 
+                        src="https://api.qrserver.com/v1/create-qr-code/?size={{ $qrSize }}x{{ $qrSize }}&data={{ urlencode(config('app.url').'/donate/demo') }}&bgcolor=ffffff&color=0f172a&qzone=2" 
                         alt="QR Code" 
                         width="{{ $qrSize }}" 
                         height="{{ $qrSize }}"
