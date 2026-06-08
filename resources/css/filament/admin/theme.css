@@ -204,6 +204,19 @@
     @apply rounded-lg border border-stone-200 bg-white/70 p-4 dark:border-stone-800 dark:bg-stone-950/40;
 }
 
+.ihsan-admin-alert-tile {
+    @apply rounded-lg border p-4 transition-colors;
+}
+.ihsan-admin-alert-tile--warning {
+    @apply border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200;
+}
+.ihsan-admin-alert-tile--danger {
+    @apply border-red-200 bg-red-50 text-red-800 hover:bg-red-100 dark:border-red-800 dark:bg-red-950 dark:text-red-200;
+}
+.ihsan-admin-alert-tile--info {
+    @apply border-sky-200 bg-sky-50 text-sky-800 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-200;
+}
+
 .ihsan-admin-list {
     @apply divide-y divide-stone-200/80 dark:divide-stone-800;
 }

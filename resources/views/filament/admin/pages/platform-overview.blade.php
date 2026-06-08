@@ -1,11 +1,67 @@
 <x-filament-panels::page>
     <div class="ihsan-admin-page">
+        {{-- Row 1: All-time platform totals --}}
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <x-admin.metric-card icon="heroicon-o-banknotes" label="Total donations" :value="'MYR '.$totalDonationsVolume" :note="$totalDonationsCount.' transactions'" />
             <x-admin.metric-card icon="heroicon-o-receipt-percent" label="Processing fees" :value="'MYR '.$totalProcessingFees" note="Transferred to platform" />
             <x-admin.metric-card icon="heroicon-o-arrow-path" label="Active subscriptions" :value="$activeSubscriptions" note="Across all organizations" />
             <x-admin.metric-card icon="heroicon-o-users" label="Total donors" :value="$totalDonors" note="Registered on platform" />
         </div>
+
+        {{-- Row 2: Monthly pulse --}}
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <x-admin.metric-card
+                icon="heroicon-o-chart-bar"
+                label="Estimated MRR"
+                :value="'MYR '.$estimatedMrr"
+                note="Active subscriptions normalized monthly"
+            />
+            <x-admin.metric-card
+                icon="heroicon-o-banknotes"
+                label="Donations this month"
+                :value="'MYR '.$donationsThisMonth"
+                :note="($donationsMomChange >= 0 ? '▲ ' : '▼ ').abs($donationsMomChange).'% vs last month'"
+            />
+            <x-admin.metric-card
+                icon="heroicon-o-receipt-percent"
+                label="Platform fees this month"
+                :value="'MYR '.$processingFeesThisMonth"
+                :note="($processingFeesMomChange >= 0 ? '▲ ' : '▼ ').abs($processingFeesMomChange).'% vs last month'"
+            />
+        </div>
+
+        {{-- Operational Alerts --}}
+        @if ($pendingBlockedDonations > 0 || $pastDueSubscriptions > 0 || $awaitingStripeOnboarding > 0 || $pendingOrganizations > 0)
+        <x-filament::section>
+            <x-slot name="heading">Action Required</x-slot>
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                @if ($pendingOrganizations > 0)
+                <a href="{{ route('filament.admin.resources.organizations.index', ['tableFilters[status][value]' => 'pending']) }}" class="ihsan-admin-alert-tile ihsan-admin-alert-tile--warning">
+                    <div class="text-2xl font-bold">{{ $pendingOrganizations }}</div>
+                    <div class="mt-1 text-sm">Organizations pending approval</div>
+                </a>
+                @endif
+                @if ($pendingBlockedDonations > 0)
+                <a href="{{ route('filament.admin.pages.fraud-prevention') }}" class="ihsan-admin-alert-tile ihsan-admin-alert-tile--danger">
+                    <div class="text-2xl font-bold">{{ $pendingBlockedDonations }}</div>
+                    <div class="mt-1 text-sm">Blocked donations to review</div>
+                </a>
+                @endif
+                @if ($pastDueSubscriptions > 0)
+                <div class="ihsan-admin-alert-tile ihsan-admin-alert-tile--danger">
+                    <div class="text-2xl font-bold">{{ $pastDueSubscriptions }}</div>
+                    <div class="mt-1 text-sm">Past-due subscriptions</div>
+                </div>
+                @endif
+                @if ($awaitingStripeOnboarding > 0)
+                <a href="{{ route('filament.admin.resources.organizations.index', ['tableFilters[stripe_onboarded][value]' => '0']) }}" class="ihsan-admin-alert-tile ihsan-admin-alert-tile--info">
+                    <div class="text-2xl font-bold">{{ $awaitingStripeOnboarding }}</div>
+                    <div class="mt-1 text-sm">Active orgs awaiting Stripe</div>
+                </a>
+                @endif
+            </div>
+        </x-filament::section>
+        @endif
 
         <div class="grid gap-4 xl:grid-cols-2">
             <x-filament::section>
@@ -108,6 +164,53 @@
                 @endforelse
             </div>
         </x-filament::section>
+
+        {{-- Donor & Subscription Health --}}
+        <div class="grid gap-4 xl:grid-cols-2">
+            <x-filament::section>
+                <x-slot name="heading">Donor Health</x-slot>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="ihsan-admin-stat-tile">
+                        <div class="text-lg font-semibold text-sky-700 dark:text-sky-300">{{ $newDonorsThisMonth }}</div>
+                        <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">New donors this month</div>
+                    </div>
+                    <div class="ihsan-admin-stat-tile">
+                        <div class="text-lg font-semibold text-ihsan-ink dark:text-white">{{ $newDonorsLastMonth }}</div>
+                        <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">New donors last month</div>
+                    </div>
+                    <div class="ihsan-admin-stat-tile">
+                        <div class="text-lg font-semibold {{ $newDonorsMomChange >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300' }}">
+                            {{ $newDonorsMomChange >= 0 ? '▲' : '▼' }} {{ abs($newDonorsMomChange) }}%
+                        </div>
+                        <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">MoM change</div>
+                    </div>
+                </div>
+                <div class="mt-3 ihsan-admin-stat-tile">
+                    <div class="text-lg font-semibold text-violet-700 dark:text-violet-300">{{ $repeatDonorRate }}%</div>
+                    <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">Repeat donor rate (2+ donations)</div>
+                </div>
+            </x-filament::section>
+
+            <x-filament::section>
+                <x-slot name="heading">Subscription Health</x-slot>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="ihsan-admin-stat-tile">
+                        <div class="text-lg font-semibold text-emerald-700 dark:text-emerald-300">+{{ $newSubscriptionsThisMonth }}</div>
+                        <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">New this month</div>
+                    </div>
+                    <div class="ihsan-admin-stat-tile">
+                        <div class="text-lg font-semibold text-red-700 dark:text-red-300">-{{ $cancelledSubscriptionsThisMonth }}</div>
+                        <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">Cancelled this month</div>
+                    </div>
+                    <div class="ihsan-admin-stat-tile">
+                        <div class="text-lg font-semibold {{ $netSubscriptionChange >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300' }}">
+                            {{ $netSubscriptionChange >= 0 ? '+' : '' }}{{ $netSubscriptionChange }}
+                        </div>
+                        <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">Net change</div>
+                    </div>
+                </div>
+            </x-filament::section>
+        </div>
 
         <div class="grid gap-6 xl:grid-cols-2">
             @livewire(\App\Filament\Widgets\DonationTrendChart::class)
