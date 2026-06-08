@@ -8,4 +8,5 @@ enum CampaignStatus: string
     case Active = 'active';
     case Paused = 'paused';
     case Ended = 'ended';
+    case Archived = 'archived';
 }
