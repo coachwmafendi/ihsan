@@ -156,20 +156,46 @@ class CampaignForm
                         Tab::make('Stats')
                             ->icon('heroicon-o-chart-bar')
                             ->visible(fn ($record) => $record !== null)
-                            ->columns(3)
+                            ->columns(4)
                             ->schema([
                                 Placeholder::make('collected_amount')
                                     ->label('Amount raised')
-                                    ->content(fn ($record) => new HtmlString(
-                                        '<span class="text-2xl font-bold text-emerald-600">RM '.number_format(
-                                            $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount') ?? 0,
-                                            2
-                                        ).'</span>'
-                                    )),
+                                    ->content(function ($record): HtmlString {
+                                        $hasNonMyr = $record->donations()
+                                            ->where('status', DonationStatus::Succeeded)
+                                            ->where('currency', '!=', 'MYR')
+                                            ->exists();
+                                        $prefix = $hasNonMyr ? '≈ RM ' : 'RM ';
+                                        $amount = $record->donations()
+                                            ->where('status', DonationStatus::Succeeded)
+                                            ->sum('base_amount') ?? 0;
+
+                                        return new HtmlString('<span class="text-2xl font-bold text-emerald-600">'.$prefix.number_format($amount, 2).'</span>');
+                                    }),
                                 Placeholder::make('donation_count')
                                     ->label('Donations')
                                     ->content(fn ($record) => new HtmlString(
                                         '<span class="text-2xl font-bold text-zinc-900">'.$record->donations()->count().'</span>'
+                                    )),
+                                Placeholder::make('active_recurring')
+                                    ->label('Active recurring plans')
+                                    ->content(fn ($record) => new HtmlString(
+                                        '<span class="text-2xl font-bold text-teal-600">'.number_format(
+                                            $record->subscriptions()->where('status', 'active')->count()
+                                        ).'</span>'
+                                    )),
+                                Placeholder::make('last_donation')
+                                    ->label('Last donation')
+                                    ->content(fn ($record) => new HtmlString(
+                                        '<span class="text-lg font-semibold text-zinc-900">'.(
+                                            $record->donations()
+                                                ->where('status', DonationStatus::Succeeded)
+                                                ->latest('created_at')
+                                                ->first()
+                                                ?->created_at
+                                                ?->format('d M Y')
+                                            ?? '—'
+                                        ).'</span>'
                                     )),
                                 Placeholder::make('progress_bar')
                                     ->label('Campaign performance')
@@ -177,6 +203,59 @@ class CampaignForm
                                     ->content(fn ($record) => new HtmlString(
                                         static::progressBarHtml($record)
                                     )),
+                            ]),
+                        Tab::make('Actions')
+                            ->icon('heroicon-o-bolt')
+                            ->visible(fn ($record) => $record !== null)
+                            ->schema([
+                                Grid::make()
+                                    ->columns(1)
+                                    ->schema([
+                                        Placeholder::make('archive_section')
+                                            ->label('')
+                                            ->content(fn ($record) => new HtmlString(
+                                                '<div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">'
+                                                .'<div class="flex items-start justify-between gap-4">'
+                                                .'<div class="min-w-0">'
+                                                .'<h3 class="text-sm font-semibold text-zinc-900">'.e($record->title).'</h3>'
+                                                .'<div class="mt-1 flex items-center gap-2" x-data="{ copied: false }">'
+                                                .'<span class="text-xs text-zinc-500">ID '.e($record->public_id).'</span>'
+                                                .'<button type="button" x-on:click="navigator.clipboard.writeText(\''.e($record->public_id).'\').then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="inline-flex items-center text-zinc-400 hover:text-zinc-600 transition">'
+                                                .'<svg x-show="!copied" class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>'
+                                                .'<svg x-show="copied" class="size-3.5 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>'
+                                                .'</button>'
+                                                .'</div>'
+                                                .'<p class="mt-2 text-sm text-zinc-500">Archive this campaign to hide it from the public and move it to your archive. Archived campaigns can be restored later.</p>'
+                                                .'</div>'
+                                                .'<button type="button" wire:click="archiveCampaign" wire:confirm="Are you sure you want to archive this campaign? It will no longer accept donations." class="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20 hover:bg-amber-100 transition">'
+                                                .'<svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>'
+                                                .'Archive Campaign</button>'
+                                                .'</div>'
+                                                .'</div>'
+                                            )),
+                                        Placeholder::make('duplicate_section')
+                                            ->label('')
+                                            ->content(fn ($record) => new HtmlString(
+                                                '<div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">'
+                                                .'<div class="flex items-start justify-between gap-4">'
+                                                .'<div class="min-w-0">'
+                                                .'<h3 class="text-sm font-semibold text-zinc-900">'.e($record->title).'</h3>'
+                                                .'<div class="mt-1 flex items-center gap-2" x-data="{ copied: false }">'
+                                                .'<span class="text-xs text-zinc-500">ID '.e($record->public_id).'</span>'
+                                                .'<button type="button" x-on:click="navigator.clipboard.writeText(\''.e($record->public_id).'\').then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="inline-flex items-center text-zinc-400 hover:text-zinc-600 transition">'
+                                                .'<svg x-show="!copied" class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>'
+                                                .'<svg x-show="copied" class="size-3.5 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>'
+                                                .'</button>'
+                                                .'</div>'
+                                                .'<p class="mt-2 text-sm text-zinc-500">Create a copy of this campaign with the same settings. Donations and stats will not be copied.</p>'
+                                                .'</div>'
+                                                .'<button type="button" wire:click="duplicateCampaign" wire:confirm="Are you sure you want to duplicate this campaign? A new campaign will be created with the same settings." class="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-inset ring-zinc-300 hover:bg-zinc-100 transition">'
+                                                .'<svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>'
+                                                .'Duplicate Campaign</button>'
+                                                .'</div>'
+                                                .'</div>'
+                                            )),
+                                    ]),
                             ]),
                     ]),
             ]);
