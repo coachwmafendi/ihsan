@@ -74,7 +74,7 @@ class PlatformOverview extends Page
 
     private function momChange(float $current, float $previous): float
     {
-        if ($previous == 0.0) {
+        if ($previous === 0.0) {
             return $current > 0.0 ? 100.0 : 0.0;
         }
 
@@ -173,8 +173,9 @@ class PlatformOverview extends Page
             2, '.', ''
         );
 
-        $thisMonth = [now()->startOfMonth(), now()->endOfMonth()];
-        $lastMonth = [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()];
+        $now = now();
+        $thisMonth = [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()];
+        $lastMonth = [$now->copy()->subMonthNoOverflow()->startOfMonth(), $now->copy()->subMonthNoOverflow()->endOfMonth()];
 
         $donThisMonth = (float) Donation::query()
             ->where('status', DonationStatus::Succeeded)
