@@ -98,3 +98,111 @@ it('calculates correct platform-wide metrics', function () {
         ->assertSet('activeSubscriptions', 1)
         ->assertSet('totalDonors', 1);
 });
+
+it('calculates MRR from active subscriptions', function () {
+    $org = Organization::factory()->create(['status' => 'active']);
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+
+    // monthly: 100, weekly: 50 → 50 * 4.33 = 216.5, yearly: 120 → 120 / 12 = 10
+    Subscription::factory()->for($campaign)->for($donor)->create([
+        'status' => SubscriptionStatus::Active,
+        'interval' => 'monthly',
+        'amount' => 100.00,
+    ]);
+    Subscription::factory()->for($campaign)->for($donor)->create([
+        'status' => SubscriptionStatus::Active,
+        'interval' => 'weekly',
+        'amount' => 50.00,
+    ]);
+    Subscription::factory()->for($campaign)->for($donor)->create([
+        'status' => SubscriptionStatus::Active,
+        'interval' => 'yearly',
+        'amount' => 120.00,
+    ]);
+    // cancelled — must NOT count
+    Subscription::factory()->for($campaign)->for($donor)->create([
+        'status' => SubscriptionStatus::Cancelled,
+        'interval' => 'monthly',
+        'amount' => 999.00,
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+    $this->actingAs($user);
+
+    // MRR = 100 + (50 * 4.33) + (120 / 12) = 100 + 216.5 + 10 = 326.50
+    Livewire::test(PlatformOverview::class)
+        ->assertSet('estimatedMrr', '326.50');
+});
+
+it('calculates MTD donation volume with MoM change', function () {
+    $org = Organization::factory()->create(['status' => 'active']);
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+
+    // This month
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'base_amount' => 200.00,
+        'created_at' => now()->startOfMonth()->addDays(1),
+    ]);
+    // Last month
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'base_amount' => 100.00,
+        'created_at' => now()->subMonth()->startOfMonth()->addDays(1),
+    ]);
+    // Failed — must NOT count
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Failed,
+        'base_amount' => 999.00,
+        'created_at' => now()->startOfMonth()->addDays(1),
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+    $this->actingAs($user);
+
+    Livewire::test(PlatformOverview::class)
+        ->assertSet('donationsThisMonth', '200.00')
+        ->assertSet('donationsLastMonth', '100.00')
+        ->assertSet('donationsMomChange', 100.0); // (200-100)/100 * 100
+});
+
+it('calculates MTD processing fees with MoM change', function () {
+    $org = Organization::factory()->create(['status' => 'active']);
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'base_amount' => 100.00,
+        'created_at' => now()->startOfMonth()->addDays(1),
+    ]);
+    $donationLast = Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'base_amount' => 100.00,
+        'created_at' => now()->subMonth()->startOfMonth()->addDays(1),
+    ]);
+
+    ProcessingFee::factory()->create([
+        'donation_id' => $donation->id,
+        'organization_id' => $org->id,
+        'fee_amount' => 6.00,
+        'status' => 'paid',
+        'created_at' => now()->startOfMonth()->addDays(1),
+    ]);
+    ProcessingFee::factory()->create([
+        'donation_id' => $donationLast->id,
+        'organization_id' => $org->id,
+        'fee_amount' => 3.00,
+        'status' => 'paid',
+        'created_at' => now()->subMonth()->startOfMonth()->addDays(1),
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+    $this->actingAs($user);
+
+    Livewire::test(PlatformOverview::class)
+        ->assertSet('processingFeesThisMonth', '6.00')
+        ->assertSet('processingFeesLastMonth', '3.00')
+        ->assertSet('processingFeesMomChange', 100.0);
+});

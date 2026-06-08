@@ -43,6 +43,20 @@ class PlatformOverview extends Page
 
     public int $totalDonors = 0;
 
+    public string $estimatedMrr = '0.00';
+
+    public string $donationsThisMonth = '0.00';
+
+    public string $donationsLastMonth = '0.00';
+
+    public float $donationsMomChange = 0.0;
+
+    public string $processingFeesThisMonth = '0.00';
+
+    public string $processingFeesLastMonth = '0.00';
+
+    public float $processingFeesMomChange = 0.0;
+
     /**
      * @var array<int, array{name: string, email: string, status: string, created_at: string}>
      */
@@ -57,6 +71,15 @@ class PlatformOverview extends Page
      * @var array<int, array{name: string, total: string}>
      */
     public array $topOrganizations = [];
+
+    private function momChange(float $current, float $previous): float
+    {
+        if ($previous == 0.0) {
+            return $current > 0.0 ? 100.0 : 0.0;
+        }
+
+        return round((($current - $previous) / $previous) * 100, 1);
+    }
 
     public function mount(): void
     {
@@ -136,5 +159,49 @@ class PlatformOverview extends Page
                 ];
             })
             ->all();
+
+        $this->estimatedMrr = number_format(
+            (float) Subscription::query()
+                ->where('status', SubscriptionStatus::Active)
+                ->selectRaw("SUM(CASE
+                    WHEN interval = 'monthly' THEN amount
+                    WHEN interval = 'weekly'  THEN amount * 4.33
+                    WHEN interval = 'yearly'  THEN amount / 12
+                    ELSE amount
+                END) as mrr")
+                ->value('mrr'),
+            2, '.', ''
+        );
+
+        $thisMonth = [now()->startOfMonth(), now()->endOfMonth()];
+        $lastMonth = [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()];
+
+        $donThisMonth = (float) Donation::query()
+            ->where('status', DonationStatus::Succeeded)
+            ->whereBetween('created_at', $thisMonth)
+            ->sum('base_amount');
+
+        $donLastMonth = (float) Donation::query()
+            ->where('status', DonationStatus::Succeeded)
+            ->whereBetween('created_at', $lastMonth)
+            ->sum('base_amount');
+
+        $this->donationsThisMonth = number_format($donThisMonth, 2, '.', '');
+        $this->donationsLastMonth = number_format($donLastMonth, 2, '.', '');
+        $this->donationsMomChange = $this->momChange($donThisMonth, $donLastMonth);
+
+        $feesThisMonth = (float) ProcessingFee::query()
+            ->where('status', 'paid')
+            ->whereBetween('created_at', $thisMonth)
+            ->sum('fee_amount');
+
+        $feesLastMonth = (float) ProcessingFee::query()
+            ->where('status', 'paid')
+            ->whereBetween('created_at', $lastMonth)
+            ->sum('fee_amount');
+
+        $this->processingFeesThisMonth = number_format($feesThisMonth, 2, '.', '');
+        $this->processingFeesLastMonth = number_format($feesLastMonth, 2, '.', '');
+        $this->processingFeesMomChange = $this->momChange($feesThisMonth, $feesLastMonth);
     }
 }
