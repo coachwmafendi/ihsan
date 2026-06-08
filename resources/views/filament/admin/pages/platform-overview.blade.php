@@ -214,8 +214,11 @@
 
         <div class="grid gap-6 xl:grid-cols-2">
             @livewire(\App\Filament\Widgets\DonationTrendChart::class)
+            @livewire(\App\Filament\Widgets\SubscriptionMrrTrendChart::class)
             @livewire(\App\Filament\Widgets\ProcessingFeeTrendChart::class)
+            @livewire(\App\Filament\Widgets\DonationSuccessRateChart::class)
             @livewire(\App\Filament\Widgets\TopOrganizationsChart::class)
+            @livewire(\App\Filament\Widgets\OrganizationGrowthChart::class)
             @livewire(\App\Filament\Widgets\PaymentMethodChart::class)
         </div>
     </div>
