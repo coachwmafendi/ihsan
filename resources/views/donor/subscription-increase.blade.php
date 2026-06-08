@@ -162,8 +162,10 @@
                     type="number"
                     step="0.01"
                     min="1"
+                    max="99999.99"
                     x-ref="customInput"
                     x-model="customAmount"
+                    @input="customAmount = parseFloat($event.target.value) > 99999.99 ? '99999.99' : $event.target.value"
                     placeholder="0.00"
                     class="block w-full appearance-none rounded-xl border-2 border-slate-900 bg-white py-3 pl-11 pr-4 text-base font-bold text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-blue-600 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 >
@@ -184,7 +186,7 @@
             <button
                 type="button"
                 @click="submitIncrease()"
-                :disabled="processing || (selected === 'custom' && (!customAmount || parseFloat(customAmount) <= 0))"
+                :disabled="processing || (selected === 'custom' && (!customAmount || parseFloat(customAmount) <= 0 || newTotal > 99999.99))"
                 class="flex-1 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 Confirm

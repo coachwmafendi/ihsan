@@ -1,19 +1,39 @@
 {
-    "$schema": "https://opencode.ai/config.json",
-    "plugin": ["superpowers@git+https://github.com/obra/superpowers.git"],
-    "mcp": {
-        "laravel-boost": {
-            "type": "local",
-            "enabled": true,
-            "command": [
-                "php",
-                "artisan",
-                "boost:mcp"
-            ]
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["superpowers@git+https://github.com/obra/superpowers.git"],
+  "provider": {
+    "9router": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "9Router",
+      "options": {
+        "baseURL": "http://localhost:20128/v1",
+        "apiKey": "sk-ec1c894b1f59ea33-zy3ii3-2b57220e"
+      },
+      "models": {
+        "oc/auto": {
+          "name": "OpenCode Auto"
         },
-        "browsermcp": {
-            "type": "local",
-            "command": ["npx", "@browsermcp/mcp@latest"]
+        "kr/claude-sonnet-4.5": {
+          "name": "Kiro Claude Sonnet 4.5"
         }
+      }
     }
+  },
+  "model": "9router/oc/auto",
+  "small_model": "9router/oc/auto",
+  "mcp": {
+    "laravel-boost": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "php",
+        "artisan",
+        "boost:mcp"
+      ]
+    },
+    "browsermcp": {
+      "type": "local",
+      "command": ["npx", "@browsermcp/mcp@latest"]
+    }
+  }
 }

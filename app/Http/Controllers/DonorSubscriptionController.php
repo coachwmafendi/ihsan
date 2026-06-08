@@ -102,7 +102,7 @@ class DonorSubscriptionController extends Controller
         $this->authorizeSubscriptionAction($organization, $subscription, request()->donor);
 
         $data = request()->validate([
-            'new_amount' => 'required|numeric|min:1',
+            'new_amount' => 'required|numeric|min:1|max:99999.99',
         ]);
 
         $isJson = request()->wantsJson()

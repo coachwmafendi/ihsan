@@ -204,7 +204,7 @@
                         <span class="w-[180px] shrink-0 text-gray-500 dark:text-gray-400">Fee Covered</span>
                         @if ($feeCovered > 0)
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                                <x-heroicon-o-check class="size-3" />
+                                <x-heroicon-s-check-circle class="size-5" />
                                 {{ $curr }} {{ number_format($feeCovered, 2) }}
                             </span>
                         @else
