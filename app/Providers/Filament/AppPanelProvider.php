@@ -130,9 +130,12 @@ class AppPanelProvider extends PanelProvider
 
     public function panel(Panel $panel): Panel
     {
+        $domain = config('app.app_panel_domain');
+
         return $panel
             ->id('app')
-            ->path('app')
+            ->domain($domain)
+            ->path($domain ? '' : 'app')
             ->spa()
             ->spaUrlExceptions(fn (): array => [
                 route('filament.app.pages.virtual-terminal'),

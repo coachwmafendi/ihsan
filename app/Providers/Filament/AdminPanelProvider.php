@@ -35,10 +35,13 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+        $domain = config('app.admin_panel_domain');
+
         return $panel
             ->default()
             ->id('admin')
-            ->path('admin')
+            ->domain($domain)
+            ->path($domain ? '' : 'admin')
             ->spa()
             ->breadcrumbs(false)
             ->sidebarCollapsibleOnDesktop()

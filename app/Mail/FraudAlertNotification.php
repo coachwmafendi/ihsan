@@ -25,7 +25,7 @@ class FraudAlertNotification extends Mailable
                 'donation' => $this->donation,
                 'reason' => $this->reason,
                 'action' => $this->action,
-                'url' => config('app.url') . '/admin/fraud-prevention',
+                'url' => route('filament.admin.pages.fraud-prevention'),
             ]);
     }
 }

@@ -6,13 +6,13 @@
     <body class="min-h-screen bg-white dark:bg-zinc-800">
         <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
-                <x-app-logo :sidebar="true" href="{{ url('/app') }}" wire:navigate />
+                <x-app-logo :sidebar="true" href="{{ route('filament.app.pages.insights') }}" wire:navigate />
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="url('/app')" wire:navigate>
+                    <flux:sidebar.item icon="home" :href="route('filament.app.pages.insights')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
@@ -67,7 +67,7 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="url('/app/profile')" icon="cog" wire:navigate>
+                        <flux:menu.item :href="route('filament.app.auth.profile')" icon="cog" wire:navigate>
                             {{ __('Settings') }}
                         </flux:menu.item>
                     </flux:menu.radio.group>

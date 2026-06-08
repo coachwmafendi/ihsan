@@ -25,10 +25,10 @@ class FortifyServiceProvider extends ServiceProvider
                 public function toResponse($request)
                 {
                     if ($request->user()?->isSuperAdmin()) {
-                        return redirect()->intended('/admin');
+                        return redirect()->intended(route('filament.admin.pages.platform-overview'));
                     }
 
-                    return redirect()->intended('/app');
+                    return redirect()->intended(route('filament.app.pages.insights'));
                 }
             };
         });

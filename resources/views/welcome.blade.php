@@ -12,7 +12,7 @@
                 <a href="#faq" class="text-slate-400 hover:text-white transition-colors">@lang('nav.faq')</a>
 
                 @auth
-                    <a href="{{ url('/app') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">Dashboard</a>
+                    <a href="{{ route('filament.app.pages.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">Dashboard</a>
                 @else
                     @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">@lang('nav.register')</a>
@@ -31,7 +31,7 @@
                     @lang('nav.switch_language')
                 </a>
                 @auth
-                    <a href="{{ url('/app') }}" class="bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-semibold">Dashboard</a>
+                    <a href="{{ route('filament.app.pages.insights') }}" class="bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-semibold">Dashboard</a>
                 @elseif (Route::has('register'))
                     <a href="{{ route('register') }}" class="bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-semibold">@lang('nav.register')</a>
                 @endauth
@@ -60,7 +60,7 @@
 
             <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                 @auth
-                    <a href="{{ url('/app') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
+                    <a href="{{ route('filament.app.pages.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
                         Dashboard
                     </a>
                 @elseif (Route::has('register'))
@@ -288,7 +288,7 @@
 
             <div class="mt-8">
                 @auth
-                    <a href="{{ url('/app') }}" class="inline-block bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
+                    <a href="{{ route('filament.app.pages.insights') }}" class="inline-block bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
                         Dashboard
                     </a>
                 @elseif (Route::has('register'))
