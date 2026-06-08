@@ -79,6 +79,20 @@ class PlatformOverview extends Page
      */
     public array $topOrganizations = [];
 
+    public int $newDonorsThisMonth = 0;
+
+    public int $newDonorsLastMonth = 0;
+
+    public float $newDonorsMomChange = 0.0;
+
+    public float $repeatDonorRate = 0.0;
+
+    public int $newSubscriptionsThisMonth = 0;
+
+    public int $cancelledSubscriptionsThisMonth = 0;
+
+    public int $netSubscriptionChange = 0;
+
     private function momChange(float $current, float $previous): float
     {
         if ($previous === 0.0) {
@@ -224,5 +238,37 @@ class PlatformOverview extends Page
             ->where('status', 'active')
             ->where('stripe_onboarded', false)
             ->count();
+
+        $this->newDonorsThisMonth = Donor::query()
+            ->whereBetween('created_at', $thisMonth)
+            ->count();
+
+        $this->newDonorsLastMonth = Donor::query()
+            ->whereBetween('created_at', $lastMonth)
+            ->count();
+
+        $this->newDonorsMomChange = $this->momChange(
+            (float) $this->newDonorsThisMonth,
+            (float) $this->newDonorsLastMonth
+        );
+
+        $totalDonors = Donor::query()->count();
+        $repeatDonors = Donor::query()
+            ->whereHas('donations', fn ($q) => $q->where('status', DonationStatus::Succeeded), '>=', 2)
+            ->count();
+        $this->repeatDonorRate = $totalDonors > 0
+            ? round(($repeatDonors / $totalDonors) * 100, 1)
+            : 0.0;
+
+        $this->newSubscriptionsThisMonth = Subscription::query()
+            ->whereBetween('created_at', $thisMonth)
+            ->count();
+
+        $this->cancelledSubscriptionsThisMonth = Subscription::query()
+            ->where('status', SubscriptionStatus::Cancelled)
+            ->whereBetween('cancelled_at', $thisMonth)
+            ->count();
+
+        $this->netSubscriptionChange = $this->newSubscriptionsThisMonth - $this->cancelledSubscriptionsThisMonth;
     }
 }

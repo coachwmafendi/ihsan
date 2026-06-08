@@ -239,3 +239,52 @@ it('counts operational alert metrics', function () {
         ->assertSet('pastDueSubscriptions', 1)
         ->assertSet('awaitingStripeOnboarding', 1); // org with status=active, stripe_onboarded=false
 });
+
+it('calculates donor and subscription health metrics', function () {
+    $org = Organization::factory()->create(['status' => 'active']);
+    $campaign = Campaign::factory()->for($org)->create();
+
+    // 2 new donors this month
+    $donor1 = Donor::factory()->create(['created_at' => now()->startOfMonth()->addDays(1)]);
+    $donor2 = Donor::factory()->create(['created_at' => now()->startOfMonth()->addDays(2)]);
+    // 1 donor last month
+    $donor3 = Donor::factory()->create(['created_at' => now()->subMonth()->startOfMonth()->addDays(1)]);
+
+    // donor1 has 2 succeeded donations → repeat donor
+    Donation::factory()->for($campaign)->for($donor1)->create(['status' => DonationStatus::Succeeded]);
+    Donation::factory()->for($campaign)->for($donor1)->create(['status' => DonationStatus::Succeeded]);
+    // donor2 has 1 → not repeat
+
+    // 2 new subs this month, 1 cancelled this month
+    Subscription::factory()->for($campaign)->for($donor1)->create([
+        'status' => SubscriptionStatus::Active,
+        'interval' => 'monthly',
+        'amount' => 50.00,
+        'created_at' => now()->startOfMonth()->addDays(1),
+    ]);
+    Subscription::factory()->for($campaign)->for($donor2)->create([
+        'status' => SubscriptionStatus::Active,
+        'interval' => 'monthly',
+        'amount' => 50.00,
+        'created_at' => now()->startOfMonth()->addDays(2),
+    ]);
+    Subscription::factory()->for($campaign)->for($donor3)->create([
+        'status' => SubscriptionStatus::Cancelled,
+        'interval' => 'monthly',
+        'amount' => 50.00,
+        'created_at' => now()->subMonth()->startOfMonth()->addDays(1),
+        'cancelled_at' => now()->startOfMonth()->addDays(3),
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+    $this->actingAs($user);
+
+    Livewire::test(PlatformOverview::class)
+        ->assertSet('newDonorsThisMonth', 2)
+        ->assertSet('newDonorsLastMonth', 1)
+        ->assertSet('newDonorsMomChange', 100.0)
+        ->assertSet('repeatDonorRate', 33.3) // 1 repeat out of 3 total donors
+        ->assertSet('newSubscriptionsThisMonth', 2)
+        ->assertSet('cancelledSubscriptionsThisMonth', 1)
+        ->assertSet('netSubscriptionChange', 1);
+});
