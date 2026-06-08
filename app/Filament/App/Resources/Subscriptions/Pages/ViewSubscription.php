@@ -3,16 +3,20 @@
 namespace App\Filament\App\Resources\Subscriptions\Pages;
 
 use App\Actions\Stripe\ManageStripeSubscription;
-use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Filament\App\Resources\Subscriptions\SubscriptionResource;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
+use Illuminate\Support\HtmlString;
 
 class ViewSubscription extends ViewRecord
 {
@@ -21,6 +25,8 @@ class ViewSubscription extends ViewRecord
     protected string $view = 'filament.app.resources.subscriptions.pages.view-subscription';
 
     public ?string $paymentClientSecret = null;
+
+    public ?string $upgradeLink = null;
 
     public function getHeading(): string
     {
@@ -37,7 +43,8 @@ class ViewSubscription extends ViewRecord
             ->components([
                 Section::make('Recurring Plan')
                     ->icon('heroicon-o-arrow-path')
-                    ->extraAttributes(['class' => 'scroll-mt-6'])
+                    ->id('recurring-plan')
+                    ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.recurring-plan')
                             ->viewData(['record' => $this->getRecord()]),
@@ -45,7 +52,8 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Personal Information')
                     ->icon('heroicon-o-user')
-                    ->extraAttributes(['class' => 'scroll-mt-6'])
+                    ->id('personal-information')
+                    ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.personal-information')
                             ->viewData(['record' => $this->getRecord()]),
@@ -53,7 +61,8 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Sources')
                     ->icon('heroicon-o-globe-alt')
-                    ->extraAttributes(['class' => 'scroll-mt-6'])
+                    ->id('sources')
+                    ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.sources')
                             ->viewData(['record' => $this->getRecord()]),
@@ -61,7 +70,8 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Installments')
                     ->icon('heroicon-o-calendar-days')
-                    ->extraAttributes(['class' => 'scroll-mt-6'])
+                    ->id('installments')
+                    ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.installments')
                             ->viewData(['record' => $this->getRecord()]),
@@ -69,7 +79,8 @@ class ViewSubscription extends ViewRecord
 
                 Section::make('Receipts')
                     ->icon('heroicon-o-document-text')
-                    ->extraAttributes(['class' => 'scroll-mt-6'])
+                    ->id('receipts')
+                    ->extraAttributes(['class' => 'scroll-mt-24'])
                     ->schema([
                         View::make('filament.app.resources.subscriptions.partials.receipts')
                             ->viewData(['record' => $this->getRecord()]),
@@ -99,6 +110,7 @@ class ViewSubscription extends ViewRecord
             ->icon('heroicon-o-credit-card')
             ->color('info')
             ->modalHeading('Edit payment details')
+            ->modalWidth(Width::TwoExtraLarge)
             ->modalSubmitAction(false)
             ->modalCancelAction(false)
             ->modalContent(fn () => view('filament.app.resources.subscriptions.payment-details-modal', [
@@ -123,14 +135,58 @@ class ViewSubscription extends ViewRecord
             ->label('Skip Installments')
             ->icon('heroicon-o-forward')
             ->color('warning')
-            ->requiresConfirmation()
-            ->modalHeading('Skip upcoming installments')
-            ->modalDescription('This will pause the subscription so no further installments are collected until resumed.')
-            ->action(function () {
+            ->modalHeading('Skip installments')
+            ->modalWidth(Width::Small)
+            ->modalSubmitActionLabel('Confirm')
+            ->form([
+                Radio::make('skip_type')
+                    ->label('')
+                    ->options([
+                        '1' => 'Skip for 1 month',
+                        '3' => 'Skip for 3 months',
+                        'custom' => 'Skip for 1–12 months',
+                    ])
+                    ->default('1')
+                    ->live(),
+
+                Select::make('custom_months')
+                    ->label('Number of months')
+                    ->options(array_combine(range(1, 12), array_map(fn ($n) => "{$n} ".($n === 1 ? 'month' : 'months'), range(1, 12))))
+                    ->default(1)
+                    ->live()
+                    ->hidden(fn (Get $get) => $get('skip_type') !== 'custom'),
+
+                Placeholder::make('next_date_preview')
+                    ->label('')
+                    ->content(function (Get $get) {
+                        $months = $get('skip_type') === 'custom'
+                            ? (int) ($get('custom_months') ?: 1)
+                            : (int) ($get('skip_type') ?: 1);
+
+                        $nextDate = $this->record->current_period_end
+                            ? $this->record->current_period_end->addMonths($months)
+                            : now()->addMonths($months);
+
+                        return new HtmlString(
+                            '<div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-gray-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-gray-300">'
+                            .'The next installment will be made on <strong>'.$nextDate->format('M j, Y, g:i A').'</strong>'
+                            .'</div>'
+                        );
+                    }),
+            ])
+            ->action(function (array $data) {
+                $months = $data['skip_type'] === 'custom'
+                    ? (int) ($data['custom_months'] ?: 1)
+                    : (int) $data['skip_type'];
+
                 try {
-                    app(ManageStripeSubscription::class)->pause($this->record);
+                    app(ManageStripeSubscription::class)->pause($this->record, $months);
                     $this->record->refresh();
-                    Notification::make()->title('Installments skipped. Subscription paused.')->success()->send();
+                    Notification::make()
+                        ->title("Installments skipped for {$months} ".($months === 1 ? 'month' : 'months').'.')
+                        ->success()
+                        ->send();
+                    $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record->public_id ?? $this->record->getKey()]));
                 } catch (\Exception $e) {
                     Notification::make()->title('Failed to skip installments: '.$e->getMessage())->danger()->send();
                 }
@@ -148,11 +204,30 @@ class ViewSubscription extends ViewRecord
             ->label('Offer Plan Upgrade')
             ->icon('heroicon-o-arrow-trending-up')
             ->color('success')
-            ->modalHeading('Offer plan upgrade')
-            ->modalDescription('This will prepare an upgrade offer for the donor.')
-            ->requiresConfirmation()
-            ->action(function () {
-                Notification::make()->title('Upgrade offer prepared (placeholder).')->info()->send();
+            ->modalHeading('Recurring plan upgrade options')
+            ->modalWidth(Width::TwoExtraLarge)
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Close')
+            ->modalContent(fn () => view('filament.app.resources.subscriptions.upgrade-links-modal', [
+                'subscription' => $this->record,
+                'donor' => $this->record->donor,
+                'upgradeLink' => $this->upgradeLink,
+            ]))
+            ->mountUsing(function () {
+                $this->record->loadMissing(['donor', 'campaign.organization']);
+                $organization = $this->record->campaign->organization;
+                $donor = $this->record->donor;
+
+                $token = $donor->generateMagicToken();
+                $increaseUrl = route('donorportal.subscriptions.increase', [
+                    'organization' => $organization->code,
+                    'subscription' => $this->record->public_id ?? $this->record->getKey(),
+                ]);
+
+                $this->upgradeLink = route('donorportal.magic-login', [
+                    'organization' => $organization->code,
+                    'token' => $token,
+                ]).'?redirect='.urlencode(parse_url($increaseUrl, PHP_URL_PATH));
             })
             ->hidden(fn () => $this->record->status === SubscriptionStatus::Cancelled);
     }

@@ -122,6 +122,7 @@ Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(fu
         Route::post('subscriptions/{subscription}/pause', [DonorSubscriptionController::class, 'pause'])->name('subscriptions.pause');
         Route::post('subscriptions/{subscription}/resume', [DonorSubscriptionController::class, 'resume'])->name('subscriptions.resume');
         Route::post('subscriptions/{subscription}/change-amount', [DonorSubscriptionController::class, 'changeAmount'])->name('subscriptions.change-amount');
+        Route::get('subscriptions/{subscription}/increase', [DonorSubscriptionController::class, 'showIncrease'])->name('subscriptions.increase');
         Route::get('subscriptions/{subscription}/payment-method/client-secret', [DonorSubscriptionController::class, 'paymentMethodClientSecret'])->name('subscriptions.payment-method.client-secret');
         Route::post('subscriptions/{subscription}/payment-method', [DonorSubscriptionController::class, 'updatePaymentMethod'])->name('subscriptions.payment-method.update');
         Route::get('profile', [DonorProfileController::class, 'profile'])->name('profile');

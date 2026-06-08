@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureDonorSession;
 use App\Http\Middleware\ResolveDonationElement;
 use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->trustProxies(at: env('TRUSTED_PROXIES'));
         $middleware->append(SecurityHeaders::class);
+        $middleware->appendToGroup('web', SetLocale::class);
         $middleware->alias([
             'resolve.element' => ResolveDonationElement::class,
             'donor.auth' => EnsureDonorSession::class,

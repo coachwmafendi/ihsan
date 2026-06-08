@@ -2,49 +2,53 @@
     <div
         x-data="{
             activeSection: 'recurring-plan',
+            isManualScroll: false,
+            scrollTimeout: null,
+            observer: null,
+            sectionIds: ['recurring-plan', 'personal-information', 'sources', 'installments', 'receipts'],
             scrollTo(id) {
+                this.isManualScroll = true;
+                this.activeSection = id;
+
                 const el = document.getElementById(id);
                 if (el) {
-                    const offset = 80;
-                    const top = el.getBoundingClientRect().top + window.scrollY - offset;
-                    window.scrollTo({ top, behavior: 'smooth' });
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
+
+                clearTimeout(this.scrollTimeout);
+                this.scrollTimeout = setTimeout(() => {
+                    this.isManualScroll = false;
+                }, 900);
+            },
+            startObserver() {
+                if (this.observer) {
+                    this.observer.disconnect();
+                }
+
+                const sections = this.sectionIds
+                    .map(id => document.getElementById(id))
+                    .filter(Boolean);
+
+                if (!sections.length) return;
+
+                this.observer = new IntersectionObserver((entries) => {
+                    if (this.isManualScroll) return;
+
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            this.activeSection = entry.target.id;
+                        }
+                    });
+                }, {
+                    rootMargin: '-100px 0px -55% 0px',
+                    threshold: 0,
+                });
+
+                sections.forEach(section => this.observer.observe(section));
             }
         }"
-        x-init="$nextTick(() => {
-            const sectionMap = {
-                'Recurring Plan': 'recurring-plan',
-                'Personal Information': 'personal-information',
-                'Sources': 'sources',
-                'Installments': 'installments',
-                'Receipts': 'receipts',
-            };
-
-            // Assign IDs to section wrappers based on their heading text
-            document.querySelectorAll('.fi-sc-section').forEach(section => {
-                const heading = section.querySelector('h2');
-                if (heading) {
-                    const id = sectionMap[heading.textContent.trim()];
-                    if (id) section.id = id;
-                }
-            });
-
-            const sections = Object.values(sectionMap).map(id => document.getElementById(id)).filter(Boolean);
-            if (!sections.length) return;
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        activeSection = entry.target.id;
-                    }
-                });
-            }, {
-                rootMargin: '-120px 0px -60% 0px',
-                threshold: 0,
-            });
-
-            sections.forEach(section => observer.observe(section));
-        })"
+        x-init="$nextTick(() => startObserver())"
+        x-on:livewire-updated.window="$nextTick(() => startObserver())"
         class="flex gap-6"
     >
         {{-- Left Content --}}

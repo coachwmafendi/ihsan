@@ -134,6 +134,9 @@ class AppPanelProvider extends PanelProvider
             ->id('app')
             ->path('app')
             ->spa()
+            ->spaUrlExceptions(fn (): array => [
+                route('filament.app.pages.virtual-terminal'),
+            ])
             ->breadcrumbs(false)
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('240px')

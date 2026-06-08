@@ -3,6 +3,7 @@
 use App\Enums\UserRole;
 use App\Filament\App\Resources\Campaigns\Pages\ListCampaigns;
 use App\Filament\App\Resources\Donations\Pages\ListDonations;
+use App\Filament\App\Resources\Donors\DonorResource;
 use App\Filament\App\Resources\Donors\Pages\ListDonors;
 use App\Filament\App\Resources\Elements\Pages\ListElements;
 use App\Filament\App\Resources\Subscriptions\Pages\ListSubscriptions;
@@ -13,6 +14,7 @@ use App\Models\Element;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Livewire\Livewire;
 
@@ -31,6 +33,7 @@ it('shows useful dummy data across ngo app resource tables', function () {
     $donor = Donor::factory()->create([
         'name' => 'Hafizah Ahmad',
         'email' => 'hafizah@example.test',
+        'public_id' => 'DRGD3JY8',
     ]);
 
     Donation::factory()->for($campaign)->for($donor)->create([
@@ -66,11 +69,18 @@ it('shows useful dummy data across ngo app resource tables', function () {
         ->assertSee('Dana Makanan Pelajar')
         ->assertSee('120.00');
 
-    Livewire::test(ListDonors::class)
+    $listDonors = Livewire::test(ListDonors::class)
         ->assertOk()
         ->assertCanSeeTableRecords([$donor])
+        ->assertActionHasUrl(
+            TestAction::make('view')->table($donor),
+            DonorResource::getUrl('view', ['record' => $donor->public_id]),
+        )
         ->assertSee('Hafizah Ahmad')
         ->assertSee('hafizah@example.test');
+
+    expect($listDonors->instance()->getTable()->getRecordUrl($donor))
+        ->toBe(DonorResource::getUrl('view', ['record' => $donor->public_id]));
 
     Livewire::test(ListSubscriptions::class)
         ->assertOk()

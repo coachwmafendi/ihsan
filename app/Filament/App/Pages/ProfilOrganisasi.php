@@ -3,6 +3,8 @@
 namespace App\Filament\App\Pages;
 
 use App\Filament\Forms\Components\DonorPortalLink;
+use App\Filament\Forms\Components\VirtualTerminalLink;
+use App\Models\Donor;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -14,6 +16,8 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 
 class ProfilOrganisasi extends Page
@@ -256,6 +260,41 @@ class ProfilOrganisasi extends Page
                                     ->label('Account number')
                                     ->nullable()
                                     ->maxLength(255),
+                            ]),
+
+                        Tab::make('Virtual Terminal')
+                            ->icon('heroicon-o-credit-card')
+                            ->columns(1)
+                            ->schema([
+                                Section::make('Generic Link')
+                                    ->description('Use this to open the Virtual Terminal without a preloaded supporter.')
+                                    ->columnSpanFull()
+                                    ->schema([
+                                        VirtualTerminalLink::make('virtual_terminal_link'),
+                                    ]),
+                                Section::make('Preloaded Supporter Link')
+                                    ->description('Select a supporter to generate a link that pre-fills their details and saved cards.')
+                                    ->columnSpanFull()
+                                    ->schema([
+                                        Select::make('vt_supporter_id')
+                                            ->label('Supporter')
+                                            ->options(function () {
+                                                $orgId = auth()->user()?->organization_id;
+                                                if (! $orgId) {
+                                                    return [];
+                                                }
+
+                                                return Donor::query()
+                                                    ->whereHas('donations.campaign', fn ($q) => $q->where('organization_id', $orgId))
+                                                    ->pluck('name', 'public_id')
+                                                    ->toArray();
+                                            })
+                                            ->searchable()
+                                            ->placeholder('Select a supporter')
+                                            ->live(),
+                                        View::make('filament.forms.components.vt-preloaded-link')
+                                            ->visible(fn (Get $get) => filled($get('vt_supporter_id'))),
+                                    ]),
                             ]),
 
                         Tab::make('Donor Portal')

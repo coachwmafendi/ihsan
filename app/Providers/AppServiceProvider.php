@@ -32,10 +32,6 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
-        if (session()->has('locale')) {
-            app()->setLocale(session('locale'));
-        }
-
         $this->applyMailConfig();
         $this->applyStripeConfig();
 

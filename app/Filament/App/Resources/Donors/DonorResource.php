@@ -12,6 +12,7 @@ use App\Filament\App\Resources\Donors\Schemas\DonorForm;
 use App\Filament\App\Resources\Donors\Tables\DonorsTable;
 use App\Models\Donor;
 use BackedEnum;
+use Closure;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
@@ -39,6 +40,28 @@ class DonorResource extends Resource
     public static function getGlobalSearchResultTitle(Model $record): string
     {
         return $record->name;
+    }
+
+    public static function getRecordUrlKey(Donor $record): int|string
+    {
+        return $record->public_id ?: $record->getKey();
+    }
+
+    public static function resolveRecordRouteBinding(int|string $key, ?Closure $modifyQuery = null): ?Model
+    {
+        $query = static::getRecordRouteBindingEloquentQuery();
+
+        if ($modifyQuery) {
+            $query = $modifyQuery($query) ?? $query;
+        }
+
+        return $query->where(function (Builder $query) use ($key) {
+            $query->where('public_id', $key);
+
+            if (is_numeric($key)) {
+                $query->orWhereKey($key);
+            }
+        })->first();
     }
 
     public static function getEloquentQuery(): Builder
