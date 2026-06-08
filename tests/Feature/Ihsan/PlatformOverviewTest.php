@@ -206,3 +206,36 @@ it('calculates MTD processing fees with MoM change', function () {
         ->assertSet('processingFeesLastMonth', '3.00')
         ->assertSet('processingFeesMomChange', 100.0);
 });
+
+it('counts operational alert metrics', function () {
+    $org = Organization::factory()->create(['status' => 'active', 'stripe_onboarded' => false]);
+    Organization::factory()->create(['status' => 'active', 'stripe_onboarded' => true]);
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Failed,
+        'base_amount' => 50.00,
+    ]);
+
+    // Pending blocked donation
+    \App\Models\Fraud\BlockedDonation::factory()->create([
+        'donation_id' => $donation->id,
+        'review_status' => 'pending',
+    ]);
+
+    // Past-due subscription
+    Subscription::factory()->for($campaign)->for($donor)->create([
+        'status' => SubscriptionStatus::PastDue,
+        'amount' => 30.00,
+        'interval' => 'monthly',
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+    $this->actingAs($user);
+
+    Livewire::test(PlatformOverview::class)
+        ->assertSet('pendingBlockedDonations', 1)
+        ->assertSet('pastDueSubscriptions', 1)
+        ->assertSet('awaitingStripeOnboarding', 1); // org with status=active, stripe_onboarded=false
+});

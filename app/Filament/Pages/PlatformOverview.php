@@ -6,6 +6,7 @@ use App\Enums\DonationStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\Fraud\BlockedDonation;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\Subscription;
@@ -56,6 +57,12 @@ class PlatformOverview extends Page
     public string $processingFeesLastMonth = '0.00';
 
     public float $processingFeesMomChange = 0.0;
+
+    public int $pendingBlockedDonations = 0;
+
+    public int $pastDueSubscriptions = 0;
+
+    public int $awaitingStripeOnboarding = 0;
 
     /**
      * @var array<int, array{name: string, email: string, status: string, created_at: string}>
@@ -204,5 +211,18 @@ class PlatformOverview extends Page
         $this->processingFeesThisMonth = number_format($feesThisMonth, 2, '.', '');
         $this->processingFeesLastMonth = number_format($feesLastMonth, 2, '.', '');
         $this->processingFeesMomChange = $this->momChange($feesThisMonth, $feesLastMonth);
+
+        $this->pendingBlockedDonations = BlockedDonation::query()
+            ->where('review_status', 'pending')
+            ->count();
+
+        $this->pastDueSubscriptions = Subscription::query()
+            ->where('status', SubscriptionStatus::PastDue)
+            ->count();
+
+        $this->awaitingStripeOnboarding = Organization::query()
+            ->where('status', 'active')
+            ->where('stripe_onboarded', false)
+            ->count();
     }
 }
