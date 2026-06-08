@@ -252,7 +252,7 @@ class PlatformOverview extends Page
             (float) $this->newDonorsLastMonth
         );
 
-        $totalDonors = Donor::query()->count();
+        $totalDonors = $this->totalDonors;
         $repeatDonors = Donor::query()
             ->whereHas('donations', fn ($q) => $q->where('status', DonationStatus::Succeeded), '>=', 2)
             ->count();
