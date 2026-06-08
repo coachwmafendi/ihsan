@@ -26,8 +26,7 @@ it('displays the Actions tab on the campaign edit page', function () {
         ->assertFormFieldExists('title')
         ->assertSee('Actions')
         ->assertSee('Archive Campaign')
-        ->assertSee('Duplicate Campaign')
-        ->assertSee('Delete Campaign');
+        ->assertSee('Duplicate Campaign');
 });
 
 it('can archive a campaign from the Actions tab', function () {

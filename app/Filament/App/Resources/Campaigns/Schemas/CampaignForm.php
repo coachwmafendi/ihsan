@@ -187,12 +187,19 @@ class CampaignForm
                                     ->schema([
                                         Placeholder::make('archive_section')
                                             ->label('')
-                                            ->content(fn () => new HtmlString(
+                                            ->content(fn ($record) => new HtmlString(
                                                 '<div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">'
                                                 .'<div class="flex items-start justify-between gap-4">'
-                                                .'<div>'
-                                                .'<h3 class="text-sm font-semibold text-zinc-900">Archive Campaign</h3>'
-                                                .'<p class="mt-1 text-sm text-zinc-500">Archive this campaign to hide it from the public and move it to your archive. Archived campaigns can be restored later.</p>'
+                                                .'<div class="min-w-0">'
+                                                .'<h3 class="text-sm font-semibold text-zinc-900">'.e($record->title).'</h3>'
+                                                .'<div class="mt-1 flex items-center gap-2" x-data="{ copied: false }">'
+                                                .'<span class="text-xs text-zinc-500">ID '.e($record->public_id).'</span>'
+                                                .'<button type="button" x-on:click="navigator.clipboard.writeText(\''.e($record->public_id).'\').then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="inline-flex items-center text-zinc-400 hover:text-zinc-600 transition">'
+                                                .'<svg x-show="!copied" class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>'
+                                                .'<svg x-show="copied" class="size-3.5 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>'
+                                                .'</button>'
+                                                .'</div>'
+                                                .'<p class="mt-2 text-sm text-zinc-500">Archive this campaign to hide it from the public and move it to your archive. Archived campaigns can be restored later.</p>'
                                                 .'</div>'
                                                 .'<button type="button" wire:click="archiveCampaign" wire:confirm="Are you sure you want to archive this campaign? It will no longer accept donations." class="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20 hover:bg-amber-100 transition">'
                                                 .'<svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>'
@@ -202,31 +209,23 @@ class CampaignForm
                                             )),
                                         Placeholder::make('duplicate_section')
                                             ->label('')
-                                            ->content(fn () => new HtmlString(
+                                            ->content(fn ($record) => new HtmlString(
                                                 '<div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">'
                                                 .'<div class="flex items-start justify-between gap-4">'
-                                                .'<div>'
-                                                .'<h3 class="text-sm font-semibold text-zinc-900">Duplicate Campaign</h3>'
-                                                .'<p class="mt-1 text-sm text-zinc-500">Create a copy of this campaign with the same settings. Donations and stats will not be copied.</p>'
+                                                .'<div class="min-w-0">'
+                                                .'<h3 class="text-sm font-semibold text-zinc-900">'.e($record->title).'</h3>'
+                                                .'<div class="mt-1 flex items-center gap-2" x-data="{ copied: false }">'
+                                                .'<span class="text-xs text-zinc-500">ID '.e($record->public_id).'</span>'
+                                                .'<button type="button" x-on:click="navigator.clipboard.writeText(\''.e($record->public_id).'\').then(() => { copied = true; setTimeout(() => copied = false, 1500) })" class="inline-flex items-center text-zinc-400 hover:text-zinc-600 transition">'
+                                                .'<svg x-show="!copied" class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>'
+                                                .'<svg x-show="copied" class="size-3.5 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>'
+                                                .'</button>'
+                                                .'</div>'
+                                                .'<p class="mt-2 text-sm text-zinc-500">Create a copy of this campaign with the same settings. Donations and stats will not be copied.</p>'
                                                 .'</div>'
                                                 .'<button type="button" wire:click="duplicateCampaign" wire:confirm="Are you sure you want to duplicate this campaign? A new campaign will be created with the same settings." class="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-inset ring-zinc-300 hover:bg-zinc-100 transition">'
                                                 .'<svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>'
                                                 .'Duplicate Campaign</button>'
-                                                .'</div>'
-                                                .'</div>'
-                                            )),
-                                        Placeholder::make('delete_section')
-                                            ->label('')
-                                            ->content(fn () => new HtmlString(
-                                                '<div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">'
-                                                .'<div class="flex items-start justify-between gap-4">'
-                                                .'<div>'
-                                                .'<h3 class="text-sm font-semibold text-zinc-900">Delete Campaign</h3>'
-                                                .'<p class="mt-1 text-sm text-zinc-500">Permanently delete this campaign and all its data. This action cannot be undone.</p>'
-                                                .'</div>'
-                                                .'<button type="button" wire:click="deleteCampaign" wire:confirm="Are you sure you want to delete this campaign? All campaign data will be permanently removed." class="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-700 ring-1 ring-inset ring-red-600/20 hover:bg-red-100 transition">'
-                                                .'<svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>'
-                                                .'Delete Campaign</button>'
                                                 .'</div>'
                                                 .'</div>'
                                             )),
