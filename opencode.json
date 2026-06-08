@@ -17,10 +17,26 @@
           "name": "Kiro Claude Sonnet 4.5"
         }
       }
+    },
+    "cloudflare-workers-ai": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Cloudflare Workers AI",
+      "options": {
+        "baseURL": "https://api.cloudflare.com/client/v4/accounts/YOUR_CF_ACCOUNT_ID/ai/v1",
+        "apiKey": "YOUR_CF_API_TOKEN"
+      },
+      "models": {
+        "@cf/moonshotai/kimi-k2.6": {
+          "name": "Kimi K2.6 (CF Workers AI)",
+          "reasoning": true,
+          "tool_call": true,
+          "attachment": true
+        }
+      }
     }
   },
-  "model": "9router/oc/auto",
-  "small_model": "9router/oc/auto",
+  "model": "cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6",
+  "small_model": "cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6",
   "mcp": {
     "laravel-boost": {
       "type": "local",

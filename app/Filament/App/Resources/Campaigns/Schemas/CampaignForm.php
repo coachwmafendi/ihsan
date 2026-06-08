@@ -156,20 +156,46 @@ class CampaignForm
                         Tab::make('Stats')
                             ->icon('heroicon-o-chart-bar')
                             ->visible(fn ($record) => $record !== null)
-                            ->columns(3)
+                            ->columns(4)
                             ->schema([
                                 Placeholder::make('collected_amount')
                                     ->label('Amount raised')
-                                    ->content(fn ($record) => new HtmlString(
-                                        '<span class="text-2xl font-bold text-emerald-600">RM '.number_format(
-                                            $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount') ?? 0,
-                                            2
-                                        ).'</span>'
-                                    )),
+                                    ->content(function ($record): HtmlString {
+                                        $hasNonMyr = $record->donations()
+                                            ->where('status', DonationStatus::Succeeded)
+                                            ->where('currency', '!=', 'MYR')
+                                            ->exists();
+                                        $prefix = $hasNonMyr ? '≈ RM ' : 'RM ';
+                                        $amount = $record->donations()
+                                            ->where('status', DonationStatus::Succeeded)
+                                            ->sum('base_amount') ?? 0;
+
+                                        return new HtmlString('<span class="text-2xl font-bold text-emerald-600">'.$prefix.number_format($amount, 2).'</span>');
+                                    }),
                                 Placeholder::make('donation_count')
                                     ->label('Donations')
                                     ->content(fn ($record) => new HtmlString(
                                         '<span class="text-2xl font-bold text-zinc-900">'.$record->donations()->count().'</span>'
+                                    )),
+                                Placeholder::make('active_recurring')
+                                    ->label('Active recurring plans')
+                                    ->content(fn ($record) => new HtmlString(
+                                        '<span class="text-2xl font-bold text-teal-600">'.number_format(
+                                            $record->subscriptions()->where('status', 'active')->count()
+                                        ).'</span>'
+                                    )),
+                                Placeholder::make('last_donation')
+                                    ->label('Last donation')
+                                    ->content(fn ($record) => new HtmlString(
+                                        '<span class="text-lg font-semibold text-zinc-900">'.(
+                                            $record->donations()
+                                                ->where('status', DonationStatus::Succeeded)
+                                                ->latest('created_at')
+                                                ->first()
+                                                ?->created_at
+                                                ?->format('d M Y')
+                                            ?? '—'
+                                        ).'</span>'
                                     )),
                                 Placeholder::make('progress_bar')
                                     ->label('Campaign performance')
