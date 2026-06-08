@@ -3,7 +3,6 @@
 namespace App\Filament\Pages;
 
 use App\Models\Organization;
-use App\Models\ProcessingFee;
 use App\Models\Setting;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -68,19 +67,55 @@ class StripeSettings extends Page
             ->send();
     }
 
-    public function getApiMode(): string
+    public function getApiMode(): array
     {
         $key = config('services.stripe.secret');
 
         if (str_starts_with((string) $key, 'sk_live_')) {
-            return 'Live';
+            return ['label' => 'Live', 'color' => 'danger'];
         }
 
         if (str_starts_with((string) $key, 'sk_test_')) {
-            return 'Test';
+            return ['label' => 'Test', 'color' => 'warning'];
         }
 
-        return 'Not configured';
+        return ['label' => 'Not configured', 'color' => 'gray'];
+    }
+
+    public function verifyConnection(): void
+    {
+        $secret = config('services.stripe.secret');
+
+        if (! $secret) {
+            Notification::make()
+                ->title('Stripe secret key is not configured')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        try {
+            Stripe::setApiKey($secret);
+            $account = StripeAccount::retrieve();
+
+            Notification::make()
+                ->title('Stripe connection is active')
+                ->body('Account: '.$account->id.' ('.($account->business_profile->name ?? $account->settings->dashboard->display_name ?? 'Platform').')')
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Failed to connect to Stripe')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function getWebhookUrl(): string
+    {
+        return route('stripe.webhook');
     }
 
     public function getPlatformAccount(): ?array
@@ -131,29 +166,6 @@ class StripeSettings extends Page
             'connect_client_id' => (bool) config('services.stripe.connect_client_id'),
             'redirect_uri' => route('stripe.connect.callback'),
             'processing_fee_percent' => (float) config('services.stripe.processing_fee_percent', 2.5),
-        ];
-    }
-
-    public function getPlatformRevenue(): array
-    {
-        $totalFees = ProcessingFee::query()
-            ->selectRaw('COALESCE(SUM(fee_amount), 0) as total')
-            ->value('total');
-
-        $paidFees = ProcessingFee::query()
-            ->where('status', 'paid')
-            ->selectRaw('COALESCE(SUM(fee_amount), 0) as total')
-            ->value('total');
-
-        $pendingFees = ProcessingFee::query()
-            ->where('status', 'pending')
-            ->selectRaw('COALESCE(SUM(fee_amount), 0) as total')
-            ->value('total');
-
-        return [
-            'total' => (float) $totalFees,
-            'paid' => (float) $paidFees,
-            'pending' => (float) $pendingFees,
         ];
     }
 }

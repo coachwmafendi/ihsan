@@ -2,8 +2,11 @@
 
 namespace App\Filament\App\Resources\Campaigns\Pages;
 
+use App\Enums\CampaignStatus;
 use App\Filament\App\Resources\Campaigns\CampaignResource;
+use App\Models\Campaign;
 use Filament\Actions\DeleteAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Width;
 
@@ -18,6 +21,56 @@ class EditCampaign extends EditRecord
         return [
             DeleteAction::make(),
         ];
+    }
+
+    public function archiveCampaign(): void
+    {
+        $this->record->update(['status' => CampaignStatus::Archived]);
+
+        Notification::make()
+            ->title('Campaign archived')
+            ->body('The campaign has been archived successfully.')
+            ->success()
+            ->send();
+
+        $this->redirect(route('filament.app.resources.campaigns.index'));
+    }
+
+    public function duplicateCampaign(): void
+    {
+        /** @var Campaign $replica */
+        $replica = $this->record->replicate([
+            'public_id',
+            'collected_amount',
+            'form_parameter',
+        ]);
+        $replica->public_id = null;
+        $replica->title = $this->record->title.' (Copy)';
+        $replica->collected_amount = 0;
+        $replica->form_parameter = null;
+        $replica->status = CampaignStatus::Draft;
+        $replica->save();
+
+        Notification::make()
+            ->title('Campaign duplicated')
+            ->body('A copy of the campaign has been created.')
+            ->success()
+            ->send();
+
+        $this->redirect(route('filament.app.resources.campaigns.edit', $replica));
+    }
+
+    public function deleteCampaign(): void
+    {
+        $this->record->delete();
+
+        Notification::make()
+            ->title('Campaign deleted')
+            ->body('The campaign has been deleted.')
+            ->success()
+            ->send();
+
+        $this->redirect(route('filament.app.resources.campaigns.index'));
     }
 
     protected function beforeValidate(): void

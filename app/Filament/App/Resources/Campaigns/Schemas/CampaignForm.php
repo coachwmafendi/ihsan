@@ -180,6 +180,72 @@ class CampaignForm
                                         static::progressBarHtml($record)
                                     )),
                             ]),
+                        Tab::make('Actions')
+                            ->icon('heroicon-o-bolt')
+                            ->visible(fn ($record) => $record !== null)
+                            ->schema([
+                                Section::make('Archive Campaign')
+                                    ->description('Archive this campaign to hide it from the public and move it to your archive. Archived campaigns can be restored later.')
+                                    ->footer([
+                                        Action::make('archive')
+                                            ->label('Archive Campaign')
+                                            ->icon('heroicon-o-archive-box')
+                                            ->color('warning')
+                                            ->requiresConfirmation()
+                                            ->modalHeading('Archive Campaign')
+                                            ->modalDescription('Are you sure you want to archive this campaign? It will no longer accept donations.')
+                                            ->modalSubmitActionLabel('Archive')
+                                            ->action(function (Campaign $record) {
+                                                $record->update(['status' => CampaignStatus::Archived]);
+
+                                                return redirect()->route('filament.app.resources.campaigns.index');
+                                            }),
+                                    ]),
+                                Section::make('Duplicate Campaign')
+                                    ->description('Create a copy of this campaign with the same settings. Donations and stats will not be copied.')
+                                    ->footer([
+                                        Action::make('duplicate')
+                                            ->label('Duplicate Campaign')
+                                            ->icon('heroicon-o-document-duplicate')
+                                            ->color('gray')
+                                            ->requiresConfirmation()
+                                            ->modalHeading('Duplicate Campaign')
+                                            ->modalDescription('Are you sure you want to duplicate this campaign? A new campaign will be created with the same settings.')
+                                            ->modalSubmitActionLabel('Duplicate')
+                                            ->action(function (Campaign $record) {
+                                                $replica = $record->replicate([
+                                                    'public_id',
+                                                    'collected_amount',
+                                                    'form_parameter',
+                                                ]);
+                                                $replica->public_id = null;
+                                                $replica->title = $record->title.' (Copy)';
+                                                $replica->collected_amount = 0;
+                                                $replica->form_parameter = null;
+                                                $replica->status = CampaignStatus::Draft;
+                                                $replica->save();
+
+                                                return redirect()->route('filament.app.resources.campaigns.edit', $replica);
+                                            }),
+                                    ]),
+                                Section::make('Delete Campaign')
+                                    ->description('Permanently delete this campaign and all its data. This action cannot be undone.')
+                                    ->footer([
+                                        Action::make('delete')
+                                            ->label('Delete Campaign')
+                                            ->icon('heroicon-o-trash')
+                                            ->color('danger')
+                                            ->requiresConfirmation()
+                                            ->modalHeading('Delete Campaign')
+                                            ->modalDescription('Are you sure you want to delete this campaign? All campaign data including donations will be permanently removed.')
+                                            ->modalSubmitActionLabel('Delete')
+                                            ->action(function (Campaign $record) {
+                                                $record->delete();
+
+                                                return redirect()->route('filament.app.resources.campaigns.index');
+                                            }),
+                                    ]),
+                            ]),
                     ]),
             ]);
     }
