@@ -44,7 +44,7 @@ it('can archive a campaign from the Actions tab', function () {
     Filament::setCurrentPanel(Filament::getPanel('app'));
 
     Livewire::test(EditCampaign::class, ['record' => $campaign->public_id])
-        ->callAction('archive');
+        ->call('archiveCampaign');
 
     expect($campaign->fresh()->status)->toBe(CampaignStatus::Archived);
 });
@@ -64,7 +64,7 @@ it('can duplicate a campaign from the Actions tab', function () {
     Filament::setCurrentPanel(Filament::getPanel('app'));
 
     Livewire::test(EditCampaign::class, ['record' => $campaign->public_id])
-        ->callAction('duplicate')
+        ->call('duplicateCampaign')
         ->assertRedirect();
 
     $this->assertDatabaseHas('campaigns', [
@@ -88,7 +88,7 @@ it('can delete a campaign from the Actions tab', function () {
     Filament::setCurrentPanel(Filament::getPanel('app'));
 
     Livewire::test(EditCampaign::class, ['record' => $campaign->public_id])
-        ->callAction('delete')
+        ->call('deleteCampaign')
         ->assertRedirect();
 
     $this->assertDatabaseMissing('campaigns', [
