@@ -38,14 +38,21 @@
     "for.title": "Built for NGOs & Donors",
     "for.ngo.label": "FOR NGOS",
     "for.ngo.title": "Manage donations without technical hassle",
-    "for.ngo.point_1": "Set up a campaign in 5 minutes",
-    "for.ngo.point_2": "Accept donations 24/7 — auto receipts",
-    "for.ngo.point_3": "Track MRR & donor growth",
+    "for.ngo.point_1": "Set up a campaign in 5 minutes — no developer needed",
+    "for.ngo.point_2": "Accept donations 24/7 — auto email receipts & PDF",
+    "for.ngo.point_3": "Track MRR, recurring revenue & donor growth in real-time",
+    "for.ngo.point_4": "Smart retry on failed payments — recovers lost recurring revenue automatically",
+    "for.ngo.point_5": "Embed donation buttons, forms & popups on your website with one script tag",
+    "for.ngo.point_6": "Virtual Terminal — process phone or walk-in donations manually",
+    "for.ngo.point_7": "Export donor & transaction data as CSV for audits & LHDN reporting",
     "for.donor.label": "FOR DONORS",
     "for.donor.title": "Give easily & continuously",
-    "for.donor.point_1": "One-click — Apple Pay / Google Pay",
-    "for.donor.point_2": "Set auto-debit and forget",
-    "for.donor.point_3": "Manage donations from your own portal",
+    "for.donor.point_1": "One-click — Apple Pay / Google Pay, no card details to type",
+    "for.donor.point_2": "Set monthly auto-debit and never miss a donation again",
+    "for.donor.point_3": "Self-manage via your Donor Portal — no password needed (magic link)",
+    "for.donor.point_4": "Pause, resume, or cancel your subscription anytime",
+    "for.donor.point_5": "Auto PDF receipt for every donation, downloadable anytime",
+    "for.donor.point_6": "View all history and donate to multiple NGOs from one portal",
 
     "pricing.title": "Transparent Pricing",
     "pricing.subtitle": "Just a 3% platform fee — no monthly charges during MVP",
@@ -72,5 +79,8 @@
     "cta.button": "Register Your NGO",
 
     "footer.copyright": "© Ihsan — Donation Platform for Malaysian NGOs",
-    "footer.email": "hello@ihsan.my"
+    "footer.email": "hello@getihsan.my",
+
+    "preview.title": "See the platform in action",
+    "preview.subtitle": "A clean, powerful dashboard built for NGO operations — no training needed."
 }

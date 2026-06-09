@@ -95,6 +95,219 @@
         </div>
     </section>
 
+    {{-- Product Preview --}}
+    <section class="py-20 sm:py-28 overflow-hidden">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-2xl sm:text-3xl font-bold text-white">@lang('preview.title')</h2>
+                <p class="mt-3 text-slate-400 max-w-xl mx-auto">@lang('preview.subtitle')</p>
+            </div>
+
+            {{-- Main dashboard mockup --}}
+            <div class="rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_80px_-20px_rgba(20,184,166,0.25)]">
+                {{-- Browser chrome --}}
+                <div class="bg-slate-900 px-4 py-3 flex items-center gap-3 border-b border-white/5">
+                    <div class="flex gap-1.5 shrink-0">
+                        <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+                    </div>
+                    <div class="flex-1 bg-slate-800 rounded-md text-xs text-slate-500 px-3 py-1.5 max-w-xs mx-auto text-center truncate">
+                        app.getihsan.my/app/insights
+                    </div>
+                </div>
+
+                {{-- App layout --}}
+                <div class="flex bg-[#111827]">
+                    {{-- Sidebar --}}
+                    <div class="hidden sm:flex w-52 shrink-0 bg-[#0f172a] border-r border-white/5 flex-col p-3">
+                        <div class="px-3 py-3 mb-2">
+                            <span class="text-white font-bold text-lg">Ihsan</span>
+                        </div>
+                        <nav class="flex flex-col gap-0.5 text-sm">
+                            <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-teal-600/20 text-teal-400 font-medium">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+                                Insights
+                            </div>
+                            <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+                                Donations
+                            </div>
+                            <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Recurring
+                            </div>
+                            <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z"/></svg>
+                                Campaigns
+                            </div>
+                            <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                                Donors
+                            </div>
+                            <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 01-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 00-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 01-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 00.657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959v0c0 .333.277.599.61.58a48.1 48.1 0 005.427-.63 48.05 48.05 0 00.582-4.717.532.532 0 00-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.959.401v0a.656.656 0 00.658-.663 48.422 48.422 0 00-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 01-.61-.58v0z"/></svg>
+                                Elements
+                            </div>
+                        </nav>
+                    </div>
+
+                    {{-- Main content --}}
+                    <div class="flex-1 min-w-0 p-4 sm:p-6">
+                        <div class="flex items-center justify-between mb-5">
+                            <h3 class="text-white font-semibold text-lg">Insights</h3>
+                            <div class="flex gap-2">
+                                <div class="bg-slate-800 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-400">Last 30 days</div>
+                                <div class="hidden sm:block bg-slate-800 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-400">All Campaigns</div>
+                            </div>
+                        </div>
+
+                        {{-- Metric cards --}}
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                            <div class="bg-slate-800/50 border border-white/5 rounded-xl p-3 sm:p-4">
+                                <div class="text-xs text-slate-500 mb-1">Total Raised</div>
+                                <div class="text-base sm:text-xl font-bold text-white">RM 12,480</div>
+                                <div class="text-xs text-teal-400 mt-1">↑ 18%</div>
+                            </div>
+                            <div class="bg-slate-800/50 border border-white/5 rounded-xl p-3 sm:p-4">
+                                <div class="text-xs text-slate-500 mb-1">MRR</div>
+                                <div class="text-base sm:text-xl font-bold text-white">RM 3,240</div>
+                                <div class="text-xs text-teal-400 mt-1">↑ 12%</div>
+                            </div>
+                            <div class="bg-slate-800/50 border border-white/5 rounded-xl p-3 sm:p-4">
+                                <div class="text-xs text-slate-500 mb-1">Active Donors</div>
+                                <div class="text-base sm:text-xl font-bold text-white">156</div>
+                                <div class="text-xs text-teal-400 mt-1">↑ 8 new</div>
+                            </div>
+                            <div class="bg-slate-800/50 border border-white/5 rounded-xl p-3 sm:p-4">
+                                <div class="text-xs text-slate-500 mb-1">Recurring</div>
+                                <div class="text-base sm:text-xl font-bold text-white">87</div>
+                                <div class="text-xs text-slate-500 mt-1">56%</div>
+                            </div>
+                        </div>
+
+                        {{-- Chart --}}
+                        <div class="bg-slate-800/30 border border-white/5 rounded-xl p-4">
+                            <div class="text-xs text-slate-500 mb-3">Donation Revenue</div>
+                            <svg class="w-full" height="80" viewBox="0 0 500 80" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="rgb(20,184,166)" stop-opacity="0.25"/>
+                                        <stop offset="100%" stop-color="rgb(20,184,166)" stop-opacity="0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M0,72 C50,68 80,55 120,48 C160,42 185,58 230,38 C275,18 300,28 345,18 C380,10 440,14 500,5 L500,80 L0,80 Z" fill="url(#chartGrad)"/>
+                                <path d="M0,72 C50,68 80,55 120,48 C160,42 185,58 230,38 C275,18 300,28 345,18 C380,10 440,14 500,5" fill="none" stroke="rgb(20,184,166)" stroke-width="2"/>
+                            </svg>
+                            <div class="flex justify-between text-xs text-slate-600 mt-2">
+                                <span>1 May</span><span>8 May</span><span>15 May</span><span>22 May</span><span>30 May</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Two smaller mockups --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
+                {{-- Campaigns mockup --}}
+                <div class="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                    <div class="bg-slate-900 px-4 py-2.5 flex items-center gap-2 border-b border-white/5">
+                        <div class="flex gap-1 shrink-0">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
+                        </div>
+                        <span class="text-xs text-slate-600 ml-2 truncate">app.getihsan.my/app/campaigns</span>
+                    </div>
+                    <div class="bg-[#111827] p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-sm font-semibold text-white">Campaigns</span>
+                            <span class="text-xs bg-teal-600 text-white px-3 py-1 rounded-full font-medium">+ New</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="bg-slate-800/50 border border-white/5 rounded-xl p-3">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-medium text-white">Tabung Masjid Al-Falah</span>
+                                    <span class="text-xs bg-teal-500/15 text-teal-400 px-2 py-0.5 rounded-full">Active</span>
+                                </div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="flex-1 bg-slate-700 rounded-full h-1.5">
+                                        <div class="bg-teal-500 h-1.5 rounded-full" style="width:68%"></div>
+                                    </div>
+                                    <span class="text-xs text-slate-400 shrink-0">68%</span>
+                                </div>
+                                <span class="text-xs text-slate-500">RM 6,800 / RM 10,000</span>
+                            </div>
+                            <div class="bg-slate-800/50 border border-white/5 rounded-xl p-3">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-medium text-white">Bantuan Asnaf Ramadan</span>
+                                    <span class="text-xs bg-teal-500/15 text-teal-400 px-2 py-0.5 rounded-full">Active</span>
+                                </div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="flex-1 bg-slate-700 rounded-full h-1.5">
+                                        <div class="bg-teal-500 h-1.5 rounded-full" style="width:45%"></div>
+                                    </div>
+                                    <span class="text-xs text-slate-400 shrink-0">45%</span>
+                                </div>
+                                <span class="text-xs text-slate-500">RM 4,500 / RM 10,000</span>
+                            </div>
+                            <div class="bg-slate-800/50 border border-white/5 rounded-xl p-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium text-white">Tabung Pendidikan Anak Yatim</span>
+                                    <span class="text-xs bg-slate-700 text-slate-400 px-2 py-0.5 rounded-full">Draft</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Donor Portal mockup --}}
+                <div class="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                    <div class="bg-slate-900 px-4 py-2.5 flex items-center gap-2 border-b border-white/5">
+                        <div class="flex gap-1 shrink-0">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
+                        </div>
+                        <span class="text-xs text-slate-600 ml-2 truncate">getihsan.my/my/donations</span>
+                    </div>
+                    <div class="bg-[#111827] p-4">
+                        <div class="mb-3">
+                            <span class="text-sm font-semibold text-white">My Donations</span>
+                            <p class="text-xs text-slate-500 mt-0.5">Hafizah bt. Azlan</p>
+                        </div>
+                        <div class="bg-teal-600/10 border border-teal-500/20 rounded-xl p-3 mb-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs text-teal-400 font-medium">Tabung Masjid Al-Falah</div>
+                                    <div class="text-xs text-slate-400 mt-0.5">RM 50 / month · Active</div>
+                                </div>
+                                <div class="flex gap-1">
+                                    <span class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded-md">Pause</span>
+                                    <span class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded-md">Edit</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between bg-slate-800/40 rounded-lg p-2.5">
+                                <span class="text-xs text-slate-400">1 Jun 2026 · One-time</span>
+                                <span class="text-xs text-white font-medium">RM 100</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-slate-800/40 rounded-lg p-2.5">
+                                <span class="text-xs text-slate-400">1 May 2026 · Recurring</span>
+                                <span class="text-xs text-white font-medium">RM 50</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-slate-800/40 rounded-lg p-2.5">
+                                <span class="text-xs text-slate-400">1 Apr 2026 · Recurring</span>
+                                <span class="text-xs text-white font-medium">RM 50</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     {{-- Features --}}
     <section id="features" class="bg-[#131d31] py-20 sm:py-28">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -162,18 +375,12 @@
                     <span class="text-xs font-semibold text-teal-400 tracking-widest uppercase">@lang('for.ngo.label')</span>
                     <h3 class="text-xl font-bold text-white mt-3">@lang('for.ngo.title')</h3>
                     <ul class="mt-6 space-y-3">
+                        @foreach (['for.ngo.point_1','for.ngo.point_2','for.ngo.point_3','for.ngo.point_4','for.ngo.point_5','for.ngo.point_6','for.ngo.point_7'] as $key)
                         <li class="flex items-start gap-3 text-slate-400">
                             <svg class="w-5 h-5 text-teal-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            <span>@lang('for.ngo.point_1')</span>
+                            <span>@lang($key)</span>
                         </li>
-                        <li class="flex items-start gap-3 text-slate-400">
-                            <svg class="w-5 h-5 text-teal-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            <span>@lang('for.ngo.point_2')</span>
-                        </li>
-                        <li class="flex items-start gap-3 text-slate-400">
-                            <svg class="w-5 h-5 text-teal-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            <span>@lang('for.ngo.point_3')</span>
-                        </li>
+                        @endforeach
                     </ul>
                 </div>
 
@@ -181,18 +388,12 @@
                     <span class="text-xs font-semibold text-teal-400 tracking-widest uppercase">@lang('for.donor.label')</span>
                     <h3 class="text-xl font-bold text-white mt-3">@lang('for.donor.title')</h3>
                     <ul class="mt-6 space-y-3">
+                        @foreach (['for.donor.point_1','for.donor.point_2','for.donor.point_3','for.donor.point_4','for.donor.point_5','for.donor.point_6'] as $key)
                         <li class="flex items-start gap-3 text-slate-400">
                             <svg class="w-5 h-5 text-teal-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            <span>@lang('for.donor.point_1')</span>
+                            <span>@lang($key)</span>
                         </li>
-                        <li class="flex items-start gap-3 text-slate-400">
-                            <svg class="w-5 h-5 text-teal-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            <span>@lang('for.donor.point_2')</span>
-                        </li>
-                        <li class="flex items-start gap-3 text-slate-400">
-                            <svg class="w-5 h-5 text-teal-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            <span>@lang('for.donor.point_3')</span>
-                        </li>
+                        @endforeach
                     </ul>
                 </div>
             </div>
