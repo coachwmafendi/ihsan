@@ -55,10 +55,10 @@
     "for.donor.point_6": "Lihat semua sejarah dan derma kepada pelbagai NGO dari satu portal",
 
     "pricing.title": "Harga yang Telus",
-    "pricing.subtitle": "Platform fee serendah 3% — langsung tiada yuran bulanan semasa MVP",
+    "pricing.subtitle": "Processing fee serendah 2.5% — Tiada platform fee, langsung tiada yuran bulanan semasa MVP",
     "pricing.mvp.name": "MVP",
     "pricing.mvp.price": "Percuma",
-    "pricing.mvp.fee": "+ 3% platform fee",
+    "pricing.mvp.fee": "+ 2.5% processing fee",
     "pricing.coming.name": "Akan Datang",
     "pricing.coming.desc": "Pelan berbayar akan diumumkan",
 
@@ -66,7 +66,7 @@
     "faq.q1.q": "Apa itu Ihsan?",
     "faq.q1.a": "Ihsan adalah platform fundraising untuk NGO Malaysia — menerima derma satu kali & berulang melalui Stripe, dengan dashboard admin yang lengkap.",
     "faq.q2.q": "Berapa kos untuk NGO?",
-    "faq.q2.a": "Percuma sepenuhnya semasa MVP. Hanya 3% platform fee setiap transaksi. Yuran pemprosesan Stripe dikenakan secara berasingan.",
+    "faq.q2.a": "Percuma sepenuhnya semasa MVP. Hanya 2.5% processing fee setiap transaksi. Tiada platform fee tambahan.",
     "faq.q3.q": "Bagaimana cara nak mula?",
     "faq.q3.a": "Daftar, isi profil NGO, sambung Stripe — sedia dalam masa 30 minit. Kelulusan manual diperlukan.",
     "faq.q4.q": "Apa saja kaedah pembayaran yang disokong?",
