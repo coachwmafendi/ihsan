@@ -3,11 +3,14 @@
 namespace App\Filament\App\Resources\Donors\Tables;
 
 use App\Filament\App\Resources\Donors\DonorResource;
+use App\Filament\Exports\DonorExporter;
 use App\Models\Donation;
 use App\Models\Donor;
 use Carbon\Carbon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ExportAction;
+use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -167,6 +170,12 @@ class DonorsTable
                 Filter::make('has_subscriptions')
                     ->label('Has recurring')
                     ->query(fn ($query) => $query->whereHas('subscriptions')),
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(DonorExporter::class)
+                    ->formats([ExportFormat::Csv, ExportFormat::Xlsx])
+                    ->fileName(fn (): string => 'donors-'.now()->format('Y-m-d')),
             ])
             ->recordActions([
                 ViewAction::make()

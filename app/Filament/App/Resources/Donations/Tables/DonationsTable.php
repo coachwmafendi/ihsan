@@ -5,10 +5,13 @@ namespace App\Filament\App\Resources\Donations\Tables;
 use App\Actions\Stripe\RefundDonation;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
+use App\Filament\Exports\DonationExporter;
 use App\Models\Campaign;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ExportAction;
+use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
@@ -184,6 +187,12 @@ class DonationsTable
                             ->when($data['from'] ?? null, fn (Builder $q, $d): Builder => $q->whereDate('created_at', '>=', $d))
                             ->when($data['until'] ?? null, fn (Builder $q, $d): Builder => $q->whereDate('created_at', '<=', $d));
                     }),
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(DonationExporter::class)
+                    ->formats([ExportFormat::Csv, ExportFormat::Xlsx])
+                    ->fileName(fn (): string => 'donations-'.now()->format('Y-m-d')),
             ])
             ->recordActions([
                 Action::make('refund')
