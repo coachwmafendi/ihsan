@@ -30,3 +30,4 @@ tests/Feature/TmpWebhookTest.php
 docs/superpowers/plans/*.md
 *.png
 !storage/app/public/**/*.png
+opencode.json
