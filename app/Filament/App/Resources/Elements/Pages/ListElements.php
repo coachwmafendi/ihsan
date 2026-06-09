@@ -4,6 +4,7 @@ namespace App\Filament\App\Resources\Elements\Pages;
 
 use App\Filament\App\Resources\Elements\ElementResource;
 use App\Models\Element;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListElements extends ListRecords
@@ -19,6 +20,8 @@ class ListElements extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            CreateAction::make(),
+        ];
     }
 }

@@ -1,11 +1,5 @@
 <x-filament-panels::page>
-<div class="space-y-6">
-    {{-- Page Header --}}
-    <x-ui.page-header
-        title="Donations"
-        subtitle="Track all donations across your campaigns"
-    />
-
+<div class="space-y-4">
     {{-- Donations Table or Empty State --}}
     @if ($this->hasDonations())
         <div class="space-y-4">

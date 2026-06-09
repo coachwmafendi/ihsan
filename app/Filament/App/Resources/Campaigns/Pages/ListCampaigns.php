@@ -4,6 +4,7 @@ namespace App\Filament\App\Resources\Campaigns\Pages;
 
 use App\Filament\App\Resources\Campaigns\CampaignResource;
 use App\Models\Campaign;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListCampaigns extends ListRecords
@@ -24,6 +25,8 @@ class ListCampaigns extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            CreateAction::make(),
+        ];
     }
 }

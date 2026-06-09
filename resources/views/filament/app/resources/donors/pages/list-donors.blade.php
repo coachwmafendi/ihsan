@@ -1,11 +1,5 @@
 <x-filament-panels::page>
-<div class="space-y-6">
-    {{-- Page Header --}}
-    <x-ui.page-header
-        title="Supporters"
-        subtitle="View and manage your donors and their giving history"
-    />
-
+<div class="space-y-4">
     {{-- Stats Widget --}}
     @livewire(\App\Filament\App\Resources\Donors\Widgets\DonorStatsOverview::class)
 

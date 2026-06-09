@@ -1,11 +1,5 @@
 <x-filament-panels::page>
-<div class="space-y-6">
-    {{-- Page Header --}}
-    <x-ui.page-header
-        title="Recurring Plans"
-        subtitle="Manage and track active subscription plans"
-    />
-
+<div class="space-y-4">
     {{-- Subscriptions Table or Empty State --}}
     @if ($this->hasSubscriptions())
         <div class="relative">

@@ -1,21 +1,5 @@
 <x-filament-panels::page>
-<div class="space-y-6">
-    {{-- Page Header --}}
-    <x-ui.page-header
-        title="Elements"
-        subtitle="Create and manage embeddable donation buttons, forms, and popups"
-    >
-        <x-slot:actions>
-            <a
-                href="{{ \App\Filament\App\Resources\Elements\ElementResource::getUrl('create') }}"
-                class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:bg-primary-500 dark:hover:bg-primary-400"
-            >
-                <x-heroicon-o-plus class="size-4" />
-                Create Element
-            </a>
-        </x-slot:actions>
-    </x-ui.page-header>
-
+<div class="space-y-4">
     {{-- Elements Table or Empty State --}}
     @if ($this->hasElements())
         <div class="relative">
