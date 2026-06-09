@@ -14,51 +14,58 @@
         }
     </style>
     <div x-data="vtPayment()" x-init="initStripe(@js($this->stripePublishableKey))" class="max-w-7xl mx-auto">
-        {{-- Header --}}
-        <div class="mb-6 text-left">
-            <h1 class="text-2xl font-semibold text-gray-950 dark:text-white">Virtual Terminal — {{ auth()->user()?->organization?->name ?? 'Ihsan' }}</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Use the Virtual Terminal to process an in-person or over the phone donation.
-            </p>
-        </div>
+        <x-ui.page-header
+            title="Virtual Terminal — {{ auth()->user()?->organization?->name ?? config('app.name') }}"
+            subtitle="Use the Virtual Terminal to process an in-person or over the phone donation."
+        />
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {{-- Left column: form --}}
             <div class="lg:col-span-2 space-y-8">
                 {{-- Campaign --}}
-                <section>
-                    <h2 class="text-base font-semibold text-gray-950 dark:text-white mb-3">Campaign</h2>
-                    <select
-                        id="campaign_id"
-                        wire:model.live="formData.campaign_id"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                    >
-                        <option value="">Select a campaign</option>
-                        @foreach ($campaigns as $id => $title)
-                            <option value="{{ $id }}">{{ $title }}</option>
-                        @endforeach
-                    </select>
+                <x-filament::section>
+                    <x-slot name="heading">Campaign</x-slot>
+                    <div class="relative">
+                        <select
+                            id="campaign_id"
+                            wire:model.live="formData.campaign_id"
+                            class="block w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-10 text-sm text-gray-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                        >
+                            <option value="">Select a campaign</option>
+                            @foreach ($campaigns as $id => $title)
+                                <option value="{{ $id }}">{{ $title }}</option>
+                            @endforeach
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
+                            <x-heroicon-o-chevron-down class="size-4" />
+                        </div>
+                    </div>
                     @error('formData.campaign_id')
                         <p class="mt-1 text-sm text-danger-600">{{ $message }}</p>
                     @enderror
-                </section>
+                </x-filament::section>
 
                 {{-- Donation --}}
-                <section>
-                    <h2 class="text-base font-semibold text-gray-950 dark:text-white mb-3">Donation</h2>
+                <x-filament::section>
+                    <x-slot name="heading">Donation</x-slot>
                     <div class="space-y-4">
                         <div>
                             <label for="frequency" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Donation frequency
                             </label>
-                            <select
-                                id="frequency"
-                                wire:model.live="formData.frequency"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                            >
-                                <option value="once">Once</option>
-                                <option value="monthly">Monthly</option>
-                            </select>
+                            <div class="relative">
+                                <select
+                                    id="frequency"
+                                    wire:model.live="formData.frequency"
+                                    class="block w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-10 text-sm text-gray-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                                >
+                                    <option value="once">Once</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
+                                    <x-heroicon-o-chevron-down class="size-4" />
+                                </div>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -79,15 +86,20 @@
                                         placeholder="0.00"
                                     />
                                     @if (count($acceptedCurrencies) > 1)
-                                        <select
-                                            aria-label="Currency"
-                                            wire:model.live="formData.currency"
-                                            class="rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 px-3 text-sm font-medium text-gray-600 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                                        >
-                                            @foreach ($acceptedCurrencies as $currency)
-                                                <option value="{{ $currency }}">{{ strtoupper($currency) }}</option>
-                                            @endforeach
-                                        </select>
+                                        <div class="relative">
+                                            <select
+                                                aria-label="Currency"
+                                                wire:model.live="formData.currency"
+                                                class="block appearance-none rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 py-2.5 pr-8 pl-3 text-sm font-medium text-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                            >
+                                                @foreach ($acceptedCurrencies as $currency)
+                                                    <option value="{{ $currency }}">{{ strtoupper($currency) }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
+                                                <x-heroicon-o-chevron-down class="size-3.5" />
+                                            </div>
+                                        </div>
                                     @else
                                         <span class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                                             {{ $this->getCurrency() }}
@@ -111,11 +123,11 @@
                             </div>
                         </div>
                     </div>
-                </section>
+                </x-filament::section>
 
                 {{-- Supporter --}}
-                <section>
-                    <h2 class="text-base font-semibold text-gray-950 dark:text-white mb-3">Supporter</h2>
+                <x-filament::section>
+                    <x-slot name="heading">Supporter</x-slot>
 
                     @if ($preloadedSupporter)
                         <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 mb-4 dark:border-yellow-900 dark:bg-yellow-900/20">
@@ -224,11 +236,11 @@
                             <p class="mt-1 text-sm text-danger-600">{{ $message }}</p>
                         @enderror
                     </div>
-                </section>
+                </x-filament::section>
 
                 {{-- Payment method --}}
-                <section>
-                    <h2 class="text-base font-semibold text-gray-950 dark:text-white mb-3">Payment method</h2>
+                <x-filament::section>
+                    <x-slot name="heading">Payment method</x-slot>
                     <div class="space-y-3">
                         @if ($preloadedSupporter && count($this->savedCards) > 0)
                             @foreach ($this->savedCards as $card)
@@ -276,23 +288,23 @@
                             </div>
                         </div>
                     </div>
-                </section>
+                </x-filament::section>
 
                 {{-- Transaction costs --}}
-                <section>
-                    <h2 class="text-base font-semibold text-gray-950 dark:text-white mb-3">Transaction costs</h2>
+                <x-filament::section>
+                    <x-slot name="heading">Transaction costs</x-slot>
                     <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                         <p class="text-sm text-gray-700 dark:text-gray-300">
                             Estimated costs for the selected payment method:
                             <span class="font-semibold text-gray-900 dark:text-white">{{ $this->getProcessingFeeEstimate() }}</span>
                         </p>
                     </div>
-                </section>
+                </x-filament::section>
             </div>
 
             {{-- Right column: summary --}}
             <div class="lg:col-span-1">
-                <div class="sticky top-8 rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
+                <div class="sticky top-8 rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
                     <h2 class="text-lg font-semibold text-gray-950 dark:text-white mb-4">Summary</h2>
                     <div class="space-y-3">
                         <div class="flex justify-between text-sm">
@@ -356,15 +368,12 @@
 
                 async mountCard() {
                     if (this.cardMounted) return;
-
                     await new Promise(r => setTimeout(r, 100));
-
                     const container = document.getElementById('card-element');
                     if (!container) {
                         this.errorMessage = 'Could not load card form. Please try again.';
                         return;
                     }
-
                     try {
                         this.cardElement.unmount();
                     } catch (e) {}
@@ -374,26 +383,21 @@
 
                 async submitPayment() {
                     const paymentMethod = $wire.formData.payment_method;
-
                     this.processing = true;
                     this.errorMessage = '';
-
                     try {
                         if (paymentMethod === 'new_card') {
                             const { paymentMethod: stripePM, error } = await this.stripe.createPaymentMethod({
                                 type: 'card',
                                 card: this.cardElement,
                             });
-
                             if (error) {
                                 this.errorMessage = error.message;
                                 this.processing = false;
                                 return;
                             }
-
                             await $wire.set('formData.payment_method_id', stripePM.id);
                         }
-
                         await $wire.mountAction('processDonation');
                     } catch (e) {
                         this.errorMessage = 'Payment failed. Please try again.';

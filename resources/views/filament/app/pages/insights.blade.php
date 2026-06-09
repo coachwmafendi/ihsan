@@ -11,73 +11,59 @@
     >
         {{-- Filter bar skeleton --}}
         <div class="flex flex-wrap items-center gap-2">
-            <div class="h-9 w-32 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"></div>
-            <div class="h-9 w-28 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"></div>
-            <div class="h-9 w-36 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"></div>
-            <div class="h-9 w-32 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"></div>
-            <div class="h-9 w-28 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"></div>
+            <x-ui.skeleton height="2.25rem" width="8rem" rounded="0.5rem" />
+            <x-ui.skeleton height="2.25rem" width="7rem" rounded="0.5rem" />
+            <x-ui.skeleton height="2.25rem" width="9rem" rounded="0.5rem" />
+            <x-ui.skeleton height="2.25rem" width="8rem" rounded="0.5rem" />
+            <x-ui.skeleton height="2.25rem" width="7rem" rounded="0.5rem" />
         </div>
 
         {{-- KPI cards skeleton --}}
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             @for ($i = 0; $i < 4; $i++)
-                <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
-                    <div class="h-4 w-24 animate-pulse rounded bg-gray-100 dark:bg-gray-800"></div>
-                    <div class="mt-3 h-8 w-36 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-                    <div class="mt-3 h-4 w-40 animate-pulse rounded bg-gray-100 dark:bg-gray-800"></div>
+                <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 space-y-3">
+                    <x-ui.skeleton height="1rem" width="6rem" />
+                    <x-ui.skeleton height="2rem" width="9rem" />
+                    <x-ui.skeleton height="1rem" width="10rem" />
                 </div>
             @endfor
         </div>
 
         {{-- Main + sidebar skeleton --}}
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
-            <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
+            <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 space-y-4">
                 <div class="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                        <div class="h-5 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-                        <div class="mt-2 h-4 w-40 animate-pulse rounded bg-gray-100 dark:bg-gray-800"></div>
+                    <div class="space-y-2">
+                        <x-ui.skeleton height="1.25rem" width="6rem" />
+                        <x-ui.skeleton height="1rem" width="10rem" />
                     </div>
-                    <div class="h-9 w-28 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"></div>
+                    <x-ui.skeleton height="2.25rem" width="7rem" rounded="0.5rem" />
                 </div>
-
-                <div class="mt-8 flex h-64 items-end gap-3 border-b border-gray-200 pb-2 dark:border-gray-700">
+                <div class="mt-4 flex h-64 items-end gap-3 border-b border-gray-200 pb-2 dark:border-gray-700">
                     @for ($i = 0; $i < 7; $i++)
                         <div class="flex h-full min-w-0 flex-1 flex-col justify-end gap-2">
-                            <div class="rounded-t-md bg-gray-200 animate-pulse dark:bg-gray-700" style="height: {{ rand(20, 90) }}%"></div>
-                            <div class="h-3 w-full animate-pulse rounded bg-gray-100 dark:bg-gray-800"></div>
+                            <x-ui.skeleton height="{{ rand(20, 90) }}%" width="100%" rounded="0.375rem 0.375rem 0 0" />
+                            <x-ui.skeleton height="0.75rem" width="100%" />
                         </div>
                     @endfor
                 </div>
-
-                <div class="mt-6 grid gap-6 xl:grid-cols-2">
-                    <div>
-                        <div class="h-5 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-                        <div class="mt-4 space-y-3">
+                <div class="grid gap-6 xl:grid-cols-2">
+                    @for ($col = 0; $col < 2; $col++)
+                        <div class="space-y-3">
+                            <x-ui.skeleton height="1.25rem" width="8rem" />
                             @for ($i = 0; $i < 5; $i++)
                                 <div class="flex items-center justify-between py-2">
-                                    <div class="h-4 w-24 animate-pulse rounded bg-gray-100 dark:bg-gray-800"></div>
-                                    <div class="h-4 w-16 animate-pulse rounded bg-gray-100 dark:bg-gray-800"></div>
+                                    <x-ui.skeleton height="1rem" width="6rem" />
+                                    <x-ui.skeleton height="1rem" width="4rem" />
                                 </div>
                             @endfor
                         </div>
-                    </div>
-                    <div>
-                        <div class="h-5 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-                        <div class="mt-4 space-y-3">
-                            @for ($i = 0; $i < 5; $i++)
-                                <div class="flex items-center justify-between py-2">
-                                    <div class="h-4 w-32 animate-pulse rounded bg-gray-100 dark:bg-gray-800"></div>
-                                    <div class="h-4 w-16 animate-pulse rounded bg-gray-100 dark:bg-gray-800"></div>
-                                </div>
-                            @endfor
-                        </div>
-                    </div>
+                    @endfor
                 </div>
             </div>
-
             <div class="space-y-3">
                 @for ($i = 0; $i < 9; $i++)
-                    <div class="h-7 w-full animate-pulse rounded bg-gray-100 dark:bg-gray-800"></div>
+                    <x-ui.skeleton height="1.75rem" width="100%" rounded="0.5rem" />
                 @endfor
             </div>
         </div>
@@ -89,13 +75,11 @@
         x-show="loaded"
         x-transition.opacity.duration.200ms
     >
+        {{-- Filter Bar --}}
         <div class="flex flex-wrap items-center gap-2">
+            {{-- Date range dropdown --}}
             <div x-data="{ open: false }" class="relative">
-                <span
-                    @click="open = !open"
-                    @click.away="open = false"
-                    class="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
-                >
+                <x-ui.filter-pill @click="open = !open" @click.away="open = false">
                     Date @switch($dateRange)
                         @case('7_days') Last 7 days @break
                         @case('30_days') Last 30 days @break
@@ -103,7 +87,7 @@
                         @case('this_month') This month @break
                         @default All Time
                     @endswitch
-                </span>
+                </x-ui.filter-pill>
                 <div
                     x-show="open"
                     x-transition
@@ -121,54 +105,45 @@
                     @endforeach
                 </div>
             </div>
-            <span class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
-                Aggregation Daily
-            </span>
-            <span
-                wire:click="cycleCampaign"
-                class="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
-                title="Click to change campaign"
-            >
+
+            <x-ui.filter-pill :static="true">Aggregation Daily</x-ui.filter-pill>
+
+            <x-ui.filter-pill wire:click="cycleCampaign" title="Click to change campaign">
                 Campaign {{ $selectedCampaignLabel }}
-            </span>
-            <span class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
-                Source Direct + UTM
-            </span>
-            <span
-                wire:click="cycleFrequency"
-                class="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
-                title="Click to change frequency"
-            >
+            </x-ui.filter-pill>
+
+            <x-ui.filter-pill :static="true">Source Direct + UTM</x-ui.filter-pill>
+
+            <x-ui.filter-pill wire:click="cycleFrequency" title="Click to change frequency">
                 Frequency {{ $frequencyFilter === 'all' ? 'All' : ucfirst(str_replace('_', ' ', $frequencyFilter)) }}
-            </span>
+            </x-ui.filter-pill>
         </div>
 
+        {{-- KPI Cards --}}
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <x-filament::section>
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total raised</div>
-                <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $totalRaised }}</div>
-                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ $successfulDonationsCount }} successful donations</div>
-            </x-filament::section>
-
-            <x-filament::section>
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Recurring revenue</div>
-                <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $monthlyRecurringRevenue }}</div>
-                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ $activeRecurringDonors }} active recurring donors</div>
-            </x-filament::section>
-
-            <x-filament::section>
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">One-time donations</div>
-                <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $oneTimeDonationsTotal }}</div>
-                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">Average MYR {{ $averageDonationAmount }}</div>
-            </x-filament::section>
-
-            <x-filament::section>
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">First installments</div>
-                <div class="mt-2 text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">MYR {{ $firstInstallmentsTotal }}</div>
-                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ $successRate }}% payment success rate</div>
-            </x-filament::section>
+            <x-ui.stat-card
+                label="Total raised"
+                value="MYR {{ $totalRaised }}"
+                subtext="{{ $successfulDonationsCount }} successful donations"
+            />
+            <x-ui.stat-card
+                label="Recurring revenue"
+                value="MYR {{ $monthlyRecurringRevenue }}"
+                subtext="{{ $activeRecurringDonors }} active recurring donors"
+            />
+            <x-ui.stat-card
+                label="One-time donations"
+                value="MYR {{ $oneTimeDonationsTotal }}"
+                subtext="Average MYR {{ $averageDonationAmount }}"
+            />
+            <x-ui.stat-card
+                label="First installments"
+                value="MYR {{ $firstInstallmentsTotal }}"
+                subtext="{{ $successRate }}% payment success rate"
+            />
         </div>
 
+        {{-- Main content + tab sidebar --}}
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
             <x-filament::section>
                 @switch($activeTab)
@@ -189,16 +164,16 @@
                     @case('url')
                         @include('filament.app.pages.insights-tabs.url')
                     @default
-                        {{-- Overview --}}
-                        <div class="flex flex-wrap items-start justify-between gap-4">
-                            <div>
-                                <h2 class="text-lg font-semibold text-gray-950 dark:text-white">Overview</h2>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Performance over the last 7 days</p>
-                            </div>
-                            <div class="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 dark:border-gray-700 dark:text-gray-200">
-                                Metric Revenue
-                            </div>
-                        </div>
+                        <x-ui.section-header
+                            title="Overview"
+                            subtitle="Performance over the last 7 days"
+                        >
+                            <x-slot:action>
+                                <div class="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 dark:border-gray-700 dark:text-gray-200">
+                                    Metric Revenue
+                                </div>
+                            </x-slot:action>
+                        </x-ui.section-header>
 
                         <div class="mt-8 flex h-64 items-end gap-3 border-b border-gray-200 pb-2 dark:border-gray-700">
                             @foreach ($dailyRevenue as $point)
@@ -218,10 +193,9 @@
                                 <h3 class="text-base font-semibold text-gray-950 dark:text-white">Status breakdown</h3>
                                 <div class="mt-4 divide-y divide-gray-100 dark:divide-gray-800">
                                     @foreach ($statusBreakdown as $row)
-                                        <div class="flex items-center justify-between py-3 text-sm" wire:key="status-{{ $row['label'] }}">
-                                            <span class="text-gray-500 dark:text-gray-400">{{ $row['label'] }}</span>
-                                            <span class="font-medium text-gray-950 dark:text-white">{{ $row['value'] }}</span>
-                                        </div>
+                                        <x-ui.data-row :label="$row['label']" wire:key="status-{{ $row['label'] }}">
+                                            {{ $row['value'] }}
+                                        </x-ui.data-row>
                                     @endforeach
                                 </div>
                             </div>
@@ -244,28 +218,29 @@
                 @endswitch
             </x-filament::section>
 
-            <div class="space-y-3">
+            {{-- Tab Sidebar --}}
+            <div class="space-y-1">
                 @php
                     $tabs = [
-                        'overview' => 'Overview',
-                        'performance' => 'Performance',
-                        'recurring-plans' => 'Recurring plans',
+                        'overview'          => 'Overview',
+                        'performance'       => 'Performance',
+                        'recurring-plans'   => 'Recurring plans',
                         'recurring-revenue' => 'Recurring revenue',
-                        'retention' => 'Retention',
-                        'payment-methods' => 'Payment methods',
-                        'frequencies' => 'Frequencies',
-                        'elements' => 'Elements',
-                        'url' => 'URL',
+                        'retention'         => 'Retention',
+                        'payment-methods'   => 'Payment methods',
+                        'frequencies'       => 'Frequencies',
+                        'elements'          => 'Elements',
+                        'url'               => 'URL',
                     ];
                 @endphp
 
                 @foreach ($tabs as $key => $label)
-                    <div
+                    <x-ui.tab-item
+                        :active="$activeTab === $key"
                         wire:click="setActiveTab('{{ $key }}')"
-                        class="{{ $activeTab === $key ? 'border-primary-500 text-gray-950 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:border-gray-600 dark:hover:text-gray-300' }} cursor-pointer border-l-2 px-3 py-1.5 text-sm font-semibold transition-colors"
                     >
                         {{ $label }}
-                    </div>
+                    </x-ui.tab-item>
                 @endforeach
             </div>
         </div>

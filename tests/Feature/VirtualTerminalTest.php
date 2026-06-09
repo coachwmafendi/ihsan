@@ -28,8 +28,8 @@ test('virtual terminal page is accessible by org admin', function () {
     // TODO: use route() helper once VirtualTerminal page is registered
     $response = $this->get('/app/virtual-terminal');
     $response->assertOk();
-    $response->assertSee('mb-6 text-left', false);
-    $response->assertDontSee('mb-6 text-center', false);
+    $response->assertSee('Virtual Terminal', false);
+    $response->assertSee('max-w-7xl mx-auto', false);
 });
 
 test('virtual terminal page preloads supporter from query param', function () {

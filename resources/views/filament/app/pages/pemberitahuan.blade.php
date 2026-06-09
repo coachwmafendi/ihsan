@@ -1,4 +1,10 @@
 <x-filament::page>
+<div class="space-y-6">
+    <x-ui.page-header
+        title="Email Notifications"
+        subtitle="Choose which account activity emails you receive. Changes are saved automatically."
+    />
+
     @php
         $groups = [
             [
@@ -30,9 +36,6 @@
     @endphp
 
     <x-filament::section>
-        <x-slot name="heading">Email Notifications</x-slot>
-        <x-slot name="description">Choose which account activity emails you receive. Changes are saved automatically.</x-slot>
-
         <div class="divide-y divide-gray-200 dark:divide-gray-700">
             @foreach ($groups as $group)
                 <div class="flex gap-8 py-8 first:pt-0">
@@ -72,4 +75,5 @@
             @endforeach
         </div>
     </x-filament::section>
+</div>
 </x-filament::page>

@@ -1,8 +1,8 @@
 # Product Requirements Document (PRD)
 ## Ihsan — Platform Derma & Fundraising Berulang untuk NGO Malaysia
 
-**Version:** 1.4
-**Tarikh:** 6 Jun 2026
+**Version:** 1.5
+**Tarikh:** 9 Jun 2026
 **Status:** Draft
 **Pemilik Produk:** TBD
 
@@ -46,7 +46,7 @@ Screenshot pertama menunjukkan Fundraise Up admin console dengan struktur naviga
 | Supporters | MVP | Nama Fundraise Up untuk donor list; Ihsan boleh guna "Donors" atau "Supporters" |
 | Elements | MVP | Donation forms/buttons/popups/widget config |
 | Exports | MVP | CSV export untuk audit dan LHDN/manual reporting |
-| Virtual Terminal | V2 | Admin-created manual donations/payment entry |
+| Virtual Terminal | MVP | Admin-created manual donations/payment entry — Shipped |
 | Settings | MVP | Organization, Stripe, branding, receipts |
 | Help | MVP ringan | Link dokumentasi/support sahaja |
 
@@ -217,7 +217,7 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 | White-label (NGO guna domain sendiri) | V2 |
 | Advanced conversion analytics seperti benchmark Fundraise Up | V2 |
 | Designations | V2 |
-| Virtual Terminal | V2 |
+| Virtual Terminal | ~~V2~~ Shipped |
 | A/B testing donation elements | V3 |
 | AI-suggested ask amounts | V3 |
 | Peer-to-peer fundraising | V3 |
@@ -497,10 +497,15 @@ Hubungan penting:
 - [x] Embeddable JavaScript widget `/e/widget.js`
 - [x] Super Admin panel
 - [x] Fraud Prevention dashboard
+- [x] Virtual Terminal — admin manual donation processing dengan Stripe Card Element
+- [x] Platform Overview report (admin) — MRR/MTD financial health, operational alerts, donor & subscription health metrics
+- [x] Stripe Connect platform overview dalam admin Stripe settings
+- [x] Domain routing — app panel di `app.getihsan.my`, admin panel di `admin.getihsan.my`
+- [x] UI component system — reusable `x-ui-*` blade components untuk semua app panel pages
 - [ ] QA testing menyeluruh
 - [ ] Onboard 3 early adopter NGO (beta)
 
-### 12.1 Status Implementasi Semasa (6 Jun 2026)
+### 12.1 Status Implementasi Semasa (9 Jun 2026)
 
 - Settings NGO telah dipecahkan kepada Profil Organisasi, Pembayaran, dan Pemberitahuan.
 - Notification preferences auto-save ke `organizations.settings` dan email dihantar melalui queued jobs.
@@ -513,6 +518,12 @@ Hubungan penting:
 - Webhook `invoice.paid` untuk processing fee invoices mengemaskini status dan menghantar `PlatformInvoicePaid` melalui queue.
 - Subscription edit page dengan pause/resume, cancel (immediate/period end), dan update payment method.
 - Embed code menggunakan Alpine `@js()` untuk copy supaya HTML entities tidak rosak ketika paste.
+- **Virtual Terminal** — NGO admin boleh proses manual donation melalui Stripe Card Element dalam popup, dengan preloaded supporter link generator dan full payment flow. Dipindahkan ke Profil tab.
+- **Platform Overview** (admin panel) — laporan kesihatan platform merangkumi MRR/MTD financial health dengan MoM%, operational alerts (failed payments, past-due subscriptions, pending approvals, blocked donations), serta donor & subscription health metrics.
+- **Stripe Connect platform overview** dalam admin Stripe settings — verifikasi sambungan, environment banners, webhook/redirect URI display.
+- **Domain routing** — app panel di `app.getihsan.my`, admin panel di `admin.getihsan.my`.
+- **UI component system** — `x-ui-*` blade components reusable untuk standardize semua app panel pages (stat cards, section headers, data rows, filter pills). Page headers tidak diulang dalam list pages.
+- Locale restoration dipindahkan daripada `AppServiceProvider` ke `SetLocale` middleware untuk fix session-timing bug.
 
 ### 12.2 Rujukan Screenshot Fundraise Up
 
@@ -526,7 +537,7 @@ Pemilik produk mempunyai akses login Fundraise Up dan boleh menyediakan screensh
 Screenshot pertama yang diterima: **Insights page**. Keputusan awal:
 
 - **MVP now:** Insights, Donations, Recurring, Campaigns, Supporters, Elements, Exports, Settings
-- **V2:** Designations, Virtual Terminal, advanced compare/performance analytics
+- **V2:** Designations, advanced compare/performance analytics
 - **V3/Backlog:** Fundraisers, Benefits, Gift catalogs, Tributes
 - **MVP Insights filters:** date range, aggregation, campaign, source/UTM, frequency
 

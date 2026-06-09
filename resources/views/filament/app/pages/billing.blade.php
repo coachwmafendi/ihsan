@@ -1,95 +1,99 @@
 <x-filament::page>
-    <div class="space-y-6">
-        {{-- Month Selector --}}
+<div class="space-y-6">
+    <x-ui.page-header
+        title="Billing Overview"
+        subtitle="View your monthly donation volume and fees."
+    />
+
+    {{-- Month Selector --}}
+    <x-filament::section>
         <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Billing Overview</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400">View your monthly donation volume and fees.</p>
-            </div>
-            <div class="w-48">
-                <select
-                    wire:model.live="selectedMonth"
-                    class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                >
-                    @foreach ($availableMonths as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-
-        {{-- Summary Cards --}}
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Amount Processed</p>
-                <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100">RM {{ number_format($amountProcessed, 2) }}</p>
-                <p class="mt-1 text-xs text-gray-400">{{ $totalTransactions }} transactions (converted to MYR)</p>
-            </div>
-
-            <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Donor-Fee Coverage</p>
-                <p class="mt-2 text-2xl font-bold text-emerald-600">+ RM {{ number_format($donorFeeCovered, 2) }}</p>
-                <p class="mt-1 text-xs text-gray-400">Donors covering processing fees</p>
-            </div>
-
-            <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Fees</p>
-                <p class="mt-2 text-2xl font-bold text-amber-600">- RM {{ number_format($stripeFee + $processingFee, 2) }}</p>
-                <p class="mt-1 text-xs text-gray-400">Stripe + {{ config('app.name') }} fee</p>
-            </div>
-
-            <div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Net Received</p>
-                <p class="mt-2 text-2xl font-bold text-emerald-600">RM {{ number_format($netReceived, 2) }}</p>
-                <p class="mt-1 text-xs text-gray-400">Transferred to your account</p>
-            </div>
-        </div>
-
-        {{-- Fee Breakdown --}}
-        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
-            <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Fee Breakdown</h3>
-            </div>
-            <div class="p-5">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-600 dark:text-gray-400">Amount Processed (MYR)</span>
-                        <span class="font-medium text-gray-900 dark:text-gray-100">RM {{ number_format($amountProcessed, 2) }}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-600 dark:text-gray-400">Donor-Fee Coverage</span>
-                        <span class="font-medium text-emerald-600">+ RM {{ number_format($donorFeeCovered, 2) }}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-600 dark:text-gray-400">Stripe Connect Fee</span>
-                        <span class="font-medium text-red-600">- RM {{ number_format($stripeFee, 2) }}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-600 dark:text-gray-400">{{ config('app.name') }} Processing Fee ({{ $processingFeeRate }}%)</span>
-                        <span class="font-medium text-amber-600">- RM {{ number_format($processingFee, 2) }}</span>
-                    </div>
-                    <div class="border-t border-gray-100 pt-3 dark:border-gray-800">
-                        <div class="flex items-center justify-between text-sm font-semibold">
-                            <span class="text-gray-900 dark:text-gray-100">Net to Organisation</span>
-                            <span class="text-emerald-600">RM {{ number_format($netReceived, 2) }}</span>
-                        </div>
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Select Period</p>
+            <div class="w-52">
+                <div class="relative">
+                    <select
+                        wire:model.live="selectedMonth"
+                        class="block w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2 pr-10 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    >
+                        @foreach ($availableMonths as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
+                        <x-heroicon-o-chevron-down class="size-4" />
                     </div>
                 </div>
             </div>
         </div>
+    </x-filament::section>
 
-        {{-- Info Note --}}
-        <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-900/20">
-            <div class="flex items-start gap-3">
-                <x-heroicon-o-information-circle class="mt-0.5 size-5 text-blue-600 dark:text-blue-400" />
-                <div>
-                    <p class="text-sm font-medium text-blue-900 dark:text-blue-100">Auto-Deduction</p>
-                    <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
-                        The {{ config('app.name') }} processing fee is automatically deducted from your Stripe payouts.
-                        No manual payment is required.
-                    </p>
-                </div>
-            </div>
-        </div>
+    {{-- Summary Stats --}}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <x-ui.stat-card
+            label="Amount Processed"
+            value="RM {{ number_format($amountProcessed, 2) }}"
+            subtext="{{ $totalTransactions }} transactions (converted to MYR)"
+        />
+
+        <x-ui.stat-card
+            label="Donor-Fee Coverage"
+            value="+ RM {{ number_format($donorFeeCovered, 2) }}"
+            subtext="Donors covering processing fees"
+        />
+
+        <x-ui.stat-card
+            label="Total Fees"
+            value="- RM {{ number_format($stripeFee + $processingFee, 2) }}"
+            subtext="Stripe + {{ config('app.name') }} fee"
+        />
+
+        <x-ui.stat-card
+            label="Net Received"
+            value="RM {{ number_format($netReceived, 2) }}"
+            subtext="Transferred to your account"
+        />
     </div>
+
+    {{-- Fee Breakdown --}}
+    <x-filament::section icon="heroicon-o-receipt-percent">
+        <x-slot name="heading">Fee Breakdown</x-slot>
+        <div class="space-y-3">
+            <x-ui.data-row label="Amount Processed (MYR)">
+                RM {{ number_format($amountProcessed, 2) }}
+            </x-ui.data-row>
+            <x-ui.data-row label="Donor-Fee Coverage">
+                <span class="text-emerald-600">+ RM {{ number_format($donorFeeCovered, 2) }}</span>
+            </x-ui.data-row>
+            <x-ui.data-row label="Stripe Connect Fee">
+                <span class="text-red-600">- RM {{ number_format($stripeFee, 2) }}</span>
+            </x-ui.data-row>
+            <x-ui.data-row label="{{ config('app.name') }} Processing Fee ({{ $processingFeeRate }}%)">
+                <span class="text-amber-600">- RM {{ number_format($processingFee, 2) }}</span>
+            </x-ui.data-row>
+
+            <div class="border-t border-gray-100 pt-3 dark:border-gray-800">
+                <x-ui.data-row label="Net to Organisation">
+                    <span class="font-semibold text-emerald-600">RM {{ number_format($netReceived, 2) }}</span>
+                </x-ui.data-row>
+            </div>
+        </div>
+    </x-filament::section>
+
+    {{-- Info Note --}}
+    <x-filament::section collapsible collapsed>
+        <x-slot name="heading">How Fees Work</x-slot>
+        <div class="space-y-3">
+            <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                The {{ config('app.name') }} processing fee of {{ $processingFeeRate }}% is automatically deducted from your Stripe payouts.
+                No manual payment is required.
+            </p>
+            <ul class="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <li>Stripe Connect processes donations on your behalf</li>
+                <li>Fees are deducted before funds reach your bank account</li>
+                <li>Donor-fee coverage reduces your effective rate</li>
+                <li>Monthly invoices are generated on the 1st of each month</li>
+            </ul>
+        </div>
+    </x-filament::section>
+</div>
 </x-filament::page>

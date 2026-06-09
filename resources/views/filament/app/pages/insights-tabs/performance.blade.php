@@ -1,10 +1,8 @@
 <div>
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <h2 class="text-lg font-semibold text-gray-950 dark:text-white">Performance</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Monthly revenue and campaign performance</p>
-        </div>
-    </div>
+    <x-ui.section-header
+        title="Performance"
+        subtitle="Monthly revenue and campaign performance"
+    />
 
     <div class="mt-8">
         <h3 class="text-base font-semibold text-gray-950 dark:text-white">Monthly Revenue (12 months)</h3>
@@ -31,10 +29,9 @@
                 <h3 class="text-base font-semibold text-gray-950 dark:text-white">Campaign Comparison</h3>
                 <div class="mt-4 divide-y divide-gray-100 dark:divide-gray-800">
                     @foreach ($campaignPerformance as $camp)
-                        <div class="flex items-center justify-between py-3 text-sm" wire:key="camp-{{ $camp['campaign'] }}">
-                            <span class="truncate text-gray-500 dark:text-gray-400">{{ $camp['campaign'] }}</span>
-                            <span class="font-medium text-gray-950 dark:text-white">{{ $camp['total'] }}</span>
-                        </div>
+                        <x-ui.data-row :label="$camp['campaign']" wire:key="camp-{{ $camp['campaign'] }}">
+                            {{ $camp['total'] }}
+                        </x-ui.data-row>
                     @endforeach
                 </div>
             </div>

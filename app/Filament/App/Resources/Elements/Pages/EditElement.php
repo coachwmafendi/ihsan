@@ -11,6 +11,8 @@ class EditElement extends EditRecord
 {
     protected static string $resource = ElementResource::class;
 
+    protected string $view = 'filament.app.resources.elements.pages.edit-element';
+
     protected function getHeaderActions(): array
     {
         return [

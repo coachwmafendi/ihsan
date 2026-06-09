@@ -1,4 +1,10 @@
 <x-filament::page>
+<div class="space-y-6">
+    <x-ui.page-header
+        title="Stripe Connect"
+        subtitle="Manage your payment processing settings and Stripe connection"
+    />
+
     @php
         $org = auth()->user()->organization;
         $account = $this->stripeAccount();
@@ -9,15 +15,9 @@
             <div class="flex items-center gap-2">
                 <span>Stripe Connect</span>
                 @if ($org && $org->stripe_onboarded)
-                    <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-400/10 dark:text-teal-400">
-                        <x-heroicon-o-check-circle class="size-3.5" />
-                        Connected
-                    </span>
+                    <x-ui.status-badge status="success" size="sm">Connected</x-ui.status-badge>
                 @else
-                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-400/10 dark:text-amber-400">
-                        <x-heroicon-o-exclamation-circle class="size-3.5" />
-                        Incomplete
-                    </span>
+                    <x-ui.status-badge status="warning" size="sm">Incomplete</x-ui.status-badge>
                 @endif
             </div>
         </x-slot>
@@ -154,13 +154,18 @@
             </p>
 
             <div class="max-w-xs">
-                <select
-                    wire:model="feeCollectionMethod"
-                    class="w-full rounded-lg border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                >
-                    <option value="invoice">Monthly Invoice</option>
-                    <option value="upfront">Upfront Deduction</option>
-                </select>
+                <div class="relative">
+                    <select
+                        wire:model="feeCollectionMethod"
+                        class="block w-full appearance-none rounded-lg border-gray-300 bg-white px-3 py-2 pr-10 text-sm shadow-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                    >
+                        <option value="invoice">Monthly Invoice</option>
+                        <option value="upfront">Upfront Deduction</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
+                        <x-heroicon-o-chevron-down class="size-4" />
+                    </div>
+                </div>
 
                 <div class="mt-3">
                     <x-filament::button
@@ -174,4 +179,5 @@
             </div>
         </div>
     </x-filament::section>
+</div>
 </x-filament::page>

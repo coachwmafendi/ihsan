@@ -11,6 +11,8 @@ class CreateElement extends CreateRecord
 {
     protected static string $resource = ElementResource::class;
 
+    protected string $view = 'filament.app.resources.elements.pages.create-element';
+
     protected function getFormActions(): array
     {
         return [];

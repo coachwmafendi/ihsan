@@ -26,7 +26,7 @@ class DonorProfileController extends Controller
         return view('donor.profile', [
             'donor' => $donor,
             'organization' => $organization,
-            'countries' => config('countries')(),
+            'countries' => config('countries'),
             'hasActiveSubscriptions' => $hasActiveSubscriptions,
         ]);
     }

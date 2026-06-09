@@ -18,6 +18,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 
 class CampaignForm
@@ -201,7 +202,7 @@ class CampaignForm
                                     ->label('Campaign performance')
                                     ->columnSpanFull()
                                     ->content(fn ($record) => new HtmlString(
-                                        static::progressBarHtml($record)
+                                        self::progressBarHtml($record)
                                     )),
                             ]),
                         Tab::make('Actions')
@@ -264,28 +265,23 @@ class CampaignForm
     private static function progressBarHtml($record): string
     {
         if (! $record || ! $record->has_target || ! $record->target_amount) {
-            return '<p style="font-size: 0.875rem; color: #71717a;">No target set for this campaign.</p>';
+            return '<p class="text-sm text-gray-500 dark:text-gray-400">No target set for this campaign.</p>';
         }
 
         $collected = (float) $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount');
         $target = (float) $record->target_amount;
         $percentage = min(round(($collected / $target) * 100, 1), 100);
-        $barWidth = max($percentage, 2);
-        $barColor = $percentage >= 100 ? '#10b981' : ($percentage >= 50 ? '#34d399' : '#f59e0b');
+        $remaining = max($target - $collected, 0);
+        $statusText = $percentage >= 100 ? 'Goal reached!' : 'Remaining: RM '.number_format($remaining, 2);
 
-        return '<div style="display: flex; flex-direction: column; gap: 0.75rem;">'
-            .'<div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; line-height: 1.25rem;">'
-            .'<span style="font-weight: 500; color: #18181b;">RM '.number_format($collected, 2).'</span>'
-            .'<span style="color: #71717a;">of RM '.number_format($target, 2).'</span>'
-            .'</div>'
-            .'<div style="height: 20px; width: 100%; overflow: hidden; border-radius: 9999px; background-color: #e4e4e7;">'
-            .'<div style="height: 100%; border-radius: 9999px; transition: all 0.5s; width: '.$barWidth.'%; background-color: '.$barColor.';"></div>'
-            .'</div>'
-            .'<div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; line-height: 1rem;">'
-            .'<span style="font-weight: 600; color: #3f3f46;">'.$percentage.'% raised</span>'
-            .'<span style="color: #71717a;">'.($percentage >= 100 ? 'Goal reached!' : 'Remaining: RM '.number_format(max($target - $collected, 0), 2)).'</span>'
-            .'</div>'
-            .'</div>';
+        return Blade::render(
+            '<x-ui.progress-bar'
+            .' percentage="'.(int) $percentage.'"'
+            .' label="RM '.number_format($collected, 2).'"'
+            .' sublabel="of RM '.number_format($target, 2).' · '.$statusText.'"'
+            .' size="lg"'
+            .' />'
+        );
     }
 
     private static function campaignPageShareHtml($record): string

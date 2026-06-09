@@ -16,6 +16,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Blade;
 
 class CampaignsTable
 {
@@ -58,14 +59,17 @@ class CampaignsTable
                     ->html()
                     ->getStateUsing(function ($record): string {
                         if (! $record->has_target || ! $record->target_amount > 0) {
-                            return '<span class="text-xs text-gray-400">No target</span>';
+                            return '<span class="text-xs text-gray-400 dark:text-gray-500">No target</span>';
                         }
 
                         $collected = (float) $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount');
                         $pct = min(100, (int) round(($collected / $record->target_amount) * 100));
-                        $barColor = $pct >= 100 ? 'bg-emerald-600' : ($pct >= 50 ? 'bg-teal-600' : 'bg-amber-500');
+                        $collectedFormatted = number_format($collected, 2);
+                        $targetFormatted = number_format((float) $record->target_amount, 2);
 
-                        return '<div class="flex items-center gap-2 w-44"><div class="flex-1 h-2.5 rounded-full bg-gray-200"><div class="h-2.5 rounded-full '.$barColor.'" style="width: '.$pct.'%"></div></div><span class="text-xs font-medium tabular-nums text-gray-600">'.$pct.'%<br><span class="text-gray-400 font-normal">of MYR '.number_format((float) $record->target_amount, 2).'</span></span></div>';
+                        return Blade::render(
+                            '<x-ui.progress-bar percentage="'.$pct.'" label="MYR '.$collectedFormatted.'" sublabel="of MYR '.$targetFormatted.'" size="sm" class="w-52" />'
+                        );
                     }),
                 TextColumn::make('donations_count')
                     ->label('Donors')
