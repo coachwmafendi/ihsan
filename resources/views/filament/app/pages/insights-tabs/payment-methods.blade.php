@@ -1,10 +1,8 @@
 <div>
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <h2 class="text-lg font-semibold text-gray-950 dark:text-white">Payment Methods</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Card brand and payment type distribution</p>
-        </div>
-    </div>
+    <x-ui.section-header
+        title="Payment Methods"
+        subtitle="Card brand and payment type distribution"
+    />
 
     <div class="mt-8 grid gap-8 md:grid-cols-2">
         <div>

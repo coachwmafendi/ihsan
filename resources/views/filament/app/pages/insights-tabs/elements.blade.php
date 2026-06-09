@@ -1,10 +1,8 @@
 <div>
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <h2 class="text-lg font-semibold text-gray-950 dark:text-white">Elements</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Embed buttons, forms, and popups</p>
-        </div>
-    </div>
+    <x-ui.section-header
+        title="Elements"
+        subtitle="Embed buttons, forms, and popups"
+    />
 
     @if (count($elementsList) > 0)
         <div class="mt-8 divide-y divide-gray-100 dark:divide-gray-800">

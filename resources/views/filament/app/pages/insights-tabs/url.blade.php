@@ -1,10 +1,8 @@
 <div>
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <h2 class="text-lg font-semibold text-gray-950 dark:text-white">URL</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Campaign donation page performance</p>
-        </div>
-    </div>
+    <x-ui.section-header
+        title="URL"
+        subtitle="Campaign donation page performance"
+    />
 
     @if (count($campaignUrlPerformance) > 0)
         <div class="mt-8 divide-y divide-gray-100 dark:divide-gray-800">

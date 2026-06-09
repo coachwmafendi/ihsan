@@ -13,6 +13,8 @@ class CreateCampaign extends CreateRecord
 {
     protected static string $resource = CampaignResource::class;
 
+    protected string $view = 'filament.app.resources.campaigns.pages.create-campaign';
+
     protected Width|string|null $maxContentWidth = '7xl';
 
     protected function mutateFormDataBeforeCreate(array $data): array

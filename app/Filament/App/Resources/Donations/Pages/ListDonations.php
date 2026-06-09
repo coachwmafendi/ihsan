@@ -3,20 +3,23 @@
 namespace App\Filament\App\Resources\Donations\Pages;
 
 use App\Filament\App\Resources\Donations\DonationResource;
+use App\Models\Donation;
 use Carbon\Carbon;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Schemas\Components\EmbeddedTable;
-use Filament\Schemas\Components\RenderHook;
-use Filament\Schemas\Components\View;
-use Filament\Schemas\Schema;
-use Filament\View\PanelsRenderHook;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListDonations extends ListRecords
 {
     protected static string $resource = DonationResource::class;
 
+    protected string $view = 'filament.app.resources.donations.pages.list-donations';
+
     public string $dateRange = 'all';
+
+    public function hasDonations(): bool
+    {
+        return Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', auth()->user()->organization_id))->exists();
+    }
 
     protected function getTableQuery(): Builder
     {
@@ -63,16 +66,5 @@ class ListDonations extends ListRecords
             'this_month' => 'This month',
             default => 'All Time',
         };
-    }
-
-    public function content(Schema $schema): Schema
-    {
-        return $schema
-            ->components([
-                View::make('filament.app.resources.donations.pages.period-filter'),
-                RenderHook::make(PanelsRenderHook::RESOURCE_PAGES_LIST_RECORDS_TABLE_BEFORE),
-                EmbeddedTable::make(),
-                RenderHook::make(PanelsRenderHook::RESOURCE_PAGES_LIST_RECORDS_TABLE_AFTER),
-            ]);
     }
 }
