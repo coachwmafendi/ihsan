@@ -7,6 +7,7 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Filament\Exports\DonationExporter;
 use App\Models\Campaign;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -14,6 +15,7 @@ use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -179,20 +181,76 @@ class DonationsTable
                 Filter::make('created_at')
                     ->label('Date Range')
                     ->form([
-                        DatePicker::make('from')->label('From'),
-                        DatePicker::make('until')->label('Until'),
+                        Select::make('preset')
+                            ->label('Quick select')
+                            ->options([
+                                'today' => 'Today',
+                                'yesterday' => 'Yesterday',
+                                'last_7_days' => 'Last 7 days',
+                                'last_30_days' => 'Last 30 days',
+                                'this_month' => 'This month',
+                                'this_year' => 'This year',
+                                'last_month' => 'Last month',
+                                'last_year' => 'Last year',
+                            ])
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set) {
+                                if ($state === null) {
+                                    $set('from', null);
+                                    $set('until', null);
+
+                                    return;
+                                }
+
+                                $now = now();
+                                [$from, $until] = match ($state) {
+                                    'today' => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
+                                    'yesterday' => [$now->copy()->subDay()->startOfDay(), $now->copy()->subDay()->endOfDay()],
+                                    'last_7_days' => [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()],
+                                    'last_30_days' => [$now->copy()->subDays(29)->startOfDay(), $now->copy()->endOfDay()],
+                                    'this_month' => [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()],
+                                    'this_year' => [$now->copy()->startOfYear(), $now->copy()->endOfYear()],
+                                    'last_month' => [$now->copy()->subMonth()->startOfMonth(), $now->copy()->subMonth()->endOfMonth()],
+                                    'last_year' => [$now->copy()->subYear()->startOfYear(), $now->copy()->subYear()->endOfYear()],
+                                    default => [null, null],
+                                };
+
+                                $set('from', $from?->format('Y-m-d'));
+                                $set('until', $until?->format('Y-m-d'));
+                            }),
+                        DatePicker::make('from')->label('From')->live(),
+                        DatePicker::make('until')->label('Until')->live(),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
                             ->when($data['from'] ?? null, fn (Builder $q, $d): Builder => $q->whereDate('created_at', '>=', $d))
                             ->when($data['until'] ?? null, fn (Builder $q, $d): Builder => $q->whereDate('created_at', '<=', $d));
+                    })
+                    ->indicateUsing(function (array $data): ?string {
+                        $from = $data['from'] ?? null;
+                        $until = $data['until'] ?? null;
+
+                        if ($from && $until) {
+                            return 'Date: '.Carbon::parse($from)->format('d M Y').' – '.Carbon::parse($until)->format('d M Y');
+                        }
+
+                        if ($from) {
+                            return 'From: '.Carbon::parse($from)->format('d M Y');
+                        }
+
+                        if ($until) {
+                            return 'Until: '.Carbon::parse($until)->format('d M Y');
+                        }
+
+                        return null;
                     }),
             ])
             ->headerActions([
                 ExportAction::make()
                     ->exporter(DonationExporter::class)
                     ->formats([ExportFormat::Csv, ExportFormat::Xlsx])
-                    ->fileName(fn (): string => 'donations-'.now()->format('Y-m-d')),
+                    ->fileName(fn (): string => 'donations-'.now()->format('Y-m-d'))
+                    ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'succeeded')),
             ])
             ->recordActions([
                 Action::make('refund')

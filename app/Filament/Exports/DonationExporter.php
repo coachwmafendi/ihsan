@@ -71,7 +71,14 @@ class DonationExporter extends Exporter
                 ->enabledByDefault(true),
             ExportColumn::make('type')
                 ->label('Type')
-                ->formatStateUsing(fn ($state): string => ucfirst($state->value)),
+                ->formatStateUsing(fn ($state): string => ucfirst($state->value))
+                ->enabledByDefault(true),
+            ExportColumn::make('subscription.interval')
+                ->label('Recurring Interval')
+                ->formatStateUsing(fn ($state): ?string => $state ? ucfirst($state->value) : null),
+            ExportColumn::make('subscription.payment_count')
+                ->label('Payment #')
+                ->formatStateUsing(fn ($state): ?string => $state !== null ? (string) $state : null),
             ExportColumn::make('campaign.title')
                 ->label('Campaign')
                 ->enabledByDefault(true),
