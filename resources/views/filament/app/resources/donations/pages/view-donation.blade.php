@@ -173,15 +173,19 @@
                             $iconMap = ['visa'=>'icons.visa','mastercard'=>'icons.mastercard','amex'=>'icons.amex','american express'=>'icons.amex','discover'=>'icons.discover','jcb'=>'icons.jcb','diners'=>'icons.diners','diners club'=>'icons.diners','unionpay'=>'icons.unionpay','maestro'=>'icons.maestro'];
                             $cardIcon = $iconMap[$brand] ?? null;
                         @endphp
-                        @if ($cardIcon)
-                            <x-dynamic-component :component="$cardIcon" class="h-6 w-auto" />
-                        @elseif ($brand)
-                            <x-heroicon-o-credit-card class="size-4 text-gray-400" />
-                        @endif
-                        {{ collect([
-                            $this->record->payment_method_brand ? str($this->record->payment_method_brand)->headline()->toString() : null,
-                            $this->record->payment_method_last4 ? '•••• '.$this->record->payment_method_last4 : null
-                        ])->filter()->join(' ') ?: '—' }}
+                        <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                            @if ($cardIcon)
+                                <x-dynamic-component :component="$cardIcon" class="h-6 w-auto shrink-0" />
+                            @elseif ($brand)
+                                <x-heroicon-o-credit-card class="size-4 shrink-0 text-gray-400" />
+                            @endif
+                            <span class="text-gray-900 dark:text-gray-100">
+                                {{ collect([
+                                    $this->record->payment_method_brand ? str($this->record->payment_method_brand)->headline()->toString() : null,
+                                    $this->record->payment_method_last4 ? '•••• '.$this->record->payment_method_last4 : null
+                                ])->filter()->join(' ') ?: '—' }}
+                            </span>
+                        </span>
                     </x-ui.detail-row>
                 </div>
             </x-filament::section>

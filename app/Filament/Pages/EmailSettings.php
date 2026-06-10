@@ -59,6 +59,7 @@ class EmailSettings extends Page
                         'sendmail' => 'Sendmail',
                         'log' => 'Log',
                     ])
+                    ->live()
                     ->required(),
                 TextInput::make('mail_from_address')
                     ->label('From Email')

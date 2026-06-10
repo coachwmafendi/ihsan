@@ -31,3 +31,6 @@ docs/superpowers/plans/*.md
 *.png
 !storage/app/public/**/*.png
 opencode.json
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php

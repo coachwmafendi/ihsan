@@ -4,6 +4,7 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Jobs\ProcessStripeWebhook;
 use App\Jobs\SendDonationReceipt;
+use App\Jobs\SendFailedPaymentNotification;
 use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendNewSubscriptionNotification;
 use App\Jobs\SyncDonationStripeDetailsJob;
@@ -552,6 +553,73 @@ function connectedPaymentIntentSucceededPayload(Donation $donation, string $even
                     'campaign_id' => (string) $donation->campaign_id,
                     'organization_id' => (string) $donation->campaign?->organization_id,
                 ],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+}
+
+it('does not send failed payment notification when smart retries are still scheduled', function () {
+    Queue::fake([SendFailedPaymentNotification::class]);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create([
+        'stripe_subscription_id' => 'sub_retry_scheduled',
+        'status' => 'active',
+        'retry_count' => 0,
+    ]);
+
+    $payload = invoicePaymentFailedPayload('sub_retry_scheduled', 3, now()->addHours(12)->timestamp, 'evt_retry_scheduled');
+
+    (new ProcessStripeWebhook($payload))->handle();
+
+    $subscription->refresh();
+
+    expect($subscription->status->value)->toBe('past_due')
+        ->and($subscription->retry_count)->toBe(3);
+
+    Queue::assertNotPushed(SendFailedPaymentNotification::class);
+});
+
+it('sends failed payment notification when no more retries are scheduled', function () {
+    Queue::fake([SendFailedPaymentNotification::class]);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create([
+        'stripe_subscription_id' => 'sub_final_retry',
+        'status' => 'active',
+        'retry_count' => 0,
+    ]);
+
+    $payload = invoicePaymentFailedPayload('sub_final_retry', 8, null, 'evt_final_retry');
+
+    (new ProcessStripeWebhook($payload))->handle();
+
+    $subscription->refresh();
+
+    expect($subscription->status->value)->toBe('past_due')
+        ->and($subscription->retry_count)->toBe(8);
+
+    Queue::assertPushed(SendFailedPaymentNotification::class);
+});
+
+function invoicePaymentFailedPayload(string $subscriptionId, int $attemptCount, ?int $nextPaymentAttempt, string $eventId): string
+{
+    return json_encode([
+        'id' => $eventId,
+        'object' => 'event',
+        'type' => 'invoice.payment_failed',
+        'data' => [
+            'object' => [
+                'id' => 'in_failed_'.strtolower($eventId),
+                'object' => 'invoice',
+                'subscription' => $subscriptionId,
+                'attempt_count' => $attemptCount,
+                'next_payment_attempt' => $nextPaymentAttempt,
+                'created' => now()->timestamp,
             ],
         ],
     ], JSON_THROW_ON_ERROR);

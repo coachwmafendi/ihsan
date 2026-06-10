@@ -5,7 +5,6 @@ namespace App\Filament\App\Resources\Campaigns\Pages;
 use App\Enums\CampaignStatus;
 use App\Filament\App\Resources\Campaigns\CampaignResource;
 use App\Models\Campaign;
-use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Width;
@@ -41,9 +40,7 @@ class EditCampaign extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [
-            DeleteAction::make(),
-        ];
+        return [];
     }
 
     public function archiveCampaign(): void

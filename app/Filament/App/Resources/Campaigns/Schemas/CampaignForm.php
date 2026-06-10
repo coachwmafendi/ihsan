@@ -31,6 +31,204 @@ class CampaignForm
                     ->columnSpanFull()
                     ->tabs([
                         Tab::make('Overview')
+                            ->icon('heroicon-o-chart-bar')
+                            ->visible(fn ($record) => $record !== null)
+                            ->schema([
+                                // Stats row
+                                Grid::make()
+                                    ->columns(4)
+                                    ->schema([
+                                        Placeholder::make('_stat_raised')
+                                            ->hiddenLabel()
+                                            ->content(function ($record): HtmlString {
+                                                $hasNonMyr = $record->donations()
+                                                    ->where('status', DonationStatus::Succeeded)
+                                                    ->where('currency', '!=', 'MYR')
+                                                    ->exists();
+                                                $prefix = $hasNonMyr ? '≈ RM ' : 'RM ';
+                                                $amount = $record->donations()
+                                                    ->where('status', DonationStatus::Succeeded)
+                                                    ->sum('base_amount') ?? 0;
+
+                                                return new HtmlString(
+                                                    '<div class="flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4">'
+                                                    .'<div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/20">'
+                                                    .'<svg class="size-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>'
+                                                    .'</div>'
+                                                    .'<div>'
+                                                    .'<p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Amount Raised</p>'
+                                                    .'<p class="mt-0.5 text-lg font-semibold text-emerald-600">'.$prefix.number_format($amount, 2).'</p>'
+                                                    .'</div>'
+                                                    .'</div>'
+                                                );
+                                            }),
+                                        Placeholder::make('_stat_donations')
+                                            ->hiddenLabel()
+                                            ->content(fn ($record) => new HtmlString(
+                                                '<div class="flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4">'
+                                                .'<div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-900/20">'
+                                                .'<svg class="size-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>'
+                                                .'</div>'
+                                                .'<div>'
+                                                .'<p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Donations</p>'
+                                                .'<p class="mt-0.5 text-lg font-semibold text-zinc-900 dark:text-zinc-100">'.$record->donations()->count().'</p>'
+                                                .'</div>'
+                                                .'</div>'
+                                            )),
+                                        Placeholder::make('_stat_recurring')
+                                            ->hiddenLabel()
+                                            ->content(fn ($record) => new HtmlString(
+                                                '<div class="flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4">'
+                                                .'<div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 dark:bg-teal-900/20">'
+                                                .'<svg class="size-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>'
+                                                .'</div>'
+                                                .'<div>'
+                                                .'<p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Active Recurring</p>'
+                                                .'<p class="mt-0.5 text-lg font-semibold text-teal-600">'.number_format(
+                                                    $record->subscriptions()->where('status', 'active')->count()
+                                                ).'</p>'
+                                                .'</div>'
+                                                .'</div>'
+                                            )),
+                                        Placeholder::make('_stat_last')
+                                            ->hiddenLabel()
+                                            ->content(fn ($record) => new HtmlString(
+                                                '<div class="flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4">'
+                                                .'<div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/20">'
+                                                .'<svg class="size-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>'
+                                                .'</div>'
+                                                .'<div>'
+                                                .'<p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Last Donation</p>'
+                                                .'<p class="mt-0.5 text-lg font-semibold text-zinc-900 dark:text-zinc-100">'.(
+                                                    $record->donations()
+                                                        ->where('status', DonationStatus::Succeeded)
+                                                        ->latest('created_at')
+                                                        ->first()
+                                                        ?->created_at
+                                                        ?->format('j M Y')
+                                                    ?? '—'
+                                                ).'</p>'
+                                                .'</div>'
+                                                .'</div>'
+                                            )),
+                                    ]),
+
+                                // Progress
+                                Section::make('Campaign Progress')
+                                    ->schema([
+                                        Placeholder::make('_progress')
+                                            ->hiddenLabel()
+                                            ->content(fn ($record) => new HtmlString(
+                                                self::progressBarHtml($record)
+                                            )),
+                                    ]),
+
+                                // Details + Settings side by side
+                                Grid::make()
+                                    ->columns(2)
+                                    ->schema([
+                                        Section::make('Campaign Details')
+                                            ->columnSpan(1)
+                                            ->schema([
+                                                Placeholder::make('_detail_title')
+                                                    ->label('Campaign name')
+                                                    ->content(fn ($record) => new HtmlString('<span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">'.e($record->title).'</span>')),
+                                                Placeholder::make('_detail_status')
+                                                    ->label('Status')
+                                                    ->content(function ($record): HtmlString {
+                                                        $color = match ((string) $record->status->name) {
+                                                            'Active' => 'bg-emerald-100 text-emerald-700 ring-emerald-600/20',
+                                                            'Draft' => 'bg-gray-100 text-gray-700 ring-gray-500/10',
+                                                            'Paused' => 'bg-amber-100 text-amber-700 ring-amber-600/20',
+                                                            'Ended' => 'bg-red-100 text-red-700 ring-red-600/10',
+                                                            default => 'bg-gray-100 text-gray-700 ring-gray-500/10',
+                                                        };
+
+                                                        return new HtmlString('<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 '.$color.'">'.$record->status->name.'</span>');
+                                                    }),
+                                                Placeholder::make('_detail_duration')
+                                                    ->label('Duration')
+                                                    ->content(function ($record): HtmlString {
+                                                        $parts = [];
+                                                        if ($record->has_target && $record->target_amount) {
+                                                            $parts[] = 'Target: MYR '.number_format((float) $record->target_amount, 2);
+                                                        }
+                                                        if ($record->has_end_date && $record->end_date) {
+                                                            $parts[] = 'Ends: '.$record->end_date->format('j M Y');
+                                                        }
+                                                        if (empty($parts)) {
+                                                            $parts[] = 'No target or end date';
+                                                        }
+
+                                                        return new HtmlString('<span class="text-sm text-zinc-600 dark:text-zinc-400">'.implode(' · ', $parts).'</span>');
+                                                    }),
+                                            ]),
+
+                                        Section::make('Checkout Settings')
+                                            ->columnSpan(1)
+                                            ->schema([
+                                                Placeholder::make('_checkout_min')
+                                                    ->label('Minimum amount')
+                                                    ->content(fn ($record) => new HtmlString('<span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">MYR '.number_format((float) $record->minimum_amount, 2).'</span>')),
+                                                Placeholder::make('_checkout_freq')
+                                                    ->label('Default frequency')
+                                                    ->content(function ($record): HtmlString {
+                                                        $freq = $record->config['default_frequency'] ?? 'monthly';
+
+                                                        return new HtmlString('<span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">'.ucfirst($freq).'</span>');
+                                                    }),
+                                                Placeholder::make('_checkout_default')
+                                                    ->label('Default amount')
+                                                    ->content(function ($record): HtmlString {
+                                                        $amount = $record->config['default_amount'] ?? 30;
+
+                                                        return new HtmlString('<span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">MYR '.number_format((float) $amount, 2).'</span>');
+                                                    }),
+                                            ]),
+                                    ]),
+
+                                // Features
+                                Section::make('Features & Currencies')
+                                    ->schema([
+                                        Placeholder::make('_features')
+                                            ->hiddenLabel()
+                                            ->content(function ($record): HtmlString {
+                                                $items = [
+                                                    ['label' => 'Recurring donations', 'on' => $record->allow_recurring],
+                                                    ['label' => 'Custom amount', 'on' => $record->allow_custom_amount],
+                                                    ['label' => 'Cover fee', 'on' => $record->config['allow_cover_fee'] ?? true],
+                                                    ['label' => 'Comments', 'on' => $record->config['show_comment'] ?? true],
+                                                ];
+
+                                                $currencies = $record?->organization?->settings['accepted_currencies']
+                                                    ?? auth()->user()?->organization?->settings['accepted_currencies']
+                                                    ?? ['myr'];
+                                                $currencyLabels = implode(', ', array_map('strtoupper', $currencies));
+
+                                                $badges = '';
+                                                foreach ($items as $item) {
+                                                    $cls = $item['on']
+                                                        ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
+                                                        : 'bg-gray-100 text-gray-600 ring-gray-500/10';
+                                                    $icon = $item['on']
+                                                        ? '<svg class="size-3 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>'
+                                                        : '<svg class="size-3 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>';
+                                                    $badges .= '<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ring-1 '.$cls.'">'.$icon.$item['label'].'</span>';
+                                                }
+
+                                                return new HtmlString(
+                                                    '<div class="space-y-3">'
+                                                    .'<div class="flex flex-wrap gap-2">'.$badges.'</div>'
+                                                    .'<div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">'
+                                                    .'<svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>'
+                                                    .'<span>Accepted currencies: <span class="font-medium text-zinc-700 dark:text-zinc-300">'.$currencyLabels.'</span></span>'
+                                                    .'</div>'
+                                                    .'</div>'
+                                                );
+                                            }),
+                                    ]),
+                            ]),
+                        Tab::make('Settings')
                             ->icon('heroicon-o-document-text')
                             ->schema([
                                 Section::make('General')
@@ -154,57 +352,6 @@ class CampaignForm
                                             ->default(true),
                                     ]),
                             ]),
-                        Tab::make('Stats')
-                            ->icon('heroicon-o-chart-bar')
-                            ->visible(fn ($record) => $record !== null)
-                            ->columns(4)
-                            ->schema([
-                                Placeholder::make('collected_amount')
-                                    ->label('Amount raised')
-                                    ->content(function ($record): HtmlString {
-                                        $hasNonMyr = $record->donations()
-                                            ->where('status', DonationStatus::Succeeded)
-                                            ->where('currency', '!=', 'MYR')
-                                            ->exists();
-                                        $prefix = $hasNonMyr ? '≈ RM ' : 'RM ';
-                                        $amount = $record->donations()
-                                            ->where('status', DonationStatus::Succeeded)
-                                            ->sum('base_amount') ?? 0;
-
-                                        return new HtmlString('<span class="text-2xl font-bold text-emerald-600">'.$prefix.number_format($amount, 2).'</span>');
-                                    }),
-                                Placeholder::make('donation_count')
-                                    ->label('Donations')
-                                    ->content(fn ($record) => new HtmlString(
-                                        '<span class="text-2xl font-bold text-zinc-900">'.$record->donations()->count().'</span>'
-                                    )),
-                                Placeholder::make('active_recurring')
-                                    ->label('Active recurring plans')
-                                    ->content(fn ($record) => new HtmlString(
-                                        '<span class="text-2xl font-bold text-teal-600">'.number_format(
-                                            $record->subscriptions()->where('status', 'active')->count()
-                                        ).'</span>'
-                                    )),
-                                Placeholder::make('last_donation')
-                                    ->label('Last donation')
-                                    ->content(fn ($record) => new HtmlString(
-                                        '<span class="text-lg font-semibold text-zinc-900">'.(
-                                            $record->donations()
-                                                ->where('status', DonationStatus::Succeeded)
-                                                ->latest('created_at')
-                                                ->first()
-                                                ?->created_at
-                                                ?->format('d M Y')
-                                            ?? '—'
-                                        ).'</span>'
-                                    )),
-                                Placeholder::make('progress_bar')
-                                    ->label('Campaign performance')
-                                    ->columnSpanFull()
-                                    ->content(fn ($record) => new HtmlString(
-                                        self::progressBarHtml($record)
-                                    )),
-                            ]),
                         Tab::make('Actions')
                             ->icon('heroicon-o-bolt')
                             ->visible(fn ($record) => $record !== null)
@@ -213,7 +360,7 @@ class CampaignForm
                                     ->columns(1)
                                     ->schema([
                                         Placeholder::make('archive_section')
-                                            ->label('')
+                                            ->hiddenLabel()
                                             ->content(fn ($record) => new HtmlString(
                                                 '<div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">'
                                                 .'<div class="flex items-start justify-between gap-4">'
@@ -235,7 +382,7 @@ class CampaignForm
                                                 .'</div>'
                                             )),
                                         Placeholder::make('duplicate_section')
-                                            ->label('')
+                                            ->hiddenLabel()
                                             ->content(fn ($record) => new HtmlString(
                                                 '<div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">'
                                                 .'<div class="flex items-start justify-between gap-4">'

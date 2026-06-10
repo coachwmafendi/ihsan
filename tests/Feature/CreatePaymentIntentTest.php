@@ -167,4 +167,6 @@ it('creates connected account customers for connected organization payments', fu
     expect($paymentIntentRequest['params'])->not->toHaveKey('application_fee_amount')
         ->and($paymentIntentRequest['params'])->not->toHaveKey('transfer_data');
 
+    $donor->refresh();
+    expect($donor->stripe_customer_id)->toBe('cus_connected_donor');
 });

@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Mail\CampaignMilestoneNotification;
 use App\Models\Campaign;
 use App\Models\User;
+use App\Support\MailtrapThrottle;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -75,6 +76,7 @@ class SendCampaignMilestoneNotification implements ShouldQueue
             ->get();
 
         foreach ($admins as $admin) {
+            MailtrapThrottle::throttle();
             Mail::to($admin->email)->queue(
                 new CampaignMilestoneNotification(
                     campaign: $this->campaign,

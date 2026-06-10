@@ -6,19 +6,93 @@ use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Services\PublicIdGenerator;
 use App\Support\Currency;
+use Carbon\CarbonImmutable;
 use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
+/**
+ * @property int $id
+ * @property int $campaign_id
+ * @property int $donor_id
+ * @property string|null $stripe_subscription_id
+ * @property string|null $stripe_price_id
+ * @property numeric $amount
+ * @property string $currency
+ * @property SubscriptionInterval $interval
+ * @property SubscriptionStatus $status
+ * @property int $retry_count
+ * @property CarbonImmutable|null $current_period_start
+ * @property CarbonImmutable|null $current_period_end
+ * @property CarbonImmutable|null $paused_until
+ * @property CarbonImmutable|null $cancelled_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
+ * @property int $payment_count
+ * @property bool $cancel_at_period_end
+ * @property bool $cover_fee
+ * @property CarbonImmutable|null $cancel_at
+ * @property string|null $public_id
+ * @property string|null $source
+ * @property-read Collection<int, Activity> $activitiesAsSubject
+ * @property-read int|null $activities_as_subject_count
+ * @property-read Campaign $campaign
+ * @property-read mixed $currency_symbol
+ * @property-read Collection<int, Donation> $donations
+ * @property-read int|null $donations_count
+ * @property-read Donor $donor
+ *
+ * @method static \Database\Factories\SubscriptionFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCampaignId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCancelAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCancelAtPeriodEnd($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCancelledAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCoverFee($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCurrency($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCurrentPeriodEnd($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCurrentPeriodStart($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereDonorId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereInterval($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription wherePausedUntil($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription wherePaymentCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription wherePublicId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereRetryCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereSource($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereStripePriceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereStripeSubscriptionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
+ */
 #[Fillable(['campaign_id', 'donor_id', 'source', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'cancel_at_period_end', 'cover_fee', 'cancel_at', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'cancel_at_period_end', 'cancelled_at', 'paused_until', 'cancel_at'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->useLogName('subscription');
+    }
 
     public function getRouteKeyName(): string
     {

@@ -79,6 +79,8 @@ class CreatePaymentIntent
 
             $params['customer'] = $customer->id;
 
+            $donation->donor?->update(['stripe_customer_id' => $customer->id]);
+
             return PaymentIntent::create($params, $stripeOptions);
         }
 

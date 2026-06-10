@@ -6,19 +6,153 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Services\PublicIdGenerator;
 use App\Support\Currency;
+use Carbon\CarbonImmutable;
 use Database\Factories\DonationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
+/**
+ * @property int $id
+ * @property int $campaign_id
+ * @property int $donor_id
+ * @property int|null $subscription_id
+ * @property string|null $stripe_payment_intent_id
+ * @property string|null $stripe_charge_id
+ * @property numeric $gross_amount
+ * @property numeric $stripe_fee
+ * @property numeric $processing_fee
+ * @property numeric $net_amount
+ * @property string $currency
+ * @property DonationStatus $status
+ * @property DonationType $type
+ * @property string|null $donor_message
+ * @property bool $is_anonymous
+ * @property array<array-key, mixed>|null $utm_params
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
+ * @property string|null $payment_method_brand
+ * @property string|null $payment_method_type
+ * @property string|null $donor_country
+ * @property string|null $invoice_number
+ * @property string|null $base_currency
+ * @property numeric|null $base_amount
+ * @property numeric $donor_fee_covered
+ * @property string|null $device_type
+ * @property string|null $ip_address
+ * @property string|null $browser
+ * @property string|null $os
+ * @property string|null $page_url
+ * @property string|null $geo_city
+ * @property string|null $geo_region
+ * @property numeric|null $exchange_rate
+ * @property CarbonImmutable|null $receipt_sent_at
+ * @property string|null $payment_method_last4
+ * @property string|null $billing_address_line1
+ * @property string|null $billing_address_line2
+ * @property string|null $billing_address_city
+ * @property string|null $billing_address_state
+ * @property string|null $billing_address_postal_code
+ * @property string|null $billing_country
+ * @property CarbonImmutable|null $refunded_at
+ * @property array<array-key, mixed>|null $stripe_fee_details
+ * @property int|null $risk_score
+ * @property string|null $risk_level
+ * @property string|null $avs_result
+ * @property string|null $cvc_result
+ * @property string $fraud_status
+ * @property string|null $public_id
+ * @property string|null $source
+ * @property-read Collection<int, Activity> $activitiesAsSubject
+ * @property-read int|null $activities_as_subject_count
+ * @property-read mixed $amount_with_conversion
+ * @property-read Campaign $campaign
+ * @property-read mixed $currency_symbol
+ * @property-read Donor $donor
+ * @property-read mixed $element_label
+ * @property-read mixed $formatted_amount
+ * @property-read mixed $payment_method_display
+ * @property-read ProcessingFee|null $processingFee
+ * @property-read Subscription|null $subscription
+ *
+ * @method static \Database\Factories\DonationFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereAvsResult($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereBaseAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereBaseCurrency($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereBillingAddressCity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereBillingAddressLine1($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereBillingAddressLine2($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereBillingAddressPostalCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereBillingAddressState($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereBillingCountry($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereBrowser($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereCampaignId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereCurrency($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereCvcResult($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereDeviceType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereDonorCountry($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereDonorFeeCovered($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereDonorId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereDonorMessage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereExchangeRate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereFraudStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereGeoCity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereGeoRegion($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereGrossAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereInvoiceNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereIpAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereIsAnonymous($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereNetAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereOs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation wherePageUrl($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation wherePaymentMethodBrand($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation wherePaymentMethodLast4($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation wherePaymentMethodType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereProcessingFee($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation wherePublicId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereReceiptSentAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereRefundedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereRiskLevel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereRiskScore($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereSource($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereStripeChargeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereStripeFee($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereStripeFeeDetails($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereStripePaymentIntentId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereSubscriptionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donation whereUtmParams($value)
+ *
+ * @mixin \Eloquent
+ */
 #[Fillable(['campaign_id', 'donor_id', 'subscription_id', 'source', 'public_id', 'stripe_payment_intent_id', 'stripe_charge_id', 'payment_method_brand', 'payment_method_type', 'donor_country', 'gross_amount', 'stripe_fee', 'donor_fee_covered', 'processing_fee', 'stripe_fee_details', 'net_amount', 'currency', 'base_currency', 'base_amount', 'exchange_rate', 'status', 'type', 'donor_message', 'is_anonymous', 'utm_params', 'invoice_number', 'device_type', 'ip_address', 'browser', 'os', 'page_url', 'geo_city', 'geo_region', 'payment_method_last4', 'billing_address_line1', 'billing_address_line2', 'billing_address_city', 'billing_address_state', 'billing_address_postal_code', 'billing_country', 'receipt_sent_at', 'refunded_at', 'risk_score', 'risk_level', 'avs_result', 'cvc_result', 'fraud_status'])]
 class Donation extends Model
 {
     /** @use HasFactory<DonationFactory> */
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'refunded_at', 'fraud_status', 'risk_score', 'risk_level'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->useLogName('donation');
+    }
 
     public function getRouteKeyName(): string
     {

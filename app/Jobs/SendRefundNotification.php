@@ -7,6 +7,7 @@ use App\Mail\RefundNotification;
 use App\Models\Donation;
 use App\Models\User;
 use App\Support\Currency;
+use App\Support\MailtrapThrottle;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -49,6 +50,7 @@ class SendRefundNotification implements ShouldQueue
         $amountDisplay = $this->formatAmount($donation);
 
         foreach ($admins as $admin) {
+            MailtrapThrottle::throttle();
             Mail::to($admin->email)
                 ->queue(new RefundNotification($donation, $amountDisplay));
         }

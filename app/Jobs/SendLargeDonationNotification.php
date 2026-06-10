@@ -7,6 +7,7 @@ use App\Mail\LargeDonationNotification;
 use App\Models\Donation;
 use App\Models\User;
 use App\Support\Currency;
+use App\Support\MailtrapThrottle;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -57,6 +58,7 @@ class SendLargeDonationNotification implements ShouldQueue
         $amountDisplay = $this->formatAmount($donation);
 
         foreach ($admins as $admin) {
+            MailtrapThrottle::throttle();
             Mail::to($admin->email)
                 ->queue(new LargeDonationNotification($donation, $amountDisplay));
         }

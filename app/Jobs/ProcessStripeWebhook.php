@@ -324,10 +324,12 @@ class ProcessStripeWebhook implements ShouldQueue
 
         $subscription->update([
             'status' => SubscriptionStatus::PastDue,
-            'retry_count' => $subscription->retry_count + 1,
+            'retry_count' => $invoice->attempt_count ?? ($subscription->retry_count + 1),
         ]);
 
-        SendFailedPaymentNotification::dispatch($subscription);
+        if ($invoice->next_payment_attempt === null) {
+            SendFailedPaymentNotification::dispatch($subscription);
+        }
     }
 
     private function handleSubscriptionDeleted(StripeEvent $event): void
