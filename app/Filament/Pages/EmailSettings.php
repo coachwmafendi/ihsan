@@ -35,6 +35,7 @@ class EmailSettings extends Page
             'mail_encryption' => Setting::get('mail_encryption', env('MAIL_ENCRYPTION')),
             'mail_from_address' => Setting::get('mail_from_address', config('mail.from.address')),
             'mail_from_name' => Setting::get('mail_from_name', config('mail.from.name', config('app.name'))),
+            'mail_throttle_seconds' => Setting::get('mail_throttle_seconds', config('mail.throttle_seconds', 0)),
             'sendmail_path' => Setting::get('sendmail_path', config('mail.mailers.sendmail.path')),
         ]);
     }
@@ -67,6 +68,13 @@ class EmailSettings extends Page
                     ->required(),
                 TextInput::make('mail_from_name')
                     ->label('From Name')
+                    ->required(),
+                TextInput::make('mail_throttle_seconds')
+                    ->label('Throttle Seconds')
+                    ->helperText('Delay between each email (0 = no throttling)')
+                    ->numeric()
+                    ->minValue(0)
+                    ->default(0)
                     ->required(),
                 Select::make('mail_encryption')
                     ->label('SMTP Encryption')
@@ -105,6 +113,7 @@ class EmailSettings extends Page
         Setting::set('mail_driver', $data['mail_driver']);
         Setting::set('mail_from_address', $data['mail_from_address']);
         Setting::set('mail_from_name', $data['mail_from_name']);
+        Setting::set('mail_throttle_seconds', $data['mail_throttle_seconds'] ?? 0);
 
         if ($data['mail_driver'] === 'smtp') {
             Setting::set('mail_host', $data['mail_host']);
@@ -176,6 +185,7 @@ class EmailSettings extends Page
             'mail_encryption' => Setting::get('mail_encryption'),
             'mail_from_address' => Setting::get('mail_from_address'),
             'mail_from_name' => Setting::get('mail_from_name'),
+            'mail_throttle_seconds' => Setting::get('mail_throttle_seconds', 0),
             'sendmail_path' => Setting::get('sendmail_path'),
         ];
 
@@ -183,6 +193,7 @@ class EmailSettings extends Page
             'mail.default' => $data['mail_driver'] ?? 'log',
             'mail.from.address' => $data['mail_from_address'] ?? null,
             'mail.from.name' => $data['mail_from_name'] ?? null,
+            'mail.throttle_seconds' => (int) ($data['mail_throttle_seconds'] ?? 0),
             'mail.mailers.smtp.host' => $data['mail_host'] ?? null,
             'mail.mailers.smtp.port' => $data['mail_port'] ?? null,
             'mail.mailers.smtp.username' => $data['mail_username'] ?? null,
