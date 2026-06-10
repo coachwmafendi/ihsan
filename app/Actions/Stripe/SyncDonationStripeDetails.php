@@ -3,6 +3,7 @@
 namespace App\Actions\Stripe;
 
 use App\Models\Donation;
+use App\Models\DonorPaymentMethod;
 use Stripe\BalanceTransaction;
 use Stripe\Charge;
 use Stripe\PaymentIntent as StripePaymentIntent;
@@ -21,7 +22,8 @@ class SyncDonationStripeDetails
             'expand' => ['latest_charge.balance_transaction'],
         ], $stripeOptions);
 
-        $pmDetails = $this->paymentMethodDetails($paymentIntent, $stripeOptions);
+        $paymentMethod = $this->retrievePaymentMethod($paymentIntent, $stripeOptions);
+        $pmDetails = $this->paymentMethodDetails($paymentMethod);
 
         $rawCharge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
         $hasExpandedCharge = ! is_string($rawCharge) && ($rawCharge->balance_transaction ?? null) !== null;
@@ -67,6 +69,7 @@ class SyncDonationStripeDetails
         ]);
 
         $this->syncDonorAddress($donation, $pmDetails, $paymentIntent);
+        $this->syncDonorPaymentMethod($donation, $paymentMethod);
 
         if ($processingFee > 0) {
             $donation->loadMissing('campaign.organization');
@@ -96,9 +99,28 @@ class SyncDonationStripeDetails
 
     /**
      * @param  array<string, string>  $stripeOptions
+     */
+    private function retrievePaymentMethod(StripePaymentIntent $paymentIntent, array $stripeOptions): ?PaymentMethod
+    {
+        $paymentMethodId = is_string($paymentIntent->payment_method ?? null)
+            ? $paymentIntent->payment_method
+            : ($paymentIntent->payment_method->id ?? null);
+
+        if ($paymentMethodId === null) {
+            return null;
+        }
+
+        try {
+            return PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
      * @return array<string, string|null>
      */
-    private function paymentMethodDetails(StripePaymentIntent $paymentIntent, array $stripeOptions): array
+    private function paymentMethodDetails(?PaymentMethod $paymentMethod): array
     {
         $default = [
             'brand' => null,
@@ -113,40 +135,59 @@ class SyncDonationStripeDetails
             'billing_country' => null,
         ];
 
-        $paymentMethodId = is_string($paymentIntent->payment_method ?? null)
-            ? $paymentIntent->payment_method
-            : ($paymentIntent->payment_method->id ?? null);
-
-        if ($paymentMethodId === null) {
+        if ($paymentMethod === null) {
             return $default;
         }
 
-        try {
-            $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
-            $type = $paymentMethod->type;
-            $billing = $paymentMethod->billing_details ?? null;
+        $type = $paymentMethod->type;
+        $billing = $paymentMethod->billing_details ?? null;
 
-            if ($type === 'card' && $paymentMethod->card !== null) {
-                $card = $paymentMethod->card;
+        if ($type === 'card' && $paymentMethod->card !== null) {
+            $card = $paymentMethod->card;
 
-                return [
-                    'brand' => $card->brand,
-                    'type' => $type,
-                    'card_country' => $card->country,
-                    'last4' => $card->last4,
-                    'billing_line1' => $billing?->address?->line1 ?? null,
-                    'billing_line2' => $billing?->address?->line2 ?? null,
-                    'billing_city' => $billing?->address?->city ?? null,
-                    'billing_state' => $billing?->address?->state ?? null,
-                    'billing_postal_code' => $billing?->address?->postal_code ?? null,
-                    'billing_country' => $billing?->address?->country ?? null,
-                ];
-            }
-
-            return $default;
-        } catch (\Exception $e) {
-            return $default;
+            return [
+                'brand' => $card->brand,
+                'type' => $type,
+                'card_country' => $card->country,
+                'last4' => $card->last4,
+                'billing_line1' => $billing?->address?->line1 ?? null,
+                'billing_line2' => $billing?->address?->line2 ?? null,
+                'billing_city' => $billing?->address?->city ?? null,
+                'billing_state' => $billing?->address?->state ?? null,
+                'billing_postal_code' => $billing?->address?->postal_code ?? null,
+                'billing_country' => $billing?->address?->country ?? null,
+            ];
         }
+
+        return $default;
+    }
+
+    private function syncDonorPaymentMethod(Donation $donation, ?PaymentMethod $paymentMethod): void
+    {
+        $donor = $donation->donor;
+
+        if ($donor === null || $paymentMethod === null) {
+            return;
+        }
+
+        if ($paymentMethod->type !== 'card' || $paymentMethod->card === null) {
+            return;
+        }
+
+        $card = $paymentMethod->card;
+
+        DonorPaymentMethod::updateOrCreate(
+            ['stripe_payment_method_id' => $paymentMethod->id],
+            [
+                'donor_id' => $donor->getKey(),
+                'brand' => ucfirst((string) $card->brand),
+                'last4' => $card->last4,
+                'exp_month' => $card->exp_month,
+                'exp_year' => $card->exp_year,
+                'country' => $card->country ?? null,
+                'is_default' => true,
+            ]
+        );
     }
 
     private function syncDonorAddress(Donation $donation, array $pmDetails, StripePaymentIntent $paymentIntent): void
