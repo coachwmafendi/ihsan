@@ -58,7 +58,7 @@ class VirtualTerminal extends Page
         'campaign_id' => null,
         'frequency' => 'once',
         'amount' => '',
-        'currency' => 'myr',
+        'currency' => '',
         'scheduled_for' => null,
         'first_name' => '',
         'last_name' => '',
@@ -82,7 +82,10 @@ class VirtualTerminal extends Page
             $this->loadPreloadedSupporter();
         }
 
-        $this->formData['currency'] = $this->getAcceptedCurrencies()[0] ?? 'myr';
+        if (! $this->formData['currency']) {
+            $this->formData['currency'] = $this->getAcceptedCurrencies()[0] ?? 'myr';
+        }
+
         $this->loadDefaultCampaign();
         $this->formData['scheduled_for'] = now()->format('Y-m-d');
     }
@@ -98,6 +101,20 @@ class VirtualTerminal extends Page
             $this->formData['first_name'] = $names[0] ?? '';
             $this->formData['last_name'] = $names[1] ?? '';
             $this->formData['email'] = $this->preloadedSupporter->email;
+
+            $lastDonationCurrency = $this->preloadedSupporter->donations()
+                ->latest()
+                ->value('currency');
+
+            if ($lastDonationCurrency) {
+                $acceptedCurrencies = $this->getAcceptedCurrencies();
+                $lastCurrencyLower = strtolower($lastDonationCurrency);
+
+                if (in_array($lastCurrencyLower, $acceptedCurrencies)) {
+                    $this->formData['currency'] = $lastCurrencyLower;
+                }
+            }
+
             $this->loadSavedCards();
         }
     }
