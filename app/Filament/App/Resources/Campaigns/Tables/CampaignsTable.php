@@ -5,8 +5,6 @@ namespace App\Filament\App\Resources\Campaigns\Tables;
 use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
 use Filament\Actions\Action;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
@@ -161,10 +159,6 @@ class CampaignsTable
                         $replica->save();
                     }),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->toolbarActions([]);
     }
 }

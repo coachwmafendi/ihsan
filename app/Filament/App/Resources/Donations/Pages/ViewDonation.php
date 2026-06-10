@@ -15,6 +15,7 @@ use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Support\Enums\Width;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 use Stripe\Customer;
 use Stripe\Stripe;
@@ -37,7 +38,7 @@ class ViewDonation extends ViewRecord
     {
         $publicId = e($this->record->public_id ?? $this->record->getKey());
 
-        $copyBtn = '<x-ui.copy-button value="'.$publicId.'" size="sm" />';
+        $copyBtn = Blade::render('<x-ui.copy-button value="'.$publicId.'" size="sm" />');
 
         $parts = ["ID {$publicId} {$copyBtn}"];
 

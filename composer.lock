@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1d0f4fd16e6bd363a097988c7453ec75",
+    "content-hash": "51769667be1dad0a777d20d6991533da",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -3890,6 +3890,64 @@
             "time": "2026-03-08T20:05:35+00:00"
         },
         {
+            "name": "livewire/blaze",
+            "version": "v1.0.12",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/livewire/blaze.git",
+                "reference": "6f7d21aac44e542261590c744aa959129c9a04ed"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/livewire/blaze/zipball/6f7d21aac44e542261590c744aa959129c9a04ed",
+                "reference": "6f7d21aac44e542261590c744aa959129c9a04ed",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/view": "^10.0|^11.0|^12.0|^13.0",
+                "nikic/php-parser": "^5.0",
+                "php": "^8.1"
+            },
+            "conflict": {
+                "livewire/flux": "<2.12.1"
+            },
+            "require-dev": {
+                "livewire/flux": "dev-main",
+                "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
+                "pestphp/pest": "^2.0|^3.0|^4.0",
+                "pestphp/pest-plugin-laravel": "^2.0|^3.0|^4.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Livewire\\Blaze\\BlazeServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Livewire\\Blaze\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Caleb Porzio"
+                }
+            ],
+            "description": "A tool for optimizing Blade component performance by folding them into parent templates",
+            "support": {
+                "issues": "https://github.com/livewire/blaze/issues",
+                "source": "https://github.com/livewire/blaze/tree/v1.0.12"
+            },
+            "time": "2026-04-06T09:24:26+00:00"
+        },
+        {
             "name": "livewire/flux",
             "version": "v2.14.1",
             "source": {
@@ -6311,6 +6369,99 @@
                 }
             ],
             "time": "2024-05-17T09:06:10+00:00"
+        },
+        {
+            "name": "spatie/laravel-activitylog",
+            "version": "5.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-activitylog.git",
+                "reference": "0e00fe74fd071cc572a045459f6d4c9de33130bd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-activitylog/zipball/0e00fe74fd071cc572a045459f6d4c9de33130bd",
+                "reference": "0e00fe74fd071cc572a045459f6d4c9de33130bd",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/config": "^12.0 || ^13.0",
+                "illuminate/database": "^12.0 || ^13.0",
+                "illuminate/support": "^12.0 || ^13.0",
+                "php": "^8.4",
+                "spatie/laravel-package-tools": "^1.6.3"
+            },
+            "require-dev": {
+                "ext-json": "*",
+                "larastan/larastan": "^3.0",
+                "laravel/pint": "^1.29",
+                "orchestra/testbench": "^10.0 || ^11.0",
+                "pestphp/pest": "^4.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Spatie\\Activitylog\\ActivitylogServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Spatie\\Activitylog\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Freek Van der Herten",
+                    "email": "freek@spatie.be",
+                    "homepage": "https://spatie.be",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Sebastian De Deyne",
+                    "email": "sebastian@spatie.be",
+                    "homepage": "https://spatie.be",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Tom Witkowski",
+                    "email": "dev.gummibeer@gmail.com",
+                    "homepage": "https://gummibeer.de",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A very simple activity logger to monitor the users of your website or application",
+            "homepage": "https://github.com/spatie/activitylog",
+            "keywords": [
+                "activity",
+                "laravel",
+                "log",
+                "spatie",
+                "user"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/laravel-activitylog/issues",
+                "source": "https://github.com/spatie/laravel-activitylog/tree/5.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://spatie.be/open-source/support-us",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-03-25T10:04:54+00:00"
         },
         {
             "name": "spatie/laravel-package-tools",

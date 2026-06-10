@@ -17,6 +17,7 @@ use Filament\Schemas\Components\Fieldset;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 use Stripe\Customer;
 use Stripe\Stripe;
@@ -39,10 +40,12 @@ class ViewDonor extends ViewRecord
         $last = $this->getLastDonationDate();
         $lastStr = $last ? $last->format('j M Y') : '—';
 
-        $copyBtn = '<x-ui.copy-button value="'.$publicId.'" size="sm" />';
+        $copyBtn = Blade::render(
+            '<x-ui.copy-button value="'.$publicId.'" size="sm" />'
+        );
 
         return new HtmlString(
-            "ID {$publicId} {$copyBtn} · Lifetime donated {$lifetime} · Last donation {$lastStr}"
+            "ID {$publicId}{$copyBtn} · Lifetime donated {$lifetime} · Last donation {$lastStr}"
         );
     }
 

@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Mail\SubscriptionCancelledNotification;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Support\MailtrapThrottle;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -40,6 +41,7 @@ class SendSubscriptionCancelledNotification implements ShouldQueue
             ->get();
 
         foreach ($admins as $admin) {
+            MailtrapThrottle::throttle();
             Mail::to($admin->email)
                 ->queue(new SubscriptionCancelledNotification($this->subscription));
         }
