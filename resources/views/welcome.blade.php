@@ -40,11 +40,11 @@
     </nav>
 
     {{-- Hero --}}
-    <section class="min-h-screen flex items-center justify-center pt-16 relative overflow-hidden">
+    <section class="sm:min-h-screen flex items-center justify-center pt-16 relative overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-b from-teal-500/5 via-transparent to-transparent pointer-events-none"></div>
         <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-teal-500/3 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20 relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 sm:py-20 relative">
             <span class="inline-block text-teal-400 font-semibold text-xs sm:text-sm tracking-widest uppercase mb-6 bg-teal-500/10 border border-teal-500/20 rounded-full px-4 py-2">
                 @lang('hero.badge')
             </span>
