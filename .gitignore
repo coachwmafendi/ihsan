@@ -30,3 +30,6 @@ tests/Feature/TmpWebhookTest.php
 docs/superpowers/plans/*.md
 *.png
 !storage/app/public/**/*.png
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
