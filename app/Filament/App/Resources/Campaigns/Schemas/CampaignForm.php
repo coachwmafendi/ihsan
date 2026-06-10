@@ -417,13 +417,16 @@ class CampaignForm
 
         $collected = (float) $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount');
         $target = (float) $record->target_amount;
-        $percentage = min(round(($collected / $target) * 100, 1), 100);
+        $rawPercentage = round(($collected / $target) * 100, 1);
+        $percentage = min($rawPercentage, 100);
+        // Show a minimum visible bar when there are donations but progress is tiny
+        $displayPercentage = $collected > 0 && $percentage < 2 ? 2 : $percentage;
         $remaining = max($target - $collected, 0);
-        $statusText = $percentage >= 100 ? 'Goal reached!' : 'Remaining: RM '.number_format($remaining, 2);
+        $statusText = $rawPercentage >= 100 ? 'Goal reached!' : 'Remaining: RM '.number_format($remaining, 2);
 
         return Blade::render(
             '<x-ui.progress-bar'
-            .' percentage="'.(int) $percentage.'"'
+            .' percentage="'.(int) $displayPercentage.'"'
             .' label="RM '.number_format($collected, 2).'"'
             .' sublabel="of RM '.number_format($target, 2).' · '.$statusText.'"'
             .' size="lg"'

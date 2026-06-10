@@ -75,17 +75,20 @@ class SendCampaignMilestoneNotification implements ShouldQueue
             ->where('role', UserRole::NgoAdmin)
             ->get();
 
-        foreach ($admins as $admin) {
-            MailtrapThrottle::throttle();
-            Mail::to($admin->email)->queue(
-                new CampaignMilestoneNotification(
-                    campaign: $this->campaign,
-                    milestone: $highest,
-                    percent: number_format($currentPct, 1),
-                    collected: number_format($current, 2),
-                    target: number_format($target, 2),
-                )
-            );
+        $delay = MailtrapThrottle::delaySeconds();
+
+        foreach ($admins as $index => $admin) {
+            Mail::to($admin->email)
+                ->later(
+                    now()->addSeconds($index * $delay),
+                    new CampaignMilestoneNotification(
+                        campaign: $this->campaign,
+                        milestone: $highest,
+                        percent: number_format($currentPct, 1),
+                        collected: number_format($current, 2),
+                        target: number_format($target, 2),
+                    )
+                );
         }
 
         $this->campaign->update([

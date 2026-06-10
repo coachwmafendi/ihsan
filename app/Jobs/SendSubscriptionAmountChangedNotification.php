@@ -57,8 +57,9 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
             ->where('role', UserRole::NgoAdmin)
             ->get();
 
-        foreach ($admins as $admin) {
-            MailtrapThrottle::throttle();
+        $delay = MailtrapThrottle::delaySeconds();
+
+        foreach ($admins as $index => $admin) {
             $adminMail = new SubscriptionAmountChangedNotification(
                 $subscription,
                 $this->previousAmount,
@@ -67,7 +68,7 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
             );
 
             Mail::to($admin->email)
-                ->queue($adminMail);
+                ->later(now()->addSeconds($index * $delay), $adminMail);
         }
     }
 }

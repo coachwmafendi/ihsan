@@ -3,6 +3,7 @@
 @source '../../../../app/Filament/App/**/*';
 @source '../../../views/filament/app/**/*';
 @source '../../../views/filament/forms/components/**/*';
+@source '../../../views/components/ui/**/*';
 @source '../../../views/vendor/filament-panels/**/*.blade.php';
 @source '../../../../vendor/filament/**/*.blade.php';
 

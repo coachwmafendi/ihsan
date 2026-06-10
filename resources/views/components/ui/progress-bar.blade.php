@@ -45,7 +45,7 @@
     <div class="w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
         <div
             class="rounded-full transition-all duration-500 ease-out {{ $barSize }} {{ $barColor }}"
-            style="width: {{ $percentage }}%"
+            style="width: {{ $percentage }}%; {{ $percentage > 0 && $percentage < 4 ? 'min-width: 4px;' : '' }}"
         ></div>
     </div>
 </div>

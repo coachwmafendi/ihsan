@@ -13,7 +13,7 @@
                 <button
                     type="button"
                     onclick="closePopup()"
-                    class="absolute -right-3 -top-3 z-10 flex size-8 items-center justify-center rounded-full bg-white text-slate-400 shadow-lg transition hover:bg-slate-100 hover:text-slate-600"
+                    class="absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-full bg-white text-slate-400 shadow-lg transition hover:bg-slate-100 hover:text-slate-600"
                     aria-label="Close"
                 >
                     <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

@@ -12,6 +12,14 @@ class MailtrapThrottle
     private const MAILTRAP_DELAY = 2;
 
     /**
+     * Returns the configured stagger delay between emails (in seconds).
+     */
+    public static function delaySeconds(): int
+    {
+        return (int) config('mail.throttle_seconds', self::MAILTRAP_DELAY);
+    }
+
+    /**
      * Returns true if the current mail configuration is pointing to Mailtrap.
      */
     public static function isActive(): bool
@@ -26,7 +34,7 @@ class MailtrapThrottle
      */
     public static function throttle(): void
     {
-        if (! self::isActive()) {
+        if (! self::isActive() && self::delaySeconds() <= 0) {
             return;
         }
 
@@ -34,9 +42,10 @@ class MailtrapThrottle
 
         if ($lastSent !== null) {
             $elapsed = now()->timestamp - (int) $lastSent;
+            $delay = self::delaySeconds() ?: self::MAILTRAP_DELAY;
 
-            if ($elapsed < self::MAILTRAP_DELAY) {
-                sleep(self::MAILTRAP_DELAY - $elapsed);
+            if ($elapsed < $delay) {
+                sleep($delay - $elapsed);
             }
         }
 

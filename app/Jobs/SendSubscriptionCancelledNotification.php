@@ -40,10 +40,14 @@ class SendSubscriptionCancelledNotification implements ShouldQueue
             ->where('role', UserRole::NgoAdmin)
             ->get();
 
-        foreach ($admins as $admin) {
-            MailtrapThrottle::throttle();
+        $delay = MailtrapThrottle::delaySeconds();
+
+        foreach ($admins as $index => $admin) {
             Mail::to($admin->email)
-                ->queue(new SubscriptionCancelledNotification($this->subscription));
+                ->later(
+                    now()->addSeconds($index * $delay),
+                    new SubscriptionCancelledNotification($this->subscription)
+                );
         }
     }
 }
