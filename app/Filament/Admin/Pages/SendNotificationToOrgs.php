@@ -13,6 +13,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Auth;
 
 class SendNotificationToOrgs extends Page
@@ -167,5 +168,29 @@ class SendNotificationToOrgs extends Page
             'type' => 'info',
             'image' => null,
         ]);
+    }
+
+    public function getSentNotifications()
+    {
+        return DatabaseNotification::query()
+            ->where('type', AdminToOrgAdminNotification::class)
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+    }
+
+    public function deleteNotification(string $notificationId): void
+    {
+        abort_unless(self::canAccess(), 403);
+
+        $notification = DatabaseNotification::find($notificationId);
+
+        if ($notification) {
+            $notification->delete();
+
+            Notification::make()
+                ->title('Notification deleted')
+                ->success()
+                ->send();
+        }
     }
 }
