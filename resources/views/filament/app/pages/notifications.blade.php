@@ -87,6 +87,16 @@
                                             >
                                                 {{ $notification->data['message'] ?? '' }}
                                             </p>
+
+                                            @if ($notification->data['image'] ?? null)
+                                                <div x-show="expanded" x-transition class="mt-3">
+                                                    <img
+                                                        src="{{ Storage::url($notification->data['image']) }}"
+                                                        alt="Notification image"
+                                                        class="max-h-48 rounded-lg object-cover"
+                                                    />
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
 

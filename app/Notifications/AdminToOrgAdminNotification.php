@@ -17,15 +17,18 @@ class AdminToOrgAdminNotification extends Notification
 
     public string $type = 'info'; // info, warning, success, error
 
+    public ?string $image = null;
+
     /**
      * Create a new notification instance.
      */
-    public function __construct(string $message, string $senderName, ?int $organizationId = null, string $type = 'info')
+    public function __construct(string $message, string $senderName, ?int $organizationId = null, string $type = 'info', ?string $image = null)
     {
         $this->message = $message;
         $this->senderName = $senderName;
         $this->organizationId = $organizationId;
         $this->type = $type;
+        $this->image = $image;
     }
 
     /**
@@ -46,6 +49,7 @@ class AdminToOrgAdminNotification extends Notification
             'sender_name' => $this->senderName,
             'organization_id' => $this->organizationId,
             'type' => $this->type,
+            'image' => $this->image,
             'timestamp' => now()->toISOString(),
         ];
     }

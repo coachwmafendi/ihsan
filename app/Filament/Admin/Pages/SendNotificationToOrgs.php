@@ -7,6 +7,7 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Notifications\AdminToOrgAdminNotification;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
@@ -81,6 +82,13 @@ class SendNotificationToOrgs extends Page
                     ->default('info')
                     ->required()
                     ->disabled(fn (): bool => ! self::canAccess()),
+
+                FileUpload::make('image')
+                    ->label('Notification Image')
+                    ->image()
+                    ->directory('notifications')
+                    ->maxSize(2048)
+                    ->disabled(fn (): bool => ! self::canAccess()),
             ]);
     }
 
@@ -93,6 +101,7 @@ class SendNotificationToOrgs extends Page
             'organization_ids' => [],
             'message' => '',
             'type' => 'info',
+            'image' => null,
         ];
     }
 
@@ -136,7 +145,8 @@ class SendNotificationToOrgs extends Page
                     message: $data['message'],
                     senderName: $senderName,
                     organizationId: $organizationId,
-                    type: $data['type']
+                    type: $data['type'],
+                    image: $data['image'] ?? null
                 ));
 
                 $usersNotified++;
@@ -154,6 +164,7 @@ class SendNotificationToOrgs extends Page
             'organization_ids' => [],
             'message' => '',
             'type' => 'info',
+            'image' => null,
         ]);
     }
 }
