@@ -90,11 +90,17 @@
 
                                             @if ($notification->data['image'] ?? null)
                                                 <div x-show="expanded" x-transition class="mt-3">
-                                                    <img
-                                                        src="{{ asset('storage/' . $notification->data['image']) }}"
-                                                        alt="Notification image"
-                                                        class="max-h-48 rounded-lg object-cover"
-                                                    />
+                                                    <a
+                                                        href="{{ asset('storage/' . $notification->data['image']) }}"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <img
+                                                            src="{{ asset('storage/' . $notification->data['image']) }}"
+                                                            alt="Notification image"
+                                                            class="max-h-48 rounded-lg object-cover hover:opacity-90 transition-opacity"
+                                                        />
+                                                    </a>
                                                 </div>
                                             @endif
                                         </div>
