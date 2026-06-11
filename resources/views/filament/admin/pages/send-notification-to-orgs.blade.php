@@ -51,7 +51,7 @@
                                     $badgeColor = $badgeColors[$type] ?? $badgeColors['info'];
                                 @endphp
                                 <tr
-                                    x-data="{ expanded: false }"
+                                    x-data="{ expanded: false, showImage: false }"
                                     class="hover:bg-gray-50"
                                 >
                                     <td class="whitespace-nowrap px-4 py-4">
@@ -80,10 +80,27 @@
                                             </p>
                                         </div>
                                         @if ($data['image'] ?? null)
-                                            <span class="mt-1 inline-flex items-center text-xs text-gray-400">
-                                                <x-heroicon-o-photo class="mr-1 size-3" />
-                                                Has image
-                                            </span>
+                                            <div class="mt-2">
+                                                <button
+                                                    @click.stop="showImage = !showImage"
+                                                    type="button"
+                                                    class="inline-flex items-center gap-1 text-xs font-medium text-teal-600 hover:text-teal-700"
+                                                >
+                                                    <x-heroicon-o-photo class="size-3" />
+                                                    <span x-text="showImage ? 'Hide image' : 'View image'"></span>
+                                                </button>
+                                                <div
+                                                    x-show="showImage"
+                                                    x-transition
+                                                    class="mt-2"
+                                                >
+                                                    <img
+                                                        src="{{ asset('storage/' . $data['image']) }}"
+                                                        alt="Notification image"
+                                                        class="max-h-48 rounded-lg border border-gray-200 object-cover"
+                                                    />
+                                                </div>
+                                            </div>
                                         @endif
                                     </td>
                                     <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
