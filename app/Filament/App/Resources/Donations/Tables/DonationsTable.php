@@ -51,24 +51,26 @@ class DonationsTable
                         }
 
                         $paymentIcon = match ($record->payment_method_type) {
-                            'card' => 'heroicon-o-credit-card',
                             'fpx' => 'heroicon-o-building-library',
                             'grabpay' => 'heroicon-o-device-phone-mobile',
-                            'wallet' => 'heroicon-o-wallet',
+                            'apple_pay' => 'heroicon-o-wallet',
+                            'google_pay' => 'heroicon-o-wallet',
                             default => 'heroicon-o-credit-card',
                         };
 
                         $paymentLabel = match ($record->payment_method_type) {
-                            'card' => 'Card',
                             'fpx' => 'FPX',
                             'grabpay' => 'GrabPay',
-                            'wallet' => 'Wallet',
+                            'apple_pay' => 'Apple Pay',
+                            'google_pay' => 'Google Pay',
                             default => 'Card',
                         };
 
                         $iconColor = match ($record->payment_method_type) {
                             'fpx' => 'text-blue-500',
                             'grabpay' => 'text-green-500',
+                            'apple_pay' => 'text-gray-800',
+                            'google_pay' => 'text-gray-800',
                             default => 'text-gray-400',
                         };
 
@@ -276,7 +278,6 @@ class DonationsTable
                         }
                     }),
                 ViewAction::make(),
-            ])
-            ;
+            ]);
     }
 }

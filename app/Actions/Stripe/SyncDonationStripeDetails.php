@@ -22,10 +22,10 @@ class SyncDonationStripeDetails
             'expand' => ['latest_charge.balance_transaction'],
         ], $stripeOptions);
 
-        $paymentMethod = $this->retrievePaymentMethod($paymentIntent, $stripeOptions);
-        $pmDetails = $this->paymentMethodDetails($paymentMethod);
-
         $rawCharge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
+        $paymentMethod = $this->retrievePaymentMethod($paymentIntent, $stripeOptions);
+        $pmDetails = $this->paymentMethodDetails($paymentMethod, $rawCharge);
+
         $hasExpandedCharge = ! is_string($rawCharge) && ($rawCharge->balance_transaction ?? null) !== null;
         $shouldRetrieveMissingChargeDetails = ! $hasExpandedCharge;
 
@@ -120,7 +120,7 @@ class SyncDonationStripeDetails
     /**
      * @return array<string, string|null>
      */
-    private function paymentMethodDetails(?PaymentMethod $paymentMethod): array
+    private function paymentMethodDetails(?PaymentMethod $paymentMethod, mixed $charge = null): array
     {
         $default = [
             'brand' => null,
@@ -142,12 +142,24 @@ class SyncDonationStripeDetails
         $type = $paymentMethod->type;
         $billing = $paymentMethod->billing_details ?? null;
 
+        // Detect wallet type (Apple Pay / Google Pay) from charge details
+        $walletType = null;
+        if (! is_string($charge) && $charge !== null) {
+            $pmDetails = $charge->payment_method_details ?? null;
+            if ($pmDetails !== null && $pmDetails->card !== null) {
+                $wallet = $pmDetails->card->wallet ?? null;
+                if ($wallet !== null) {
+                    $walletType = $wallet->type ?? null;
+                }
+            }
+        }
+
         if ($type === 'card' && $paymentMethod->card !== null) {
             $card = $paymentMethod->card;
 
             return [
                 'brand' => $card->brand,
-                'type' => $type,
+                'type' => $walletType ?? $type,
                 'card_country' => $card->country,
                 'last4' => $card->last4,
                 'billing_line1' => $billing?->address?->line1 ?? null,
