@@ -562,7 +562,7 @@
 
                         {{-- Success --}}
                         <div x-show="currentStep === 'success'" x-cloak class="py-10 text-center">
-                            <div class="mx-auto mb-5 flex size-20 items-center justify-center rounded-full bg-emerald-100 ring-8 ring-emerald-50">
+                            <div class="mx-auto mb-5 flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-emerald-100 ring-8 ring-emerald-50">
                                 <svg class="size-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                             </div>
                             <h2 class="text-lg font-semibold text-slate-900">Thank you, <span x-text="donorName"></span>!</h2>
