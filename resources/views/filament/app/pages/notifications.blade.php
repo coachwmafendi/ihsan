@@ -91,7 +91,7 @@
                                             @if ($notification->data['image'] ?? null)
                                                 <div x-show="expanded" x-transition class="mt-3">
                                                     <img
-                                                        src="{{ Storage::url($notification->data['image']) }}"
+                                                        src="{{ asset('storage/' . $notification->data['image']) }}"
                                                         alt="Notification image"
                                                         class="max-h-48 rounded-lg object-cover"
                                                     />
