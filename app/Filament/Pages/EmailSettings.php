@@ -8,6 +8,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
 
 class EmailSettings extends Page
@@ -135,8 +136,10 @@ class EmailSettings extends Page
 
         $this->applyMailConfig($data);
 
+        Artisan::call('queue:restart');
+
         Notification::make()
-            ->title('Email settings saved.')
+            ->title('Email settings saved — queue workers restarted.')
             ->success()
             ->send();
     }
