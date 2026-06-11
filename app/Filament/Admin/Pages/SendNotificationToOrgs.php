@@ -22,15 +22,21 @@ class SendNotificationToOrgs extends Page
 
     protected static ?string $title = 'Send Notification to Organization Admins';
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-bell';
-
-    protected static string|\UnitEnum|null $navigationGroup = null;
-
     protected static ?int $navigationSort = 26;
 
     protected string $view = 'filament.admin.pages.send-notification-to-orgs';
 
     public ?array $data = [];
+
+    public static function getNavigationIcon(): string | \BackedEnum | null
+    {
+        return 'heroicon-o-bell';
+    }
+
+    public static function getNavigationGroup(): string | \UnitEnum | null
+    {
+        return null;
+    }
 
     protected function getAuthUser(): ?User
     {
