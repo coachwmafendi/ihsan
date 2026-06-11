@@ -50,16 +50,35 @@
                                     ];
                                     $badgeColor = $badgeColors[$type] ?? $badgeColors['info'];
                                 @endphp
-                                <tr class="hover:bg-gray-50">
+                                <tr
+                                    x-data="{ expanded: false }"
+                                    class="hover:bg-gray-50"
+                                >
                                     <td class="whitespace-nowrap px-4 py-4">
                                         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $badgeColor }}">
                                             {{ ucfirst($type) }}
                                         </span>
                                     </td>
                                     <td class="px-4 py-4">
-                                        <p class="max-w-xs truncate text-sm text-gray-700">
-                                            {{ $data['message'] ?? '' }}
-                                        </p>
+                                        <div
+                                            class="cursor-pointer"
+                                            @click="expanded = !expanded"
+                                        >
+                                            <p
+                                                x-show="!expanded"
+                                                x-transition
+                                                class="max-w-xs truncate text-sm text-gray-700"
+                                            >
+                                                {{ $data['message'] ?? '' }}
+                                            </p>
+                                            <p
+                                                x-show="expanded"
+                                                x-transition
+                                                class="whitespace-normal text-sm text-gray-700"
+                                            >
+                                                {{ $data['message'] ?? '' }}
+                                            </p>
+                                        </div>
                                         @if ($data['image'] ?? null)
                                             <span class="mt-1 inline-flex items-center text-xs text-gray-400">
                                                 <x-heroicon-o-photo class="mr-1 size-3" />
