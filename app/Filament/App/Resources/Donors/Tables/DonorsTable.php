@@ -8,8 +8,6 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Support\Currency;
 use Carbon\Carbon;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Actions\ViewAction;
@@ -194,10 +192,6 @@ class DonorsTable
                 ViewAction::make()
                     ->url(fn (Donor $record): string => DonorResource::getUrl('view', ['record' => DonorResource::getRecordUrlKey($record)])),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+            ;
     }
 }

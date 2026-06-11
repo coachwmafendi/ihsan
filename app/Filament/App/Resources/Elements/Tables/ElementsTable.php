@@ -73,11 +73,6 @@ class ElementsTable
                     ->icon(fn ($record) => $record->is_active ? 'heroicon-o-pause' : 'heroicon-o-play')
                     ->color(fn ($record) => $record->is_active ? 'gray' : 'success')
                     ->action(fn ($record) => $record->update(['is_active' => ! $record->is_active])),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 }
