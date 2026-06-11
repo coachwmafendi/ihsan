@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\App\Pages\Notifications;
 use App\Filament\App\Pages\StripeOnboarding;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Http\Middleware\EnsureOrganizationIsActive;
@@ -156,7 +157,6 @@ class AppPanelProvider extends PanelProvider
             ])
             ->homeUrl(fn (): string => route('filament.app.pages.insights'))
             ->darkMode(false)
-            ->databaseNotifications()
             ->colors([
                 'primary' => Color::Teal,
             ])
@@ -167,6 +167,7 @@ class AppPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/App/Pages'), for: 'App\Filament\App\Pages')
             ->pages([
                 StripeOnboarding::class,
+                Notifications::class,
             ])
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\Filament\App\Widgets')
             ->widgets([
