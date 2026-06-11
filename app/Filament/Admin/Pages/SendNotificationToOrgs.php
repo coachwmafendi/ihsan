@@ -86,6 +86,7 @@ class SendNotificationToOrgs extends Page
                 FileUpload::make('image')
                     ->label('Notification Image')
                     ->image()
+                    ->disk('public')
                     ->directory('notifications')
                     ->maxSize(2048)
                     ->disabled(fn (): bool => ! self::canAccess()),
