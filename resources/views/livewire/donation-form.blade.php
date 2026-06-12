@@ -531,47 +531,7 @@
 
                             <div wire:ignore>
                                 <label class="mb-0.5 block text-sm font-medium text-slate-700">Payment details</label>
-                                
-                                {{-- Collapsible payment options --}}
-                                <div class="rounded-lg border border-slate-200 overflow-hidden" x-data="{ expanded: true }">
-                                    {{-- Toggle header --}}
-                                    <button 
-                                        type="button"
-                                        @click="expanded = !expanded"
-                                        class="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition text-left"
-                                    >
-                                        <div class="flex items-center gap-2">
-                                            <svg class="size-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
-                                            </svg>
-                                            <span class="text-sm font-medium text-slate-700" x-text="expanded ? 'Click to hide payment options' : 'Click to enter payment details'"></span>
-                                        </div>
-                                        <svg 
-                                            class="size-4 text-slate-400 transition-transform duration-200"
-                                            :class="{ 'rotate-180': expanded }"
-                                            fill="none" 
-                                            viewBox="0 0 24 24" 
-                                            stroke="currentColor" 
-                                            stroke-width="2"
-                                        >
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
-                                        </svg>
-                                    </button>
-                                    
-                                    {{-- Collapsible content --}}
-                                    <div 
-                                        x-show="expanded" 
-                                        x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0 -translate-y-1"
-                                        x-transition:enter-end="opacity-100 translate-y-0"
-                                        x-transition:leave="transition ease-in duration-150"
-                                        x-transition:leave-start="opacity-100 translate-y-0"
-                                        x-transition:leave-end="opacity-0 -translate-y-1"
-                                        class="px-3 py-2.5"
-                                    >
-                                        <div id="payment-element" class="min-h-10 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/10"></div>
-                                    </div>
-                                </div>
+                                <div id="payment-element" class="min-h-10 rounded-lg border border-slate-200 px-3 py-2.5 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/10"></div>
                                 <div x-show="cardError" x-cloak class="mt-1 text-sm text-red-600" x-text="cardError"></div>
                             </div>
 
