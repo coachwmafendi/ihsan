@@ -775,6 +775,9 @@
                 });
                 paymentElement = elements.create('payment', {
                     layout: 'tabs',
+                    wallets: {
+                        link: 'never',
+                    },
                     defaultValues: {
                         billingDetails: {
                             name: this.donorName || undefined,
