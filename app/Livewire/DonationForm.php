@@ -253,7 +253,11 @@ class DonationForm extends Component
             }
 
             SendDonationReceipt::dispatch($donation);
-            SendNewDonationNotification::dispatch($donation);
+
+            if ($donation->type !== DonationType::Recurring) {
+                SendNewDonationNotification::dispatch($donation);
+            }
+
             SendLargeDonationNotification::dispatch($donation);
             SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
         } catch (\Exception $e) {

@@ -129,7 +129,11 @@ class ProcessStripeWebhook implements ShouldQueue
 
         if ($wasPending) {
             SendDonationReceipt::dispatch($donation);
-            SendNewDonationNotification::dispatch($donation);
+
+            if ($donation->type !== DonationType::Recurring) {
+                SendNewDonationNotification::dispatch($donation);
+            }
+
             SendLargeDonationNotification::dispatch($donation);
         }
 
