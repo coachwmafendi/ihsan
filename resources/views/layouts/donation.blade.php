@@ -170,8 +170,8 @@
                                 if (this.processing) return;
                                 this.processing = true;
                                 this.cardError = '';
-                                const { paymentMethod, error: paymentMethodError } = await stripe.createPaymentMethod({ elements: elements });
-                                if (paymentMethodError) { this.processing = false; this.currentStep = 'error'; this.cardError = paymentMethodError.message; return; }
+                                const { error: submitError } = await elements.submit();
+                                if (submitError) { this.processing = false; this.currentStep = 'error'; this.cardError = submitError.message; return; }
                                 $wire.$set('frequency', this.frequency, false);
                                 $wire.$set('amount', this.amount, false);
                                 $wire.$set('coverFee', this.coverFee, false);
@@ -181,13 +181,18 @@
                                 let clientSecret;
                                 try { clientSecret = await $wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
                                 if (!clientSecret) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
-                                const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(clientSecret, { receipt_email: this.donorEmail, payment_method: paymentMethod.id });
+                                const { error: confirmError } = await stripe.confirmPayment({
+                                    elements,
+                                    clientSecret,
+                                    confirmParams: {
+                                        receipt_email: this.donorEmail,
+                                        return_url: window.location.href,
+                                    },
+                                    redirect: 'if_required',
+                                });
                                 if (confirmError) { this.processing = false; this.currentStep = 'error'; this.cardError = confirmError.message; return; }
-                                if (paymentIntent.status === 'succeeded') {
-                                    try { await $wire.confirmPayment(paymentIntent.id); } catch (e) { console.error('Donation finalization failed after Stripe success', e); }
-                                    this.processing = false; this.currentStep = 'success'; return;
-                                }
-                                this.processing = false; this.currentStep = 'error'; this.cardError = 'Payment could not be completed. Please try again.';
+                                this.processing = false;
+                                this.currentStep = 'success';
                             },
                         };
                     });

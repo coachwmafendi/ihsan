@@ -262,28 +262,28 @@
                             @endforeach
                         @endif
 
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input
-                                type="radio"
-                                name="payment_method"
-                                value="new_card"
-                                wire:model.live="formData.payment_method"
-                                class="h-4 w-4 text-primary-600"
-                            />
-                            <span class="text-sm text-gray-700 dark:text-gray-300">New payment method</span>
-                        </label>
+                         <label class="flex items-center gap-3 cursor-pointer">
+                             <input
+                                 type="radio"
+                                 name="payment_method"
+                                 value="new_card"
+                                 wire:model.live="formData.payment_method"
+                                 class="h-4 w-4 text-primary-600"
+                             />
+                             <span class="text-sm text-gray-700 dark:text-gray-300">New credit card</span>
+                         </label>
 
                         <div
                             x-show="$wire.formData.payment_method === 'new_card'"
                             x-cloak
                             x-transition
-                            x-init="$watch('$wire.formData.payment_method', v => { if(v === 'new_card') mountPaymentElement() }); if ($wire.formData.payment_method === 'new_card') { $nextTick(() => mountPaymentElement()) }"
+                            x-init="$watch('$wire.formData.payment_method', v => { if(v === 'new_card') mountCard() }); if ($wire.formData.payment_method === 'new_card') { $nextTick(() => mountCard()) }"
                             class="mt-4 space-y-4"
                             wire:ignore
                         >
                             <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Payment details</label>
-                                <div id="payment-element" class="p-3 border border-gray-300 rounded-lg min-h-[44px] dark:border-gray-600"></div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Card details</label>
+                                <div id="card-element" class="p-3 border border-gray-300 rounded-lg min-h-[44px] dark:border-gray-600"></div>
                                 <div class="text-danger-600 text-sm mt-2" role="alert" x-text="errorMessage"></div>
                             </div>
                         </div>
@@ -344,52 +344,41 @@
         function vtPayment() {
             return {
                 stripe: null,
-                elements: null,
+                cardElement: null,
                 processing: false,
                 errorMessage: '',
-                paymentMounted: false,
+                cardMounted: false,
 
                 initStripe(publishableKey) {
                     if (!publishableKey) return;
                     this.stripe = Stripe(publishableKey);
+                    this.cardElement = this.stripe.elements().create('card', {
+                        style: {
+                            base: {
+                                fontSize: '14px',
+                                color: '#1f2937',
+                                '::placeholder': { color: '#9ca3af' }
+                            }
+                        }
+                    });
+                    this.cardElement.on('change', (event) => {
+                        this.errorMessage = event.error ? event.error.message : '';
+                    });
                 },
 
-                async mountPaymentElement() {
-                    if (this.paymentMounted || !this.stripe) return;
+                async mountCard() {
+                    if (this.cardMounted) return;
                     await new Promise(r => setTimeout(r, 100));
-                    const container = document.getElementById('payment-element');
+                    const container = document.getElementById('card-element');
                     if (!container) {
-                        this.errorMessage = 'Could not load payment form. Please try again.';
+                        this.errorMessage = 'Could not load card form. Please try again.';
                         return;
                     }
                     try {
-                        if (this.elements) {
-                            this.elements.getElement('payment')?.unmount();
-                        }
+                        this.cardElement.unmount();
                     } catch (e) {}
-                    this.elements = this.stripe.elements({
-                        appearance: {
-                            theme: 'stripe',
-                            variables: {
-                                colorPrimary: '#2563eb',
-                                fontSizeBase: '14px',
-                            },
-                        },
-                    });
-                    const paymentElement = this.elements.create('payment', {
-                        layout: 'tabs',
-                        defaultValues: {
-                            billingDetails: {
-                                name: ($wire.formData.first_name + ' ' + $wire.formData.last_name).trim() || undefined,
-                                email: $wire.formData.email || undefined,
-                            },
-                        },
-                    });
-                    paymentElement.mount('#payment-element');
-                    paymentElement.on('change', (event) => {
-                        this.errorMessage = event.error ? event.error.message : '';
-                    });
-                    this.paymentMounted = true;
+                    this.cardElement.mount('#card-element');
+                    this.cardMounted = true;
                 },
 
                 async submitPayment() {
@@ -398,13 +387,9 @@
                     this.errorMessage = '';
                     try {
                         if (paymentMethod === 'new_card') {
-                            if (!this.elements) {
-                                this.errorMessage = 'Payment form not ready. Please try again.';
-                                this.processing = false;
-                                return;
-                            }
                             const { paymentMethod: stripePM, error } = await this.stripe.createPaymentMethod({
-                                elements: this.elements,
+                                type: 'card',
+                                card: this.cardElement,
                             });
                             if (error) {
                                 this.errorMessage = error.message;
