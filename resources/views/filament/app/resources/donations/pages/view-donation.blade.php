@@ -91,19 +91,31 @@
         {{-- Payment & Fee --}}
         <section id="payment-fee" class="scroll-mt-24">
             @php
-                $gross = (float) $this->record->gross_amount;
-                $stripeFee = (float) ($this->record->stripe_fee ?? 0);
-                $platformFee = (float) ($this->record->processing_fee ?? 0);
-                $totalFees = $stripeFee + $platformFee;
-                $feeCovered = (float) ($this->record->donor_fee_covered ?? 0);
-                $beforeFeesCovered = $gross - $feeCovered;
-                $payout = (float) $this->record->net_amount;
-                $effectiveFeeRate = $gross > 0 ? ($totalFees / $gross * 100) : 0;
                 $curr = strtoupper($this->record->currency);
                 $isForeign = $this->record->currency !== 'myr' && $this->record->base_amount;
+                $exchangeRate = $isForeign ? (float) ($this->record->exchange_rate ?? 1) : 1;
+
+                $gross = (float) $this->record->gross_amount;
+                $feeCovered = (float) ($this->record->donor_fee_covered ?? 0);
+                $beforeFeesCovered = $gross - $feeCovered;
+
+                // Fees are stored in MYR — convert to donation currency for foreign donations
+                $feesSettled = $this->record->stripe_fee !== null;
+                $stripeFee = ($feesSettled && $exchangeRate > 0) ? (float) $this->record->stripe_fee / $exchangeRate : 0;
+                $processingFee = $exchangeRate > 0 ? (float) ($this->record->processing_fee ?? 0) / $exchangeRate : 0;
+                $totalFees = $stripeFee + $processingFee;
+
+                // net_amount stored in MYR — convert for foreign donations
+                $payout = $exchangeRate > 0 ? (float) $this->record->net_amount / $exchangeRate : (float) $this->record->net_amount;
+
+                $effectiveFeeRate = $gross > 0 ? ($totalFees / $gross * 100) : 0;
             @endphp
             <x-filament::section icon="heroicon-o-banknotes">
                 <x-slot name="heading">Payment & Fees</x-slot>
+                {{-- Poll every 3s until Stripe fee webhook settles --}}
+                @if (!$feesSettled)
+                    <div wire:poll.3s="refreshFeeData" class="hidden"></div>
+                @endif
                 <div class="space-y-1.5">
                     <x-ui.detail-row label="Payment Amount" label-width="180px">
                         {{ $curr }} {{ number_format($gross, 2) }}
@@ -112,10 +124,28 @@
                         @endif
                     </x-ui.detail-row>
                     <x-ui.detail-row label="Before Fees Covered" label-width="180px" :value="$curr.' '.number_format($beforeFeesCovered, 2)" />
-                    <x-ui.detail-row label="Stripe Fee" label-width="180px" :value="$curr.' '.number_format($stripeFee, 2)" />
+                    <x-ui.detail-row label="Stripe Fee" label-width="180px">
+                        @if ($feesSettled)
+                            {{ $curr }} {{ number_format($stripeFee, 2) }}
+                        @else
+                            <span class="inline-flex items-center gap-1.5 text-gray-400 dark:text-gray-500 text-sm">
+                                <svg class="animate-spin size-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                Syncing…
+                            </span>
+                        @endif
+                    </x-ui.detail-row>
                     <x-ui.detail-row label="Platform Fee" label-width="180px" :value="$curr.' 0.00'" />
-                    <x-ui.detail-row label="Processing Fee" label-width="180px" :value="$curr.' '.number_format($platformFee, 2)" />
-                    <x-ui.detail-row label="Payment Processing Fee" label-width="180px" :value="$curr.' '.number_format($totalFees, 2)" />
+                    <x-ui.detail-row label="Processing Fee" label-width="180px" :value="$curr.' '.number_format($processingFee, 2)" />
+                    <x-ui.detail-row label="Total Fees" label-width="180px">
+                        @if ($feesSettled)
+                            {{ $curr }} {{ number_format($totalFees, 2) }}
+                        @else
+                            <span class="h-4 w-16 rounded bg-gray-100 dark:bg-gray-800 animate-pulse inline-block"></span>
+                        @endif
+                    </x-ui.detail-row>
                     <x-ui.detail-row label="Payout Amount" label-width="180px">
                         <span class="font-semibold">{{ $curr }} {{ number_format($payout, 2) }}</span>
                     </x-ui.detail-row>

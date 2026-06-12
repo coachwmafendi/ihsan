@@ -6,9 +6,8 @@ use App\Filament\App\Resources\Donors\DonorResource;
 use App\Filament\Exports\DonorExporter;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Support\Currency;
 use Carbon\Carbon;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Actions\ViewAction;
@@ -31,8 +30,16 @@ class DonorsTable
                 ->withAggregate('donations', 'created_at', 'max')
                 ->selectSub(
                     Donation::whereColumn('donor_id', 'donors.id')
-                        ->selectRaw('COALESCE(SUM(COALESCE(base_amount, gross_amount)), 0)'),
+                        ->selectRaw('COALESCE(SUM(gross_amount), 0)'),
                     'lifetime_total_myr'
+                )
+                ->selectSub(
+                    Donation::whereColumn('donor_id', 'donors.id')
+                        ->selectRaw('currency')
+                        ->groupBy('currency')
+                        ->orderByRaw('COUNT(*) DESC')
+                        ->limit(1),
+                    'primary_currency'
                 ))
             ->recordUrl(fn (Donor $record): string => DonorResource::getUrl('view', ['record' => DonorResource::getRecordUrlKey($record)]))
             ->columns([
@@ -46,10 +53,14 @@ class DonorsTable
                     ->toggleable(),
                 TextColumn::make('lifetime_total_myr')
                     ->label('Lifetime Donated')
-                    ->formatStateUsing(fn ($state): string => 'MYR '.number_format((float) $state, 2))
+                    ->formatStateUsing(function ($state, $record): string {
+                        $currency = $record->primary_currency ?? 'myr';
+
+                        return Currency::symbol($currency).' '.number_format((float) $state, 2);
+                    })
                     ->tooltip(function ($record): ?string {
                         $breakdown = $record->donations()
-                            ->selectRaw('currency, SUM(COALESCE(base_amount, gross_amount)) as total_myr, SUM(gross_amount) as total_original')
+                            ->selectRaw('currency, SUM(gross_amount) as total_original')
                             ->groupBy('currency')
                             ->get();
 
@@ -181,10 +192,6 @@ class DonorsTable
                 ViewAction::make()
                     ->url(fn (Donor $record): string => DonorResource::getUrl('view', ['record' => DonorResource::getRecordUrlKey($record)])),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+            ;
     }
 }

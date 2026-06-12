@@ -125,6 +125,7 @@
   }
 
   function showCheckoutModal(el, overrideUrl) {
+    if (document.querySelector('[data-ihsan-overlay]')) return;
     var isMobileView = window.innerWidth <= 768;
     var overlay = document.createElement("div");
     overlay.setAttribute("role", "dialog");
@@ -244,6 +245,7 @@
 
     window.addEventListener("message", modalMessageHandler);
 
+    overlay.setAttribute("data-ihsan-overlay", "true");
     modalWrap.appendChild(skeleton);
     modalWrap.appendChild(iframe);
     modalWrap.appendChild(closeBtn);
@@ -709,9 +711,19 @@
       script.parentNode.replaceChild(wrapper, script);
     }
 
+    window.addEventListener("message", function (e) {
+      if (!e.data || e.source !== iframe.contentWindow) return;
+      if (e.data.type === "ihsan:resize") {
+        iframe.style.height = e.data.height + "px";
+        return;
+      }
+    });
+
     // Listen for embed step-continue: open full modal at step 2 with donor's selections
     window.addEventListener("message", function (e) {
       if (!e.data || e.data.type !== "ihsan:step-continue") return;
+      if (e.source !== iframe.contentWindow) return;
+      if (e.data.token && e.data.token !== el.token) return;
       var d = e.data;
       var qs = [
         "popup=1",

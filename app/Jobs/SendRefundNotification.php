@@ -49,10 +49,14 @@ class SendRefundNotification implements ShouldQueue
 
         $amountDisplay = $this->formatAmount($donation);
 
-        foreach ($admins as $admin) {
-            MailtrapThrottle::throttle();
+        $delay = MailtrapThrottle::delaySeconds();
+
+        foreach ($admins as $index => $admin) {
             Mail::to($admin->email)
-                ->queue(new RefundNotification($donation, $amountDisplay));
+                ->later(
+                    now()->addSeconds($index * $delay),
+                    new RefundNotification($donation, $amountDisplay)
+                );
         }
     }
 

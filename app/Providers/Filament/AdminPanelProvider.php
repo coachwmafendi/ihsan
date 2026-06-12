@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Admin\Pages\SendNotificationToOrgs;
 use App\Filament\Pages\Auth\AdminLogin;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\FraudPrevention;
@@ -67,6 +68,7 @@ class AdminPanelProvider extends PanelProvider
                 MonthlyInvoices::class,
                 Revenue::class,
                 FraudPrevention::class,
+                SendNotificationToOrgs::class,
             ])
             ->widgets([
                 AccountWidget::class,

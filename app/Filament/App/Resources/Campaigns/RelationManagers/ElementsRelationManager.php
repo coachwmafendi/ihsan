@@ -4,12 +4,9 @@ namespace App\Filament\App\Resources\Campaigns\RelationManagers;
 
 use App\Enums\ElementType;
 use App\Filament\App\Resources\Elements\Schemas\ElementForm;
-use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DissociateAction;
-use Filament\Actions\DissociateBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -89,11 +86,6 @@ class ElementsRelationManager extends RelationManager
                 DissociateAction::make(),
                 DeleteAction::make(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DissociateBulkAction::make(),
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+            ;
     }
 }

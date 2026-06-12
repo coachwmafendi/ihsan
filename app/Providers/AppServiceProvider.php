@@ -75,6 +75,12 @@ class AppServiceProvider extends ServiceProvider
                 'mail.mailers.smtp.password' => Setting::get('mail_password'),
                 'mail.mailers.smtp.encryption' => Setting::get('mail_encryption'),
                 'mail.mailers.sendmail.path' => Setting::get('sendmail_path', '/usr/sbin/sendmail -bs'),
+                'services.ses.key' => Setting::get('ses_key'),
+                'services.ses.secret' => Setting::get('ses_secret'),
+                'services.ses.region' => Setting::get('ses_region', 'us-east-1'),
+                'services.mailgun.domain' => Setting::get('mailgun_domain'),
+                'services.mailgun.secret' => Setting::get('mailgun_secret'),
+                'services.postmark.token' => Setting::get('postmark_token'),
             ]);
         } catch (\Throwable $e) {
             // Settings table might not exist yet (first deploy)

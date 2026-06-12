@@ -8,6 +8,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
 
 class EmailSettings extends Page
@@ -35,7 +36,14 @@ class EmailSettings extends Page
             'mail_encryption' => Setting::get('mail_encryption', env('MAIL_ENCRYPTION')),
             'mail_from_address' => Setting::get('mail_from_address', config('mail.from.address')),
             'mail_from_name' => Setting::get('mail_from_name', config('mail.from.name', config('app.name'))),
+            'mail_throttle_seconds' => Setting::get('mail_throttle_seconds', config('mail.throttle_seconds', 0)),
             'sendmail_path' => Setting::get('sendmail_path', config('mail.mailers.sendmail.path')),
+            'ses_key' => Setting::get('ses_key', config('services.ses.key')),
+            'ses_secret' => Setting::get('ses_secret', config('services.ses.secret')),
+            'ses_region' => Setting::get('ses_region', config('services.ses.region', 'us-east-1')),
+            'mailgun_domain' => Setting::get('mailgun_domain', config('services.mailgun.domain')),
+            'mailgun_secret' => Setting::get('mailgun_secret', config('services.mailgun.secret')),
+            'postmark_token' => Setting::get('postmark_token', config('services.postmark.token')),
         ]);
     }
 
@@ -68,6 +76,15 @@ class EmailSettings extends Page
                 TextInput::make('mail_from_name')
                     ->label('From Name')
                     ->required(),
+                TextInput::make('mail_throttle_seconds')
+                    ->label('Throttle Seconds')
+                    ->helperText('Delay between each email (0 = no throttling)')
+                    ->numeric()
+                    ->minValue(0)
+                    ->default(0)
+                    ->required(),
+
+                // SMTP
                 Select::make('mail_encryption')
                     ->label('SMTP Encryption')
                     ->options([
@@ -89,11 +106,44 @@ class EmailSettings extends Page
                 TextInput::make('mail_password')
                     ->label('SMTP Password')
                     ->password()
+                    ->revealable()
                     ->visible(fn ($get) => $get('mail_driver') === 'smtp'),
+
+                // Amazon SES
+                TextInput::make('ses_key')
+                    ->label('AWS Access Key ID')
+                    ->visible(fn ($get) => $get('mail_driver') === 'ses'),
+                TextInput::make('ses_secret')
+                    ->label('AWS Secret Access Key')
+                    ->password()
+                    ->revealable()
+                    ->visible(fn ($get) => $get('mail_driver') === 'ses'),
+                TextInput::make('ses_region')
+                    ->label('AWS Region')
+                    ->default('us-east-1')
+                    ->visible(fn ($get) => $get('mail_driver') === 'ses'),
+
+                // Mailgun
+                TextInput::make('mailgun_domain')
+                    ->label('Mailgun Domain')
+                    ->visible(fn ($get) => $get('mail_driver') === 'mailgun'),
+                TextInput::make('mailgun_secret')
+                    ->label('Mailgun Secret')
+                    ->password()
+                    ->revealable()
+                    ->visible(fn ($get) => $get('mail_driver') === 'mailgun'),
+
+                // Postmark
+                TextInput::make('postmark_token')
+                    ->label('Postmark Token')
+                    ->password()
+                    ->revealable()
+                    ->visible(fn ($get) => $get('mail_driver') === 'postmark'),
+
+                // Sendmail
                 TextInput::make('sendmail_path')
                     ->label('Sendmail Path')
                     ->default('/usr/sbin/sendmail -bs')
-                    ->columnSpan(2)
                     ->visible(fn ($get) => $get('mail_driver') === 'sendmail'),
             ]);
     }
@@ -105,7 +155,9 @@ class EmailSettings extends Page
         Setting::set('mail_driver', $data['mail_driver']);
         Setting::set('mail_from_address', $data['mail_from_address']);
         Setting::set('mail_from_name', $data['mail_from_name']);
+        Setting::set('mail_throttle_seconds', $data['mail_throttle_seconds'] ?? 0);
 
+        // SMTP
         if ($data['mail_driver'] === 'smtp') {
             Setting::set('mail_host', $data['mail_host']);
             Setting::set('mail_port', $data['mail_port']);
@@ -118,6 +170,35 @@ class EmailSettings extends Page
             }
         }
 
+        // Amazon SES
+        if ($data['mail_driver'] === 'ses') {
+            Setting::set('ses_key', $data['ses_key']);
+            Setting::set('ses_secret', $data['ses_secret']);
+            Setting::set('ses_region', $data['ses_region']);
+        } else {
+            foreach (['ses_key', 'ses_secret', 'ses_region'] as $key) {
+                Setting::set($key, null);
+            }
+        }
+
+        // Mailgun
+        if ($data['mail_driver'] === 'mailgun') {
+            Setting::set('mailgun_domain', $data['mailgun_domain']);
+            Setting::set('mailgun_secret', $data['mailgun_secret']);
+        } else {
+            foreach (['mailgun_domain', 'mailgun_secret'] as $key) {
+                Setting::set($key, null);
+            }
+        }
+
+        // Postmark
+        if ($data['mail_driver'] === 'postmark') {
+            Setting::set('postmark_token', $data['postmark_token']);
+        } else {
+            Setting::set('postmark_token', null);
+        }
+
+        // Sendmail
         if ($data['mail_driver'] === 'sendmail') {
             Setting::set('sendmail_path', $data['sendmail_path']);
         } else {
@@ -126,8 +207,10 @@ class EmailSettings extends Page
 
         $this->applyMailConfig($data);
 
+        Artisan::call('queue:restart');
+
         Notification::make()
-            ->title('Email settings saved.')
+            ->title('Email settings saved — queue workers restarted.')
             ->success()
             ->send();
     }
@@ -176,19 +259,33 @@ class EmailSettings extends Page
             'mail_encryption' => Setting::get('mail_encryption'),
             'mail_from_address' => Setting::get('mail_from_address'),
             'mail_from_name' => Setting::get('mail_from_name'),
+            'mail_throttle_seconds' => Setting::get('mail_throttle_seconds', 0),
             'sendmail_path' => Setting::get('sendmail_path'),
+            'ses_key' => Setting::get('ses_key'),
+            'ses_secret' => Setting::get('ses_secret'),
+            'ses_region' => Setting::get('ses_region'),
+            'mailgun_domain' => Setting::get('mailgun_domain'),
+            'mailgun_secret' => Setting::get('mailgun_secret'),
+            'postmark_token' => Setting::get('postmark_token'),
         ];
 
         config([
             'mail.default' => $data['mail_driver'] ?? 'log',
             'mail.from.address' => $data['mail_from_address'] ?? null,
             'mail.from.name' => $data['mail_from_name'] ?? null,
+            'mail.throttle_seconds' => (int) ($data['mail_throttle_seconds'] ?? 0),
             'mail.mailers.smtp.host' => $data['mail_host'] ?? null,
             'mail.mailers.smtp.port' => $data['mail_port'] ?? null,
             'mail.mailers.smtp.username' => $data['mail_username'] ?? null,
             'mail.mailers.smtp.password' => $data['mail_password'] ?? null,
             'mail.mailers.smtp.encryption' => $data['mail_encryption'] ?? null,
             'mail.mailers.sendmail.path' => $data['sendmail_path'] ?? null,
+            'services.ses.key' => $data['ses_key'] ?? null,
+            'services.ses.secret' => $data['ses_secret'] ?? null,
+            'services.ses.region' => $data['ses_region'] ?? null,
+            'services.mailgun.domain' => $data['mailgun_domain'] ?? null,
+            'services.mailgun.secret' => $data['mailgun_secret'] ?? null,
+            'services.postmark.token' => $data['postmark_token'] ?? null,
         ]);
     }
 }

@@ -43,8 +43,10 @@ class ViewDonation extends ViewRecord
         $parts = ["ID {$publicId} {$copyBtn}"];
 
         if ($this->record->currency !== 'myr' && $this->record->base_amount) {
+            $currency = strtoupper($this->record->currency);
+            $amount = number_format((float) $this->record->gross_amount, 2);
             $myr = number_format((float) $this->record->base_amount, 2);
-            $parts[] = "≈ MYR {$myr}";
+            $parts[] = "{$currency} {$amount} ≈ MYR {$myr}";
         }
 
         return new HtmlString(implode(' · ', $parts));
@@ -193,6 +195,11 @@ class ViewDonation extends ViewRecord
 
                 Notification::make()->title('Supporter updated.')->success()->send();
             });
+    }
+
+    public function refreshFeeData(): void
+    {
+        $this->record->refresh();
     }
 
     public function refundDonation(): void

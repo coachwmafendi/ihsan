@@ -36,7 +36,7 @@ class ViewDonor extends ViewRecord
     public function getSubheading(): string|Htmlable|null
     {
         $publicId = e($this->record->public_id ?? $this->record->getKey());
-        $lifetime = $this->getLifetimeDonatedMyr();
+        $lifetime = $this->getLifetimeDonated();
         $last = $this->getLastDonationDate();
         $lastStr = $last ? $last->format('j M Y') : '—';
 
@@ -449,15 +449,22 @@ class ViewDonor extends ViewRecord
         return route('donorportal.login', $organization);
     }
 
-    public function getLifetimeDonatedMyr(): string
+    public function getLifetimeDonated(): string
     {
-        $total = $this->record->donations()
+        $rows = $this->record->donations()
             ->whereHas('campaign', fn (Builder $query) => $this->scopeToCurrentOrganization($query))
             ->where('status', DonationStatus::Succeeded)
-            ->get()
-            ->sum(fn (Donation $d) => (float) ($d->base_amount ?? $d->gross_amount));
+            ->selectRaw('currency, SUM(gross_amount) as total')
+            ->groupBy('currency')
+            ->get();
 
-        return 'MYR '.number_format($total, 2);
+        if ($rows->isEmpty()) {
+            return '—';
+        }
+
+        return $rows
+            ->map(fn ($d) => strtoupper($d->currency).' '.number_format((float) $d->total, 2))
+            ->implode(' + ');
     }
 
     public function getLastDonationDate(): ?CarbonInterface

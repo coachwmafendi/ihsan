@@ -561,18 +561,18 @@
                         </div>
 
                         {{-- Success --}}
-                        <div x-show="currentStep === 'success'" x-cloak class="py-8 text-center">
-                            <div class="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-emerald-50">
-                                <svg class="size-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                        <div x-show="currentStep === 'success'" x-cloak class="py-10 text-center">
+                            <div class="mx-auto mb-5 flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-emerald-100 ring-8 ring-emerald-50">
+                                <svg class="size-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                             </div>
-                            <h2 class="text-base font-semibold text-slate-900">Thank you, <span x-text="donorName"></span>!</h2>
+                            <h2 class="text-lg font-semibold text-slate-900">Thank you, <span x-text="donorName"></span>!</h2>
                             <p class="mt-1 text-sm text-slate-500">Receipt sent to <span x-text="donorEmail"></span>.</p>
                             <p class="mt-1 text-sm text-slate-500">{{ $this->config('success_message', 'Thank you for your donation!') }}</p>
                             @if ($isPopup)
                                 <button
                                     type="button"
                                     x-on:click="$dispatch('close-popup'); window.parent.postMessage({type:'ihsan:close-modal'}, '*')"
-                                    class="mt-4 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                                    class="mt-6 w-full rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                                 >
                                     Close
                                 </button>
@@ -776,8 +776,10 @@
 
                 // Embed step 1: hand off to parent modal instead of advancing in iframe
                 if (this.isEmbed && this.currentStep === 1) {
+                    var embedToken = window.location.pathname.split('/').filter(Boolean).pop();
                     window.parent.postMessage({
                         type: 'ihsan:step-continue',
+                        token: embedToken,
                         amount: this.amount,
                         frequency: this.frequency,
                         currency: this.currency,

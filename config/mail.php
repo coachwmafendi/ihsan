@@ -16,6 +16,8 @@ return [
 
     'default' => env('MAIL_MAILER', 'log'),
 
+    'throttle_seconds' => (int) env('MAIL_THROTTLE_SECONDS', 0),
+
     /*
     |--------------------------------------------------------------------------
     | Mailer Configurations

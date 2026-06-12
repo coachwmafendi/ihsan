@@ -124,6 +124,21 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return Storage::url($this->avatar_url);
     }
 
+    public function getUnreadNotificationsCountAttribute(): int
+    {
+        return $this->notifications()->whereNull('read_at')->count();
+    }
+
+    public function markAsRead(string $notificationId): void
+    {
+        $this->notifications()->find($notificationId)?->markAsRead();
+    }
+
+    public function markAllAsRead(): void
+    {
+        $this->unreadNotifications->markAsRead();
+    }
+
     public function avatarUrl(): ?string
     {
         if ($this->avatar_url === null) {

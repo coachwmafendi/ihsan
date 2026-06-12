@@ -7,6 +7,7 @@ use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\SubscriptionStatus;
+use App\Mail\DonorDunningNotification;
 use App\Mail\PlatformInvoicePaid;
 use App\Models\Donation;
 use App\Models\Fraud\BlockedDonation;
@@ -322,10 +323,22 @@ class ProcessStripeWebhook implements ShouldQueue
             return;
         }
 
+        $retryCount = $invoice->attempt_count ?? ($subscription->retry_count + 1);
+
         $subscription->update([
             'status' => SubscriptionStatus::PastDue,
-            'retry_count' => $invoice->attempt_count ?? ($subscription->retry_count + 1),
+            'retry_count' => $retryCount,
         ]);
+
+        $subscription->loadMissing(['donor', 'campaign.organization']);
+
+        $is27th = now()->day === 27;
+        $isFinalAttempt = $is27th && $retryCount >= 4;
+
+        if ($retryCount === 1 || $retryCount === 2 || $retryCount === 3 || $isFinalAttempt) {
+            Mail::to($subscription->donor->email)
+                ->queue(new DonorDunningNotification($subscription, $retryCount, $isFinalAttempt));
+        }
 
         if ($invoice->next_payment_attempt === null) {
             SendFailedPaymentNotification::dispatch($subscription);

@@ -245,22 +245,6 @@ class CampaignForm
                                             ->required()
                                             ->options(CampaignStatus::class),
                                     ]),
-                                Section::make('Story & Media')
-                                    ->description('Campaign page content and hero image.')
-                                    ->schema([
-                                        FileUpload::make('image_path')
-                                            ->label('Hero image')
-                                            ->image()
-                                            ->directory('campaigns')
-                                            ->helperText('Recommended size: 1920 × 1060 px')
-                                            ->columnSpanFull(),
-                                        RichEditor::make('description')
-                                            ->label('Description')
-                                            ->columnSpanFull()
-                                            ->extraInputAttributes(['style' => 'min-height: 300px;'])
-                                            ->live(debounce: 1500)
-                                            ->hint(fn ($state): HtmlString => new HtmlString(static::wordCountHint($state))),
-                                    ]),
                                 Section::make('Goal & Duration')
                                     ->description('Set campaign target and duration.')
                                     ->columns(2)
@@ -286,6 +270,22 @@ class CampaignForm
                                             ->displayFormat('d/m/Y')
                                             ->disabled(fn ($get) => ! $get('has_end_date'))
                                             ->columnSpan(1),
+                                    ]),
+                                Section::make('Story & Media')
+                                    ->description('Campaign page content and hero image.')
+                                    ->schema([
+                                        FileUpload::make('image_path')
+                                            ->label('Hero image')
+                                            ->image()
+                                            ->directory('campaigns')
+                                            ->helperText('Recommended size: 1920 × 1060 px')
+                                            ->columnSpanFull(),
+                                        RichEditor::make('description')
+                                            ->label('Description')
+                                            ->columnSpanFull()
+                                            ->extraInputAttributes(['style' => 'min-height: 300px;'])
+                                            ->live(debounce: 1500)
+                                            ->hint(fn ($state): HtmlString => new HtmlString(static::wordCountHint($state))),
                                     ]),
                             ]),
                         Tab::make('Checkout Modal Settings')
@@ -417,13 +417,16 @@ class CampaignForm
 
         $collected = (float) $record->donations()->where('status', DonationStatus::Succeeded)->sum('base_amount');
         $target = (float) $record->target_amount;
-        $percentage = min(round(($collected / $target) * 100, 1), 100);
+        $rawPercentage = round(($collected / $target) * 100, 1);
+        $percentage = min($rawPercentage, 100);
+        // Show a minimum visible bar when there are donations but progress is tiny
+        $displayPercentage = $collected > 0 && $percentage < 2 ? 2 : $percentage;
         $remaining = max($target - $collected, 0);
-        $statusText = $percentage >= 100 ? 'Goal reached!' : 'Remaining: RM '.number_format($remaining, 2);
+        $statusText = $rawPercentage >= 100 ? 'Goal reached!' : 'Remaining: RM '.number_format($remaining, 2);
 
         return Blade::render(
             '<x-ui.progress-bar'
-            .' percentage="'.(int) $percentage.'"'
+            .' percentage="'.(int) $displayPercentage.'"'
             .' label="RM '.number_format($collected, 2).'"'
             .' sublabel="of RM '.number_format($target, 2).' · '.$statusText.'"'
             .' size="lg"'
