@@ -367,7 +367,16 @@
                             this.elements.getElement('payment')?.unmount();
                         }
                     } catch (e) {}
+
+                    const amount = Math.round(parseFloat($wire.formData.amount || 0) * 100);
+                    const currency = ($wire.formData.currency || 'myr').toLowerCase();
+                    const isRecurring = $wire.formData.frequency === 'monthly';
+
                     this.elements = this.stripe.elements({
+                        mode: isRecurring ? 'subscription' : 'payment',
+                        amount: amount,
+                        currency: currency,
+                        setupFutureUsage: isRecurring ? 'off_session' : undefined,
                         appearance: {
                             theme: 'stripe',
                             variables: {
