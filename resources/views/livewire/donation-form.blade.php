@@ -776,8 +776,10 @@
 
                 // Embed step 1: hand off to parent modal instead of advancing in iframe
                 if (this.isEmbed && this.currentStep === 1) {
+                    var embedToken = window.location.pathname.split('/').filter(Boolean).pop();
                     window.parent.postMessage({
                         type: 'ihsan:step-continue',
+                        token: embedToken,
                         amount: this.amount,
                         frequency: this.frequency,
                         currency: this.currency,

@@ -20,6 +20,20 @@
             window.addEventListener('close-popup', function () {
                 window.parent.postMessage({ type: 'donation-popup-close' }, '*');
             });
+
+            function ihsanSendHeight() {
+                var h = document.documentElement.scrollHeight;
+                window.parent.postMessage({ type: 'ihsan:resize', height: h }, '*');
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', ihsanSendHeight);
+            } else {
+                ihsanSendHeight();
+            }
+
+            var ihsanResizeObserver = new ResizeObserver(ihsanSendHeight);
+            ihsanResizeObserver.observe(document.body);
         </script>
     </body>
 </html>
