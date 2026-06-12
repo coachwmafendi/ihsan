@@ -530,8 +530,8 @@
                             </div>
 
                             <div wire:ignore>
-                                <label class="mb-0.5 block text-sm font-medium text-slate-700">Card details</label>
-                                <div id="card-element" class="min-h-10 rounded-lg border border-slate-200 px-3 py-2.5 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/10"></div>
+                                <label class="mb-0.5 block text-sm font-medium text-slate-700">Payment details</label>
+                                <div id="payment-element" class="min-h-10 rounded-lg border border-slate-200 px-3 py-2.5 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/10"></div>
                                 <div x-show="cardError" x-cloak class="mt-1 text-sm text-red-600" x-text="cardError"></div>
                             </div>
 
@@ -620,7 +620,8 @@
 <script>
     Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM') => {
         let stripe = null;
-        let cardElement = null;
+        let elements = null;
+        let paymentElement = null;
 
         return {
             amount: String(initialAmount ?? ''),
@@ -753,18 +754,36 @@
                 return valid;
             },
 
-            mountCardElement() {
-                const container = document.getElementById('card-element');
+            mountPaymentElement() {
+                const container = document.getElementById('payment-element');
                 if (!container || container.hasChildNodes()) return;
-                const elements = stripe.elements({ locale: 'ms' });
-                cardElement = elements.create('card', {
-                    hidePostalCode: true,
-                    style: {
-                        base: { fontSize: '16px', color: '#212830', '::placeholder': { color: '#94a3b8' } },
+                const amount = Math.round(parseFloat(this.amount || 0) * 100);
+                const isRecurring = this.frequency === 'monthly';
+                elements = stripe.elements({
+                    mode: isRecurring ? 'subscription' : 'payment',
+                    amount: amount,
+                    currency: this.currency,
+                    setupFutureUsage: isRecurring ? 'off_session' : undefined,
+                    locale: 'ms',
+                    appearance: {
+                        theme: 'stripe',
+                        variables: {
+                            colorPrimary: '#0d9488',
+                            fontSizeBase: '16px',
+                        },
                     },
                 });
-                cardElement.mount('#card-element');
-                cardElement.on('change', (event) => {
+                paymentElement = elements.create('payment', {
+                    layout: 'tabs',
+                    defaultValues: {
+                        billingDetails: {
+                            name: this.donorName || undefined,
+                            email: this.donorEmail || undefined,
+                        },
+                    },
+                });
+                paymentElement.mount('#payment-element');
+                paymentElement.on('change', (event) => {
                     this.cardError = event.error ? event.error.message : '';
                 });
             },
@@ -790,7 +809,7 @@
 
                 this.currentStep++;
                 if (this.currentStep === 3) {
-                    this.$nextTick(() => this.mountCardElement());
+                    this.$nextTick(() => this.mountPaymentElement());
                 }
             },
 
@@ -869,16 +888,8 @@
                 this.processing = true;
                 this.cardError = '';
 
-                this.mountCardElement();
-
                 const { paymentMethod, error: paymentMethodError } = await stripe.createPaymentMethod({
-                    type: 'card',
-                    card: cardElement,
-                    billing_details: {
-                        name: this.donorName,
-                        email: this.donorEmail,
-                        phone: this.donorPhone || undefined,
-                    },
+                    elements: elements,
                 });
 
                 if (paymentMethodError) {

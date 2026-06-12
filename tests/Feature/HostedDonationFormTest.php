@@ -311,9 +311,7 @@ it('passes current donor details to stripe billing details', function () {
         ->assertSee('$wire.$set(&#039;email&#039;, this.donorEmail, false)', false)
         ->assertSee('$wire.$set(&#039;phone&#039;, this.donorPhone, false)', false)
         ->assertSee('stripe.createPaymentMethod', false)
-        ->assertSee('name: this.donorName', false)
-        ->assertSee('email: this.donorEmail', false)
-        ->assertSee('phone: this.donorPhone || undefined', false)
+        ->assertSee('elements: elements', false)
         ->assertSee('receipt_email: this.donorEmail', false)
         ->assertSee('payment_method: paymentMethod.id', false);
 });
@@ -831,7 +829,7 @@ it('renders donor details fields for step 2', function () {
         ->assertSee('Leave a message...');
 });
 
-it('renders payment step with summary bar and card element', function () {
+it('renders payment step with summary bar and payment element', function () {
     $organization = Organization::factory()->create([
         'stripe_account_id' => 'acct_test_123',
         'stripe_onboarded' => true,
@@ -845,7 +843,7 @@ it('renders payment step with summary bar and card element', function () {
     $this->get(route('donations.show', $element))
         ->assertOk()
         ->assertSee('x-show="currentStep === 3"', false)
-        ->assertSee('id="card-element"', false)
+        ->assertSee('id="payment-element"', false)
         ->assertSee('Donate monthly')
         ->assertSee('handleSubmit', false)
         ->assertSee('stripe.createPaymentMethod', false);

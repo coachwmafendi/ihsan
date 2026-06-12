@@ -22,7 +22,8 @@
                     Alpine._donationStepRegistered = true;
                     Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialCurrencySymbol = 'RM') => {
                         let stripe = null;
-                        let cardElement = null;
+                        let elements = null;
+                        let paymentElement = null;
 
                         return {
                             amount: String(initialAmount ?? ''),
@@ -108,13 +109,36 @@
                                 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.donorEmail)) { this.stepErrors.email = 'Please enter a valid email address.'; valid = false; }
                                 return valid;
                             },
-                            mountCardElement() {
-                                const container = document.getElementById('card-element');
+                            mountPaymentElement() {
+                                const container = document.getElementById('payment-element');
                                 if (!container || container.hasChildNodes()) return;
-                                const elements = stripe.elements({ locale: 'ms' });
-                                cardElement = elements.create('card', { hidePostalCode: true, style: { base: { fontSize: '16px', color: '#212830', '::placeholder': { color: '#94a3b8' } } } });
-                                cardElement.mount('#card-element');
-                                cardElement.on('change', (e) => { this.cardError = e.error ? e.error.message : ''; });
+                                const amount = Math.round(parseFloat(this.amount || 0) * 100);
+                                const isRecurring = this.frequency === 'monthly';
+                                elements = stripe.elements({
+                                    mode: isRecurring ? 'subscription' : 'payment',
+                                    amount: amount,
+                                    currency: this.currency,
+                                    setupFutureUsage: isRecurring ? 'off_session' : undefined,
+                                    locale: 'ms',
+                                    appearance: {
+                                        theme: 'stripe',
+                                        variables: {
+                                            colorPrimary: '#0d9488',
+                                            fontSizeBase: '16px',
+                                        },
+                                    },
+                                });
+                                paymentElement = elements.create('payment', {
+                                    layout: 'tabs',
+                                    defaultValues: {
+                                        billingDetails: {
+                                            name: this.donorName || undefined,
+                                            email: this.donorEmail || undefined,
+                                        },
+                                    },
+                                });
+                                paymentElement.mount('#payment-element');
+                                paymentElement.on('change', (e) => { this.cardError = e.error ? e.error.message : ''; });
                             },
                             nextStep() {
                                 if (this.currentStep === 1 && !this.validateStep1()) return;
@@ -125,7 +149,7 @@
                                     return;
                                 }
                                 this.currentStep++;
-                                if (this.currentStep === 3) this.$nextTick(() => this.mountCardElement());
+                                if (this.currentStep === 3) this.$nextTick(() => this.mountPaymentElement());
                             },
                             prevStep() { if (this.currentStep > 1) this.currentStep--; },
                             async init() {
@@ -146,8 +170,7 @@
                                 if (this.processing) return;
                                 this.processing = true;
                                 this.cardError = '';
-                                this.mountCardElement();
-                                const { paymentMethod, error: paymentMethodError } = await stripe.createPaymentMethod({ type: 'card', card: cardElement, billing_details: { name: this.donorName, email: this.donorEmail, phone: this.donorPhone || undefined } });
+                                const { paymentMethod, error: paymentMethodError } = await stripe.createPaymentMethod({ elements: elements });
                                 if (paymentMethodError) { this.processing = false; this.currentStep = 'error'; this.cardError = paymentMethodError.message; return; }
                                 $wire.$set('frequency', this.frequency, false);
                                 $wire.$set('amount', this.amount, false);
