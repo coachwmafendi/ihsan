@@ -197,6 +197,11 @@ class ViewDonation extends ViewRecord
             });
     }
 
+    public function refreshFeeData(): void
+    {
+        $this->record->refresh();
+    }
+
     public function refundDonation(): void
     {
         if ($this->record->status !== DonationStatus::Succeeded) {
