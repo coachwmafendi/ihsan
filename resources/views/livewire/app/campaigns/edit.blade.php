@@ -95,7 +95,7 @@
                     <div>
                         <label for="image" class="block text-sm font-medium text-slate-700">Campaign Image</label>
                         <div class="mt-1 flex items-center gap-4">
-                            @if ($existing_image)
+                            @if ($existing_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing_image))
                                 <img src="{{ Storage::disk('public')->url($existing_image) }}" alt="Current campaign image" class="h-20 w-20 rounded-lg object-cover border border-slate-200" />
                             @else
                                 <div class="flex h-20 w-20 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
@@ -110,7 +110,7 @@
                                     accept="image/*"
                                     class="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100"
                                 />
-                                @if ($existing_image)
+                                @if ($existing_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing_image))
                                     <button type="button" wire:click="removeImage" class="mt-2 text-xs text-red-600 hover:text-red-800">Remove image</button>
                                 @endif
                             </div>
