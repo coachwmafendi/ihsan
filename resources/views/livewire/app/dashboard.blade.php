@@ -75,7 +75,7 @@
                                     </div>
                                 </div>
                                 <span class="text-sm font-semibold text-slate-900">
-                                    RM {{ number_format(($campaign->donations_sum_amount_cents ?? 0) / 100, 2) }}
+                                    RM {{ number_format(($campaign->donations_sum_gross_amount ?? 0), 2) }}
                                 </span>
                             </div>
                             @if(!$loop->last)
@@ -111,7 +111,7 @@
                                             {{ $donation->donor?->full_name ?? 'Anonymous' }}
                                         </p>
                                         <p class="text-xs text-slate-500">
-                                            RM {{ number_format($donation->amount_cents / 100, 2) }}
+                                            RM {{ number_format($donation->gross_amount, 2) }}
                                             <span class="text-slate-300">·</span>
                                             {{ $donation->created_at->diffForHumans() }}
                                         </p>

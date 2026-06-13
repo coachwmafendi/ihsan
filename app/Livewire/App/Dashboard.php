@@ -32,7 +32,7 @@ class Dashboard extends Component
 
         $totalDonations = Donation::where('organization_id', $org->id)
             ->where('status', 'paid')
-            ->sum('amount_cents');
+            ->sum('gross_amount');
 
         $donationCount = Donation::where('organization_id', $org->id)
             ->where('status', 'paid')
@@ -45,7 +45,7 @@ class Dashboard extends Component
         return [
             [
                 'label' => 'Total Donations',
-                'value' => 'RM '.number_format($totalDonations / 100, 2),
+                'value' => 'RM '.number_format((float) $totalDonations, 2),
                 'trend' => '+12%',
                 'trendUp' => true,
                 'sparkline' => $this->donationSparkline(),
@@ -88,7 +88,7 @@ class Dashboard extends Component
             $amount = Donation::where('organization_id', $org->id)
                 ->where('status', 'paid')
                 ->whereDate('created_at', $date)
-                ->sum('amount_cents');
+                ->sum('gross_amount');
             $data[] = (int) $amount;
         }
 
@@ -119,8 +119,8 @@ class Dashboard extends Component
         }
 
         return Campaign::where('organization_id', $org->id)
-            ->withSum(['donations' => fn ($q) => $q->where('status', 'paid')], 'amount_cents')
-            ->orderBy('donations_sum_amount_cents', 'desc')
+            ->withSum(['donations' => fn ($q) => $q->where('status', 'paid')], 'gross_amount')
+            ->orderBy('donations_sum_gross_amount', 'desc')
             ->limit(5)
             ->get();
     }

@@ -40,6 +40,8 @@ Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/app/dashboard', \App\Livewire\App\Dashboard::class)->name('app.dashboard');
+
     Route::get('/stripe/connect/redirect', [StripeConnectController::class, 'redirect'])
         ->name('stripe.connect.redirect');
 
