@@ -91,7 +91,7 @@
             @else
                 {{-- Form --}}
                 <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
-                    <h1 class="text-2xl font-bold text-slate-900 mb-1">Register Organization</h1>
+                    <h1 class="text-2xl font-bold text-slate-900 mb-1">Daftar Organisasi</h1>
                     <p class="text-sm text-slate-500 mb-8">Fill in your organization details to get started.</p>
 
                     <form wire:submit="submit" class="space-y-5">
