@@ -13,6 +13,7 @@ use App\Livewire\App\Campaigns\CampaignEdit;
 use App\Livewire\App\Campaigns\CampaignIndex;
 use App\Livewire\App\Campaigns\CampaignShow;
 use App\Livewire\App\Dashboard;
+use App\Livewire\App\Insights;
 use App\Livewire\App\Donations\DonationIndex;
 use App\Livewire\App\Donations\DonationShow;
 use App\Livewire\App\Donors\DonorIndex;
@@ -25,9 +26,11 @@ use App\Livewire\App\Settings\Profile;
 use App\Livewire\App\StripeOnboarding;
 use App\Livewire\App\Subscriptions\SubscriptionIndex;
 use App\Livewire\App\Subscriptions\SubscriptionShow;
+use App\Livewire\Auth\RegisterOrganization;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::get('/daftar', RegisterOrganization::class)->name('register.org');
 
 Route::get('/_test-widget', fn () => response('<!DOCTYPE html><html><body style="padding:40px"><h2>Widget Test</h2><script src="/e/widget.js" data-token="sgxqLo" data-api-base="'.config('app.url').'"></script></body></html>')->header('Content-Type', 'text/html'));
 
@@ -58,6 +61,7 @@ Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.web
 
 Route::middleware('auth')->group(function () {
     Route::get('/app/dashboard', Dashboard::class)->name('app.dashboard');
+    Route::get('/app/insights', Insights::class)->name('app.insights');
 
     Route::get('/app/campaigns', CampaignIndex::class)->name('app.campaigns.index');
     Route::get('/app/campaigns/create', CampaignCreate::class)->name('app.campaigns.create');
