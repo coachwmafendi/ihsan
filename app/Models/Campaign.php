@@ -52,6 +52,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property array<array-key, mixed>|null $config
  * @property bool $has_end_date
  * @property string|null $public_id
+ * @property string|null $slug
  * @property-read Collection<int, Activity> $activitiesAsSubject
  * @property-read int|null $activities_as_subject_count
  * @property-read Collection<int, Donation> $donations
@@ -102,7 +103,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['organization_id', 'public_id', 'title', 'description', 'headline', 'short_summary', 'image_path', 'target_amount', 'minimum_amount', 'allow_custom_amount', 'collected_amount', 'has_target', 'has_end_date', 'allow_recurring', 'payment_gateway', 'thank_you_message', 'redirect_url', 'end_date', 'status', 'suggested_amounts', 'suggested_amounts_one_time', 'suggested_amounts_monthly', 'impact_descriptions_enabled', 'default_monthly_amount', 'form_parameter', 'checkout_modal_enabled', 'checkout_allowed_domains', 'config'])]
+#[Fillable(['organization_id', 'public_id', 'slug', 'title', 'description', 'headline', 'short_summary', 'image_path', 'target_amount', 'minimum_amount', 'allow_custom_amount', 'collected_amount', 'has_target', 'has_end_date', 'allow_recurring', 'payment_gateway', 'thank_you_message', 'redirect_url', 'end_date', 'status', 'suggested_amounts', 'suggested_amounts_one_time', 'suggested_amounts_monthly', 'impact_descriptions_enabled', 'default_monthly_amount', 'form_parameter', 'checkout_modal_enabled', 'checkout_allowed_domains', 'config'])]
 class Campaign extends Model
 {
     /** @use HasFactory<CampaignFactory> */
@@ -127,6 +128,18 @@ class Campaign extends Model
         static::creating(function (Campaign $campaign) {
             if (! $campaign->public_id) {
                 $campaign->public_id = PublicIdGenerator::generate(static::class);
+            }
+
+            if (blank($campaign->slug) && ! blank($campaign->title)) {
+                $base = Str::slug($campaign->title);
+                $slug = $base;
+                $counter = 1;
+
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $base.'-'.$counter++;
+                }
+
+                $campaign->slug = $slug;
             }
         });
 
