@@ -16,10 +16,14 @@ use App\Livewire\App\Donations\DonationIndex;
 use App\Livewire\App\Donations\DonationShow;
 use App\Livewire\App\Donors\DonorIndex;
 use App\Livewire\App\Donors\DonorShow;
+use App\Livewire\App\Elements\ElementCreate;
+use App\Livewire\App\Elements\ElementIndex;
 use App\Livewire\App\Settings\Notifications;
 use App\Livewire\App\Settings\Payment;
 use App\Livewire\App\Settings\Profile;
 use App\Livewire\App\StripeOnboarding;
+use App\Livewire\App\Subscriptions\SubscriptionIndex;
+use App\Livewire\App\Subscriptions\SubscriptionShow;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -69,6 +73,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/app/settings/notifications', Notifications::class)->name('app.settings.notifications');
     Route::get('/app/billing', Billing::class)->name('app.billing');
     Route::get('/app/stripe-onboarding', StripeOnboarding::class)->name('app.stripe-onboarding');
+
+    Route::get('/app/subscriptions', SubscriptionIndex::class)->name('app.subscriptions.index');
+    Route::get('/app/subscriptions/{subscription:public_id}', SubscriptionShow::class)->name('app.subscriptions.show');
+
+    Route::get('/app/elements', ElementIndex::class)->name('app.elements.index');
+    Route::get('/app/elements/create', ElementCreate::class)->name('app.elements.create');
 
     Route::get('/stripe/connect/redirect', [StripeConnectController::class, 'redirect'])
         ->name('stripe.connect.redirect');
