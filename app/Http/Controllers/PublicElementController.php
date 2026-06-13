@@ -48,6 +48,18 @@ class PublicElementController extends Controller
             ], $settings);
         }
 
+        if ($element->type === ElementType::StickyButton) {
+            $settings = array_merge([
+                'button_text' => 'Donate',
+                'action' => 'checkout_modal',
+                'position' => 'right-center',
+                'color' => 'campaign',
+                'visibility' => 'desktop_mobile',
+                'icon' => 'heart',
+                'button_effect' => 'none',
+            ], $settings);
+        }
+
         if ($element->type === ElementType::Popup) {
             $settings = array_merge([
                 'title' => 'Support Our Cause Today',

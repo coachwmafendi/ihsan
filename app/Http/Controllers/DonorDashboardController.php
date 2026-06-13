@@ -45,7 +45,7 @@ class DonorDashboardController extends Controller
             ->where('is_active', true)
             ->get();
 
-        foreach ([ElementType::Form, ElementType::Button, ElementType::Popup, ElementType::FloatingButton, ElementType::QrCode, ElementType::Link] as $type) {
+        foreach ([ElementType::Form, ElementType::Button, ElementType::Popup, ElementType::FloatingButton, ElementType::StickyButton, ElementType::QrCode, ElementType::Link] as $type) {
             $element = $elements->firstWhere('type', $type);
 
             if ($element !== null) {

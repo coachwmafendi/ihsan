@@ -207,6 +207,61 @@
                 <span class="absolute bottom-2 text-xs text-zinc-400">Preview shown centered — on site it floats at configured position</span>
             </div>
 
+        @elseif($type === 'sticky_button')
+            @php
+                $sbColors = [
+                    'campaign' => '#16a34a',
+                    'blue' => '#2563eb', 'teal' => '#0d9488', 'green' => '#16a34a',
+                    'orange' => '#ea580c', 'red' => '#dc2626', 'purple' => '#9333ea', 'dark' => '#1e293b',
+                ];
+                $sbEffect = $config['button_effect'] ?? 'none';
+                $sbHasEffect = $sbEffect !== 'none' && isset($effectGradients[$sbEffect]);
+                $sbEffectId = 'sb-' . md5($sbEffect);
+                $sbColor = $sbColors[$config['color'] ?? 'campaign'] ?? '#16a34a';
+                $sbPosition = $config['position'] ?? 'right-center';
+                $sbIcons = [
+                    'heart' => '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
+                    'hand' => '<path d="M23 12.22V15c0 4.97-4.03 9-9 9H9.17c-1.59 0-3.11-.63-4.24-1.76L0 17.5l1.5-1.5c.47-.47 1.08-.73 1.77-.73.46 0 .9.12 1.28.35L7 17.34V4.5C7 3.67 7.67 3 8.5 3S10 3.67 10 4.5v4h1V3.5C11 2.67 11.67 2 12.5 2S14 2.67 14 3.5V8.5h1V4c0-.83.67-1.5 1.5-1.5S18 3.17 18 4v5.5h1V6c0-.83.67-1.5 1.5-1.5S22 5.17 22 6v6.22z"/>',
+                    'star' => '<path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>',
+                    'gift' => '<path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 12 7.01l3.38 4.99L17 10.83 14.92 8H20v6z"/>',
+                    'plus' => '<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>',
+                ];
+                $sbIconPath = $sbIcons[$config['icon'] ?? 'heart'] ?? $sbIcons['heart'];
+                $sbRotation = str_starts_with($sbPosition, 'left') ? 'rotate(90deg)' : 'rotate(-90deg)';
+                $sbBorderRadius = str_starts_with($sbPosition, 'left') ? '0 12px 12px 0' : '12px 0 0 12px';
+                $sbText = $config['button_text'] ?? 'Donate';
+                $sbCharCount = mb_strlen($sbText);
+                // Estimate height needed for rotated text at 15px + 0.08em letter-spacing (~10px/char)
+                $sbMinHeight = max(120, ($sbCharCount * 10) + 60);
+            @endphp
+            @if($sbHasEffect)
+                <style>
+                    @keyframes ihsan-gradient-{{ $sbEffectId }} {
+                        0%   { background-position: 0% 50%; }
+                        50%  { background-position: 100% 50%; }
+                        100% { background-position: 0% 50%; }
+                    }
+                    .ihsan-effect-{{ $sbEffectId }} {
+                        background: {{ $effectGradients[$sbEffect] }};
+                        background-size: 300% 300%;
+                        animation: ihsan-gradient-{{ $sbEffectId }} 4s ease infinite;
+                        box-shadow: {{ $effectShadows[$sbEffect] }};
+                    }
+                </style>
+            @endif
+            <div class="relative flex min-h-[300px] w-full items-center justify-center rounded-lg border-2 border-dashed border-zinc-200 bg-white/60 p-6">
+                <div
+                    class="ihsan-effect-{{ $sbHasEffect ? $sbEffectId : '' }} relative inline-flex items-center justify-center text-white shadow-2xl transition-transform hover:scale-105"
+                    style="{{ $sbHasEffect ? '' : 'background:' . $sbColor . ';' }}padding:14px 0;border-radius:{{ $sbBorderRadius }};width:52px;min-height:{{ $sbMinHeight }}px;"
+                >
+                    <div class="absolute left-1/2 top-1/2 inline-flex items-center justify-center gap-1.5" style="transform:translate(-50%,-50%) {{ $sbRotation }};white-space:nowrap;font-size:15px;font-weight:700;letter-spacing:.08em;">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">{!! $sbIconPath !!}</svg>
+                        <span>{{ $sbText }}</span>
+                    </div>
+                </div>
+                <span class="absolute bottom-2 text-xs text-zinc-400">Preview shown centered — on site it sticks to the {{ str_starts_with($sbPosition, 'left') ? 'left' : 'right' }} edge. Max 16 characters.</span>
+            </div>
+
         @elseif($type === 'link')
             @php
                 $linkColors = [

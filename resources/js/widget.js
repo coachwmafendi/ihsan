@@ -428,6 +428,118 @@
     document.body.appendChild(btn);
   }
 
+  function renderStickyButton(el) {
+    var s = el.settings;
+    if (!isVisible(s)) return;
+
+    var posKey = (s.position || "right-center").replace(/-/g, "_");
+    var isLeft = posKey.indexOf("left") !== -1;
+
+    var sbEffectGradients = {
+      gradient_teal_green:    "linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)",
+      gradient_blue_purple:   "linear-gradient(120deg,#2563eb,#7c3aed,#a855f7,#2563eb)",
+      gradient_orange_red:    "linear-gradient(120deg,#ea580c,#dc2626,#f97316,#ea580c)",
+      gradient_rose_pink:     "linear-gradient(120deg,#f43f5e,#ec4899,#fb7185,#f43f5e)",
+      gradient_amber_orange:  "linear-gradient(120deg,#f59e0b,#ea580c,#fbbf24,#f59e0b)",
+      gradient_cyan_blue:     "linear-gradient(120deg,#06b6d4,#2563eb,#38bdf8,#06b6d4)",
+      gradient_emerald_teal:  "linear-gradient(120deg,#10b981,#0d9488,#34d399,#10b981)",
+      gradient_indigo_purple: "linear-gradient(120deg,#6366f1,#7c3aed,#818cf8,#6366f1)",
+      gradient_gold_amber:    "linear-gradient(120deg,#eab308,#f59e0b,#fcd34d,#eab308)",
+      gradient_pink_purple:   "linear-gradient(120deg,#ec4899,#a855f7,#f472b6,#ec4899)",
+    };
+    var sbEffect = s.button_effect || "none";
+    var sbHasEffect = sbEffect !== "none" && sbEffectGradients[sbEffect];
+
+    if (sbHasEffect) {
+      var sbAnimName = "ihsan-grad-" + sbEffect;
+      if (!document.getElementById("ihsan-style-" + sbEffect)) {
+        var sbStyleEl = document.createElement("style");
+        sbStyleEl.id = "ihsan-style-" + sbEffect;
+        sbStyleEl.textContent = "@keyframes " + sbAnimName + "{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}";
+        document.head.appendChild(sbStyleEl);
+      }
+    }
+
+    var color = hexColor(s.color || s.custom_color || "campaign");
+    var borderRadius = isLeft ? "0 12px 12px 0" : "12px 0 0 12px";
+    var posTransform = "translateY(-50%)";
+    var hoverScale = "scale(1.06)";
+    var combinedEnterTransform = posTransform + " " + hoverScale;
+
+    var icons = {
+      heart: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
+      hand: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M23 12.22V15c0 4.97-4.03 9-9 9H9.17c-1.59 0-3.11-.63-4.24-1.76L0 17.5l1.5-1.5c.47-.47 1.08-.73 1.77-.73.46 0 .9.12 1.28.35L7 17.34V4.5C7 3.67 7.67 3 8.5 3S10 3.67 10 4.5v4h1V3.5C11 2.67 11.67 2 12.5 2S14 2.67 14 3.5V8.5h1V4c0-.83.67-1.5 1.5-1.5S18 3.17 18 4v5.5h1V6c0-.83.67-1.5 1.5-1.5S22 5.17 22 6v6.22z"/></svg>',
+      star: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>',
+      gift: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 12 7.01l3.38 4.99L17 10.83 14.92 8H20v6z"/></svg>',
+      plus: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>',
+    };
+
+    var iconHtml = icons[s.icon] || icons.heart;
+    var rawText = s.button_text || s.text || "Donate";
+    var text = esc(rawText.length > 16 ? rawText.slice(0, 16) : rawText);
+    var rotation = isLeft ? "rotate(90deg)" : "rotate(-90deg)";
+
+    // Measure natural size of content (unrotated)
+    var measurer = document.createElement("div");
+    measurer.style.cssText = "position:fixed;visibility:hidden;white-space:nowrap;font-size:15px;font-weight:700;letter-spacing:.08em;display:inline-flex;align-items:center;gap:5px;";
+    measurer.innerHTML = iconHtml + "<span>" + text + "</span>";
+    document.body.appendChild(measurer);
+    var contentW = measurer.offsetWidth;
+    var contentH = measurer.offsetHeight;
+    document.body.removeChild(measurer);
+
+    var padH = 14; // horizontal padding (narrow side)
+    var padV = 14; // vertical padding (long side)
+
+    var btn = document.createElement("div");
+    btn.setAttribute("role", "button");
+    btn.setAttribute("tabindex", "0");
+    btn.style.cssText = [
+      "position:fixed",
+      "z-index:2147483646",
+      "display:flex",
+      "align-items:center",
+      "justify-content:center",
+      "cursor:pointer",
+      "border:0",
+      "outline:none",
+      "box-shadow:0 4px 16px rgba(0,0,0,.18)",
+      "transition:transform .2s,box-shadow .2s",
+      "color:#fff",
+      sbHasEffect
+        ? "background:" + sbEffectGradients[sbEffect] + ";background-size:300% 300%;animation:" + ("ihsan-grad-" + sbEffect) + " 4s ease infinite"
+        : "background:" + color,
+      "padding:" + padV + "px " + padH + "px",
+      "border-radius:" + borderRadius,
+      "top:50%",
+      isLeft ? "left:0" : "right:0",
+      "transform:" + posTransform,
+      "width:" + (contentH + padH * 2) + "px",
+      "height:" + (contentW + padV * 2) + "px",
+      "box-sizing:border-box",
+    ].filter(Boolean).join(";");
+
+    var inner = document.createElement("div");
+    inner.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) " + rotation + ";white-space:nowrap;font-size:15px;font-weight:700;letter-spacing:.08em;display:inline-flex;align-items:center;gap:5px;";
+    inner.innerHTML = iconHtml + "<span>" + text + "</span>";
+    btn.appendChild(inner);
+
+    btn.addEventListener("mouseenter", function () {
+      btn.style.transform = combinedEnterTransform;
+      btn.style.boxShadow = "0 6px 24px rgba(0,0,0,.24)";
+    });
+    btn.addEventListener("mouseleave", function () {
+      btn.style.transform = posTransform;
+      btn.style.boxShadow = "0 4px 16px rgba(0,0,0,.18)";
+    });
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      handleClick(el);
+    });
+
+    document.body.appendChild(btn);
+  }
+
   function renderButton(el) {
     var s = el.settings;
     var isMobile = window.innerWidth <= 640;
@@ -858,6 +970,8 @@
   var renderers = {
     "floating-button": renderFloatingButton,
     floating_button: renderFloatingButton,
+    "sticky-button": renderStickyButton,
+    sticky_button: renderStickyButton,
     button: renderButton,
     popup: renderPopup,
     form: renderForm,

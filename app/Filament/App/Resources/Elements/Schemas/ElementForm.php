@@ -54,6 +54,16 @@ class ElementForm
                 'visible_desktop' => true,
                 'visible_mobile' => true,
             ],
+            ElementType::StickyButton->value => [
+                'button_text' => 'Donate',
+                'action' => 'checkout_modal',
+                'position' => 'right-center',
+                'color' => 'campaign',
+                'button_effect' => 'none',
+                'icon' => 'heart',
+                'visible_desktop' => true,
+                'visible_mobile' => true,
+            ],
             ElementType::Form->value => [
                 'template' => 'secure-donation',
                 'title' => 'Your most generous donation',
@@ -133,6 +143,7 @@ class ElementForm
                             ->options([
                                 'button' => 'Button',
                                 'floating_button' => 'Floating Button',
+                                'sticky_button' => 'Sticky Button',
                                 'form' => 'Form',
                                 'popup' => 'Popup',
                                 'qr_code' => 'QR Code',
@@ -374,6 +385,114 @@ class ElementForm
                                             ->label('Show on mobile')
                                             ->default(true)
                                             ->live(),
+                                    ]),
+                            ]),
+                        View::make('filament.forms.components.element-preview')
+                            ->columnSpanFull()
+                            ->viewData(fn (Get $get): array => [
+                                'type' => $get('type'),
+                                'config' => self::previewConfig($get),
+                            ]),
+                    ]),
+                Section::make('Sticky Button')
+                    ->description('A vertical sticky tab fixed to the side of the page')
+                    ->columnSpanFull()
+                    ->icon('heroicon-m-arrow-right-circle')
+                    ->visible(fn (Get $get): bool => self::selectedType($get('type')) === ElementType::StickyButton->value)
+                    ->schema([
+                        Grid::make()
+                            ->statePath('config')
+                            ->columns(2)
+                            ->schema([
+                                Section::make('Content')
+                                    ->compact()
+                                    ->schema([
+                                        TextInput::make('button_text')
+                                            ->label('Button text')
+                                            ->default('Donate')
+                                            ->required()
+                                            ->maxLength(16)
+                                            ->live(),
+                                        Select::make('action')
+                                            ->label('Action')
+                                            ->options([
+                                                'campaign_page' => 'Open campaign page',
+                                                'checkout_modal' => 'Open checkout modal',
+                                            ])
+                                            ->default('checkout_modal')
+                                            ->live()
+                                            ->native(false),
+                                        Select::make('icon')
+                                            ->label('Icon')
+                                            ->options([
+                                                'heart' => 'Heart',
+                                                'hand' => 'Hand',
+                                                'star' => 'Star',
+                                                'gift' => 'Gift',
+                                                'plus' => 'Plus',
+                                            ])
+                                            ->default('heart')
+                                            ->live()
+                                            ->native(false),
+                                    ]),
+                                Section::make('Position & Visibility')
+                                    ->compact()
+                                    ->schema([
+                                        Select::make('position')
+                                            ->label('Position')
+                                            ->options([
+                                                'right-center' => 'Right center',
+                                                'left-center' => 'Left center',
+                                            ])
+                                            ->default('right-center')
+                                            ->live()
+                                            ->native(false),
+                                        Toggle::make('visible_desktop')
+                                            ->label('Show on desktop')
+                                            ->default(true)
+                                            ->live(),
+                                        Toggle::make('visible_mobile')
+                                            ->label('Show on mobile')
+                                            ->default(true)
+                                            ->live(),
+                                    ]),
+                                Section::make('Color')
+                                    ->compact()
+                                    ->schema([
+                                        Select::make('button_effect')
+                                            ->label('Button Effect')
+                                            ->options([
+                                                'none' => 'None (solid color)',
+                                                'gradient_teal_green' => 'Gradient — Teal & Green',
+                                                'gradient_blue_purple' => 'Gradient — Blue & Purple',
+                                                'gradient_orange_red' => 'Gradient — Orange & Red',
+                                                'gradient_rose_pink' => 'Gradient — Rose & Pink',
+                                                'gradient_amber_orange' => 'Gradient — Amber & Orange',
+                                                'gradient_cyan_blue' => 'Gradient — Cyan & Blue',
+                                                'gradient_emerald_teal' => 'Gradient — Emerald & Teal',
+                                                'gradient_indigo_purple' => 'Gradient — Indigo & Purple',
+                                                'gradient_gold_amber' => 'Gradient — Gold & Amber',
+                                                'gradient_pink_purple' => 'Gradient — Pink & Purple',
+                                            ])
+                                            ->default('none')
+                                            ->live()
+                                            ->native(false),
+                                        Select::make('color')
+                                            ->label('Color scheme')
+                                            ->options([
+                                                'campaign' => 'Use campaign color',
+                                                'blue' => 'Blue',
+                                                'teal' => 'Teal',
+                                                'green' => 'Green',
+                                                'orange' => 'Orange',
+                                                'red' => 'Red',
+                                                'purple' => 'Purple',
+                                                'dark' => 'Dark',
+                                            ])
+                                            ->default('campaign')
+                                            ->live()
+                                            ->native(false)
+                                            ->disabled(fn (Get $get): bool => ($get('button_effect') ?? 'none') !== 'none'),
                                     ]),
                             ]),
                         View::make('filament.forms.components.element-preview')
@@ -920,6 +1039,19 @@ class ElementForm
                 'button_effect' => $get('config.button_effect'),
                 'size' => $get('config.size'),
                 'alignment' => $get('config.alignment'),
+            ];
+        }
+
+        if ($type === ElementType::StickyButton->value) {
+            return [
+                'button_text' => $get('config.button_text'),
+                'action' => $get('config.action'),
+                'position' => $get('config.position'),
+                'color' => $get('config.color'),
+                'icon' => $get('config.icon'),
+                'button_effect' => $get('config.button_effect'),
+                'visible_desktop' => $get('config.visible_desktop'),
+                'visible_mobile' => $get('config.visible_mobile'),
             ];
         }
 
