@@ -26,7 +26,7 @@
             </div>
         </div>
         <div class="flex items-center gap-2">
-            <x-ui.button variant="secondary" disabled title="Coming soon">
+            <x-ui.button href="{{ route('app.campaigns.edit', $campaign) }}" variant="secondary">
                 <x-heroicon-o-pencil class="size-4" />
                 Edit
             </x-ui.button>
