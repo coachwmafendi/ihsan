@@ -54,9 +54,35 @@
                         </svg>
                     </div>
                     <h2 class="text-xl font-bold text-slate-900">Application Received</h2>
-                    <p class="mt-3 text-sm text-slate-500 leading-relaxed">
-                        Thank you! Your application has been received. Our team will review it and contact you shortly.
-                    </p>
+
+                    <div class="mt-4 space-y-3 text-sm text-slate-600 leading-relaxed text-left">
+                        <p>
+                            Thank you for registering your organization with <strong>Ihsan</strong>. We have received your application and it is now being processed.
+                        </p>
+
+                        <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 my-4">
+                            <h3 class="font-semibold text-slate-800 mb-2">What happens next?</h3>
+                            <ul class="space-y-2 text-slate-600">
+                                <li class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-teal-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Our team will review your organization details within <strong>1-3 business days</strong>.</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-teal-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
+                                    <span>You will receive a confirmation email at <strong>{{ $contact_email }}</strong> once approved.</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-teal-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                                    <span>After approval, you can create your admin account and start receiving donations immediately.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <p class="text-slate-500 text-xs">
+                            If you have any questions, please contact us at <a href="mailto:support@getihsan.my" class="text-teal-600 hover:text-teal-700">support@getihsan.my</a>
+                        </p>
+                    </div>
+
                     <a href="{{ route('home') }}" class="mt-6 inline-flex items-center gap-2 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
                         Back to homepage
