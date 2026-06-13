@@ -1,0 +1,42 @@
+{{-- resources/views/livewire/app/stripe-onboarding.blade.php --}}
+<div class="mx-auto max-w-2xl space-y-8 py-12">
+    <div class="text-center">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-indigo-50">
+            <svg class="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+            </svg>
+        </div>
+
+        <h1 class="mt-6 text-3xl font-bold tracking-tight text-slate-900">
+            Connect with Stripe Connect
+        </h1>
+
+        <p class="mt-4 text-slate-600">
+            To start receiving donations, you need to connect your organisation with Stripe Connect.
+            This allows us to securely process payments on your behalf and transfer funds directly to your account.
+        </p>
+    </div>
+
+    @php($onboardingUrl = $this->getOnboardingUrl())
+
+    @if ($onboardingUrl)
+        <x-ui.card class="text-center">
+            <p class="text-sm text-slate-500 mb-6">
+                Click the button below to complete your Stripe Connect onboarding. You will be redirected to Stripe to provide business details.
+            </p>
+
+            <a href="{{ $onboardingUrl }}" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition">
+                Connect with Stripe
+            </a>
+        </x-ui.card>
+    @else
+        <x-ui.card class="text-center">
+            <p class="text-sm text-slate-500 mb-2">
+                Unable to generate an onboarding link at this time.
+            </p>
+            <p class="text-sm text-slate-400">
+                Please contact support if the issue persists.
+            </p>
+        </x-ui.card>
+    @endif
+</div>
