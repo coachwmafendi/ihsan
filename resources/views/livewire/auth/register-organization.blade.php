@@ -39,7 +39,7 @@
 
     {{-- Right: Form / Light side --}}
     <div class="w-full lg:w-1/2 bg-slate-50 flex items-center justify-center px-6 py-12 lg:py-0">
-        <div class="w-full max-w-md">
+        <div class="w-full max-w-lg">
             {{-- Mobile logo (shown only on small screens) --}}
             <div class="lg:hidden text-center mb-8">
                 <a href="{{ route('home') }}" class="text-slate-900 font-bold text-2xl tracking-tight">Ihsan</a>
@@ -69,6 +69,7 @@
                     <p class="text-sm text-slate-500 mb-8">Fill in your organization details to get started.</p>
 
                     <form wire:submit="submit" class="space-y-5">
+                        {{-- Organization Name — full width --}}
                         <div>
                             <label for="name" class="block text-sm font-semibold text-slate-700 mb-1.5">Organization Name</label>
                             <input
@@ -83,35 +84,39 @@
                             @error('name')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
-                        <div>
-                            <label for="registration_type" class="block text-sm font-semibold text-slate-700 mb-1.5">Registration Type</label>
-                            <select
-                                id="registration_type"
-                                wire:model="registration_type"
-                                required
-                                class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            >
-                                <option value="" disabled>-- Select type --</option>
-                                <option value="ROS">ROS (Society)</option>
-                                <option value="ROB">ROB (Company)</option>
-                                <option value="Others">Others</option>
-                            </select>
-                            @error('registration_type')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                        {{-- Registration Type | ROS/ROB Number — 2 col --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label for="registration_type" class="block text-sm font-semibold text-slate-700 mb-1.5">Registration Type</label>
+                                <select
+                                    id="registration_type"
+                                    wire:model="registration_type"
+                                    required
+                                    class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                >
+                                    <option value="" disabled>-- Select type --</option>
+                                    <option value="ROS">ROS (Society)</option>
+                                    <option value="ROB">ROB (Company)</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                                @error('registration_type')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <div>
+                                <label for="ros_rob_number" class="block text-sm font-semibold text-slate-700 mb-1.5">ROB/ROS Number</label>
+                                <input
+                                    type="text"
+                                    id="ros_rob_number"
+                                    wire:model="ros_rob_number"
+                                    placeholder="PPM-001-10-01012020"
+                                    required
+                                    class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                >
+                                @error('ros_rob_number')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
                         </div>
 
-                        <div>
-                            <label for="ros_rob_number" class="block text-sm font-semibold text-slate-700 mb-1.5">ROB/ROS Number</label>
-                            <input
-                                type="text"
-                                id="ros_rob_number"
-                                wire:model="ros_rob_number"
-                                placeholder="PPM-001-10-01012020"
-                                required
-                                class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            >
-                            @error('ros_rob_number')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
-                        </div>
-
+                        {{-- Sector — full width --}}
                         <div>
                             <label for="sector" class="block text-sm font-semibold text-slate-700 mb-1.5">Sector</label>
                             <select
@@ -132,32 +137,36 @@
                             @error('sector')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
-                        <div>
-                            <label for="contact_email" class="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
-                            <input
-                                type="email"
-                                id="contact_email"
-                                wire:model="contact_email"
-                                placeholder="admin@organization.org"
-                                required
-                                class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            >
-                            @error('contact_email')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                        {{-- Email | Website — 2 col --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label for="contact_email" class="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
+                                <input
+                                    type="email"
+                                    id="contact_email"
+                                    wire:model="contact_email"
+                                    placeholder="admin@organization.org"
+                                    required
+                                    class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                >
+                                @error('contact_email')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+
+                            <div>
+                                <label for="website_url" class="block text-sm font-semibold text-slate-700 mb-1.5">Website</label>
+                                <input
+                                    type="url"
+                                    id="website_url"
+                                    wire:model="website_url"
+                                    placeholder="https://organization.org"
+                                    required
+                                    class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                >
+                                @error('website_url')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
                         </div>
 
-                        <div>
-                            <label for="website_url" class="block text-sm font-semibold text-slate-700 mb-1.5">Website</label>
-                            <input
-                                type="url"
-                                id="website_url"
-                                wire:model="website_url"
-                                placeholder="https://organization.org"
-                                required
-                                class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            >
-                            @error('website_url')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
-                        </div>
-
+                        {{-- Facebook URL — full width --}}
                         <div>
                             <label for="facebook_url" class="block text-sm font-semibold text-slate-700 mb-1.5">Facebook URL <span class="text-slate-400 font-normal">(optional)</span></label>
                             <input
