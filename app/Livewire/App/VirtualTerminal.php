@@ -297,10 +297,7 @@ class VirtualTerminal extends Component
                     source: 'virtual_terminal',
                 );
 
-                $this->flash = [
-                    'type' => 'success',
-                    'message' => "Donation of {$this->getCurrency()} {$formattedAmount} processed successfully.",
-                ];
+                $this->dispatch('notify', message: "Donation of {$this->getCurrency()} {$formattedAmount} processed successfully.", variant: 'success');
             } else {
                 app(ProcessVirtualTerminalSubscription::class)->handle(
                     campaignId: (int) $data['campaign_id'],
@@ -315,17 +312,14 @@ class VirtualTerminal extends Component
                     source: 'virtual_terminal',
                 );
 
-                $this->flash = [
-                    'type' => 'success',
-                    'message' => "Monthly donation of {$this->getCurrency()} {$formattedAmount} set up successfully.",
-                ];
+                $this->dispatch('notify', message: "Monthly donation of {$this->getCurrency()} {$formattedAmount} set up successfully.", variant: 'success');
             }
 
             $this->resetForm();
         } catch (\Throwable $e) {
             report($e);
 
-            $this->dispatch('vt-error', message: 'Payment failed. Please try again.');
+            $this->dispatch('notify', message: 'Payment failed. Please try again.', variant: 'danger');
         }
     }
 

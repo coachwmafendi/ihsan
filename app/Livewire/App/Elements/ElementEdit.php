@@ -102,7 +102,7 @@ class ElementEdit extends Component
             'config' => $mergedConfig ?: null,
         ]);
 
-        $this->dispatch('toast', type: 'success', message: 'Element saved.');
+        $this->dispatch('notify', message: 'Element saved.', variant: 'success');
     }
 
     public function delete(): void

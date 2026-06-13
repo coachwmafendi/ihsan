@@ -87,6 +87,8 @@ class Notifications extends Component
         ]);
 
         $org->update(['settings' => $settings]);
+
+        $this->dispatch('notify', message: 'Notification preferences saved.', variant: 'success');
     }
 
     public function render()

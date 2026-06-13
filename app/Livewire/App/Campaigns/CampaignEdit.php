@@ -150,7 +150,7 @@ class CampaignEdit extends Component
             $this->image = null;
         }
 
-        $this->dispatch('toast', type: 'success', message: 'Campaign saved.');
+        $this->dispatch('notify', message: 'Campaign saved.', variant: 'success');
     }
 
     public function archive(): void
@@ -160,7 +160,7 @@ class CampaignEdit extends Component
         $this->campaign->update(['status' => 'archived']);
         $this->status = 'archived';
 
-        $this->dispatch('toast', type: 'success', message: 'Campaign archived.');
+        $this->dispatch('notify', message: 'Campaign archived.', variant: 'success');
     }
 
     public function delete(): void

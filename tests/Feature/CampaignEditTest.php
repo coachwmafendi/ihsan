@@ -53,7 +53,7 @@ it('updates a campaign', function () {
         ->set('title', 'Updated Title')
         ->set('status', 'active')
         ->call('save')
-        ->assertDispatched('toast');
+        ->assertDispatched('notify');
 
     $campaign->refresh();
     expect($campaign->title)->toBe('Updated Title')
@@ -70,7 +70,7 @@ it('archives a campaign', function () {
 
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
         ->call('archive')
-        ->assertDispatched('toast');
+        ->assertDispatched('notify');
 
     $campaign->refresh();
     expect($campaign->status->value)->toBe('archived');

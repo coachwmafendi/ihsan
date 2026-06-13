@@ -17,5 +17,6 @@
     </x-app-shell>
 
     @livewireScripts
+    @fluxScripts
 </body>
 </html>

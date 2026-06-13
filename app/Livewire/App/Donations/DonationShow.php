@@ -31,17 +31,17 @@ class DonationShow extends Component
     public function refund(): void
     {
         if (! $this->canRefund()) {
-            $this->dispatch('toast', type: 'error', message: 'This donation cannot be refunded.');
+            $this->dispatch('notify', message: 'This donation cannot be refunded.', variant: 'danger');
 
             return;
         }
 
         try {
             app(RefundDonation::class)->handle($this->donation);
-            $this->dispatch('toast', type: 'success', message: 'Donation refunded successfully.');
+            $this->dispatch('notify', message: 'Donation refunded successfully.', variant: 'success');
         } catch (\Throwable $e) {
             report($e);
-            $this->dispatch('toast', type: 'error', message: 'Refund failed: '.$e->getMessage());
+            $this->dispatch('notify', message: 'Refund failed: '.$e->getMessage(), variant: 'danger');
         }
     }
 

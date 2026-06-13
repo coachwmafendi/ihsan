@@ -88,6 +88,8 @@ class ElementCreate extends Component
 
         $element->save();
 
+        $this->dispatch('notify', message: 'Element created successfully.', variant: 'success');
+
         $this->redirectRoute('app.elements.index');
     }
 

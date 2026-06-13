@@ -185,7 +185,7 @@ class Profile extends Component
 
         $org->update($updateData);
 
-        $this->dispatch('toast', type: 'success', message: 'Organisation profile saved.');
+        $this->dispatch('notify', message: 'Organisation profile saved.', variant: 'success');
     }
 
     /**

@@ -51,7 +51,7 @@ class Payment extends Component
 
         $settings = array_merge($org->settings ?? [], ['accepted_currencies' => $accepted]);
         $org->update(['settings' => $settings]);
-        $this->dispatch('toast', type: 'success', message: 'Accepted currencies updated.');
+        $this->dispatch('notify', message: 'Accepted currencies updated.', variant: 'success');
     }
 
     public function saveFeeCollection(): void
@@ -62,7 +62,7 @@ class Payment extends Component
         }
 
         $org->update(['fee_collection_method' => $this->feeCollectionMethod]);
-        $this->dispatch('toast', type: 'success', message: 'Fee collection method updated.');
+        $this->dispatch('notify', message: 'Fee collection method updated.', variant: 'success');
     }
 
     public function reconnect(): void
