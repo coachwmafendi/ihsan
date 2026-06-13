@@ -57,23 +57,23 @@
                 <div class="grid gap-6 md:grid-cols-2">
                     <div class="md:col-span-2">
                         <label for="name" class="block text-sm font-medium text-slate-700">Organisation Name <span class="text-red-500">*</span></label>
-                        <input type="text" id="name" wire:model="name" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="text" id="name" wire:model="name" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                         @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label for="ros_rob_number" class="block text-sm font-medium text-slate-700">ROS / ROB Number</label>
-                        <input type="text" id="ros_rob_number" wire:model="ros_rob_number" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="text" id="ros_rob_number" wire:model="ros_rob_number" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div class="md:col-span-2">
                         <label for="description" class="block text-sm font-medium text-slate-700">Description</label>
-                        <textarea id="description" wire:model="description" rows="4" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></textarea>
+                        <textarea id="description" wire:model="description" rows="4" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"></textarea>
                     </div>
 
                     <div>
                         <label for="website_url" class="block text-sm font-medium text-slate-700">Website URL</label>
-                        <input type="url" id="website_url" wire:model="website_url" placeholder="https://example.org" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="url" id="website_url" wire:model="website_url" placeholder="https://example.org" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                         @error('website_url') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
 
@@ -100,17 +100,17 @@
                 <div class="grid gap-6 md:grid-cols-2">
                     <div>
                         <label for="portal_tagline" class="block text-sm font-medium text-slate-700">Portal Tagline</label>
-                        <input type="text" id="portal_tagline" wire:model="portal_tagline" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="text" id="portal_tagline" wire:model="portal_tagline" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div>
                         <label for="portal_reply_to_email" class="block text-sm font-medium text-slate-700">Reply-To Email</label>
-                        <input type="email" id="portal_reply_to_email" wire:model="portal_reply_to_email" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="email" id="portal_reply_to_email" wire:model="portal_reply_to_email" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div class="md:col-span-2">
                         <label for="portal_receipt_footer" class="block text-sm font-medium text-slate-700">Receipt Footer Text</label>
-                        <textarea id="portal_receipt_footer" wire:model="portal_receipt_footer" rows="3" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></textarea>
+                        <textarea id="portal_receipt_footer" wire:model="portal_receipt_footer" rows="3" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"></textarea>
                     </div>
 
                     <div class="md:col-span-2">
@@ -130,7 +130,7 @@
                                         $wire.set('allowed_domains', [...$wire.allowed_domains, newDomain.trim()]);
                                         newDomain = '';
                                     }
-                                " placeholder="example.com" class="block w-40 rounded-lg border-slate-300 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                " placeholder="example.com" class="block w-40 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                                 <button type="button" @click="
                                     if (newDomain.trim()) {
                                         $wire.set('allowed_domains', [...$wire.allowed_domains, newDomain.trim()]);
@@ -151,13 +151,13 @@
                 <div class="grid gap-6 md:grid-cols-2">
                     <div>
                         <label for="contact_email" class="block text-sm font-medium text-slate-700">Contact Email</label>
-                        <input type="email" id="contact_email" wire:model="contact_email" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="email" id="contact_email" wire:model="contact_email" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                         @error('contact_email') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label for="contact_phone" class="block text-sm font-medium text-slate-700">Contact Phone</label>
-                        <input type="text" id="contact_phone" wire:model="contact_phone" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="text" id="contact_phone" wire:model="contact_phone" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                         @error('contact_phone') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                 </div>
@@ -170,27 +170,27 @@
                 <div class="grid gap-6 md:grid-cols-2">
                     <div class="md:col-span-2">
                         <label for="address_line_1" class="block text-sm font-medium text-slate-700">Address Line 1</label>
-                        <input type="text" id="address_line_1" wire:model="address_line_1" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="text" id="address_line_1" wire:model="address_line_1" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div class="md:col-span-2">
                         <label for="address_line_2" class="block text-sm font-medium text-slate-700">Address Line 2</label>
-                        <input type="text" id="address_line_2" wire:model="address_line_2" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="text" id="address_line_2" wire:model="address_line_2" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div>
                         <label for="city" class="block text-sm font-medium text-slate-700">City</label>
-                        <input type="text" id="city" wire:model="city" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="text" id="city" wire:model="city" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div>
                         <label for="postcode" class="block text-sm font-medium text-slate-700">Postcode</label>
-                        <input type="text" id="postcode" wire:model="postcode" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="text" id="postcode" wire:model="postcode" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div>
                         <label for="state" class="block text-sm font-medium text-slate-700">State</label>
-                        <select id="state" wire:model="state" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <select id="state" wire:model="state" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                             <option value="">Select state</option>
                             <option value="Johor">Johor</option>
                             <option value="Kedah">Kedah</option>
@@ -213,7 +213,7 @@
 
                     <div>
                         <label for="country" class="block text-sm font-medium text-slate-700">Country</label>
-                        <select id="country" wire:model="country" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <select id="country" wire:model="country" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                             <option value="Malaysia">Malaysia</option>
                             <option value="Brunei">Brunei</option>
                             <option value="Cambodia">Cambodia</option>
@@ -247,27 +247,27 @@
                 <div class="grid gap-6 md:grid-cols-2">
                     <div>
                         <label for="social_facebook" class="block text-sm font-medium text-slate-700">Facebook</label>
-                        <input type="url" id="social_facebook" wire:model="social_facebook" placeholder="https://facebook.com/..." class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="url" id="social_facebook" wire:model="social_facebook" placeholder="https://facebook.com/..." class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div>
                         <label for="social_instagram" class="block text-sm font-medium text-slate-700">Instagram</label>
-                        <input type="url" id="social_instagram" wire:model="social_instagram" placeholder="https://instagram.com/..." class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="url" id="social_instagram" wire:model="social_instagram" placeholder="https://instagram.com/..." class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div>
                         <label for="social_twitter" class="block text-sm font-medium text-slate-700">Twitter / X</label>
-                        <input type="url" id="social_twitter" wire:model="social_twitter" placeholder="https://x.com/..." class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="url" id="social_twitter" wire:model="social_twitter" placeholder="https://x.com/..." class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div>
                         <label for="social_tiktok" class="block text-sm font-medium text-slate-700">TikTok</label>
-                        <input type="url" id="social_tiktok" wire:model="social_tiktok" placeholder="https://tiktok.com/..." class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="url" id="social_tiktok" wire:model="social_tiktok" placeholder="https://tiktok.com/..." class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div class="md:col-span-2">
                         <label for="social_youtube" class="block text-sm font-medium text-slate-700">YouTube</label>
-                        <input type="url" id="social_youtube" wire:model="social_youtube" placeholder="https://youtube.com/..." class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="url" id="social_youtube" wire:model="social_youtube" placeholder="https://youtube.com/..." class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
                 </div>
             </x-ui.card>
@@ -279,17 +279,17 @@
                 <div class="grid gap-6 md:grid-cols-2">
                     <div class="md:col-span-2">
                         <label for="bank_name" class="block text-sm font-medium text-slate-700">Bank Name</label>
-                        <input type="text" id="bank_name" wire:model="bank_name" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="text" id="bank_name" wire:model="bank_name" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div>
                         <label for="bank_account_name" class="block text-sm font-medium text-slate-700">Account Holder Name</label>
-                        <input type="text" id="bank_account_name" wire:model="bank_account_name" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="text" id="bank_account_name" wire:model="bank_account_name" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
 
                     <div>
                         <label for="bank_account_number" class="block text-sm font-medium text-slate-700">Account Number</label>
-                        <input type="text" id="bank_account_number" wire:model="bank_account_number" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <input type="text" id="bank_account_number" wire:model="bank_account_number" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
                 </div>
 
