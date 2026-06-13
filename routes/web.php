@@ -7,7 +7,11 @@ use App\Http\Controllers\ReceiptDownloadController;
 use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
-use App\Livewire\DonationForm;
+use App\Livewire\App\Billing;
+use App\Livewire\App\Settings\Notifications;
+use App\Livewire\App\Settings\Payment;
+use App\Livewire\App\Settings\Profile;
+use App\Livewire\App\StripeOnboarding;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -41,6 +45,12 @@ Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.web
 
 Route::middleware('auth')->group(function () {
     Route::get('/app/dashboard', \App\Livewire\App\Dashboard::class)->name('app.dashboard');
+
+    Route::get('/app/settings/profile', Profile::class)->name('app.settings.profile');
+    Route::get('/app/settings/payment', Payment::class)->name('app.settings.payment');
+    Route::get('/app/settings/notifications', Notifications::class)->name('app.settings.notifications');
+    Route::get('/app/billing', Billing::class)->name('app.billing');
+    Route::get('/app/stripe-onboarding', StripeOnboarding::class)->name('app.stripe-onboarding');
 
     Route::get('/stripe/connect/redirect', [StripeConnectController::class, 'redirect'])
         ->name('stripe.connect.redirect');
