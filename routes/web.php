@@ -7,26 +7,28 @@ use App\Http\Controllers\ReceiptDownloadController;
 use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Middleware\EnsureNgoAdmin;
 use App\Livewire\App\Billing;
 use App\Livewire\App\Campaigns\CampaignCreate;
 use App\Livewire\App\Campaigns\CampaignEdit;
 use App\Livewire\App\Campaigns\CampaignIndex;
 use App\Livewire\App\Campaigns\CampaignShow;
 use App\Livewire\App\Dashboard;
-use App\Livewire\App\Insights;
 use App\Livewire\App\Donations\DonationIndex;
 use App\Livewire\App\Donations\DonationShow;
 use App\Livewire\App\Donors\DonorIndex;
 use App\Livewire\App\Donors\DonorShow;
 use App\Livewire\App\Elements\ElementCreate;
+use App\Livewire\App\Elements\ElementEdit;
 use App\Livewire\App\Elements\ElementIndex;
+use App\Livewire\App\Insights;
 use App\Livewire\App\Settings\Notifications;
 use App\Livewire\App\Settings\Payment;
 use App\Livewire\App\Settings\Profile;
 use App\Livewire\App\StripeOnboarding;
-use App\Livewire\App\VirtualTerminal;
 use App\Livewire\App\Subscriptions\SubscriptionIndex;
 use App\Livewire\App\Subscriptions\SubscriptionShow;
+use App\Livewire\App\VirtualTerminal;
 use App\Livewire\Auth\RegisterOrganization;
 use Illuminate\Support\Facades\Route;
 
@@ -60,7 +62,8 @@ Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', EnsureNgoAdmin::class])->group(function () {
+    Route::get('/app', fn () => redirect()->route('app.insights'))->name('app');
     Route::get('/app/dashboard', Dashboard::class)->name('app.dashboard');
     Route::get('/app/insights', Insights::class)->name('app.insights');
 
@@ -74,6 +77,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/app/donors', DonorIndex::class)->name('app.donors.index');
     Route::get('/app/donors/{donor:public_id}', DonorShow::class)->name('app.donors.show');
+    Route::get('/app/supporters', DonorIndex::class)->name('app.supporters');
 
     Route::get('/app/settings/profile', Profile::class)->name('app.settings.profile');
     Route::get('/app/settings/payment', Payment::class)->name('app.settings.payment');
@@ -87,6 +91,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/app/elements', ElementIndex::class)->name('app.elements.index');
     Route::get('/app/elements/create', ElementCreate::class)->name('app.elements.create');
+    Route::get('/app/elements/{element}/edit', ElementEdit::class)->name('app.elements.edit');
     Route::get('/app/virtual-terminal', VirtualTerminal::class)->name('app.virtual-terminal');
 
     // Placeholder routes for upcoming features

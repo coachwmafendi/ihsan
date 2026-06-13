@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Campaigns;
 
+use App\Enums\ElementType;
 use App\Models\Campaign;
+use App\Models\Element;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -73,6 +76,14 @@ class CampaignCreate extends Component
             return;
         }
 
+        // Word count validation for description
+        $wordCount = str_word_count(strip_tags((string) ($this->description ?? '')));
+        if ($wordCount > 100) {
+            $this->addError('description', 'Description cannot exceed 100 words.');
+
+            return;
+        }
+
         $suggested = collect($this->suggested_amounts)
             ->filter(fn (array $item) => filled($item['value'] ?? null))
             ->map(fn (array $item) => [
@@ -111,7 +122,41 @@ class CampaignCreate extends Component
 
         $campaign->save();
 
+        $this->createDefaultDonorPortalButton($campaign);
+
         $this->redirectRoute('app.campaigns.show', $campaign);
+    }
+
+    private function createDefaultDonorPortalButton(Campaign $campaign): void
+    {
+        $orgId = $campaign->organization_id;
+
+        $hasExistingPortalButton = Element::query()
+            ->where('organization_id', $orgId)
+            ->where('is_donor_portal_default', true)
+            ->exists();
+
+        if ($hasExistingPortalButton) {
+            return;
+        }
+
+        Element::create([
+            'organization_id' => $orgId,
+            'campaign_id' => $campaign->getKey(),
+            'name' => 'Dedicated Donorportal Button',
+            'token' => Str::random(6),
+            'type' => ElementType::Button,
+            'config' => [
+                'button_text' => 'Make a new donation',
+                'button_color' => 'bg-blue-600 hover:bg-blue-700',
+                'button_size' => 'text-base px-6 py-3',
+                'corner_radius' => 8,
+                'button_effect' => 'none',
+                'action' => 'checkout_modal',
+            ],
+            'is_active' => true,
+            'is_donor_portal_default' => true,
+        ]);
     }
 
     public function render()

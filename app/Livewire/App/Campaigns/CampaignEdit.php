@@ -157,10 +157,19 @@ class CampaignEdit extends Component
     {
         $this->authorize('update', $this->campaign);
 
-        $this->campaign->update(['status' => 'ended']);
-        $this->status = 'ended';
+        $this->campaign->update(['status' => 'archived']);
+        $this->status = 'archived';
 
         $this->dispatch('toast', type: 'success', message: 'Campaign archived.');
+    }
+
+    public function delete(): void
+    {
+        $this->authorize('delete', $this->campaign);
+
+        $this->campaign->delete();
+
+        $this->redirectRoute('app.campaigns.index');
     }
 
     public function duplicate(): void

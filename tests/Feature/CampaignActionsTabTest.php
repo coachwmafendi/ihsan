@@ -2,11 +2,10 @@
 
 use App\Enums\CampaignStatus;
 use App\Enums\UserRole;
-use App\Filament\App\Resources\Campaigns\Pages\EditCampaign;
+use App\Livewire\App\Campaigns\CampaignEdit;
 use App\Models\Campaign;
 use App\Models\Organization;
 use App\Models\User;
-use Filament\Facades\Filament;
 use Livewire\Livewire;
 
 it('displays the Actions tab on the campaign edit page', function () {
@@ -20,10 +19,9 @@ it('displays the Actions tab on the campaign edit page', function () {
     ]);
 
     $this->actingAs($user);
-    Filament::setCurrentPanel(Filament::getPanel('app'));
 
-    Livewire::test(EditCampaign::class, ['record' => $campaign->public_id])
-        ->assertFormFieldExists('title')
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSee('Edit Campaign')
         ->assertSee('Actions')
         ->assertSee('Archive Campaign')
         ->assertSee('Duplicate Campaign');
@@ -40,10 +38,9 @@ it('can archive a campaign from the Actions tab', function () {
     ]);
 
     $this->actingAs($user);
-    Filament::setCurrentPanel(Filament::getPanel('app'));
 
-    Livewire::test(EditCampaign::class, ['record' => $campaign->public_id])
-        ->call('archiveCampaign');
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->call('archive');
 
     expect($campaign->fresh()->status)->toBe(CampaignStatus::Archived);
 });
@@ -60,11 +57,9 @@ it('can duplicate a campaign from the Actions tab', function () {
     ]);
 
     $this->actingAs($user);
-    Filament::setCurrentPanel(Filament::getPanel('app'));
 
-    Livewire::test(EditCampaign::class, ['record' => $campaign->public_id])
-        ->call('duplicateCampaign')
-        ->assertRedirect();
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->call('duplicate');
 
     $this->assertDatabaseHas('campaigns', [
         'title' => 'Original Campaign (Copy)',
@@ -84,11 +79,9 @@ it('can delete a campaign from the Actions tab', function () {
     ]);
 
     $this->actingAs($user);
-    Filament::setCurrentPanel(Filament::getPanel('app'));
 
-    Livewire::test(EditCampaign::class, ['record' => $campaign->public_id])
-        ->call('deleteCampaign')
-        ->assertRedirect();
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->call('delete');
 
     $this->assertDatabaseMissing('campaigns', [
         'id' => $campaign->id,

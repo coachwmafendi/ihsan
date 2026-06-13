@@ -6,9 +6,14 @@
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">Donation {{ $donation->public_id }}</h1>
             <p class="mt-1 text-sm text-slate-500">{{ $donation->created_at->format('M d, Y H:i') }}</p>
         </div>
-        <x-ui.badge status="{{ $donation->status->value }}" size="md">
-            {{ ucfirst($donation->status->value === 'succeeded' ? 'Paid' : $donation->status->value) }}
-        </x-ui.badge>
+        <div class="flex items-center gap-3">
+            @if ($this->canRefund())
+                <x-ui.button wireClick="refund" variant="danger" onclick="return confirm('Are you sure you want to refund this donation? This action cannot be undone.')">Refund</x-ui.button>
+            @endif
+            <x-ui.badge status="{{ $donation->status->value }}" size="md">
+                {{ ucfirst($donation->status->value === 'succeeded' ? 'Paid' : $donation->status->value) }}
+            </x-ui.badge>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -103,7 +108,7 @@
             <x-ui.card title="Campaign">
                 @if ($donation->campaign)
                     <div class="flex items-center gap-3">
-                        @if ($donation->campaign->image_path)
+                        @if ($donation->campaign->image_path && Storage::disk('public')->exists($donation->campaign->image_path))
                             <img src="{{ Storage::disk('public')->url($donation->campaign->image_path) }}" alt="" class="h-10 w-10 rounded-lg object-cover" />
                         @else
                             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50">

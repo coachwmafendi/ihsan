@@ -6,7 +6,7 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
-use App\Filament\App\Pages\VirtualTerminal;
+use App\Livewire\App\VirtualTerminal;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;

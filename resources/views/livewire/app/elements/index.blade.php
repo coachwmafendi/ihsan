@@ -118,6 +118,7 @@
                                     @endif
                                 </button>
                             </th>
+                            <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
@@ -150,6 +151,11 @@
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
                                     {{ $element->created_at->format('M d, Y') }}
+                                </td>
+                                <td class="px-5 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="{{ route('app.elements.edit', $element) }}" wire:navigate class="text-sm font-medium text-teal-600 hover:text-teal-700">Edit</a>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

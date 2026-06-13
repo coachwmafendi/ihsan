@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Livewire\App;
 
-use App\Enums\DonationStatus;
-use App\Enums\DonationType;
-use App\Enums\SubscriptionInterval;
-use App\Enums\SubscriptionStatus;
+use App\Actions\Stripe\LoadDonorSavedCards;
+use App\Actions\Stripe\ProcessVirtualTerminalDonation;
+use App\Actions\Stripe\ProcessVirtualTerminalSubscription;
 use App\Models\Campaign;
-use App\Models\Donation;
 use App\Models\Donor;
-use App\Models\Subscription;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Organization;
+use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -20,57 +18,199 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class VirtualTerminal extends Component
 {
-    public ?string $campaign_id = null;
+    public ?string $preloadedSupporterPublicId = null;
 
-    public string $first_name = '';
+    public ?Donor $searchedDonor = null;
 
-    public string $last_name = '';
+    public ?Donor $preloadedSupporter = null;
 
-    public string $email = '';
+    public ?Organization $organization = null;
 
-    public ?string $phone = null;
+    public string $stripePublishableKey = '';
 
-    public string $amount = '';
+    /** @var array<int, array<string, mixed>> */
+    public array $savedCards = [];
 
-    public string $currency = 'myr';
+    /** @var array<string, mixed> */
+    public array $formData = [
+        'campaign_id' => null,
+        'frequency' => 'once',
+        'amount' => '',
+        'currency' => '',
+        'scheduled_for' => null,
+        'first_name' => '',
+        'last_name' => '',
+        'email' => '',
+        'payment_method' => 'new_card',
+        'payment_method_id' => '',
+    ];
 
-    public string $frequency = 'one_time';
+    /** @var array<string, mixed> */
+    public array $flash = [];
 
-    public string $payment_method = 'cash';
-
-    public ?string $notes = null;
-
-    public bool $cover_fee = false;
+    public function boot(): void
+    {
+        if (! auth()->check() || auth()->user()?->organization_id === null) {
+            abort(403);
+        }
+    }
 
     public function mount(): void
     {
-        if (! Auth::user()?->organization) {
-            abort(403);
+        $this->organization = auth()->user()?->organization;
+        $this->stripePublishableKey = config('services.stripe.key');
+        $this->preloadedSupporterPublicId = request()->query('vt-supporter');
+
+        if ($this->preloadedSupporterPublicId) {
+            $this->loadPreloadedSupporter();
         }
 
-        $currencies = $this->acceptedCurrencies();
-
-        $this->currency = ! empty($currencies) ? $currencies[0] : 'myr';
+        if (! $this->formData['currency']) {
+            $this->formData['currency'] = $this->acceptedCurrencies[0] ?? 'myr';
+        }
 
         $this->loadDefaultCampaign();
+        $this->formData['scheduled_for'] = now()->format('Y-m-d');
+    }
+
+    public function loadPreloadedSupporter(): void
+    {
+        $this->preloadedSupporter = Donor::query()
+            ->where('public_id', $this->preloadedSupporterPublicId)
+            ->first();
+
+        if ($this->preloadedSupporter) {
+            $names = explode(' ', $this->preloadedSupporter->name, 2);
+            $this->formData['first_name'] = $names[0] ?? '';
+            $this->formData['last_name'] = $names[1] ?? '';
+            $this->formData['email'] = $this->preloadedSupporter->email;
+
+            $lastDonationCurrency = $this->preloadedSupporter->donations()
+                ->latest()
+                ->value('currency');
+
+            if ($lastDonationCurrency) {
+                $acceptedCurrencies = $this->acceptedCurrencies;
+                $lastCurrencyLower = strtolower($lastDonationCurrency);
+
+                if (in_array($lastCurrencyLower, $acceptedCurrencies)) {
+                    $this->formData['currency'] = $lastCurrencyLower;
+                }
+            }
+
+            $this->loadSavedCards();
+        }
+    }
+
+    public function loadSavedCards(): void
+    {
+        $donor = $this->preloadedSupporter;
+        if (! $donor) {
+            $this->savedCards = [];
+            $this->formData['payment_method'] = 'new_card';
+
+            return;
+        }
+
+        $this->savedCards = $donor->paymentMethods()
+            ->orderByDesc('is_default')
+            ->latest('id')
+            ->get()
+            ->map(fn ($paymentMethod): array => [
+                'id' => $paymentMethod->stripe_payment_method_id,
+                'brand' => ucfirst((string) $paymentMethod->brand),
+                'last4' => $paymentMethod->last4,
+                'exp_month' => $paymentMethod->exp_month,
+                'exp_year' => $paymentMethod->exp_year,
+            ])
+            ->all();
+
+        if ($this->savedCards === [] && $donor->stripe_customer_id && $this->organization) {
+            try {
+                $this->savedCards = app(LoadDonorSavedCards::class)->handle($donor, $this->organization);
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        }
+
+        $this->selectDefaultSavedCard();
+    }
+
+    private function selectDefaultSavedCard(): void
+    {
+        if ($this->savedCards === []) {
+            $this->formData['payment_method'] = 'new_card';
+
+            return;
+        }
+
+        $savedCardIds = collect($this->savedCards)->pluck('id');
+
+        if (! $savedCardIds->contains($this->formData['payment_method'])) {
+            $this->formData['payment_method'] = (string) $savedCardIds->first();
+        }
     }
 
     public function loadDefaultCampaign(): void
     {
-        $campaign = Campaign::where('organization_id', Auth::user()?->organization_id)
+        $defaultCampaign = Campaign::query()
+            ->where('organization_id', $this->organization->getKey())
             ->where('status', 'active')
             ->latest()
             ->first();
 
-        if ($campaign) {
-            $this->campaign_id = (string) $campaign->id;
+        if ($defaultCampaign) {
+            $this->formData['campaign_id'] = (string) $defaultCampaign->getKey();
+        }
+    }
+
+    public function clearPreloadedSupporter(): void
+    {
+        $this->preloadedSupporter = null;
+        $this->preloadedSupporterPublicId = null;
+        $this->savedCards = [];
+        $this->formData['first_name'] = '';
+        $this->formData['last_name'] = '';
+        $this->formData['email'] = '';
+        $this->formData['payment_method'] = 'new_card';
+        $this->formData['payment_method_id'] = '';
+    }
+
+    public function searchDonorByEmail(): void
+    {
+        $email = $this->formData['email'] ?? '';
+        if (empty($email) || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->searchedDonor = null;
+
+            return;
+        }
+
+        $organization = $this->organization;
+
+        $this->searchedDonor = Donor::query()
+            ->where('email', $email)
+            ->whereHas('donations.campaign', fn ($q) => $q->where('organization_id', $organization->getKey()))
+            ->first();
+    }
+
+    public function loadSearchedDonor(): void
+    {
+        if ($this->searchedDonor) {
+            $names = explode(' ', $this->searchedDonor->name, 2);
+            $this->formData['first_name'] = $names[0] ?? '';
+            $this->formData['last_name'] = $names[1] ?? '';
+            $this->formData['email'] = $this->searchedDonor->email;
+            $this->preloadedSupporter = $this->searchedDonor;
+            $this->searchedDonor = null;
+            $this->loadSavedCards();
         }
     }
 
     #[Computed]
     public function campaigns(): array
     {
-        return Campaign::where('organization_id', Auth::user()?->organization_id)
+        return Campaign::query()
+            ->where('organization_id', $this->organization->getKey())
             ->where('status', 'active')
             ->pluck('title', 'id')
             ->toArray();
@@ -79,101 +219,136 @@ class VirtualTerminal extends Component
     #[Computed]
     public function acceptedCurrencies(): array
     {
-        $settings = Auth::user()?->organization?->settings ?? [];
+        $settings = $this->organization?->settings ?? [];
         $currencies = $settings['accepted_currencies'] ?? [];
 
         if (! empty($currencies)) {
-            return collect($currencies)->map(fn (string $c): string => strtolower($c))->values()->all();
+            return collect($currencies)
+                ->map(fn (string $currency): string => strtolower($currency))
+                ->values()
+                ->all();
         }
 
         return ['myr'];
     }
 
-    public function getSelectedCampaign(): ?Campaign
+    public function getProcessingFeeEstimate(): string
     {
-        if (! $this->campaign_id) {
-            return null;
+        $amount = (float) $this->formData['amount'];
+        if ($amount <= 0) {
+            return $this->getCurrency().' 0.00';
         }
 
-        return Campaign::find($this->campaign_id);
+        $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
+        $fee = $amount * $feePercent / 100;
+
+        return $this->getCurrency().' '.number_format($fee, 2);
     }
 
-    public function getMinimumAmount(): float
+    public function getCurrency(): string
     {
-        $campaign = $this->getSelectedCampaign();
-
-        return (float) ($campaign?->minimum_amount ?? 1);
+        return strtoupper((string) ($this->formData['currency'] ?? 'myr'));
     }
 
-    public function save(): void
+    public function getTotalAmount(): string
     {
-        $this->validate([
-            'campaign_id' => ['required', 'exists:campaigns,id'],
+        $amount = (float) $this->formData['amount'];
+
+        return $this->getCurrency().' '.number_format($amount, 2);
+    }
+
+    public function processDonation(): void
+    {
+        $data = $this->formData;
+        $campaignId = (int) $data['campaign_id'];
+        $validator = Validator::make($data, [
+            'campaign_id' => ['required', "exists:campaigns,id,organization_id,{$this->organization->getKey()}"],
+            'frequency' => ['required', 'in:once,monthly'],
+            'amount' => ['required', 'numeric', 'min:1', 'max:99999.99'],
+            'currency' => ['required', 'string', 'in:'.implode(',', $this->acceptedCurrencies)],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:255'],
-            'amount' => ['required', 'numeric', 'min:'.$this->getMinimumAmount()],
-            'currency' => ['required', 'string', 'in:'.implode(',', $this->acceptedCurrencies())],
-            'frequency' => ['required', 'in:one_time,monthly'],
-            'payment_method' => ['required', 'in:cash,bank_transfer,card,check'],
-            'notes' => ['nullable', 'string', 'max:1000'],
+            'payment_method' => ['nullable', 'string'],
+            'payment_method_id' => ['nullable', 'string'],
         ]);
 
-        $org = Auth::user()?->organization;
+        if ($validator->fails()) {
+            $this->dispatch('vt-error', message: 'Please check your form.');
 
-        if (! $org) {
             return;
         }
 
-        $donor = Donor::firstOrCreate(
-            ['email' => $this->email],
-            [
-                'name' => trim($this->first_name.' '.$this->last_name),
-                'phone' => $this->phone,
-            ]
-        );
+        $data = $validator->validated();
+        $formattedAmount = number_format((float) $data['amount'], 2);
 
-        $amount = (float) $this->amount;
+        try {
+            if ($data['frequency'] === 'once') {
+                app(ProcessVirtualTerminalDonation::class)->handle(
+                    campaignId: (int) $data['campaign_id'],
+                    amount: (float) $data['amount'],
+                    firstName: $data['first_name'],
+                    lastName: $data['last_name'],
+                    email: $data['email'],
+                    organization: $this->organization,
+                    currency: $data['currency'],
+                    savedCardId: $data['payment_method'] !== 'new_card' ? $data['payment_method'] : null,
+                    paymentMethodId: $data['payment_method_id'] ?? null,
+                    source: 'virtual_terminal',
+                );
 
-        $donation = Donation::create([
-            'organization_id' => $org->id,
-            'campaign_id' => (int) $this->campaign_id,
-            'donor_id' => $donor->id,
-            'gross_amount' => $amount,
-            'currency' => strtolower($this->currency),
-            'status' => DonationStatus::Succeeded,
-            'type' => $this->frequency === 'monthly' ? DonationType::Recurring : DonationType::OneTime,
-            'payment_method_type' => $this->payment_method,
-            'source' => 'virtual_terminal',
-            'platform_fee_covered' => $this->cover_fee,
-            'donor_message' => $this->notes,
-        ]);
+                $this->flash = [
+                    'type' => 'success',
+                    'message' => "Donation of {$this->getCurrency()} {$formattedAmount} processed successfully.",
+                ];
+            } else {
+                app(ProcessVirtualTerminalSubscription::class)->handle(
+                    campaignId: (int) $data['campaign_id'],
+                    amount: (float) $data['amount'],
+                    firstName: $data['first_name'],
+                    lastName: $data['last_name'],
+                    email: $data['email'],
+                    organization: $this->organization,
+                    currency: $data['currency'],
+                    savedCardId: $data['payment_method'] !== 'new_card' ? $data['payment_method'] : null,
+                    paymentMethodId: $data['payment_method_id'] ?? null,
+                    source: 'virtual_terminal',
+                );
 
-        if ($this->frequency === 'monthly') {
-            Subscription::create([
-                'organization_id' => $org->id,
-                'campaign_id' => (int) $this->campaign_id,
-                'donor_id' => $donor->id,
-                'amount' => $amount,
-                'currency' => strtolower($this->currency),
-                'interval' => SubscriptionInterval::Monthly,
-                'status' => SubscriptionStatus::Active,
-                'current_period_start' => now(),
-                'current_period_end' => now()->addMonth(),
-                'source' => 'virtual_terminal',
-                'cover_fee' => $this->cover_fee,
-            ]);
+                $this->flash = [
+                    'type' => 'success',
+                    'message' => "Monthly donation of {$this->getCurrency()} {$formattedAmount} set up successfully.",
+                ];
+            }
+
+            $this->resetForm();
+        } catch (\Throwable $e) {
+            report($e);
+
+            $this->dispatch('vt-error', message: 'Payment failed. Please try again.');
         }
+    }
 
-        $this->dispatch('toast', type: 'success', message: 'Donation of '.strtoupper($this->currency).' '.number_format($amount, 2).' recorded successfully.');
-
-        $this->reset(['first_name', 'last_name', 'email', 'phone', 'amount', 'notes', 'cover_fee']);
-        $this->loadDefaultCampaign();
+    public function resetForm(): void
+    {
+        $this->formData = [
+            'campaign_id' => $this->formData['campaign_id'],
+            'frequency' => 'once',
+            'amount' => '',
+            'currency' => $this->formData['currency'],
+            'scheduled_for' => null,
+            'first_name' => $this->preloadedSupporter ? $this->formData['first_name'] : '',
+            'last_name' => $this->preloadedSupporter ? $this->formData['last_name'] : '',
+            'email' => $this->preloadedSupporter ? $this->formData['email'] : '',
+            'payment_method' => $this->savedCards !== [] ? (string) collect($this->savedCards)->pluck('id')->first() : 'new_card',
+            'payment_method_id' => '',
+        ];
     }
 
     public function render()
     {
-        return view('livewire.app.virtual-terminal', ['title' => 'Virtual Terminal']);
+        return view('livewire.app.virtual-terminal', [
+            'title' => 'Virtual Terminal',
+        ]);
     }
 }

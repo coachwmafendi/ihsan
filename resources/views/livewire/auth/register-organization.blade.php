@@ -39,7 +39,7 @@
 
     {{-- Right: Form / Light side --}}
     <div class="w-full lg:w-1/2 bg-slate-50 flex items-center justify-center px-6 py-12 lg:py-0">
-        <div class="w-full max-w-lg">
+        <div class="w-full max-w-2xl">
             {{-- Mobile logo (shown only on small screens) --}}
             <div class="lg:hidden text-center mb-8">
                 <a href="{{ route('home') }}" class="text-slate-900 font-bold text-2xl tracking-tight">Ihsan</a>
@@ -91,7 +91,7 @@
             @else
                 {{-- Form --}}
                 <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
-                    <h1 class="text-2xl font-bold text-slate-900 mb-1">Daftar Organisasi</h1>
+                    <h1 class="text-2xl font-bold text-slate-900 mb-1">Register Organization</h1>
                     <p class="text-sm text-slate-500 mb-8">Fill in your organization details to get started.</p>
 
                     <form wire:submit="submit" class="space-y-5">
@@ -205,9 +205,11 @@
                             @error('facebook_url')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
-                        <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
-                            Submit Application
-                        </button>
+                        <div class="flex justify-center pt-2">
+                            <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-8 py-2.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+                                Submit Application
+                            </button>
+                        </div>
                     </form>
                 </div>
 

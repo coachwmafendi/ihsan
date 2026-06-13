@@ -443,6 +443,15 @@
                     </div>
                     <x-ui.button wireClick="duplicate" variant="secondary">Duplicate</x-ui.button>
                 </div>
+                <div class="border-t border-slate-100"></div>
+
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <h3 class="text-sm font-medium text-slate-900">Delete Campaign</h3>
+                        <p class="text-xs text-slate-500">Permanently delete this campaign and all associated data. This action cannot be undone.</p>
+                    </div>
+                    <x-ui.button wireClick="delete" variant="danger" onclick="return confirm('Are you sure you want to permanently delete this campaign? This cannot be undone.')">Delete</x-ui.button>
+                </div>
             </div>
         </x-ui.card>
     </div>

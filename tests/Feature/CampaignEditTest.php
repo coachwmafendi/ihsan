@@ -73,7 +73,7 @@ it('archives a campaign', function () {
         ->assertDispatched('toast');
 
     $campaign->refresh();
-    expect($campaign->status->value)->toBe('ended');
+    expect($campaign->status->value)->toBe('archived');
 });
 
 it('duplicates a campaign', function () {

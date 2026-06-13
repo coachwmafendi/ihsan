@@ -1,21 +1,15 @@
 <?php
 
 use App\Enums\UserRole;
-use App\Filament\App\Resources\Donors\Pages\EditDonor;
+use App\Livewire\App\Donors\DonorShow;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\User;
-use Filament\Facades\Filament;
-use Filament\Resources\Pages\ViewRecord;
 use Livewire\Livewire;
 
-it('uses a view record page for the supporter edit URL', function () {
-    expect(is_subclass_of(EditDonor::class, ViewRecord::class))->toBeTrue();
-});
-
-it('renders the supporter information section at full content width', function () {
+it('renders the donor show page', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([
         'role' => UserRole::NgoAdmin,
@@ -30,18 +24,16 @@ it('renders the supporter information section at full content width', function (
     Donation::factory()->for($campaign)->for($donor)->create();
 
     $this->actingAs($user);
-    Filament::setCurrentPanel(Filament::getPanel('app'));
 
-    Livewire::test(EditDonor::class, [
-        'record' => $donor->getRouteKey(),
+    Livewire::test(DonorShow::class, [
+        'donor' => $donor,
     ])
         ->assertOk()
-        ->assertDontSee('Delete')
-        ->assertSee('Information')
-        ->assertSeeHtml('--col-span-default: 1 / -1');
+        ->assertSee('Aminah Hassan')
+        ->assertSee('aminah@example.test');
 });
 
-it('renders a dedicated receipts section for succeeded donations', function () {
+it('renders a donations section for succeeded donations', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([
         'role' => UserRole::NgoAdmin,
@@ -50,7 +42,7 @@ it('renders a dedicated receipts section for succeeded donations', function () {
     $campaign = Campaign::factory()->for($organization)->create();
     $donor = Donor::factory()->create();
 
-    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+    Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 101.69,
         'base_amount' => 101.69,
         'invoice_number' => 'DZSZESVS',
@@ -58,16 +50,11 @@ it('renders a dedicated receipts section for succeeded donations', function () {
     ]);
 
     $this->actingAs($user);
-    Filament::setCurrentPanel(Filament::getPanel('app'));
 
-    Livewire::test(EditDonor::class, [
-        'record' => $donor->getRouteKey(),
+    Livewire::test(DonorShow::class, [
+        'donor' => $donor,
     ])
         ->assertOk()
-        ->assertSee('Receipts')
-        ->assertSee('DZSZESVS')
-        ->assertSee('MYR 101.69')
-        ->assertSeeHtml('id="receipts-section"')
-        ->assertSeeHtml("scrollTo('receipts-section')")
-        ->assertSee(route('donations.receipt.download', $donation), false);
+        ->assertSee('Recent Donations')
+        ->assertSee('RM 101.69');
 });

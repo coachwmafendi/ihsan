@@ -96,7 +96,7 @@
                             >
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-3">
-                                        @if ($campaign->image_path)
+                                        @if ($campaign->image_path && Storage::disk('public')->exists($campaign->image_path))
                                             <img src="{{ Storage::disk('public')->url($campaign->image_path) }}" alt="" class="h-10 w-10 rounded-lg object-cover" />
                                         @else
                                             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50">
