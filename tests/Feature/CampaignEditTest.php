@@ -101,6 +101,36 @@ it('sanitizes campaign amount inputs to five whole-number digits while editing',
         ->assertSet('suggestedMonthly.0.value', 65432);
 });
 
+it('loads suggested amounts with six values for each frequency', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'config' => [
+            'suggested_amounts_by_currency' => [
+                'MYR' => [
+                    'one_time' => [
+                        ['value' => 50, 'label' => ''],
+                    ],
+                    'monthly' => [
+                        ['value' => 30, 'label' => ''],
+                    ],
+                ],
+            ],
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertCount('suggestedOneTime', 6)
+        ->assertCount('suggestedMonthly', 6)
+        ->assertSet('suggestedOneTime.0.value', 50)
+        ->assertSet('suggestedMonthly.0.value', 30)
+        ->assertSet('suggestedOneTime.2.value', 300)
+        ->assertSet('suggestedMonthly.2.value', 150)
+        ->assertSee('500')
+        ->assertSee('300');
+});
+
 it('backfills empty suggested amounts with defaults on save', function () {
     $campaign = Campaign::factory()->create([
         'organization_id' => $this->organization->id,

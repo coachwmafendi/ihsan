@@ -179,9 +179,10 @@ class CampaignEdit extends Component
 
     private function syncActiveCurrencyAmounts(): void
     {
-        $data = $this->allSuggestedAmounts[$this->activeCurrency] ?? $this->defaultAmountsForCurrency($this->activeCurrency);
-        $this->suggestedOneTime = $data['one_time'] ?? [];
-        $this->suggestedMonthly = $data['monthly'] ?? [];
+        $defaults = $this->defaultAmountsForCurrency($this->activeCurrency);
+        $data = $this->allSuggestedAmounts[$this->activeCurrency] ?? $defaults;
+        $this->suggestedOneTime = $this->backfillSuggestedDefaults($data['one_time'] ?? [], $defaults['one_time']);
+        $this->suggestedMonthly = $this->backfillSuggestedDefaults($data['monthly'] ?? [], $defaults['monthly']);
     }
 
     /** @return array<string, array<int, array{value: float, label: string}>> */
@@ -533,6 +534,7 @@ class CampaignEdit extends Component
 
         $newCampaign = $this->campaign->replicate([
             'public_id',
+            'slug',
             'form_parameter',
             'collected_amount',
             'image_path',
