@@ -81,3 +81,20 @@ test('facebook_url is optional', function () {
         ->assertHasNoErrors(['facebook_url'])
         ->assertSet('submitted', true);
 });
+
+test('org registration fails with duplicate ros_rob_number', function () {
+    Organization::factory()->create([
+        'ros_rob_number' => 'PPM-17282',
+        'status' => OrganizationStatus::Pending,
+    ]);
+
+    Livewire::test(RegisterOrganization::class)
+        ->set('name', 'Test Masjid')
+        ->set('registration_type', 'ROS')
+        ->set('ros_rob_number', 'PPM-17282')
+        ->set('sector', 'Agama')
+        ->set('contact_email', 'test@test.com')
+        ->set('website_url', 'https://test.com')
+        ->call('submit')
+        ->assertHasErrors(['ros_rob_number']);
+});

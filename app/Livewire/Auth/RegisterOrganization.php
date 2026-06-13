@@ -15,7 +15,7 @@ class RegisterOrganization extends Component
     #[Rule(['required', 'in:ROS,ROB,Others'])]
     public string $registration_type = '';
 
-    #[Rule(['required', 'string', 'max:100'])]
+    #[Rule(['required', 'string', 'max:100', 'unique:organizations'])]
     public string $ros_rob_number = '';
 
     #[Rule(['required', 'string', 'max:100'])]
