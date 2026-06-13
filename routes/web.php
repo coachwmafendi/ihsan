@@ -12,7 +12,6 @@ use App\Livewire\App\Billing;
 use App\Livewire\App\Campaigns\CampaignCreate;
 use App\Livewire\App\Campaigns\CampaignEdit;
 use App\Livewire\App\Campaigns\CampaignIndex;
-use App\Livewire\App\Campaigns\CampaignShow;
 use App\Livewire\App\Dashboard;
 use App\Livewire\App\Donations\DonationIndex;
 use App\Livewire\App\Donations\DonationShow;
@@ -70,7 +69,6 @@ Route::middleware(['auth', EnsureNgoAdmin::class])->group(function () {
     Route::get('/app/campaigns', CampaignIndex::class)->name('app.campaigns.index');
     Route::get('/app/campaigns/create', CampaignCreate::class)->name('app.campaigns.create');
     Route::get('/app/campaigns/{campaign:public_id}/edit', CampaignEdit::class)->name('app.campaigns.edit');
-    Route::get('/app/campaigns/{campaign:public_id}', CampaignShow::class)->name('app.campaigns.show');
 
     Route::get('/app/donations', DonationIndex::class)->name('app.donations.index');
     Route::get('/app/donations/{donation:public_id}', DonationShow::class)->name('app.donations.show');

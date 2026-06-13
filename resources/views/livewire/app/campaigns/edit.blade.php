@@ -1,19 +1,37 @@
 {{-- resources/views/livewire/app/campaigns/edit.blade.php --}}
 <div x-data="{ tab: @entangle('activeTab') }" class="space-y-6">
     {{-- Page Header --}}
+    <div class="mb-4">
+        <a href="{{ route('app.campaigns.index') }}" wire:navigate class="inline-flex items-center text-sm text-slate-500 hover:text-slate-700">
+            <x-heroicon-o-arrow-left class="size-4 mr-1" />
+            Back
+        </a>
+    </div>
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-            <div class="flex items-center gap-3">
-                <a href="{{ route('app.campaigns.show', $campaign) }}" wire:navigate class="inline-flex items-center text-sm text-slate-500 hover:text-slate-700">
-                    <x-heroicon-o-arrow-left class="size-4 mr-1" />
-                    Back
-                </a>
+            <div class="flex flex-wrap items-center gap-3">
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900">{{ $campaign->title }}</h1>
+                <x-ui.badge status="{{ $campaign->status->value }}" size="sm">
+                    {{ ucfirst($campaign->status->value) }}
+                </x-ui.badge>
             </div>
-            <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-900">Edit Campaign</h1>
-            <p class="mt-1 text-sm text-slate-500">{{ $campaign->title }}</p>
-        </div>
-        <div class="flex items-center gap-2">
-            <x-ui.button href="{{ route('app.campaigns.show', $campaign) }}" variant="secondary">View Campaign</x-ui.button>
+            <div class="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-slate-500">
+                <span class="inline-flex items-center gap-1.5">
+                    ID {{ $campaign->public_id }}
+                    <button
+                        type="button"
+                        x-on:click="navigator.clipboard.writeText('{{ $campaign->public_id }}'); $dispatch('notify', { message: 'Campaign ID copied', variant: 'success' })"
+                        class="inline-flex items-center rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        title="Copy ID"
+                    >
+                        <x-heroicon-o-clipboard-document class="size-4" />
+                    </button>
+                </span>
+                <span>·</span>
+                <span>Created {{ $campaign->created_at->format('M d, Y') }}</span>
+                <span>·</span>
+                <span>{{ $campaign->end_date ? 'Ends '.$campaign->end_date->format('M d, Y') : 'No end date' }}</span>
+            </div>
         </div>
     </div>
 
@@ -358,279 +376,287 @@
             </x-ui.card>
 
             <div class="flex items-center justify-end gap-3">
-                <x-ui.button href="{{ route('app.campaigns.show', $campaign) }}" variant="ghost">Cancel</x-ui.button>
+                <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
                 <x-ui.button type="submit" variant="primary">Save Changes</x-ui.button>
             </div>
         </div>
 
         {{-- Checkout Modal Tab --}}
         <div x-show="tab === 'checkout'" x-cloak class="space-y-6">
-            <x-ui.card title="Donation Settings">
-                <div class="space-y-6">
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <h3 class="text-sm font-medium text-slate-900">Allow Recurring Donations</h3>
-                            <p class="text-xs text-slate-500">Let donors set up monthly subscriptions</p>
-                        </div>
-                        <button
-                            type="button"
-                            wire:click="$toggle('allow_recurring')"
-                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $allow_recurring ? 'bg-teal-600' : 'bg-slate-200' }}"
-                            role="switch"
-                            aria-checked="{{ $allow_recurring ? 'true' : 'false' }}"
-                        >
-                            <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $allow_recurring ? 'translate-x-5' : 'translate-x-0' }}"></span>
-                        </button>
-                    </div>
-
-                    <div class="border-t border-slate-100"></div>
-
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <h3 class="text-sm font-medium text-slate-900">Allow Custom Amount</h3>
-                            <p class="text-xs text-slate-500">Donors can enter any amount</p>
-                        </div>
-                        <button
-                            type="button"
-                            wire:click="$toggle('allow_custom_amount')"
-                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $allow_custom_amount ? 'bg-teal-600' : 'bg-slate-200' }}"
-                            role="switch"
-                            aria-checked="{{ $allow_custom_amount ? 'true' : 'false' }}"
-                        >
-                            <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $allow_custom_amount ? 'translate-x-5' : 'translate-x-0' }}"></span>
-                        </button>
-                    </div>
-
-                    <div class="max-w-xs">
-                        <label for="minimum_amount" class="block text-sm font-medium text-slate-700">Minimum Amount ({{ $this->getCurrencySymbol() }})</label>
-                        <input
-                            type="text"
-                            inputmode="numeric"
-                            maxlength="5"
-                            pattern="[0-9]*"
-                            id="minimum_amount"
-                            wire:model="minimum_amount"
-                            x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            placeholder="5"
-                        />
-                        @error('minimum_amount') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+                {{-- Left Column: Vertical Tabs --}}
+                <div class="lg:col-span-1">
+                    <x-ui.card>
+                        <nav class="flex flex-col space-y-1" aria-label="Checkout settings">
+                            <button type="button"
+                                wire:click="$set('checkoutPanel', 'currency')"
+                                class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $checkoutPanel === 'currency' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                            >
+                                <x-heroicon-o-currency-dollar class="size-5" />
+                                Currency
+                            </button>
+                            <button type="button"
+                                wire:click="$set('checkoutPanel', 'frequency')"
+                                class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $checkoutPanel === 'frequency' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                            >
+                                <x-heroicon-o-arrow-path class="size-5" />
+                                Frequency
+                            </button>
+                            <button type="button"
+                                wire:click="$set('checkoutPanel', 'suggested')"
+                                class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $checkoutPanel === 'suggested' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                            >
+                                <x-heroicon-o-list-bullet class="size-5" />
+                                Suggested Amounts
+                            </button>
+                            <button type="button"
+                                wire:click="$set('checkoutPanel', 'minimum')"
+                                class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $checkoutPanel === 'minimum' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                            >
+                                <x-heroicon-o-arrow-down-circle class="size-5" />
+                                Minimum Amounts
+                            </button>
+                            <button type="button"
+                                wire:click="$set('checkoutPanel', 'fee')"
+                                class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $checkoutPanel === 'fee' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                            >
+                                <x-heroicon-o-credit-card class="size-5" />
+                                Processing Fee
+                            </button>
+                        </nav>
+                    </x-ui.card>
                 </div>
-            </x-ui.card>
 
-            <x-ui.card title="Suggested Amounts" description="Preset donation amounts shown to donors">
-                <div class="space-y-4">
-                    {{-- Currency Tabs --}}
-                    @if (count($acceptedCurrencies) > 1)
-                        <div>
-                            <span class="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500">Currency</span>
-                            <div class="flex items-center gap-2">
-                                @foreach ($acceptedCurrencies as $currency)
-                                    <button type="button"
-                                        wire:click="$set('activeCurrency', '{{ $currency }}')"
-                                        class="rounded-lg border px-3 py-1.5 text-sm font-medium transition {{ $activeCurrency === $currency ? 'border-teal-500 bg-teal-50 text-teal-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300' }}"
+                {{-- Right Column: Tab Content --}}
+                <div class="lg:col-span-3">
+                    <x-ui.card>
+                        @if ($checkoutPanel === 'currency')
+                            <div class="space-y-6">
+                                <p class="text-sm text-slate-600">
+                                    Choose a default currency for this campaign's Checkout, and decide whether to give your supporters the option to choose their own. If collecting donations from a range of locations, you can enable currency autodetect.
+                                </p>
+
+                                <div class="max-w-md">
+                                    <label for="default_currency" class="block text-sm font-semibold text-slate-900">Default Checkout currency</label>
+                                    <div class="relative mt-2">
+                                        <select
+                                            id="default_currency"
+                                            wire:model="default_currency"
+                                            class="block w-full appearance-none rounded-lg border border-slate-300 bg-white px-4 py-3 pr-10 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                        >
+                                            @foreach ($acceptedCurrencies as $currency)
+                                                <option value="{{ $currency }}">
+                                                    {{ $currency }} · {{ match($currency) {
+                                                        'MYR' => 'Malaysian Ringgit',
+                                                        'USD' => 'United States Dollar',
+                                                        'SGD' => 'Singapore Dollar',
+                                                        'GBP' => 'British Pound',
+                                                        'EUR' => 'Euro',
+                                                        'AUD' => 'Australian Dollar',
+                                                        default => $currency,
+                                                    } }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                                            <x-heroicon-o-chevron-down class="size-4" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <label class="flex cursor-pointer items-start gap-3">
+                                    <input
+                                        type="checkbox"
+                                        wire:model.live="currency_autodetect"
+                                        class="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                    />
+                                    <span class="text-sm text-slate-700">
+                                        Automatically detect each supporter's default currency using their geolocation.
+                                    </span>
+                                </label>
+
+                                <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                                    <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
+                                    <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($checkoutPanel === 'frequency')
+                            <div class="space-y-6">
+                                <div>
+                                    <label for="default_frequency" class="block text-sm font-medium text-slate-700">Default Frequency</label>
+                                    <select
+                                        id="default_frequency"
+                                        wire:model="default_frequency"
+                                        class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                     >
-                                        {{ match($currency) { 'USD' => '$', 'SGD' => 'S$', 'GBP' => '£', 'EUR' => '€', default => 'RM' } }}
-                                        <span class="ml-1 text-xs font-normal">{{ $currency }}</span>
+                                        <option value="one_time">One-time</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                    <p class="mt-1 text-xs text-slate-500">Frequency shown to donors when the page loads.</p>
+                                </div>
+
+                                <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                                    <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
+                                    <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($checkoutPanel === 'suggested')
+                            <div class="space-y-5">
+                                <div>
+                                    <span class="mb-2 block text-sm font-semibold text-slate-900">Suggested donation amount presets</span>
+                                    <div class="flex items-center gap-2 rounded-xl bg-slate-100 p-1.5">
+                                        <button type="button"
+                                            wire:click="$set('suggestedActiveFreq', 'one_time')"
+                                            class="relative flex-1 rounded-lg px-4 py-3 text-sm font-semibold transition {{ $suggestedActiveFreq === 'one_time' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}"
+                                        >
+                                            <div class="flex items-center justify-center gap-2">
+                                                <x-heroicon-o-bolt class="size-4" />
+                                                One Time
+                                            </div>
+                                        </button>
+                                        <button type="button"
+                                            wire:click="$set('suggestedActiveFreq', 'monthly')"
+                                            class="relative flex-1 rounded-lg px-4 py-3 text-sm font-semibold transition {{ $suggestedActiveFreq === 'monthly' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}"
+                                        >
+                                            <div class="flex items-center justify-center gap-2">
+                                                <x-heroicon-o-arrow-path class="size-4" />
+                                                Monthly
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                @if ($suggestedActiveFreq === 'one_time')
+                                    <div class="space-y-3">
+                                        <span class="text-base font-medium text-slate-700">One Time Amounts</span>
+                                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                            @foreach ($suggestedOneTime as $index => $amount)
+                                                <div class="inline-flex min-h-14 items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-lg font-semibold text-teal-700">
+                                                    <span>{{ $this->getCurrencySymbol() }}</span>
+                                                    <input
+                                                        type="text"
+                                                        inputmode="numeric"
+                                                        maxlength="5"
+                                                        pattern="[0-9]*"
+                                                        wire:model.blur="suggestedOneTime.{{ $index }}.value"
+                                                        x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
+                                                        class="w-20 border-none bg-transparent p-0 text-lg font-semibold text-teal-700 focus:ring-0"
+                                                    />
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if ($suggestedActiveFreq === 'monthly')
+                                    <div class="space-y-3">
+                                        <span class="text-base font-medium text-slate-700">Monthly Amounts</span>
+                                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                            @foreach ($suggestedMonthly as $index => $amount)
+                                                <div class="inline-flex min-h-14 items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-lg font-semibold text-teal-700">
+                                                    <span>{{ $this->getCurrencySymbol() }}</span>
+                                                    <input
+                                                        type="text"
+                                                        inputmode="numeric"
+                                                        maxlength="5"
+                                                        pattern="[0-9]*"
+                                                        wire:model.blur="suggestedMonthly.{{ $index }}.value"
+                                                        x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
+                                                        class="w-20 border-none bg-transparent p-0 text-lg font-semibold text-teal-700 focus:ring-0"
+                                                    />
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <div class="border-t border-slate-100"></div>
+
+                                <div class="max-w-xs">
+                                    <label for="default_amount" class="block text-sm font-medium text-slate-700">Default Amount ({{ $this->getCurrencySymbol() }})</label>
+                                    <input
+                                        type="text"
+                                        inputmode="numeric"
+                                        maxlength="5"
+                                        pattern="[0-9]*"
+                                        id="default_amount"
+                                        wire:model="default_amount"
+                                        x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
+                                        class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                        placeholder="50"
+                                    />
+                                </div>
+
+                                <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                                    <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
+                                    <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($checkoutPanel === 'minimum')
+                            <div class="space-y-4">
+                                <div class="max-w-xs">
+                                    <label for="minimum_amount" class="block text-sm font-medium text-slate-700">Minimum Amount ({{ $this->getCurrencySymbol() }})</label>
+                                    <input
+                                        type="text"
+                                        inputmode="numeric"
+                                        maxlength="5"
+                                        pattern="[0-9]*"
+                                        id="minimum_amount"
+                                        wire:model="minimum_amount"
+                                        x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
+                                        class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                        placeholder="5"
+                                    />
+                                    @error('minimum_amount') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                </div>
+                                <p class="text-xs text-slate-500">Donors will not be able to donate less than this amount.</p>
+
+                                <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                                    <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
+                                    <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($checkoutPanel === 'fee')
+                            <div class="space-y-4">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h3 class="text-sm font-medium text-slate-900">Allow Donor to Cover Fee</h3>
+                                        <p class="text-xs text-slate-500">Donors can opt-in to cover the processing fee so the NGO receives the full amount.</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        wire:click="$toggle('allow_cover_fee')"
+                                        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $allow_cover_fee ? 'bg-teal-600' : 'bg-slate-200' }}"
+                                        role="switch"
+                                        aria-checked="{{ $allow_cover_fee ? 'true' : 'false' }}"
+                                    >
+                                        <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $allow_cover_fee ? 'translate-x-5' : 'translate-x-0' }}"></span>
                                     </button>
-                                @endforeach
-                            </div>
-                        </div>
-                    @else
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-medium uppercase tracking-wide text-slate-500">Currency</span>
-                            <span class="inline-flex items-center gap-1 rounded-md bg-slate-50 px-2 py-1 text-sm font-semibold text-slate-700">
-                                {{ $this->getCurrencySymbol() }}
-                                <span class="text-xs font-normal text-slate-400">{{ $activeCurrency }}</span>
-                            </span>
-                        </div>
-                    @endif
+                                </div>
 
-                    {{-- Frequency Tabs --}}
-                    <div class="flex items-center gap-2 rounded-lg bg-slate-100 p-1">
-                        <button type="button"
-                            wire:click="$set('suggestedActiveFreq', 'one_time')"
-                            class="relative flex-1 rounded-md px-3 py-2 text-sm font-medium transition {{ $suggestedActiveFreq === 'one_time' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}"
-                        >
-                            <div class="flex items-center justify-center gap-2">
-                                <x-heroicon-o-bolt class="size-4" />
-                                One Time
-                            </div>
-                        </button>
-                        <button type="button"
-                            wire:click="$set('suggestedActiveFreq', 'monthly')"
-                            class="relative flex-1 rounded-md px-3 py-2 text-sm font-medium transition {{ $suggestedActiveFreq === 'monthly' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}"
-                        >
-                            <div class="flex items-center justify-center gap-2">
-                                <x-heroicon-o-arrow-path class="size-4" />
-                                Monthly
-                            </div>
-                        </button>
-                    </div>
-
-                    {{-- One Time Amounts --}}
-                    @if ($suggestedActiveFreq === 'one_time')
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-slate-700">One Time Amounts</span>
-                                <span class="text-xs text-slate-400">{{ count($suggestedOneTime) }}/6</span>
-                            </div>
-                            <div class="grid grid-cols-3 gap-3">
-                                @foreach ($suggestedOneTime as $index => $amount)
-                                    <div class="group relative inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700">
-                                        <span class="mr-1">{{ $this->getCurrencySymbol() }}</span>
-                                        <input
-                                            type="text"
-                                            inputmode="numeric"
-                                            maxlength="5"
-                                            pattern="[0-9]*"
-                                            wire:model.blur="suggestedOneTime.{{ $index }}.value"
-                                            x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
-                                            class="w-16 border-none bg-transparent p-0 text-sm font-medium text-teal-700 focus:ring-0"
-                                        />
-                                        <button
-                                            type="button"
-                                            wire:click="removeOneTimeSuggested({{ $index }})"
-                                            class="ml-1 rounded-full p-0.5 text-teal-400 opacity-0 transition group-hover:opacity-100 hover:bg-teal-200 hover:text-teal-700"
-                                            title="Remove amount"
-                                        >
-                                            <x-heroicon-o-x-mark class="size-3.5" />
-                                        </button>
+                                <div class="rounded-lg bg-slate-50 p-4">
+                                    <div class="flex items-start gap-2 text-sm text-slate-700">
+                                        <x-heroicon-o-information-circle class="mt-0.5 size-5 shrink-0 text-slate-400" />
+                                        <span>Platform processing fee is <strong>{{ number_format((float) config('services.stripe.processing_fee_percent', 2.5), 1) }}%</strong> plus a fixed fee per transaction.</span>
                                     </div>
-                                @endforeach
-                            </div>
-                        </div>
+                                </div>
 
-                        {{-- Add One Time --}}
-                        <div class="flex items-center gap-2">
-                            <div class="relative flex-1">
-                                <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">{{ $this->getCurrencySymbol() }}</span>
-                                <input
-                                    type="text"
-                                    inputmode="numeric"
-                                    maxlength="5"
-                                    pattern="[0-9]*"
-                                    wire:model="newOneTimeValue"
-                                    class="block w-full rounded-lg border border-slate-300 bg-white py-2 pl-10 pr-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                    placeholder="Add amount..."
-                                    x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
-                                    @keydown.enter.prevent="$wire.call('addOneTimeSuggested')"
-                                />
+                                <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                                    <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
+                                    <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
+                                </div>
                             </div>
-                            <x-ui.button type="button" wire:click="addOneTimeSuggested" variant="secondary">
-                                <x-heroicon-o-plus class="size-4" />
-                            </x-ui.button>
-                        </div>
-
-                        <button
-                            type="button"
-                            wire:click="resetOneTimeDefaults"
-                            class="text-xs font-medium text-teal-600 hover:text-teal-700"
-                        >
-                            Reset to defaults for {{ $activeCurrency }}
-                        </button>
-                    @endif
-
-                    {{-- Monthly Amounts --}}
-                    @if ($suggestedActiveFreq === 'monthly')
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-slate-700">Monthly Amounts</span>
-                                <span class="text-xs text-slate-400">{{ count($suggestedMonthly) }}/6</span>
-                            </div>
-                            <div class="grid grid-cols-3 gap-3">
-                                @foreach ($suggestedMonthly as $index => $amount)
-                                    <div class="group relative inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700">
-                                        <span class="mr-1">{{ $this->getCurrencySymbol() }}</span>
-                                        <input
-                                            type="text"
-                                            inputmode="numeric"
-                                            maxlength="5"
-                                            pattern="[0-9]*"
-                                            wire:model.blur="suggestedMonthly.{{ $index }}.value"
-                                            x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
-                                            class="w-16 border-none bg-transparent p-0 text-sm font-medium text-teal-700 focus:ring-0"
-                                        />
-                                        <button
-                                            type="button"
-                                            wire:click="removeMonthlySuggested({{ $index }})"
-                                            class="ml-1 rounded-full p-0.5 text-teal-400 opacity-0 transition group-hover:opacity-100 hover:bg-teal-200 hover:text-teal-700"
-                                            title="Remove amount"
-                                        >
-                                            <x-heroicon-o-x-mark class="size-3.5" />
-                                        </button>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        {{-- Add Monthly --}}
-                        <div class="flex items-center gap-2">
-                            <div class="relative flex-1">
-                                <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">{{ $this->getCurrencySymbol() }}</span>
-                                <input
-                                    type="text"
-                                    inputmode="numeric"
-                                    maxlength="5"
-                                    pattern="[0-9]*"
-                                    wire:model="newMonthlyValue"
-                                    class="block w-full rounded-lg border border-slate-300 bg-white py-2 pl-10 pr-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                    placeholder="Add amount..."
-                                    x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
-                                    @keydown.enter.prevent="$wire.call('addMonthlySuggested')"
-                                />
-                            </div>
-                            <x-ui.button type="button" wire:click="addMonthlySuggested" variant="secondary">
-                                <x-heroicon-o-plus class="size-4" />
-                            </x-ui.button>
-                        </div>
-
-                        <button
-                            type="button"
-                            wire:click="resetMonthlyDefaults"
-                            class="text-xs font-medium text-teal-600 hover:text-teal-700"
-                        >
-                            Reset to defaults for {{ $activeCurrency }}
-                        </button>
-                    @endif
+                        @endif
+                    </x-ui.card>
                 </div>
-            </x-ui.card>
-
-            <x-ui.card title="Defaults">
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                        <label for="default_frequency" class="block text-sm font-medium text-slate-700">Default Frequency</label>
-                        <select
-                            id="default_frequency"
-                            wire:model="default_frequency"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                        >
-                            <option value="one_time">One-time</option>
-                            <option value="monthly">Monthly</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="default_amount" class="block text-sm font-medium text-slate-700">Default Amount ({{ $this->getCurrencySymbol() }})</label>
-                        <input
-                            type="text"
-                            inputmode="numeric"
-                            maxlength="5"
-                            pattern="[0-9]*"
-                            id="default_amount"
-                            wire:model="default_amount"
-                            x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            placeholder="50"
-                        />
-                    </div>
-                </div>
-            </x-ui.card>
-
-            <div class="flex items-center justify-end gap-3">
-                <x-ui.button href="{{ route('app.campaigns.show', $campaign) }}" variant="ghost">Cancel</x-ui.button>
-                <x-ui.button type="submit" variant="primary">Save Changes</x-ui.button>
             </div>
         </div>
     </form>

@@ -69,7 +69,7 @@
                                         </td>
                                         <td class="px-4 py-3 text-sm text-slate-600">
                                             @if ($donation->campaign)
-                                                <a href="{{ route('app.campaigns.show', $donation->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
+                                                <a href="{{ route('app.campaigns.edit', $donation->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
                                                     {{ $donation->campaign->title }}
                                                 </a>
                                             @else
@@ -124,7 +124,7 @@
                                         </td>
                                         <td class="px-4 py-3 text-sm text-slate-600">
                                             @if ($subscription->campaign)
-                                                <a href="{{ route('app.campaigns.show', $subscription->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
+                                                <a href="{{ route('app.campaigns.edit', $subscription->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
                                                     {{ $subscription->campaign->title }}
                                                 </a>
                                             @else

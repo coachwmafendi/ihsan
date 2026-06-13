@@ -92,6 +92,7 @@
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach ($this->campaigns as $campaign)
                             <tr
+                                wire:click="redirectToEdit('{{ $campaign->public_id }}')"
                                 class="cursor-pointer transition-colors hover:bg-slate-50"
                             >
                                 <td class="px-5 py-4">
@@ -104,9 +105,9 @@
                                             </div>
                                         @endif
                                         <div>
-                                            <a href="{{ route('app.campaigns.show', $campaign) }}" wire:navigate class="text-sm font-semibold text-slate-900 hover:text-teal-600">
+                                            <span class="text-sm font-semibold text-slate-900">
                                                 {{ $campaign->title }}
-                                            </a>
+                                            </span>
                                             @if ($campaign->has_target && $campaign->target_amount)
                                                 <div class="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
                                                     <div class="h-1 w-16 rounded-full bg-slate-100">

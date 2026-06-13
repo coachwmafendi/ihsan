@@ -126,7 +126,7 @@ class CampaignCreate extends Component
 
         $this->dispatch('notify', message: 'Campaign created successfully.', variant: 'success');
 
-        $this->redirectRoute('app.campaigns.show', $campaign);
+        $this->redirectRoute('app.campaigns.edit', $campaign);
     }
 
     private function createDefaultDonorPortalButton(Campaign $campaign): void

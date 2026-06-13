@@ -21,7 +21,7 @@ it('displays the Actions tab on the campaign edit page', function () {
     $this->actingAs($user);
 
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
-        ->assertSee('Edit Campaign')
+        ->assertSee($campaign->title)
         ->assertSee('Actions')
         ->assertSee('Archive Campaign')
         ->assertSee('Duplicate Campaign');

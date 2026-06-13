@@ -135,7 +135,7 @@
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
                                     @if ($element->campaign)
-                                        <a href="{{ route('app.campaigns.show', $element->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
+                                        <a href="{{ route('app.campaigns.edit', $element->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
                                             {{ $element->campaign->title }}
                                         </a>
                                     @else

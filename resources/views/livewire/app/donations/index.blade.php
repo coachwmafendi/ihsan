@@ -163,7 +163,7 @@
                                 <td class="px-5 py-4 text-sm text-slate-600">
                                     @if ($donation->campaign)
                                         <a
-                                            href="{{ route('app.campaigns.show', $donation->campaign) }}"
+                                            href="{{ route('app.campaigns.edit', $donation->campaign) }}"
                                             wire:navigate.stop
                                             class="hover:text-teal-600"
                                             onclick="event.stopPropagation()"

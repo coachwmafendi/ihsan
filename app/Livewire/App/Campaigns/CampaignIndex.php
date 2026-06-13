@@ -260,6 +260,22 @@ class CampaignIndex extends Component
         ]);
     }
 
+    public function redirectToEdit(string $publicId): void
+    {
+        $campaign = Campaign::query()
+            ->where('public_id', $publicId)
+            ->where('organization_id', $this->organization?->id)
+            ->first();
+
+        if (! $campaign) {
+            $this->dispatch('notify', message: 'Campaign not found.', variant: 'danger');
+
+            return;
+        }
+
+        $this->redirectRoute('app.campaigns.edit', $campaign);
+    }
+
     public function render()
     {
         return view('livewire.app.campaigns.index', [

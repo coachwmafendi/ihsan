@@ -120,7 +120,7 @@
                         </div>
                     </div>
                     <div class="mt-4">
-                        <a href="{{ route('app.campaigns.show', $donation->campaign) }}" wire:navigate class="text-sm font-medium text-teal-600 hover:text-teal-700">
+                        <a href="{{ route('app.campaigns.edit', $donation->campaign) }}" wire:navigate class="text-sm font-medium text-teal-600 hover:text-teal-700">
                             View campaign →
                         </a>
                     </div>

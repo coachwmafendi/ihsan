@@ -45,7 +45,7 @@
                                         </td>
                                         <td class="px-4 py-3 text-sm text-slate-600">
                                             @if ($payment->campaign)
-                                                <a href="{{ route('app.campaigns.show', $payment->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
+                                                <a href="{{ route('app.campaigns.edit', $payment->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
                                                     {{ $payment->campaign->title }}
                                                 </a>
                                             @else
@@ -173,7 +173,7 @@
                 @if ($subscription->campaign)
                     <p class="text-sm font-medium text-slate-900">{{ $subscription->campaign->title }}</p>
                     <div class="mt-4">
-                        <a href="{{ route('app.campaigns.show', $subscription->campaign) }}" wire:navigate class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-700">
+                        <a href="{{ route('app.campaigns.edit', $subscription->campaign) }}" wire:navigate class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-700">
                             View campaign
                             <x-heroicon-o-arrow-right class="size-4 ml-1" />
                         </a>

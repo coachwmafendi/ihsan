@@ -36,8 +36,9 @@ it('renders for an authorized user', function () {
     $this->actingAs($this->user);
 
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
-        ->assertSee('Edit Campaign')
-        ->assertSee('Test Campaign');
+        ->assertSee('Test Campaign')
+        ->assertSee('Active')
+        ->assertSee('ID '.$campaign->public_id);
 });
 
 it('updates a campaign', function () {
@@ -52,12 +53,14 @@ it('updates a campaign', function () {
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
         ->set('title', 'Updated Title')
         ->set('status', 'active')
+        ->set('allow_cover_fee', false)
         ->call('save')
         ->assertDispatched('notify');
 
     $campaign->refresh();
     expect($campaign->title)->toBe('Updated Title')
-        ->and($campaign->status->value)->toBe('active');
+        ->and($campaign->status->value)->toBe('active')
+        ->and($campaign->config['allow_cover_fee'] ?? true)->toBeFalse();
 });
 
 it('sanitizes campaign amount inputs to five whole-number digits while editing', function () {
@@ -96,6 +99,31 @@ it('sanitizes campaign amount inputs to five whole-number digits while editing',
         ->assertSet('suggestedOneTime.0.value', 54321)
         ->set('suggestedMonthly.0.value', '654321')
         ->assertSet('suggestedMonthly.0.value', 65432);
+});
+
+it('backfills empty suggested amounts with defaults on save', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->set('suggestedOneTime.0.value', '')
+        ->set('suggestedOneTime.2.value', '0')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    $campaign->refresh();
+
+    $savedOneTime = collect($campaign->suggested_amounts_one_time ?? [])
+        ->map(fn (array $item) => (int) $item['value'])
+        ->values()
+        ->all();
+
+    // Index 0 was cleared -> defaults to 500, index 1 kept 50, index 2 cleared -> defaults to 300
+    expect($savedOneTime)->toBe([500, 50, 300, 200, 100, 50]);
 });
 
 it('saves decimal campaign amount inputs as whole numbers', function () {

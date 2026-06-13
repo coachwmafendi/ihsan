@@ -26,10 +26,16 @@ class CampaignEdit extends Component
 
     public string $suggestedActiveFreq = 'one_time';
 
+    public string $checkoutPanel = 'currency';
+
     /** @var string[] */
     public array $acceptedCurrencies = ['MYR'];
 
     public string $activeCurrency = 'MYR';
+
+    public string $default_currency = 'MYR';
+
+    public bool $currency_autodetect = false;
 
     /** @var array<string, array<string, array<int, array{value: float, label: string}>>> */
     public array $allSuggestedAmounts = [];
@@ -68,6 +74,8 @@ class CampaignEdit extends Component
 
     public bool $allow_custom_amount = true;
 
+    public bool $allow_cover_fee = true;
+
     #[Validate('nullable|integer|min:0|max:99999')]
     public ?string $minimum_amount = null;
 
@@ -101,6 +109,7 @@ class CampaignEdit extends Component
         $this->end_date = $campaign->end_date?->format('Y-m-d');
         $this->allow_recurring = $campaign->allow_recurring ?? false;
         $this->allow_custom_amount = $campaign->allow_custom_amount ?? false;
+        $this->allow_cover_fee = $campaign->config['allow_cover_fee'] ?? true;
         $this->minimum_amount = $this->sanitizeOptionalAmount($campaign->minimum_amount);
         $this->thank_you_message = $campaign->thank_you_message;
         $this->redirect_url = $campaign->redirect_url;
@@ -148,6 +157,8 @@ class CampaignEdit extends Component
 
         $this->default_frequency = $campaign->config['default_frequency'] ?? 'one_time';
         $this->default_amount = $this->sanitizeOptionalAmount($campaign->config['default_amount'] ?? null);
+        $this->default_currency = $campaign->config['default_currency'] ?? $this->acceptedCurrencies[0];
+        $this->currency_autodetect = $campaign->config['currency_autodetect'] ?? false;
     }
 
     public function updatedActiveCurrency(): void
@@ -281,9 +292,13 @@ class CampaignEdit extends Component
 
     private function sanitizeSuggestedAmount(mixed $value): int
     {
-        $amount = $this->amountToInteger($value);
+        $digits = $this->digitsBeforeDecimalSeparator($value);
 
-        return max(1, min(self::MaxAmount, $amount));
+        if ($digits === '' || ((int) $digits) <= 0) {
+            return 0;
+        }
+
+        return max(1, min(self::MaxAmount, (int) $digits));
     }
 
     private function amountToInteger(mixed $value): int
@@ -388,6 +403,23 @@ class CampaignEdit extends Component
         usort($arr, fn (array $a, array $b) => $b['value'] <=> $a['value']);
     }
 
+    /**
+     * @param  array<int, array{value: int, label: string}>  $stored
+     * @param  array<int, array{value: int, label: string}>  $defaults
+     * @return array<int, array{value: int, label: string}>
+     */
+    private function backfillSuggestedDefaults(array $stored, array $defaults): array
+    {
+        $result = [];
+
+        foreach ($defaults as $index => $default) {
+            $value = (int) ($stored[$index]['value'] ?? 0);
+            $result[$index] = $value > 0 ? ['value' => $value, 'label' => ''] : $default;
+        }
+
+        return $result;
+    }
+
     public function getCurrencySymbol(): string
     {
         return match ($this->activeCurrency) {
@@ -405,13 +437,16 @@ class CampaignEdit extends Component
         $validated = $this->validate();
 
         // Save current active currency amounts back into nested array
+        $defaults = $this->defaultAmountsForCurrency($this->activeCurrency);
         $this->allSuggestedAmounts[$this->activeCurrency] = [
-            'one_time' => $this->suggestedOneTime,
-            'monthly' => $this->suggestedMonthly,
+            'one_time' => $this->backfillSuggestedDefaults($this->suggestedOneTime, $defaults['one_time']),
+            'monthly' => $this->backfillSuggestedDefaults($this->suggestedMonthly, $defaults['monthly']),
         ];
 
-        // Build flat legacy columns from active currency only (for backward compat)
-        $oneTime = collect($this->suggestedOneTime)
+        // Build flat legacy columns from backfilled active currency amounts
+        $activeAmounts = $this->allSuggestedAmounts[$this->activeCurrency];
+
+        $oneTime = collect($activeAmounts['one_time'] ?? [])
             ->filter(fn (array $item) => $item['value'] > 0)
             ->map(fn (array $item) => [
                 'value' => (float) $item['value'],
@@ -420,7 +455,7 @@ class CampaignEdit extends Component
             ->values()
             ->toArray();
 
-        $monthly = collect($this->suggestedMonthly)
+        $monthly = collect($activeAmounts['monthly'] ?? [])
             ->filter(fn (array $item) => $item['value'] > 0)
             ->map(fn (array $item) => [
                 'value' => (float) $item['value'],
@@ -432,7 +467,10 @@ class CampaignEdit extends Component
         $config = array_merge($this->campaign->config ?? [], [
             'default_frequency' => $this->default_frequency,
             'default_amount' => $this->default_amount ? (float) $this->default_amount : null,
+            'default_currency' => $this->default_currency,
+            'currency_autodetect' => $this->currency_autodetect,
             'suggested_amounts_by_currency' => $this->allSuggestedAmounts,
+            'allow_cover_fee' => $this->allow_cover_fee,
         ]);
 
         $this->campaign->update([
@@ -505,7 +543,7 @@ class CampaignEdit extends Component
         $newCampaign->organization_id = $org->id;
         $newCampaign->save();
 
-        $this->redirectRoute('app.campaigns.show', $newCampaign);
+        $this->redirectRoute('app.campaigns.edit', $newCampaign);
     }
 
     public function removeImage(): void
