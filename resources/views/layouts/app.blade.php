@@ -30,10 +30,20 @@
     {{-- Bridge: Convert Livewire 'notify' events to Flux toasts --}}
     <script>
         document.addEventListener('notify', (e) => {
-            const detail = e.detail;
-            if (detail) {
-                document.dispatchEvent(new CustomEvent('toast-show', { detail }));
-            }
+            const detail = e.detail || {};
+
+            document.dispatchEvent(new CustomEvent('toast-show', {
+                detail: {
+                    slots: {
+                        heading: detail.heading,
+                        text: detail.message || detail.text,
+                    },
+                    dataset: {
+                        variant: detail.variant || 'info',
+                    },
+                    duration: detail.duration,
+                },
+            }));
         });
     </script>
 </body>

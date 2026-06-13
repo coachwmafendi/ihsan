@@ -281,12 +281,15 @@
                         <div>
                             <label for="target_amount" class="block text-sm font-medium text-slate-700">Target Amount (RM)</label>
                             <input
-                                type="number"
-                                step="0.01"
+                                type="text"
+                                inputmode="numeric"
+                                maxlength="5"
+                                pattern="[0-9]*"
                                 id="target_amount"
                                 wire:model="target_amount"
+                                x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
                                 class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                placeholder="10000.00"
+                                placeholder="10000"
                             />
                             @error('target_amount') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
@@ -398,15 +401,18 @@
                         </button>
                     </div>
 
-                    <div>
+                    <div class="max-w-xs">
                         <label for="minimum_amount" class="block text-sm font-medium text-slate-700">Minimum Amount ({{ $this->getCurrencySymbol() }})</label>
                         <input
-                            type="number"
-                            step="0.01"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="5"
+                            pattern="[0-9]*"
                             id="minimum_amount"
                             wire:model="minimum_amount"
+                            x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
                             class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            placeholder="5.00"
+                            placeholder="5"
                         />
                         @error('minimum_amount') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
@@ -477,6 +483,8 @@
                                         <input
                                             type="text"
                                             inputmode="numeric"
+                                            maxlength="5"
+                                            pattern="[0-9]*"
                                             wire:model.blur="suggestedOneTime.{{ $index }}.value"
                                             x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
                                             class="w-16 border-none bg-transparent p-0 text-sm font-medium text-teal-700 focus:ring-0"
@@ -501,6 +509,8 @@
                                 <input
                                     type="text"
                                     inputmode="numeric"
+                                    maxlength="5"
+                                    pattern="[0-9]*"
                                     wire:model="newOneTimeValue"
                                     class="block w-full rounded-lg border border-slate-300 bg-white py-2 pl-10 pr-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                     placeholder="Add amount..."
@@ -536,6 +546,8 @@
                                         <input
                                             type="text"
                                             inputmode="numeric"
+                                            maxlength="5"
+                                            pattern="[0-9]*"
                                             wire:model.blur="suggestedMonthly.{{ $index }}.value"
                                             x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
                                             class="w-16 border-none bg-transparent p-0 text-sm font-medium text-teal-700 focus:ring-0"
@@ -560,6 +572,8 @@
                                 <input
                                     type="text"
                                     inputmode="numeric"
+                                    maxlength="5"
+                                    pattern="[0-9]*"
                                     wire:model="newMonthlyValue"
                                     class="block w-full rounded-lg border border-slate-300 bg-white py-2 pl-10 pr-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                     placeholder="Add amount..."
@@ -600,12 +614,15 @@
                     <div>
                         <label for="default_amount" class="block text-sm font-medium text-slate-700">Default Amount ({{ $this->getCurrencySymbol() }})</label>
                         <input
-                            type="number"
-                            step="0.01"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="5"
+                            pattern="[0-9]*"
                             id="default_amount"
                             wire:model="default_amount"
+                            x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
                             class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            placeholder="50.00"
+                            placeholder="50"
                         />
                     </div>
                 </div>

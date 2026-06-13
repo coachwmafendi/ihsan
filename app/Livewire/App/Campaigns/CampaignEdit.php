@@ -17,6 +17,8 @@ class CampaignEdit extends Component
 {
     use WithFileUploads;
 
+    private const MaxAmount = 99999;
+
     #[Locked]
     public Campaign $campaign;
 
@@ -54,7 +56,7 @@ class CampaignEdit extends Component
 
     public bool $has_target = false;
 
-    #[Validate('nullable|numeric|min:0|max:999999999.99')]
+    #[Validate('nullable|integer|min:0|max:99999')]
     public ?string $target_amount = null;
 
     public bool $has_end_date = false;
@@ -66,12 +68,12 @@ class CampaignEdit extends Component
 
     public bool $allow_custom_amount = true;
 
-    #[Validate('nullable|numeric|min:0|max:999999999.99')]
+    #[Validate('nullable|integer|min:0|max:99999')]
     public ?string $minimum_amount = null;
 
     public string $default_frequency = 'one_time';
 
-    #[Validate('nullable|numeric|min:0|max:999999999.99')]
+    #[Validate('nullable|integer|min:0|max:99999')]
     public ?string $default_amount = null;
 
     public ?string $newOneTimeValue = null;
@@ -94,12 +96,12 @@ class CampaignEdit extends Component
         $this->description = $campaign->description;
         $this->existing_image = $campaign->image_path;
         $this->has_target = $campaign->has_target ?? false;
-        $this->target_amount = $campaign->target_amount !== null ? (string) $campaign->target_amount : null;
+        $this->target_amount = $this->sanitizeOptionalAmount($campaign->target_amount);
         $this->has_end_date = $campaign->has_end_date ?? false;
         $this->end_date = $campaign->end_date?->format('Y-m-d');
         $this->allow_recurring = $campaign->allow_recurring ?? false;
         $this->allow_custom_amount = $campaign->allow_custom_amount ?? false;
-        $this->minimum_amount = $campaign->minimum_amount !== null ? (string) $campaign->minimum_amount : null;
+        $this->minimum_amount = $this->sanitizeOptionalAmount($campaign->minimum_amount);
         $this->thank_you_message = $campaign->thank_you_message;
         $this->redirect_url = $campaign->redirect_url;
 
@@ -145,7 +147,7 @@ class CampaignEdit extends Component
         $this->syncActiveCurrencyAmounts();
 
         $this->default_frequency = $campaign->config['default_frequency'] ?? 'one_time';
-        $this->default_amount = isset($campaign->config['default_amount']) ? (string) $campaign->config['default_amount'] : null;
+        $this->default_amount = $this->sanitizeOptionalAmount($campaign->config['default_amount'] ?? null);
     }
 
     public function updatedActiveCurrency(): void
@@ -241,30 +243,66 @@ class CampaignEdit extends Component
 
         return collect($stored)->map(function ($item) {
             if (is_array($item)) {
-                $val = (int) round((float) ($item['value'] ?? 0));
+                $val = $this->amountToInteger($item['value'] ?? 0);
 
-                return ['value' => max(1, min(99999, $val)), 'label' => $item['label'] ?? ''];
+                return ['value' => max(1, min(self::MaxAmount, $val)), 'label' => $item['label'] ?? ''];
             }
 
-            $val = (int) round((float) $item);
+            $val = $this->amountToInteger($item);
 
-            return ['value' => max(1, min(99999, $val)), 'label' => ''];
+            return ['value' => max(1, min(self::MaxAmount, $val)), 'label' => ''];
         })->values()->toArray();
     }
 
     public function updated(string $property, mixed $value): void
     {
+        if (in_array($property, ['target_amount', 'minimum_amount', 'default_amount', 'newOneTimeValue', 'newMonthlyValue'], true)) {
+            data_set($this, $property, $this->sanitizeOptionalAmount($value));
+
+            return;
+        }
+
         // Clamp suggested amount values to 1–99999 when inputs blur
         if (str_starts_with($property, 'suggestedOneTime.') || str_starts_with($property, 'suggestedMonthly.')) {
-            $val = (int) round((float) $value);
-            if ($val < 1) {
-                $val = 1;
-            }
-            if ($val > 99999) {
-                $val = 99999;
-            }
-            data_set($this, $property, $val);
+            data_set($this, $property, $this->sanitizeSuggestedAmount($value));
         }
+    }
+
+    private function sanitizeOptionalAmount(mixed $value): ?string
+    {
+        $digits = $this->digitsBeforeDecimalSeparator($value);
+
+        if ($digits === '') {
+            return null;
+        }
+
+        return (string) min(self::MaxAmount, (int) $digits);
+    }
+
+    private function sanitizeSuggestedAmount(mixed $value): int
+    {
+        $amount = $this->amountToInteger($value);
+
+        return max(1, min(self::MaxAmount, $amount));
+    }
+
+    private function amountToInteger(mixed $value): int
+    {
+        $digits = $this->digitsBeforeDecimalSeparator($value);
+
+        if ($digits === '') {
+            return 0;
+        }
+
+        return min(self::MaxAmount, (int) $digits);
+    }
+
+    private function digitsBeforeDecimalSeparator(mixed $value): string
+    {
+        $wholeNumber = preg_split('/[.,]/', (string) $value, 2)[0] ?? '';
+        $digits = preg_replace('/\D/', '', $wholeNumber) ?? '';
+
+        return mb_substr($digits, 0, 5);
     }
 
     public function addOneTimeSuggested(): void
@@ -275,8 +313,8 @@ class CampaignEdit extends Component
             return;
         }
 
-        $value = (int) round((float) ($this->newOneTimeValue ?? 0));
-        if ($value < 1 || $value > 99999) {
+        $value = $this->amountToInteger($this->newOneTimeValue ?? 0);
+        if ($value < 1 || $value > self::MaxAmount) {
             $this->dispatch('notify', message: 'Amount must be between 1 and 99,999.', variant: 'danger');
             $this->newOneTimeValue = null;
 
@@ -308,8 +346,8 @@ class CampaignEdit extends Component
             return;
         }
 
-        $value = (int) round((float) ($this->newMonthlyValue ?? 0));
-        if ($value < 1 || $value > 99999) {
+        $value = $this->amountToInteger($this->newMonthlyValue ?? 0);
+        if ($value < 1 || $value > self::MaxAmount) {
             $this->dispatch('notify', message: 'Amount must be between 1 and 99,999.', variant: 'danger');
             $this->newMonthlyValue = null;
 
@@ -462,7 +500,7 @@ class CampaignEdit extends Component
             'image_path',
         ]);
 
-        $newCampaign->title = $this->campaign->title . ' (Copy)';
+        $newCampaign->title = $this->campaign->title.' (Copy)';
         $newCampaign->status = 'draft';
         $newCampaign->organization_id = $org->id;
         $newCampaign->save();

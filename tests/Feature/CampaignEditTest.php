@@ -60,6 +60,66 @@ it('updates a campaign', function () {
         ->and($campaign->status->value)->toBe('active');
 });
 
+it('sanitizes campaign amount inputs to five whole-number digits while editing', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'target_amount' => '12345.67',
+        'minimum_amount' => '5.00',
+        'config' => [
+            'default_amount' => '50.00',
+        ],
+        'suggested_amounts_one_time' => [
+            ['value' => '123456.78', 'label' => ''],
+        ],
+        'suggested_amounts_monthly' => [
+            ['value' => '12.99', 'label' => ''],
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSet('target_amount', '12345')
+        ->assertSet('minimum_amount', '5')
+        ->assertSet('default_amount', '50')
+        ->assertSet('suggestedOneTime.0.value', 12345)
+        ->assertSet('suggestedMonthly.0.value', 12)
+        ->set('target_amount', '987654.32')
+        ->assertSet('target_amount', '98765')
+        ->set('minimum_amount', 'RM 12,345')
+        ->assertSet('minimum_amount', '12')
+        ->set('default_amount', '10.99')
+        ->assertSet('default_amount', '10')
+        ->set('newOneTimeValue', '123456')
+        ->assertSet('newOneTimeValue', '12345')
+        ->set('suggestedOneTime.0.value', '54321.99')
+        ->assertSet('suggestedOneTime.0.value', 54321)
+        ->set('suggestedMonthly.0.value', '654321')
+        ->assertSet('suggestedMonthly.0.value', 65432);
+});
+
+it('saves decimal campaign amount inputs as whole numbers', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->set('target_amount', '123.45')
+        ->set('minimum_amount', '5.50')
+        ->set('default_amount', '10.99')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    $campaign->refresh();
+
+    expect($campaign->target_amount)->toBe('123.00')
+        ->and($campaign->minimum_amount)->toBe('5.00')
+        ->and($campaign->config['default_amount'])->toBe(10);
+});
+
 it('archives a campaign', function () {
     $campaign = Campaign::factory()->create([
         'organization_id' => $this->organization->id,

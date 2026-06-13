@@ -9,7 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
 
-it('queues previous month report for organizations that enabled monthly reports', function () {
+it('queues previous month report for organization admins when monthly reports are enabled', function () {
     Mail::fake();
     now()->setTestNow(now()->parse('2026-06-01 08:00:00'));
 
@@ -21,10 +21,19 @@ it('queues previous month report for organizations that enabled monthly reports'
         'email' => 'admin@example.test',
         'role' => UserRole::NgoAdmin,
     ]);
+    $secondAdmin = User::factory()->create([
+        'organization_id' => $organization->getKey(),
+        'email' => 'second-admin@example.test',
+        'role' => UserRole::NgoAdmin,
+    ]);
     $superAdmin = User::factory()->create([
         'organization_id' => $organization->getKey(),
         'email' => 'super-admin@example.test',
         'role' => UserRole::SuperAdmin,
+    ]);
+    $otherOrganizationAdmin = User::factory()->create([
+        'email' => 'other-admin@example.test',
+        'role' => UserRole::NgoAdmin,
     ]);
     $campaign = Campaign::factory()->create([
         'organization_id' => $organization->getKey(),
@@ -44,9 +53,9 @@ it('queues previous month report for organizations that enabled monthly reports'
 
     Artisan::call('ihsan:send-monthly-report');
 
-    Mail::assertQueued(MonthlyReport::class, function (MonthlyReport $mail) use ($admin, $organization) {
-        return $mail->hasTo($admin->email)
-            && $mail->organization->is($organization)
+    Mail::assertQueued(MonthlyReport::class, 2);
+    Mail::assertQueued(MonthlyReport::class, function (MonthlyReport $mail) use ($organization) {
+        return $mail->organization->is($organization)
             && $mail->period === 'May 2026'
             && $mail->donationCount === 1
             && $mail->totalAmount === '150.00'
@@ -56,7 +65,10 @@ it('queues previous month report for organizations that enabled monthly reports'
                 'total' => '150.00',
             ]];
     });
+    Mail::assertQueued(MonthlyReport::class, fn (MonthlyReport $mail) => $mail->hasTo($admin->email));
+    Mail::assertQueued(MonthlyReport::class, fn (MonthlyReport $mail) => $mail->hasTo($secondAdmin->email));
     Mail::assertNotQueued(MonthlyReport::class, fn (MonthlyReport $mail) => $mail->hasTo($superAdmin->email));
+    Mail::assertNotQueued(MonthlyReport::class, fn (MonthlyReport $mail) => $mail->hasTo($otherOrganizationAdmin->email));
 
     expect($organization->refresh()->settings['monthly_report_last_sent'])->toBe('2026-05-01');
 });
