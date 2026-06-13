@@ -83,10 +83,19 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/app/subscriptions', SubscriptionIndex::class)->name('app.subscriptions.index');
     Route::get('/app/subscriptions/{subscription:public_id}', SubscriptionShow::class)->name('app.subscriptions.show');
+    Route::get('/app/recurring-plans', SubscriptionIndex::class)->name('app.recurring-plans');
 
     Route::get('/app/elements', ElementIndex::class)->name('app.elements.index');
     Route::get('/app/elements/create', ElementCreate::class)->name('app.elements.create');
     Route::get('/app/virtual-terminal', VirtualTerminal::class)->name('app.virtual-terminal');
+
+    // Placeholder routes for upcoming features
+    Route::get('/app/payouts', fn () => redirect('/app/dashboard'))->name('app.payouts');
+    Route::get('/app/members', fn () => redirect('/app/dashboard'))->name('app.members');
+    Route::get('/app/teams', fn () => redirect('/app/dashboard'))->name('app.teams');
+    Route::get('/app/developer/api-keys', fn () => redirect('/app/dashboard'))->name('app.developer.api-keys');
+    Route::get('/app/developer/webhooks', fn () => redirect('/app/dashboard'))->name('app.developer.webhooks');
+    Route::get('/app/developer/embed-forms', fn () => redirect('/app/dashboard'))->name('app.developer.embed-forms');
 
     Route::get('/stripe/connect/redirect', [StripeConnectController::class, 'redirect'])
         ->name('stripe.connect.redirect');
