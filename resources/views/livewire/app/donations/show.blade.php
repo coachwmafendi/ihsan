@@ -11,7 +11,7 @@
                 <x-ui.button wireClick="refund" variant="danger" onclick="return confirm('Are you sure you want to refund this donation? This action cannot be undone.')">Refund</x-ui.button>
             @endif
             <x-ui.badge status="{{ $donation->status->value }}" size="md">
-                {{ ucfirst($donation->status->value === 'succeeded' ? 'Succeed' : $donation->status->value) }}
+                {{ ucfirst($donation->status->value === 'succeeded' ? 'Succeeded' : $donation->status->value) }}
             </x-ui.badge>
         </div>
     </div>
