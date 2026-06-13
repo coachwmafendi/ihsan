@@ -116,8 +116,8 @@
                                             {{ $donation->created_at->diffForHumans() }}
                                         </p>
                                     </div>
-                                    <x-ui.badge status="{{ $donation->status }}" size="sm">
-                                        {{ ucfirst($donation->status) }}
+                                    <x-ui.badge status="{{ $donation->status->value }}" size="sm">
+                                        {{ ucfirst($donation->status->value) }}
                                     </x-ui.badge>
                                 </div>
                             </a>
