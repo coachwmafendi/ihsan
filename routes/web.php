@@ -24,6 +24,7 @@ use App\Livewire\App\Settings\Notifications;
 use App\Livewire\App\Settings\Payment;
 use App\Livewire\App\Settings\Profile;
 use App\Livewire\App\StripeOnboarding;
+use App\Livewire\App\VirtualTerminal;
 use App\Livewire\App\Subscriptions\SubscriptionIndex;
 use App\Livewire\App\Subscriptions\SubscriptionShow;
 use App\Livewire\Auth\RegisterOrganization;
@@ -85,6 +86,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/app/elements', ElementIndex::class)->name('app.elements.index');
     Route::get('/app/elements/create', ElementCreate::class)->name('app.elements.create');
+    Route::get('/app/virtual-terminal', VirtualTerminal::class)->name('app.virtual-terminal');
 
     Route::get('/stripe/connect/redirect', [StripeConnectController::class, 'redirect'])
         ->name('stripe.connect.redirect');
