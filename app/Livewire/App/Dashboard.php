@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App;
 
+use App\Enums\DonationStatus;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -30,15 +31,17 @@ class Dashboard extends Component
             return [];
         }
 
-        $totalDonations = Donation::where('organization_id', $org->id)
-            ->where('status', 'paid')
+        $totalDonations = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
+            ->where('status', DonationStatus::Succeeded)
             ->sum('gross_amount');
 
-        $donationCount = Donation::where('organization_id', $org->id)
-            ->where('status', 'paid')
+        $donationCount = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
+            ->where('status', DonationStatus::Succeeded)
             ->count();
 
-        $donorCount = Donor::where('organization_id', $org->id)->count();
+        $donorCount = Donor::whereHas('donations.campaign', fn ($q) => $q->where('organization_id', $org->id))
+            ->distinct()
+            ->count('donors.id');
 
         $campaignCount = Campaign::where('organization_id', $org->id)->count();
 
@@ -85,8 +88,8 @@ class Dashboard extends Component
         $data = [];
         for ($i = 13; $i >= 0; $i--) {
             $date = now()->subDays($i)->startOfDay();
-            $amount = Donation::where('organization_id', $org->id)
-                ->where('status', 'paid')
+            $amount = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
+                ->where('status', DonationStatus::Succeeded)
                 ->whereDate('created_at', $date)
                 ->sum('gross_amount');
             $data[] = (int) $amount;
@@ -104,7 +107,7 @@ class Dashboard extends Component
         }
 
         return Donation::with('donor')
-            ->where('organization_id', $org->id)
+            ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
@@ -119,7 +122,8 @@ class Dashboard extends Component
         }
 
         return Campaign::where('organization_id', $org->id)
-            ->withSum(['donations' => fn ($q) => $q->where('status', 'paid')], 'gross_amount')
+            ->withCount(['donations' => fn ($q) => $q->where('status', DonationStatus::Succeeded)])
+            ->withSum(['donations' => fn ($q) => $q->where('status', DonationStatus::Succeeded)], 'gross_amount')
             ->orderBy('donations_sum_gross_amount', 'desc')
             ->limit(5)
             ->get();

@@ -70,7 +70,7 @@
                                         <x-heroicon-o-megaphone class="size-4 text-teal-600" />
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-slate-900">{{ $campaign->name }}</p>
+                                        <p class="text-sm font-medium text-slate-900">{{ $campaign->title }}</p>
                                         <p class="text-xs text-slate-500">{{ $campaign->donations_count ?? 0 }} donations</p>
                                     </div>
                                 </div>
