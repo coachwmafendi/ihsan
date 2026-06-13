@@ -44,7 +44,7 @@
             class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
         >
             <option value="">All Statuses</option>
-            <option value="succeeded">Paid</option>
+            <option value="succeeded">Succeed</option>
             <option value="pending">Pending</option>
             <option value="failed">Failed</option>
             <option value="refunded">Refunded</option>
@@ -157,7 +157,7 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     <x-ui.badge status="{{ $donation->status->value }}" size="sm">
-                                        {{ ucfirst($donation->status->value === 'succeeded' ? 'Paid' : $donation->status->value) }}
+                                        {{ ucfirst($donation->status->value === 'succeeded' ? 'Succeed' : $donation->status->value) }}
                                     </x-ui.badge>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">

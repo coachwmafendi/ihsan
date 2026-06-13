@@ -24,7 +24,7 @@ class DonationShow extends Component
 
     public function canRefund(): bool
     {
-        return $this->donation->status === DonationStatus::Paid
+        return $this->donation->status === DonationStatus::Succeeded
             && filled($this->donation->stripe_charge_id);
     }
 
