@@ -155,7 +155,7 @@ class AppPanelProvider extends PanelProvider
                     ->url(fn (): string => route('donorportal.dashboard', auth()->user()->organization))
                     ->openUrlInNewTab(),
             ])
-            ->homeUrl(fn (): string => route('filament.app.pages.insights'))
+            ->homeUrl(fn (): string => route('app.insights'))
             ->darkMode(false)
             ->colors([
                 'primary' => Color::Teal,

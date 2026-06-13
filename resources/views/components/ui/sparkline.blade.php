@@ -16,7 +16,7 @@ if (empty($data)) {
 $min = min($data);
 $max = max($data);
 $range = $max - $min;
-if ($range === 0) $range = 1;
+if ($range == 0) $range = 1;
 
 $padding = 2;
 $chartWidth = $width - ($padding * 2);
@@ -25,7 +25,7 @@ $chartHeight = $height - ($padding * 2);
 $points = [];
 $count = count($data);
 foreach ($data as $i => $value) {
-    $x = $padding + ($i / ($count - 1)) * $chartWidth;
+    $x = $padding + ($count > 1 ? ($i / ($count - 1)) * $chartWidth : $chartWidth);
     $y = $padding + $chartHeight - (($value - $min) / $range) * $chartHeight;
     $points[] = [$x, $y];
 }

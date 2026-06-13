@@ -28,7 +28,7 @@ class FortifyServiceProvider extends ServiceProvider
                         return redirect()->intended(route('filament.admin.pages.platform-overview'));
                     }
 
-                    return redirect()->intended(route('filament.app.pages.insights'));
+                    return redirect()->intended(route('app.insights'));
                 }
             };
         });

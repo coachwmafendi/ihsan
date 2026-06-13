@@ -2,7 +2,7 @@
     <x-slot:title>@lang('site.title')</x-slot:title>
 
     {{-- Nav --}}
-    <nav class="fixed top-0 inset-x-0 z-50 bg-[#0f172a]/80 backdrop-blur-lg border-b border-white/5">
+    <nav class="fixed top-0 inset-x-0 z-50 bg-[#0f172a]/80 backdrop-blur-lg border-b border-white/5" x-data="{ open: false }">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <a href="{{ route('home') }}" class="text-white font-bold text-lg tracking-tight">Ihsan</a>
 
@@ -12,7 +12,7 @@
                 <a href="#faq" class="text-slate-400 hover:text-white transition-colors">@lang('nav.faq')</a>
 
                 @auth
-                    <a href="{{ route('filament.app.pages.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">Dashboard</a>
+                    <a href="{{ route('app.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">Dashboard</a>
                 @else
                     @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">@lang('nav.register')</a>
@@ -30,10 +30,27 @@
                 <a href="{{ route('language.switch', ['locale' => app()->getLocale() === 'ms' ? 'en' : 'ms']) }}" class="text-xs font-medium text-slate-500 border border-white/10 rounded-full px-3 py-1.5">
                     @lang('nav.switch_language')
                 </a>
+                <button @click="open = !open" class="p-2 text-slate-400 hover:text-white transition-colors" aria-label="Menu">
+                    <svg x-show="!open" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+                    <svg x-show="open" style="display:none" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        {{-- Mobile dropdown --}}
+        <div x-show="open" style="display:none" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="md:hidden border-t border-white/5 bg-[#0f172a]/95 backdrop-blur-lg">
+            <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-1">
+                <a href="#features" @click="open = false" class="text-slate-300 hover:text-white hover:bg-white/5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors">@lang('nav.features')</a>
+                <a href="#pricing" @click="open = false" class="text-slate-300 hover:text-white hover:bg-white/5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors">@lang('nav.pricing')</a>
+                <a href="#faq" @click="open = false" class="text-slate-300 hover:text-white hover:bg-white/5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors">@lang('nav.faq')</a>
+                <div class="border-t border-white/5 my-1"></div>
                 @auth
-                    <a href="{{ route('filament.app.pages.insights') }}" class="bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-semibold">Dashboard</a>
-                @elseif (Route::has('register'))
-                    <a href="{{ route('register') }}" class="bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-semibold">@lang('nav.register')</a>
+                    <a href="{{ route('app.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-center">Dashboard</a>
+                @else
+                    @if (Route::has('register'))
+                        <a href="{{ route('register') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-center">@lang('nav.register')</a>
+                    @endif
+                    <a href="{{ route('login') }}" class="text-slate-300 hover:text-white hover:bg-white/5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors">@lang('nav.login')</a>
                 @endauth
             </div>
         </div>
@@ -60,7 +77,7 @@
 
             <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                 @auth
-                    <a href="{{ route('filament.app.pages.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
+                    <a href="{{ route('app.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
                         Dashboard
                     </a>
                 @elseif (Route::has('register'))
@@ -489,7 +506,7 @@
 
             <div class="mt-8">
                 @auth
-                    <a href="{{ route('filament.app.pages.insights') }}" class="inline-block bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
+                    <a href="{{ route('app.insights') }}" class="inline-block bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
                         Dashboard
                     </a>
                 @elseif (Route::has('register'))

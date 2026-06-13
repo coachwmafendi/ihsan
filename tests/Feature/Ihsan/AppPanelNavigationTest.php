@@ -12,7 +12,7 @@ it('redirects app panel dashboard to insights', function () {
 
     $this->actingAs($user)
         ->get('/app')
-        ->assertRedirect(route('filament.app.pages.insights'));
+        ->assertRedirect(route('app.insights'));
 });
 
 it('allows super admins into the admin panel', function () {

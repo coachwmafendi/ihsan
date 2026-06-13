@@ -8,6 +8,6 @@ use App\Providers\FortifyServiceProvider;
 return [
     AppServiceProvider::class,
     AdminPanelProvider::class,
-    AppPanelProvider::class,
+    // AppPanelProvider::class, // Migrated to Livewire — see app/Livewire/App/
     FortifyServiceProvider::class,
 ];

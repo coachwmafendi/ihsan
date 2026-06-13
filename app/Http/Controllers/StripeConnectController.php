@@ -126,6 +126,6 @@ class StripeConnectController extends Controller
 
         session()->flash('filament.notifications', [$notification]);
 
-        return redirect()->route('filament.app.pages.insights');
+        return redirect()->route('app.insights');
     }
 }
