@@ -20,7 +20,23 @@ class CampaignEdit extends Component
     #[Locked]
     public Campaign $campaign;
 
-    public string $activeTab = 'settings';
+    public string $activeTab = 'overview';
+
+    public string $suggestedActiveFreq = 'one_time';
+
+    /** @var string[] */
+    public array $acceptedCurrencies = ['MYR'];
+
+    public string $activeCurrency = 'MYR';
+
+    /** @var array<string, array<string, array<int, array{value: float, label: string}>>> */
+    public array $allSuggestedAmounts = [];
+
+    /** @var array<int, array{value: float, label: string}> */
+    public array $suggestedOneTime = [];
+
+    /** @var array<int, array{value: float, label: string}> */
+    public array $suggestedMonthly = [];
 
     #[Validate('required|string|max:255')]
     public string $title = '';
@@ -53,12 +69,14 @@ class CampaignEdit extends Component
     #[Validate('nullable|numeric|min:0|max:999999999.99')]
     public ?string $minimum_amount = null;
 
-    public array $suggested_amounts = [];
-
     public string $default_frequency = 'one_time';
 
     #[Validate('nullable|numeric|min:0|max:999999999.99')]
     public ?string $default_amount = null;
+
+    public ?string $newOneTimeValue = null;
+
+    public ?string $newMonthlyValue = null;
 
     #[Validate('nullable|string|max:5000')]
     public ?string $thank_you_message = null;
@@ -85,35 +103,287 @@ class CampaignEdit extends Component
         $this->thank_you_message = $campaign->thank_you_message;
         $this->redirect_url = $campaign->redirect_url;
 
-        $rawSuggested = $campaign->suggested_amounts ?? [];
-        $this->suggested_amounts = collect($rawSuggested)->map(function ($item) {
-            if (is_array($item)) {
-                return ['value' => $item['value'] ?? '', 'label' => $item['label'] ?? ''];
-            }
+        $org = Auth::user()?->organization;
 
-            return ['value' => (string) $item, 'label' => ''];
-        })->values()->toArray();
+        // Load accepted currencies from org settings
+        $rawAccepted = $org?->settings['accepted_currencies'] ?? [];
+        $this->acceptedCurrencies = array_map('strtoupper', $rawAccepted);
+        if (empty($this->acceptedCurrencies)) {
+            $this->acceptedCurrencies = ['MYR'];
+        }
+        $this->activeCurrency = $this->acceptedCurrencies[0];
+
+        // Load nested per-currency amounts from config or legacy columns
+        $this->allSuggestedAmounts = $campaign->config['suggested_amounts_by_currency'] ?? [];
+
+        // If no nested data exists, attempt to migrate from legacy columns
+        if (empty($this->allSuggestedAmounts)) {
+            $legacyOneTime = $this->hydrateSuggested($campaign->suggested_amounts_one_time ?? [], []);
+            $legacyMonthly = $this->hydrateSuggested($campaign->suggested_amounts_monthly ?? [], []);
+            $legacyGeneral = $this->hydrateSuggested($campaign->suggested_amounts ?? [], []);
+
+            if (! empty($legacyOneTime) || ! empty($legacyMonthly)) {
+                $this->allSuggestedAmounts[$this->activeCurrency] = [
+                    'one_time' => $legacyOneTime,
+                    'monthly' => $legacyMonthly,
+                ];
+            } elseif (! empty($legacyGeneral)) {
+                $this->allSuggestedAmounts[$this->activeCurrency] = [
+                    'one_time' => $legacyGeneral,
+                    'monthly' => [],
+                ];
+            }
+        }
+
+        // Ensure every accepted currency has at least default amounts
+        foreach ($this->acceptedCurrencies as $currency) {
+            if (! isset($this->allSuggestedAmounts[$currency])) {
+                $this->allSuggestedAmounts[$currency] = $this->defaultAmountsForCurrency($currency);
+            }
+        }
+
+        $this->syncActiveCurrencyAmounts();
+
         $this->default_frequency = $campaign->config['default_frequency'] ?? 'one_time';
         $this->default_amount = isset($campaign->config['default_amount']) ? (string) $campaign->config['default_amount'] : null;
     }
 
-    public function addSuggestedAmount(): void
+    public function updatedActiveCurrency(): void
     {
-        $this->suggested_amounts[] = ['value' => '', 'label' => ''];
+        // Save current amounts back into the nested array before switching
+        $this->allSuggestedAmounts[$this->activeCurrency] = [
+            'one_time' => $this->suggestedOneTime,
+            'monthly' => $this->suggestedMonthly,
+        ];
+
+        $this->syncActiveCurrencyAmounts();
     }
 
-    public function removeSuggestedAmount(int $index): void
+    public function updatedSuggestedActiveFreq(): void
     {
-        unset($this->suggested_amounts[$index]);
-        $this->suggested_amounts = array_values($this->suggested_amounts);
+        // Frequency tab changed — amounts already in sync, no-op
+    }
+
+    private function syncActiveCurrencyAmounts(): void
+    {
+        $data = $this->allSuggestedAmounts[$this->activeCurrency] ?? $this->defaultAmountsForCurrency($this->activeCurrency);
+        $this->suggestedOneTime = $data['one_time'] ?? [];
+        $this->suggestedMonthly = $data['monthly'] ?? [];
+    }
+
+    /** @return array<string, array<int, array{value: float, label: string}>> */
+    private function defaultAmountsForCurrency(string $currency): array
+    {
+        return match ($currency) {
+            'USD' => [
+                'one_time' => [
+                    ['value' => 100, 'label' => ''],
+                    ['value' => 75, 'label' => ''],
+                    ['value' => 50, 'label' => ''],
+                    ['value' => 25, 'label' => ''],
+                    ['value' => 10, 'label' => ''],
+                    ['value' => 5, 'label' => ''],
+                ],
+                'monthly' => [
+                    ['value' => 50, 'label' => ''],
+                    ['value' => 30, 'label' => ''],
+                    ['value' => 20, 'label' => ''],
+                    ['value' => 15, 'label' => ''],
+                    ['value' => 10, 'label' => ''],
+                    ['value' => 5, 'label' => ''],
+                ],
+            ],
+            'SGD' => [
+                'one_time' => [
+                    ['value' => 150, 'label' => ''],
+                    ['value' => 100, 'label' => ''],
+                    ['value' => 75, 'label' => ''],
+                    ['value' => 50, 'label' => ''],
+                    ['value' => 25, 'label' => ''],
+                    ['value' => 10, 'label' => ''],
+                ],
+                'monthly' => [
+                    ['value' => 75, 'label' => ''],
+                    ['value' => 50, 'label' => ''],
+                    ['value' => 30, 'label' => ''],
+                    ['value' => 20, 'label' => ''],
+                    ['value' => 10, 'label' => ''],
+                    ['value' => 5, 'label' => ''],
+                ],
+            ],
+            default => [ // MYR
+                'one_time' => [
+                    ['value' => 500, 'label' => ''],
+                    ['value' => 400, 'label' => ''],
+                    ['value' => 300, 'label' => ''],
+                    ['value' => 200, 'label' => ''],
+                    ['value' => 100, 'label' => ''],
+                    ['value' => 50, 'label' => ''],
+                ],
+                'monthly' => [
+                    ['value' => 300, 'label' => ''],
+                    ['value' => 200, 'label' => ''],
+                    ['value' => 150, 'label' => ''],
+                    ['value' => 100, 'label' => ''],
+                    ['value' => 50, 'label' => ''],
+                    ['value' => 30, 'label' => ''],
+                ],
+            ],
+        };
+    }
+
+    /** @param array<int, mixed>|null $stored */
+    private function hydrateSuggested(?array $stored, array $defaults): array
+    {
+        if (empty($stored)) {
+            return $defaults;
+        }
+
+        return collect($stored)->map(function ($item) {
+            if (is_array($item)) {
+                $val = (int) round((float) ($item['value'] ?? 0));
+
+                return ['value' => max(1, min(99999, $val)), 'label' => $item['label'] ?? ''];
+            }
+
+            $val = (int) round((float) $item);
+
+            return ['value' => max(1, min(99999, $val)), 'label' => ''];
+        })->values()->toArray();
+    }
+
+    public function updated(string $property, mixed $value): void
+    {
+        // Clamp suggested amount values to 1–99999 when inputs blur
+        if (str_starts_with($property, 'suggestedOneTime.') || str_starts_with($property, 'suggestedMonthly.')) {
+            $val = (int) round((float) $value);
+            if ($val < 1) {
+                $val = 1;
+            }
+            if ($val > 99999) {
+                $val = 99999;
+            }
+            data_set($this, $property, $val);
+        }
+    }
+
+    public function addOneTimeSuggested(): void
+    {
+        if (count($this->suggestedOneTime) >= 6) {
+            $this->dispatch('notify', message: 'Maximum 6 amounts allowed.', variant: 'danger');
+
+            return;
+        }
+
+        $value = (int) round((float) ($this->newOneTimeValue ?? 0));
+        if ($value < 1 || $value > 99999) {
+            $this->dispatch('notify', message: 'Amount must be between 1 and 99,999.', variant: 'danger');
+            $this->newOneTimeValue = null;
+
+            return;
+        }
+
+        $this->suggestedOneTime[] = ['value' => $value, 'label' => ''];
+        $this->sortSuggested($this->suggestedOneTime);
+        $this->newOneTimeValue = null;
+    }
+
+    public function removeOneTimeSuggested(int $index): void
+    {
+        if (count($this->suggestedOneTime) <= 1) {
+            $this->dispatch('notify', message: 'At least 1 amount is required.', variant: 'danger');
+
+            return;
+        }
+
+        unset($this->suggestedOneTime[$index]);
+        $this->suggestedOneTime = array_values($this->suggestedOneTime);
+    }
+
+    public function addMonthlySuggested(): void
+    {
+        if (count($this->suggestedMonthly) >= 6) {
+            $this->dispatch('notify', message: 'Maximum 6 amounts allowed.', variant: 'danger');
+
+            return;
+        }
+
+        $value = (int) round((float) ($this->newMonthlyValue ?? 0));
+        if ($value < 1 || $value > 99999) {
+            $this->dispatch('notify', message: 'Amount must be between 1 and 99,999.', variant: 'danger');
+            $this->newMonthlyValue = null;
+
+            return;
+        }
+
+        $this->suggestedMonthly[] = ['value' => $value, 'label' => ''];
+        $this->sortSuggested($this->suggestedMonthly);
+        $this->newMonthlyValue = null;
+    }
+
+    public function removeMonthlySuggested(int $index): void
+    {
+        if (count($this->suggestedMonthly) <= 1) {
+            $this->dispatch('notify', message: 'At least 1 amount is required.', variant: 'danger');
+
+            return;
+        }
+
+        unset($this->suggestedMonthly[$index]);
+        $this->suggestedMonthly = array_values($this->suggestedMonthly);
+    }
+
+    public function resetOneTimeDefaults(): void
+    {
+        $defaults = $this->defaultAmountsForCurrency($this->activeCurrency);
+        $this->suggestedOneTime = $defaults['one_time'];
+    }
+
+    public function resetMonthlyDefaults(): void
+    {
+        $defaults = $this->defaultAmountsForCurrency($this->activeCurrency);
+        $this->suggestedMonthly = $defaults['monthly'];
+    }
+
+    private function sortSuggested(array &$arr): void
+    {
+        usort($arr, fn (array $a, array $b) => $b['value'] <=> $a['value']);
+    }
+
+    public function getCurrencySymbol(): string
+    {
+        return match ($this->activeCurrency) {
+            'USD' => '$',
+            'SGD' => 'S$',
+            'AUD' => 'A$',
+            'GBP' => '£',
+            'EUR' => '€',
+            default => 'RM',
+        };
     }
 
     public function save(): void
     {
         $validated = $this->validate();
 
-        $suggested = collect($this->suggested_amounts)
-            ->filter(fn (array $item) => filled($item['value'] ?? null))
+        // Save current active currency amounts back into nested array
+        $this->allSuggestedAmounts[$this->activeCurrency] = [
+            'one_time' => $this->suggestedOneTime,
+            'monthly' => $this->suggestedMonthly,
+        ];
+
+        // Build flat legacy columns from active currency only (for backward compat)
+        $oneTime = collect($this->suggestedOneTime)
+            ->filter(fn (array $item) => $item['value'] > 0)
+            ->map(fn (array $item) => [
+                'value' => (float) $item['value'],
+                'label' => $item['label'] ?? null,
+            ])
+            ->values()
+            ->toArray();
+
+        $monthly = collect($this->suggestedMonthly)
+            ->filter(fn (array $item) => $item['value'] > 0)
             ->map(fn (array $item) => [
                 'value' => (float) $item['value'],
                 'label' => $item['label'] ?? null,
@@ -124,6 +394,7 @@ class CampaignEdit extends Component
         $config = array_merge($this->campaign->config ?? [], [
             'default_frequency' => $this->default_frequency,
             'default_amount' => $this->default_amount ? (float) $this->default_amount : null,
+            'suggested_amounts_by_currency' => $this->allSuggestedAmounts,
         ]);
 
         $this->campaign->update([
@@ -137,7 +408,9 @@ class CampaignEdit extends Component
             'allow_recurring' => $this->allow_recurring,
             'allow_custom_amount' => $this->allow_custom_amount,
             'minimum_amount' => $validated['minimum_amount'] ?? null,
-            'suggested_amounts' => $suggested ?: null,
+            'suggested_amounts' => null,
+            'suggested_amounts_one_time' => $oneTime ?: null,
+            'suggested_amounts_monthly' => $monthly ?: null,
             'thank_you_message' => $validated['thank_you_message'] ?? null,
             'redirect_url' => $validated['redirect_url'] ?? null,
             'config' => $config,
@@ -189,7 +462,7 @@ class CampaignEdit extends Component
             'image_path',
         ]);
 
-        $newCampaign->title = $this->campaign->title.' (Copy)';
+        $newCampaign->title = $this->campaign->title . ' (Copy)';
         $newCampaign->status = 'draft';
         $newCampaign->organization_id = $org->id;
         $newCampaign->save();

@@ -14,7 +14,7 @@
                 @auth
                     <a href="{{ route('app.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">Dashboard</a>
                 @else
-                    <a href="{{ route('register.org') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">Register Organization</a>
+                    <a href="{{ route('register.org') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">@lang('nav.register_organization')</a>
                     @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="text-slate-300 hover:text-white transition-colors">@lang('nav.register')</a>
                     @endif
@@ -48,7 +48,7 @@
                 @auth
                     <a href="{{ route('app.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-center">Dashboard</a>
                 @else
-                    <a href="{{ route('register.org') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-center">Register Organization</a>
+                    <a href="{{ route('register.org') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-center">@lang('nav.register_organization')</a>
                     @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-center">@lang('nav.register')</a>
                     @endif
@@ -84,7 +84,7 @@
                     </a>
                 @else
                     <a href="{{ route('register.org') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
-                        Register Organization
+                        @lang('nav.register_organization')
                     </a>
                     @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-8 py-3.5 rounded-full font-semibold text-base border border-slate-700 transition-colors">
@@ -518,7 +518,7 @@
                     </a>
                 @else
                     <a href="{{ route('register.org') }}" class="inline-block bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
-                        Register Organization
+                        @lang('nav.register_organization')
                     </a>
                     @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="inline-block bg-slate-800 hover:bg-slate-700 text-slate-200 px-8 py-3.5 rounded-full font-semibold text-base border border-slate-700 transition-colors">

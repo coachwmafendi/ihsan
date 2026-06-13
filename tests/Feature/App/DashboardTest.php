@@ -51,7 +51,8 @@ it('shows quick action buttons', function () {
         ->assertOk()
         ->assertSee('Create Campaign')
         ->assertSee('View Donations')
-        ->assertSee('Virtual Terminal');
+        ->assertSee('Virtual Terminal')
+        ->assertSee('Opens in new tab', false);
 });
 
 it('has sidebar navigation', function () {
@@ -63,4 +64,13 @@ it('has sidebar navigation', function () {
         ->assertSee('Supporters')
         ->assertSee('Organization')
         ->assertSee('API &amp; Developer');
+});
+
+it('opens virtual terminal navigation in a new tab', function () {
+    actingAs($this->user)
+        ->get('/app/dashboard')
+        ->assertOk()
+        ->assertSee('href="/app/virtual-terminal"', false)
+        ->assertSee('target="_blank"', false)
+        ->assertSee('Opens in new tab', false);
 });

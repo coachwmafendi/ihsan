@@ -15,7 +15,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.app')]
+#[Layout('layouts.virtual-terminal')]
 class VirtualTerminal extends Component
 {
     public ?string $preloadedSupporterPublicId = null;

@@ -29,7 +29,11 @@ test('virtual terminal page is accessible by org admin', function () {
     $response = $this->get('/app/virtual-terminal');
     $response->assertOk();
     $response->assertSee('Virtual Terminal', false);
-    $response->assertSee('max-w-7xl mx-auto', false);
+    $response->assertSee('mx-auto min-h-screen max-w-7xl', false);
+    $response->assertDontSee('lg:pl-64', false);
+    $response->assertDontSee('<x-sidebar', false);
+    $response->assertDontSee('Fundraise');
+    $response->assertDontSee('Finance');
 });
 
 test('virtual terminal page preloads supporter from query param', function () {
@@ -201,7 +205,7 @@ test('one-time donation creates donation record for existing donor', function ()
         ->set('formData.last_name', 'Ali')
         ->set('formData.email', 'ahmad@example.com')
         ->set('formData.payment_method_id', 'pm_test_123')
-        ->callAction('processDonation');
+        ->call('processDonation');
 
     $this->assertDatabaseHas('donations', [
         'campaign_id' => $campaign->id,
@@ -238,7 +242,7 @@ test('virtual terminal validates required fields', function () {
         ->set('formData.first_name', '')
         ->set('formData.last_name', '')
         ->set('formData.email', '')
-        ->callAction('processDonation')
+        ->call('processDonation')
         ->assertNotDispatched('close-modal'); // Action should not succeed
 });
 
@@ -277,7 +281,7 @@ test('new donor is created when email does not match existing donor', function (
         ->set('formData.first_name', 'Siti')
         ->set('formData.last_name', 'Nor')
         ->set('formData.email', 'newdonor@example.com')
-        ->callAction('processDonation');
+        ->call('processDonation');
 
     $this->assertDatabaseHas('donors', [
         'email' => 'newdonor@example.com',
@@ -327,7 +331,7 @@ test('donation created via virtual terminal has source tracking', function () {
         ->set('formData.first_name', 'Ahmad')
         ->set('formData.last_name', 'Ali')
         ->set('formData.email', 'ahmad@example.com')
-        ->callAction('processDonation');
+        ->call('processDonation');
 
     $this->assertDatabaseHas('donations', [
         'campaign_id' => $campaign->id,
@@ -406,7 +410,7 @@ test('monthly donation creates subscription record', function () {
         ->set('formData.first_name', 'Ahmad')
         ->set('formData.last_name', 'Ali')
         ->set('formData.email', 'ahmad@example.com')
-        ->callAction('processDonation');
+        ->call('processDonation');
 
     $this->assertDatabaseHas('subscriptions', [
         'campaign_id' => $campaign->id,
