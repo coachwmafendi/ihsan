@@ -10,7 +10,7 @@ test('organizations table has facebook_url column', function () {
 });
 
 test('registration page renders', function () {
-    $this->get('/daftar')->assertOk();
+    $this->get('/register-organization')->assertOk();
 });
 
 test('org registration creates pending organization', function () {

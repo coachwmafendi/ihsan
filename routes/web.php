@@ -31,7 +31,7 @@ use App\Livewire\Auth\RegisterOrganization;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
-Route::get('/daftar', RegisterOrganization::class)->name('register.org');
+Route::get('/register-organization', RegisterOrganization::class)->name('register.org');
 
 Route::get('/_test-widget', fn () => response('<!DOCTYPE html><html><body style="padding:40px"><h2>Widget Test</h2><script src="/e/widget.js" data-token="sgxqLo" data-api-base="'.config('app.url').'"></script></body></html>')->header('Content-Type', 'text/html'));
 
