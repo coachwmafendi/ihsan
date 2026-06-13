@@ -62,5 +62,5 @@ it('has sidebar navigation', function () {
         ->assertSee('Finance')
         ->assertSee('Supporters')
         ->assertSee('Organization')
-        ->assertSee('API & Developer');
+        ->assertSee('API &amp; Developer');
 });
