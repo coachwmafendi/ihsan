@@ -81,7 +81,7 @@
                         <label for="logo" class="block text-sm font-medium text-slate-700">Logo</label>
                         <div class="mt-1 flex items-center gap-4">
                             @if ($existing_logo)
-                                <img src="{{ Storage::url($existing_logo) }}" alt="Current logo" class="h-16 w-16 rounded-lg object-cover border border-slate-200">
+                                <img src="{{ Storage::disk('public')->url($existing_logo) }}" alt="Current logo" class="h-16 w-16 rounded-lg object-cover border border-slate-200">
                             @else
                                 <div class="h-16 w-16 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
                                     <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -96,7 +96,7 @@
                         <label for="image" class="block text-sm font-medium text-slate-700">Campaign Image</label>
                         <div class="mt-1 flex items-center gap-4">
                             @if ($existing_image)
-                                <img src="{{ Storage::url($existing_image) }}" alt="Current campaign image" class="h-20 w-20 rounded-lg object-cover border border-slate-200" />
+                                <img src="{{ Storage::disk('public')->url($existing_image) }}" alt="Current campaign image" class="h-20 w-20 rounded-lg object-cover border border-slate-200" />
                             @else
                                 <div class="flex h-20 w-20 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
                                     <x-heroicon-o-photo class="size-8" />

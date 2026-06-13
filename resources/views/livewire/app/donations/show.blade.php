@@ -104,7 +104,7 @@
                 @if ($donation->campaign)
                     <div class="flex items-center gap-3">
                         @if ($donation->campaign->image_path)
-                            <img src="{{ Storage::url($donation->campaign->image_path) }}" alt="" class="h-10 w-10 rounded-lg object-cover" />
+                            <img src="{{ Storage::disk('public')->url($donation->campaign->image_path) }}" alt="" class="h-10 w-10 rounded-lg object-cover" />
                         @else
                             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50">
                                 <x-heroicon-o-megaphone class="size-5 text-teal-600" />

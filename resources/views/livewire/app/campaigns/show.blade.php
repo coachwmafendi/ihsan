@@ -4,7 +4,7 @@
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div class="flex items-center gap-4">
             @if ($campaign->image_path)
-                <img src="{{ Storage::url($campaign->image_path) }}" alt="" class="h-14 w-14 rounded-xl object-cover" />
+                <img src="{{ Storage::disk('public')->url($campaign->image_path) }}" alt="" class="h-14 w-14 rounded-xl object-cover" />
             @else
                 <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-teal-50">
                     <x-heroicon-o-megaphone class="size-6 text-teal-600" />
