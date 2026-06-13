@@ -11,8 +11,11 @@ use App\Livewire\App\Billing;
 use App\Livewire\App\Campaigns\CampaignCreate;
 use App\Livewire\App\Campaigns\CampaignIndex;
 use App\Livewire\App\Campaigns\CampaignShow;
+use App\Livewire\App\Dashboard;
 use App\Livewire\App\Donations\DonationIndex;
 use App\Livewire\App\Donations\DonationShow;
+use App\Livewire\App\Donors\DonorIndex;
+use App\Livewire\App\Donors\DonorShow;
 use App\Livewire\App\Settings\Notifications;
 use App\Livewire\App\Settings\Payment;
 use App\Livewire\App\Settings\Profile;
@@ -49,7 +52,7 @@ Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/app/dashboard', \App\Livewire\App\Dashboard::class)->name('app.dashboard');
+    Route::get('/app/dashboard', Dashboard::class)->name('app.dashboard');
 
     Route::get('/app/campaigns', CampaignIndex::class)->name('app.campaigns.index');
     Route::get('/app/campaigns/create', CampaignCreate::class)->name('app.campaigns.create');
@@ -57,6 +60,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/app/donations', DonationIndex::class)->name('app.donations.index');
     Route::get('/app/donations/{donation:public_id}', DonationShow::class)->name('app.donations.show');
+
+    Route::get('/app/donors', DonorIndex::class)->name('app.donors.index');
+    Route::get('/app/donors/{donor:public_id}', DonorShow::class)->name('app.donors.show');
 
     Route::get('/app/settings/profile', Profile::class)->name('app.settings.profile');
     Route::get('/app/settings/payment', Payment::class)->name('app.settings.payment');
