@@ -51,7 +51,7 @@
         <x-ui.stat-card
             label="Last Donation"
             value="{{ $this->lastDonation ? $this->lastDonation->created_at->diffForHumans() : '—' }}"
-            subtext="{{ $this->lastDonation ? ($this->lastDonation->donor?->full_name ?? 'Anonymous') : '' }}"
+            subtext="{{ $this->lastDonation ? ($this->lastDonation->donor?->name ?? 'Anonymous') : '' }}"
         />
     </div>
 
@@ -76,7 +76,7 @@
                                         <x-heroicon-o-user class="size-4 text-slate-400" />
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-slate-900">{{ $donation->donor?->full_name ?? 'Anonymous' }}</p>
+                                        <p class="text-sm font-medium text-slate-900">{{ $donation->donor?->name ?? 'Anonymous' }}</p>
                                         <p class="text-xs text-slate-500">{{ $donation->created_at->format('M d, Y H:i') }}</p>
                                     </div>
                                 </div>

@@ -108,7 +108,7 @@
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <p class="text-sm font-medium text-slate-900 truncate">
-                                            {{ $donation->donor?->full_name ?? 'Anonymous' }}
+                                            {{ $donation->donor?->name ?? 'Anonymous' }}
                                         </p>
                                         <p class="text-xs text-slate-500">
                                             RM {{ number_format($donation->gross_amount, 2) }}
