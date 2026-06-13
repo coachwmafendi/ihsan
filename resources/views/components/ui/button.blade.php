@@ -5,6 +5,7 @@
     'href' => null,
     'wireClick' => null,
     'disabled' => false,
+    'target' => null,
 ])
 
 @php
@@ -28,7 +29,7 @@ $classes .= ($sizes[$size] ?? $sizes['md']);
 @endphp
 
 @if($href && !$wireClick)
-    <a href="{{ $href }}" {{ $attributes->merge(['class' => $classes]) }}>
+    <a href="{{ $href }}" {{ $attributes->merge(['class' => $classes]) }} @if($target) target="{{ $target }}" @endif>
         {{ $slot }}
     </a>
 @elseif($wireClick)

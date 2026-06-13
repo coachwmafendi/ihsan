@@ -48,6 +48,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans')" />
                 <x-sidebar-item href="/app/payouts" icon="wallet" label="Payouts" :active="$isActive('/app/payouts')" />
                 <x-sidebar-item href="/app/billing" icon="credit-card" label="Billing" :active="$isActive('/app/billing')" />
+                <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" :active="$isActive('/app/virtual-terminal')" />
             </x-sidebar-group>
 
             <x-sidebar-group label="Supporters">
@@ -64,11 +65,9 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                     <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
                     <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
                 </x-sidebar-dropdown>
-                
-                <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" :active="$isActive('/app/virtual-terminal')" />
             </x-sidebar-group>
 
-            <x-sidebar-group label="API & Developer">
+            <x-sidebar-group label="API &amp; Developer">
                 <x-sidebar-item href="/app/developer/api-keys" icon="key" label="API Keys" :active="$isActive('/app/developer/api-keys')" />
                 <x-sidebar-item href="/app/developer/webhooks" icon="globe-alt" label="Webhooks" :active="$isActive('/app/developer/webhooks')" />
                 <x-sidebar-item href="/app/developer/embed-forms" icon="code-bracket" label="Embed Forms" :active="$isActive('/app/developer/embed-forms')" />
@@ -98,6 +97,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans')" />
                 <x-sidebar-item href="/app/payouts" icon="wallet" label="Payouts" :active="$isActive('/app/payouts')" />
                 <x-sidebar-item href="/app/billing" icon="credit-card" label="Billing" :active="$isActive('/app/billing')" />
+                <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" :active="$isActive('/app/virtual-terminal')" />
             </x-sidebar-group>
 
             <x-sidebar-group label="Supporters">
@@ -114,15 +114,14 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                     <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
                     <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
                 </x-sidebar-dropdown>
-                
-                <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" :active="$isActive('/app/virtual-terminal')" />
             </x-sidebar-group>
 
-            <x-sidebar-group label="API & Developer">
+            <x-sidebar-group label="API &amp; Developer">
                 <x-sidebar-item href="/app/developer/api-keys" icon="key" label="API Keys" :active="$isActive('/app/developer/api-keys')" />
                 <x-sidebar-item href="/app/developer/webhooks" icon="globe-alt" label="Webhooks" :active="$isActive('/app/developer/webhooks')" />
                 <x-sidebar-item href="/app/developer/embed-forms" icon="code-bracket" label="Embed Forms" :active="$isActive('/app/developer/embed-forms')" />
             </x-sidebar-group>
         </nav>
     </div>
+</div>
 </div>
