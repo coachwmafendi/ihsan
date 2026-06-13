@@ -287,11 +287,11 @@
                     wire:loading.attr="disabled"
                     x-on:click="submitPayment()"
                     :disabled="processing ||
-                        empty($wire.formData.amount) ||
-                        empty($wire.formData.campaign_id) ||
-                        empty($wire.formData.first_name) ||
-                        empty($wire.formData.last_name) ||
-                        empty($wire.formData.email)"
+                        !$wire.formData.amount ||
+                        !$wire.formData.campaign_id ||
+                        !$wire.formData.first_name ||
+                        !$wire.formData.last_name ||
+                        !$wire.formData.email"
                     class="mt-6 w-full rounded-lg bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <span x-show="!processing">Make a donation</span>
