@@ -8,33 +8,26 @@
     'actionWireClick' => null,
 ])
 
-<div {{ $attributes->merge(['class' => 'flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center dark:border-gray-700 dark:bg-gray-900']) }}>
-    <div class="rounded-full bg-gray-50 p-4 dark:bg-gray-800">
-        <x-dynamic-component :component="$icon" class="size-8 text-gray-400 dark:text-gray-500" />
+<div {{ $attributes->merge(['class' => 'flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center']) }}>
+    <div class="rounded-full bg-slate-50 p-4">
+        <x-dynamic-component :component="$icon" class="size-8 text-slate-400" />
     </div>
 
-    <h3 class="mt-4 text-base font-semibold text-gray-900 dark:text-white">{{ $title }}</h3>
+    <h3 class="mt-4 text-base font-semibold text-slate-900">{{ $title }}</h3>
 
     @if ($description)
-        <p class="mt-1.5 max-w-xs text-sm text-gray-500 dark:text-gray-400">{{ $description }}</p>
+        <p class="mt-1.5 max-w-xs text-sm text-slate-500">{{ $description }}</p>
     @endif
 
     @if ($actionLabel && ($actionUrl || $actionWireClick))
         <div class="mt-6">
             @if ($actionWireClick)
-                <button
-                    type="button"
-                    wire:click="{{ $actionWireClick }}"
-                    class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:bg-primary-500 dark:hover:bg-primary-400"
-                >
+                <button type="button" wire:click="{{ $actionWireClick }}" class="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
                     <x-heroicon-o-plus class="size-4" />
                     {{ $actionLabel }}
                 </button>
             @else
-                <a
-                    href="{{ $actionUrl }}"
-                    class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:bg-primary-500 dark:hover:bg-primary-400"
-                >
+                <a href="{{ $actionUrl }}" class="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
                     <x-heroicon-o-plus class="size-4" />
                     {{ $actionLabel }}
                 </a>
