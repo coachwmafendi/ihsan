@@ -44,6 +44,7 @@ class UsersRelationManager extends RelationManager
                     ->maxLength(255)
                     ->unique(ignoreRecord: true)
                     ->placeholder('admin@example.com')
+                    ->default(fn () => $this->getOwnerRecord()?->contact_email)
                     ->columnSpanFull()
                     ->autocomplete('email'),
             ]);
