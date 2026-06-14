@@ -281,7 +281,7 @@
                 ];
                 $linkColor = $linkColors[$config['color'] ?? 'campaign'] ?? '#16a34a';
                 $linkStyle = $config['style'] ?? 'button';
-                $linkText = $config['text'] ?? 'Donate Now';
+                $linkText = $config['text'] ?? $config['button_text'] ?? 'Donate';
                 $linkAlignment = $config['alignment'] ?? 'left';
                 $linkSizes = [
                     'small' => ['font' => '14px', 'padding' => '8px 16px'],

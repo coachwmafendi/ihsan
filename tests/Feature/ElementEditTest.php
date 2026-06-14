@@ -6,6 +6,7 @@ use App\Enums\ElementType;
 use App\Enums\UserRole;
 use App\Http\Controllers\PublicElementController;
 use App\Livewire\App\Elements\ElementEdit;
+use App\Livewire\App\Elements\ElementIndex;
 use App\Models\Campaign;
 use App\Models\Element;
 use App\Models\Organization;
@@ -144,4 +145,43 @@ it('saves a gradient button effect', function () {
 
     expect($element->config['button_effect'])->toBe('gradient_blue_purple')
         ->and($element->config['button_text'])->toBe('Derma');
+});
+
+it('creates button elements with default Donate text and heart icon', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementIndex::class)
+        ->call('openCreateModal')
+        ->set('newType', 'button')
+        ->set('newName', 'Masjid Fasa 1 Button')
+        ->set('newCampaignId', $this->campaign->id)
+        ->call('createElement')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    $element = Element::query()
+        ->where('name', 'Masjid Fasa 1 Button')
+        ->firstOrFail();
+
+    expect($element->config['button_text'])->toBe('Donate')
+        ->and($element->config['icon'])->toBe('heart');
+});
+
+it('creates a link element with default Donate text', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementIndex::class)
+        ->call('openCreateModal')
+        ->set('newType', 'link')
+        ->set('newName', 'Donation Link')
+        ->set('newCampaignId', $this->campaign->id)
+        ->call('createElement')
+        ->assertHasNoErrors();
+
+    $element = Element::query()
+        ->where('name', 'Donation Link')
+        ->firstOrFail();
+
+    expect($element->config['button_text'])->toBe('Donate')
+        ->and($element->config['text'])->toBe('Donate');
 });

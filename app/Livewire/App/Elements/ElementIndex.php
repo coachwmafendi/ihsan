@@ -73,14 +73,28 @@ class ElementIndex extends Component
         }
 
         $token = $this->generateUniqueToken();
+        $type = ElementType::from($this->newType);
+
+        $config = match ($type->value) {
+            'button', 'floating_button', 'sticky_button' => [
+                'button_text' => 'Donate',
+                'icon' => 'heart',
+            ],
+            'link' => [
+                'button_text' => 'Donate',
+                'text' => 'Donate',
+            ],
+            default => null,
+        };
 
         $element = Element::create([
             'organization_id' => $org->id,
             'campaign_id' => $this->newCampaignId,
-            'type' => ElementType::from($this->newType),
+            'type' => $type,
             'name' => $this->newName,
             'token' => $token,
             'is_active' => true,
+            'config' => $config,
         ]);
 
         $this->showCreateModal = false;

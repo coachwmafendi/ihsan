@@ -861,7 +861,7 @@
     var s = el.settings;
     var campaignUrl = el.campaign_url || checkoutUrl(el);
     var href = s.url || campaignUrl;
-    var text = s.text || "Derma Sekarang";
+    var text = s.text || s.button_text || "Derma Sekarang";
     var alignment = s.alignment || "left";
     var style = s.style || "button";
     var color = hexColor(s.color || "campaign");

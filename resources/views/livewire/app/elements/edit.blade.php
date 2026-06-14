@@ -62,14 +62,6 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-slate-700">Type</label>
-                            <div class="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                                {{ ucwords(str_replace('_', ' ', $element->type->value)) }}
-                            </div>
-                            <p class="mt-1 text-xs text-slate-500">Type cannot be changed after creation.</p>
-                        </div>
-
-                        <div>
                             <label for="name" class="block text-sm font-medium text-slate-700">Name <span class="text-red-500">*</span></label>
                             <input
                                 type="text"

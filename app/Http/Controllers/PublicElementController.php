@@ -37,7 +37,7 @@ class PublicElementController extends Controller
 
         if ($element->type === ElementType::FloatingButton) {
             $settings = array_merge([
-                'button_text' => 'Donate Now',
+                'button_text' => 'Donate',
                 'action' => 'checkout_modal',
                 'position' => 'bottom-right',
                 'color' => 'campaign',
@@ -107,7 +107,7 @@ class PublicElementController extends Controller
 
         if ($element->type === ElementType::Button) {
             $settings = array_merge([
-                'button_text' => 'Donate Now',
+                'button_text' => 'Donate',
                 'button_color' => 'bg-blue-600 hover:bg-blue-700',
                 'button_size' => 'text-base px-6 py-3',
                 'corner_radius' => 8,
@@ -137,13 +137,15 @@ class PublicElementController extends Controller
 
         if ($element->type === ElementType::Link) {
             $settings = array_merge([
-                'text' => 'Donate Now',
+                'text' => 'Donate',
                 'url' => '',
                 'style' => 'button',
                 'color' => 'campaign',
                 'size' => 'Medium',
                 'alignment' => 'left',
             ], $settings);
+
+            $settings['text'] = $settings['text'] ?: ($settings['button_text'] ?? 'Donate');
         }
 
         $response = [
