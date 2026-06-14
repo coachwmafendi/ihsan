@@ -44,6 +44,10 @@ class ElementEdit extends Component
 
     public string $config_button_effect = 'none';
 
+    public string $config_alignment = 'center';
+
+    public string $config_position = 'right-center';
+
     #[Computed]
     public function organization()
     {
@@ -65,6 +69,16 @@ class ElementEdit extends Component
             ->get();
     }
 
+    private function usesButtonStyleConfig(): bool
+    {
+        return in_array($this->element->type, [
+            ElementType::Button,
+            ElementType::FloatingButton,
+            ElementType::StickyButton,
+            ElementType::Link,
+        ], true);
+    }
+
     public function mount(Element $element): void
     {
         $this->authorize('update', $element);
@@ -78,11 +92,13 @@ class ElementEdit extends Component
         $this->config_title = $config['title'] ?? null;
         $this->config_message = $config['message'] ?? null;
         $this->config_button_text = $config['button_text'] ?? $config['text'] ?? 'Donate';
-        $this->config_button_color = $config['button_color'] ?? 'bg-blue-600 hover:bg-blue-700';
+        $this->config_button_color = $config['button_color'] ?? $config['color'] ?? 'bg-blue-600 hover:bg-blue-700';
         $this->config_button_size = $config['button_size'] ?? 'text-base px-6 py-3';
         $this->config_corner_radius = (int) ($config['corner_radius'] ?? 8);
         $this->config_button_icon = $config['button_icon'] ?? $config['icon'] ?? 'heart';
         $this->config_button_effect = $config['button_effect'] ?? 'none';
+        $this->config_alignment = $config['alignment'] ?? 'center';
+        $this->config_position = $config['position'] ?? 'right-center';
     }
 
     public function save(): void
@@ -107,24 +123,30 @@ class ElementEdit extends Component
             'button_text' => $this->config_button_text,
         ], fn ($value) => $value !== null && $value !== '');
 
-        if ($this->element->type === ElementType::Button) {
+        if ($this->usesButtonStyleConfig()) {
             $config['button_color'] = $this->config_button_color;
             $config['button_size'] = $this->config_button_size;
             $config['corner_radius'] = $this->config_corner_radius;
             $config['button_icon'] = $this->config_button_icon;
             $config['button_effect'] = $this->config_button_effect;
+            $config['alignment'] = $this->config_alignment;
+        }
+
+        if ($this->element->type === ElementType::StickyButton) {
+            $config['position'] = $this->config_position;
         }
 
         // Preserve existing config keys that aren't managed by this form
         $existingConfig = $this->element->config ?? [];
         $mergedConfig = array_merge($existingConfig, $config);
 
-        if ($this->element->type === ElementType::Button) {
+        if ($this->usesButtonStyleConfig()) {
             unset($mergedConfig['title'], $mergedConfig['message']);
         }
 
         if ($this->element->type === ElementType::Link) {
             $mergedConfig['text'] = $this->config_button_text;
+            $mergedConfig['style'] = 'button';
         }
 
         $this->element->update([

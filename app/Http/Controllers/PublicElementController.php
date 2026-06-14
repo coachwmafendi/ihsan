@@ -53,10 +53,15 @@ class PublicElementController extends Controller
                 'button_text' => 'Donate',
                 'action' => 'checkout_modal',
                 'position' => 'right-center',
-                'color' => 'campaign',
                 'visibility' => 'desktop_mobile',
-                'icon' => 'heart',
+                'button_color' => 'bg-blue-600 hover:bg-blue-700',
+                'button_size' => 'text-base px-6 py-3',
+                'corner_radius' => 8,
+                'button_icon' => 'heart',
                 'button_effect' => 'none',
+                // Preserve legacy aliases for old embeds that read `color` / `icon`
+                'color' => 'campaign',
+                'icon' => 'heart',
             ], $settings);
         }
 
@@ -142,7 +147,7 @@ class PublicElementController extends Controller
                 'style' => 'button',
                 'color' => 'campaign',
                 'size' => 'Medium',
-                'alignment' => 'left',
+                'alignment' => 'center',
             ], $settings);
 
             $settings['text'] = $settings['text'] ?: ($settings['button_text'] ?? 'Donate');

@@ -1,4 +1,7 @@
 {{-- resources/views/livewire/app/elements/edit.blade.php --}}
+@php
+    $isButtonLike = in_array($element->type->value, ['button', 'floating_button', 'sticky_button', 'link'], true);
+@endphp
 <div class="space-y-6">
     {{-- Page Header --}}
     <div class="flex items-center gap-3">
@@ -22,26 +25,24 @@
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {{-- Left column: Form fields --}}
             <div class="space-y-6 lg:col-span-2">
-                @if ($element->type->value === 'button')
-                    {{-- Embed Code --}}
-                    <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
-                        <div class="space-y-3">
-                            <div class="relative">
-                                <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code>&lt;script src="{{ url('/e/widget.js') }}" data-token="{{ $element->token }}" data-type="{{ $element->type->value }}" async&gt;&lt;/script&gt;</code></pre>
-                                <button
-                                    type="button"
-                                    x-data="{ copied: false }"
-                                    @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async></script>`); copied = true; setTimeout(() => copied = false, 2000)"
-                                    class="absolute right-2 top-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-600"
-                                >
-                                    <span x-show="!copied">Copy</span>
-                                    <span x-show="copied" x-cloak>Copied!</span>
-                                </button>
-                            </div>
-                            <p class="text-xs text-slate-500">Token: {{ $element->token }}</p>
+                {{-- Embed Code --}}
+                <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
+                    <div class="space-y-3">
+                        <div class="relative">
+                            <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code>&lt;script src="{{ url('/e/widget.js') }}" data-token="{{ $element->token }}" data-type="{{ $element->type->value }}" async&gt;&lt;/script&gt;</code></pre>
+                            <button
+                                type="button"
+                                x-data="{ copied: false }"
+                                @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async></script>`); copied = true; setTimeout(() => copied = false, 2000)"
+                                class="absolute right-2 top-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-600"
+                            >
+                                <span x-show="!copied">Copy</span>
+                                <span x-show="copied" x-cloak>Copied!</span>
+                            </button>
                         </div>
-                    </x-ui.card>
-                @endif
+                        <p class="text-xs text-slate-500">Token: {{ $element->token }}</p>
+                    </div>
+                </x-ui.card>
 
                 {{-- Basic Info --}}
                 <x-ui.card title="Basic Information">
@@ -94,7 +95,7 @@
                 {{-- Configuration --}}
                 <x-ui.card title="Configuration">
                     <div class="space-y-4">
-                        @if ($element->type->value !== 'button')
+                        @if (! $isButtonLike)
                             <div>
                                 <label for="config_title" class="block text-sm font-medium text-slate-700">Title</label>
                                 <input
@@ -129,7 +130,7 @@
                             />
                         </div>
 
-                        @if ($element->type->value === 'button')
+                        @if ($isButtonLike)
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="sm:col-span-2">
                                     <label for="config_button_effect" class="block text-sm font-medium text-slate-700">Button Effect</label>
@@ -186,31 +187,31 @@
                                         <option value="plus">Plus</option>
                                     </select>
                                 </div>
+
+                                @if ($element->type->value === 'link')
+                                    <div>
+                                        <label for="config_alignment" class="block text-sm font-medium text-slate-700">Alignment</label>
+                                        <select id="config_alignment" wire:model.live="config_alignment" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                            <option value="center">Center</option>
+                                            <option value="left">Left</option>
+                                            <option value="right">Right</option>
+                                        </select>
+                                    </div>
+                                @endif
+
+                                @if ($element->type->value === 'sticky_button')
+                                    <div>
+                                        <label for="config_position" class="block text-sm font-medium text-slate-700">Position</label>
+                                        <select id="config_position" wire:model.live="config_position" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                            <option value="right-center">Middle Right</option>
+                                            <option value="left-center">Middle Left</option>
+                                        </select>
+                                    </div>
+                                @endif
                             </div>
                         @endif
                     </div>
                 </x-ui.card>
-
-                @if ($element->type->value !== 'button')
-                    {{-- Embed Code --}}
-                    <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
-                        <div class="space-y-3">
-                            <div class="relative">
-                                <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code>&lt;script src="{{ url('/e/widget.js') }}" data-token="{{ $element->token }}" data-type="{{ $element->type->value }}" async&gt;&lt;/script&gt;</code></pre>
-                                <button
-                                    type="button"
-                                    x-data="{ copied: false }"
-                                    @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async></script>`); copied = true; setTimeout(() => copied = false, 2000)"
-                                    class="absolute right-2 top-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-600"
-                                >
-                                    <span x-show="!copied">Copy</span>
-                                    <span x-show="copied" x-cloak>Copied!</span>
-                                </button>
-                            </div>
-                            <p class="text-xs text-slate-500">Token: {{ $element->token }}</p>
-                        </div>
-                    </x-ui.card>
-                @endif
 
                 {{-- Actions --}}
                 <div class="flex items-center justify-between">
@@ -243,6 +244,8 @@
                             'corner_radius' => $config_corner_radius,
                             'button_icon' => $config_button_icon,
                             'button_effect' => $config_button_effect,
+                            'alignment' => $config_alignment,
+                            'position' => $config_position,
                         ], fn ($value) => $value !== null && $value !== ''))"
                     />
                 </div>

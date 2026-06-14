@@ -460,7 +460,16 @@
       }
     }
 
-    var color = hexColor(s.color || s.custom_color || "campaign");
+    var rawColor = s.button_color || s.color || s.custom_color || "campaign";
+    var color = hexColor(rawColor);
+    if (rawColor.indexOf("blue") !== -1) color = "#2563eb";
+    else if (rawColor.indexOf("teal") !== -1) color = "#0d9488";
+    else if (rawColor.indexOf("green") !== -1) color = "#16a34a";
+    else if (rawColor.indexOf("orange") !== -1) color = "#ea580c";
+    else if (rawColor.indexOf("red") !== -1) color = "#dc2626";
+    else if (rawColor.indexOf("purple") !== -1) color = "#9333ea";
+    else if (rawColor.indexOf("dark") !== -1 || rawColor.indexOf("gray") !== -1 || rawColor.indexOf("slate") !== -1) color = "#1e293b";
+
     var borderRadius = isLeft ? "0 12px 12px 0" : "12px 0 0 12px";
     var posTransform = "translateY(-50%)";
     var hoverScale = "scale(1.06)";
@@ -474,7 +483,7 @@
       plus: '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>',
     };
 
-    var iconHtml = icons[s.icon] || icons.heart;
+    var iconHtml = icons[s.button_icon] || icons[s.icon] || icons.heart;
     var rawText = s.button_text || s.text || "Donate";
     var text = esc(rawText.length > 16 ? rawText.slice(0, 16) : rawText);
     var rotation = isLeft ? "rotate(90deg)" : "rotate(-90deg)";
@@ -862,18 +871,38 @@
     var campaignUrl = el.campaign_url || checkoutUrl(el);
     var href = s.url || campaignUrl;
     var text = s.text || s.button_text || "Derma Sekarang";
-    var alignment = s.alignment || "left";
+    var alignment = s.alignment || "center";
     var style = s.style || "button";
+
+    var btnColour = s.button_color || "";
     var color = hexColor(s.color || "campaign");
+    if (btnColour.indexOf("blue") !== -1) color = "#2563eb";
+    else if (btnColour.indexOf("green") !== -1) color = "#16a34a";
+    else if (btnColour.indexOf("red") !== -1) color = "#dc2626";
+    else if (btnColour.indexOf("orange") !== -1) color = "#ea580c";
+    else if (btnColour.indexOf("purple") !== -1) color = "#9333ea";
+    else if (btnColour.indexOf("teal") !== -1) color = "#0d9488";
+    else if (btnColour.indexOf("dark") !== -1 || btnColour.indexOf("gray") !== -1) color = "#1e293b";
 
-    var sizes = {
-      small: { font: "14px", padding: "8px 16px" },
-      medium: { font: "16px", padding: "10px 24px" },
-      large: { font: "18px", padding: "12px 32px" },
+    var size = s.button_size || "";
+    var padding = "10px 24px";
+    var fontSize = "16px";
+    if (size.indexOf("px-4") !== -1) { padding = "8px 16px"; fontSize = "14px"; }
+    else if (size.indexOf("px-6") !== -1) { padding = "10px 24px"; fontSize = "16px"; }
+    else if (size.indexOf("px-8") !== -1) { padding = "12px 32px"; fontSize = "18px"; }
+
+    var radius = parseInt(s.corner_radius, 10);
+    if (isNaN(radius)) radius = 8;
+
+    var linkIcons = {
+      heart: '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
+      hand: '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M23 12.22V15c0 4.97-4.03 9-9 9H9.17c-1.59 0-3.11-.63-4.24-1.76L0 17.5l1.5-1.5c.47-.47 1.08-.73 1.77-.73.46 0 .9.12 1.28.35L7 17.34V4.5C7 3.67 7.67 3 8.5 3S10 3.67 10 4.5v4h1V3.5C11 2.67 11.67 2 12.5 2S14 2.67 14 3.5V8.5h1V4c0-.83.67-1.5 1.5-1.5S18 3.17 18 4v5.5h1V6c0-.83.67-1.5 1.5-1.5S22 5.17 22 6v6.22z"/></svg>',
+      star: '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>',
+      gift: '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 12 7.01l3.38 4.99L17 10.83 14.92 8H20v6z"/></svg>',
+      plus: '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>',
     };
-
-    var sizeKey = (s.size || "medium").toLowerCase();
-    var sz = sizes[sizeKey] || sizes.medium;
+    var rawIcon = s.button_icon || "none";
+    var iconHtml = rawIcon === "none" ? "" : (linkIcons[rawIcon] || "");
 
     var linkEffectGradients = {
       gradient_teal_green:    "linear-gradient(120deg,#0d9488,#14b8a6,#22c55e,#0d9488)",
@@ -920,10 +949,10 @@
         linkHasEffect
           ? "background:" + linkEffectGradients[linkEffect] + ";background-size:300% 300%;animation:ihsan-grad-" + linkEffect + " 4s ease infinite"
           : "background:" + color,
-        "padding:" + sz.padding,
-        "font-size:" + sz.font,
+        "padding:" + padding,
+        "font-size:" + fontSize,
         "font-weight:600",
-        "border-radius:8px",
+        "border-radius:" + radius + "px",
         "min-width:120px",
         "line-height:1.3",
         "white-space:nowrap",

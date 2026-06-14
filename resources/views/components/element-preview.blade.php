@@ -219,15 +219,35 @@
 
         @elseif($type === 'sticky_button')
             @php
-                $sbColors = [
-                    'campaign' => '#16a34a',
+                $sbColorMap = [
                     'blue' => '#2563eb', 'teal' => '#0d9488', 'green' => '#16a34a',
                     'orange' => '#ea580c', 'red' => '#dc2626', 'purple' => '#9333ea', 'dark' => '#1e293b',
                 ];
-                $sbEffect = $config['button_effect'] ?? 'none';
+                $sbEffect = $config['button_effect'] ?? $config['effect'] ?? 'none';
                 $sbHasEffect = $sbEffect !== 'none' && isset($effectGradients[$sbEffect]);
                 $sbEffectId = 'sb-' . md5($sbEffect);
-                $sbColor = $sbColors[$config['color'] ?? 'campaign'] ?? '#16a34a';
+
+                $sbColor = '#16a34a';
+                $sbRawColor = $config['button_color'] ?? $config['color'] ?? 'campaign';
+                if ($sbRawColor[0] === '#') {
+                    $sbColor = $sbRawColor;
+                } elseif (str_contains($sbRawColor, 'blue')) {
+                    $sbColor = '#2563eb';
+                } elseif (str_contains($sbRawColor, 'teal')) {
+                    $sbColor = '#0d9488';
+                } elseif (str_contains($sbRawColor, 'green')) {
+                    $sbColor = '#16a34a';
+                } elseif (str_contains($sbRawColor, 'orange')) {
+                    $sbColor = '#ea580c';
+                } elseif (str_contains($sbRawColor, 'red')) {
+                    $sbColor = '#dc2626';
+                } elseif (str_contains($sbRawColor, 'purple')) {
+                    $sbColor = '#9333ea';
+                } elseif (str_contains($sbRawColor, 'dark') || str_contains($sbRawColor, 'gray') || str_contains($sbRawColor, 'slate')) {
+                    $sbColor = '#1e293b';
+                }
+                $sbColor = $sbColorMap[strtolower($sbRawColor)] ?? $sbColor;
+
                 $sbPosition = $config['position'] ?? 'right-center';
                 $sbIcons = [
                     'heart' => '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
@@ -236,7 +256,7 @@
                     'gift' => '<path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 12 7.01l3.38 4.99L17 10.83 14.92 8H20v6z"/>',
                     'plus' => '<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>',
                 ];
-                $sbIconPath = $sbIcons[$config['icon'] ?? 'heart'] ?? $sbIcons['heart'];
+                $sbIconPath = $sbIcons[$config['button_icon'] ?? $config['icon'] ?? 'heart'] ?? $sbIcons['heart'];
                 $sbRotation = str_starts_with($sbPosition, 'left') ? 'rotate(90deg)' : 'rotate(-90deg)';
                 $sbBorderRadius = str_starts_with($sbPosition, 'left') ? '0 12px 12px 0' : '12px 0 0 12px';
                 $sbText = $config['button_text'] ?? 'Donate';
@@ -279,16 +299,33 @@
                     'green' => '#16a34a', 'orange' => '#ea580c', 'red' => '#dc2626',
                     'purple' => '#9333ea', 'dark' => '#1e293b',
                 ];
-                $linkColor = $linkColors[$config['color'] ?? 'campaign'] ?? '#16a34a';
+                $btnColorClass = $config['button_color'] ?? '';
+                $linkColor = match (true) {
+                    str_contains($btnColorClass, 'blue') => '#2563eb',
+                    str_contains($btnColorClass, 'teal') => '#0d9488',
+                    str_contains($btnColorClass, 'green') => '#16a34a',
+                    str_contains($btnColorClass, 'orange') => '#ea580c',
+                    str_contains($btnColorClass, 'red') => '#dc2626',
+                    str_contains($btnColorClass, 'purple') => '#9333ea',
+                    str_contains($btnColorClass, 'gray') => '#1e293b',
+                    default => $linkColors[$config['color'] ?? 'campaign'] ?? '#16a34a',
+                };
                 $linkStyle = $config['style'] ?? 'button';
                 $linkText = $config['text'] ?? $config['button_text'] ?? 'Donate';
-                $linkAlignment = $config['alignment'] ?? 'left';
+                $linkAlignment = $config['alignment'] ?? 'center';
                 $linkSizes = [
                     'small' => ['font' => '14px', 'padding' => '8px 16px'],
                     'medium' => ['font' => '16px', 'padding' => '10px 24px'],
                     'large' => ['font' => '18px', 'padding' => '12px 32px'],
                 ];
-                $ls = $linkSizes[strtolower($config['size'] ?? 'medium')] ?? $linkSizes['medium'];
+                $sizeClass = $config['button_size'] ?? '';
+                $sizeKey = match (true) {
+                    str_contains($sizeClass, 'px-4') => 'small',
+                    str_contains($sizeClass, 'px-8') => 'large',
+                    str_contains($sizeClass, 'px-6') => 'medium',
+                    default => strtolower($config['size'] ?? 'medium'),
+                };
+                $ls = $linkSizes[$sizeKey] ?? $linkSizes['medium'];
                 $alignClass = match($linkAlignment) {
                     'center' => 'text-center',
                     'right' => 'text-right',
@@ -297,6 +334,16 @@
                 $linkEffect = $config['button_effect'] ?? 'none';
                 $linkHasEffect = $linkStyle === 'button' && $linkEffect !== 'none' && isset($effectGradients[$linkEffect]);
                 $linkEffectId = 'lnk-' . md5($linkEffect);
+                $linkRadius = (int) ($config['corner_radius'] ?? 8);
+                $linkIcon = $config['button_icon'] ?? 'none';
+                $linkIcons = [
+                    'heart' => '<svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
+                    'hand' => '<svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M23 12.22V15c0 4.97-4.03 9-9 9H9.17c-1.59 0-3.11-.63-4.24-1.76L0 17.5l1.5-1.5c.47-.47 1.08-.73 1.77-.73.46 0 .9.12 1.28.35L7 17.34V4.5C7 3.67 7.67 3 8.5 3S10 3.67 10 4.5v4h1V3.5C11 2.67 11.67 2 12.5 2S14 2.67 14 3.5V8.5h1V4c0-.83.67-1.5 1.5-1.5S18 3.17 18 4v5.5h1V6c0-.83.67-1.5 1.5-1.5S22 5.17 22 6v6.22z"/></svg>',
+                    'star' => '<svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>',
+                    'gift' => '<svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 12 7.01l3.38 4.99L17 10.83 14.92 8H20v6z"/></svg>',
+                    'plus' => '<svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>',
+                ];
+                $linkIconSvg = $linkIcon !== 'none' ? ($linkIcons[$linkIcon] ?? '') : '';
             @endphp
             @if($linkHasEffect)
                 <style>
@@ -318,11 +365,12 @@
                 <div class="{{ $alignClass }} w-full">
                     @if($linkStyle === 'button')
                         <span class="ihsan-effect-{{ $linkHasEffect ? $linkEffectId : '' }} inline-flex items-center justify-center gap-2 font-semibold text-white shadow-sm transition-all"
-                              style="{{ $linkHasEffect ? '' : 'background:' . $linkColor . ';' }}padding:{{ $ls['padding'] }};font-size:{{ $ls['font'] }};border-radius:8px;min-width:120px;cursor:pointer;">
+                              style="{{ $linkHasEffect ? '' : 'background:' . $linkColor . ';' }}padding:{{ $ls['padding'] }};font-size:{{ $ls['font'] }};border-radius:{{ $linkRadius }}px;min-width:120px;cursor:pointer;">
+                            {!! $linkIconSvg !!}
                             {{ $linkText }}
                         </span>
                     @else
-                        <span class="font-medium underline underline-offset-2" 
+                        <span class="font-medium underline underline-offset-2"
                               style="color:{{ $linkColor }};font-size:{{ $ls['font'] }};">
                             {{ $linkText }}
                         </span>

@@ -76,13 +76,32 @@ class ElementIndex extends Component
         $type = ElementType::from($this->newType);
 
         $config = match ($type->value) {
-            'button', 'floating_button', 'sticky_button' => [
+            'button' => [
+                'button_text' => 'Donate',
+                'button_color' => 'bg-blue-600 hover:bg-blue-700',
+                'button_size' => 'text-base px-6 py-3',
+                'corner_radius' => 8,
+                'button_icon' => 'heart',
+                'button_effect' => 'none',
+            ],
+            'sticky_button' => [
+                'button_text' => 'Donate',
+                'button_color' => 'bg-blue-600 hover:bg-blue-700',
+                'button_size' => 'text-base px-6 py-3',
+                'corner_radius' => 8,
+                'button_icon' => 'heart',
+                'button_effect' => 'none',
+                'position' => 'right-center',
+            ],
+            'floating_button' => [
                 'button_text' => 'Donate',
                 'icon' => 'heart',
             ],
             'link' => [
                 'button_text' => 'Donate',
                 'text' => 'Donate',
+                'icon' => 'heart',
+                'alignment' => 'center',
             ],
             default => null,
         };
