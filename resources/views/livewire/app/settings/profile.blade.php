@@ -319,6 +319,12 @@
         <div x-show="tab === 'allowed-domains'" x-cloak class="space-y-6" x-data="{ newDomain: '' }">
             <x-ui.card title="Allowed Domains" description="Domains permitted to embed your checkout widget. Only requests originating from these domains will be accepted.">
                 <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-slate-600">
+                            <span class="font-medium text-slate-900">{{ count($allowed_domains) }}</span> of <span class="font-medium text-slate-900">{{ App\Livewire\App\Settings\Profile::MAX_ALLOWED_DOMAINS }}</span> domains added
+                        </p>
+                    </div>
+
                     @if (count($allowed_domains) > 0)
                         <div class="flex flex-wrap gap-2">
                             @foreach ($allowed_domains as $i => $domain)
@@ -337,13 +343,15 @@
                             type="text"
                             x-model="newDomain"
                             placeholder="e.g. mywebsite.com or https://mywebsite.com"
-                            @keydown.enter.prevent="if (newDomain.trim()) { $wire.addDomain(newDomain); newDomain = ''; }"
-                            class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                            @keydown.enter.prevent="if (newDomain.trim() && {{ count($allowed_domains) }} < {{ App\Livewire\App\Settings\Profile::MAX_ALLOWED_DOMAINS }}) { $wire.addDomain(newDomain); newDomain = ''; }"
+                            :disabled="{{ count($allowed_domains) }} >= {{ App\Livewire\App\Settings\Profile::MAX_ALLOWED_DOMAINS }}"
+                            class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
                         >
                         <button
                             type="button"
                             @click="if (newDomain.trim()) { $wire.addDomain(newDomain); newDomain = ''; }"
-                            class="shrink-0 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors">
+                            :disabled="{{ count($allowed_domains) }} >= {{ App\Livewire\App\Settings\Profile::MAX_ALLOWED_DOMAINS }}"
+                            class="shrink-0 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors disabled:cursor-not-allowed disabled:bg-slate-300">
                             Add
                         </button>
                     </div>

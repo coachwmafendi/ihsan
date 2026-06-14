@@ -73,7 +73,7 @@ class DonationForm extends Component
         return $organization->settings['accepted_currencies'] ?? ['myr'];
     }
 
-    public function selectCurrency(string $currency): void
+    public function selectCurrency(string $currency, bool $resetAmount = true): void
     {
         $accepted = $this->getAcceptedCurrencies();
         if (! in_array($currency, $accepted, true)) {
@@ -82,8 +82,10 @@ class DonationForm extends Component
 
         $this->currency = $currency;
 
-        $amounts = $this->suggestedAmounts($this->frequency);
-        $this->amount = $amounts[0] ?? $this->amount;
+        if ($resetAmount) {
+            $amounts = $this->suggestedAmounts($this->frequency);
+            $this->amount = $amounts[0] ?? $this->amount;
+        }
 
         $this->dispatch('currency-updated',
             currency: $currency,
@@ -161,19 +163,19 @@ class DonationForm extends Component
 
     private function overrideFromQueryParams(): void
     {
-        $amount = request()->query('amount');
-        if ($amount !== null && is_numeric($amount) && (float) $amount > 0) {
-            $this->amount = (float) $amount;
-        }
-
         $frequency = request()->query('frequency');
         if ($frequency !== null && in_array($frequency, ['one_time', 'monthly'], strict: true)) {
             $this->frequency = $frequency;
         }
 
+        $amount = request()->query('amount');
+        if ($amount !== null && is_numeric($amount) && (float) $amount > 0) {
+            $this->amount = (float) $amount;
+        }
+
         $currency = request()->query('currency');
         if ($currency !== null) {
-            $this->selectCurrency(strtolower($currency));
+            $this->selectCurrency(strtolower($currency), false);
         }
 
         $coverFee = request()->query('cover_fee');

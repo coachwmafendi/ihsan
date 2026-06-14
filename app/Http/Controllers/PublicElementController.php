@@ -124,7 +124,10 @@ class PublicElementController extends Controller
 
         if ($element->type === ElementType::Form) {
             $settings = array_merge([
+                'title' => 'Support our cause',
+                'message' => "Let's seize the opportunity to contribute through waqf today. May Allah accept our waqf, expand our sustenance, bless our families, and make it a source of continuous reward that flows until the Hereafter.\n\nGive waqf today, reap endless rewards forever.",
                 'button_text' => 'Donate Now',
+                'submit_text' => 'Donate Now',
                 'action' => 'checkout_modal',
                 'color' => 'campaign',
             ], $settings);

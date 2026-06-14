@@ -46,6 +46,20 @@ it('renders for an authorized user', function () {
         ->assertSee('Phone');
 });
 
+it('shows a copied tooltip instead of a toast when copying from the edit page', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'title' => 'Copy Tooltip Campaign',
+    ]);
+
+    $this->actingAs($this->user)
+        ->get("/app/campaigns/{$campaign->public_id}/edit")
+        ->assertOk()
+        ->assertSee('Copy ID', false)
+        ->assertSee('Copied', false)
+        ->assertDontSee('Campaign ID copied', false);
+});
+
 it('updates a campaign', function () {
     $campaign = Campaign::factory()->create([
         'organization_id' => $this->organization->id,

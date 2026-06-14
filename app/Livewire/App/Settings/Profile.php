@@ -58,6 +58,8 @@ class Profile extends Component
     // Settings
     public array $allowed_domains = [];
 
+    public const MAX_ALLOWED_DOMAINS = 10;
+
     public ?string $portal_reply_to_email = null;
 
     public ?string $portal_tagline = null;
@@ -118,9 +120,18 @@ class Profile extends Component
     public function addDomain(string $domain): void
     {
         $domain = trim($domain);
-        if ($domain !== '') {
-            $this->allowed_domains[] = $domain;
+
+        if ($domain === '') {
+            return;
         }
+
+        if (count($this->allowed_domains) >= self::MAX_ALLOWED_DOMAINS) {
+            $this->dispatch('notify', message: 'You can only add up to '.self::MAX_ALLOWED_DOMAINS.' allowed domains.', variant: 'error');
+
+            return;
+        }
+
+        $this->allowed_domains[] = $domain;
     }
 
     public function removeDomain(int $index): void
@@ -145,7 +156,7 @@ class Profile extends Component
             'bank_name' => ['nullable', 'string', 'max:255'],
             'bank_account_name' => ['nullable', 'string', 'max:255'],
             'bank_account_number' => ['nullable', 'string', 'max:255'],
-            'allowed_domains' => ['nullable', 'array'],
+            'allowed_domains' => ['nullable', 'array', 'max:'.self::MAX_ALLOWED_DOMAINS],
             'allowed_domains.*' => ['string', 'max:255'],
         ]);
 

@@ -975,3 +975,26 @@ it('validates hosted donation input before creating records', function () {
     expect(Donation::query()->count())->toBe(0)
         ->and(Donor::query()->count())->toBe(0);
 });
+
+it('preserves the custom amount query parameter when currency is also provided', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'suggested_amounts' => [500, 400, 300, 200, 100, 50],
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => ['default_amount' => 500],
+    ]);
+
+    Livewire::withQueryParams([
+        'amount' => '123',
+        'currency' => 'myr',
+        'popup' => '1',
+        'step' => '2',
+    ])
+        ->test(DonationForm::class, ['element' => $element])
+        ->assertSet('amount', 123.0)
+        ->assertSet('currency', 'myr')
+        ->assertSet('isPopup', true)
+        ->assertOk();
+});

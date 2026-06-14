@@ -3,6 +3,8 @@
     'value' => '',
     'size' => 'md',
     'class' => '',
+    'title' => 'Copy',
+    'copiedText' => 'Copied',
 ])
 
 @php
@@ -14,25 +16,38 @@
     $iconSize = $sizeClasses[$size] ?? $sizeClasses['md'];
 @endphp
 
-<button
-    type="button"
-    x-data="{ copied: false }"
-    x-on:click="
-        navigator.clipboard.writeText('{{ $value }}').then(() => {
-            copied = true;
-            setTimeout(() => copied = false, 2000);
-        })
-    "
-    class="inline-flex items-center gap-1 text-gray-400 transition hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 {{ $class }}"
-    title="Copy"
->
-    <x-heroicon-o-clipboard-document
-        x-show="!copied"
-        class="{{ $iconSize }} shrink-0"
-    />
-    <x-heroicon-o-check
+<span class="relative inline-flex items-center" x-data="{ copied: false }">
+    <button
+        type="button"
+        x-on:click="
+            navigator.clipboard.writeText('{{ $value }}').then(() => {
+                copied = true;
+                setTimeout(() => copied = false, 2000);
+            })
+        "
+        class="inline-flex items-center gap-1 text-gray-400 transition hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 {{ $class }}"
+        :title="copied ? @js($copiedText) : @js($title)"
+    >
+        <x-heroicon-o-clipboard-document
+            x-show="!copied"
+            class="{{ $iconSize }} shrink-0"
+        />
+        <x-heroicon-o-check
+            x-show="copied"
+            x-cloak
+            class="{{ $iconSize }} shrink-0 text-green-600"
+        />
+    </button>
+
+    <span
         x-show="copied"
         x-cloak
-        class="{{ $iconSize }} shrink-0 text-green-600"
-    />
-</button>
+        x-transition:enter="transition ease-out duration-150"
+        x-transition:enter-start="opacity-0 translate-y-1"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-100"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 translate-y-1"
+        class="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-slate-800 px-2 py-1 text-xs font-medium text-white shadow-sm"
+    >{{ $copiedText }}</span>
+</span>

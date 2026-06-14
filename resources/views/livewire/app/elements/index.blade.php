@@ -18,23 +18,25 @@
     </div>
 
     {{-- Filters --}}
-    <div class="flex flex-wrap items-center gap-3">
-        <div class="relative">
+    <div class="flex flex-wrap items-center gap-3 sm:flex-nowrap">
+        <div class="relative w-full sm:w-64">
             <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
                 type="text"
                 wire:model.live.debounce.300ms="search"
                 placeholder="Search by name..."
-                class="h-10 w-64 rounded-lg border border-slate-300 bg-white pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                class="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
         </div>
 
-        <x-ui.select wire:model.live="typeFilter" class="h-10">
+        <x-ui.select wire:model.live="typeFilter" class="h-10 w-full sm:w-44">
             <flux:select.option value="">All Types</flux:select.option>
             <flux:select.option value="button">Button</flux:select.option>
             <flux:select.option value="floating_button">Floating Button</flux:select.option>
+            <flux:select.option value="sticky_button">Sticky Button</flux:select.option>
             <flux:select.option value="form">Form</flux:select.option>
             <flux:select.option value="popup">Popup</flux:select.option>
+            <flux:select.option value="link">Link</flux:select.option>
         </x-ui.select>
     </div>
 

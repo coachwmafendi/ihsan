@@ -18,14 +18,7 @@
             <div class="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-slate-500">
                 <span class="inline-flex items-center gap-1.5">
                     ID {{ $campaign->public_id }}
-                    <button
-                        type="button"
-                        x-on:click="navigator.clipboard.writeText('{{ $campaign->public_id }}'); $dispatch('notify', { message: 'Campaign ID copied', variant: 'success' })"
-                        class="inline-flex items-center rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                        title="Copy ID"
-                    >
-                        <x-heroicon-o-clipboard-document class="size-4" />
-                    </button>
+                    <x-ui.copy-button value="{{ $campaign->public_id }}" title="Copy ID" class="p-0.5" />
                 </span>
                 <span>·</span>
                 <span>Created {{ $campaign->created_at->format('M d, Y') }}</span>

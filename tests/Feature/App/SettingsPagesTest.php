@@ -117,3 +117,28 @@ it('normalizes domains on save (strips www, lowercases)', function () {
 
     expect($organization->fresh()->settings['allowed_domains'])->toBe(['mywebsite.com']);
 });
+
+it('enforces a maximum of 10 allowed domains', function () {
+    $organization = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => []],
+    ]);
+    $user = User::factory()->create(['organization_id' => $organization->id]);
+
+    actingAs($user);
+
+    $component = Livewire::test(Profile::class);
+
+    foreach (range(1, 10) as $i) {
+        $component->call('addDomain', "domain-{$i}.com");
+    }
+
+    $component->call('save')->assertHasNoErrors();
+
+    expect($organization->fresh()->settings['allowed_domains'])->toHaveCount(10);
+
+    $component->call('addDomain', 'domain-11.com');
+
+    $component->call('save')->assertHasNoErrors();
+
+    expect($organization->fresh()->settings['allowed_domains'])->toHaveCount(10);
+});
