@@ -424,7 +424,7 @@
                                  x-bind:disabled="processing"
                                  class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
                              >
-                                 Continue &rarr;
+                                 {{ $isEmbed ? $this->config('button_text', 'Continue') : 'Continue' }} &rarr;
                              </button>
                          </div>{{-- end Step 1 --}}
 

@@ -238,6 +238,26 @@ it('renders the hosted donation form in a compact layout when embedded', functio
         ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
 });
 
+it('uses the configured button text on the embedded step one button', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'suggested_amounts' => [30, 50, 100],
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => [
+            'button_text' => 'Sumbang Sekarang',
+        ],
+    ]);
+
+    Livewire::withQueryParams(['embed' => 1])
+        ->test(DonationForm::class, ['element' => $element])
+        ->assertSet('isEmbed', true)
+        ->assertSee('Sumbang Sekarang')
+        ->assertDontSee('>Continue</button>', false)
+        ->assertDontSee('Continue &rarr;');
+});
+
 it('renders the hosted donation form as an image-led popup', function () {
     $organization = Organization::factory()->create([
         'name' => 'PUSAT TAHFIZ ANNUR',
