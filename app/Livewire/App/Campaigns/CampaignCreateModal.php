@@ -90,16 +90,12 @@ class CampaignCreateModal extends Component
     {
         $this->authorize('create', Campaign::class);
 
+        $validated = $this->validate();
+
         $org = $this->organization;
 
         if (! $org) {
             $this->dispatch('notify', message: 'Organization not found.', variant: 'danger');
-
-            return;
-        }
-
-        if (blank($this->newCampaignName)) {
-            $this->dispatch('notify', message: 'Campaign name is required.', variant: 'danger');
 
             return;
         }
@@ -121,7 +117,7 @@ class CampaignCreateModal extends Component
 
             $campaign = Campaign::create([
                 'organization_id' => $org->id,
-                'title' => $this->newCampaignName,
+                'title' => $validated['newCampaignName'],
                 'status' => CampaignStatus::Draft,
                 'description' => $source->description,
                 'headline' => $source->headline,
@@ -148,7 +144,7 @@ class CampaignCreateModal extends Component
         } else {
             $campaign = Campaign::create([
                 'organization_id' => $org->id,
-                'title' => $this->newCampaignName,
+                'title' => $validated['newCampaignName'],
                 'status' => CampaignStatus::Draft,
                 'allow_recurring' => true,
                 'allow_custom_amount' => true,
