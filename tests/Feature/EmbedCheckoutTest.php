@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\CampaignStatus;
+use App\Livewire\Auth\RegisterOrganization;
 use App\Models\Campaign;
 use App\Models\Element;
 use App\Models\Organization;
@@ -177,4 +178,18 @@ it('rejects embed checkout when org has no allowed domains configured', function
     $this->withHeader('referer', 'https://mumzatuttaqwa.com/?form=RAMADAN2026')
         ->get(route('checkout.form', ['form' => 'RAMADAN2026', 'embed' => 1]))
         ->assertForbidden();
+});
+
+it('auto-populates allowed_domains from website_url when org is registered', function () {
+    Livewire::test(RegisterOrganization::class)
+        ->set('name', 'Test NGO')
+        ->set('registration_type', 'ROS')
+        ->set('ros_rob_number', 'ROS-TEST-001')
+        ->set('sector', 'Education')
+        ->set('contact_email', 'admin@testngo.org')
+        ->set('website_url', 'https://www.testngo.org')
+        ->call('submit');
+
+    $org = Organization::where('ros_rob_number', 'ROS-TEST-001')->firstOrFail();
+    expect($org->settings['allowed_domains'])->toBe(['testngo.org']);
 });

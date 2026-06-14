@@ -36,7 +36,7 @@ class RegisterOrganization extends Component
     {
         $this->validate();
 
-        Organization::create([
+        $org = Organization::create([
             'name' => $this->name,
             'registration_type' => $this->registration_type,
             'ros_rob_number' => $this->ros_rob_number,
@@ -46,6 +46,16 @@ class RegisterOrganization extends Component
             'facebook_url' => $this->facebook_url ?: null,
             'status' => OrganizationStatus::Pending,
         ]);
+
+        $host = parse_url($this->website_url, PHP_URL_HOST);
+        if (is_string($host) && $host !== '') {
+            $normalizedHost = ltrim(strtolower($host), 'www.');
+            $org->update([
+                'settings' => array_merge($org->settings ?? [], [
+                    'allowed_domains' => [$normalizedHost],
+                ]),
+            ]);
+        }
 
         $this->submitted = true;
     }
