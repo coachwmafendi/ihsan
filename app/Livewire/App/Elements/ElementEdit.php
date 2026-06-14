@@ -128,6 +128,7 @@ class ElementEdit extends Component
             $config['button_size'] = $this->config_button_size;
             $config['corner_radius'] = $this->config_corner_radius;
             $config['button_icon'] = $this->config_button_icon;
+            $config['icon'] = $this->config_button_icon;
             $config['button_effect'] = $this->config_button_effect;
             $config['alignment'] = $this->config_alignment;
         }
