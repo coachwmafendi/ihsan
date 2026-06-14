@@ -98,6 +98,7 @@ class CampaignCreate extends Component
             'default_amount' => (float) ($this->default_amount ?? 50),
             'allow_cover_fee' => true,
             'show_comment' => true,
+            'show_phone' => true,
         ];
 
         $campaign = new Campaign([

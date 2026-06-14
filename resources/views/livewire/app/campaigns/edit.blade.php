@@ -419,6 +419,20 @@
                                 <x-heroicon-o-credit-card class="size-5" />
                                 Processing Fee
                             </button>
+                            <button type="button"
+                                wire:click="$set('checkoutPanel', 'comment')"
+                                class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $checkoutPanel === 'comment' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                            >
+                                <x-heroicon-o-chat-bubble-left-right class="size-5" />
+                                Comment
+                            </button>
+                            <button type="button"
+                                wire:click="$set('checkoutPanel', 'phone')"
+                                class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $checkoutPanel === 'phone' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                            >
+                                <x-heroicon-o-phone class="size-5" />
+                                Phone
+                            </button>
                         </nav>
                     </x-ui.card>
                 </div>
@@ -631,6 +645,50 @@
                                         <span>Platform processing fee is <strong>{{ number_format((float) config('services.stripe.processing_fee_percent', 2.5), 1) }}%</strong> plus a fixed fee per transaction.</span>
                                     </div>
                                 </div>
+
+                                <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                                    <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
+                                    <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($checkoutPanel === 'comment')
+                            <div class="space-y-6">
+                                <p class="text-sm text-slate-600">
+                                    Allow your supporters to add a personal note or special instructions for your organization.
+                                </p>
+
+                                <label class="flex cursor-pointer items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        wire:model.live="show_comment"
+                                        class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                    />
+                                    <span class="text-sm font-medium text-slate-700">Enable comment</span>
+                                </label>
+
+                                <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                                    <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
+                                    <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if ($checkoutPanel === 'phone')
+                            <div class="space-y-6">
+                                <p class="text-sm text-slate-600">
+                                    Ask donors for their phone number during checkout. This is optional for donors.
+                                </p>
+
+                                <label class="flex cursor-pointer items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        wire:model.live="show_phone"
+                                        class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                    />
+                                    <span class="text-sm font-medium text-slate-700">Enable phone</span>
+                                </label>
 
                                 <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
                                     <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>

@@ -78,6 +78,10 @@ class CampaignEdit extends Component
 
     public bool $allow_cover_fee = true;
 
+    public bool $show_comment = true;
+
+    public bool $show_phone = true;
+
     #[Validate('nullable|integer|min:0|max:99999')]
     public ?string $minimum_amount = null;
 
@@ -161,6 +165,8 @@ class CampaignEdit extends Component
         $this->default_amount = $this->sanitizeOptionalAmount($campaign->config['default_amount'] ?? 50);
         $this->default_currency = $campaign->config['default_currency'] ?? $this->acceptedCurrencies[0];
         $this->currency_autodetect = $campaign->config['currency_autodetect'] ?? false;
+        $this->show_comment = $campaign->config['show_comment'] ?? true;
+        $this->show_phone = $campaign->config['show_phone'] ?? true;
     }
 
     public function updatedActiveCurrency(): void
@@ -480,6 +486,8 @@ class CampaignEdit extends Component
             'currency_autodetect' => $this->currency_autodetect,
             'suggested_amounts_by_currency' => $this->allSuggestedAmounts,
             'allow_cover_fee' => $this->allow_cover_fee,
+            'show_comment' => $this->show_comment,
+            'show_phone' => $this->show_phone,
         ]);
 
         $this->campaign->update([

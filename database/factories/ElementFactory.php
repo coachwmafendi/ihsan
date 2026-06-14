@@ -49,7 +49,7 @@ class ElementFactory extends Factory
                 'corner_radius' => 8,
                 'show_name' => true,
                 'show_email' => true,
-                'show_phone' => false,
+                'show_phone' => true,
                 'show_message' => true,
                 'show_suggested' => true,
                 'show_amount_input' => true,

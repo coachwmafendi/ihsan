@@ -216,6 +216,7 @@ class CampaignIndex extends Component
                 'config' => [
                     'allow_cover_fee' => true,
                     'show_comment' => true,
+                    'show_phone' => true,
                 ],
             ]);
 

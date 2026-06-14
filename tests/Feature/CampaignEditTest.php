@@ -41,7 +41,9 @@ it('renders for an authorized user', function () {
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
         ->assertSee('Test Campaign')
         ->assertSee('Active')
-        ->assertSee('ID '.$campaign->public_id);
+        ->assertSee('ID '.$campaign->public_id)
+        ->assertSee('Comment')
+        ->assertSee('Phone');
 });
 
 it('updates a campaign', function () {
@@ -198,6 +200,61 @@ it('accepts a target amount up to seven digits', function () {
     $campaign->refresh();
 
     expect($campaign->target_amount)->toBe('9876543.00');
+});
+
+it('saves comment and phone visibility settings', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->set('show_comment', false)
+        ->set('show_phone', false)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    $campaign->refresh();
+
+    expect($campaign->config['show_comment'] ?? true)->toBeFalse()
+        ->and($campaign->config['show_phone'] ?? true)->toBeFalse();
+});
+
+it('hides the phone field when show_phone is disabled', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'status' => 'active',
+        'checkout_modal_enabled' => true,
+        'config' => [
+            'show_phone' => false,
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(DonationForm::class, ['campaign' => $campaign])
+        ->assertSee('Email')
+        ->assertDontSee('Phone');
+});
+
+it('hides the comment field when show_comment is disabled', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'status' => 'active',
+        'checkout_modal_enabled' => true,
+        'config' => [
+            'show_comment' => false,
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(DonationForm::class, ['campaign' => $campaign])
+        ->assertSee('Email')
+        ->assertDontSee('Comment')
+        ->assertDontSee('Leave a message');
 });
 
 it('displays saved preset amounts in the donation form', function () {

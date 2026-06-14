@@ -15,6 +15,7 @@
     $allowMonthly = (bool) $this->config('allow_monthly', true);
     $showDedication = (bool) $this->config('show_dedication', false);
     $showComment = (bool) $this->config('show_comment', true);
+    $showPhone = (bool) $this->config('show_phone', true);
     $isPopup = $this->isPopup;
     $isEmbed = $this->isEmbed;
     $isCompact = $isPopup || $isEmbed;
@@ -471,17 +472,19 @@
                                     @error('email')<span class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
                                 </label>
 
-                                <label class="block">
-                                    <span class="mb-1 block text-sm font-medium text-slate-700">Phone <span class="font-normal text-slate-400">(optional)</span></span>
-                                    <input
-                                        wire:model="phone"
-                                        x-model="donorPhone"
-                                        type="tel"
-                                        autocomplete="tel"
-                                        class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
-                                        placeholder="012-345 6789"
-                                    />
-                                </label>
+                                @if ($showPhone)
+                                    <label class="block">
+                                        <span class="mb-1 block text-sm font-medium text-slate-700">Phone <span class="font-normal text-slate-400">(optional)</span></span>
+                                        <input
+                                            wire:model="phone"
+                                            x-model="donorPhone"
+                                            type="tel"
+                                            autocomplete="tel"
+                                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
+                                            placeholder="012-345 6789"
+                                        />
+                                    </label>
+                                @endif
                             </div>
 
                             @if ($showDedication)
