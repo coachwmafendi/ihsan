@@ -171,7 +171,7 @@ JS;
                 ->where('form_parameter', $form)
                 ->where('checkout_modal_enabled', true)
             )
-            ->with('campaign')
+            ->with('campaign.organization')
             ->first();
 
         $params = ['embed' => 1];
@@ -180,7 +180,7 @@ JS;
         }
 
         if ($element) {
-            if (! $this->isAllowedReferer($request, $element->campaign->checkout_allowed_domains ?? [])) {
+            if (! $this->isAllowedReferer($request, data_get($element->campaign->organization, 'settings.allowed_domains', []))) {
                 abort(403);
             }
 
@@ -191,13 +191,14 @@ JS;
             ->where('form_parameter', $form)
             ->where('checkout_modal_enabled', true)
             ->where('status', CampaignStatus::Active)
+            ->with('organization')
             ->first();
 
         if (! $campaign) {
             abort(404);
         }
 
-        if (! $this->isAllowedReferer($request, $campaign->checkout_allowed_domains ?? [])) {
+        if (! $this->isAllowedReferer($request, data_get($campaign->organization, 'settings.allowed_domains', []))) {
             abort(403);
         }
 
