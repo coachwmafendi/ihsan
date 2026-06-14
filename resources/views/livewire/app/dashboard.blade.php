@@ -42,7 +42,7 @@
             {{-- Quick Actions --}}
             <x-ui.card title="Quick actions">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <x-ui.button href="/app/campaigns/create" variant="primary">
+                    <x-ui.button wire:click="openCreateCampaignModal" variant="primary">
                         <x-heroicon-o-plus class="size-4" />
                         Create Campaign
                     </x-ui.button>
@@ -90,7 +90,7 @@
                         title="No campaigns yet"
                         description="Create your first campaign to start fundraising."
                         action-label="Create Campaign"
-                        action-url="/app/campaigns/create"
+                        action-wire-click="openCreateCampaignModal"
                     />
                 @endif
             </x-ui.card>
@@ -143,4 +143,6 @@
             </x-ui.card>
         </div>
     </div>
+
+    <livewire:app.campaigns.campaign-create-modal />
 </div>

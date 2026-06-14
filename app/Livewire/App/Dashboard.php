@@ -129,6 +129,11 @@ class Dashboard extends Component
             ->get();
     }
 
+    public function openCreateCampaignModal(): void
+    {
+        $this->dispatch('open-create-campaign-modal');
+    }
+
     public function render()
     {
         return view('livewire.app.dashboard', [
