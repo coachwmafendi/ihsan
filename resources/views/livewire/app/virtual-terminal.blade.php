@@ -23,21 +23,12 @@
         <div class="space-y-6 lg:col-span-2">
             {{-- Campaign --}}
             <x-ui.card title="Campaign">
-                <div class="relative">
-                    <select
-                        id="campaign_id"
-                        wire:model.live="formData.campaign_id"
-                        class="block w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 py-2.5 pr-10 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                    >
-                        <option value="">Select a campaign</option>
-                        @foreach ($this->campaigns as $id => $title)
-                            <option value="{{ $id }}">{{ $title }}</option>
-                        @endforeach
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
-                        <x-heroicon-o-chevron-down class="size-4" />
-                    </div>
-                </div>
+                <x-ui.select id="campaign_id" wire:model.live="formData.campaign_id" class="block w-full">
+                    <flux:select.option value="">Select a campaign</flux:select.option>
+                    @foreach ($this->campaigns as $id => $title)
+                        <flux:select.option value="{{ $id }}">{{ $title }}</flux:select.option>
+                    @endforeach
+                </x-ui.select>
                 @error('formData.campaign_id')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -48,19 +39,10 @@
                 <div class="space-y-4">
                     <div>
                         <label for="frequency" class="mb-1 block text-sm font-medium text-slate-700">Donation frequency</label>
-                        <div class="relative">
-                            <select
-                                id="frequency"
-                                wire:model.live="formData.frequency"
-                                class="block w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 py-2.5 pr-10 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            >
-                                <option value="once">Once</option>
-                                <option value="monthly">Monthly</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
-                                <x-heroicon-o-chevron-down class="size-4" />
-                            </div>
-                        </div>
+                        <x-ui.select id="frequency" wire:model.live="formData.frequency" class="block w-full">
+                            <flux:select.option value="once">Once</flux:select.option>
+                            <flux:select.option value="monthly">Monthly</flux:select.option>
+                        </x-ui.select>
                     </div>
 
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

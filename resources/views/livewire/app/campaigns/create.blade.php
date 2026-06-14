@@ -31,14 +31,10 @@
 
                 <div>
                     <label for="status" class="block text-sm font-medium text-slate-700">Status <span class="text-red-500">*</span></label>
-                    <select
-                        id="status"
-                        wire:model="status"
-                        class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                    >
-                        <option value="draft">Draft</option>
-                        <option value="active">Active</option>
-                    </select>
+                    <x-ui.select id="status" wire:model="status" class="mt-1 block w-full">
+                        <flux:select.option value="draft">Draft</flux:select.option>
+                        <flux:select.option value="active">Active</flux:select.option>
+                    </x-ui.select>
                     @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
@@ -243,14 +239,10 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <label for="default_frequency" class="block text-sm font-medium text-slate-700">Default Frequency</label>
-                    <select
-                        id="default_frequency"
-                        wire:model="default_frequency"
-                        class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                    >
-                        <option value="one_time">One-time</option>
-                        <option value="monthly">Monthly</option>
-                    </select>
+                    <x-ui.select id="default_frequency" wire:model="default_frequency" class="mt-1 block w-full">
+                        <flux:select.option value="one_time">One-time</flux:select.option>
+                        <flux:select.option value="monthly">Monthly</flux:select.option>
+                    </x-ui.select>
                 </div>
 
                 <div>

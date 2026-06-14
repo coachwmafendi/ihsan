@@ -25,16 +25,13 @@
             />
         </div>
 
-        <select
-            wire:model.live="statusFilter"
-            class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-        >
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="paused">Paused</option>
-            <option value="past_due">Past Due</option>
-        </select>
+        <x-ui.select wire:model.live="statusFilter" class="h-10">
+            <flux:select.option value="">All Statuses</flux:select.option>
+            <flux:select.option value="active">Active</flux:select.option>
+            <flux:select.option value="cancelled">Cancelled</flux:select.option>
+            <flux:select.option value="paused">Paused</flux:select.option>
+            <flux:select.option value="past_due">Past Due</flux:select.option>
+        </x-ui.select>
     </div>
 
     {{-- Subscriptions Table --}}

@@ -24,16 +24,13 @@
             />
         </div>
 
-        <select
-            wire:model.live="statusFilter"
-            class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-        >
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="draft">Draft</option>
-            <option value="paused">Paused</option>
-            <option value="ended">Ended</option>
-        </select>
+        <x-ui.select wire:model.live="statusFilter" class="h-10">
+            <flux:select.option value="">All Statuses</flux:select.option>
+            <flux:select.option value="active">Active</flux:select.option>
+            <flux:select.option value="draft">Draft</flux:select.option>
+            <flux:select.option value="paused">Paused</flux:select.option>
+            <flux:select.option value="ended">Ended</flux:select.option>
+        </x-ui.select>
     </div>
 
     {{-- Campaigns Table --}}
@@ -223,15 +220,12 @@
                             <label class="block text-sm font-medium text-slate-700">
                                 Campaign to clone
                             </label>
-                            <select
-                                wire:model.live="cloneCampaignId"
-                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            >
-                                <option value="">Select a campaign</option>
+                            <x-ui.select wire:model.live="cloneCampaignId" class="w-full">
+                                <flux:select.option value="">Select a campaign</flux:select.option>
                                 @foreach ($this->cloneableCampaigns as $campaignOption)
-                                    <option value="{{ $campaignOption->id }}">{{ $campaignOption->title }}</option>
+                                    <flux:select.option value="{{ $campaignOption->id }}">{{ $campaignOption->title }}</flux:select.option>
                                 @endforeach
-                            </select>
+                            </x-ui.select>
                         </div>
                     @endif
 

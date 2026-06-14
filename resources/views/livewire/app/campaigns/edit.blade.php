@@ -215,17 +215,13 @@
 
                     <div>
                         <label for="status" class="block text-sm font-medium text-slate-700">Status <span class="text-red-500">*</span></label>
-                        <select
-                            id="status"
-                            wire:model="status"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                        >
-                            <option value="draft">Draft</option>
-                            <option value="active">Active</option>
-                            <option value="paused">Paused</option>
-                            <option value="ended">Ended</option>
-                            <option value="archived">Archived</option>
-                        </select>
+                        <x-ui.select id="status" wire:model="status" class="mt-1 block w-full">
+                            <flux:select.option value="draft">Draft</flux:select.option>
+                            <flux:select.option value="active">Active</flux:select.option>
+                            <flux:select.option value="paused">Paused</flux:select.option>
+                            <flux:select.option value="ended">Ended</flux:select.option>
+                            <flux:select.option value="archived">Archived</flux:select.option>
+                        </x-ui.select>
                         @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
@@ -438,30 +434,21 @@
 
                                 <div class="max-w-md">
                                     <label for="default_currency" class="block text-sm font-semibold text-slate-900">Default Checkout currency</label>
-                                    <div class="relative mt-2">
-                                        <select
-                                            id="default_currency"
-                                            wire:model="default_currency"
-                                            class="block w-full appearance-none rounded-lg border border-slate-300 bg-white px-4 py-3 pr-10 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                        >
-                                            @foreach ($acceptedCurrencies as $currency)
-                                                <option value="{{ $currency }}">
-                                                    {{ $currency }} · {{ match($currency) {
-                                                        'MYR' => 'Malaysian Ringgit',
-                                                        'USD' => 'United States Dollar',
-                                                        'SGD' => 'Singapore Dollar',
-                                                        'GBP' => 'British Pound',
-                                                        'EUR' => 'Euro',
-                                                        'AUD' => 'Australian Dollar',
-                                                        default => $currency,
-                                                    } }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
-                                            <x-heroicon-o-chevron-down class="size-4" />
-                                        </div>
-                                    </div>
+                                <x-ui.select id="default_currency" wire:model="default_currency" class="mt-2 block w-full">
+                                    @foreach ($acceptedCurrencies as $currency)
+                                        <flux:select.option value="{{ $currency }}">
+                                            {{ $currency }} · {{ match($currency) {
+                                                'MYR' => 'Malaysian Ringgit',
+                                                'USD' => 'United States Dollar',
+                                                'SGD' => 'Singapore Dollar',
+                                                'GBP' => 'British Pound',
+                                                'EUR' => 'Euro',
+                                                'AUD' => 'Australian Dollar',
+                                                default => $currency,
+                                            } }}
+                                        </flux:select.option>
+                                    @endforeach
+                                </x-ui.select>
                                 </div>
 
                                 <label class="flex cursor-pointer items-start gap-3">
@@ -486,14 +473,10 @@
                             <div class="space-y-6">
                                 <div>
                                     <label for="default_frequency" class="block text-sm font-medium text-slate-700">Default Frequency</label>
-                                    <select
-                                        id="default_frequency"
-                                        wire:model="default_frequency"
-                                        class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                    >
-                                        <option value="one_time">One-time</option>
-                                        <option value="monthly">Monthly</option>
-                                    </select>
+                                    <x-ui.select id="default_frequency" wire:model="default_frequency" class="mt-1 block w-full">
+                                        <flux:select.option value="one_time">One-time</flux:select.option>
+                                        <flux:select.option value="monthly">Monthly</flux:select.option>
+                                    </x-ui.select>
                                     <p class="mt-1 text-xs text-slate-500">Frequency shown to donors when the page loads.</p>
                                 </div>
 

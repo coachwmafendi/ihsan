@@ -149,52 +149,52 @@
 
                     <div>
                         <label for="state" class="block text-sm font-medium text-slate-700">State</label>
-                        <select id="state" wire:model="state" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                            <option value="">Select state</option>
-                            <option value="Johor">Johor</option>
-                            <option value="Kedah">Kedah</option>
-                            <option value="Kelantan">Kelantan</option>
-                            <option value="Melaka">Melaka</option>
-                            <option value="Negeri Sembilan">Negeri Sembilan</option>
-                            <option value="Pahang">Pahang</option>
-                            <option value="Perak">Perak</option>
-                            <option value="Perlis">Perlis</option>
-                            <option value="Pulau Pinang">Pulau Pinang</option>
-                            <option value="Sabah">Sabah</option>
-                            <option value="Sarawak">Sarawak</option>
-                            <option value="Selangor">Selangor</option>
-                            <option value="Terengganu">Terengganu</option>
-                            <option value="Wilayah Persekutuan (Kuala Lumpur)">Wilayah Persekutuan (Kuala Lumpur)</option>
-                            <option value="Wilayah Persekutuan (Labuan)">Wilayah Persekutuan (Labuan)</option>
-                            <option value="Wilayah Persekutuan (Putrajaya)">Wilayah Persekutuan (Putrajaya)</option>
-                        </select>
+                        <x-ui.select id="state" wire:model="state" class="mt-1 block w-full">
+                            <flux:select.option value="">Select state</flux:select.option>
+                            <flux:select.option value="Johor">Johor</flux:select.option>
+                            <flux:select.option value="Kedah">Kedah</flux:select.option>
+                            <flux:select.option value="Kelantan">Kelantan</flux:select.option>
+                            <flux:select.option value="Melaka">Melaka</flux:select.option>
+                            <flux:select.option value="Negeri Sembilan">Negeri Sembilan</flux:select.option>
+                            <flux:select.option value="Pahang">Pahang</flux:select.option>
+                            <flux:select.option value="Perak">Perak</flux:select.option>
+                            <flux:select.option value="Perlis">Perlis</flux:select.option>
+                            <flux:select.option value="Pulau Pinang">Pulau Pinang</flux:select.option>
+                            <flux:select.option value="Sabah">Sabah</flux:select.option>
+                            <flux:select.option value="Sarawak">Sarawak</flux:select.option>
+                            <flux:select.option value="Selangor">Selangor</flux:select.option>
+                            <flux:select.option value="Terengganu">Terengganu</flux:select.option>
+                            <flux:select.option value="Wilayah Persekutuan (Kuala Lumpur)">Wilayah Persekutuan (Kuala Lumpur)</flux:select.option>
+                            <flux:select.option value="Wilayah Persekutuan (Labuan)">Wilayah Persekutuan (Labuan)</flux:select.option>
+                            <flux:select.option value="Wilayah Persekutuan (Putrajaya)">Wilayah Persekutuan (Putrajaya)</flux:select.option>
+                        </x-ui.select>
                     </div>
 
                     <div>
                         <label for="country" class="block text-sm font-medium text-slate-700">Country</label>
-                        <select id="country" wire:model="country" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                            <option value="Malaysia">Malaysia</option>
-                            <option value="Brunei">Brunei</option>
-                            <option value="Cambodia">Cambodia</option>
-                            <option value="Indonesia">Indonesia</option>
-                            <option value="Myanmar">Myanmar</option>
-                            <option value="Philippines">Philippines</option>
-                            <option value="Singapore">Singapore</option>
-                            <option value="Thailand">Thailand</option>
-                            <option value="Vietnam">Vietnam</option>
-                            <option value="Bangladesh">Bangladesh</option>
-                            <option value="India">India</option>
-                            <option value="Pakistan">Pakistan</option>
-                            <option value="Sri Lanka">Sri Lanka</option>
-                            <option value="Australia">Australia</option>
-                            <option value="China">China</option>
-                            <option value="Japan">Japan</option>
-                            <option value="South Korea">South Korea</option>
-                            <option value="Taiwan">Taiwan</option>
-                            <option value="United Kingdom">United Kingdom</option>
-                            <option value="United States">United States</option>
-                            <option value="Other">Other</option>
-                        </select>
+                        <x-ui.select id="country" wire:model="country" class="mt-1 block w-full">
+                            <flux:select.option value="Malaysia">Malaysia</flux:select.option>
+                            <flux:select.option value="Brunei">Brunei</flux:select.option>
+                            <flux:select.option value="Cambodia">Cambodia</flux:select.option>
+                            <flux:select.option value="Indonesia">Indonesia</flux:select.option>
+                            <flux:select.option value="Myanmar">Myanmar</flux:select.option>
+                            <flux:select.option value="Philippines">Philippines</flux:select.option>
+                            <flux:select.option value="Singapore">Singapore</flux:select.option>
+                            <flux:select.option value="Thailand">Thailand</flux:select.option>
+                            <flux:select.option value="Vietnam">Vietnam</flux:select.option>
+                            <flux:select.option value="Bangladesh">Bangladesh</flux:select.option>
+                            <flux:select.option value="India">India</flux:select.option>
+                            <flux:select.option value="Pakistan">Pakistan</flux:select.option>
+                            <flux:select.option value="Sri Lanka">Sri Lanka</flux:select.option>
+                            <flux:select.option value="Australia">Australia</flux:select.option>
+                            <flux:select.option value="China">China</flux:select.option>
+                            <flux:select.option value="Japan">Japan</flux:select.option>
+                            <flux:select.option value="South Korea">South Korea</flux:select.option>
+                            <flux:select.option value="Taiwan">Taiwan</flux:select.option>
+                            <flux:select.option value="United Kingdom">United Kingdom</flux:select.option>
+                            <flux:select.option value="United States">United States</flux:select.option>
+                            <flux:select.option value="Other">Other</flux:select.option>
+                        </x-ui.select>
                     </div>
                 </div>
             </x-ui.card>

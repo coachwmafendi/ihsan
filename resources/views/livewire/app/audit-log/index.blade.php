@@ -29,38 +29,29 @@
             />
         </div>
 
-        <select
-            wire:model.live="eventFilter"
-            class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-        >
-            <option value="">All Events</option>
+        <x-ui.select wire:model.live="eventFilter" class="h-10">
+            <flux:select.option value="">All Events</flux:select.option>
             @foreach ($eventOptions as $value => $label)
-                <option value="{{ $value }}">{{ $label }}</option>
+                <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
             @endforeach
-        </select>
+        </x-ui.select>
 
-        <select
-            wire:model.live="subjectTypeFilter"
-            class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-        >
-            <option value="">All Subject Types</option>
+        <x-ui.select wire:model.live="subjectTypeFilter" class="h-10">
+            <flux:select.option value="">All Subject Types</flux:select.option>
             @foreach ($subjectTypeOptions as $value => $label)
-                <option value="{{ $value }}">{{ $label }}</option>
+                <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
             @endforeach
-        </select>
+        </x-ui.select>
 
-        <select
-            wire:model.live="period"
-            class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-        >
-            <option value="all_time">All Time</option>
-            <option value="today">Today</option>
-            <option value="yesterday">Yesterday</option>
-            <option value="7_days">Last 7 days</option>
-            <option value="30_days">Last 30 days</option>
-            <option value="90_days">Last 90 days</option>
-            <option value="this_month">This month</option>
-        </select>
+        <x-ui.select wire:model.live="period" class="h-10">
+            <flux:select.option value="all_time">All Time</flux:select.option>
+            <flux:select.option value="today">Today</flux:select.option>
+            <flux:select.option value="yesterday">Yesterday</flux:select.option>
+            <flux:select.option value="7_days">Last 7 days</flux:select.option>
+            <flux:select.option value="30_days">Last 30 days</flux:select.option>
+            <flux:select.option value="90_days">Last 90 days</flux:select.option>
+            <flux:select.option value="this_month">This month</flux:select.option>
+        </x-ui.select>
     </div>
 
     {{-- Table --}}

@@ -7,11 +7,11 @@
             <p class="mt-1 text-sm text-slate-500">Monthly transaction breakdown for your organisation</p>
         </div>
         <div>
-            <select wire:model.live="selectedMonth" class="block rounded-lg border-slate-300 bg-white px-4 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <x-ui.select wire:model.live="selectedMonth" class="block">
                 @foreach ($availableMonths as $value => $label)
-                    <option value="{{ $value }}">{{ $label }}</option>
+                    <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                 @endforeach
-            </select>
+            </x-ui.select>
         </div>
     </div>
 

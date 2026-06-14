@@ -19,33 +19,25 @@
             <div class="space-y-4">
                 <div>
                     <label for="campaign_id" class="block text-sm font-medium text-slate-700">Campaign <span class="text-red-500">*</span></label>
-                    <select
-                        id="campaign_id"
-                        wire:model="campaign_id"
-                        class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                    >
-                        <option value="">Select a campaign</option>
+                    <x-ui.select id="campaign_id" wire:model="campaign_id" class="mt-1 block w-full">
+                        <flux:select.option value="">Select a campaign</flux:select.option>
                         @foreach ($this->campaigns as $campaign)
-                            <option value="{{ $campaign->id }}">{{ $campaign->title }}</option>
+                            <flux:select.option value="{{ $campaign->id }}">{{ $campaign->title }}</flux:select.option>
                         @endforeach
-                    </select>
+                    </x-ui.select>
                     @error('campaign_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
                     <label for="type" class="block text-sm font-medium text-slate-700">Type <span class="text-red-500">*</span></label>
-                    <select
-                        id="type"
-                        wire:model="type"
-                        class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                    >
-                        <option value="button">Button</option>
-                        <option value="floating_button">Floating Button</option>
-                        <option value="form">Form</option>
-                        <option value="popup">Popup</option>
-                        <option value="link">Link</option>
-                        <option value="sticky_button">Sticky Button</option>
-                    </select>
+                    <x-ui.select id="type" wire:model="type" class="mt-1 block w-full">
+                        <flux:select.option value="button">Button</flux:select.option>
+                        <flux:select.option value="floating_button">Floating Button</flux:select.option>
+                        <flux:select.option value="form">Form</flux:select.option>
+                        <flux:select.option value="popup">Popup</flux:select.option>
+                        <flux:select.option value="link">Link</flux:select.option>
+                        <flux:select.option value="sticky_button">Sticky Button</flux:select.option>
+                    </x-ui.select>
                     @error('type') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
