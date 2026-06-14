@@ -47,47 +47,28 @@
                 {{-- Basic Info --}}
                 <x-ui.card title="Basic Information">
                     <div class="space-y-4">
-                        <div>
-                            <label for="campaign_id" class="block text-sm font-medium text-slate-700">Campaign <span class="text-red-500">*</span></label>
-                            <select
-                                id="campaign_id"
-                                wire:model="campaign_id"
-                                class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            >
-                                <option value="">Select a campaign</option>
+                        <flux:field>
+                            <flux:label>Campaign <span class="text-red-500">*</span></flux:label>
+                            <flux:select wire:model="campaign_id" placeholder="Select a campaign">
                                 @foreach ($this->campaigns as $campaign)
-                                    <option value="{{ $campaign->id }}">{{ $campaign->title }}</option>
+                                    <flux:select.option value="{{ $campaign->id }}">{{ $campaign->title }}</flux:select.option>
                                 @endforeach
-                            </select>
-                            @error('campaign_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                        </div>
+                            </flux:select>
+                            <flux:error name="campaign_id" />
+                        </flux:field>
 
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-slate-700">Name <span class="text-red-500">*</span></label>
-                            <input
-                                type="text"
-                                id="name"
-                                wire:model="name"
-                                class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                placeholder="e.g. Ramadan Donation Button"
-                            />
-                            @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                        </div>
+                        <flux:field>
+                            <flux:label>Name <span class="text-red-500">*</span></flux:label>
+                            <flux:input wire:model="name" placeholder="e.g. Ramadan Donation Button" />
+                            <flux:error name="name" />
+                        </flux:field>
 
                         <div class="flex items-start justify-between gap-4">
                             <div>
                                 <h3 class="text-sm font-medium text-slate-900">Active</h3>
                                 <p class="text-xs text-slate-500">Make this element visible and usable</p>
                             </div>
-                            <button
-                                type="button"
-                                wire:click="$toggle('is_active')"
-                                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $is_active ? 'bg-teal-600' : 'bg-slate-200' }}"
-                                role="switch"
-                                aria-checked="{{ $is_active ? 'true' : 'false' }}"
-                            >
-                                <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $is_active ? 'translate-x-5' : 'translate-x-0' }}"></span>
-                            </button>
+                            <flux:switch wire:model="is_active" />
                         </div>
                     </div>
                 </x-ui.card>
@@ -96,117 +77,99 @@
                 <x-ui.card title="Configuration">
                     <div class="space-y-4">
                         @if (! $isButtonLike)
-                            <div>
-                                <label for="config_title" class="block text-sm font-medium text-slate-700">Title</label>
-                                <input
-                                    type="text"
-                                    id="config_title"
-                                    wire:model.live="config_title"
-                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                    placeholder="e.g. Support our cause"
-                                />
-                            </div>
+                            <flux:field>
+                                <flux:label>Title</flux:label>
+                                <flux:input wire:model.live="config_title" placeholder="e.g. Support our cause" />
+                            </flux:field>
 
-                            <div>
-                                <label for="config_message" class="block text-sm font-medium text-slate-700">Message</label>
-                                <textarea
-                                    id="config_message"
-                                    wire:model.live="config_message"
-                                    rows="3"
-                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                    placeholder="Short description shown to donors..."
-                                ></textarea>
-                            </div>
+                            <flux:field>
+                                <flux:label>Message</flux:label>
+                                <flux:textarea wire:model.live="config_message" rows="3" placeholder="Short description shown to donors..." />
+                            </flux:field>
                         @endif
 
-                        <div>
-                            <label for="config_button_text" class="block text-sm font-medium text-slate-700">Button Text</label>
-                            <input
-                                type="text"
-                                id="config_button_text"
-                                wire:model.live="config_button_text"
-                                class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                placeholder="e.g. Donate Now"
-                            />
-                        </div>
+                        <flux:field>
+                            <flux:label>Button Text</flux:label>
+                            <flux:input wire:model.live="config_button_text" placeholder="e.g. Donate Now" />
+                        </flux:field>
 
                         @if ($isButtonLike)
                             <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="sm:col-span-2">
-                                    <label for="config_button_effect" class="block text-sm font-medium text-slate-700">Button Effect</label>
-                                    <select id="config_button_effect" wire:model.live="config_button_effect" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                                        <option value="none">None (solid colour)</option>
-                                        <option value="gradient_teal_green">Gradient — Teal &amp; Green</option>
-                                        <option value="gradient_blue_purple">Gradient — Blue &amp; Purple</option>
-                                        <option value="gradient_orange_red">Gradient — Orange &amp; Red</option>
-                                        <option value="gradient_rose_pink">Gradient — Rose &amp; Pink</option>
-                                        <option value="gradient_amber_orange">Gradient — Amber &amp; Orange</option>
-                                        <option value="gradient_cyan_blue">Gradient — Cyan &amp; Blue</option>
-                                        <option value="gradient_emerald_teal">Gradient — Emerald &amp; Teal</option>
-                                        <option value="gradient_indigo_purple">Gradient — Indigo &amp; Purple</option>
-                                        <option value="gradient_gold_amber">Gradient — Gold &amp; Amber</option>
-                                        <option value="gradient_pink_purple">Gradient — Pink &amp; Purple</option>
-                                    </select>
-                                </div>
+                                <flux:field class="sm:col-span-2">
+                                    <flux:label>Button Effect</flux:label>
+                                    <flux:select wire:model.live="config_button_effect">
+                                        <flux:select.option value="none">None (solid colour)</flux:select.option>
+                                        <flux:select.option value="gradient_teal_green">Gradient — Teal &amp; Green</flux:select.option>
+                                        <flux:select.option value="gradient_blue_purple">Gradient — Blue &amp; Purple</flux:select.option>
+                                        <flux:select.option value="gradient_orange_red">Gradient — Orange &amp; Red</flux:select.option>
+                                        <flux:select.option value="gradient_rose_pink">Gradient — Rose &amp; Pink</flux:select.option>
+                                        <flux:select.option value="gradient_amber_orange">Gradient — Amber &amp; Orange</flux:select.option>
+                                        <flux:select.option value="gradient_cyan_blue">Gradient — Cyan &amp; Blue</flux:select.option>
+                                        <flux:select.option value="gradient_emerald_teal">Gradient — Emerald &amp; Teal</flux:select.option>
+                                        <flux:select.option value="gradient_indigo_purple">Gradient — Indigo &amp; Purple</flux:select.option>
+                                        <flux:select.option value="gradient_gold_amber">Gradient — Gold &amp; Amber</flux:select.option>
+                                        <flux:select.option value="gradient_pink_purple">Gradient — Pink &amp; Purple</flux:select.option>
+                                    </flux:select>
+                                </flux:field>
 
-                                <div>
-                                    <label for="config_button_color" class="block text-sm font-medium text-slate-700">Button Colour</label>
-                                    <select id="config_button_color" wire:model.live="config_button_color" {{ $config_button_effect !== 'none' ? 'disabled' : '' }} class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 {{ $config_button_effect !== 'none' ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : '' }}">
-                                        <option value="bg-blue-600 hover:bg-blue-700">Blue</option>
-                                        <option value="bg-teal-600 hover:bg-teal-700">Teal</option>
-                                        <option value="bg-green-600 hover:bg-green-700">Green</option>
-                                        <option value="bg-orange-600 hover:bg-orange-700">Orange</option>
-                                        <option value="bg-red-600 hover:bg-red-700">Red</option>
-                                        <option value="bg-purple-600 hover:bg-purple-700">Purple</option>
-                                        <option value="bg-gray-900 hover:bg-gray-800">Dark</option>
-                                    </select>
-                                </div>
+                                <flux:field>
+                                    <flux:label>Button Colour</flux:label>
+                                    <flux:select wire:model.live="config_button_color" :disabled="$config_button_effect !== 'none'">
+                                        <flux:select.option value="bg-blue-600 hover:bg-blue-700">Blue</flux:select.option>
+                                        <flux:select.option value="bg-teal-600 hover:bg-teal-700">Teal</flux:select.option>
+                                        <flux:select.option value="bg-green-600 hover:bg-green-700">Green</flux:select.option>
+                                        <flux:select.option value="bg-orange-600 hover:bg-orange-700">Orange</flux:select.option>
+                                        <flux:select.option value="bg-red-600 hover:bg-red-700">Red</flux:select.option>
+                                        <flux:select.option value="bg-purple-600 hover:bg-purple-700">Purple</flux:select.option>
+                                        <flux:select.option value="bg-gray-900 hover:bg-gray-800">Dark</flux:select.option>
+                                    </flux:select>
+                                </flux:field>
 
-                                <div>
-                                    <label for="config_button_size" class="block text-sm font-medium text-slate-700">Button Size</label>
-                                    <select id="config_button_size" wire:model.live="config_button_size" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                                        <option value="text-sm px-4 py-2">Small</option>
-                                        <option value="text-base px-6 py-3">Medium</option>
-                                        <option value="text-lg px-8 py-4">Large</option>
-                                    </select>
-                                </div>
+                                <flux:field>
+                                    <flux:label>Button Size</flux:label>
+                                    <flux:select wire:model.live="config_button_size">
+                                        <flux:select.option value="text-sm px-4 py-2">Small</flux:select.option>
+                                        <flux:select.option value="text-base px-6 py-3">Medium</flux:select.option>
+                                        <flux:select.option value="text-lg px-8 py-4">Large</flux:select.option>
+                                    </flux:select>
+                                </flux:field>
 
-                                <div>
-                                    <label for="config_corner_radius" class="block text-sm font-medium text-slate-700">Corner Radius (px)</label>
-                                    <input type="number" min="0" max="100" id="config_corner_radius" wire:model.live="config_corner_radius" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500" />
-                                </div>
+                                <flux:field>
+                                    <flux:label>Corner Radius (px)</flux:label>
+                                    <flux:input type="number" min="0" max="100" wire:model.live="config_corner_radius" />
+                                </flux:field>
 
-                                <div>
-                                    <label for="config_button_icon" class="block text-sm font-medium text-slate-700">Icon</label>
-                                    <select id="config_button_icon" wire:model.live="config_button_icon" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                                        <option value="none">No icon</option>
-                                        <option value="heart">Heart</option>
-                                        <option value="hand">Hand</option>
-                                        <option value="star">Star</option>
-                                        <option value="gift">Gift</option>
-                                        <option value="plus">Plus</option>
-                                    </select>
-                                </div>
+                                <flux:field>
+                                    <flux:label>Icon</flux:label>
+                                    <flux:select wire:model.live="config_button_icon">
+                                        <flux:select.option value="none">No icon</flux:select.option>
+                                        <flux:select.option value="heart">Heart</flux:select.option>
+                                        <flux:select.option value="hand">Hand</flux:select.option>
+                                        <flux:select.option value="star">Star</flux:select.option>
+                                        <flux:select.option value="gift">Gift</flux:select.option>
+                                        <flux:select.option value="plus">Plus</flux:select.option>
+                                    </flux:select>
+                                </flux:field>
 
                                 @if ($element->type->value === 'link')
-                                    <div>
-                                        <label for="config_alignment" class="block text-sm font-medium text-slate-700">Alignment</label>
-                                        <select id="config_alignment" wire:model.live="config_alignment" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                                            <option value="center">Center</option>
-                                            <option value="left">Left</option>
-                                            <option value="right">Right</option>
-                                        </select>
-                                    </div>
+                                    <flux:field>
+                                        <flux:label>Alignment</flux:label>
+                                        <flux:select wire:model.live="config_alignment">
+                                            <flux:select.option value="center">Center</flux:select.option>
+                                            <flux:select.option value="left">Left</flux:select.option>
+                                            <flux:select.option value="right">Right</flux:select.option>
+                                        </flux:select>
+                                    </flux:field>
                                 @endif
 
                                 @if ($element->type->value === 'sticky_button')
-                                    <div>
-                                        <label for="config_position" class="block text-sm font-medium text-slate-700">Position</label>
-                                        <select id="config_position" wire:model.live="config_position" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                                            <option value="right-center">Middle Right</option>
-                                            <option value="left-center">Middle Left</option>
-                                        </select>
-                                    </div>
+                                    <flux:field>
+                                        <flux:label>Position</flux:label>
+                                        <flux:select wire:model.live="config_position">
+                                            <flux:select.option value="right-center">Middle Right</flux:select.option>
+                                            <flux:select.option value="left-center">Middle Left</flux:select.option>
+                                        </flux:select>
+                                    </flux:field>
                                 @endif
                             </div>
                         @endif

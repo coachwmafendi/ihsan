@@ -209,15 +209,35 @@
 
         @elseif($type === 'sticky_button')
             @php
-                $sbColors = [
-                    'campaign' => '#16a34a',
+                $sbColorMap = [
                     'blue' => '#2563eb', 'teal' => '#0d9488', 'green' => '#16a34a',
                     'orange' => '#ea580c', 'red' => '#dc2626', 'purple' => '#9333ea', 'dark' => '#1e293b',
                 ];
-                $sbEffect = $config['button_effect'] ?? 'none';
+                $sbEffect = $config['button_effect'] ?? $config['effect'] ?? 'none';
                 $sbHasEffect = $sbEffect !== 'none' && isset($effectGradients[$sbEffect]);
                 $sbEffectId = 'sb-' . md5($sbEffect);
-                $sbColor = $sbColors[$config['color'] ?? 'campaign'] ?? '#16a34a';
+
+                $sbColor = '#16a34a';
+                $sbRawColor = $config['button_color'] ?? $config['color'] ?? 'campaign';
+                if ($sbRawColor[0] === '#') {
+                    $sbColor = $sbRawColor;
+                } elseif (str_contains($sbRawColor, 'blue')) {
+                    $sbColor = '#2563eb';
+                } elseif (str_contains($sbRawColor, 'teal')) {
+                    $sbColor = '#0d9488';
+                } elseif (str_contains($sbRawColor, 'green')) {
+                    $sbColor = '#16a34a';
+                } elseif (str_contains($sbRawColor, 'orange')) {
+                    $sbColor = '#ea580c';
+                } elseif (str_contains($sbRawColor, 'red')) {
+                    $sbColor = '#dc2626';
+                } elseif (str_contains($sbRawColor, 'purple')) {
+                    $sbColor = '#9333ea';
+                } elseif (str_contains($sbRawColor, 'dark') || str_contains($sbRawColor, 'gray') || str_contains($sbRawColor, 'slate')) {
+                    $sbColor = '#1e293b';
+                }
+                $sbColor = $sbColorMap[strtolower($sbRawColor)] ?? $sbColor;
+
                 $sbPosition = $config['position'] ?? 'right-center';
                 $sbIcons = [
                     'heart' => '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
@@ -226,7 +246,7 @@
                     'gift' => '<path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 12 7.01l3.38 4.99L17 10.83 14.92 8H20v6z"/>',
                     'plus' => '<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>',
                 ];
-                $sbIconPath = $sbIcons[$config['icon'] ?? 'heart'] ?? $sbIcons['heart'];
+                $sbIconPath = $sbIcons[$config['button_icon'] ?? $config['icon'] ?? 'heart'] ?? $sbIcons['heart'];
                 $sbRotation = str_starts_with($sbPosition, 'left') ? 'rotate(90deg)' : 'rotate(-90deg)';
                 $sbBorderRadius = str_starts_with($sbPosition, 'left') ? '0 12px 12px 0' : '12px 0 0 12px';
                 $sbText = $config['button_text'] ?? 'Donate';
