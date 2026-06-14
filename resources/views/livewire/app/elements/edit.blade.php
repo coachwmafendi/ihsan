@@ -73,6 +73,27 @@
                     </div>
                 </x-ui.card>
 
+                @if ($element->type->value === 'button')
+                    {{-- Embed Code --}}
+                    <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
+                        <div class="space-y-3">
+                            <div class="relative">
+                                <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code>&lt;script src="{{ url('/e/widget.js') }}" data-token="{{ $element->token }}" data-type="{{ $element->type->value }}" async&gt;&lt;/script&gt;</code></pre>
+                                <button
+                                    type="button"
+                                    x-data="{ copied: false }"
+                                    @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async></script>`); copied = true; setTimeout(() => copied = false, 2000)"
+                                    class="absolute right-2 top-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-600"
+                                >
+                                    <span x-show="!copied">Copy</span>
+                                    <span x-show="copied" x-cloak>Copied!</span>
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-500">Token: {{ $element->token }}</p>
+                        </div>
+                    </x-ui.card>
+                @endif
+
                 {{-- Configuration --}}
                 <x-ui.card title="Configuration">
                     <div class="space-y-4">
@@ -82,7 +103,7 @@
                                 <input
                                     type="text"
                                     id="config_title"
-                                    wire:model="config_title"
+                                    wire:model.live="config_title"
                                     class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                     placeholder="e.g. Support our cause"
                                 />
@@ -92,7 +113,7 @@
                                 <label for="config_message" class="block text-sm font-medium text-slate-700">Message</label>
                                 <textarea
                                     id="config_message"
-                                    wire:model="config_message"
+                                    wire:model.live="config_message"
                                     rows="3"
                                     class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                     placeholder="Short description shown to donors..."
@@ -105,7 +126,7 @@
                             <input
                                 type="text"
                                 id="config_button_text"
-                                wire:model="config_button_text"
+                                wire:model.live="config_button_text"
                                 class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                 placeholder="e.g. Donate Now"
                             />
@@ -115,7 +136,7 @@
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <label for="config_button_color" class="block text-sm font-medium text-slate-700">Button Colour</label>
-                                    <select id="config_button_color" wire:model="config_button_color" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                    <select id="config_button_color" wire:model.live="config_button_color" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                                         <option value="bg-blue-600 hover:bg-blue-700">Blue</option>
                                         <option value="bg-teal-600 hover:bg-teal-700">Teal</option>
                                         <option value="bg-green-600 hover:bg-green-700">Green</option>
@@ -128,7 +149,7 @@
 
                                 <div>
                                     <label for="config_button_size" class="block text-sm font-medium text-slate-700">Button Size</label>
-                                    <select id="config_button_size" wire:model="config_button_size" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                    <select id="config_button_size" wire:model.live="config_button_size" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                                         <option value="text-sm px-4 py-2">Small</option>
                                         <option value="text-base px-6 py-3">Medium</option>
                                         <option value="text-lg px-8 py-4">Large</option>
@@ -137,12 +158,12 @@
 
                                 <div>
                                     <label for="config_corner_radius" class="block text-sm font-medium text-slate-700">Corner Radius (px)</label>
-                                    <input type="number" min="0" max="100" id="config_corner_radius" wire:model="config_corner_radius" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500" />
+                                    <input type="number" min="0" max="100" id="config_corner_radius" wire:model.live="config_corner_radius" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500" />
                                 </div>
 
                                 <div>
                                     <label for="config_button_icon" class="block text-sm font-medium text-slate-700">Icon</label>
-                                    <select id="config_button_icon" wire:model="config_button_icon" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                    <select id="config_button_icon" wire:model.live="config_button_icon" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                                         <option value="none">No icon</option>
                                         <option value="heart">Heart</option>
                                         <option value="hand">Hand</option>
@@ -156,24 +177,26 @@
                     </div>
                 </x-ui.card>
 
-                {{-- Embed Code --}}
-                <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
-                    <div class="space-y-3">
-                        <div class="relative">
-                            <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code>&lt;script src="{{ url('/e/widget.js') }}" data-token="{{ $element->token }}" data-type="{{ $element->type->value }}" async&gt;&lt;/script&gt;</code></pre>
-                            <button
-                                type="button"
-                                x-data="{ copied: false }"
-                                @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async></script>`); copied = true; setTimeout(() => copied = false, 2000)"
-                                class="absolute right-2 top-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-600"
-                            >
-                                <span x-show="!copied">Copy</span>
-                                <span x-show="copied" x-cloak>Copied!</span>
-                            </button>
+                @if ($element->type->value !== 'button')
+                    {{-- Embed Code --}}
+                    <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
+                        <div class="space-y-3">
+                            <div class="relative">
+                                <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code>&lt;script src="{{ url('/e/widget.js') }}" data-token="{{ $element->token }}" data-type="{{ $element->type->value }}" async&gt;&lt;/script&gt;</code></pre>
+                                <button
+                                    type="button"
+                                    x-data="{ copied: false }"
+                                    @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async></script>`); copied = true; setTimeout(() => copied = false, 2000)"
+                                    class="absolute right-2 top-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-600"
+                                >
+                                    <span x-show="!copied">Copy</span>
+                                    <span x-show="copied" x-cloak>Copied!</span>
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-500">Token: {{ $element->token }}</p>
                         </div>
-                        <p class="text-xs text-slate-500">Token: {{ $element->token }}</p>
-                    </div>
-                </x-ui.card>
+                    </x-ui.card>
+                @endif
 
                 {{-- Actions --}}
                 <div class="flex items-center justify-between">
