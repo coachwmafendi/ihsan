@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Livewire\App\Settings\Profile;
 use App\Models\Organization;
 use App\Models\User;
 
@@ -65,4 +66,54 @@ it('renders stripe onboarding page', function () {
         ->get('/app/stripe-onboarding')
         ->assertOk()
         ->assertSee('Stripe');
+});
+
+it('saves allowed domains in profile settings', function () {
+    $organization = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => []],
+    ]);
+    $user = User::factory()->create(['organization_id' => $organization->id]);
+
+    actingAs($user);
+
+    Livewire::test(Profile::class)
+        ->call('addDomain', 'mywebsite.com')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($organization->fresh()->settings['allowed_domains'])->toContain('mywebsite.com');
+});
+
+it('removes a domain from allowed domains in profile settings', function () {
+    $organization = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['mywebsite.com', 'other.org']],
+    ]);
+    $user = User::factory()->create(['organization_id' => $organization->id]);
+
+    actingAs($user);
+
+    Livewire::test(Profile::class)
+        ->call('removeDomain', 0)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($organization->fresh()->settings['allowed_domains'])
+        ->not->toContain('mywebsite.com')
+        ->toContain('other.org');
+});
+
+it('normalizes domains on save (strips www, lowercases)', function () {
+    $organization = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => []],
+    ]);
+    $user = User::factory()->create(['organization_id' => $organization->id]);
+
+    actingAs($user);
+
+    Livewire::test(Profile::class)
+        ->call('addDomain', 'https://www.MyWebsite.com/page')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($organization->fresh()->settings['allowed_domains'])->toBe(['mywebsite.com']);
 });

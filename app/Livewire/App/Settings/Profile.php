@@ -115,6 +115,20 @@ class Profile extends Component
         $this->social_youtube = $settings['social_youtube'] ?? null;
     }
 
+    public function addDomain(string $domain): void
+    {
+        $domain = trim($domain);
+        if ($domain !== '') {
+            $this->allowed_domains[] = $domain;
+        }
+    }
+
+    public function removeDomain(int $index): void
+    {
+        array_splice($this->allowed_domains, $index, 1);
+        $this->allowed_domains = array_values($this->allowed_domains);
+    }
+
     public function save(): void
     {
         $this->validate([
@@ -131,6 +145,8 @@ class Profile extends Component
             'bank_name' => ['nullable', 'string', 'max:255'],
             'bank_account_name' => ['nullable', 'string', 'max:255'],
             'bank_account_number' => ['nullable', 'string', 'max:255'],
+            'allowed_domains' => ['nullable', 'array'],
+            'allowed_domains.*' => ['string', 'max:255'],
         ]);
 
         /** @var Organization|null $org */
