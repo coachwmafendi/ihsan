@@ -10,7 +10,7 @@
 
     <div>
         <h1 class="text-3xl font-bold tracking-tight text-slate-900">Edit Element</h1>
-        <p class="mt-1 text-sm text-slate-500">{{ $element->name }}</p>
+        <p class="mt-1 text-sm text-slate-500">{{ $element->name }} · Type {{ ucwords(str_replace('_', ' ', $element->type->value)) }}</p>
     </div>
 
     <form wire:submit="save">
