@@ -114,17 +114,12 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
                                 <label for="registration_type" class="block text-sm font-semibold text-slate-700 mb-1.5">Registration Type</label>
-                                <select
-                                    id="registration_type"
-                                    wire:model="registration_type"
-                                    required
-                                    class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                                >
-                                    <option value="" disabled>-- Select type --</option>
-                                    <option value="ROS">ROS (Society)</option>
-                                    <option value="ROB">ROB (Company)</option>
-                                    <option value="Others">Others</option>
-                                </select>
+                                <x-ui.select variant="auth" id="registration_type" wire:model="registration_type" required class="w-full">
+                                    <flux:select.option value="" disabled>-- Select type --</flux:select.option>
+                                    <flux:select.option value="ROS">ROS (Society)</flux:select.option>
+                                    <flux:select.option value="ROB">ROB (Company)</flux:select.option>
+                                    <flux:select.option value="Others">Others</flux:select.option>
+                                </x-ui.select>
                                 @error('registration_type')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
@@ -145,21 +140,16 @@
                         {{-- Sector — full width --}}
                         <div>
                             <label for="sector" class="block text-sm font-semibold text-slate-700 mb-1.5">Sector</label>
-                            <select
-                                id="sector"
-                                wire:model="sector"
-                                required
-                                class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            >
-                                <option value="" disabled>-- Select sector --</option>
-                                <option value="Agama">Religion</option>
-                                <option value="Pendidikan">Education</option>
-                                <option value="Kebajikan Sosial">Social Welfare</option>
-                                <option value="Kesihatan">Health</option>
-                                <option value="Alam Sekitar">Environment</option>
-                                <option value="Sukan & Rekreasi">Sports & Recreation</option>
-                                <option value="Lain-lain">Others</option>
-                            </select>
+                            <x-ui.select variant="auth" id="sector" wire:model="sector" required class="w-full">
+                                <flux:select.option value="" disabled>-- Select sector --</flux:select.option>
+                                <flux:select.option value="Agama">Religion</flux:select.option>
+                                <flux:select.option value="Pendidikan">Education</flux:select.option>
+                                <flux:select.option value="Kebajikan Sosial">Social Welfare</flux:select.option>
+                                <flux:select.option value="Kesihatan">Health</flux:select.option>
+                                <flux:select.option value="Alam Sekitar">Environment</flux:select.option>
+                                <flux:select.option value="Sukan & Rekreasi">Sports & Recreation</flux:select.option>
+                                <flux:select.option value="Lain-lain">Others</flux:select.option>
+                            </x-ui.select>
                             @error('sector')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
