@@ -148,6 +148,7 @@ class PublicElementController extends Controller
                 'color' => 'campaign',
                 'size' => 'Medium',
                 'alignment' => 'center',
+                'action' => 'checkout_modal',
             ], $settings);
 
             $settings['text'] = $settings['text'] ?: ($settings['button_text'] ?? 'Donate');

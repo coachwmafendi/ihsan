@@ -102,6 +102,7 @@ class ElementIndex extends Component
                 'text' => 'Donate',
                 'icon' => 'heart',
                 'alignment' => 'center',
+                'action' => 'checkout_modal',
             ],
             default => null,
         };

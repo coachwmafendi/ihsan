@@ -147,6 +147,7 @@ class ElementEdit extends Component
         if ($this->element->type === ElementType::Link) {
             $mergedConfig['text'] = $this->config_button_text;
             $mergedConfig['style'] = 'button';
+            $mergedConfig['action'] = 'checkout_modal';
         }
 
         $this->element->update([
