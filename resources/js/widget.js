@@ -927,7 +927,6 @@
 
     var link = document.createElement("a");
     link.href = href;
-    link.textContent = text;
     link.target = "_blank";
     link.rel = "noopener";
     link.style.display = "inline-block";
@@ -960,14 +959,16 @@
         "font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif",
         "text-decoration:none",
       ].join(";");
+      link.innerHTML = iconHtml + "<span>" + text + "</span>";
     } else {
       link.style.cssText = [
         "color:" + color,
-        "font-size:" + sz.font,
+        "font-size:" + fontSize,
         "font-weight:500",
         "text-decoration:underline",
         "text-underline-offset:2px",
       ].join(";");
+      link.textContent = text;
     }
 
     var action = s.action || "open_campaign_page";
