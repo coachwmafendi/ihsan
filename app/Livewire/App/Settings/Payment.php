@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Settings;
 
+use App\Models\User;
+use App\Services\AuditLogLogger;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -73,6 +75,9 @@ class Payment extends Component
         }
 
         $org->update(['stripe_account_id' => null, 'stripe_onboarded' => false]);
+
+        AuditLogLogger::stripeDisconnected($org, $this->getUser());
+
         $this->redirect('/app/stripe-onboarding');
     }
 
@@ -100,5 +105,10 @@ class Payment extends Component
     public function render()
     {
         return view('livewire.app.settings.payment', ['title' => 'Settings — Payment']);
+    }
+
+    private function getUser(): ?User
+    {
+        return Auth::user();
     }
 }

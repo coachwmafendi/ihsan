@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organization;
+use App\Services\AuditLogLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -103,6 +104,8 @@ class StripeConnectController extends Controller
             'stripe_onboarded' => true,
             'stripe_onboarded_at' => now(),
         ]);
+
+        AuditLogLogger::stripeConnected($org, auth()->user(), $stripeUserId);
 
         try {
             $account = Account::retrieve($stripeUserId);

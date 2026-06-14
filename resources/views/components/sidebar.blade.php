@@ -59,7 +59,8 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
             <x-sidebar-group label="Organization">
                 <x-sidebar-item href="/app/members" icon="user-group" label="Members" :active="$isActive('/app/members')" />
                 <x-sidebar-item href="/app/teams" icon="rectangle-group" label="Teams" :active="$isActive('/app/teams')" />
-                
+                <x-sidebar-item href="/app/audit-log" icon="clipboard-document-list" label="Audit Log" :active="$isActive('/app/audit-log')" />
+
                 <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/app/settings')">
                     <x-sidebar-item href="/app/settings/profile" icon="building-office" label="Profile" :active="$isActive('/app/settings/profile')" />
                     <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
@@ -108,7 +109,8 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
             <x-sidebar-group label="Organization">
                 <x-sidebar-item href="/app/members" icon="user-group" label="Members" :active="$isActive('/app/members')" />
                 <x-sidebar-item href="/app/teams" icon="rectangle-group" label="Teams" :active="$isActive('/app/teams')" />
-                
+                <x-sidebar-item href="/app/audit-log" icon="clipboard-document-list" label="Audit Log" :active="$isActive('/app/audit-log')" />
+
                 <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/app/settings')">
                     <x-sidebar-item href="/app/settings/profile" icon="building-office" label="Profile" :active="$isActive('/app/settings/profile')" />
                     <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />

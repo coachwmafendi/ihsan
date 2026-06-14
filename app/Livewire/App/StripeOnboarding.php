@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire\App;
 
 use App\Actions\Stripe\CreateConnectAccount;
+use App\Models\User;
+use App\Services\AuditLogLogger;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -44,6 +46,12 @@ class StripeOnboarding extends Component
                         'stripe_onboarded' => true,
                         'stripe_onboarded_at' => now(),
                     ]);
+
+                    AuditLogLogger::stripeOnboardingCompleted(
+                        $org,
+                        $this->getUser(),
+                        $org->stripe_account_id,
+                    );
                 }
             } catch (\Throwable) {
                 // Ignore Stripe errors and leave the onboarding page visible.
@@ -94,5 +102,10 @@ class StripeOnboarding extends Component
     public function render()
     {
         return view('livewire.app.stripe-onboarding', ['title' => 'Stripe Connect Onboarding']);
+    }
+
+    private function getUser(): ?User
+    {
+        return Auth::user();
     }
 }

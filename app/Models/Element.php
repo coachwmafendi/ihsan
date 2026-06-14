@@ -7,9 +7,13 @@ use App\Services\PublicIdGenerator;
 use Carbon\CarbonImmutable;
 use Database\Factories\ElementFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * @property int $id
@@ -26,6 +30,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $is_donor_portal_default
  * @property string|null $public_id
  * @property-read Campaign|null $campaign
+ * @property-read Collection<int, Activity> $activitiesAsSubject
+ * @property-read int|null $activities_as_subject_count
  * @property-read Organization $organization
  *
  * @method static \Database\Factories\ElementFactory factory($count = null, $state = [])
@@ -52,7 +58,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Element extends Model
 {
     /** @use HasFactory<ElementFactory> */
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'type', 'is_active', 'is_donor_portal_default', 'config'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->useLogName('element');
+    }
 
     protected static function booted(): void
     {

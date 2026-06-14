@@ -3,6 +3,7 @@
 namespace App\Actions\Stripe;
 
 use App\Models\Organization;
+use App\Services\AuditLogLogger;
 use Stripe\Account;
 use Stripe\AccountLink;
 use Stripe\Exception\ApiErrorException;
@@ -62,6 +63,12 @@ class CreateConnectAccount
         ]);
 
         $organization->update(['stripe_account_id' => $account->id]);
+
+        AuditLogLogger::stripeConnected(
+            $organization,
+            auth()->user(),
+            $account->id,
+        );
 
         return $account;
     }

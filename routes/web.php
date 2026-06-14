@@ -9,6 +9,7 @@ use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureNgoAdmin;
 use App\Http\Middleware\RedirectIfStripeNotOnboarded;
+use App\Livewire\App\AuditLog\Index as AuditLogIndex;
 use App\Livewire\App\Billing;
 use App\Livewire\App\Campaigns\CampaignCreate;
 use App\Livewire\App\Campaigns\CampaignEdit;
@@ -92,6 +93,7 @@ Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::
     Route::get('/app/elements/create', ElementCreate::class)->name('app.elements.create');
     Route::get('/app/elements/{element}/edit', ElementEdit::class)->name('app.elements.edit');
     Route::get('/app/virtual-terminal', VirtualTerminal::class)->name('app.virtual-terminal');
+    Route::get('/app/audit-log', AuditLogIndex::class)->name('app.audit-log.index');
 
     // Placeholder routes for upcoming features
     Route::get('/app/payouts', fn () => redirect('/app/dashboard'))->name('app.payouts');
