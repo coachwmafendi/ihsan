@@ -1,7 +1,7 @@
 {{-- resources/views/livewire/app/campaigns/create-modal.blade.php --}}
 <div>
     @if ($showCreateModal)
-        <div class="fixed inset-0 z-50 flex items-start justify-center pt-24 sm:items-center sm:pt-0" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 z-50 flex items-start justify-center pt-24 sm:items-center sm:pt-0" role="dialog" aria-modal="true" aria-labelledby="create-campaign-title">
             {{-- Backdrop --}}
             <div
                 class="fixed inset-0 bg-black/50 transition-opacity"
@@ -12,10 +12,12 @@
             <div class="relative w-full max-w-lg rounded-xl bg-white shadow-xl mx-4">
                 {{-- Header --}}
                 <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-                    <h2 class="text-lg font-semibold text-slate-900">Create a new campaign</h2>
+                    <h2 id="create-campaign-title" class="text-lg font-semibold text-slate-900">Create a new campaign</h2>
                     <button
+                        type="button"
                         wire:click="closeCreateModal"
                         class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                        aria-label="Close"
                     >
                         <x-heroicon-o-x-mark class="size-5" />
                     </button>

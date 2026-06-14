@@ -45,7 +45,11 @@ class CampaignCreateModal extends Component
             if ($source) {
                 $this->newCampaignName = $source->title.' (Copy)';
             }
+
+            return;
         }
+
+        $this->newCampaignName = '';
     }
 
     #[Computed]
@@ -100,67 +104,86 @@ class CampaignCreateModal extends Component
             return;
         }
 
-        if ($this->createMode === 'clone') {
-            if (! $this->cloneCampaignId) {
-                $this->dispatch('notify', message: 'Please select a campaign to clone.', variant: 'danger');
+        try {
+            $campaign = $this->createMode === 'clone'
+                ? $this->cloneCampaign($validated)
+                : $this->createNewCampaign($validated);
+        } catch (\RuntimeException $e) {
+            $this->dispatch('notify', message: $e->getMessage(), variant: 'danger');
 
-                return;
-            }
-
-            $source = Campaign::find($this->cloneCampaignId);
-
-            if (! $source || $source->organization_id !== $org->id) {
-                $this->dispatch('notify', message: 'Campaign not found.', variant: 'danger');
-
-                return;
-            }
-
-            $campaign = Campaign::create([
-                'organization_id' => $org->id,
-                'title' => $validated['newCampaignName'],
-                'status' => CampaignStatus::Draft,
-                'description' => $source->description,
-                'headline' => $source->headline,
-                'short_summary' => $source->short_summary,
-                'has_target' => $source->has_target,
-                'target_amount' => $source->has_target ? $source->target_amount : null,
-                'has_end_date' => $source->has_end_date,
-                'end_date' => $source->has_end_date ? $source->end_date : null,
-                'allow_recurring' => $source->allow_recurring,
-                'allow_custom_amount' => $source->allow_custom_amount,
-                'minimum_amount' => $source->minimum_amount,
-                'suggested_amounts' => $source->suggested_amounts,
-                'suggested_amounts_one_time' => $source->suggested_amounts_one_time,
-                'suggested_amounts_monthly' => $source->suggested_amounts_monthly,
-                'default_monthly_amount' => $source->default_monthly_amount,
-                'impact_descriptions_enabled' => $source->impact_descriptions_enabled,
-                'thank_you_message' => $source->thank_you_message,
-                'redirect_url' => $source->redirect_url,
-                'config' => $source->config,
-                'payment_gateway' => $source->payment_gateway,
-                'checkout_modal_enabled' => $source->checkout_modal_enabled,
-                'checkout_allowed_domains' => $source->checkout_allowed_domains,
-            ]);
-        } else {
-            $campaign = Campaign::create([
-                'organization_id' => $org->id,
-                'title' => $validated['newCampaignName'],
-                'status' => CampaignStatus::Draft,
-                'allow_recurring' => true,
-                'allow_custom_amount' => true,
-                'config' => [
-                    'allow_cover_fee' => true,
-                    'show_comment' => true,
-                    'show_phone' => true,
-                ],
-            ]);
-
-            $this->createDefaultDonorPortalButton($campaign);
+            return;
         }
 
         $this->closeCreateModal();
         $this->dispatch('notify', message: 'Campaign created successfully.', variant: 'success');
         $this->redirectRoute('app.campaigns.edit', $campaign);
+    }
+
+    private function createNewCampaign(array $validated): Campaign
+    {
+        $campaign = Campaign::create([
+            'organization_id' => $this->organization?->id,
+            'title' => $validated['newCampaignName'],
+            'status' => CampaignStatus::Draft,
+            'allow_recurring' => true,
+            'allow_custom_amount' => true,
+            'config' => [
+                'allow_cover_fee' => true,
+                'show_comment' => true,
+                'show_phone' => true,
+            ],
+        ]);
+
+        $this->createDefaultDonorPortalButton($campaign);
+
+        return $campaign;
+    }
+
+    private function cloneCampaign(array $validated): Campaign
+    {
+        if (! $this->cloneCampaignId) {
+            throw new \RuntimeException('Please select a campaign to clone.');
+        }
+
+        $source = $this->resolveCloneSource($this->cloneCampaignId);
+
+        if (! $source) {
+            throw new \RuntimeException('Campaign not found.');
+        }
+
+        return Campaign::create([
+            'organization_id' => $this->organization?->id,
+            'title' => $validated['newCampaignName'],
+            'status' => CampaignStatus::Draft,
+            'description' => $source->description,
+            'headline' => $source->headline,
+            'short_summary' => $source->short_summary,
+            'has_target' => $source->has_target,
+            'target_amount' => $source->has_target ? $source->target_amount : null,
+            'has_end_date' => $source->has_end_date,
+            'end_date' => $source->has_end_date ? $source->end_date : null,
+            'allow_recurring' => $source->allow_recurring,
+            'allow_custom_amount' => $source->allow_custom_amount,
+            'minimum_amount' => $source->minimum_amount,
+            'suggested_amounts' => $source->suggested_amounts,
+            'suggested_amounts_one_time' => $source->suggested_amounts_one_time,
+            'suggested_amounts_monthly' => $source->suggested_amounts_monthly,
+            'default_monthly_amount' => $source->default_monthly_amount,
+            'impact_descriptions_enabled' => $source->impact_descriptions_enabled,
+            'thank_you_message' => $source->thank_you_message,
+            'redirect_url' => $source->redirect_url,
+            'config' => $source->config,
+            'payment_gateway' => $source->payment_gateway,
+            'checkout_modal_enabled' => $source->checkout_modal_enabled,
+            'checkout_allowed_domains' => $source->checkout_allowed_domains,
+        ]);
+    }
+
+    private function resolveCloneSource(int $id): ?Campaign
+    {
+        return Campaign::query()
+            ->where('organization_id', $this->organization?->id)
+            ->find($id);
     }
 
     private function createDefaultDonorPortalButton(Campaign $campaign): void
