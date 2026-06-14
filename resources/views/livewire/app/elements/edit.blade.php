@@ -10,7 +10,12 @@
 
     <div>
         <h1 class="text-3xl font-bold tracking-tight text-slate-900">Edit Element</h1>
-        <p class="mt-1 text-sm text-slate-500">{{ $element->name }} · Type {{ ucwords(str_replace('_', ' ', $element->type->value)) }}</p>
+        <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
+            {{ $element->name }}
+            <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                Type: {{ ucwords(str_replace('_', ' ', $element->type->value)) }}
+            </span>
+        </p>
     </div>
 
     <form wire:submit="save">
