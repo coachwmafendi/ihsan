@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Livewire\App\Donors;
+namespace App\Livewire\App\Supporters;
 
 use App\Models\Donor;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,7 +13,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-class DonorShow extends Component
+class SupporterShow extends Component
 {
     public Donor $donor;
 
@@ -105,7 +105,7 @@ class DonorShow extends Component
 
     public function render()
     {
-        return view('livewire.app.donors.show', [
+        return view('livewire.app.supporters.show', [
             'title' => $this->donor->name,
         ]);
     }

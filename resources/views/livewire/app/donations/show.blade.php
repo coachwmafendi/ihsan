@@ -95,7 +95,7 @@
                         </div>
                     </div>
                     <div class="mt-4">
-                        <a href="/app/donors/{{ $donation->donor->public_id }}" wire:navigate class="text-sm font-medium text-teal-600 hover:text-teal-700">
+                        <a href="/app/supporters/{{ $donation->donor->public_id }}" wire:navigate class="text-sm font-medium text-teal-600 hover:text-teal-700">
                             View donor profile →
                         </a>
                     </div>

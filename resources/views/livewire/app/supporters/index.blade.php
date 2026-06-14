@@ -1,16 +1,16 @@
-{{-- resources/views/livewire/app/donors/index.blade.php --}}
+{{-- resources/views/livewire/app/supporters/index.blade.php --}}
 <div class="space-y-6">
     {{-- Page Header --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Donors</h1>
-            <p class="mt-1 text-sm text-slate-500">Manage and view all donors</p>
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Supporters</h1>
+            <p class="mt-1 text-sm text-slate-500">Manage and view all supporters</p>
         </div>
     </div>
 
     {{-- Summary Stats --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <x-ui.stat-card label="Total Donors" value="{{ number_format($this->totalCount) }}" />
+        <x-ui.stat-card label="Total Supporters" value="{{ number_format($this->totalCount) }}" />
     </div>
 
     {{-- Filters --}}
@@ -109,7 +109,7 @@
                         @foreach ($this->donors as $donor)
                             <tr
                                 class="cursor-pointer transition-colors hover:bg-slate-50"
-                                onclick="window.location='{{ route('app.donors.show', $donor) }}'"
+                                onclick="window.location='{{ route('app.supporters.show', $donor) }}'"
                             >
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-3">
@@ -149,7 +149,7 @@
         @else
             <x-ui.empty-state
                 icon="heroicon-o-users"
-                title="No donors found"
+                title="No supporters found"
                 description="Try adjusting your search criteria."
             />
         @endif

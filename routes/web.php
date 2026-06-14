@@ -17,8 +17,6 @@ use App\Livewire\App\Campaigns\CampaignIndex;
 use App\Livewire\App\Dashboard;
 use App\Livewire\App\Donations\DonationIndex;
 use App\Livewire\App\Donations\DonationShow;
-use App\Livewire\App\Donors\DonorIndex;
-use App\Livewire\App\Donors\DonorShow;
 use App\Livewire\App\Elements\ElementCreate;
 use App\Livewire\App\Elements\ElementEdit;
 use App\Livewire\App\Elements\ElementIndex;
@@ -29,6 +27,8 @@ use App\Livewire\App\Settings\Profile;
 use App\Livewire\App\StripeOnboarding;
 use App\Livewire\App\Subscriptions\SubscriptionIndex;
 use App\Livewire\App\Subscriptions\SubscriptionShow;
+use App\Livewire\App\Supporters\SupporterIndex;
+use App\Livewire\App\Supporters\SupporterShow;
 use App\Livewire\App\VirtualTerminal;
 use App\Livewire\Auth\RegisterOrganization;
 use Illuminate\Support\Facades\Route;
@@ -75,9 +75,8 @@ Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::
     Route::get('/app/donations', DonationIndex::class)->name('app.donations.index');
     Route::get('/app/donations/{donation:public_id}', DonationShow::class)->name('app.donations.show');
 
-    Route::get('/app/donors', DonorIndex::class)->name('app.donors.index');
-    Route::get('/app/donors/{donor:public_id}', DonorShow::class)->name('app.donors.show');
-    Route::get('/app/supporters', DonorIndex::class)->name('app.supporters');
+    Route::get('/app/supporters', SupporterIndex::class)->name('app.supporters.index');
+    Route::get('/app/supporters/{donor:public_id}', SupporterShow::class)->name('app.supporters.show');
 
     Route::get('/app/settings/profile', Profile::class)->name('app.settings.profile');
     Route::get('/app/settings/payment', Payment::class)->name('app.settings.payment');

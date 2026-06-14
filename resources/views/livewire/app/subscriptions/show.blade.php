@@ -160,7 +160,7 @@
                 </div>
                 @if ($subscription->donor)
                     <div class="mt-4">
-                        <a href="{{ route('app.donors.show', $subscription->donor) }}" wire:navigate class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-700">
+                        <a href="{{ route('app.supporters.show', $subscription->donor) }}" wire:navigate class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-700">
                             View donor profile
                             <x-heroicon-o-arrow-right class="size-4 ml-1" />
                         </a>

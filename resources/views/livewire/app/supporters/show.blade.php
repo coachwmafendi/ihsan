@@ -1,4 +1,4 @@
-{{-- resources/views/livewire/app/donors/show.blade.php --}}
+{{-- resources/views/livewire/app/supporters/show.blade.php --}}
 <div class="space-y-6">
     {{-- Page Header --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
@@ -12,7 +12,7 @@
             </div>
             <div>
                 <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ $donor->name }}</h1>
-                <p class="mt-1 text-sm text-slate-500">Donor since {{ $donor->created_at->format('M d, Y') }}</p>
+                <p class="mt-1 text-sm text-slate-500">Supporter since {{ $donor->created_at->format('M d, Y') }}</p>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -188,7 +188,7 @@
 
     {{-- Back Link --}}
     <div>
-        <a href="{{ route('app.donors.index') }}" wire:navigate class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-700">
+        <a href="{{ route('app.supporters.index') }}" wire:navigate class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-700">
             <x-heroicon-o-arrow-left class="size-4 mr-1" />
             Back to donors
         </a>

@@ -52,7 +52,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
             </x-sidebar-group>
 
             <x-sidebar-group label="Supporters">
-                <x-sidebar-item href="/app/donors" icon="users" label="Donors" :active="$isActive('/app/donors')" />
+                <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
                 <x-sidebar-item href="/app/subscriptions" icon="arrow-path-rounded-square" label="Subscriptions" :active="$isActive('/app/subscriptions')" />
             </x-sidebar-group>
 
@@ -102,7 +102,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
             </x-sidebar-group>
 
             <x-sidebar-group label="Supporters">
-                <x-sidebar-item href="/app/donors" icon="users" label="Donors" :active="$isActive('/app/donors')" />
+                <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
                 <x-sidebar-item href="/app/subscriptions" icon="arrow-path-rounded-square" label="Subscriptions" :active="$isActive('/app/subscriptions')" />
             </x-sidebar-group>
 

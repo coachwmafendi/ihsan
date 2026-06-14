@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Livewire\App\Donors;
+namespace App\Livewire\App\Supporters;
 
 use App\Models\Donor;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,7 +14,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
-class DonorIndex extends Component
+class SupporterIndex extends Component
 {
     use WithPagination;
 
@@ -91,8 +91,8 @@ class DonorIndex extends Component
 
     public function render()
     {
-        return view('livewire.app.donors.index', [
-            'title' => 'Donors',
+        return view('livewire.app.supporters.index', [
+            'title' => 'Supporters',
         ]);
     }
 }
