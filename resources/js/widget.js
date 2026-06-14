@@ -698,19 +698,23 @@
 
     function shouldShow() {
       if (frequency === "once") return !sessionStorage.getItem("ihsan-popup-" + token);
-      if (frequency === "once_per_day") {
-        var last = localStorage.getItem("ihsan-popup-" + token);
-        if (last && Date.now() - parseInt(last, 10) < 86400000) return false;
-      }
       if (frequency === "once_per_session") return !sessionStorage.getItem("ihsan-popup-" + token);
+      var last = localStorage.getItem("ihsan-popup-" + token);
+      if (last) {
+        var limits = {
+          once_per_day: 86400000,
+          once_per_week: 604800000,
+          once_per_month: 2592000000,
+        };
+        if (Date.now() - parseInt(last, 10) < (limits[frequency] || 0)) return false;
+      }
       return true;
     }
 
     function markShown() {
       if (frequency === "once" || frequency === "once_per_session") {
         sessionStorage.setItem("ihsan-popup-" + token, "1");
-      }
-      if (frequency === "once_per_day") {
+      } else {
         localStorage.setItem("ihsan-popup-" + token, String(Date.now()));
       }
     }

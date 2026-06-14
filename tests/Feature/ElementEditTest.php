@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\ElementType;
 use App\Enums\UserRole;
 use App\Http\Controllers\PublicElementController;
+use App\Livewire\App\Elements\ElementCreate;
 use App\Livewire\App\Elements\ElementEdit;
 use App\Livewire\App\Elements\ElementIndex;
 use App\Models\Campaign;
@@ -263,6 +264,46 @@ it('creates a link element with default Donate text', function () {
         ->and($element->config['text'])->toBe('Donate');
 });
 
+it('maps form button text to submit_text config', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Form,
+        'config' => [],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_title', 'Bantu pembinaan surau')
+        ->set('config_message', 'Sumbangan anda penting untuk komuniti.')
+        ->set('config_button_text', 'Sumbang Sekarang')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $element->refresh();
+
+    expect($element->config)
+        ->toMatchArray([
+            'title' => 'Bantu pembinaan surau',
+            'message' => 'Sumbangan anda penting untuk komuniti.',
+            'button_text' => 'Sumbang Sekarang',
+            'submit_text' => 'Sumbang Sekarang',
+        ]);
+});
+
+it('loads existing submit_text into button text for form elements', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Form,
+        'config' => [
+            'submit_text' => 'Tabung Kecemasan',
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->assertSet('config_button_text', 'Tabung Kecemasan');
+});
+
 it('saves the icon config for a link element', function () {
     $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
         'type' => ElementType::Link,
@@ -283,4 +324,179 @@ it('saves the icon config for a link element', function () {
 
     expect($element->config['button_icon'])->toBe('star')
         ->and($element->config['action'])->toBe('checkout_modal');
+});
+
+it('enforces a 100 character limit on the message field when editing', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Popup,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_message', str_repeat('a', 101))
+        ->call('save')
+        ->assertHasErrors(['config_message' => 'max']);
+
+    $element->refresh();
+
+    expect($element->config)->not->toHaveKey('message');
+});
+
+it('allows a message up to 100 characters when editing', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Popup,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_message', str_repeat('a', 100))
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $element->refresh();
+
+    expect($element->config['message'])->toHaveLength(100);
+});
+
+it('enforces a 100 character limit on the message field when creating', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementCreate::class)
+        ->set('campaign_id', $this->campaign->id)
+        ->set('type', 'popup')
+        ->set('name', 'Popup CTA')
+        ->set('config_message', str_repeat('a', 101))
+        ->call('save')
+        ->assertHasErrors(['config_message' => 'max']);
+});
+
+it('loads popup config defaults when editing a popup element', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Popup,
+        'config' => [],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->assertSet('config_action', 'checkout_modal')
+        ->assertSet('config_trigger', 'after_delay')
+        ->assertSet('config_delay', 8)
+        ->assertSet('config_frequency', 'once_per_day')
+        ->assertSet('config_visibility', 'desktop_mobile')
+        ->assertSet('config_layout', 'simple')
+        ->assertSet('config_image_url', 'https://images.unsplash.com/photo-1629273229664-11fabc0becc0?q=80&w=2062')
+        ->assertSet('config_color', 'campaign')
+        ->assertSet('config_button_effect', 'none')
+        ->assertSee('Action')
+        ->assertSee('Trigger')
+        ->assertSee('Frequency')
+        ->assertSee('Layout');
+});
+
+it('saves popup config including trigger, delay, frequency, layout and image url', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Popup,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_title', 'Support our cause')
+        ->set('config_message', 'Short message')
+        ->set('config_button_text', 'Donate Now')
+        ->set('config_action', 'open_campaign_page')
+        ->set('config_trigger', 'on_exit')
+        ->set('config_delay', 12)
+        ->set('config_frequency', 'once_per_session')
+        ->set('config_visibility', 'desktop_only')
+        ->set('config_layout', 'full')
+        ->set('config_image_url', 'https://example.com/image.jpg')
+        ->set('config_color', 'blue')
+        ->set('config_button_effect', 'gradient_teal_green')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    $element->refresh();
+
+    expect($element->config)->toMatchArray([
+        'title' => 'Support our cause',
+        'message' => 'Short message',
+        'button_text' => 'Donate Now',
+        'action' => 'open_campaign_page',
+        'trigger' => 'on_exit',
+        'delay' => 12,
+        'frequency' => 'once_per_session',
+        'visibility' => 'desktop_only',
+        'layout' => 'full',
+        'image_url' => 'https://example.com/image.jpg',
+        'color' => 'blue',
+        'button_effect' => 'gradient_teal_green',
+    ])
+        ->and($element->config)->not->toHaveKey('button_color')
+        ->and($element->config)->not->toHaveKey('button_size')
+        ->and($element->config)->not->toHaveKey('corner_radius');
+});
+
+it('creates popup elements with default popup config', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementIndex::class)
+        ->call('openCreateModal')
+        ->set('newType', 'popup')
+        ->set('newName', 'Homepage Popup')
+        ->set('newCampaignId', $this->campaign->id)
+        ->call('createElement')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    $element = Element::query()
+        ->where('name', 'Homepage Popup')
+        ->firstOrFail();
+
+    expect($element->type->value)->toBe('popup')
+        ->and($element->config)->toMatchArray([
+            'title' => 'Support our cause',
+            'message' => 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.',
+            'button_text' => 'Donate Now',
+            'action' => 'checkout_modal',
+            'trigger' => 'after_delay',
+            'delay' => 8,
+            'frequency' => 'once_per_day',
+            'visibility' => 'desktop_mobile',
+            'layout' => 'simple',
+            'image_url' => 'https://images.unsplash.com/photo-1629273229664-11fabc0becc0?q=80&w=2062',
+            'color' => 'campaign',
+            'button_effect' => 'none',
+        ])
+        ->and(strlen($element->config['message']))->toBeLessThanOrEqual(100);
+});
+
+it('saves once per week and once per month frequency options for popups', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Popup,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_frequency', 'once_per_week')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $element->refresh();
+
+    expect($element->config['frequency'])->toBe('once_per_week');
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_frequency', 'once_per_month')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $element->refresh();
+
+    expect($element->config['frequency'])->toBe('once_per_month');
 });

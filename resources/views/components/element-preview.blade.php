@@ -427,8 +427,7 @@
                         @if($popupMessage)
                             <p class="mt-3 text-sm leading-relaxed text-zinc-500">{{ $popupMessage }}</p>
                         @endif
-                        <div class="mt-6 flex items-center justify-center gap-3">
-                            <button type="button" class="rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700">Maybe later</button>
+                        <div class="mt-6 flex items-center justify-center">
                             <button type="button" class="ihsan-effect-{{ $popupHasEffect ? $popupEffectId : '' }} min-w-[160px] rounded-lg px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg hover:opacity-90" style="{{ $popupHasEffect ? '' : 'background-color:' . $accentColor }}">
                                 {{ $popupButton }}
                             </button>

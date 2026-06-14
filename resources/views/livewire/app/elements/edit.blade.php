@@ -82,16 +82,112 @@
                                 <flux:input wire:model.live="config_title" placeholder="e.g. Support our cause" />
                             </flux:field>
 
-                            <flux:field>
-                                <flux:label>Message</flux:label>
-                                <flux:textarea wire:model.live="config_message" rows="3" placeholder="Short description shown to donors..." />
-                            </flux:field>
+                        <flux:field>
+                            <flux:label>Message</flux:label>
+                            <flux:textarea wire:model.live="config_message" maxlength="100" rows="3" placeholder="Short description shown to donors..." />
+                        </flux:field>
                         @endif
 
                         <flux:field>
                             <flux:label>Button Text</flux:label>
                             <flux:input wire:model.live="config_button_text" placeholder="e.g. Donate Now" />
                         </flux:field>
+
+                        @if ($element->type->value === 'popup')
+                            <div class="space-y-4 border-t border-slate-200 pt-4">
+                                <flux:field>
+                                    <flux:label for="config_action">Action</flux:label>
+                                    <flux:select id="config_action" wire:model.live="config_action">
+                                        <flux:select.option value="checkout_modal">Open checkout modal</flux:select.option>
+                                        <flux:select.option value="open_campaign_page">Open campaign page</flux:select.option>
+                                    </flux:select>
+                                </flux:field>
+
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <flux:field>
+                                        <flux:label for="config_trigger">Trigger</flux:label>
+                                        <flux:select id="config_trigger" wire:model.live="config_trigger">
+                                            <flux:select.option value="after_delay">After delay</flux:select.option>
+                                            <flux:select.option value="immediately">Immediately</flux:select.option>
+                                            <flux:select.option value="on_scroll">On scroll</flux:select.option>
+                                            <flux:select.option value="on_exit">On exit intent</flux:select.option>
+                                        </flux:select>
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label for="config_delay">Delay (seconds)</flux:label>
+                                        <flux:input id="config_delay" type="number" min="0" max="3600" wire:model.live="config_delay" />
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label for="config_frequency">Frequency</flux:label>
+                                        <flux:select id="config_frequency" wire:model.live="config_frequency">
+                                            <flux:select.option value="once">Once</flux:select.option>
+                                            <flux:select.option value="once_per_day">Once per day</flux:select.option>
+                                            <flux:select.option value="once_per_session">Once per session</flux:select.option>
+                                            <flux:select.option value="once_per_week">Once per week</flux:select.option>
+                                            <flux:select.option value="once_per_month">Once per month</flux:select.option>
+                                        </flux:select>
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label for="config_visibility">Visibility</flux:label>
+                                        <flux:select id="config_visibility" wire:model.live="config_visibility">
+                                            <flux:select.option value="desktop_mobile">Desktop & mobile</flux:select.option>
+                                            <flux:select.option value="desktop_only">Desktop only</flux:select.option>
+                                            <flux:select.option value="mobile_only">Mobile only</flux:select.option>
+                                        </flux:select>
+                                    </flux:field>
+                                </div>
+
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <flux:field>
+                                        <flux:label for="config_layout">Layout</flux:label>
+                                        <flux:select id="config_layout" wire:model.live="config_layout">
+                                            <flux:select.option value="simple">Simple</flux:select.option>
+                                            <flux:select.option value="full">Full banner</flux:select.option>
+                                        </flux:select>
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label for="config_color">Colour</flux:label>
+                                        <flux:select id="config_color" wire:model.live="config_color">
+                                            <flux:select.option value="campaign">Campaign (green)</flux:select.option>
+                                            <flux:select.option value="blue">Blue</flux:select.option>
+                                            <flux:select.option value="teal">Teal</flux:select.option>
+                                            <flux:select.option value="green">Green</flux:select.option>
+                                            <flux:select.option value="orange">Orange</flux:select.option>
+                                            <flux:select.option value="red">Red</flux:select.option>
+                                            <flux:select.option value="purple">Purple</flux:select.option>
+                                            <flux:select.option value="dark">Dark</flux:select.option>
+                                        </flux:select>
+                                    </flux:field>
+
+                                    <flux:field class="sm:col-span-2">
+                                        <flux:label for="config_image_url">Image URL</flux:label>
+                                        <flux:input id="config_image_url" wire:model.live="config_image_url" placeholder="https://..." />
+                                        <flux:error name="config_image_url" />
+                                    </flux:field>
+
+                                    <flux:field class="sm:col-span-2">
+                                        <flux:label for="config_button_effect">Button Effect</flux:label>
+                                        <flux:select id="config_button_effect" wire:model.live="config_button_effect">
+                                            <flux:select.option value="none">None (solid colour)</flux:select.option>
+                                            <flux:select.option value="gradient_teal_green">Gradient — Teal &amp; Green</flux:select.option>
+                                            <flux:select.option value="gradient_blue_purple">Gradient — Blue &amp; Purple</flux:select.option>
+                                            <flux:select.option value="gradient_orange_red">Gradient — Orange &amp; Red</flux:select.option>
+                                            <flux:select.option value="gradient_rose_pink">Gradient — Rose &amp; Pink</flux:select.option>
+                                            <flux:select.option value="gradient_amber_orange">Gradient — Amber &amp; Orange</flux:select.option>
+                                            <flux:select.option value="gradient_cyan_blue">Gradient — Cyan &amp; Blue</flux:select.option>
+                                            <flux:select.option value="gradient_emerald_teal">Gradient — Emerald &amp; Teal</flux:select.option>
+                                            <flux:select.option value="gradient_indigo_purple">Gradient — Indigo &amp; Purple</flux:select.option>
+                                            <flux:select.option value="gradient_gold_amber">Gradient — Gold &amp; Amber</flux:select.option>
+                                            <flux:select.option value="gradient_pink_purple">Gradient — Pink &amp; Purple</flux:select.option>
+                                        </flux:select>
+                                    </flux:field>
+                                </div>
+                            </div>
+                        @endif
 
                         @if ($isButtonLike)
                             <div class="grid gap-4 sm:grid-cols-2">
@@ -209,6 +305,14 @@
                             'button_effect' => $config_button_effect,
                             'alignment' => $config_alignment,
                             'position' => $config_position,
+                            'action' => $config_action,
+                            'trigger' => $config_trigger,
+                            'delay' => $config_delay,
+                            'frequency' => $config_frequency,
+                            'visibility' => $config_visibility,
+                            'layout' => $config_layout,
+                            'image_url' => $config_image_url,
+                            'color' => $config_color,
                         ], fn ($value) => $value !== null && $value !== ''))"
                     />
                 </div>

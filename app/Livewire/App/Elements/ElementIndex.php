@@ -97,12 +97,34 @@ class ElementIndex extends Component
                 'button_text' => 'Donate',
                 'icon' => 'heart',
             ],
+            'form' => [
+                'title' => 'Support our cause',
+                'message' => "Let's seize the opportunity to contribute through waqf today. May Allah accept our waqf, expand our sustenance, bless our families, and make it a source of continuous reward that flows until the Hereafter.\n\nGive waqf today, reap endless rewards forever.",
+                'button_text' => 'Donate Now',
+                'submit_text' => 'Donate Now',
+                'action' => 'checkout_modal',
+                'color' => 'campaign',
+            ],
             'link' => [
                 'button_text' => 'Donate',
                 'text' => 'Donate',
                 'icon' => 'heart',
                 'alignment' => 'center',
                 'action' => 'checkout_modal',
+            ],
+            'popup' => [
+                'title' => 'Support our cause',
+                'message' => 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.',
+                'button_text' => 'Donate Now',
+                'action' => 'checkout_modal',
+                'trigger' => 'after_delay',
+                'delay' => 8,
+                'frequency' => 'once_per_day',
+                'visibility' => 'desktop_mobile',
+                'layout' => 'simple',
+                'image_url' => 'https://images.unsplash.com/photo-1629273229664-11fabc0becc0?q=80&w=2062',
+                'color' => 'campaign',
+                'button_effect' => 'none',
             ],
             default => null,
         };
@@ -182,7 +204,7 @@ class ElementIndex extends Component
         $org = $this->organization;
 
         $query = Element::query()
-            ->when($org, fn (Builder $q) => $q->where('organization_id', $org->id))
+            ->when($org, fn (Builder $q) => $q->where('elements.organization_id', $org->id))
             ->when(! $org, fn (Builder $q) => $q->whereRaw('1 = 0'))
             ->with('campaign');
 

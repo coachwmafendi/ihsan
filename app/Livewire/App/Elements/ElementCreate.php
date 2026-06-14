@@ -27,11 +27,39 @@ class ElementCreate extends Component
 
     public bool $is_active = true;
 
-    public ?string $config_title = null;
+    public string $config_title = 'Support our cause';
 
-    public ?string $config_message = null;
+    #[Validate('nullable|string|max:100')]
+    public string $config_message = 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
 
     public ?string $config_button_text = null;
+
+    #[Validate('nullable|string|in:checkout_modal,open_campaign_page')]
+    public string $config_action = 'checkout_modal';
+
+    #[Validate('nullable|string|in:after_delay,immediately,on_scroll,on_exit')]
+    public string $config_trigger = 'after_delay';
+
+    #[Validate('integer|min:0|max:3600')]
+    public int $config_delay = 8;
+
+    #[Validate('nullable|string|in:once,once_per_day,once_per_session,once_per_week,once_per_month')]
+    public string $config_frequency = 'once_per_day';
+
+    #[Validate('nullable|string|in:desktop_mobile,desktop_only,mobile_only')]
+    public string $config_visibility = 'desktop_mobile';
+
+    #[Validate('nullable|string|in:simple,full')]
+    public string $config_layout = 'simple';
+
+    #[Validate('nullable|string|max:2048')]
+    public string $config_image_url = 'https://images.unsplash.com/photo-1629273229664-11fabc0becc0?q=80&w=2062';
+
+    #[Validate('nullable|string|in:campaign,blue,teal,green,orange,red,purple,dark')]
+    public string $config_color = 'campaign';
+
+    #[Validate('nullable|string|in:none,gradient_teal_green,gradient_blue_purple,gradient_orange_red,gradient_rose_pink,gradient_amber_orange,gradient_cyan_blue,gradient_emerald_teal,gradient_indigo_purple,gradient_gold_amber,gradient_pink_purple')]
+    public string $config_button_effect = 'none';
 
     #[Computed]
     public function organization()
@@ -70,11 +98,33 @@ class ElementCreate extends Component
             abort(403);
         }
 
+        $defaultTitle = 'Support our cause';
+        $defaultMessage = 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
+
         $config = array_filter([
-            'title' => $this->config_title,
-            'message' => $this->config_message,
             'button_text' => $this->config_button_text,
         ]);
+
+        if (in_array($validated['type'], ['form', 'popup'], true)) {
+            $config['title'] = filled($this->config_title) ? $this->config_title : $defaultTitle;
+            $config['message'] = filled($this->config_message) ? $this->config_message : $defaultMessage;
+
+            if ($validated['type'] === 'form') {
+                $config['submit_text'] = $this->config_button_text;
+            }
+        }
+
+        if ($validated['type'] === 'popup') {
+            $config['action'] = $this->config_action;
+            $config['trigger'] = $this->config_trigger;
+            $config['delay'] = $this->config_delay;
+            $config['frequency'] = $this->config_frequency;
+            $config['visibility'] = $this->config_visibility;
+            $config['layout'] = $this->config_layout;
+            $config['image_url'] = $this->config_image_url;
+            $config['color'] = $this->config_color;
+            $config['button_effect'] = $this->config_button_effect;
+        }
 
         $element = new Element([
             'organization_id' => $org->id,

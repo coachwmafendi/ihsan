@@ -28,9 +28,10 @@ class ElementEdit extends Component
 
     public bool $is_active = true;
 
-    public ?string $config_title = null;
+    public string $config_title = 'Support our cause';
 
-    public ?string $config_message = null;
+    #[Validate('nullable|string|max:100')]
+    public string $config_message = 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
 
     public ?string $config_button_text = null;
 
@@ -47,6 +48,30 @@ class ElementEdit extends Component
     public string $config_alignment = 'center';
 
     public string $config_position = 'right-center';
+
+    #[Validate('nullable|string|in:checkout_modal,open_campaign_page')]
+    public string $config_action = 'checkout_modal';
+
+    #[Validate('nullable|string|in:after_delay,immediately,on_scroll,on_exit')]
+    public string $config_trigger = 'after_delay';
+
+    #[Validate('integer|min:0|max:3600')]
+    public int $config_delay = 8;
+
+    #[Validate('nullable|string|in:once,once_per_day,once_per_session,once_per_week,once_per_month')]
+    public string $config_frequency = 'once_per_day';
+
+    #[Validate('nullable|string|in:desktop_mobile,desktop_only,mobile_only')]
+    public string $config_visibility = 'desktop_mobile';
+
+    #[Validate('nullable|string|in:simple,full')]
+    public string $config_layout = 'simple';
+
+    #[Validate('nullable|string|max:2048')]
+    public string $config_image_url = 'https://images.unsplash.com/photo-1629273229664-11fabc0becc0?q=80&w=2062';
+
+    #[Validate('nullable|string|in:campaign,blue,teal,green,orange,red,purple,dark')]
+    public string $config_color = 'campaign';
 
     #[Computed]
     public function organization()
@@ -89,9 +114,9 @@ class ElementEdit extends Component
         $this->is_active = $element->is_active;
 
         $config = $element->config ?? [];
-        $this->config_title = $config['title'] ?? null;
-        $this->config_message = $config['message'] ?? null;
-        $this->config_button_text = $config['button_text'] ?? $config['text'] ?? 'Donate';
+        $this->config_title = $config['title'] ?? 'Support our cause';
+        $this->config_message = $config['message'] ?? 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
+        $this->config_button_text = $config['button_text'] ?? $config['text'] ?? $config['submit_text'] ?? 'Donate';
         $this->config_button_color = $config['button_color'] ?? $config['color'] ?? 'bg-blue-600 hover:bg-blue-700';
         $this->config_button_size = $config['button_size'] ?? 'text-base px-6 py-3';
         $this->config_corner_radius = (int) ($config['corner_radius'] ?? 8);
@@ -99,6 +124,15 @@ class ElementEdit extends Component
         $this->config_button_effect = $config['button_effect'] ?? 'none';
         $this->config_alignment = $config['alignment'] ?? 'center';
         $this->config_position = $config['position'] ?? 'right-center';
+
+        $this->config_action = $config['action'] ?? 'checkout_modal';
+        $this->config_trigger = $config['trigger'] ?? 'after_delay';
+        $this->config_delay = (int) ($config['delay'] ?? $config['delay_seconds'] ?? 8);
+        $this->config_frequency = $config['frequency'] ?? 'once_per_day';
+        $this->config_visibility = $config['visibility'] ?? 'desktop_mobile';
+        $this->config_layout = $config['layout'] ?? 'simple';
+        $this->config_image_url = $config['image_url'] ?? 'https://images.unsplash.com/photo-1629273229664-11fabc0becc0?q=80&w=2062';
+        $this->config_color = $config['color'] ?? 'campaign';
     }
 
     public function save(): void
@@ -117,10 +151,15 @@ class ElementEdit extends Component
             abort(403);
         }
 
+        $defaultTitle = 'Support our cause';
+        $defaultMessage = 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
+        $usesContent = in_array($this->element->type, [ElementType::Form, ElementType::Popup], true);
+
         $config = array_filter([
-            'title' => $this->config_title,
-            'message' => $this->config_message,
+            'title' => $usesContent ? (filled($this->config_title) ? $this->config_title : $defaultTitle) : $this->config_title,
+            'message' => $usesContent ? (filled($this->config_message) ? $this->config_message : $defaultMessage) : $this->config_message,
             'button_text' => $this->config_button_text,
+            'submit_text' => $this->element->type === ElementType::Form ? $this->config_button_text : null,
         ], fn ($value) => $value !== null && $value !== '');
 
         if ($this->usesButtonStyleConfig()) {
@@ -137,12 +176,30 @@ class ElementEdit extends Component
             $config['position'] = $this->config_position;
         }
 
+        if ($this->element->type === ElementType::Popup) {
+            $config['action'] = $this->config_action;
+            $config['trigger'] = $this->config_trigger;
+            $config['delay'] = $this->config_delay;
+            $config['frequency'] = $this->config_frequency;
+            $config['visibility'] = $this->config_visibility;
+            $config['layout'] = $this->config_layout;
+            $config['image_url'] = $this->config_image_url;
+            $config['color'] = $this->config_color;
+            $config['button_effect'] = $this->config_button_effect;
+        }
+
         // Preserve existing config keys that aren't managed by this form
         $existingConfig = $this->element->config ?? [];
         $mergedConfig = array_merge($existingConfig, $config);
 
         if ($this->usesButtonStyleConfig()) {
             unset($mergedConfig['title'], $mergedConfig['message']);
+        }
+
+        if ($this->element->type === ElementType::Popup) {
+            foreach (['button_color', 'button_size', 'corner_radius', 'button_icon', 'icon', 'alignment', 'position', 'submit_text'] as $key) {
+                unset($mergedConfig[$key]);
+            }
         }
 
         if ($this->element->type === ElementType::Link) {
