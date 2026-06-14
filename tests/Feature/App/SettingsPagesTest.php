@@ -9,7 +9,7 @@ use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 
 beforeEach(function () {
-    $this->organization = Organization::factory()->withoutStripe()->create();
+    $this->organization = Organization::factory()->stripeConnected()->create();
     $this->user = User::factory()->create([
         'organization_id' => $this->organization->id,
     ]);
@@ -56,7 +56,12 @@ it('renders billing page', function () {
 
 // Stripe Onboarding
 it('renders stripe onboarding page', function () {
-    actingAs($this->user)
+    $organization = Organization::factory()->withoutStripe()->create();
+    $user = User::factory()->create([
+        'organization_id' => $organization->id,
+    ]);
+
+    actingAs($user)
         ->get('/app/stripe-onboarding')
         ->assertOk()
         ->assertSee('Stripe');

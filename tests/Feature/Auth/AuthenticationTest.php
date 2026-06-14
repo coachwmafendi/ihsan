@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Organization;
 use App\Models\User;
 use Laravel\Fortify\Features;
 
@@ -21,6 +22,36 @@ test('users can authenticate using the login screen', function () {
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('app.insights'));
 
+    $this->assertAuthenticated();
+});
+
+test('org admins with a connected organisation are redirected to insights after login', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->create([
+        'organization_id' => $organization->id,
+    ]);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $response->assertRedirect(route('app.insights'));
+    $this->assertAuthenticated();
+});
+
+test('org admins without a connected stripe account are redirected to stripe onboarding after login', function () {
+    $organization = Organization::factory()->withoutStripe()->create();
+    $user = User::factory()->create([
+        'organization_id' => $organization->id,
+    ]);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $response->assertRedirect(route('app.stripe-onboarding'));
     $this->assertAuthenticated();
 });
 

@@ -16,20 +16,39 @@ class StripeOnboarding extends Component
     {
         $org = Auth::user()?->organization;
         if ($org && $org->stripe_onboarded) {
-            $this->redirect('/app/dashboard');
+            $this->redirect(route('app.dashboard'));
         }
     }
 
-    public function getOnboardingUrl(): ?string
+    public function connect(): void
     {
         $org = Auth::user()?->organization;
-        if (! $org || ! $org->stripe_account_id) return null;
+
+        if (! $org) {
+            return;
+        }
+
+        if ($org->stripe_onboarded) {
+            $this->redirect(route('app.dashboard'));
+
+            return;
+        }
 
         try {
-            return app(CreateConnectAccount::class)->generateOnboardingLink($org);
+            $service = app(CreateConnectAccount::class);
+
+            if (! $org->stripe_account_id) {
+                $service->create($org);
+            }
+
+            $url = $service->generateOnboardingLink($org);
         } catch (\Throwable) {
-            return null;
+            $this->dispatch('notify', message: 'Unable to start Stripe Connect onboarding. Please try again.', variant: 'danger');
+
+            return;
         }
+
+        $this->redirect($url, navigate: false);
     }
 
     public function render()

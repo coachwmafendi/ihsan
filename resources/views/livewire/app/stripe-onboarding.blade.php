@@ -17,26 +17,35 @@
         </p>
     </div>
 
-    @php($onboardingUrl = $this->getOnboardingUrl())
-
-    @if ($onboardingUrl)
+    @if (session('success'))
         <x-ui.card class="text-center">
-            <p class="text-sm text-slate-500 mb-6">
-                Click the button below to complete your Stripe Connect onboarding. You will be redirected to Stripe to provide business details.
-            </p>
-
-            <a href="{{ $onboardingUrl }}" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition">
-                Connect with Stripe
-            </a>
-        </x-ui.card>
-    @else
-        <x-ui.card class="text-center">
-            <p class="text-sm text-slate-500 mb-2">
-                Unable to generate an onboarding link at this time.
-            </p>
-            <p class="text-sm text-slate-400">
-                Please contact support if the issue persists.
-            </p>
+            <p class="text-sm font-medium text-teal-700">{{ session('success') }}</p>
         </x-ui.card>
     @endif
+
+    @if (session('error'))
+        <x-ui.card class="text-center">
+            <p class="text-sm font-medium text-red-700">{{ session('error') }}</p>
+        </x-ui.card>
+    @endif
+
+    <x-ui.card class="text-center">
+        <p class="text-sm text-slate-500 mb-6">
+            Click the button below to connect with Stripe Connect. We will create a secure Stripe account for your organisation and redirect you to Stripe to complete the onboarding.
+        </p>
+
+        <button
+            type="button"
+            wire:click="connect"
+            wire:loading.attr="disabled"
+            class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+            <svg wire:loading.delay wire:target="connect" class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            </svg>
+
+            <span wire:loading.remove.delay wire:target="connect">Connect with Stripe Connect</span>
+            <span wire:loading.delay wire:target="connect">Connecting…</span>
+        </button>
+    </x-ui.card>
 </div>

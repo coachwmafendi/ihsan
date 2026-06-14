@@ -10,16 +10,51 @@ use Stripe\Stripe;
 
 class CreateConnectAccount
 {
+    /**
+     * @var array<string, string>
+     */
+    private array $countryCodes = [
+        'Malaysia' => 'MY',
+        'Brunei' => 'BN',
+        'Cambodia' => 'KH',
+        'Indonesia' => 'ID',
+        'Myanmar' => 'MM',
+        'Philippines' => 'PH',
+        'Singapore' => 'SG',
+        'Thailand' => 'TH',
+        'Vietnam' => 'VN',
+        'Bangladesh' => 'BD',
+        'India' => 'IN',
+        'Pakistan' => 'PK',
+        'Sri Lanka' => 'LK',
+        'Australia' => 'AU',
+        'China' => 'CN',
+        'Japan' => 'JP',
+        'South Korea' => 'KR',
+        'Taiwan' => 'TW',
+        'United Kingdom' => 'GB',
+        'United States' => 'US',
+    ];
+
     public function create(Organization $organization): Account
     {
         Stripe::setApiKey(config('services.stripe.secret'));
 
+        $country = $organization->country
+            ? ($this->countryCodes[$organization->country] ?? 'MY')
+            : 'MY';
+
         $account = Account::create([
-            'type' => 'standard',
+            'type' => 'express',
+            'country' => $country,
             'email' => $organization->contact_email,
             'business_profile' => [
                 'name' => $organization->name,
                 'url' => $organization->website_url,
+            ],
+            'capabilities' => [
+                'card_payments' => ['requested' => true],
+                'transfers' => ['requested' => true],
             ],
             'metadata' => [
                 'organization_id' => (string) $organization->getKey(),

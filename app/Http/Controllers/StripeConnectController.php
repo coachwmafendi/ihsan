@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organization;
-use Filament\Notifications\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -19,13 +18,13 @@ class StripeConnectController extends Controller
         $org = auth()->user()?->organization;
 
         if ($org === null) {
-            return redirect()->route('filament.app.pages.stripe-onboarding');
+            return redirect()->route('app.stripe-onboarding');
         }
 
         $clientId = config('services.stripe.connect_client_id');
 
         if (! $clientId) {
-            return redirect()->route('filament.app.pages.stripe-onboarding')
+            return redirect()->route('app.stripe-onboarding')
                 ->with('error', 'Stripe Connect feature not configured.');
         }
 
@@ -59,24 +58,24 @@ class StripeConnectController extends Controller
         ]);
 
         if ($error) {
-            return redirect()->route('filament.app.pages.stripe-onboarding')
+            return redirect()->route('app.stripe-onboarding')
                 ->with('error', 'Stripe connection was cancelled: '.$error);
         }
 
         if (! $code || ! $state) {
-            return redirect()->route('filament.app.pages.stripe-onboarding')
+            return redirect()->route('app.stripe-onboarding')
                 ->with('error', 'Incomplete parameters (code='.($code ? 'yes' : 'no').', state='.($state ? 'yes' : 'no').').');
         }
 
         if ($state !== session('stripe_connect_state')) {
-            return redirect()->route('filament.app.pages.stripe-onboarding')
+            return redirect()->route('app.stripe-onboarding')
                 ->with('error', 'Invalid state parameter. Session state: '.(session('stripe_connect_state') ? 'present but mismatch' : 'missing').'.');
         }
 
         $org = Organization::query()->find(session('stripe_connect_org_id'));
 
         if ($org === null) {
-            return redirect()->route('filament.app.pages.stripe-onboarding')
+            return redirect()->route('app.stripe-onboarding')
                 ->with('error', 'Organization not found.');
         }
 
@@ -88,14 +87,14 @@ class StripeConnectController extends Controller
                 'code' => $code,
             ]);
         } catch (\Throwable $e) {
-            return redirect()->route('filament.app.pages.stripe-onboarding')
+            return redirect()->route('app.stripe-onboarding')
                 ->with('error', 'Failed to connect Stripe Connect account. Please try again.');
         }
 
         $stripeUserId = $response->stripe_user_id;
 
         if (! $stripeUserId) {
-            return redirect()->route('filament.app.pages.stripe-onboarding')
+            return redirect()->route('app.stripe-onboarding')
                 ->with('error', 'No stripe_user_id in OAuth response.');
         }
 
@@ -119,13 +118,8 @@ class StripeConnectController extends Controller
             // not critical
         }
 
-        $notification = Notification::make()
-            ->title('Stripe account connected successfully')
-            ->success()
-            ->toArray();
+        session()->flash('success', 'Stripe account connected successfully.');
 
-        session()->flash('filament.notifications', [$notification]);
-
-        return redirect()->route('app.insights');
+        return redirect()->route('app.dashboard');
     }
 }

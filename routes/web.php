@@ -8,6 +8,7 @@ use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureNgoAdmin;
+use App\Http\Middleware\RedirectIfStripeNotOnboarded;
 use App\Livewire\App\Billing;
 use App\Livewire\App\Campaigns\CampaignCreate;
 use App\Livewire\App\Campaigns\CampaignEdit;
@@ -61,7 +62,7 @@ Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
 
-Route::middleware(['auth', EnsureNgoAdmin::class])->group(function () {
+Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::class])->group(function () {
     Route::get('/app', fn () => redirect()->route('app.insights'))->name('app');
     Route::get('/app/dashboard', Dashboard::class)->name('app.dashboard');
     Route::get('/app/insights', Insights::class)->name('app.insights');

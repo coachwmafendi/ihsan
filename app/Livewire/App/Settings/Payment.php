@@ -90,7 +90,11 @@ class Payment extends Component
 
         Stripe::setApiKey(config('services.stripe.secret'));
 
-        return StripeAccount::retrieve($org->stripe_account_id);
+        try {
+            return StripeAccount::retrieve($org->stripe_account_id);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public function render()
