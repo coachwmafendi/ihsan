@@ -42,6 +42,8 @@ class ElementEdit extends Component
 
     public string $config_button_icon = 'heart';
 
+    public string $config_button_effect = 'none';
+
     #[Computed]
     public function organization()
     {
@@ -80,6 +82,7 @@ class ElementEdit extends Component
         $this->config_button_size = $config['button_size'] ?? 'text-base px-6 py-3';
         $this->config_corner_radius = (int) ($config['corner_radius'] ?? 8);
         $this->config_button_icon = $config['button_icon'] ?? 'heart';
+        $this->config_button_effect = $config['button_effect'] ?? 'none';
     }
 
     public function save(): void
@@ -109,6 +112,7 @@ class ElementEdit extends Component
             $config['button_size'] = $this->config_button_size;
             $config['corner_radius'] = $this->config_corner_radius;
             $config['button_icon'] = $this->config_button_icon;
+            $config['button_effect'] = $this->config_button_effect;
         }
 
         // Preserve existing config keys that aren't managed by this form

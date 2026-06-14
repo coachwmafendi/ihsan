@@ -34,7 +34,7 @@ class ElementIndex extends Component
 
     public bool $showCreateModal = false;
 
-    #[Validate('required|string')]
+    #[Validate('required|string|in:button,floating_button,form,popup,link,sticky_button')]
     public string $newType = 'button';
 
     #[Validate('required|string|max:255')]

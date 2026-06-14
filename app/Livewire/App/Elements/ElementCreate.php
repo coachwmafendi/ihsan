@@ -19,7 +19,7 @@ class ElementCreate extends Component
     #[Validate('required|exists:campaigns,id')]
     public ?int $campaign_id = null;
 
-    #[Validate('required|string|in:button,floating_button,form,popup')]
+    #[Validate('required|string|in:button,floating_button,form,popup,link,sticky_button')]
     public string $type = 'button';
 
     #[Validate('required|string|max:255')]

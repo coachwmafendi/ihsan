@@ -17,6 +17,27 @@
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {{-- Left column: Form fields --}}
             <div class="space-y-6 lg:col-span-2">
+                @if ($element->type->value === 'button')
+                    {{-- Embed Code --}}
+                    <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
+                        <div class="space-y-3">
+                            <div class="relative">
+                                <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code>&lt;script src="{{ url('/e/widget.js') }}" data-token="{{ $element->token }}" data-type="{{ $element->type->value }}" async&gt;&lt;/script&gt;</code></pre>
+                                <button
+                                    type="button"
+                                    x-data="{ copied: false }"
+                                    @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async></script>`); copied = true; setTimeout(() => copied = false, 2000)"
+                                    class="absolute right-2 top-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-600"
+                                >
+                                    <span x-show="!copied">Copy</span>
+                                    <span x-show="copied" x-cloak>Copied!</span>
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-500">Token: {{ $element->token }}</p>
+                        </div>
+                    </x-ui.card>
+                @endif
+
                 {{-- Basic Info --}}
                 <x-ui.card title="Basic Information">
                     <div class="space-y-4">
@@ -73,27 +94,6 @@
                     </div>
                 </x-ui.card>
 
-                @if ($element->type->value === 'button')
-                    {{-- Embed Code --}}
-                    <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
-                        <div class="space-y-3">
-                            <div class="relative">
-                                <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code>&lt;script src="{{ url('/e/widget.js') }}" data-token="{{ $element->token }}" data-type="{{ $element->type->value }}" async&gt;&lt;/script&gt;</code></pre>
-                                <button
-                                    type="button"
-                                    x-data="{ copied: false }"
-                                    @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async></script>`); copied = true; setTimeout(() => copied = false, 2000)"
-                                    class="absolute right-2 top-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-600"
-                                >
-                                    <span x-show="!copied">Copy</span>
-                                    <span x-show="copied" x-cloak>Copied!</span>
-                                </button>
-                            </div>
-                            <p class="text-xs text-slate-500">Token: {{ $element->token }}</p>
-                        </div>
-                    </x-ui.card>
-                @endif
-
                 {{-- Configuration --}}
                 <x-ui.card title="Configuration">
                     <div class="space-y-4">
@@ -134,9 +134,26 @@
 
                         @if ($element->type->value === 'button')
                             <div class="grid gap-4 sm:grid-cols-2">
+                                <div class="sm:col-span-2">
+                                    <label for="config_button_effect" class="block text-sm font-medium text-slate-700">Button Effect</label>
+                                    <select id="config_button_effect" wire:model.live="config_button_effect" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                        <option value="none">None (solid colour)</option>
+                                        <option value="gradient_teal_green">Gradient — Teal &amp; Green</option>
+                                        <option value="gradient_blue_purple">Gradient — Blue &amp; Purple</option>
+                                        <option value="gradient_orange_red">Gradient — Orange &amp; Red</option>
+                                        <option value="gradient_rose_pink">Gradient — Rose &amp; Pink</option>
+                                        <option value="gradient_amber_orange">Gradient — Amber &amp; Orange</option>
+                                        <option value="gradient_cyan_blue">Gradient — Cyan &amp; Blue</option>
+                                        <option value="gradient_emerald_teal">Gradient — Emerald &amp; Teal</option>
+                                        <option value="gradient_indigo_purple">Gradient — Indigo &amp; Purple</option>
+                                        <option value="gradient_gold_amber">Gradient — Gold &amp; Amber</option>
+                                        <option value="gradient_pink_purple">Gradient — Pink &amp; Purple</option>
+                                    </select>
+                                </div>
+
                                 <div>
                                     <label for="config_button_color" class="block text-sm font-medium text-slate-700">Button Colour</label>
-                                    <select id="config_button_color" wire:model.live="config_button_color" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                    <select id="config_button_color" wire:model.live="config_button_color" {{ $config_button_effect !== 'none' ? 'disabled' : '' }} class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 {{ $config_button_effect !== 'none' ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : '' }}">
                                         <option value="bg-blue-600 hover:bg-blue-700">Blue</option>
                                         <option value="bg-teal-600 hover:bg-teal-700">Teal</option>
                                         <option value="bg-green-600 hover:bg-green-700">Green</option>
@@ -228,6 +245,7 @@
                             'button_size' => $config_button_size,
                             'corner_radius' => $config_corner_radius,
                             'button_icon' => $config_button_icon,
+                            'button_effect' => $config_button_effect,
                         ], fn ($value) => $value !== null && $value !== ''))"
                     />
                 </div>

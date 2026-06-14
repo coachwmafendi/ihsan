@@ -215,6 +215,8 @@
                             <option value="floating_button">Floating Button</option>
                             <option value="form">Form</option>
                             <option value="popup">Popup</option>
+                            <option value="link">Link</option>
+                            <option value="sticky_button">Sticky Button</option>
                         </select>
                         @error('newType') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>

@@ -112,6 +112,7 @@ class PublicElementController extends Controller
                 'button_size' => 'text-base px-6 py-3',
                 'corner_radius' => 8,
                 'button_icon' => 'heart',
+                'button_effect' => 'none',
                 'action' => 'checkout_modal',
             ], $settings);
         }

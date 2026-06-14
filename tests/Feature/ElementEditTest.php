@@ -32,7 +32,8 @@ it('loads button config defaults when editing a button element', function () {
         ->assertSet('config_button_color', 'bg-blue-600 hover:bg-blue-700')
         ->assertSet('config_button_size', 'text-base px-6 py-3')
         ->assertSet('config_corner_radius', 8)
-        ->assertSet('config_button_icon', 'heart');
+        ->assertSet('config_button_icon', 'heart')
+        ->assertSet('config_button_effect', 'none');
 });
 
 it('saves button colour, size, radius and icon config', function () {
@@ -123,4 +124,24 @@ it('preserves existing button effect config on save', function () {
     $element->refresh();
 
     expect($element->config['button_effect'])->toBe('gradient_teal_green');
+});
+
+it('saves a gradient button effect', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Button,
+        'config' => [],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_button_text', 'Derma')
+        ->set('config_button_effect', 'gradient_blue_purple')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $element->refresh();
+
+    expect($element->config['button_effect'])->toBe('gradient_blue_purple')
+        ->and($element->config['button_text'])->toBe('Derma');
 });
