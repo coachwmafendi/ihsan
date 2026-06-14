@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Elements;
 
+use App\Enums\ElementType;
+use App\Models\Campaign;
 use App\Models\Element;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -27,6 +31,91 @@ class ElementIndex extends Component
     public string $sortField = 'created_at';
 
     public string $sortDirection = 'desc';
+
+    public bool $showCreateModal = false;
+
+    #[Validate('required|string')]
+    public string $newType = 'button';
+
+    #[Validate('required|string|max:255')]
+    public string $newName = '';
+
+    #[Validate('required|exists:campaigns,id')]
+    public ?int $newCampaignId = null;
+
+    public function openCreateModal(): void
+    {
+        $this->newType = 'button';
+        $this->newName = '';
+        $this->newCampaignId = null;
+        $this->resetValidation();
+        $this->showCreateModal = true;
+    }
+
+    public function createElement(): void
+    {
+        $this->validate([
+            'newType' => 'required|string',
+            'newName' => 'required|string|max:255',
+            'newCampaignId' => 'required|exists:campaigns,id',
+        ]);
+
+        $org = $this->organization;
+
+        if (! $org) {
+            return;
+        }
+
+        $campaign = Campaign::find($this->newCampaignId);
+
+        if (! $campaign || $campaign->organization_id !== $org->id) {
+            abort(403);
+        }
+
+        $token = $this->generateUniqueToken();
+
+        $element = Element::create([
+            'organization_id' => $org->id,
+            'campaign_id' => $this->newCampaignId,
+            'type' => ElementType::from($this->newType),
+            'name' => $this->newName,
+            'token' => $token,
+            'is_active' => true,
+        ]);
+
+        $this->showCreateModal = false;
+        $this->dispatch('notify', message: 'Element created successfully.', variant: 'success');
+
+        $this->redirectRoute('app.elements.edit', $element);
+    }
+
+    private function generateUniqueToken(): string
+    {
+        $attempts = 0;
+
+        do {
+            $token = Str::random(6);
+            $exists = Element::where('token', $token)->exists();
+            $attempts++;
+        } while ($exists && $attempts < 10);
+
+        return $token;
+    }
+
+    #[Computed]
+    public function campaigns()
+    {
+        $org = $this->organization;
+
+        if (! $org) {
+            return collect();
+        }
+
+        return Campaign::query()
+            ->where('organization_id', $org->id)
+            ->orderBy('title')
+            ->get();
+    }
 
     public function updatedSearch(): void
     {

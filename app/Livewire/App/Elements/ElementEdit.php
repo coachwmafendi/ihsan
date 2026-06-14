@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Elements;
 
+use App\Enums\ElementType;
 use App\Models\Campaign;
 use App\Models\Element;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,14 @@ class ElementEdit extends Component
     public ?string $config_message = null;
 
     public ?string $config_button_text = null;
+
+    public string $config_button_color = 'bg-blue-600 hover:bg-blue-700';
+
+    public string $config_button_size = 'text-base px-6 py-3';
+
+    public int $config_corner_radius = 8;
+
+    public string $config_button_icon = 'heart';
 
     #[Computed]
     public function organization()
@@ -67,6 +76,10 @@ class ElementEdit extends Component
         $this->config_title = $config['title'] ?? null;
         $this->config_message = $config['message'] ?? null;
         $this->config_button_text = $config['button_text'] ?? null;
+        $this->config_button_color = $config['button_color'] ?? 'bg-blue-600 hover:bg-blue-700';
+        $this->config_button_size = $config['button_size'] ?? 'text-base px-6 py-3';
+        $this->config_corner_radius = (int) ($config['corner_radius'] ?? 8);
+        $this->config_button_icon = $config['button_icon'] ?? 'heart';
     }
 
     public function save(): void
@@ -89,11 +102,22 @@ class ElementEdit extends Component
             'title' => $this->config_title,
             'message' => $this->config_message,
             'button_text' => $this->config_button_text,
-        ]);
+        ], fn ($value) => $value !== null && $value !== '');
+
+        if ($this->element->type === ElementType::Button) {
+            $config['button_color'] = $this->config_button_color;
+            $config['button_size'] = $this->config_button_size;
+            $config['corner_radius'] = $this->config_corner_radius;
+            $config['button_icon'] = $this->config_button_icon;
+        }
 
         // Preserve existing config keys that aren't managed by this form
         $existingConfig = $this->element->config ?? [];
         $mergedConfig = array_merge($existingConfig, $config);
+
+        if ($this->element->type === ElementType::Button) {
+            unset($mergedConfig['title'], $mergedConfig['message']);
+        }
 
         $this->element->update([
             'campaign_id' => $validated['campaign_id'],

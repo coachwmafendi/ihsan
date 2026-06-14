@@ -441,7 +441,7 @@ class DonationForm extends Component
         }
 
         return collect($amounts)
-            ->map(fn (mixed $amount): int => (int) (is_array($amount) ? ($amount['amount'] ?? 0) : $amount))
+            ->map(fn (mixed $amount): int => (int) (is_array($amount) ? ($amount['amount'] ?? $amount['value'] ?? 0) : $amount))
             ->filter(fn (int $amount): bool => $amount > 0)
             ->unique()
             ->values()

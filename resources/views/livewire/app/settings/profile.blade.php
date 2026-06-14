@@ -47,6 +47,12 @@
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Bank
             </button>
+            <button type="button"
+                @click="tab = 'donor-portal'"
+                :class="tab === 'donor-portal' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
+                Donor Portal
+            </button>
         </nav>
     </div>
 
@@ -96,53 +102,6 @@
                 </div>
             </x-ui.card>
 
-            <x-ui.card title="Portal Settings" description="Customise your public donation portal.">
-                <div class="grid gap-6 md:grid-cols-2">
-                    <div>
-                        <label for="portal_tagline" class="block text-sm font-medium text-slate-700">Portal Tagline</label>
-                        <input type="text" id="portal_tagline" wire:model="portal_tagline" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-
-                    <div>
-                        <label for="portal_reply_to_email" class="block text-sm font-medium text-slate-700">Reply-To Email</label>
-                        <input type="email" id="portal_reply_to_email" wire:model="portal_reply_to_email" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label for="portal_receipt_footer" class="block text-sm font-medium text-slate-700">Receipt Footer Text</label>
-                        <textarea id="portal_receipt_footer" wire:model="portal_receipt_footer" rows="3" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"></textarea>
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-700">Allowed Email Domains</label>
-                        <div class="mt-2 flex flex-wrap gap-2" x-data="{ newDomain: '' }">
-                            @foreach ($allowed_domains as $index => $domain)
-                                <span class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700">
-                                    {{ $domain }}
-                                    <button type="button" wire:click="$set('allowed_domains', {{ json_encode(array_values(array_diff($allowed_domains, [$domain]))) }})" class="text-teal-600 hover:text-teal-800">
-                                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </button>
-                                </span>
-                            @endforeach
-                            <div class="flex items-center gap-2">
-                                <input type="text" x-model="newDomain" @keydown.enter.prevent="
-                                    if (newDomain.trim()) {
-                                        $wire.set('allowed_domains', [...$wire.allowed_domains, newDomain.trim()]);
-                                        newDomain = '';
-                                    }
-                                " placeholder="example.com" class="block w-40 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                                <button type="button" @click="
-                                    if (newDomain.trim()) {
-                                        $wire.set('allowed_domains', [...$wire.allowed_domains, newDomain.trim()]);
-                                        newDomain = '';
-                                    }
-                                " class="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-200">Add</button>
-                            </div>
-                        </div>
-                        <p class="mt-1 text-xs text-slate-500">Only email addresses from these domains can register as admins.</p>
-                    </div>
-                </div>
-            </x-ui.card>
         </div>
 
         {{-- Contact --}}
@@ -298,6 +257,55 @@
                         <p class="text-xs text-slate-500">These details are for reference only. Payouts are processed via Stripe Connect.</p>
                     </div>
                 </x-slot:footer>
+            </x-ui.card>
+        </div>
+
+        {{-- Donor Portal --}}
+        <div x-show="tab === 'donor-portal'" x-cloak class="space-y-6">
+            <x-ui.card title="Donor Portal" description="Your public-facing portal where donors can log in and view their donation history.">
+                @php
+                    $org = Auth::user()?->organization;
+                    $portalUrl = $org?->code ? route('donorportal.dashboard', ['organization' => $org->code]) : null;
+                @endphp
+
+                @if ($portalUrl)
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Portal URL</label>
+                            <div class="mt-1 flex items-center gap-3">
+                                <input type="text" readonly value="{{ $portalUrl }}" class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700 shadow-sm">
+                                <a href="{{ $portalUrl }}" target="_blank" rel="noopener noreferrer"
+                                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                    </svg>
+                                    Open
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <p class="text-sm text-slate-500">No portal URL available. Contact support if this persists.</p>
+                @endif
+            </x-ui.card>
+
+            <x-ui.card title="Portal Settings" description="Customise your public donation portal.">
+                <div class="grid gap-6 md:grid-cols-2">
+                    <div>
+                        <label for="portal_tagline" class="block text-sm font-medium text-slate-700">Portal Tagline</label>
+                        <input type="text" id="portal_tagline" wire:model="portal_tagline" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                    </div>
+
+                    <div>
+                        <label for="portal_reply_to_email" class="block text-sm font-medium text-slate-700">Reply-To Email</label>
+                        <input type="email" id="portal_reply_to_email" wire:model="portal_reply_to_email" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="portal_receipt_footer" class="block text-sm font-medium text-slate-700">Receipt Footer Text</label>
+                        <textarea id="portal_receipt_footer" wire:model="portal_receipt_footer" rows="3" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"></textarea>
+                    </div>
+                </div>
             </x-ui.card>
         </div>
 

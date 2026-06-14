@@ -128,10 +128,14 @@ Route::get('/org/{organization}/logo', function (Organization $organization): ?S
         abort(404);
     }
 
-    $disk = Storage::disk();
+    $disk = Storage::disk('public');
 
     if (! $disk->exists($organization->logo_path)) {
         $disk = Storage::disk('local');
+    }
+
+    if (! $disk->exists($organization->logo_path)) {
+        abort(404);
     }
 
     return $disk->response($organization->logo_path);

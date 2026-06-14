@@ -301,11 +301,11 @@
                             <input
                                 type="text"
                                 inputmode="numeric"
-                                maxlength="5"
+                                maxlength="7"
                                 pattern="[0-9]*"
                                 id="target_amount"
                                 wire:model="target_amount"
-                                x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
+                                x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 7)"
                                 class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                 placeholder="10000"
                             />
@@ -544,7 +544,7 @@
                                                         pattern="[0-9]*"
                                                         wire:model.blur="suggestedOneTime.{{ $index }}.value"
                                                         x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
-                                                        class="w-20 border-none bg-transparent p-0 text-lg font-semibold text-teal-700 focus:ring-0"
+                                                        class="w-20 rounded-md border border-slate-200 bg-white px-2 py-1 text-lg font-semibold text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                                     />
                                                 </div>
                                             @endforeach
@@ -566,7 +566,7 @@
                                                         pattern="[0-9]*"
                                                         wire:model.blur="suggestedMonthly.{{ $index }}.value"
                                                         x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 5)"
-                                                        class="w-20 border-none bg-transparent p-0 text-lg font-semibold text-teal-700 focus:ring-0"
+                                                        class="w-20 rounded-md border border-slate-200 bg-white px-2 py-1 text-lg font-semibold text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                                     />
                                                 </div>
                                             @endforeach

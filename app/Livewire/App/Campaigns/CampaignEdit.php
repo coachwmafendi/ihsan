@@ -19,6 +19,8 @@ class CampaignEdit extends Component
 
     private const MaxAmount = 99999;
 
+    private const MaxTargetAmount = 9999999;
+
     #[Locked]
     public Campaign $campaign;
 
@@ -62,7 +64,7 @@ class CampaignEdit extends Component
 
     public bool $has_target = false;
 
-    #[Validate('nullable|integer|min:0|max:99999')]
+    #[Validate('nullable|integer|min:0|max:9999999')]
     public ?string $target_amount = null;
 
     public bool $has_end_date = false;
@@ -104,7 +106,7 @@ class CampaignEdit extends Component
         $this->description = $campaign->description;
         $this->existing_image = $campaign->image_path;
         $this->has_target = $campaign->has_target ?? false;
-        $this->target_amount = $this->sanitizeOptionalAmount($campaign->target_amount);
+        $this->target_amount = $this->sanitizeOptionalAmount($campaign->target_amount, self::MaxTargetAmount);
         $this->has_end_date = $campaign->has_end_date ?? false;
         $this->end_date = $campaign->end_date?->format('Y-m-d');
         $this->allow_recurring = $campaign->allow_recurring ?? false;
@@ -156,7 +158,7 @@ class CampaignEdit extends Component
         $this->syncActiveCurrencyAmounts();
 
         $this->default_frequency = $campaign->config['default_frequency'] ?? 'one_time';
-        $this->default_amount = $this->sanitizeOptionalAmount($campaign->config['default_amount'] ?? null);
+        $this->default_amount = $this->sanitizeOptionalAmount($campaign->config['default_amount'] ?? 50);
         $this->default_currency = $campaign->config['default_currency'] ?? $this->acceptedCurrencies[0];
         $this->currency_autodetect = $campaign->config['currency_autodetect'] ?? false;
     }
@@ -268,7 +270,13 @@ class CampaignEdit extends Component
 
     public function updated(string $property, mixed $value): void
     {
-        if (in_array($property, ['target_amount', 'minimum_amount', 'default_amount', 'newOneTimeValue', 'newMonthlyValue'], true)) {
+        if ($property === 'target_amount') {
+            data_set($this, $property, $this->sanitizeOptionalAmount($value, self::MaxTargetAmount));
+
+            return;
+        }
+
+        if (in_array($property, ['minimum_amount', 'default_amount', 'newOneTimeValue', 'newMonthlyValue'], true)) {
             data_set($this, $property, $this->sanitizeOptionalAmount($value));
 
             return;
@@ -280,20 +288,20 @@ class CampaignEdit extends Component
         }
     }
 
-    private function sanitizeOptionalAmount(mixed $value): ?string
+    private function sanitizeOptionalAmount(mixed $value, int $max = self::MaxAmount): ?string
     {
-        $digits = $this->digitsBeforeDecimalSeparator($value);
+        $digits = $this->digitsBeforeDecimalSeparator($value, strlen((string) $max));
 
         if ($digits === '') {
             return null;
         }
 
-        return (string) min(self::MaxAmount, (int) $digits);
+        return (string) min($max, (int) $digits);
     }
 
     private function sanitizeSuggestedAmount(mixed $value): int
     {
-        $digits = $this->digitsBeforeDecimalSeparator($value);
+        $digits = $this->digitsBeforeDecimalSeparator($value, strlen((string) self::MaxAmount));
 
         if ($digits === '' || ((int) $digits) <= 0) {
             return 0;
@@ -304,7 +312,7 @@ class CampaignEdit extends Component
 
     private function amountToInteger(mixed $value): int
     {
-        $digits = $this->digitsBeforeDecimalSeparator($value);
+        $digits = $this->digitsBeforeDecimalSeparator($value, strlen((string) self::MaxAmount));
 
         if ($digits === '') {
             return 0;
@@ -313,12 +321,12 @@ class CampaignEdit extends Component
         return min(self::MaxAmount, (int) $digits);
     }
 
-    private function digitsBeforeDecimalSeparator(mixed $value): string
+    private function digitsBeforeDecimalSeparator(mixed $value, int $maxDigits = 5): string
     {
         $wholeNumber = preg_split('/[.,]/', (string) $value, 2)[0] ?? '';
         $digits = preg_replace('/\D/', '', $wholeNumber) ?? '';
 
-        return mb_substr($digits, 0, 5);
+        return mb_substr($digits, 0, $maxDigits);
     }
 
     public function addOneTimeSuggested(): void
@@ -467,7 +475,7 @@ class CampaignEdit extends Component
 
         $config = array_merge($this->campaign->config ?? [], [
             'default_frequency' => $this->default_frequency,
-            'default_amount' => $this->default_amount ? (float) $this->default_amount : null,
+            'default_amount' => (float) ($this->default_amount ?? 50),
             'default_currency' => $this->default_currency,
             'currency_autodetect' => $this->currency_autodetect,
             'suggested_amounts_by_currency' => $this->allSuggestedAmounts,

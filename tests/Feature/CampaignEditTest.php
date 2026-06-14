@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Enums\ElementType;
 use App\Enums\UserRole;
 use App\Livewire\App\Campaigns\CampaignEdit;
+use App\Livewire\DonationForm;
 use App\Models\Campaign;
+use App\Models\Element;
 use App\Models\Organization;
 use App\Models\User;
 use Livewire\Livewire;
@@ -63,10 +66,10 @@ it('updates a campaign', function () {
         ->and($campaign->config['allow_cover_fee'] ?? true)->toBeFalse();
 });
 
-it('sanitizes campaign amount inputs to five whole-number digits while editing', function () {
+it('sanitizes target amount to seven whole-number digits and other amounts to five', function () {
     $campaign = Campaign::factory()->create([
         'organization_id' => $this->organization->id,
-        'target_amount' => '12345.67',
+        'target_amount' => '1234567.89',
         'minimum_amount' => '5.00',
         'config' => [
             'default_amount' => '50.00',
@@ -82,13 +85,13 @@ it('sanitizes campaign amount inputs to five whole-number digits while editing',
     $this->actingAs($this->user);
 
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
-        ->assertSet('target_amount', '12345')
+        ->assertSet('target_amount', '1234567')
         ->assertSet('minimum_amount', '5')
         ->assertSet('default_amount', '50')
         ->assertSet('suggestedOneTime.0.value', 12345)
         ->assertSet('suggestedMonthly.0.value', 12)
-        ->set('target_amount', '987654.32')
-        ->assertSet('target_amount', '98765')
+        ->set('target_amount', '98765432.10')
+        ->assertSet('target_amount', '9876543')
         ->set('minimum_amount', 'RM 12,345')
         ->assertSet('minimum_amount', '12')
         ->set('default_amount', '10.99')
@@ -176,6 +179,52 @@ it('saves decimal campaign amount inputs as whole numbers', function () {
     expect($campaign->target_amount)->toBe('123.00')
         ->and($campaign->minimum_amount)->toBe('5.00')
         ->and($campaign->config['default_amount'])->toBe(10);
+});
+
+it('accepts a target amount up to seven digits', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->set('has_target', true)
+        ->set('target_amount', '9876543')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    $campaign->refresh();
+
+    expect($campaign->target_amount)->toBe('9876543.00');
+});
+
+it('displays saved preset amounts in the donation form', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'suggested_amounts' => null,
+        'suggested_amounts_one_time' => [
+            ['value' => 500, 'label' => ''],
+            ['value' => 400, 'label' => ''],
+        ],
+        'suggested_amounts_monthly' => [
+            ['value' => 100, 'label' => ''],
+            ['value' => 75, 'label' => ''],
+        ],
+    ]);
+
+    $element = Element::factory()->for($this->organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(DonationForm::class, ['element' => $element])
+        ->call('selectFrequency', 'one_time')
+        ->assertSet('amount', 500)
+        ->call('selectFrequency', 'monthly')
+        ->assertSet('amount', 100);
 });
 
 it('archives a campaign', function () {

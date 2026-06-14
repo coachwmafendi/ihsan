@@ -95,7 +95,7 @@ class CampaignCreate extends Component
 
         $config = [
             'default_frequency' => $this->default_frequency,
-            'default_amount' => $this->default_amount ? (float) $this->default_amount : null,
+            'default_amount' => (float) ($this->default_amount ?? 50),
             'allow_cover_fee' => true,
             'show_comment' => true,
         ];

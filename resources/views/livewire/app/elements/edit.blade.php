@@ -76,27 +76,29 @@
                 {{-- Configuration --}}
                 <x-ui.card title="Configuration">
                     <div class="space-y-4">
-                        <div>
-                            <label for="config_title" class="block text-sm font-medium text-slate-700">Title</label>
-                            <input
-                                type="text"
-                                id="config_title"
-                                wire:model="config_title"
-                                class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                placeholder="e.g. Support our cause"
-                            />
-                        </div>
+                        @if ($element->type->value !== 'button')
+                            <div>
+                                <label for="config_title" class="block text-sm font-medium text-slate-700">Title</label>
+                                <input
+                                    type="text"
+                                    id="config_title"
+                                    wire:model="config_title"
+                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    placeholder="e.g. Support our cause"
+                                />
+                            </div>
 
-                        <div>
-                            <label for="config_message" class="block text-sm font-medium text-slate-700">Message</label>
-                            <textarea
-                                id="config_message"
-                                wire:model="config_message"
-                                rows="3"
-                                class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                placeholder="Short description shown to donors..."
-                            ></textarea>
-                        </div>
+                            <div>
+                                <label for="config_message" class="block text-sm font-medium text-slate-700">Message</label>
+                                <textarea
+                                    id="config_message"
+                                    wire:model="config_message"
+                                    rows="3"
+                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    placeholder="Short description shown to donors..."
+                                ></textarea>
+                            </div>
+                        @endif
 
                         <div>
                             <label for="config_button_text" class="block text-sm font-medium text-slate-700">Button Text</label>
@@ -108,6 +110,49 @@
                                 placeholder="e.g. Donate Now"
                             />
                         </div>
+
+                        @if ($element->type->value === 'button')
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label for="config_button_color" class="block text-sm font-medium text-slate-700">Button Colour</label>
+                                    <select id="config_button_color" wire:model="config_button_color" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                        <option value="bg-blue-600 hover:bg-blue-700">Blue</option>
+                                        <option value="bg-teal-600 hover:bg-teal-700">Teal</option>
+                                        <option value="bg-green-600 hover:bg-green-700">Green</option>
+                                        <option value="bg-orange-600 hover:bg-orange-700">Orange</option>
+                                        <option value="bg-red-600 hover:bg-red-700">Red</option>
+                                        <option value="bg-purple-600 hover:bg-purple-700">Purple</option>
+                                        <option value="bg-gray-900 hover:bg-gray-800">Dark</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label for="config_button_size" class="block text-sm font-medium text-slate-700">Button Size</label>
+                                    <select id="config_button_size" wire:model="config_button_size" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                        <option value="text-sm px-4 py-2">Small</option>
+                                        <option value="text-base px-6 py-3">Medium</option>
+                                        <option value="text-lg px-8 py-4">Large</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label for="config_corner_radius" class="block text-sm font-medium text-slate-700">Corner Radius (px)</label>
+                                    <input type="number" min="0" max="100" id="config_corner_radius" wire:model="config_corner_radius" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500" />
+                                </div>
+
+                                <div>
+                                    <label for="config_button_icon" class="block text-sm font-medium text-slate-700">Icon</label>
+                                    <select id="config_button_icon" wire:model="config_button_icon" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                        <option value="none">No icon</option>
+                                        <option value="heart">Heart</option>
+                                        <option value="hand">Hand</option>
+                                        <option value="star">Star</option>
+                                        <option value="gift">Gift</option>
+                                        <option value="plus">Plus</option>
+                                    </select>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </x-ui.card>
 
@@ -118,10 +163,12 @@
                             <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code>&lt;script src="{{ url('/e/widget.js') }}" data-token="{{ $element->token }}" data-type="{{ $element->type->value }}" async&gt;&lt;/script&gt;</code></pre>
                             <button
                                 type="button"
-                                onclick="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async></script>`)"
+                                x-data="{ copied: false }"
+                                @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async></script>`); copied = true; setTimeout(() => copied = false, 2000)"
                                 class="absolute right-2 top-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-600"
                             >
-                                Copy
+                                <span x-show="!copied">Copy</span>
+                                <span x-show="copied" x-cloak>Copied!</span>
                             </button>
                         </div>
                         <p class="text-xs text-slate-500">Token: {{ $element->token }}</p>
@@ -154,7 +201,11 @@
                             'title' => $config_title,
                             'message' => $config_message,
                             'button_text' => $config_button_text,
-                        ]))"
+                            'button_color' => $config_button_color,
+                            'button_size' => $config_button_size,
+                            'corner_radius' => $config_corner_radius,
+                            'button_icon' => $config_button_icon,
+                        ], fn ($value) => $value !== null && $value !== ''))"
                     />
                 </div>
             </div>

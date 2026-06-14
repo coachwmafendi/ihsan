@@ -139,7 +139,7 @@
     </x-ui.card>
 
     {{-- Billing & Fees --}}
-    <x-ui.card title="Billing & Fees" description="Choose how processing fees ({{ $this->getProcessingFeePercent() }}%) are collected.">
+    {{-- <x-ui.card title="Billing & Fees" description="Choose how processing fees ({{ $this->getProcessingFeePercent() }}%) are collected.">
         <div class="max-w-xs space-y-3">
             <div class="relative">
                 <select
@@ -160,7 +160,7 @@
                 Save
             </x-ui.button>
         </div>
-    </x-ui.card>
+    </x-ui.card> --}}
 
     {{-- Reconnect Confirmation Modal --}}
     @if ($showReconnectConfirm)
