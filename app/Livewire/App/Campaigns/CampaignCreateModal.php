@@ -8,10 +8,14 @@ use App\Enums\CampaignStatus;
 use App\Enums\ElementType;
 use App\Models\Campaign;
 use App\Models\Element;
+use App\Models\Organization;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class CampaignCreateModal extends Component
@@ -20,6 +24,7 @@ class CampaignCreateModal extends Component
 
     public string $createMode = 'new';
 
+    #[Validate('required|string|max:255')]
     public string $newCampaignName = '';
 
     public ?int $cloneCampaignId = null;
@@ -33,7 +38,10 @@ class CampaignCreateModal extends Component
     public function updatedCloneCampaignId(): void
     {
         if ($this->cloneCampaignId) {
-            $source = Campaign::find($this->cloneCampaignId);
+            $source = Campaign::query()
+                ->where('organization_id', $this->organization?->id)
+                ->find($this->cloneCampaignId);
+
             if ($source) {
                 $this->newCampaignName = $source->title.' (Copy)';
             }
@@ -41,18 +49,18 @@ class CampaignCreateModal extends Component
     }
 
     #[Computed]
-    public function organization()
+    public function organization(): ?Organization
     {
         return Auth::user()?->organization;
     }
 
     #[Computed]
-    public function cloneableCampaigns()
+    public function cloneableCampaigns(): Collection
     {
         $org = $this->organization;
 
         if (! $org) {
-            return collect();
+            return new Collection;
         }
 
         return Campaign::query()
@@ -80,6 +88,8 @@ class CampaignCreateModal extends Component
 
     public function createCampaign(): void
     {
+        $this->authorize('create', Campaign::class);
+
         $org = $this->organization;
 
         if (! $org) {
@@ -189,7 +199,7 @@ class CampaignCreateModal extends Component
         ]);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.app.campaigns.create-modal');
     }
