@@ -15,20 +15,36 @@
             has been received for <strong>{{ $donation->campaign->title }}</strong>.
         </p>
 
+        @php
+            $symbol = $donation->currency_symbol;
+            $hasCoveredFee = $donation->donor_fee_covered > 0;
+            $netAmount = $symbol.' '.number_format((float) $donation->net_amount, 2);
+        @endphp
+
         <table style="width: 100%; border-collapse: collapse; margin: 24px 0; border-radius: 8px; overflow: hidden;">
             <tr style="background: #f5f3ff;">
                 <td style="padding: 12px 16px; color: #6b7280; width: 120px;">Donor</td>
                 <td style="padding: 12px 16px; font-weight: 600;">{{ $donation->donor->name }}</td>
             </tr>
             <tr style="background: #fff;">
-                <td style="padding: 12px 16px; color: #6b7280;">Amount</td>
+                <td style="padding: 12px 16px; color: #6b7280;">Donation</td>
                 <td style="padding: 12px 16px; font-weight: 700; font-size: 1.25rem; color: #7c3aed;">{{ $amountDisplay }}</td>
             </tr>
-            <tr style="background: #f5f3ff;">
+            @if ($hasCoveredFee)
+                <tr style="background: #f5f3ff;">
+                    <td style="padding: 12px 16px; color: #6b7280;">Fee Covered by Donor</td>
+                    <td style="padding: 12px 16px; color: #6b7280;">{{ $symbol }} {{ number_format((float) $donation->donor_fee_covered, 2) }}</td>
+                </tr>
+            @endif
+            <tr style="background: {{ $hasCoveredFee ? '#fff' : '#f5f3ff' }};">
+                <td style="padding: 12px 16px; color: #6b7280;">Net to Organisation</td>
+                <td style="padding: 12px 16px; font-weight: 600; color: #16a34a;">{{ $netAmount }}</td>
+            </tr>
+            <tr style="background: {{ $hasCoveredFee ? '#f5f3ff' : '#fff' }};">
                 <td style="padding: 12px 16px; color: #6b7280;">Campaign</td>
                 <td style="padding: 12px 16px;">{{ $donation->campaign->title }}</td>
             </tr>
-            <tr style="background: #fff;">
+            <tr style="background: {{ $hasCoveredFee ? '#fff' : '#f5f3ff' }};">
                 <td style="padding: 12px 16px; color: #6b7280;">Date</td>
                 <td style="padding: 12px 16px;">{{ $donation->created_at->format('d M Y, h:i A') }}</td>
             </tr>
