@@ -53,6 +53,12 @@
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Donor Portal
             </button>
+            <button type="button"
+                @click="tab = 'allowed-domains'"
+                :class="tab === 'allowed-domains' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
+                Allowed Domains
+            </button>
         </nav>
     </div>
 
@@ -308,6 +314,45 @@
                 </div>
             </x-ui.card>
         </div>
+
+        {{-- Allowed Domains --}}
+        <div x-show="tab === 'allowed-domains'" x-cloak class="space-y-6" x-data="{ newDomain: '' }">
+            <x-ui.card title="Allowed Domains" description="Domains permitted to embed your checkout widget. Only requests originating from these domains will be accepted.">
+                <div class="space-y-4">
+                    @if (count($allowed_domains) > 0)
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($allowed_domains as $i => $domain)
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-teal-50 border border-teal-200 px-3 py-1 text-sm font-medium text-teal-700">
+                                    {{ $domain }}
+                                    <button type="button" wire:click="removeDomain({{ $i }})" class="text-teal-400 hover:text-red-500 transition-colors leading-none">&times;</button>
+                                </span>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-sm text-slate-500">No domains added yet. Add your website domain below.</p>
+                    @endif
+
+                    <div class="flex gap-2">
+                        <input
+                            type="text"
+                            x-model="newDomain"
+                            placeholder="e.g. mywebsite.com or https://mywebsite.com"
+                            @keydown.enter.prevent="if (newDomain.trim()) { $wire.addDomain(newDomain); newDomain = ''; }"
+                            class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                        >
+                        <button
+                            type="button"
+                            @click="if (newDomain.trim()) { $wire.addDomain(newDomain); newDomain = ''; }"
+                            class="shrink-0 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors">
+                            Add
+                        </button>
+                    </div>
+
+                    <p class="text-xs text-slate-400">Enter domain only (e.g. <code>mywebsite.com</code>) or full URL — <code>www.</code> and path are stripped automatically on save.</p>
+                </div>
+            </x-ui.card>
+        </div>
+        {{-- /Allowed Domains --}}
 
         {{-- Save --}}
         <div class="flex items-center justify-end">
