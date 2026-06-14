@@ -48,4 +48,30 @@
             <span wire:loading.delay wire:target="connect">Connecting…</span>
         </button>
     </x-ui.card>
+
+    @if ($showSuccessModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div class="w-full max-w-md rounded-xl bg-white p-6 text-center shadow-lg">
+                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-teal-100">
+                    <svg class="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                </div>
+
+                <h2 class="mt-4 text-lg font-semibold text-slate-900">Stripe Onboarding Successful</h2>
+
+                <p class="mt-2 text-sm text-slate-600">
+                    Your organisation is now connected with Stripe Connect. You can start receiving donations.
+                </p>
+
+                <button
+                    type="button"
+                    wire:click="closeSuccessModal"
+                    class="mt-6 inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    @endif
 </div>

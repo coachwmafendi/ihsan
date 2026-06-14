@@ -81,3 +81,31 @@ it('creates a stripe connect account and redirects to stripe when connect is cli
         ->call('connect')
         ->assertRedirect('https://connect.stripe.com/setup/s/onboarding');
 });
+
+it('shows a success modal when returning from Stripe after onboarding', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->create([
+        'organization_id' => $organization->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::withQueryParams(['onboarding' => 'success'])
+        ->test(StripeOnboarding::class)
+        ->assertSet('showSuccessModal', true)
+        ->assertSee('Stripe Onboarding Successful');
+});
+
+it('redirects to campaigns when the success modal close button is clicked', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->create([
+        'organization_id' => $organization->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::withQueryParams(['onboarding' => 'success'])
+        ->test(StripeOnboarding::class)
+        ->call('closeSuccessModal')
+        ->assertRedirect(route('app.campaigns.index'));
+});

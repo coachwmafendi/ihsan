@@ -72,8 +72,8 @@ class CreateConnectAccount
 
         $accountLink = AccountLink::create([
             'account' => $organization->stripe_account_id,
-            'refresh_url' => url('/app'),
-            'return_url' => url('/app'),
+            'refresh_url' => route('app.stripe-onboarding', ['onboarding' => 'refresh']),
+            'return_url' => route('app.stripe-onboarding', ['onboarding' => 'success']),
             'type' => 'account_onboarding',
         ]);
 
