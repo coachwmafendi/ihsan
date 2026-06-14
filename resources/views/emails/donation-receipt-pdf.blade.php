@@ -97,15 +97,33 @@
     <div class="info-row"><strong>Email</strong> {{ $donation->donor->email }}</div>
     <div class="info-row"><strong>Date</strong> {{ $donation->created_at->format('d M Y') }}</div>
 
+    @php
+        $symbol = $donation->currency_symbol;
+        $hasCoveredFee = $donation->donor_fee_covered > 0;
+        $totalCharged = $hasCoveredFee
+            ? $symbol.' '.number_format((float) ($donation->gross_amount + $donation->donor_fee_covered), 2)
+            : null;
+    @endphp
+
     <table>
         <tr>
             <th>Description</th>
             <th>Details</th>
         </tr>
         <tr>
-            <td>Amount</td>
+            <td>Donation Amount</td>
             <td class="amount">{{ $donation->formatted_amount }}</td>
         </tr>
+        @if ($hasCoveredFee)
+            <tr>
+                <td>Processing Fee (covered by donor)</td>
+                <td style="color: #64748b;">{{ $symbol }} {{ number_format((float) $donation->donor_fee_covered, 2) }}</td>
+            </tr>
+            <tr>
+                <td><strong>Total Charged</strong></td>
+                <td class="amount">{{ $totalCharged }}</td>
+            </tr>
+        @endif
         <tr>
             <td>Campaign</td>
             <td>{{ $donation->campaign->title }}</td>

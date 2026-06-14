@@ -22,5 +22,7 @@ class SendDonationReceipt implements ShouldQueue
 
         Mail::to($this->donation->donor->email)
             ->send(new DonationReceipt($this->donation));
+
+        $this->donation->update(['receipt_sent_at' => now()]);
     }
 }
