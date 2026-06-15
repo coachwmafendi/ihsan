@@ -37,4 +37,9 @@ class ElementPolicy
     {
         return $element->organization_id === $user->organization_id;
     }
+
+    public function unarchive(User $user, Element $element): bool
+    {
+        return $user->organization_id === $element->organization_id;
+    }
 }

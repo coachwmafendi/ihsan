@@ -107,6 +107,13 @@ class Element extends Model
         ]);
     }
 
+    public function unarchive(): void
+    {
+        $this->update([
+            'archived_at' => null,
+        ]);
+    }
+
     public function isArchived(): bool
     {
         return $this->archived_at !== null;

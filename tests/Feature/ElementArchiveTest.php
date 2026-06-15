@@ -1,10 +1,14 @@
 <?php
 
+use App\Livewire\App\Elements\ElementIndex;
+use App\Models\Campaign;
 use App\Models\Element;
 use App\Models\Organization;
-use App\Models\Campaign;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 it('archives an element by setting archived_at', function () {
     $org = Organization::factory()->create();
@@ -22,27 +26,41 @@ it('archives an element by setting archived_at', function () {
 });
 
 it('excludes archived elements from the index listing', function () {
-    $org = \App\Models\Organization::factory()->create();
-    $user = \App\Models\User::factory()->for($org)->create();
-    $campaign = \App\Models\Campaign::factory()->for($org)->create();
+    $org = Organization::factory()->create();
+    $user = User::factory()->for($org)->create();
+    $campaign = Campaign::factory()->for($org)->create();
 
-    $active = \App\Models\Element::factory()->for($org)->for($campaign)->create(['is_active' => true]);
-    $archived = \App\Models\Element::factory()->for($org)->for($campaign)->create(['archived_at' => now(), 'is_active' => false]);
+    $active = Element::factory()->for($org)->for($campaign)->create(['is_active' => true]);
+    $archived = Element::factory()->for($org)->for($campaign)->create(['archived_at' => now(), 'is_active' => false]);
 
-    \Livewire\Livewire::actingAs($user)
-        ->test(\App\Livewire\App\Elements\ElementIndex::class)
+    Livewire::actingAs($user)
+        ->test(ElementIndex::class)
         ->assertSee($active->name)
         ->assertDontSee($archived->name);
 });
 
 it('returns 404 for archived elements from public API', function () {
-    $org = \App\Models\Organization::factory()->create();
-    $campaign = \App\Models\Campaign::factory()->for($org)->create();
-    $element = \App\Models\Element::factory()->for($org)->for($campaign)->create([
+    $org = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+    $element = Element::factory()->for($org)->for($campaign)->create([
         'is_active' => false,
         'archived_at' => now(),
     ]);
 
     $this->get(route('api.public.elements.show', $element->token))
         ->assertStatus(404);
+});
+
+it('can unarchive an element', function () {
+    $org = Organization::factory()->create();
+    $element = Element::factory()->for($org)->create([
+        'archived_at' => now(),
+    ]);
+
+    expect($element->isArchived())->toBeTrue();
+
+    $element->unarchive();
+
+    expect($element->fresh()->isArchived())->toBeFalse();
+    expect($element->fresh()->archived_at)->toBeNull();
 });
