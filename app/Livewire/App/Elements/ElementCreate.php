@@ -19,7 +19,7 @@ class ElementCreate extends Component
     #[Validate('required|exists:campaigns,id')]
     public ?int $campaign_id = null;
 
-    #[Validate('required|string|in:button,floating_button,form,popup,link,sticky_button')]
+    #[Validate('required|string|in:button,floating_button,form,popup,link,sticky_button,qr_code')]
     public string $type = 'button';
 
     #[Validate('required|string|max:255')]
@@ -33,6 +33,10 @@ class ElementCreate extends Component
     public string $config_message = 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
 
     public ?string $config_button_text = null;
+
+    public string $config_size = 'medium';
+
+    public string $config_alignment = 'center';
 
     #[Validate('nullable|string|in:checkout_modal,open_campaign_page')]
     public string $config_action = 'checkout_modal';
@@ -105,12 +109,18 @@ class ElementCreate extends Component
             'button_text' => $this->config_button_text,
         ]);
 
-        if (in_array($validated['type'], ['form', 'popup'], true)) {
+        if (in_array($validated['type'], ['form', 'popup', 'qr_code'], true)) {
             $config['title'] = filled($this->config_title) ? $this->config_title : $defaultTitle;
             $config['message'] = filled($this->config_message) ? $this->config_message : $defaultMessage;
 
             if ($validated['type'] === 'form') {
                 $config['submit_text'] = $this->config_button_text;
+            }
+
+            if ($validated['type'] === 'qr_code') {
+                $config['label'] = filled($this->config_button_text) ? $this->config_button_text : 'Scan to donate';
+                $config['size'] = $this->config_size;
+                $config['alignment'] = $this->config_alignment;
             }
         }
 

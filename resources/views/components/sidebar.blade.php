@@ -68,11 +68,6 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 </x-sidebar-dropdown>
             </x-sidebar-group>
 
-            <x-sidebar-group label="API &amp; Developer">
-                <x-sidebar-item href="/app/developer/api-keys" icon="key" label="API Keys" :active="$isActive('/app/developer/api-keys')" />
-                <x-sidebar-item href="/app/developer/webhooks" icon="globe-alt" label="Webhooks" :active="$isActive('/app/developer/webhooks')" />
-                <x-sidebar-item href="/app/developer/embed-forms" icon="code-bracket" label="Embed Forms" :active="$isActive('/app/developer/embed-forms')" />
-            </x-sidebar-group>
         </nav>
     </div>
 
@@ -118,11 +113,6 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 </x-sidebar-dropdown>
             </x-sidebar-group>
 
-            <x-sidebar-group label="API &amp; Developer">
-                <x-sidebar-item href="/app/developer/api-keys" icon="key" label="API Keys" :active="$isActive('/app/developer/api-keys')" />
-                <x-sidebar-item href="/app/developer/webhooks" icon="globe-alt" label="Webhooks" :active="$isActive('/app/developer/webhooks')" />
-                <x-sidebar-item href="/app/developer/embed-forms" icon="code-bracket" label="Embed Forms" :active="$isActive('/app/developer/embed-forms')" />
-            </x-sidebar-group>
         </nav>
     </div>
 </div>

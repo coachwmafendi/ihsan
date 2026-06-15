@@ -30,12 +30,11 @@
                 {{-- Embed Code --}}
                 <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
                     <div class="space-y-3">
-                        <div class="relative">
-                            <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code>&lt;script src="{{ url('/e/widget.js') }}" data-token="{{ $element->token }}" data-type="{{ $element->type->value }}" async&gt;&lt;/script&gt;</code></pre>
+                        <div class="relative" x-data="{ code: @js($embedCode), copied: false }">
+                            <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code x-text="code"></code></pre>
                             <button
                                 type="button"
-                                x-data="{ copied: false }"
-                                @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async></script>`); copied = true; setTimeout(() => copied = false, 2000)"
+                                @click="navigator.clipboard.writeText(code).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
                                 class="absolute right-2 top-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-600"
                             >
                                 <span x-show="!copied">Copy</span>
@@ -91,9 +90,32 @@
                         @endif
 
                         <flux:field>
-                            <flux:label>Button Text</flux:label>
-                            <flux:input wire:model.live="config_button_text" placeholder="e.g. Donate Now" />
+                            <flux:label>{{ $isQrCode ? 'Label' : 'Button Text' }}</flux:label>
+                            <flux:input wire:model.live="config_button_text" placeholder="{{ $isQrCode ? 'e.g. Scan to donate' : 'e.g. Donate Now' }}" autocomplete="off" />
                         </flux:field>
+
+                        @if ($isQrCode)
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <flux:field>
+                                    <flux:label>QR Size</flux:label>
+                                    <flux:select wire:model.live="config_size">
+                                        <flux:select.option value="small">Small (150px)</flux:select.option>
+                                        <flux:select.option value="medium">Medium (200px)</flux:select.option>
+                                        <flux:select.option value="large">Large (250px)</flux:select.option>
+                                        <flux:select.option value="extra large">Extra Large (300px)</flux:select.option>
+                                    </flux:select>
+                                </flux:field>
+
+                                <flux:field>
+                                    <flux:label>Alignment</flux:label>
+                                    <flux:select wire:model.live="config_alignment">
+                                        <flux:select.option value="left">Left</flux:select.option>
+                                        <flux:select.option value="center">Center</flux:select.option>
+                                        <flux:select.option value="right">Right</flux:select.option>
+                                    </flux:select>
+                                </flux:field>
+                            </div>
+                        @endif
 
                         @if ($element->type->value === 'popup')
                             <div class="space-y-4 border-t border-slate-200 pt-4">
@@ -315,6 +337,8 @@
                             'layout' => $config_layout,
                             'image_url' => $config_image_url,
                             'color' => $config_color,
+                            'size' => $config_size,
+                            'qr_url' => $isQrCode ? route('donations.show', ['element' => $element->token]) : null,
                         ], fn ($value) => $value !== null && $value !== ''))"
                     />
                 </div>

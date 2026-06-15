@@ -37,6 +37,7 @@
                         <flux:select.option value="popup">Popup</flux:select.option>
                         <flux:select.option value="link">Link</flux:select.option>
                         <flux:select.option value="sticky_button">Sticky Button</flux:select.option>
+                        <flux:select.option value="qr_code">QR Code</flux:select.option>
                     </x-ui.select>
                     @error('type') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>

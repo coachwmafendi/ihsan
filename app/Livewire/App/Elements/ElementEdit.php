@@ -14,7 +14,6 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-
 #[Layout('layouts.app')]
 class ElementEdit extends Component
 {
@@ -41,9 +40,6 @@ class ElementEdit extends Component
     #[Validate('nullable|string|in:small,medium,large,extra large')]
     public string $config_size = 'medium';
 
-    #[Validate('nullable|string|in:left,center,right')]
-    public string $config_alignment = 'center';
-
     public string $config_button_color = 'bg-blue-600 hover:bg-blue-700';
 
     public string $config_button_size = 'text-base px-6 py-3';
@@ -54,6 +50,7 @@ class ElementEdit extends Component
 
     public string $config_button_effect = 'none';
 
+    #[Validate('nullable|string|in:left,center,right')]
     public string $config_alignment = 'center';
 
     public string $config_position = 'right-center';
@@ -125,11 +122,9 @@ class ElementEdit extends Component
         $config = $element->config ?? [];
         $this->config_title = $config['title'] ?? 'Support our cause';
         $this->config_message = $config['message'] ?? 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
-        $this->config_button_text = $config['button_text']
-            ?? $config['text']
-            ?? $config['submit_text']
-            ?? ($this->element->type === ElementType::QrCode ? ($config['label'] ?? null) : null)
-            ?? ($this->element->type === ElementType::QrCode ? 'Scan to donate' : 'Donate');
+        $this->config_button_text = $this->element->type === ElementType::QrCode
+            ? ($config['label'] ?? 'Scan to donate')
+            : ($config['button_text'] ?? $config['text'] ?? $config['submit_text'] ?? 'Donate');
         $this->config_size = $config['size'] ?? 'medium';
         $this->config_alignment = $config['alignment'] ?? 'center';
         $this->config_button_color = $config['button_color'] ?? $config['color'] ?? 'bg-blue-600 hover:bg-blue-700';

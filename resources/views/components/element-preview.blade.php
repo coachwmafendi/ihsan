@@ -55,8 +55,13 @@
         <div class="flex items-center justify-between">
             <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Preview</h3>
             @if($type)
+                @php
+                    $typeLabel = $type instanceof \BackedEnum
+                        ? $type->label()
+                        : (is_string($type) && enum_exists(\App\Enums\ElementType::class) && \App\Enums\ElementType::tryFrom($type)?->label() ?: ucwords(str_replace('_', ' ', $type)));
+                @endphp
                 <span class="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
-                    {{ ucwords(str_replace('_', ' ', $type)) }}
+                    {{ $typeLabel }}
                 </span>
             @endif
         </div>
@@ -135,26 +140,27 @@
                     default => 200,
                 };
                 $qrAlignment = $config['alignment'] ?? 'center';
-                $qrLabel = $config['label'] ?? 'Scan to donate';
+                $qrLabel = filled($config['label'] ?? null)
+                    ? $config['label']
+                    : (filled($config['button_text'] ?? null) ? $config['button_text'] : 'Scan to donate');
                 $alignClass = match($qrAlignment) {
                     'left' => 'text-left',
                     'right' => 'text-right',
                     default => 'text-center',
                 };
-            @endphp
-            @php
                 $qrTitle = $config['title'] ?? '';
                 $qrMessage = $config['message'] ?? '';
+                $qrDataUrl = $config['qr_url'] ?? config('app.url') . '/donate/demo';
             @endphp
             <div class="flex min-h-[180px] flex-col items-center justify-center w-full">
                 <div class="{{ $alignClass }} space-y-3">
                     @if(filled($qrTitle))
                         <h4 class="text-base font-semibold text-zinc-800">{{ $qrTitle }}</h4>
                     @endif
-                    <img 
-                        src="https://api.qrserver.com/v1/create-qr-code/?size={{ $qrSize }}x{{ $qrSize }}&data={{ urlencode(config('app.url').'/donate/demo') }}&bgcolor=ffffff&color=0f172a&qzone=2" 
-                        alt="QR Code" 
-                        width="{{ $qrSize }}" 
+                    <img
+                        src="https://api.qrserver.com/v1/create-qr-code/?size={{ $qrSize }}x{{ $qrSize }}&data={{ urlencode($qrDataUrl) }}&bgcolor=ffffff&color=0f172a&qzone=2"
+                        alt="QR Code"
+                        width="{{ $qrSize }}"
                         height="{{ $qrSize }}"
                         class="inline-block rounded-xl border border-zinc-200"
                     >

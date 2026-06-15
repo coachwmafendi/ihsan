@@ -63,8 +63,7 @@ it('has sidebar navigation', function () {
         ->assertSee('Fundraise')
         ->assertSee('Finance')
         ->assertSee('Supporters')
-        ->assertSee('Organization')
-        ->assertSee('API &amp; Developer');
+        ->assertSee('Organization');
 });
 
 it('opens virtual terminal navigation in a new tab', function () {
