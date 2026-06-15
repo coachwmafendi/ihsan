@@ -23,7 +23,13 @@ class Index extends Component
             ->where('type', AdminToOrgAdminNotification::class)
             ->first();
 
-        $notification?->markAsRead();
+        if ($notification === null) {
+            return;
+        }
+
+        $notification->markAsRead();
+
+        $this->dispatch('notification-read');
     }
 
     public function delete(string $id): void
@@ -33,7 +39,13 @@ class Index extends Component
             ->where('type', AdminToOrgAdminNotification::class)
             ->first();
 
-        $notification?->delete();
+        if ($notification === null) {
+            return;
+        }
+
+        $notification->delete();
+
+        $this->dispatch('notification-read');
     }
 
     #[Computed]

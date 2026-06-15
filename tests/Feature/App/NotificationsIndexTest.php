@@ -113,6 +113,52 @@ it('shows the unread count in the topbar', function () {
         ->assertSee('1');
 });
 
+it('updates the topbar unread count when a notification is marked as read', function () {
+    actingAs($this->user);
+
+    $this->user->notify(new AdminToOrgAdminNotification(
+        message: 'Mark me as read',
+        senderName: 'Platform Admin',
+        organizationId: $this->organization->id,
+    ));
+
+    $notification = $this->user->notifications()->first();
+
+    Livewire::test(Index::class)
+        ->call('markAsRead', $notification->id)
+        ->assertDispatched('notification-read');
+});
+
+it('renders message line breaks and links', function () {
+    $this->user->notify(new AdminToOrgAdminNotification(
+        message: "Hello admin,\nPlease visit https://example.com/info for details.\n\nThanks.",
+        senderName: 'Platform Admin',
+        organizationId: $this->organization->id,
+    ));
+
+    actingAs($this->user)
+        ->get('/app/notifications')
+        ->assertOk()
+        ->assertSee('Hello admin,', false)
+        ->assertSee('<a href="https://example.com/info"', false)
+        ->assertSee('https://example.com/info', false)
+        ->assertSee('<br', false);
+});
+
+it('escapes html tags in notification message', function () {
+    $this->user->notify(new AdminToOrgAdminNotification(
+        message: '<script>alert("xss")</script>',
+        senderName: 'Platform Admin',
+        organizationId: $this->organization->id,
+    ));
+
+    actingAs($this->user)
+        ->get('/app/notifications')
+        ->assertOk()
+        ->assertSee(e('<script>alert("xss")</script>'), false)
+        ->assertDontSee('<script>alert("xss")</script>', false);
+});
+
 it('redirects guests from the inbox', function () {
     get('/app/notifications')->assertRedirect('/login');
 });
