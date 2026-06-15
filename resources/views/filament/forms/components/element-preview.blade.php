@@ -132,8 +132,15 @@
                     default => 'text-center',
                 };
             @endphp
-            <div class="flex min-h-[180px] items-center justify-center w-full">
-                <div class="{{ $alignClass }}">
+            @php
+                $qrTitle = $config['title'] ?? '';
+                $qrMessage = $config['message'] ?? '';
+            @endphp
+            <div class="flex min-h-[180px] flex-col items-center justify-center w-full">
+                <div class="{{ $alignClass }} space-y-3">
+                    @if(filled($qrTitle))
+                        <h4 class="text-base font-semibold text-zinc-800">{{ $qrTitle }}</h4>
+                    @endif
                     <img 
                         src="https://api.qrserver.com/v1/create-qr-code/?size={{ $qrSize }}x{{ $qrSize }}&data={{ urlencode(config('app.url').'/donate/demo') }}&bgcolor=ffffff&color=0f172a&qzone=2" 
                         alt="QR Code" 
@@ -142,7 +149,10 @@
                         class="inline-block rounded-xl border border-zinc-200"
                     >
                     @if(filled($qrLabel))
-                        <p class="mt-2 text-sm font-medium text-zinc-600">{{ $qrLabel }}</p>
+                        <p class="text-sm font-medium text-zinc-600">{{ $qrLabel }}</p>
+                    @endif
+                    @if(filled($qrMessage))
+                        <p class="text-sm text-zinc-500">{{ $qrMessage }}</p>
                     @endif
                 </div>
             </div>

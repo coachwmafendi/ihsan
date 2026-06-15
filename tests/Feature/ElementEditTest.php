@@ -500,3 +500,54 @@ it('saves once per week and once per month frequency options for popups', functi
 
     expect($element->config['frequency'])->toBe('once_per_month');
 });
+
+it('reflects qr code title and message in the live preview', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::QrCode,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_title', 'Scan untuk sumbangan')
+        ->set('config_message', 'Sumbangan anda membantu pembinaan surau.')
+        ->assertSee('Scan untuk sumbangan')
+        ->assertSee('Sumbangan anda membantu pembinaan surau.');
+});
+
+it('saves title and message config for qr code elements', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::QrCode,
+        'config' => [],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_title', 'Scan untuk sumbangan')
+        ->set('config_message', 'Sumbangan anda membantu.')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    $element->refresh();
+
+    expect($element->config)->toMatchArray([
+        'title' => 'Scan untuk sumbangan',
+        'message' => 'Sumbangan anda membantu.',
+    ]);
+});
+
+it('reflects popup title and message in the live preview', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Popup,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_title', 'Tabung Kecemasan')
+        ->set('config_message', 'Bantu mangsa banjir hari ini.')
+        ->assertSee('Tabung Kecemasan')
+        ->assertSee('Bantu mangsa banjir hari ini.');
+});
