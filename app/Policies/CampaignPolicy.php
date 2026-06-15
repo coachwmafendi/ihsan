@@ -37,4 +37,9 @@ class CampaignPolicy
     {
         return $campaign->organization_id === $user->organization_id;
     }
+
+    public function restore(User $user, Campaign $campaign): bool
+    {
+        return $campaign->organization_id === $user->organization_id;
+    }
 }

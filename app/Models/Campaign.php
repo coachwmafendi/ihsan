@@ -179,6 +179,13 @@ class Campaign extends Model
         return $this->hasOne(Donation::class)->ofMany();
     }
 
+    public function restore(): void
+    {
+        $this->update([
+            'status' => CampaignStatus::Draft,
+        ]);
+    }
+
     protected function casts(): array
     {
         return [
