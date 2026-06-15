@@ -71,13 +71,22 @@
                                             >
                                                 {{ $data['message'] ?? '' }}
                                             </p>
-                                            <p
+
+                                            @php
+                                                $formattedMessage = e($data['message'] ?? '');
+                                                $formattedMessage = (string) preg_replace(
+                                                    '~(https?://[^\s<]+)~',
+                                                    '<a href="$1" target="_blank" rel="noopener noreferrer" class="font-medium text-teal-600 hover:text-teal-700 hover:underline">$1</a>',
+                                                    $formattedMessage
+                                                );
+                                            @endphp
+                                            <div
                                                 x-show="expanded"
                                                 x-transition
                                                 class="whitespace-normal text-sm text-gray-700"
                                             >
-                                                {{ $data['message'] ?? '' }}
-                                            </p>
+                                                {!! nl2br($formattedMessage) !!}
+                                            </div>
                                         </div>
                                         @if ($data['image'] ?? null)
                                             <div class="mt-2">

@@ -29,9 +29,7 @@
                             </span>
                         </div>
 
-                        <div class="text-sm text-slate-900">
-                            {{ $notification->data['message'] ?? '' }}
-                        </div>
+                        <x-ui.rich-text :text="$notification->data['message'] ?? ''" />
 
                         @if (! empty($notification->data['image']))
                             <div>
