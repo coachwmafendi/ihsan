@@ -142,6 +142,11 @@ class PublicElementController extends Controller
                 'margin_top' => 0,
                 'margin_bottom' => 0,
             ], $settings);
+
+            $settings['label'] = $settings['label']
+                ?: ($settings['button_text'] ?? null)
+                ?: ($settings['text'] ?? null)
+                ?: 'Scan to donate';
         }
 
         if ($element->type === ElementType::Link) {

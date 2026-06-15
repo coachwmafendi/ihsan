@@ -1,6 +1,8 @@
 {{-- resources/views/livewire/app/elements/edit.blade.php --}}
 @php
     $isButtonLike = in_array($element->type->value, ['button', 'floating_button', 'sticky_button', 'link'], true);
+    $isQrCode = $element->type->value === 'qr_code';
+    $embedCode = '<script src="' . url('/e/widget.js') . '" data-token="' . $element->token . '" data-type="' . $element->type->value . '" async></script>';
 @endphp
 <div class="space-y-6">
     {{-- Page Header --}}
@@ -16,7 +18,7 @@
         <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
             {{ $element->name }}
             <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                Type: {{ ucwords(str_replace('_', ' ', $element->type->value)) }}
+                Type: {{ $element->type->label() }}
             </span>
         </p>
     </div>

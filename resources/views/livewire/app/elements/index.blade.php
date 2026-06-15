@@ -34,8 +34,11 @@
                 <flux:select.option value="">All Types</flux:select.option>
                 <flux:select.option value="button">Button</flux:select.option>
                 <flux:select.option value="floating_button">Floating Button</flux:select.option>
+                <flux:select.option value="sticky_button">Sticky Button</flux:select.option>
                 <flux:select.option value="form">Form</flux:select.option>
                 <flux:select.option value="popup">Popup</flux:select.option>
+                <flux:select.option value="qr_code">QR Code</flux:select.option>
+                <flux:select.option value="link">Link</flux:select.option>
             </x-ui.select>
         </div>
     </div>
@@ -212,10 +215,11 @@
                         <x-ui.select id="newType" wire:model="newType" class="mt-1 block w-full">
                             <flux:select.option value="button">Button</flux:select.option>
                             <flux:select.option value="floating_button">Floating Button</flux:select.option>
+                            <flux:select.option value="sticky_button">Sticky Button</flux:select.option>
                             <flux:select.option value="form">Form</flux:select.option>
                             <flux:select.option value="popup">Popup</flux:select.option>
+                            <flux:select.option value="qr_code">QR Code</flux:select.option>
                             <flux:select.option value="link">Link</flux:select.option>
-                            <flux:select.option value="sticky_button">Sticky Button</flux:select.option>
                         </x-ui.select>
                         @error('newType') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>

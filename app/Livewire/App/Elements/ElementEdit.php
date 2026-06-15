@@ -14,6 +14,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
+
 #[Layout('layouts.app')]
 class ElementEdit extends Component
 {
@@ -36,6 +37,12 @@ class ElementEdit extends Component
     public string $config_message = 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
 
     public ?string $config_button_text = null;
+
+    #[Validate('nullable|string|in:small,medium,large,extra large')]
+    public string $config_size = 'medium';
+
+    #[Validate('nullable|string|in:left,center,right')]
+    public string $config_alignment = 'center';
 
     public string $config_button_color = 'bg-blue-600 hover:bg-blue-700';
 
@@ -118,7 +125,13 @@ class ElementEdit extends Component
         $config = $element->config ?? [];
         $this->config_title = $config['title'] ?? 'Support our cause';
         $this->config_message = $config['message'] ?? 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
-        $this->config_button_text = $config['button_text'] ?? $config['text'] ?? $config['submit_text'] ?? 'Donate';
+        $this->config_button_text = $config['button_text']
+            ?? $config['text']
+            ?? $config['submit_text']
+            ?? ($this->element->type === ElementType::QrCode ? ($config['label'] ?? null) : null)
+            ?? ($this->element->type === ElementType::QrCode ? 'Scan to donate' : 'Donate');
+        $this->config_size = $config['size'] ?? 'medium';
+        $this->config_alignment = $config['alignment'] ?? 'center';
         $this->config_button_color = $config['button_color'] ?? $config['color'] ?? 'bg-blue-600 hover:bg-blue-700';
         $this->config_button_size = $config['button_size'] ?? 'text-base px-6 py-3';
         $this->config_corner_radius = (int) ($config['corner_radius'] ?? 8);
@@ -155,13 +168,16 @@ class ElementEdit extends Component
 
         $defaultTitle = 'Support our cause';
         $defaultMessage = 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
-        $usesContent = in_array($this->element->type, [ElementType::Form, ElementType::Popup], true);
+        $usesContent = in_array($this->element->type, [ElementType::Form, ElementType::Popup, ElementType::QrCode], true);
 
         $config = array_filter([
             'title' => $usesContent ? (filled($this->config_title) ? $this->config_title : $defaultTitle) : $this->config_title,
             'message' => $usesContent ? (filled($this->config_message) ? $this->config_message : $defaultMessage) : $this->config_message,
-            'button_text' => $this->config_button_text,
+            'button_text' => $this->element->type === ElementType::QrCode ? null : $this->config_button_text,
             'submit_text' => $this->element->type === ElementType::Form ? $this->config_button_text : null,
+            'label' => $this->element->type === ElementType::QrCode ? $this->config_button_text : null,
+            'size' => $this->element->type === ElementType::QrCode ? $this->config_size : null,
+            'alignment' => $this->element->type === ElementType::QrCode ? $this->config_alignment : null,
         ], fn ($value) => $value !== null && $value !== '');
 
         if ($this->usesButtonStyleConfig()) {
@@ -200,6 +216,12 @@ class ElementEdit extends Component
 
         if ($this->element->type === ElementType::Popup) {
             foreach (['button_color', 'button_size', 'corner_radius', 'button_icon', 'icon', 'alignment', 'position', 'submit_text'] as $key) {
+                unset($mergedConfig[$key]);
+            }
+        }
+
+        if ($this->element->type === ElementType::QrCode) {
+            foreach (['button_text', 'text', 'submit_text'] as $key) {
                 unset($mergedConfig[$key]);
             }
         }

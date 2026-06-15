@@ -34,7 +34,7 @@ class ElementIndex extends Component
 
     public bool $showCreateModal = false;
 
-    #[Validate('required|string|in:button,floating_button,form,popup,link,sticky_button')]
+    #[Validate('required|string|in:button,floating_button,sticky_button,form,popup,qr_code,link')]
     public string $newType = 'button';
 
     #[Validate('required|string|max:255')]
@@ -103,6 +103,11 @@ class ElementIndex extends Component
                 'button_text' => 'Donate Now',
                 'submit_text' => 'Donate Now',
                 'action' => 'checkout_modal',
+                'color' => 'campaign',
+            ],
+            'qr_code' => [
+                'title' => 'Scan to Donate',
+                'message' => '',
                 'color' => 'campaign',
             ],
             'link' => [

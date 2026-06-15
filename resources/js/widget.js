@@ -260,7 +260,7 @@
     var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=' + (s.size || 200) + 'x' + (s.size || 200) + '&data=' + encodeURIComponent(campaignUrl) + '&bgcolor=ffffff&color=0f172a&qzone=2';
     var size = isFinite(s.size) ? parseInt(s.size, 10) : ({ small: 150, medium: 200, large: 250, "extra large": 300 })[(s.size || "medium").toLowerCase()] || 200;
     var alignment = s.alignment || 'center';
-    var label = s.label || 'Scan to donate';
+    var label = s.label || s.button_text || s.text || 'Scan to donate';
     var marginTop = s.margin_top || 0;
     var marginBottom = s.margin_bottom || 0;
 
