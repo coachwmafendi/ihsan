@@ -110,4 +110,3 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
         </nav>
     </div>
 </div>
-</div>
