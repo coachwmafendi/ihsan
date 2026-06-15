@@ -308,7 +308,7 @@ it('archives a campaign', function () {
 
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
         ->call('archive')
-        ->assertDispatched('notify');
+        ->assertRedirect(route('app.campaigns.index'));
 
     $campaign->refresh();
     expect($campaign->status->value)->toBe('archived');

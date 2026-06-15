@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Campaigns;
 
+use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -25,6 +26,8 @@ class CampaignEdit extends Component
     public Campaign $campaign;
 
     public string $activeTab = 'overview';
+
+    public bool $showArchiveModal = false;
 
     public string $suggestedActiveFreq = 'one_time';
 
@@ -519,14 +522,18 @@ class CampaignEdit extends Component
         $this->dispatch('notify', message: 'Campaign saved.', variant: 'success');
     }
 
+    public function confirmArchive(): void
+    {
+        $this->showArchiveModal = true;
+    }
+
     public function archive(): void
     {
-        $this->authorize('update', $this->campaign);
+        $this->authorize('archive', $this->campaign);
 
-        $this->campaign->update(['status' => 'archived']);
-        $this->status = 'archived';
+        $this->campaign->update(['status' => CampaignStatus::Archived]);
 
-        $this->dispatch('notify', message: 'Campaign archived.', variant: 'success');
+        $this->redirectRoute('app.campaigns.index');
     }
 
     public function delete(): void
