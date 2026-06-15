@@ -24,7 +24,7 @@
             />
         </div>
 
-        <x-ui.select wire:model.live="statusFilter" class="h-10">
+        <x-ui.select wire:model.live="statusFilter" class="h-10 w-40">
             <flux:select.option value="">All Statuses</flux:select.option>
             <flux:select.option value="active">Active</flux:select.option>
             <flux:select.option value="draft">Draft</flux:select.option>

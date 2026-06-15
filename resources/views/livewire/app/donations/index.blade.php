@@ -15,34 +15,38 @@
     </div>
 
     {{-- Filters --}}
-    <div class="flex flex-wrap items-center gap-3 sm:flex-nowrap">
-        <div class="relative w-full sm:w-64">
+    <div class="flex flex-wrap items-center gap-3">
+        <div class="relative">
             <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
                 type="text"
                 wire:model.live.debounce.300ms="search"
                 placeholder="Search donors..."
-                class="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                class="h-10 w-64 rounded-lg border border-slate-300 bg-white pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
         </div>
 
-        <x-ui.select wire:model.live="period" class="h-10 w-full sm:w-44">
-            <flux:select.option value="all_time">All Time</flux:select.option>
-            <flux:select.option value="today">Today</flux:select.option>
-            <flux:select.option value="yesterday">Yesterday</flux:select.option>
-            <flux:select.option value="7_days">Last 7 days</flux:select.option>
-            <flux:select.option value="30_days">Last 30 days</flux:select.option>
-            <flux:select.option value="90_days">Last 90 days</flux:select.option>
-            <flux:select.option value="this_month">This month</flux:select.option>
-        </x-ui.select>
+        <div class="w-40">
+            <x-ui.select wire:model.live="period" class="h-10">
+                <flux:select.option value="all_time">All Time</flux:select.option>
+                <flux:select.option value="today">Today</flux:select.option>
+                <flux:select.option value="yesterday">Yesterday</flux:select.option>
+                <flux:select.option value="7_days">Last 7 days</flux:select.option>
+                <flux:select.option value="30_days">Last 30 days</flux:select.option>
+                <flux:select.option value="90_days">Last 90 days</flux:select.option>
+                <flux:select.option value="this_month">This month</flux:select.option>
+            </x-ui.select>
+        </div>
 
-        <x-ui.select wire:model.live="statusFilter" class="h-10 w-full sm:w-40">
-            <flux:select.option value="">All Statuses</flux:select.option>
-            <flux:select.option value="succeeded">Succeeded</flux:select.option>
-            <flux:select.option value="pending">Pending</flux:select.option>
-            <flux:select.option value="failed">Failed</flux:select.option>
-            <flux:select.option value="refunded">Refunded</flux:select.option>
-        </x-ui.select>
+        <div class="w-40">
+            <x-ui.select wire:model.live="statusFilter" class="h-10">
+                <flux:select.option value="">All Statuses</flux:select.option>
+                <flux:select.option value="succeeded">Succeeded</flux:select.option>
+                <flux:select.option value="pending">Pending</flux:select.option>
+                <flux:select.option value="failed">Failed</flux:select.option>
+                <flux:select.option value="refunded">Refunded</flux:select.option>
+            </x-ui.select>
+        </div>
     </div>
 
     {{-- Donations Table --}}

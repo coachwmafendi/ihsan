@@ -14,24 +14,26 @@
     </div>
 
     {{-- Filters --}}
-    <div class="flex flex-wrap items-center gap-3 sm:flex-nowrap">
-        <div class="relative w-full sm:w-64">
+    <div class="flex flex-wrap items-center gap-3">
+        <div class="relative">
             <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
                 type="text"
                 wire:model.live.debounce.300ms="search"
                 placeholder="Search by donor..."
-                class="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                class="h-10 w-64 rounded-lg border border-slate-300 bg-white pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
         </div>
 
-        <x-ui.select wire:model.live="statusFilter" class="h-10 w-full sm:w-40">
-            <flux:select.option value="">All Statuses</flux:select.option>
-            <flux:select.option value="active">Active</flux:select.option>
-            <flux:select.option value="cancelled">Cancelled</flux:select.option>
-            <flux:select.option value="paused">Paused</flux:select.option>
-            <flux:select.option value="past_due">Past Due</flux:select.option>
-        </x-ui.select>
+        <div class="w-40">
+            <x-ui.select wire:model.live="statusFilter" class="h-10">
+                <flux:select.option value="">All Statuses</flux:select.option>
+                <flux:select.option value="active">Active</flux:select.option>
+                <flux:select.option value="cancelled">Cancelled</flux:select.option>
+                <flux:select.option value="paused">Paused</flux:select.option>
+                <flux:select.option value="past_due">Past Due</flux:select.option>
+            </x-ui.select>
+        </div>
     </div>
 
     {{-- Subscriptions Table --}}
