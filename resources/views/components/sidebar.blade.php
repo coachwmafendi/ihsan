@@ -57,8 +57,6 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
             </x-sidebar-group>
 
             <x-sidebar-group label="Organization">
-                <x-sidebar-item href="/app/members" icon="user-group" label="Members" :active="$isActive('/app/members')" />
-                <x-sidebar-item href="/app/teams" icon="rectangle-group" label="Teams" :active="$isActive('/app/teams')" />
                 <x-sidebar-item href="/app/audit-log" icon="clipboard-document-list" label="Audit Log" :active="$isActive('/app/audit-log')" />
 
                 <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/app/settings')">
@@ -67,7 +65,6 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                     <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
                 </x-sidebar-dropdown>
             </x-sidebar-group>
-
         </nav>
     </div>
 
@@ -102,8 +99,6 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
             </x-sidebar-group>
 
             <x-sidebar-group label="Organization">
-                <x-sidebar-item href="/app/members" icon="user-group" label="Members" :active="$isActive('/app/members')" />
-                <x-sidebar-item href="/app/teams" icon="rectangle-group" label="Teams" :active="$isActive('/app/teams')" />
                 <x-sidebar-item href="/app/audit-log" icon="clipboard-document-list" label="Audit Log" :active="$isActive('/app/audit-log')" />
 
                 <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/app/settings')">
@@ -112,7 +107,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                     <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
                 </x-sidebar-dropdown>
             </x-sidebar-group>
-
         </nav>
     </div>
+</div>
 </div>
