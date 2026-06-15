@@ -3,36 +3,63 @@
     {{-- Page Header --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Campaigns</h1>
-            <p class="mt-1 text-sm text-slate-500">Manage your fundraising campaigns</p>
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+                {{ $showArchived ? 'Archived Campaigns' : 'Campaigns' }}
+            </h1>
+            <p class="mt-1 text-sm text-slate-500">
+                {{ $showArchived ? 'Restore campaigns to make them available again.' : 'Manage your fundraising campaigns' }}
+            </p>
         </div>
-        <x-ui.button wire:click="openCreateModal" variant="primary">
-            <x-heroicon-o-plus class="size-4" />
-            Create Campaign
-        </x-ui.button>
+        <div class="flex items-center gap-3">
+            <button
+                wire:click="toggleArchived"
+                type="button"
+                class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors
+                    {{ $showArchived
+                        ? 'border-teal-600 bg-teal-50 text-teal-700 hover:bg-teal-100'
+                        : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50' }}"
+            >
+                <x-heroicon-o-archive-box class="size-4" />
+                @if ($showArchived)
+                    Active
+                @else
+                    Archived
+                    @if ($this->archivedCount > 0)
+                        <span class="rounded-full bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600">{{ $this->archivedCount }}</span>
+                    @endif
+                @endif
+            </button>
+            @if (! $showArchived)
+                <x-ui.button wire:click="openCreateModal" variant="primary">
+                    <x-heroicon-o-plus class="size-4" />
+                    Create Campaign
+                </x-ui.button>
+            @endif
+        </div>
     </div>
 
-    {{-- Filters --}}
-    <div class="flex flex-wrap items-center gap-3">
-        <div class="relative">
-            <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-            <input
-                type="text"
-                wire:model.live.debounce.300ms="search"
-                placeholder="Search campaigns..."
-                class="h-10 w-64 rounded-lg border border-slate-300 bg-white pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-            />
-        </div>
+    @if (! $showArchived)
+        {{-- Filters --}}
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="relative">
+                <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                <input
+                    type="text"
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search campaigns..."
+                    class="h-10 w-64 rounded-lg border border-slate-300 bg-white pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                />
+            </div>
 
-        <x-ui.select wire:model.live="statusFilter" class="h-10 w-40">
-            <flux:select.option value="">All Statuses</flux:select.option>
-            <flux:select.option value="active">Active</flux:select.option>
-            <flux:select.option value="draft">Draft</flux:select.option>
-            <flux:select.option value="paused">Paused</flux:select.option>
-            <flux:select.option value="ended">Ended</flux:select.option>
-            <flux:select.option value="archived">Archived</flux:select.option>
-        </x-ui.select>
-    </div>
+            <x-ui.select wire:model.live="statusFilter" class="h-10 w-40">
+                <flux:select.option value="">All Statuses</flux:select.option>
+                <flux:select.option value="active">Active</flux:select.option>
+                <flux:select.option value="draft">Draft</flux:select.option>
+                <flux:select.option value="paused">Paused</flux:select.option>
+                <flux:select.option value="ended">Ended</flux:select.option>
+            </x-ui.select>
+        </div>
+    @endif
 
     {{-- Campaigns Table --}}
     <x-ui.card>
@@ -85,6 +112,9 @@
                                     @endif
                                 </button>
                             </th>
+                            @if ($showArchived)
+                                <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
@@ -136,6 +166,19 @@
                                 <td class="px-5 py-4 text-sm text-slate-500">
                                     {{ $campaign->created_at->format('M d, Y') }}
                                 </td>
+                                @if ($showArchived)
+                                    <td class="px-5 py-4 text-right" wire:click.stop>
+                                        <button
+                                            wire:click="restore('{{ $campaign->public_id }}')"
+                                            wire:loading.attr="disabled"
+                                            type="button"
+                                            class="inline-flex items-center gap-1 rounded px-2 py-1 text-sm font-medium text-teal-600 transition-colors hover:bg-teal-50 hover:text-teal-700"
+                                        >
+                                            <x-heroicon-o-arrow-path class="size-3.5" />
+                                            Restore
+                                        </button>
+                                    </td>
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>
@@ -146,13 +189,21 @@
                 {{ $this->campaigns->links() }}
             </div>
         @else
-            <x-ui.empty-state
-                icon="heroicon-o-megaphone"
-                title="No campaigns found"
-                description="Get started by creating your first fundraising campaign."
-                action-label="Create Campaign"
-                action-wire-click="openCreateModal"
-            />
+            @if ($showArchived)
+                <x-ui.empty-state
+                    icon="heroicon-o-archive-box"
+                    title="No archived campaigns"
+                    description="Archived campaigns will appear here."
+                />
+            @else
+                <x-ui.empty-state
+                    icon="heroicon-o-megaphone"
+                    title="No campaigns found"
+                    description="Get started by creating your first fundraising campaign."
+                    action-label="Create Campaign"
+                    action-wire-click="openCreateModal"
+                />
+            @endif
         @endif
     </x-ui.card>
 
