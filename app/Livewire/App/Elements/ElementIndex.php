@@ -34,6 +34,8 @@ class ElementIndex extends Component
 
     public bool $showCreateModal = false;
 
+    public bool $showArchived = false;
+
     #[Validate('required|string|in:button,floating_button,sticky_button,form,popup,qr_code,link')]
     public string $newType = 'button';
 
@@ -42,6 +44,20 @@ class ElementIndex extends Component
 
     #[Validate('required|exists:campaigns,id')]
     public ?int $newCampaignId = null;
+
+    public function toggleArchived(): void
+    {
+        $this->showArchived = ! $this->showArchived;
+        $this->resetPage();
+    }
+
+    public function unarchive(int $elementId): void
+    {
+        $element = Element::findOrFail($elementId);
+        $this->authorize('unarchive', $element);
+        $element->unarchive();
+        $this->dispatch('notify', message: 'Element restored successfully.', variant: 'success');
+    }
 
     public function openCreateModal(): void
     {
@@ -211,7 +227,11 @@ class ElementIndex extends Component
         $query = Element::query()
             ->when($org, fn (Builder $q) => $q->where('elements.organization_id', $org->id))
             ->when(! $org, fn (Builder $q) => $q->whereRaw('1 = 0'))
-            ->whereNull('elements.archived_at')
+            ->when(
+                $this->showArchived,
+                fn (Builder $q) => $q->whereNotNull('elements.archived_at'),
+                fn (Builder $q) => $q->whereNull('elements.archived_at'),
+            )
             ->with('campaign');
 
         if (filled($this->search)) {
@@ -249,6 +269,18 @@ class ElementIndex extends Component
     public function totalCount(): int
     {
         return $this->baseQuery()->count();
+    }
+
+    #[Computed]
+    public function archivedCount(): int
+    {
+        $org = $this->organization;
+
+        return Element::query()
+            ->when($org, fn (Builder $q) => $q->where('elements.organization_id', $org->id))
+            ->when(! $org, fn (Builder $q) => $q->whereRaw('1 = 0'))
+            ->whereNotNull('archived_at')
+            ->count();
     }
 
     public function render()

@@ -64,3 +64,57 @@ it('can unarchive an element', function () {
     expect($element->fresh()->isArchived())->toBeFalse();
     expect($element->fresh()->archived_at)->toBeNull();
 });
+
+it('can restore an archived element from the index', function () {
+    $org = Organization::factory()->create();
+    $user = User::factory()->for($org)->create();
+    $campaign = Campaign::factory()->for($org)->create();
+    $element = Element::factory()->for($org)->for($campaign)->create([
+        'archived_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ElementIndex::class)
+        ->call('unarchive', $element->id)
+        ->assertDispatched('notify');
+
+    expect($element->fresh()->archived_at)->toBeNull();
+});
+
+it('cannot restore an element belonging to another org', function () {
+    $org = Organization::factory()->create();
+    $otherOrg = Organization::factory()->create();
+    $user = User::factory()->for($org)->create();
+    $campaign = Campaign::factory()->for($otherOrg)->create();
+    $element = Element::factory()->for($otherOrg)->for($campaign)->create([
+        'archived_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ElementIndex::class)
+        ->call('unarchive', $element->id)
+        ->assertForbidden();
+});
+
+it('toggleArchived switches between active and archived views', function () {
+    $org = Organization::factory()->create();
+    $user = User::factory()->for($org)->create();
+    $campaign = Campaign::factory()->for($org)->create();
+
+    $active = Element::factory()->for($org)->for($campaign)->create(['archived_at' => null]);
+    $archived = Element::factory()->for($org)->for($campaign)->create(['archived_at' => now()]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(ElementIndex::class);
+
+    // Default: active view — active element visible, archived not
+    $component->assertSee($active->name)->assertDontSee($archived->name);
+
+    // After toggle: archived view — archived visible, active not
+    $component->call('toggleArchived')
+        ->assertSee($archived->name)
+        ->assertDontSee($active->name);
+});
