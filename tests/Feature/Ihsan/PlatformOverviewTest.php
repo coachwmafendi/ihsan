@@ -8,6 +8,7 @@ use App\Filament\Pages\PlatformOverview;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\Fraud\BlockedDonation;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\Subscription;
@@ -219,7 +220,7 @@ it('counts operational alert metrics', function () {
     ]);
 
     // Pending blocked donation
-    \App\Models\Fraud\BlockedDonation::factory()->create([
+    BlockedDonation::factory()->create([
         'donation_id' => $donation->id,
         'review_status' => 'pending',
     ]);

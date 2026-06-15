@@ -1,8 +1,8 @@
 <?php
 
+use App\Mail\FraudAlertNotification;
 use App\Models\Campaign;
 use App\Models\Donation;
-use App\Models\Fraud\BlockedDonation;
 use App\Models\Organization;
 use App\Services\FraudDetectionService;
 use Illuminate\Support\Facades\Mail;
@@ -28,7 +28,7 @@ it('sends fraud alert notification to admins', function () {
         'blocked'
     );
 
-    Mail::assertQueued(\App\Mail\FraudAlertNotification::class, function ($mail) {
+    Mail::assertQueued(FraudAlertNotification::class, function ($mail) {
         return $mail->hasTo('admin@example.com');
     });
 });

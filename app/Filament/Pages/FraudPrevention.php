@@ -94,7 +94,8 @@ class FraudPrevention extends Page implements HasTable
                         if (! $donation) {
                             return '—';
                         }
-                        return strtoupper($donation->currency) . ' ' . number_format((float) $donation->gross_amount, 2);
+
+                        return strtoupper($donation->currency).' '.number_format((float) $donation->gross_amount, 2);
                     }),
                 TextColumn::make('reason')
                     ->label('Reason')

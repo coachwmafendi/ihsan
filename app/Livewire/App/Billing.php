@@ -16,13 +16,21 @@ use Livewire\Component;
 class Billing extends Component
 {
     public string $selectedMonth = '';
+
     public array $availableMonths = [];
+
     public float $amountProcessed = 0;
+
     public float $donorFeeCovered = 0;
+
     public float $stripeFee = 0;
+
     public float $processingFee = 0;
+
     public float $netReceived = 0;
+
     public int $totalTransactions = 0;
+
     public string $processingFeeRate = '2.5';
 
     public function mount(): void
@@ -41,7 +49,9 @@ class Billing extends Component
     public function calculate(): void
     {
         $org = Auth::user()?->organization;
-        if (! $org) return;
+        if (! $org) {
+            return;
+        }
 
         [$from, $to] = $this->dateRange();
 
@@ -61,8 +71,11 @@ class Billing extends Component
 
     private function dateRange(): array
     {
-        if (blank($this->selectedMonth)) return [null, null];
+        if (blank($this->selectedMonth)) {
+            return [null, null];
+        }
         $date = Carbon::createFromFormat('Y-m', $this->selectedMonth);
+
         return [$date->copy()->startOfMonth()->toDateString(), $date->copy()->endOfMonth()->toDateString()];
     }
 

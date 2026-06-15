@@ -8,7 +8,6 @@ use App\Models\Fraud\FraudAttempt;
 use App\Models\Fraud\FraudRule;
 use App\Models\Organization;
 use App\Services\FraudDetectionService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses()->group('fraud');
 

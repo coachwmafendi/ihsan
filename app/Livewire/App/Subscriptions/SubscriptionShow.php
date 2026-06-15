@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Livewire\App\Subscriptions;
 
 use App\Models\Subscription;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;

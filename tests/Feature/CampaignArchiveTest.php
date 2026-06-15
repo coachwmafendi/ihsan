@@ -24,7 +24,7 @@ it('excludes archived campaigns from the default index listing', function () {
         ->assertDontSee($archived->title);
 });
 
-it('shows archived campaigns when archived filter is selected', function () {
+it('shows archived campaigns when showArchived is toggled', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create(['organization_id' => $organization->id]);
 
@@ -32,7 +32,7 @@ it('shows archived campaigns when archived filter is selected', function () {
 
     Livewire::actingAs($user)
         ->test(CampaignIndex::class)
-        ->set('statusFilter', 'archived')
+        ->call('toggleArchived')
         ->assertSee($archived->title);
 });
 
@@ -58,4 +58,53 @@ it('can restore an archived campaign to draft', function () {
     $campaign->restore();
 
     expect($campaign->fresh()->status)->toBe(CampaignStatus::Draft);
+});
+
+it('can restore an archived campaign from the index', function () {
+    $org = Organization::factory()->create();
+    $user = User::factory()->for($org)->create();
+    $campaign = Campaign::factory()->for($org)->create([
+        'status' => CampaignStatus::Archived,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(CampaignIndex::class)
+        ->call('restore', $campaign->public_id)
+        ->assertDispatched('notify');
+
+    expect($campaign->fresh()->status)->toBe(CampaignStatus::Draft);
+});
+
+it('cannot restore a campaign belonging to another org', function () {
+    $org = Organization::factory()->create();
+    $otherOrg = Organization::factory()->create();
+    $user = User::factory()->for($org)->create();
+    $campaign = Campaign::factory()->for($otherOrg)->create([
+        'status' => CampaignStatus::Archived,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(CampaignIndex::class)
+        ->call('restore', $campaign->public_id)
+        ->assertForbidden();
+});
+
+it('toggleArchived switches between active and archived campaigns', function () {
+    $org = Organization::factory()->create();
+    $user = User::factory()->for($org)->create();
+
+    $active = Campaign::factory()->for($org)->create(['status' => CampaignStatus::Active]);
+    $archived = Campaign::factory()->for($org)->create(['status' => CampaignStatus::Archived]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(CampaignIndex::class);
+
+    $component->assertSee($active->title)->assertDontSee($archived->title);
+
+    $component->call('toggleArchived')
+        ->assertSee($archived->title)
+        ->assertDontSee($active->title);
 });

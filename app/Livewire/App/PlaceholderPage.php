@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Livewire\App;
@@ -10,13 +11,14 @@ use Livewire\Component;
 class PlaceholderPage extends Component
 {
     public string $title = 'Coming Soon';
+
     public string $description = 'This feature is coming soon.';
-    
+
     public function mount(string $page = ''): void
     {
         $titles = [
             'payouts' => 'Payouts',
-            'members' => 'Members', 
+            'members' => 'Members',
             'teams' => 'Teams',
             'api-keys' => 'API Keys',
             'webhooks' => 'Webhooks',

@@ -25,6 +25,8 @@ class CampaignIndex extends Component
 
     public string $sortDirection = 'asc';
 
+    public bool $showArchived = false;
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -63,7 +65,8 @@ class CampaignIndex extends Component
         $query = Campaign::query()
             ->where('organization_id', $org->id)
             ->when(
-                $this->statusFilter !== 'archived',
+                $this->showArchived,
+                fn ($q) => $q->where('status', CampaignStatus::Archived),
                 fn ($q) => $q->where('status', '!=', CampaignStatus::Archived->value)
             )
             ->withCount('donations');
@@ -72,7 +75,7 @@ class CampaignIndex extends Component
             $query->where('title', 'like', '%'.$this->search.'%');
         }
 
-        if (filled($this->statusFilter)) {
+        if (! $this->showArchived && filled($this->statusFilter)) {
             $query->where('status', $this->statusFilter);
         }
 
@@ -82,7 +85,6 @@ class CampaignIndex extends Component
 
         if ($this->sortField === 'status') {
             $dir = $direction === 'asc' ? 'ASC' : 'DESC';
-            // Custom status order: Active > Paused > Draft > Ended
             $query->orderByRaw("CASE status WHEN 'active' THEN 1 WHEN 'paused' THEN 2 WHEN 'draft' THEN 3 WHEN 'ended' THEN 4 WHEN 'archived' THEN 5 ELSE 6 END {$dir}");
         } else {
             $query->orderBy($field, $direction);
@@ -94,9 +96,39 @@ class CampaignIndex extends Component
         return $query->paginate(25);
     }
 
+    #[Computed]
+    public function archivedCount(): int
+    {
+        $org = $this->organization;
+
+        return Campaign::query()
+            ->when($org, fn ($q) => $q->where('organization_id', $org->id))
+            ->when(! $org, fn ($q) => $q->whereRaw('1 = 0'))
+            ->where('status', CampaignStatus::Archived)
+            ->count();
+    }
+
     public function openCreateModal(): void
     {
         $this->dispatch('open-create-campaign-modal');
+    }
+
+    public function toggleArchived(): void
+    {
+        $this->showArchived = ! $this->showArchived;
+        $this->statusFilter = '';
+        $this->resetPage();
+    }
+
+    public function restore(string $publicId): void
+    {
+        $campaign = Campaign::query()
+            ->where('public_id', $publicId)
+            ->firstOrFail();
+
+        $this->authorize('restore', $campaign);
+        $campaign->restore();
+        $this->dispatch('notify', message: 'Campaign restored to draft.', variant: 'success');
     }
 
     public function redirectToEdit(string $publicId): void

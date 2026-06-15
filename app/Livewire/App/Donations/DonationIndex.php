@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\App\Donations;
 
 use App\Models\Donation;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -63,7 +64,7 @@ class DonationIndex extends Component
     }
 
     /**
-     * @return array{?\Carbon\Carbon, ?\Carbon\Carbon}
+     * @return array{?Carbon, ?Carbon}
      */
     public function periodRange(): array
     {

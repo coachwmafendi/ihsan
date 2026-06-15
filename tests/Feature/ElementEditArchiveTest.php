@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Livewire\App\Elements\ElementEdit;
 use App\Models\Campaign;
 use App\Models\Element;
 use App\Models\Organization;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 it('archives element and redirects to index', function () {
     $organization = Organization::factory()->create();
@@ -17,7 +19,7 @@ it('archives element and redirects to index', function () {
     $element = Element::factory()->for($organization)->for($campaign)->create(['is_active' => true]);
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\App\Elements\ElementEdit::class, ['element' => $element])
+        ->test(ElementEdit::class, ['element' => $element])
         ->call('archive')
         ->assertRedirect(route('app.elements.index'));
 
@@ -32,7 +34,7 @@ it('does not hard delete element on archive', function () {
     $element = Element::factory()->for($organization)->for($campaign)->create();
 
     Livewire::actingAs($user)
-        ->test(\App\Livewire\App\Elements\ElementEdit::class, ['element' => $element])
+        ->test(ElementEdit::class, ['element' => $element])
         ->call('archive');
 
     expect(Element::find($element->id))->not->toBeNull();
