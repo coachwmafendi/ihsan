@@ -3,18 +3,47 @@
     {{-- Page Header --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Elements</h1>
-            <p class="mt-1 text-sm text-slate-500">Manage donation forms, buttons, and embeddable elements</p>
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+                {{ $showArchived ? 'Archived Elements' : 'Elements' }}
+            </h1>
+            <p class="mt-1 text-sm text-slate-500">
+                {{ $showArchived ? 'Restore elements to make them active again.' : 'Manage donation forms, buttons, and embeddable elements' }}
+            </p>
         </div>
-        <x-ui.button wire:click="openCreateModal" variant="primary">
-            <x-heroicon-o-plus class="size-4" />
-            Create Element
-        </x-ui.button>
+        <div class="flex items-center gap-3">
+            <button
+                wire:click="toggleArchived"
+                type="button"
+                class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors
+                    {{ $showArchived
+                        ? 'border-teal-600 bg-teal-50 text-teal-700 hover:bg-teal-100'
+                        : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50' }}"
+            >
+                <x-heroicon-o-archive-box class="size-4" />
+                @if ($showArchived)
+                    Active
+                @else
+                    Archived
+                    @if ($this->archivedCount > 0)
+                        <span class="rounded-full bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600">{{ $this->archivedCount }}</span>
+                    @endif
+                @endif
+            </button>
+            @if (! $showArchived)
+                <x-ui.button wire:click="openCreateModal" variant="primary">
+                    <x-heroicon-o-plus class="size-4" />
+                    Create Element
+                </x-ui.button>
+            @endif
+        </div>
     </div>
 
     {{-- Summary Stats --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <x-ui.stat-card label="Total Elements" value="{{ number_format($this->totalCount) }}" />
+        <x-ui.stat-card
+            label="{{ $showArchived ? 'Archived Elements' : 'Total Elements' }}"
+            value="{{ number_format($this->totalCount) }}"
+        />
     </div>
 
     {{-- Filters --}}
@@ -120,7 +149,9 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Embed Code</th>
+                            @if (! $showArchived)
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Embed Code</th>
+                            @endif
                             <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
                         </tr>
                     </thead>
@@ -155,31 +186,45 @@
                                 <td class="px-5 py-4 text-sm text-slate-500">
                                     {{ $element->created_at->format('M d, Y') }}
                                 </td>
-                                <td class="px-5 py-4">
-                                    <div x-data="{ copied: false }" class="flex items-center gap-2">
-                                        <code class="max-w-xs truncate rounded bg-slate-100 px-2 py-1 text-xs font-mono text-slate-600">{{ $element->token }}</code>
-                                        <button
-                                            type="button"
-                                            @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async><\/script>`); copied = true; setTimeout(() => copied = false, 2000)"
-                                            class="shrink-0 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-                                            title="Copy embed code"
-                                        >
-                                            <template x-if="!copied">
-                                                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                                </svg>
-                                            </template>
-                                            <template x-if="copied">
-                                                <svg class="size-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                            </template>
-                                        </button>
-                                    </div>
-                                </td>
+                                @if (! $showArchived)
+                                    <td class="px-5 py-4">
+                                        <div x-data="{ copied: false }" class="flex items-center gap-2">
+                                            <code class="max-w-xs truncate rounded bg-slate-100 px-2 py-1 text-xs font-mono text-slate-600">{{ $element->token }}</code>
+                                            <button
+                                                type="button"
+                                                @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async><\/script>`); copied = true; setTimeout(() => copied = false, 2000)"
+                                                class="shrink-0 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                                                title="Copy embed code"
+                                            >
+                                                <template x-if="!copied">
+                                                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                                    </svg>
+                                                </template>
+                                                <template x-if="copied">
+                                                    <svg class="size-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                </template>
+                                            </button>
+                                        </div>
+                                    </td>
+                                @endif
                                 <td class="px-5 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        <a href="{{ route('app.elements.edit', $element) }}" wire:navigate class="text-sm font-medium text-teal-600 hover:text-teal-700">Edit</a>
+                                        @if ($showArchived)
+                                            <button
+                                                wire:click="unarchive({{ $element->id }})"
+                                                wire:loading.attr="disabled"
+                                                type="button"
+                                                class="inline-flex items-center gap-1 rounded px-2 py-1 text-sm font-medium text-teal-600 hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                                            >
+                                                <x-heroicon-o-arrow-path class="size-3.5" />
+                                                Restore
+                                            </button>
+                                        @else
+                                            <a href="{{ route('app.elements.edit', $element) }}" wire:navigate class="text-sm font-medium text-teal-600 hover:text-teal-700">Edit</a>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -193,9 +238,9 @@
             </div>
         @else
             <x-ui.empty-state
-                icon="heroicon-o-code-bracket"
-                title="No elements found"
-                description="Try adjusting your search or create a new element."
+                icon="heroicon-o-archive-box"
+                title="{{ $showArchived ? 'No archived elements' : 'No elements found' }}"
+                description="{{ $showArchived ? 'Archived elements will appear here.' : 'Try adjusting your search or create a new element.' }}"
             />
         @endif
     </x-ui.card>
