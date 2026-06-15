@@ -32,4 +32,9 @@ class CampaignPolicy
     {
         return $campaign->organization_id === $user->organization_id;
     }
+
+    public function archive(User $user, Campaign $campaign): bool
+    {
+        return $campaign->organization_id === $user->organization_id;
+    }
 }
