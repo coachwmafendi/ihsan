@@ -49,7 +49,8 @@ class RegisterOrganization extends Component
 
         $host = parse_url($this->website_url, PHP_URL_HOST);
         if (is_string($host) && $host !== '') {
-            $normalizedHost = ltrim(strtolower($host), 'www.');
+            $host = strtolower($host);
+            $normalizedHost = str_starts_with($host, 'www.') ? substr($host, 4) : $host;
             $org->update([
                 'settings' => array_merge($org->settings ?? [], [
                     'allowed_domains' => [$normalizedHost],

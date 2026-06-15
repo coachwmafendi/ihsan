@@ -231,7 +231,9 @@ class Profile extends Component
                     $domain = $host;
                 }
 
-                return ltrim(strtolower($domain), 'www.');
+                $domain = strtolower($domain);
+
+                return str_starts_with($domain, 'www.') ? substr($domain, 4) : $domain;
             })
             ->unique()
             ->values()
