@@ -7,6 +7,7 @@
         "dev": "vite"
     },
     "dependencies": {
+        "@fontsource/inter": "^5.2.8",
         "@fontsource/manrope": "^5.2.8",
         "@fontsource/plus-jakarta-sans": "^5.2.8",
         "@stripe/stripe-js": "^9.6.0",
