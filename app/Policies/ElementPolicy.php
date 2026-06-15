@@ -32,4 +32,9 @@ class ElementPolicy
     {
         return $element->organization_id === $user->organization_id;
     }
+
+    public function archive(User $user, Element $element): bool
+    {
+        return $element->organization_id === $user->organization_id;
+    }
 }
