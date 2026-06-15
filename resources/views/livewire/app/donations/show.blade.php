@@ -32,7 +32,10 @@
                     </div>
                     <div>
                         <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Payment Method</dt>
-                        <dd class="mt-1 text-sm text-slate-900">{{ $donation->payment_method_display }}</dd>
+                        <dd class="mt-1 flex items-center gap-2 text-sm text-slate-900">
+                            <x-payment-icon :brand="$donation->payment_method_brand" class="h-8 w-auto rounded" />
+                            <span>{{ $donation->payment_method_display }}</span>
+                        </dd>
                     </div>
                     <div>
                         <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Stripe Payment Intent</dt>

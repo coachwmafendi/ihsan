@@ -4,7 +4,7 @@
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">Elements</h1>
-            <p class="mt-1 text-sm text-slate-500">Manage donation forms, buttons, and embeddable elements</p>
+            <p class="mt-1 text-sm text-slate-500">Create and manage embeddable donation elements</p>
         </div>
         <x-ui.button wire:click="openCreateModal" variant="primary">
             <x-heroicon-o-plus class="size-4" />

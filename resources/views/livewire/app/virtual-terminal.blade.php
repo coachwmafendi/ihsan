@@ -203,6 +203,7 @@
                                 />
                                 <div class="flex items-center gap-2 text-sm text-slate-700">
                                     <span class="text-slate-600">Existing debit/credit card</span>
+                                    <x-payment-icon :brand="$card['brand']" class="h-6 w-auto rounded" />
                                     <span class="font-medium">{{ $card['brand'] }}</span>
                                     <span>&bull;&bull;{{ $card['last4'] }}</span>
                                     <span class="text-slate-400">Exp. {{ $card['exp_month'] }}/{{ $card['exp_year'] }}</span>

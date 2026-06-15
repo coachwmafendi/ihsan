@@ -73,6 +73,7 @@ test('virtual terminal shows saved cards for preloaded supporter', function () {
     $response->assertSee('Existing debit/credit card');
     $response->assertSee('Visa');
     $response->assertSee('4242');
+    $response->assertSee('h-6 w-auto rounded', false);
 });
 
 test('virtual terminal selects default saved card for preloaded supporter', function () {

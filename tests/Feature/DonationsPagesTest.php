@@ -1,11 +1,13 @@
 <?php
 
+use App\Livewire\App\Donations\DonationShow;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -37,12 +39,19 @@ it('renders the donations index page', function () {
 });
 
 it('renders the donation show page', function () {
-    \Livewire\Livewire::actingAs($this->user)
-        ->test(\App\Livewire\App\Donations\DonationShow::class, ['donation' => $this->donation])
+    $this->donation->update([
+        'payment_method_brand' => 'visa',
+        'payment_method_last4' => '4242',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
         ->assertStatus(200)
         ->assertSee($this->donation->public_id)
         ->assertSee($this->donor->name)
-        ->assertSee($this->campaign->title);
+        ->assertSee($this->campaign->title)
+        ->assertSee('Payment Method')
+        ->assertSee('Visa **** 4242');
 });
 
 it('filters donations by period', function () {
