@@ -20,7 +20,7 @@
         </div>
         <flux:menu.separator />
         <flux:menu.radio.group>
-            <flux:menu.item :href="route('filament.app.auth.profile')" icon="cog" wire:navigate>
+            <flux:menu.item :href="route('app.settings.profile')" icon="cog" wire:navigate>
                 {{ __('Settings') }}
             </flux:menu.item>
             <form method="POST" action="{{ route('logout') }}" class="w-full">

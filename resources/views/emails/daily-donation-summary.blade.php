@@ -62,7 +62,7 @@
         <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
             <p style="margin: 0 0 4px; font-size: 12px; color: #94a3b8;">
                 You are receiving this because your organisation has daily donation summary enabled.
-                To change your notification preferences, visit your <a href="{{ route('filament.app.pages.pemberitahuan') }}" style="color: #0f766e;">notification settings</a>.
+                To change your notification preferences, visit your <a href="{{ route('app.settings.notifications') }}" style="color: #0f766e;">notification settings</a>.
             </p>
             <p style="margin: 0; font-size: 12px; color: #94a3b8;">Sent with &hearts; from {{ config('app.name') }}</p>
         </div>
