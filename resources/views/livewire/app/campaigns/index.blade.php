@@ -30,6 +30,7 @@
             <flux:select.option value="draft">Draft</flux:select.option>
             <flux:select.option value="paused">Paused</flux:select.option>
             <flux:select.option value="ended">Ended</flux:select.option>
+            <flux:select.option value="archived">Archived</flux:select.option>
         </x-ui.select>
     </div>
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Campaigns;
 
+use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -61,6 +62,10 @@ class CampaignIndex extends Component
 
         $query = Campaign::query()
             ->where('organization_id', $org->id)
+            ->when(
+                $this->statusFilter !== 'archived',
+                fn ($q) => $q->where('status', '!=', CampaignStatus::Archived->value)
+            )
             ->withCount('donations');
 
         if (filled($this->search)) {
@@ -78,7 +83,7 @@ class CampaignIndex extends Component
         if ($this->sortField === 'status') {
             $dir = $direction === 'asc' ? 'ASC' : 'DESC';
             // Custom status order: Active > Paused > Draft > Ended
-            $query->orderByRaw("CASE status WHEN 'active' THEN 1 WHEN 'paused' THEN 2 WHEN 'draft' THEN 3 WHEN 'ended' THEN 4 ELSE 5 END {$dir}");
+            $query->orderByRaw("CASE status WHEN 'active' THEN 1 WHEN 'paused' THEN 2 WHEN 'draft' THEN 3 WHEN 'ended' THEN 4 WHEN 'archived' THEN 5 ELSE 6 END {$dir}");
         } else {
             $query->orderBy($field, $direction);
         }
