@@ -1,6 +1,7 @@
 {{-- resources/views/components/topbar.blade.php --}}
 @php
 $organization = auth()->user()?->organization;
+$unreadCount = auth()->user()?->getUnreadNotificationsCountAttribute() ?? 0;
 @endphp
 
 <header class="flex items-center justify-between h-16 px-4 md:px-8 bg-white border-b border-slate-200">
@@ -23,10 +24,19 @@ $organization = auth()->user()?->organization;
     {{-- Right: Notifications + User dropdown --}}
     <div class="flex items-center gap-2">
         {{-- Notification bell --}}
-        <button class="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+        <a
+            href="/app/notifications"
+            wire:navigate
+            class="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+        >
             <x-heroicon-o-bell class="size-5" />
-            <span class="absolute top-1.5 right-1.5 size-2 rounded-full bg-teal-600 hidden" id="notification-badge"></span>
-        </button>
+            <span
+                class="absolute top-1.5 right-1.5 min-w-[1rem] h-4 px-1 flex items-center justify-center rounded-full text-[10px] font-bold text-white bg-teal-600 {{ $unreadCount > 0 ? '' : 'hidden' }}"
+                id="notification-badge"
+            >
+                {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+            </span>
+        </a>
 
         {{-- User dropdown --}}
         <div x-data="{ open: false }" class="relative">
