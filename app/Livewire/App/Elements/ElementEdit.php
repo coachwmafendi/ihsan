@@ -35,6 +35,11 @@ class ElementEdit extends Component
 
     public ?string $config_button_text = null;
 
+    public ?string $config_label = null;
+
+    #[Validate('nullable|string|in:small,medium,large,extra large')]
+    public string $config_size = 'medium';
+
     public string $config_button_color = 'bg-blue-600 hover:bg-blue-700';
 
     public string $config_button_size = 'text-base px-6 py-3';
@@ -117,6 +122,9 @@ class ElementEdit extends Component
         $this->config_title = $config['title'] ?? 'Support our cause';
         $this->config_message = $config['message'] ?? 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
         $this->config_button_text = $config['button_text'] ?? $config['text'] ?? $config['submit_text'] ?? 'Donate';
+        $this->config_label = $config['label'] ?? $config['button_text'] ?? 'Scan to donate';
+        $this->config_size = $config['size'] ?? 'medium';
+        $this->config_alignment = $config['alignment'] ?? 'center';
         $this->config_button_color = $config['button_color'] ?? $config['color'] ?? 'bg-blue-600 hover:bg-blue-700';
         $this->config_button_size = $config['button_size'] ?? 'text-base px-6 py-3';
         $this->config_corner_radius = (int) ($config['corner_radius'] ?? 8);
@@ -154,13 +162,22 @@ class ElementEdit extends Component
         $defaultTitle = 'Support our cause';
         $defaultMessage = 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
         $usesContent = in_array($this->element->type, [ElementType::Form, ElementType::Popup], true);
+        $isQrCode = $this->element->type === ElementType::QrCode;
 
-        $config = array_filter([
-            'title' => $usesContent ? (filled($this->config_title) ? $this->config_title : $defaultTitle) : $this->config_title,
-            'message' => $usesContent ? (filled($this->config_message) ? $this->config_message : $defaultMessage) : $this->config_message,
-            'button_text' => $this->config_button_text,
-            'submit_text' => $this->element->type === ElementType::Form ? $this->config_button_text : null,
-        ], fn ($value) => $value !== null && $value !== '');
+        if ($isQrCode) {
+            $config = array_filter([
+                'label' => filled($this->config_label) ? $this->config_label : 'Scan to donate',
+                'size' => $this->config_size,
+                'alignment' => $this->config_alignment,
+            ], fn ($value) => $value !== null && $value !== '');
+        } else {
+            $config = array_filter([
+                'title' => $usesContent ? (filled($this->config_title) ? $this->config_title : $defaultTitle) : $this->config_title,
+                'message' => $usesContent ? (filled($this->config_message) ? $this->config_message : $defaultMessage) : $this->config_message,
+                'button_text' => $this->config_button_text,
+                'submit_text' => $this->element->type === ElementType::Form ? $this->config_button_text : null,
+            ], fn ($value) => $value !== null && $value !== '');
+        }
 
         if ($this->usesButtonStyleConfig()) {
             $config['button_color'] = $this->config_button_color;
@@ -206,6 +223,12 @@ class ElementEdit extends Component
             $mergedConfig['text'] = $this->config_button_text;
             $mergedConfig['style'] = 'button';
             $mergedConfig['action'] = 'checkout_modal';
+        }
+
+        if ($isQrCode) {
+            foreach (['title', 'message', 'button_text', 'submit_text', 'button_color', 'button_size', 'corner_radius', 'button_icon', 'icon', 'button_effect', 'position', 'action', 'trigger', 'delay', 'frequency', 'visibility', 'layout', 'image_url', 'color'] as $key) {
+                unset($mergedConfig[$key]);
+            }
         }
 
         $this->element->update([

@@ -32,10 +32,9 @@
         <div class="w-40">
             <x-ui.select wire:model.live="typeFilter" class="h-10">
                 <flux:select.option value="">All Types</flux:select.option>
-                <flux:select.option value="button">Button</flux:select.option>
-                <flux:select.option value="floating_button">Floating Button</flux:select.option>
-                <flux:select.option value="form">Form</flux:select.option>
-                <flux:select.option value="popup">Popup</flux:select.option>
+                @foreach (\App\Enums\ElementType::cases() as $type)
+                    <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
+                @endforeach
             </x-ui.select>
         </div>
     </div>
@@ -129,8 +128,8 @@
                                     <p class="text-xs text-slate-500 font-mono">{{ $element->token }}</p>
                                 </td>
                                 <td class="px-5 py-4">
-                                    <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 capitalize">
-                                        {{ str_replace('_', ' ', $element->type->value) }}
+                                    <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                                        {{ $element->type->label() }}
                                     </span>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
@@ -210,12 +209,9 @@
                     <div>
                         <label for="newType" class="block text-sm font-medium text-slate-700">Element Type</label>
                         <x-ui.select id="newType" wire:model="newType" class="mt-1 block w-full">
-                            <flux:select.option value="button">Button</flux:select.option>
-                            <flux:select.option value="floating_button">Floating Button</flux:select.option>
-                            <flux:select.option value="form">Form</flux:select.option>
-                            <flux:select.option value="popup">Popup</flux:select.option>
-                            <flux:select.option value="link">Link</flux:select.option>
-                            <flux:select.option value="sticky_button">Sticky Button</flux:select.option>
+                            @foreach (\App\Enums\ElementType::cases() as $type)
+                                <flux:select.option value="{{ $type->value }}">{{ $type->label() }}</flux:select.option>
+                            @endforeach
                         </x-ui.select>
                         @error('newType') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>

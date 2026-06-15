@@ -19,9 +19,11 @@
             <x-ui.button
                 href="/app/virtual-terminal?vt-supporter={{ $donor->public_id }}"
                 variant="outline"
+                target="_blank"
             >
                 <x-heroicon-o-device-phone-mobile class="size-4" />
                 View in Virtual Terminal
+                <x-heroicon-o-arrow-top-right-on-square class="size-4" />
             </x-ui.button>
         </div>
     </div>

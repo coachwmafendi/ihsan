@@ -22,6 +22,15 @@ beforeEach(function () {
     $this->campaign = Campaign::factory()->for($this->organization)->create();
 });
 
+it('lists all element types in the index filter dropdown', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementIndex::class)
+        ->assertSee('QR Code')
+        ->assertSee('Sticky Button')
+        ->assertSee('Link');
+});
+
 it('loads button config defaults when editing a button element', function () {
     $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
         'type' => ElementType::Button,
@@ -288,6 +297,49 @@ it('maps form button text to submit_text config', function () {
             'button_text' => 'Sumbang Sekarang',
             'submit_text' => 'Sumbang Sekarang',
         ]);
+});
+
+it('loads qr code label size and alignment defaults when editing', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::QrCode,
+        'config' => [],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->assertSet('config_label', 'Scan to donate')
+        ->assertSet('config_size', 'medium')
+        ->assertSet('config_alignment', 'center')
+        ->assertSee('Label')
+        ->assertSee('Size')
+        ->assertDontSee('Button Text');
+});
+
+it('saves qr code label size and alignment', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::QrCode,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_label', 'Scan here')
+        ->set('config_size', 'large')
+        ->set('config_alignment', 'right')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    $element->refresh();
+
+    expect($element->config)->toMatchArray([
+        'label' => 'Scan here',
+        'size' => 'large',
+        'alignment' => 'right',
+    ])
+        ->and($element->config)->not->toHaveKey('button_text')
+        ->and($element->config)->not->toHaveKey('title');
 });
 
 it('loads existing submit_text into button text for form elements', function () {

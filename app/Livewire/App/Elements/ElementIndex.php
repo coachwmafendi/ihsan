@@ -34,7 +34,7 @@ class ElementIndex extends Component
 
     public bool $showCreateModal = false;
 
-    #[Validate('required|string|in:button,floating_button,form,popup,link,sticky_button')]
+    #[Validate('required|string|in:button,floating_button,form,popup,link,sticky_button,qr_code')]
     public string $newType = 'button';
 
     #[Validate('required|string|max:255')]
@@ -111,6 +111,11 @@ class ElementIndex extends Component
                 'icon' => 'heart',
                 'alignment' => 'center',
                 'action' => 'checkout_modal',
+            ],
+            'qr_code' => [
+                'label' => 'Scan to donate',
+                'size' => 'medium',
+                'alignment' => 'center',
             ],
             'popup' => [
                 'title' => 'Support our cause',

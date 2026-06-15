@@ -11,4 +11,17 @@ enum ElementType: string
     case StickyButton = 'sticky_button';
     case QrCode = 'qr_code';
     case Link = 'link';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Button => 'Button',
+            self::FloatingButton => 'Floating Button',
+            self::Form => 'Form',
+            self::Popup => 'Popup',
+            self::StickyButton => 'Sticky Button',
+            self::QrCode => 'QR Code',
+            self::Link => 'Link',
+        };
+    }
 }

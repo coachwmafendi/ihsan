@@ -22,7 +22,7 @@ beforeEach(function () {
 
 test('donor index page is accessible by authenticated user', function () {
     $this->actingAs($this->user)
-        ->get(route('app.donors.index'))
+        ->get(route('app.supporters.index'))
         ->assertOk();
 });
 
@@ -44,10 +44,10 @@ test('donor index page lists donors for the organization', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->get(route('app.donors.index'));
+        ->get(route('app.supporters.index'));
 
     $response->assertOk();
-    $response->assertSee('Total Donors');
+    $response->assertSee('Total Supporters');
 });
 
 test('donor index page supports search', function () {
@@ -61,7 +61,7 @@ test('donor index page supports search', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->get(route('app.donors.index', ['search' => 'Ahmad']));
+        ->get(route('app.supporters.index', ['search' => 'Ahmad']));
 
     $response->assertOk();
     $response->assertSee('Ahmad Ibrahim');
@@ -80,7 +80,7 @@ test('donor show page displays donor details', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->get(route('app.donors.show', $donor));
+        ->get(route('app.supporters.show', $donor));
 
     $response->assertOk();
     $response->assertSee('Sarah Lim');
@@ -90,7 +90,7 @@ test('donor show page displays donor details', function () {
     $response->assertSee('Recent Donations');
 });
 
-test('donor show page links to virtual terminal', function () {
+test('donor show page links to virtual terminal in a new tab', function () {
     $donor = Donor::factory()->create();
     Donation::factory()->create([
         'donor_id' => $donor->id,
@@ -98,14 +98,16 @@ test('donor show page links to virtual terminal', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->get(route('app.donors.show', $donor));
+        ->get(route('app.supporters.show', $donor));
 
     $response->assertOk();
     $response->assertSee('View in Virtual Terminal');
+    $response->assertSee('target="_blank"', false);
+    $response->assertSee("vt-supporter={$donor->public_id}", false);
 });
 
 test('unauthenticated user cannot access donor pages', function () {
-    $this->get(route('app.donors.index'))->assertRedirect('/login');
+    $this->get(route('app.supporters.index'))->assertRedirect('/login');
 
     $donor = Donor::factory()->create();
     Donation::factory()->create([
@@ -113,7 +115,7 @@ test('unauthenticated user cannot access donor pages', function () {
         'campaign_id' => $this->campaign->id,
     ]);
 
-    $this->get(route('app.donors.show', $donor))->assertRedirect('/login');
+    $this->get(route('app.supporters.show', $donor))->assertRedirect('/login');
 });
 
 test('user cannot view donor from different organization', function () {
@@ -125,7 +127,7 @@ test('user cannot view donor from different organization', function () {
     ]);
 
     $this->actingAs($this->user)
-        ->get(route('app.donors.show', $donor))
+        ->get(route('app.supporters.show', $donor))
         ->assertNotFound();
 });
 
@@ -137,10 +139,10 @@ test('donor index rows are clickable to donor show', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->get(route('app.donors.index'));
+        ->get(route('app.supporters.index'));
 
     $response->assertOk();
-    $response->assertSee(route('app.donors.show', $donor));
+    $response->assertSee(route('app.supporters.show', $donor));
 });
 
 test('donor show page displays recent subscriptions', function () {
@@ -157,7 +159,7 @@ test('donor show page displays recent subscriptions', function () {
     ]);
 
     $response = $this->actingAs($this->user)
-        ->get(route('app.donors.show', $donor));
+        ->get(route('app.supporters.show', $donor));
 
     $response->assertOk();
     $response->assertSee('Recent Subscriptions');

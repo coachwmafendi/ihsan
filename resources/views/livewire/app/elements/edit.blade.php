@@ -1,6 +1,7 @@
 {{-- resources/views/livewire/app/elements/edit.blade.php --}}
 @php
     $isButtonLike = in_array($element->type->value, ['button', 'floating_button', 'sticky_button', 'link'], true);
+    $isQrCode = $element->type === \App\Enums\ElementType::QrCode;
 @endphp
 <div class="space-y-6">
     {{-- Page Header --}}
@@ -76,22 +77,50 @@
                 {{-- Configuration --}}
                 <x-ui.card title="Configuration">
                     <div class="space-y-4">
-                        @if (! $isButtonLike)
+                        @if ($isQrCode)
                             <flux:field>
-                                <flux:label>Title</flux:label>
-                                <flux:input wire:model.live="config_title" placeholder="e.g. Support our cause" />
+                                <flux:label>Label</flux:label>
+                                <flux:input wire:model.live="config_label" placeholder="e.g. Scan to donate" />
                             </flux:field>
 
-                        <flux:field>
-                            <flux:label>Message</flux:label>
-                            <flux:textarea wire:model.live="config_message" maxlength="100" rows="3" placeholder="Short description shown to donors..." />
-                        </flux:field>
-                        @endif
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <flux:field>
+                                    <flux:label>Size</flux:label>
+                                    <flux:select wire:model.live="config_size">
+                                        <flux:select.option value="small">Small (150x150)</flux:select.option>
+                                        <flux:select.option value="medium">Medium (200x200)</flux:select.option>
+                                        <flux:select.option value="large">Large (250x250)</flux:select.option>
+                                        <flux:select.option value="extra large">Extra Large (300x300)</flux:select.option>
+                                    </flux:select>
+                                </flux:field>
 
-                        <flux:field>
-                            <flux:label>Button Text</flux:label>
-                            <flux:input wire:model.live="config_button_text" placeholder="e.g. Donate Now" />
-                        </flux:field>
+                                <flux:field>
+                                    <flux:label>Alignment</flux:label>
+                                    <flux:select wire:model.live="config_alignment">
+                                        <flux:select.option value="left">Left</flux:select.option>
+                                        <flux:select.option value="center">Center</flux:select.option>
+                                        <flux:select.option value="right">Right</flux:select.option>
+                                    </flux:select>
+                                </flux:field>
+                            </div>
+                        @else
+                            @if (! $isButtonLike)
+                                <flux:field>
+                                    <flux:label>Title</flux:label>
+                                    <flux:input wire:model.live="config_title" placeholder="e.g. Support our cause" />
+                                </flux:field>
+
+                                <flux:field>
+                                    <flux:label>Message</flux:label>
+                                    <flux:textarea wire:model.live="config_message" maxlength="100" rows="3" placeholder="Short description shown to donors..." />
+                                </flux:field>
+                            @endif
+
+                            <flux:field>
+                                <flux:label>Button Text</flux:label>
+                                <flux:input wire:model.live="config_button_text" placeholder="e.g. Donate Now" />
+                            </flux:field>
+                        @endif
 
                         @if ($element->type->value === 'popup')
                             <div class="space-y-4 border-t border-slate-200 pt-4">
@@ -298,6 +327,9 @@
                             'title' => $config_title,
                             'message' => $config_message,
                             'button_text' => $config_button_text,
+                            'label' => $config_label,
+                            'size' => $config_size,
+                            'alignment' => $config_alignment,
                             'button_color' => $config_button_color,
                             'button_size' => $config_button_size,
                             'corner_radius' => $config_corner_radius,
