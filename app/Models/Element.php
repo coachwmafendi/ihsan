@@ -29,6 +29,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $form_slug
  * @property bool $is_donor_portal_default
  * @property string|null $public_id
+ * @property CarbonImmutable|null $archived_at
  * @property-read Campaign|null $campaign
  * @property-read Collection<int, Activity> $activitiesAsSubject
  * @property-read int|null $activities_as_subject_count
@@ -54,7 +55,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['organization_id', 'campaign_id', 'public_id', 'name', 'token', 'type', 'config', 'is_active', 'is_donor_portal_default', 'form_slug'])]
+#[Fillable(['organization_id', 'campaign_id', 'public_id', 'name', 'token', 'type', 'config', 'is_active', 'is_donor_portal_default', 'form_slug', 'archived_at'])]
 class Element extends Model
 {
     /** @use HasFactory<ElementFactory> */
@@ -63,7 +64,7 @@ class Element extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'type', 'is_active', 'is_donor_portal_default', 'config'])
+            ->logOnly(['name', 'type', 'is_active', 'is_donor_portal_default', 'config', 'archived_at'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges()
             ->useLogName('element');
@@ -98,6 +99,19 @@ class Element extends Model
         return data_get($this->config ?? [], $key, $default);
     }
 
+    public function archive(): void
+    {
+        $this->update([
+            'archived_at' => now(),
+            'is_active' => false,
+        ]);
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
+    }
+
     protected function casts(): array
     {
         return [
@@ -105,6 +119,7 @@ class Element extends Model
             'is_active' => 'boolean',
             'is_donor_portal_default' => 'boolean',
             'type' => ElementType::class,
+            'archived_at' => 'immutable_datetime',
         ];
     }
 }
