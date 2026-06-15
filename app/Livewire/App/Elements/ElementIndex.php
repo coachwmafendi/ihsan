@@ -206,6 +206,7 @@ class ElementIndex extends Component
         $query = Element::query()
             ->when($org, fn (Builder $q) => $q->where('elements.organization_id', $org->id))
             ->when(! $org, fn (Builder $q) => $q->whereRaw('1 = 0'))
+            ->whereNull('elements.archived_at')
             ->with('campaign');
 
         if (filled($this->search)) {
