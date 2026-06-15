@@ -15,6 +15,7 @@ class PublicElementController extends Controller
         $element = Element::query()
             ->where('token', $token)
             ->where('is_active', true)
+            ->whereNull('archived_at')
             ->with('campaign')
             ->first();
 
