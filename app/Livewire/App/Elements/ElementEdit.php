@@ -28,6 +28,8 @@ class ElementEdit extends Component
 
     public bool $is_active = true;
 
+    public bool $showArchiveModal = false;
+
     public string $config_title = 'Support our cause';
 
     #[Validate('nullable|string|max:100')]
@@ -218,11 +220,16 @@ class ElementEdit extends Component
         $this->dispatch('notify', message: 'Element saved.', variant: 'success');
     }
 
-    public function delete(): void
+    public function confirmArchive(): void
     {
-        $this->authorize('delete', $this->element);
+        $this->showArchiveModal = true;
+    }
 
-        $this->element->delete();
+    public function archive(): void
+    {
+        $this->authorize('archive', $this->element);
+
+        $this->element->archive();
 
         $this->redirectRoute('app.elements.index');
     }

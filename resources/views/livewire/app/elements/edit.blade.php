@@ -274,7 +274,7 @@
 
                 {{-- Actions --}}
                 <div class="flex items-center justify-between">
-                    <x-ui.button wireClick="delete" variant="danger" onclick="return confirm('Are you sure you want to delete this element?')">Delete Element</x-ui.button>
+                    <x-ui.button wire:click="confirmArchive" variant="danger">Archive Element</x-ui.button>
                     <div class="flex items-center gap-3">
                         <x-ui.button href="{{ route('app.elements.index') }}" variant="ghost">Cancel</x-ui.button>
                         <x-ui.button type="submit" variant="primary">Save Changes</x-ui.button>
@@ -319,4 +319,29 @@
             </div>
         </div>
     </form>
+
+    {{-- Archive Confirmation Modal --}}
+    @if ($showArchiveModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4" x-data>
+            <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" wire:click="$set('showArchiveModal', false)"></div>
+            <div class="relative w-full max-w-md rounded-2xl bg-white shadow-xl">
+                <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                    <h2 class="text-lg font-semibold text-slate-900">Archive this element?</h2>
+                    <button wire:click="$set('showArchiveModal', false)" class="text-slate-400 hover:text-slate-600">
+                        <x-heroicon-o-x-mark class="size-5" />
+                    </button>
+                </div>
+                <div class="px-6 py-5">
+                    <p class="text-sm text-slate-600">This element will stop showing on your website. It will not be deleted and can be recovered by support if needed.</p>
+                </div>
+                <div class="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                    <x-ui.button wire:click="$set('showArchiveModal', false)" variant="secondary">Cancel</x-ui.button>
+                    <x-ui.button wire:click="archive" variant="danger">
+                        <span wire:loading.remove wire:target="archive">Archive</span>
+                        <span wire:loading wire:target="archive">Archiving...</span>
+                    </x-ui.button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
