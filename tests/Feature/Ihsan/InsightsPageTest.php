@@ -4,7 +4,7 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\SubscriptionStatus;
 use App\Enums\UserRole;
-use App\Filament\App\Pages\Insights;
+use App\Livewire\App\Insights;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -13,7 +13,7 @@ use App\Models\Subscription;
 use App\Models\User;
 use Livewire\Livewire;
 
-it('calculates ngo insights from organization-scoped records', function () {
+it('calculates ngo insights scoped to the users organization', function () {
     $organization = Organization::factory()->create();
     $otherOrganization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
@@ -24,28 +24,24 @@ it('calculates ngo insights from organization-scoped records', function () {
 
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 100.00,
-        'base_amount' => 100.00,
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::OneTime,
     ]);
 
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 30.00,
-        'base_amount' => 30.00,
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::Recurring,
     ]);
 
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 10.00,
-        'base_amount' => 10.00,
         'status' => DonationStatus::Failed,
         'type' => DonationType::OneTime,
     ]);
 
     Donation::factory()->for($otherCampaign)->for($donor)->create([
         'gross_amount' => 999.00,
-        'base_amount' => 999.00,
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::OneTime,
     ]);
@@ -60,20 +56,18 @@ it('calculates ngo insights from organization-scoped records', function () {
 
     Livewire::test(Insights::class)
         ->assertOk()
-        ->assertSet('totalRaised', '130.00')
-        ->assertSet('monthlyRecurringRevenue', '30.00')
-        ->assertSet('activeRecurringDonors', 1)
-        ->assertSet('oneTimeDonationsTotal', '100.00')
-        ->assertSet('firstInstallmentsTotal', '30.00')
-        ->assertSet('successfulDonationsCount', 2)
-        ->assertSee('Performance')
-        ->assertSee('Recurring revenue')
-        ->assertSee('Payment methods')
-        ->assertSee('One-time donations')
-        ->assertSee('First installments');
+        ->assertSet('stats.total_amount', 130.00)
+        ->assertSet('stats.total_count', 2)
+        ->assertSet('stats.active_campaigns', 1)
+        ->assertSet('stats.total_donors', 1)
+        ->assertSet('stats.active_subscriptions', 1)
+        ->assertSee('Total Donations')
+        ->assertSee('Donation Trend')
+        ->assertSee('Payment Methods')
+        ->assertSee('Recent Donations');
 });
 
-it('switches tabs and exposes data arrays', function () {
+it('switches period filter and exposes computed data arrays', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
     $donor = Donor::factory()->create();
@@ -85,44 +79,17 @@ it('switches tabs and exposes data arrays', function () {
         'type' => DonationType::OneTime,
     ]);
 
-    Subscription::factory()->for($campaign)->for($donor)->create([
-        'amount' => 30.00,
-        'status' => SubscriptionStatus::Active,
-        'interval' => 'monthly',
-    ]);
-
     $this->actingAs($user);
 
     $component = Livewire::test(Insights::class);
 
-    // Default tab
-    $component->assertSet('activeTab', 'overview');
+    $component->assertSet('period', '30_days');
 
-    // Tab switching
-    $component->call('setActiveTab', 'performance')->assertSet('activeTab', 'performance');
-    $component->call('setActiveTab', 'recurring-plans')->assertSet('activeTab', 'recurring-plans');
-    $component->call('setActiveTab', 'recurring-revenue')->assertSet('activeTab', 'recurring-revenue');
-    $component->call('setActiveTab', 'retention')->assertSet('activeTab', 'retention');
-    $component->call('setActiveTab', 'payment-methods')->assertSet('activeTab', 'payment-methods');
-    $component->call('setActiveTab', 'frequencies')->assertSet('activeTab', 'frequencies');
-    $component->call('setActiveTab', 'elements')->assertSet('activeTab', 'elements');
-    $component->call('setActiveTab', 'url')->assertSet('activeTab', 'url');
+    $component->set('period', '7_days')->assertSet('period', '7_days');
 
-    // Verify data arrays are populated
-    expect($component->monthlyRevenue)->toBeArray();
-    expect($component->campaignPerformance)->toBeArray();
-    expect($component->subscriptionStatusDistribution)->toBeArray();
-    expect($component->subscriptionIntervalBreakdown)->toBeArray();
-    expect($component->retentionOverview)->toBeArray();
-    expect($component->paymentBrandBreakdown)->toBeArray();
-    expect($component->paymentTypeBreakdown)->toBeArray();
-    expect($component->elementsList)->toBeArray();
-    expect($component->campaignUrlPerformance)->toBeArray();
-
-    // Verify specific computed values
-    expect($component->mrrOverview['currentMrr'])->toBeString();
-    expect($component->mrrOverview['newThisMonth'])->toBeInt();
-    expect($component->mrrOverview['activeCount'])->toBeInt();
-    expect($component->retentionOverview['totalDonors'])->toBe(1);
-    expect($component->retentionOverview['repeatDonors'])->toBe(0);
+    expect($component->donationTrend)->toBeArray();
+    expect($component->campaignsBreakdown)->toBeArray();
+    expect($component->donationSizes)->toBeArray();
+    expect($component->paymentMethods)->toBeArray();
+    expect($component->recentDonations)->toBeCollection();
 });

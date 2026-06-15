@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App;
 
+use App\Enums\DonationStatus;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -44,7 +45,7 @@ class Insights extends Component
         [$from, $to] = $this->dateRange;
 
         $donationsQuery = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
-            ->where('status', 'paid')
+            ->where('status', DonationStatus::Succeeded)
             ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to));
 
@@ -80,7 +81,7 @@ class Insights extends Component
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = now()->subDays($i)->startOfDay();
             $amount = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
-                ->where('status', 'paid')
+                ->where('status', DonationStatus::Succeeded)
                 ->whereDate('created_at', $date)
                 ->sum('gross_amount');
             $data[] = [
@@ -104,7 +105,7 @@ class Insights extends Component
         [$from, $to] = $this->dateRange;
 
         return Campaign::where('organization_id', $org->id)
-            ->withSum(['donations' => fn ($q) => $q->where('status', 'paid')->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))], 'gross_amount')
+            ->withSum(['donations' => fn ($q) => $q->where('status', DonationStatus::Succeeded)->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))], 'gross_amount')
             ->orderByDesc('donations_sum_gross_amount')
             ->limit(5)
             ->get()
@@ -126,7 +127,7 @@ class Insights extends Component
         [$from, $to] = $this->dateRange;
 
         $baseQuery = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
-            ->where('status', 'paid')
+            ->where('status', DonationStatus::Succeeded)
             ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to));
 
@@ -157,7 +158,7 @@ class Insights extends Component
         [$from, $to] = $this->dateRange;
 
         $methods = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
-            ->where('status', 'paid')
+            ->where('status', DonationStatus::Succeeded)
             ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))
             ->selectRaw('payment_method_type, COUNT(*) as count')
