@@ -30,6 +30,15 @@ it('serves the widget script with checkout modal skeleton loading states', funct
         ->assertDontSee('setTimeout(hideSkeleton, 450)', false);
 });
 
+it('does not render inactive elements from the widget fallback', function () {
+    $script = $this->get(route('widget.script'))->getContent();
+
+    expect($script)
+        ->toContain('res.status === 404')
+        ->toContain('Element not found or inactive')
+        ->toContain('if (!data) return;');
+});
+
 it('renders element embed snippets from the first-party widget route', function () {
     config(['app.url' => 'https://ihsan.test']);
 

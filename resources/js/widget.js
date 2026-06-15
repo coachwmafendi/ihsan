@@ -1039,10 +1039,15 @@
 
   fetch(baseUrl + "/api/public/elements/" + encodeURIComponent(token))
     .then(function (res) {
+      if (res.status === 404) {
+        // Element not found or inactive — do not render
+        return null;
+      }
       if (!res.ok) throw new Error("API returned " + res.status);
       return res.json();
     })
     .then(function (data) {
+      if (!data) return;
       ready(function () { renderFromData(data); });
     })
     .catch(function () {
