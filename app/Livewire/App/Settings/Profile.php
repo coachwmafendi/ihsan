@@ -210,9 +210,13 @@ class Profile extends Component
             $this->logo = null;
         }
 
+        $hasChanges = $org->fresh()->fill($updateData)->isDirty();
+
         $org->update($updateData);
 
-        $this->dispatch('notify', message: 'Organisation profile saved.', variant: 'success');
+        if ($hasChanges) {
+            $this->dispatch('notify', message: 'Organisation profile saved.', variant: 'success');
+        }
     }
 
     /**

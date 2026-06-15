@@ -364,7 +364,7 @@
 
         {{-- Save --}}
         <div class="flex items-center justify-end">
-            <x-ui.button type="submit" variant="primary" size="lg">
+            <x-ui.button type="submit" variant="primary" size="lg" wire:loading.attr="disabled">
                 <span wire:loading.remove wire:target="save">Save Changes</span>
                 <span wire:loading wire:target="save">Saving...</span>
             </x-ui.button>

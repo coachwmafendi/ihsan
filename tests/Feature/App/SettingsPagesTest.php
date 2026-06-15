@@ -142,3 +142,21 @@ it('enforces a maximum of 10 allowed domains', function () {
 
     expect($organization->fresh()->settings['allowed_domains'])->toHaveCount(10);
 });
+
+it('only shows a saved notification when the profile actually changes', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->create(['organization_id' => $organization->id]);
+
+    actingAs($user);
+
+    $component = Livewire::test(Profile::class);
+
+    $component
+        ->set('contact_phone', '0123456789')
+        ->call('save')
+        ->assertDispatched('notify', message: 'Organisation profile saved.', variant: 'success');
+
+    $component
+        ->call('save')
+        ->assertNotDispatched('notify');
+});
