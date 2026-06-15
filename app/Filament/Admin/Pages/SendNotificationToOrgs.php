@@ -28,12 +28,12 @@ class SendNotificationToOrgs extends Page
 
     public ?array $data = [];
 
-    public static function getNavigationIcon(): string | \BackedEnum | null
+    public static function getNavigationIcon(): string|\BackedEnum|null
     {
         return 'heroicon-o-bell';
     }
 
-    public static function getNavigationGroup(): string | \UnitEnum | null
+    public static function getNavigationGroup(): string|\UnitEnum|null
     {
         return null;
     }
@@ -198,5 +198,19 @@ class SendNotificationToOrgs extends Page
                 ->success()
                 ->send();
         }
+    }
+
+    public function deleteAllNotifications(): void
+    {
+        abort_unless(self::canAccess(), 403);
+
+        DatabaseNotification::query()
+            ->where('type', AdminToOrgAdminNotification::class)
+            ->delete();
+
+        Notification::make()
+            ->title('All notifications deleted')
+            ->success()
+            ->send();
     }
 }

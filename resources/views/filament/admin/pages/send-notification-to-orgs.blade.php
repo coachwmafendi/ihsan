@@ -26,6 +26,17 @@
                     Sent Notifications
                 </x-slot>
 
+                <div class="mb-4 flex justify-end">
+                    <x-filament::button
+                        wire:click="deleteAllNotifications"
+                        wire:confirm="Are you sure you want to delete all sent notifications? This action cannot be undone."
+                        color="danger"
+                        icon="heroicon-o-trash"
+                    >
+                        Delete All
+                    </x-filament::button>
+                </div>
+
                 <div class="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
