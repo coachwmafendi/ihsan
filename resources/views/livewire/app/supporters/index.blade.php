@@ -76,9 +76,9 @@
                                 </button>
                             </th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                <button wire:click="sortBy('donations_sum_gross_amount')" class="group inline-flex items-center gap-1">
+                                <button wire:click="sortBy('lifetime_report_amount')" class="group inline-flex items-center gap-1">
                                     Lifetime donated
-                                    @if ($sortField === 'donations_sum_gross_amount')
+                                    @if ($sortField === 'lifetime_report_amount')
                                         @if ($sortDirection === 'asc')
                                             <x-heroicon-o-chevron-up class="size-3 text-slate-400" />
                                         @else
@@ -148,8 +148,12 @@
                                 <td class="px-5 py-4 text-sm text-slate-900">
                                     {{ number_format($donor->donations_count) }}
                                 </td>
-                                <td class="px-5 py-4 text-sm font-semibold text-slate-900">
-                                    RM {{ number_format((float) $donor->donations_sum_gross_amount, 2) }}
+                                <td class="px-5 py-4">
+                                    @if ($donor->has_report_approximation)
+                                        <span class="text-sm font-semibold text-slate-900" title="Includes donations converted from foreign currencies">≈ MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
+                                    @else
+                                        <span class="text-sm font-semibold text-slate-900">MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
+                                    @endif
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
                                     {{ $donor->donations_min_created_at ? \Carbon\Carbon::parse($donor->donations_min_created_at)->format('M d, Y') : '-' }}

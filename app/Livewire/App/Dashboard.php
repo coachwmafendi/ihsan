@@ -31,13 +31,12 @@ class Dashboard extends Component
             return [];
         }
 
-        $totalDonations = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
-            ->where('status', DonationStatus::Succeeded)
-            ->sum('gross_amount');
+        $totalDonationsQuery = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
+            ->where('status', DonationStatus::Succeeded);
 
-        $donationCount = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
-            ->where('status', DonationStatus::Succeeded)
-            ->count();
+        $totalDonations = (float) (clone $totalDonationsQuery)->sum(Donation::reportAmountColumn());
+
+        $donationCount = (clone $totalDonationsQuery)->count();
 
         $donorCount = Donor::whereHas('donations.campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->distinct()
@@ -48,7 +47,7 @@ class Dashboard extends Component
         return [
             [
                 'label' => 'Total Donations',
-                'value' => 'RM '.number_format((float) $totalDonations, 2),
+                'value' => (Donation::hasReportApproximations(clone $totalDonationsQuery) ? '≈ ' : '').'MYR '.number_format((float) $totalDonations, 2),
                 'trend' => '+12%',
                 'trendUp' => true,
                 'sparkline' => $this->donationSparkline(),
@@ -91,7 +90,7 @@ class Dashboard extends Component
             $amount = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
                 ->where('status', DonationStatus::Succeeded)
                 ->whereDate('created_at', $date)
-                ->sum('gross_amount');
+                ->sum(Donation::reportAmountColumn());
             $data[] = (int) $amount;
         }
 
@@ -122,9 +121,24 @@ class Dashboard extends Component
         }
 
         return Campaign::where('organization_id', $org->id)
+            ->select('campaigns.*')
             ->withCount(['donations' => fn ($q) => $q->where('status', DonationStatus::Succeeded)])
-            ->withSum(['donations' => fn ($q) => $q->where('status', DonationStatus::Succeeded)], 'gross_amount')
-            ->orderBy('donations_sum_gross_amount', 'desc')
+            ->selectSub(
+                fn ($q) => $q->from('donations')
+                    ->whereColumn('donations.campaign_id', 'campaigns.id')
+                    ->where('donations.status', DonationStatus::Succeeded)
+                    ->select(Donation::reportSumColumn()),
+                'report_amount'
+            )
+            ->selectSub(
+                fn ($q) => $q->from('donations')
+                    ->whereColumn('donations.campaign_id', 'campaigns.id')
+                    ->where('donations.currency', '!=', 'myr')
+                    ->whereNotNull('donations.base_amount')
+                    ->selectRaw('COUNT(*) > 0'),
+                'has_report_approximation'
+            )
+            ->orderByDesc('report_amount')
             ->limit(5)
             ->get();
     }

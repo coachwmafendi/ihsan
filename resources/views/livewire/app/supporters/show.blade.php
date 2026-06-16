@@ -34,7 +34,8 @@
         />
         <x-ui.stat-card
             label="Total Amount"
-            value="{{ $this->totalAmount }}"
+            value="{{ ($this->totalAmount['isApproximate'] ? '≈ ' : '').'MYR '.number_format($this->totalAmount['amount'], 2) }}"
+            subtext="{{ $this->totalAmount['isApproximate'] ? 'Includes converted foreign currencies' : null }}"
         />
         <x-ui.stat-card
             label="Active Subscriptions"
@@ -64,8 +65,8 @@
                                         <td class="px-4 py-3 text-sm text-slate-500">
                                             {{ $donation->created_at->format('M d, Y') }}
                                         </td>
-                                        <td class="px-4 py-3 text-sm font-semibold text-slate-900">
-                                            {{ $donation->formatted_amount }}
+                                        <td class="px-4 py-3">
+                                            <x-donation-report-amount :donation="$donation" />
                                         </td>
                                         <td class="px-4 py-3 text-sm text-slate-600">
                                             @if ($donation->campaign)

@@ -11,7 +11,11 @@
     {{-- Summary Stats --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <x-ui.stat-card label="Total Donations" value="{{ number_format($this->totalCount) }}" />
-        <x-ui.stat-card label="Total Amount" value="{{ $this->totalAmount }}" />
+        <x-ui.stat-card
+            label="Total Amount"
+            value="{{ ($this->totalAmount['isApproximate'] ? '≈ ' : '').'MYR '.number_format($this->totalAmount['amount'], 2) }}"
+            subtext="{{ $this->totalAmount['isApproximate'] ? 'Includes converted foreign currencies' : null }}"
+        />
     </div>
 
     {{-- Filters --}}
@@ -150,8 +154,8 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-5 py-4 text-sm font-semibold text-slate-900">
-                                    {{ $donation->formatted_amount }}
+                                <td class="px-5 py-4">
+                                    <x-donation-report-amount :donation="$donation" />
                                 </td>
                                 <td class="px-5 py-4">
                                     <x-ui.badge status="{{ $donation->status->value }}" size="sm">

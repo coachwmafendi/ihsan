@@ -24,12 +24,14 @@ beforeEach(function () {
         'campaign_id' => $this->campaign->id,
         'donor_id' => $this->donor->id,
         'gross_amount' => 50.00,
+        'base_amount' => null,
         'created_at' => now()->subMonths(3),
     ]);
     $this->lastDonation = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,
         'donor_id' => $this->donor->id,
         'gross_amount' => 75.00,
+        'base_amount' => null,
         'created_at' => now()->subDays(5),
     ]);
 });
@@ -42,7 +44,7 @@ it('renders supporters index with lifetime donated and first and last donation c
     $response->assertSee('First Donation');
     $response->assertSee('Last Donation');
     $response->assertSee($this->donor->name);
-    $response->assertSee('RM '.number_format(125.00, 2));
+    $response->assertSee('MYR '.number_format(125.00, 2));
     $response->assertSee($this->firstDonation->created_at->format('M d, Y'));
     $response->assertSee($this->lastDonation->created_at->format('M d, Y'));
     $response->assertDontSee('Total Donated');
@@ -55,6 +57,21 @@ it('sorts supporters by first and last donation dates', function () {
         ->assertSet('sortField', 'donations_min_created_at')
         ->set('sortField', 'donations_max_created_at')
         ->assertSet('sortField', 'donations_max_created_at');
+});
+
+it('shows approximate MYR lifetime amount for foreign currency donations', function () {
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'gross_amount' => 100.00,
+        'currency' => 'usd',
+        'base_amount' => 450.00,
+        'base_currency' => 'myr',
+    ]);
+
+    $response = $this->actingAs($this->user)->get(route('app.supporters.index'));
+
+    $response->assertSee('≈ MYR 575.00');
 });
 
 it('redirects guests to login', function () {

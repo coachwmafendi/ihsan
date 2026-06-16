@@ -24,18 +24,21 @@ it('calculates ngo insights scoped to the users organization', function () {
 
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 100.00,
+        'base_amount' => null,
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::OneTime,
     ]);
 
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 30.00,
+        'base_amount' => null,
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::Recurring,
     ]);
 
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 10.00,
+        'base_amount' => null,
         'status' => DonationStatus::Failed,
         'type' => DonationType::OneTime,
     ]);

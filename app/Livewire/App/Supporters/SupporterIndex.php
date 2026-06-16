@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Supporters;
 
+use App\Models\Donation;
 use App\Models\Donor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -51,14 +52,28 @@ class SupporterIndex extends Component
         $org = $this->organization;
 
         $query = Donor::query()
+            ->select('donors.*')
             ->when($org, function (Builder $q) use ($org): void {
                 $q->whereHas('donations.campaign', fn (Builder $cq) => $cq->where('organization_id', $org->id));
             })
             ->when(! $org, fn (Builder $q) => $q->whereRaw('1 = 0'))
             ->withCount('donations')
-            ->withSum('donations', 'gross_amount')
             ->withMin('donations', 'created_at')
-            ->withMax('donations', 'created_at');
+            ->withMax('donations', 'created_at')
+            ->selectSub(
+                fn ($q) => $q->from('donations')
+                    ->whereColumn('donations.donor_id', 'donors.id')
+                    ->select(Donation::reportSumColumn()),
+                'lifetime_report_amount'
+            )
+            ->selectSub(
+                fn ($q) => $q->from('donations')
+                    ->whereColumn('donations.donor_id', 'donors.id')
+                    ->where('donations.currency', '!=', 'myr')
+                    ->whereNotNull('donations.base_amount')
+                    ->selectRaw('COUNT(*) > 0'),
+                'has_report_approximation'
+            );
 
         if (filled($this->search)) {
             $search = '%'.$this->search.'%';
@@ -76,7 +91,7 @@ class SupporterIndex extends Component
     {
         $query = $this->baseQuery();
 
-        $allowedSorts = ['name', 'email', 'donations_count', 'donations_sum_gross_amount', 'donations_min_created_at', 'donations_max_created_at', 'created_at'];
+        $allowedSorts = ['name', 'email', 'donations_count', 'lifetime_report_amount', 'donations_min_created_at', 'donations_max_created_at', 'created_at'];
         $field = in_array($this->sortField, $allowedSorts, true) ? $this->sortField : 'created_at';
         $direction = in_array($this->sortDirection, ['asc', 'desc'], true) ? $this->sortDirection : 'desc';
 

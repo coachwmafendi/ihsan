@@ -75,8 +75,8 @@
                                         <p class="text-xs text-slate-500">{{ $campaign->donations_count ?? 0 }} donations</p>
                                     </div>
                                 </div>
-                                <span class="text-sm font-semibold text-slate-900">
-                                    RM {{ number_format(($campaign->donations_sum_gross_amount ?? 0), 2) }}
+                                <span class="text-sm font-semibold text-slate-900" @if($campaign->has_report_approximation) title="Includes donations converted from foreign currencies" @endif>
+                                    @if($campaign->has_report_approximation)≈ @endif MYR {{ number_format(($campaign->report_amount ?? 0), 2) }}
                                 </span>
                             </div>
                             @if(!$loop->last)
@@ -112,7 +112,7 @@
                                             {{ $donation->donor?->name ?? 'Anonymous' }}
                                         </p>
                                         <p class="text-xs text-slate-500">
-                                            RM {{ number_format($donation->gross_amount, 2) }}
+                                            <x-donation-report-amount :donation="$donation" />
                                             <span class="text-slate-300">·</span>
                                             {{ $donation->created_at->diffForHumans() }}
                                         </p>

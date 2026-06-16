@@ -50,8 +50,9 @@ class Insights extends Component
             ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to));
 
         return [
-            'total_amount' => $donationsQuery->sum('gross_amount'),
-            'total_count' => $donationsQuery->count(),
+            'total_amount' => (float) $donationsQuery->sum(Donation::reportAmountColumn()),
+            'total_count' => (clone $donationsQuery)->count(),
+            'has_approximation' => Donation::hasReportApproximations(clone $donationsQuery),
             'active_campaigns' => Campaign::where('organization_id', $org->id)->where('status', 'active')->count(),
             'total_donors' => Donor::whereHas('donations.campaign', fn ($q) => $q->where('organization_id', $org->id))->count(),
             'active_subscriptions' => Subscription::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))->where('status', 'active')->count(),
@@ -80,13 +81,14 @@ class Insights extends Component
         $data = [];
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = now()->subDays($i)->startOfDay();
-            $amount = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
+            $query = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
                 ->where('status', DonationStatus::Succeeded)
-                ->whereDate('created_at', $date)
-                ->sum('gross_amount');
+                ->whereDate('created_at', $date);
+            $amount = $query->sum(Donation::reportAmountColumn());
             $data[] = [
                 'date' => $date->format('j M'),
                 'amount' => (float) $amount,
+                'has_approximation' => Donation::hasReportApproximations($query),
             ];
         }
 
@@ -105,12 +107,37 @@ class Insights extends Component
         [$from, $to] = $this->dateRange;
 
         return Campaign::where('organization_id', $org->id)
-            ->withSum(['donations' => fn ($q) => $q->where('status', DonationStatus::Succeeded)->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))], 'gross_amount')
-            ->orderByDesc('donations_sum_gross_amount')
+            ->select('campaigns.*')
+            ->withCount(['donations' => fn ($q) => $q->where('status', DonationStatus::Succeeded)->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))])
+            ->selectSub(
+                fn ($q) => $q->from('donations')
+                    ->whereColumn('donations.campaign_id', 'campaigns.id')
+                    ->where('donations.status', DonationStatus::Succeeded)
+                    ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
+                    ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
+                    ->select(Donation::reportSumColumn()),
+                'report_amount'
+            )
+            ->selectSub(
+                fn ($q) => $q->from('donations')
+                    ->whereColumn('donations.campaign_id', 'campaigns.id')
+                    ->where('donations.status', DonationStatus::Succeeded)
+                    ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
+                    ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
+                    ->where('donations.currency', '!=', 'myr')
+                    ->whereNotNull('donations.base_amount')
+                    ->selectRaw('COUNT(*) > 0'),
+                'has_report_approximation'
+            )
+            ->orderByDesc('report_amount')
             ->limit(5)
             ->get()
-            ->filter(fn ($c) => ($c->donations_sum_gross_amount ?? 0) > 0)
-            ->map(fn ($c) => ['name' => $c->title, 'amount' => (float) ($c->donations_sum_gross_amount ?? 0)])
+            ->filter(fn ($c) => ($c->report_amount ?? 0) > 0)
+            ->map(fn ($c) => [
+                'name' => $c->title,
+                'amount' => (float) ($c->report_amount ?? 0),
+                'has_approximation' => (bool) $c->has_report_approximation,
+            ])
             ->values()
             ->toArray();
     }
@@ -131,18 +158,20 @@ class Insights extends Component
             ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to));
 
-        $under50 = (clone $baseQuery)->where('gross_amount', '<', 50)->count();
-        $fiftyTo100 = (clone $baseQuery)->whereBetween('gross_amount', [50, 100])->count();
-        $hundredTo500 = (clone $baseQuery)->whereBetween('gross_amount', [100.01, 500])->count();
-        $over500 = (clone $baseQuery)->where('gross_amount', '>', 500)->count();
+        $reportColumn = Donation::reportAmountSql();
+
+        $under50 = (clone $baseQuery)->whereRaw("{$reportColumn} < ?", [50])->count();
+        $fiftyTo100 = (clone $baseQuery)->whereRaw("{$reportColumn} BETWEEN ? AND ?", [50, 100])->count();
+        $hundredTo500 = (clone $baseQuery)->whereRaw("{$reportColumn} BETWEEN ? AND ?", [100.01, 500])->count();
+        $over500 = (clone $baseQuery)->whereRaw("{$reportColumn} > ?", [500])->count();
 
         $total = $under50 + $fiftyTo100 + $hundredTo500 + $over500;
 
         return [
-            ['label' => 'Under RM 50', 'count' => $under50, 'percentage' => $total > 0 ? round(($under50 / $total) * 100) : 0],
-            ['label' => 'RM 50 – 100', 'count' => $fiftyTo100, 'percentage' => $total > 0 ? round(($fiftyTo100 / $total) * 100) : 0],
-            ['label' => 'RM 100 – 500', 'count' => $hundredTo500, 'percentage' => $total > 0 ? round(($hundredTo500 / $total) * 100) : 0],
-            ['label' => 'Over RM 500', 'count' => $over500, 'percentage' => $total > 0 ? round(($over500 / $total) * 100) : 0],
+            ['label' => 'Under MYR 50', 'count' => $under50, 'percentage' => $total > 0 ? round(($under50 / $total) * 100) : 0],
+            ['label' => 'MYR 50 – 100', 'count' => $fiftyTo100, 'percentage' => $total > 0 ? round(($fiftyTo100 / $total) * 100) : 0],
+            ['label' => 'MYR 100 – 500', 'count' => $hundredTo500, 'percentage' => $total > 0 ? round(($hundredTo500 / $total) * 100) : 0],
+            ['label' => 'Over MYR 500', 'count' => $over500, 'percentage' => $total > 0 ? round(($over500 / $total) * 100) : 0],
         ];
     }
 
@@ -184,6 +213,18 @@ class Insights extends Component
             'count' => (int) $m->count,
             'percentage' => $total > 0 ? round(((int) $m->count / $total) * 100) : 0,
         ])->toArray();
+    }
+
+    #[Computed]
+    public function donationTrendTotal(): float
+    {
+        return array_sum(array_column($this->donationTrend, 'amount'));
+    }
+
+    #[Computed]
+    public function donationTrendHasApproximation(): bool
+    {
+        return collect($this->donationTrend)->contains('has_approximation', true);
     }
 
     #[Computed]

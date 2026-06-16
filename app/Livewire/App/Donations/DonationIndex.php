@@ -142,11 +142,14 @@ class DonationIndex extends Component
     }
 
     #[Computed]
-    public function totalAmount(): string
+    public function totalAmount(): array
     {
-        $sum = $this->baseQuery()->sum('gross_amount');
+        $query = $this->baseQuery();
 
-        return 'RM '.number_format((float) $sum, 2);
+        return [
+            'amount' => (float) $query->sum(Donation::reportAmountColumn()),
+            'isApproximate' => Donation::hasReportApproximations($this->baseQuery()),
+        ];
     }
 
     public function render()

@@ -292,9 +292,14 @@ class Donation extends Model
         return DB::raw('COALESCE('.(new static)->qualifyColumn('base_amount').', '.(new static)->qualifyColumn('gross_amount').')');
     }
 
+    public static function reportAmountSql(): string
+    {
+        return DB::connection()->getQueryGrammar()->getValue(self::reportAmountColumn());
+    }
+
     public static function reportSumColumn(): Expression
     {
-        return DB::raw('SUM('.self::reportAmountColumn().')');
+        return DB::raw('SUM(COALESCE('.(new static)->qualifyColumn('base_amount').', '.(new static)->qualifyColumn('gross_amount').'))');
     }
 
     public static function hasReportApproximations(Builder $query): bool

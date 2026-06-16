@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Supporters;
 
+use App\Models\Donation;
 use App\Models\Donor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -41,11 +42,14 @@ class SupporterShow extends Component
     }
 
     #[Computed]
-    public function totalAmount(): string
+    public function totalAmount(): array
     {
-        $sum = $this->scopedDonations()->sum('gross_amount');
+        $query = $this->scopedDonations();
 
-        return 'RM '.number_format((float) $sum, 2);
+        return [
+            'amount' => (float) $query->sum(Donation::reportAmountColumn()),
+            'isApproximate' => Donation::hasReportApproximations($query),
+        ];
     }
 
     #[Computed]

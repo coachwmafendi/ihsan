@@ -23,7 +23,7 @@
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <x-ui.stat-card
             label="Total Donations"
-            value="RM {{ number_format($this->stats['total_amount'] ?? 0, 2) }}"
+            value="{{ ($this->stats['has_approximation'] ? '≈ ' : '').'MYR '.number_format($this->stats['total_amount'] ?? 0, 2) }}"
             subtext="{{ number_format($this->stats['total_count'] ?? 0) }} donations"
         />
         <x-ui.stat-card
@@ -48,10 +48,10 @@
                 @php
                     $sparklineData = collect($this->donationTrend)->pluck('amount')->toArray();
                 @endphp
-                <div class="flex items-end justify-between gap-4">
+                    <div class="flex items-end justify-between gap-4">
                     <div>
-                        <div class="text-2xl font-bold text-slate-900">
-                            RM {{ number_format(array_sum($sparklineData), 2) }}
+                        <div class="text-2xl font-bold text-slate-900" @if($this->donationTrendHasApproximation) title="Includes converted foreign currencies" @endif>
+                            @if($this->donationTrendHasApproximation)≈ @endif MYR {{ number_format($this->donationTrendTotal, 2) }}
                         </div>
                         <div class="text-sm text-slate-500">Total in period</div>
                     </div>
@@ -68,7 +68,7 @@
                             $maxAmount = max(array_column($this->donationTrend, 'amount')) ?: 1;
                             $heightPercent = $maxAmount > 0 ? ($point['amount'] / $maxAmount) * 100 : 0;
                         @endphp
-                        <div class="flex flex-1 flex-col items-center gap-1" title="{{ $point['date'] }}: RM {{ number_format($point['amount'], 2) }}">
+                            <div class="flex flex-1 flex-col items-center gap-1" title="{{ $point['date'] }}: {{ ($point['has_approximation'] ? '≈ ' : '').'MYR '.number_format($point['amount'], 2) }}">
                             <div class="w-full rounded-t bg-teal-500/20 transition-all duration-300 hover:bg-teal-500/40" style="height: {{ max($heightPercent, 2) }}%;"></div>
                             @if(count($this->donationTrend) <= 14 || $loop->index % ceil(count($this->donationTrend) / 7) === 0)
                                 <span class="text-[10px] text-slate-400">{{ $point['date'] }}</span>
@@ -93,10 +93,12 @@
                             $percentage = $totalCampaignAmount > 0 ? round(($campaign['amount'] / $totalCampaignAmount) * 100) : 0;
                         @endphp
                         <div>
-                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="flex items-center justify-between mb-1.5">
                                 <span class="text-sm font-medium text-slate-700">{{ $campaign['name'] }}</span>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-sm font-semibold text-slate-900">RM {{ number_format($campaign['amount'], 2) }}</span>
+                                    <span class="text-sm font-semibold text-slate-900" @if($campaign['has_approximation']) title="Includes donations converted from foreign currencies" @endif>
+                                        @if($campaign['has_approximation'])≈ @endif MYR {{ number_format($campaign['amount'], 2) }}
+                                    </span>
                                     <span class="text-xs text-slate-400">{{ $percentage }}%</span>
                                 </div>
                             </div>
@@ -194,8 +196,8 @@
                                             <span class="text-sm text-slate-900">{{ $donation->donor?->name ?? 'Anonymous' }}</span>
                                         </div>
                                     </td>
-                                    <td class="px-5 py-3 text-right text-sm font-semibold text-slate-900">
-                                        RM {{ number_format($donation->gross_amount, 2) }}
+                                    <td class="px-5 py-3 text-right">
+                                        <x-donation-report-amount :donation="$donation" />
                                     </td>
                                     <td class="px-5 py-3 text-sm text-slate-600">
                                         {{ $donation->campaign?->title ?? '—' }}
@@ -227,8 +229,8 @@
                                     <p class="text-sm font-medium text-slate-900 truncate max-w-[200px]">{{ $campaign['name'] }}</p>
                                 </div>
                             </div>
-                            <span class="text-sm font-semibold text-slate-900">
-                                RM {{ number_format($campaign['amount'], 2) }}
+                            <span class="text-sm font-semibold text-slate-900" @if($campaign['has_approximation']) title="Includes donations converted from foreign currencies" @endif>
+                                @if($campaign['has_approximation'])≈ @endif MYR {{ number_format($campaign['amount'], 2) }}
                             </span>
                         </div>
                         @if(!$loop->last)
