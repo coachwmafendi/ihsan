@@ -8,6 +8,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -108,8 +109,19 @@ class SupporterIndex extends Component
 
     public function render()
     {
+        $donors = $this->donors;
+
+        $exactAmounts = DB::table('donations')
+            ->whereIn('donor_id', $donors->pluck('id'))
+            ->select('donor_id', 'currency', DB::raw('ROUND(SUM(gross_amount), 2) as total'))
+            ->groupBy('donor_id', 'currency')
+            ->get()
+            ->groupBy('donor_id')
+            ->map(fn ($items) => $items->mapWithKeys(fn ($item) => [strtoupper($item->currency) => $item->total]));
+
         return view('livewire.app.supporters.index', [
             'title' => 'Supporters',
+            'exactAmounts' => $exactAmounts,
         ]);
     }
 }

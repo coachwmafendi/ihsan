@@ -149,10 +149,16 @@
                                     {{ number_format($donor->donations_count) }}
                                 </td>
                                 <td class="px-5 py-4">
+                                    @php
+                                        $exact = $exactAmounts->get($donor->id, collect());
+                                        $tooltip = $exact->isNotEmpty()
+                                            ? $exact->map(fn ($amount, $currency) => $currency.' '.number_format((float) $amount, 2))->join(', ')
+                                            : null;
+                                    @endphp
                                     @if ($donor->has_report_approximation)
-                                        <span class="text-sm font-semibold text-slate-900" title="Includes donations converted from foreign currencies">≈ MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
+                                        <span class="text-sm font-semibold text-slate-900" @if ($tooltip) title="{{ $tooltip }}" @endif>≈ MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
                                     @else
-                                        <span class="text-sm font-semibold text-slate-900">MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
+                                        <span class="text-sm font-semibold text-slate-900" @if ($tooltip) title="{{ $tooltip }}" @endif>MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
                                     @endif
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
