@@ -124,7 +124,7 @@
                         </svg>
                         Test Connection
                     </x-ui.button>
-                    <x-ui.button variant="primary" size="sm" wireClick="saveProvider('{{ $slug }}')">
+                    <x-ui.button variant="primary" wireClick="saveProvider('{{ $slug }}')">
                         Save Changes
                     </x-ui.button>
                 </div>

@@ -26,6 +26,18 @@ class EmbedCheckoutController extends Controller
         ]);
     }
 
+    public function loader(): Response
+    {
+        $path = resource_path('js/loader.js');
+
+        $script = file_exists($path) ? file_get_contents($path) : '';
+
+        return response($script, 200, [
+            'Content-Type' => 'application/javascript; charset=UTF-8',
+            'Cache-Control' => 'public, max-age=3600',
+        ]);
+    }
+
     public function script(Request $request): Response
     {
         $checkoutBaseUrl = $request->getSchemeAndHttpHost().'/checkout';

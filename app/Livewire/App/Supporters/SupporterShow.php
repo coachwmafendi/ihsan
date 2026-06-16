@@ -4,19 +4,35 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Supporters;
 
+use App\Enums\SubscriptionStatus;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Stripe\Customer;
+use Stripe\Stripe;
+use Stripe\Subscription as StripeSubscription;
 
 #[Layout('layouts.app')]
 class SupporterShow extends Component
 {
     public Donor $donor;
+
+    public bool $editing = false;
+
+    public string $firstName = '';
+
+    public string $lastName = '';
+
+    public string $email = '';
+
+    public bool $updateRecurringPlans = true;
 
     public function mount(): void
     {
@@ -69,6 +85,121 @@ class SupporterShow extends Component
             ->latest()
             ->limit(10)
             ->get();
+    }
+
+    #[Computed]
+    public function receiptDonations()
+    {
+        return $this->scopedDonations()
+            ->with('campaign')
+            ->latest()
+            ->limit(25)
+            ->get();
+    }
+
+    #[Computed]
+    public function lastDonationDate(): ?string
+    {
+        $lastDonation = $this->scopedDonations()->latest()->first();
+
+        return $lastDonation?->created_at->format('M d, Y');
+    }
+
+    #[Computed]
+    public function donorPortalUrl(): ?string
+    {
+        $org = Auth::user()?->organization;
+
+        if (! $org) {
+            return null;
+        }
+
+        $token = $this->donor->generateMagicToken();
+
+        return route('donorportal.magic-login', ['organization' => $org->code, 'token' => $token]);
+    }
+
+    public function openEditModal(): void
+    {
+        $nameParts = explode(' ', $this->donor->name, 2);
+
+        $this->firstName = $nameParts[0] ?? '';
+        $this->lastName = $nameParts[1] ?? '';
+        $this->email = $this->donor->email;
+        $this->updateRecurringPlans = true;
+        $this->editing = true;
+    }
+
+    public function closeEditModal(): void
+    {
+        $this->editing = false;
+    }
+
+    public function save(): void
+    {
+        $org = Auth::user()?->organization;
+
+        if (! $org) {
+            abort(404);
+        }
+
+        $validated = $this->validate([
+            'firstName' => ['required', 'string', 'max:255'],
+            'lastName' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('donors', 'email')->ignore($this->donor)],
+        ]);
+
+        $name = trim($validated['firstName'].' '.$validated['lastName']);
+
+        $this->donor->update([
+            'name' => $name,
+            'email' => $validated['email'],
+        ]);
+
+        if ($this->updateRecurringPlans && $this->donor->stripe_customer_id) {
+            try {
+                Stripe::setApiKey(config('services.stripe.secret'));
+
+                $stripeOptions = $org->stripe_account_id
+                    ? ['stripe_account' => $org->stripe_account_id]
+                    : [];
+
+                Customer::update($this->donor->stripe_customer_id, [
+                    'name' => $name,
+                    'email' => $validated['email'],
+                ], $stripeOptions);
+
+                $this->donor->subscriptions()
+                    ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Paused])
+                    ->whereHas('campaign', fn (Builder $q) => $q->where('organization_id', $org->id))
+                    ->each(function (Subscription $subscription) use ($stripeOptions): void {
+                        if ($subscription->stripe_subscription_id === null) {
+                            return;
+                        }
+
+                        StripeSubscription::update($subscription->stripe_subscription_id, [
+                            'metadata' => [
+                                'donor_name' => $this->donor->name,
+                                'donor_email' => $this->donor->email,
+                            ],
+                        ], $stripeOptions);
+                    });
+            } catch (\Exception $e) {
+                report($e);
+            }
+        }
+
+        $this->editing = false;
+    }
+
+    #[Computed]
+    public function donorLanguage(): ?string
+    {
+        return match ($this->donor->locale) {
+            'ms' => 'Bahasa Melayu',
+            'en' => 'English',
+            default => $this->donor->locale ? ucfirst($this->donor->locale) : null,
+        };
     }
 
     #[Computed]
