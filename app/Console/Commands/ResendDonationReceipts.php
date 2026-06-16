@@ -19,7 +19,8 @@ class ResendDonationReceipts extends Command
     public function handle(): int
     {
         $query = Donation::with(['donor', 'campaign.organization'])
-            ->where('status', DonationStatus::Succeeded);
+            ->where('status', DonationStatus::Succeeded)
+            ->where('gross_amount', '>', 0);
 
         if (! $this->option('all')) {
             $days = (int) $this->option('days');

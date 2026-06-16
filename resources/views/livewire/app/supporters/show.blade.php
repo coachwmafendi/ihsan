@@ -177,7 +177,6 @@
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Amount</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Campaign</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -197,11 +196,6 @@
                                                 @else
                                                     <span class="text-slate-400">—</span>
                                                 @endif
-                                            </td>
-                                            <td class="px-4 py-3">
-                                                <x-ui.badge status="{{ $donation->status->value }}" size="sm">
-                                                    {{ ucfirst($donation->status->value === 'succeeded' ? 'Paid' : $donation->status->value) }}
-                                                </x-ui.badge>
                                             </td>
                                         </tr>
                                     @endforeach

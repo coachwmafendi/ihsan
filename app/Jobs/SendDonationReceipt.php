@@ -20,6 +20,10 @@ class SendDonationReceipt implements ShouldQueue
     {
         $this->donation->load(['donor', 'campaign.organization']);
 
+        if ((float) $this->donation->gross_amount <= 0) {
+            return;
+        }
+
         Mail::to($this->donation->donor->email)
             ->send(new DonationReceipt($this->donation));
 
