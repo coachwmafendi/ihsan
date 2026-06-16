@@ -63,10 +63,13 @@ class SendNewSubscriptionNotification implements ShouldQueue
     private function formatAmount(Donation $donation): string
     {
         $symbol = Currency::symbol($donation->currency);
-        $amount = number_format((float) $donation->gross_amount, 2);
+        $total = (float) $donation->gross_amount + (float) $donation->donor_fee_covered;
+        $amount = number_format($total, 2);
 
         if (strtolower($donation->currency) !== 'myr' && $donation->base_amount !== null) {
-            $base = number_format((float) $donation->base_amount, 2);
+            $exchangeRate = (float) ($donation->exchange_rate ?? 0);
+            $feeInBase = $exchangeRate > 0 ? round((float) $donation->donor_fee_covered * $exchangeRate, 2) : (float) $donation->donor_fee_covered;
+            $base = number_format((float) $donation->base_amount + $feeInBase, 2);
 
             return "{$symbol} {$amount} (≈ MYR {$base})";
         }

@@ -18,7 +18,7 @@
         @php
             $symbol = $donation->currency_symbol;
             $hasCoveredFee = $donation->donor_fee_covered > 0;
-            $netAmount = $symbol.' '.number_format((float) $donation->net_amount, 2);
+            $netAmount = \App\Support\Currency::symbol('myr').' '.number_format((float) $donation->net_amount, 2);
         @endphp
 
         <table style="width: 100%; border-collapse: collapse; margin: 24px 0; border-radius: 8px; overflow: hidden;">
@@ -27,7 +27,7 @@
                 <td style="padding: 12px 16px; font-weight: 600;">{{ $donation->donor->name }}</td>
             </tr>
             <tr style="background: #fff;">
-                <td style="padding: 12px 16px; color: #6b7280;">Donation</td>
+                <td style="padding: 12px 16px; color: #6b7280;">{{ $hasCoveredFee ? 'Donation (incl. fee)' : 'Donation' }}</td>
                 <td style="padding: 12px 16px; font-weight: 700; font-size: 1.25rem; color: #7c3aed;">{{ $amountDisplay }}</td>
             </tr>
             @if ($hasCoveredFee)

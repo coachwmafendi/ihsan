@@ -20,8 +20,11 @@ class NewDonationNotification extends Mailable
 
     public function envelope(): Envelope
     {
+        $donorName = $this->donation->donor?->name ?? 'Someone';
+        $campaignTitle = $this->donation->campaign?->title ?? 'your campaign';
+
         return new Envelope(
-            subject: 'New Donation Received — '.config('app.name'),
+            subject: "New One-Time donation {$this->amountDisplay} by {$donorName} on {$campaignTitle} — ".config('app.name'),
         );
     }
 
