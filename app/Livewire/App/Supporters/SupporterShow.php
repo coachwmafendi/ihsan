@@ -48,7 +48,7 @@ class SupporterShow extends Component
 
         return [
             'amount' => (float) $query->sum(Donation::reportAmountColumn()),
-            'isApproximate' => Donation::hasReportApproximations($query),
+            'isApproximate' => Donation::hasReportApproximations($query->getQuery()),
         ];
     }
 
