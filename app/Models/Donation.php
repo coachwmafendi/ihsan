@@ -8,13 +8,16 @@ use App\Services\PublicIdGenerator;
 use App\Support\Currency;
 use Carbon\CarbonImmutable;
 use Database\Factories\DonationFactory;
+use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -258,6 +261,48 @@ class Donation extends Model
 
             return "{$symbol} {$amount}";
         });
+    }
+
+    public function reportAmount(): Attribute
+    {
+        return Attribute::get(fn () => (float) ($this->base_amount ?? $this->gross_amount));
+    }
+
+    public function isReportApproximate(): Attribute
+    {
+        return Attribute::get(fn () => $this->currency !== 'myr' && $this->base_amount !== null);
+    }
+
+    public function formattedReportAmount(): Attribute
+    {
+        return Attribute::get(function () {
+            $prefix = $this->is_report_approximate ? '≈ MYR' : 'MYR';
+
+            return $prefix.' '.number_format($this->report_amount, 2);
+        });
+    }
+
+    public function formattedOriginalAmount(): Attribute
+    {
+        return Attribute::get(fn () => $this->formatted_amount);
+    }
+
+    public static function reportAmountColumn(): Expression
+    {
+        return DB::raw('COALESCE('.(new static)->qualifyColumn('base_amount').', '.(new static)->qualifyColumn('gross_amount').')');
+    }
+
+    public static function reportSumColumn(): Expression
+    {
+        return DB::raw('SUM('.self::reportAmountColumn().')');
+    }
+
+    public static function hasReportApproximations(Builder $query): bool
+    {
+        return (clone $query)
+            ->where('currency', '!=', 'myr')
+            ->whereNotNull('base_amount')
+            ->exists();
     }
 
     protected function casts(): array

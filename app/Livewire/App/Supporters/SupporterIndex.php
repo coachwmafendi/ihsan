@@ -56,7 +56,9 @@ class SupporterIndex extends Component
             })
             ->when(! $org, fn (Builder $q) => $q->whereRaw('1 = 0'))
             ->withCount('donations')
-            ->withSum('donations', 'gross_amount');
+            ->withSum('donations', 'gross_amount')
+            ->withMin('donations', 'created_at')
+            ->withMax('donations', 'created_at');
 
         if (filled($this->search)) {
             $search = '%'.$this->search.'%';
@@ -74,7 +76,7 @@ class SupporterIndex extends Component
     {
         $query = $this->baseQuery();
 
-        $allowedSorts = ['name', 'email', 'donations_count', 'donations_sum_gross_amount', 'created_at'];
+        $allowedSorts = ['name', 'email', 'donations_count', 'donations_sum_gross_amount', 'donations_min_created_at', 'donations_max_created_at', 'created_at'];
         $field = in_array($this->sortField, $allowedSorts, true) ? $this->sortField : 'created_at';
         $direction = in_array($this->sortDirection, ['asc', 'desc'], true) ? $this->sortDirection : 'desc';
 

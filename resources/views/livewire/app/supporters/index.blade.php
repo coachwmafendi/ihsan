@@ -77,8 +77,36 @@
                             </th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('donations_sum_gross_amount')" class="group inline-flex items-center gap-1">
-                                    Total Donated
+                                    Lifetime donated
                                     @if ($sortField === 'donations_sum_gross_amount')
+                                        @if ($sortDirection === 'asc')
+                                            <x-heroicon-o-chevron-up class="size-3 text-slate-400" />
+                                        @else
+                                            <x-heroicon-o-chevron-down class="size-3 text-slate-400" />
+                                        @endif
+                                    @else
+                                        <x-heroicon-o-chevron-up-down class="size-3 text-slate-300" />
+                                    @endif
+                                </button>
+                            </th>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                <button wire:click="sortBy('donations_min_created_at')" class="group inline-flex items-center gap-1">
+                                    First Donation
+                                    @if ($sortField === 'donations_min_created_at')
+                                        @if ($sortDirection === 'asc')
+                                            <x-heroicon-o-chevron-up class="size-3 text-slate-400" />
+                                        @else
+                                            <x-heroicon-o-chevron-down class="size-3 text-slate-400" />
+                                        @endif
+                                    @else
+                                        <x-heroicon-o-chevron-up-down class="size-3 text-slate-300" />
+                                    @endif
+                                </button>
+                            </th>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                <button wire:click="sortBy('donations_max_created_at')" class="group inline-flex items-center gap-1">
+                                    Last Donation
+                                    @if ($sortField === 'donations_max_created_at')
                                         @if ($sortDirection === 'asc')
                                             <x-heroicon-o-chevron-up class="size-3 text-slate-400" />
                                         @else
@@ -112,18 +140,7 @@
                                 onclick="window.location='{{ route('app.supporters.show', $donor) }}'"
                             >
                                 <td class="px-5 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50">
-                                            @if ($donor->photo_url)
-                                                <img src="{{ $donor->photo_url }}" alt="" class="h-8 w-8 rounded-full object-cover" />
-                                            @else
-                                                <x-heroicon-o-user class="size-4 text-slate-400" />
-                                            @endif
-                                        </div>
-                                        <div>
-                                            <p class="text-sm font-medium text-slate-900">{{ $donor->name }}</p>
-                                        </div>
-                                    </div>
+                                    <p class="text-sm font-medium text-slate-900">{{ $donor->name }}</p>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
                                     {{ $donor->email }}
@@ -133,6 +150,12 @@
                                 </td>
                                 <td class="px-5 py-4 text-sm font-semibold text-slate-900">
                                     RM {{ number_format((float) $donor->donations_sum_gross_amount, 2) }}
+                                </td>
+                                <td class="px-5 py-4 text-sm text-slate-500">
+                                    {{ $donor->donations_min_created_at ? \Carbon\Carbon::parse($donor->donations_min_created_at)->format('M d, Y') : '-' }}
+                                </td>
+                                <td class="px-5 py-4 text-sm text-slate-500">
+                                    {{ $donor->donations_max_created_at ? \Carbon\Carbon::parse($donor->donations_max_created_at)->format('M d, Y') : '-' }}
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
                                     {{ $donor->created_at->format('M d, Y') }}
