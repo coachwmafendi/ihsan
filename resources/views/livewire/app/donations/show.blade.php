@@ -559,6 +559,33 @@
         </div>
     </flux:modal>
 
+    {{-- Edit Donation Modal --}}
+    <flux:modal wire:model="showEditDonationModal" name="edit-donation-modal">
+        <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-slate-900">Edit donation</h3>
+
+            <p class="text-sm text-slate-600">
+                These changes will only apply to this specific donation.
+            </p>
+
+            <flux:select wire:model="editCampaignId" label="Campaign">
+                @php
+                    $campaigns = $donation->campaign?->organization?->campaigns ?? collect();
+                @endphp
+                @foreach ($campaigns as $campaign)
+                    <flux:select.option value="{{ $campaign->id }}">{{ $campaign->title }}</flux:select.option>
+                @endforeach
+            </flux:select>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <flux:modal.close>
+                    <x-ui.button wireClick="cancelEditDonationModal" variant="secondary">Cancel</x-ui.button>
+                </flux:modal.close>
+                <x-ui.button wireClick="saveDonation" variant="primary">Save changes</x-ui.button>
+            </div>
+        </div>
+    </flux:modal>
+
     {{-- Edit Personal Information Modal --}}
     <flux:modal wire:model="showEditPersonalModal" name="edit-personal-information-modal">
         <div class="space-y-4">
