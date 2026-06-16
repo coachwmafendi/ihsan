@@ -6,6 +6,7 @@ namespace App\Livewire\App\Supporters;
 
 use App\Models\Donation;
 use App\Models\Donor;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,12 +24,44 @@ class SupporterIndex extends Component
     #[Url(except: '')]
     public string $search = '';
 
+    #[Url(except: 'all_time')]
+    public string $period = 'all_time';
+
+    #[Url(except: '')]
+    public string $dateFrom = '';
+
+    #[Url(except: '')]
+    public string $dateTo = '';
+
     public string $sortField = 'created_at';
 
     public string $sortDirection = 'desc';
 
     public function updatedSearch(): void
     {
+        $this->resetPage();
+    }
+
+    public function updatedPeriod(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearDate(): void
+    {
+        $this->period = 'all_time';
+        $this->dateFrom = '';
+        $this->dateTo = '';
         $this->resetPage();
     }
 
@@ -46,6 +79,58 @@ class SupporterIndex extends Component
     public function organization()
     {
         return Auth::user()?->organization;
+    }
+
+    #[Computed]
+    public function dateChipLabel(): string
+    {
+        if ($this->period === 'custom' && $this->dateFrom && $this->dateTo) {
+            return Carbon::parse($this->dateFrom)->format('M d').' – '.Carbon::parse($this->dateTo)->format('M d, Y');
+        }
+
+        return match ($this->period) {
+            'today' => 'Today',
+            'yesterday' => 'Yesterday',
+            '7_days' => 'Last 7 days',
+            '14_days' => 'Last 14 days',
+            '30_days' => 'Last 30 days',
+            'this_week' => 'This week',
+            'this_month' => 'This month',
+            'this_year' => 'This year',
+            'last_week' => 'Last week',
+            'last_month' => 'Last month',
+            'last_year' => 'Last year',
+            default => 'Date',
+        };
+    }
+
+    /**
+     * @return array{?Carbon, ?Carbon}
+     */
+    public function periodRange(): array
+    {
+        if ($this->period === 'custom') {
+            return [
+                $this->dateFrom ? Carbon::parse($this->dateFrom)->startOfDay() : null,
+                $this->dateTo ? Carbon::parse($this->dateTo)->endOfDay() : null,
+            ];
+        }
+
+        return match ($this->period) {
+            'today' => [now()->startOfDay(), now()->endOfDay()],
+            'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
+            '7_days' => [now()->subDays(6)->startOfDay(), now()->endOfDay()],
+            '14_days' => [now()->subDays(13)->startOfDay(), now()->endOfDay()],
+            '30_days' => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
+            '90_days' => [now()->subDays(89)->startOfDay(), now()->endOfDay()],
+            'this_week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'this_month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'this_year' => [now()->startOfYear(), now()->endOfYear()],
+            'last_week' => [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()],
+            'last_month' => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+            'last_year' => [now()->subYear()->startOfYear(), now()->subYear()->endOfYear()],
+            default => [null, null],
+        };
     }
 
     private function baseQuery(): Builder
@@ -81,6 +166,14 @@ class SupporterIndex extends Component
             $query->where(function (Builder $q) use ($search): void {
                 $q->where('name', 'like', $search)
                     ->orWhere('email', 'like', $search);
+            });
+        }
+
+        [$start, $end] = $this->periodRange();
+
+        if ($start !== null && $end !== null) {
+            $query->whereHas('donations', function (Builder $q) use ($start, $end): void {
+                $q->whereBetween('created_at', [$start, $end]);
             });
         }
 
