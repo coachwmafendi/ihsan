@@ -38,7 +38,7 @@
                     for (let i = 1; i <= this.daysInMonth(y, m); i++) days.push(i);
                     return days;
                 },
-                fmt(y, m, d) { return `\${y}-\${String(m+1).padStart(2,'0')}-\${String(d).padStart(2,'0')}` },
+                fmt(y, m, d) { return String(y) + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0') },
                 monthName(m) { return ['January','February','March','April','May','June','July','August','September','October','November','December'][m] },
                 selectDay(dateStr) {
                     if (!this.startDate || (this.startDate && this.endDate)) {
