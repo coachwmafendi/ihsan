@@ -187,12 +187,20 @@
                                     {{ $element->created_at->format('M d, Y') }}
                                 </td>
                                 @if (! $showArchived)
+                                    @php
+                                        $isTrigger = in_array($element->type->value, ['button', 'link']);
+                                        $embedCode = $isTrigger
+                                            ? 'data-ihsan="'.$element->token.'"'
+                                            : "<script src='".url('/e/widget.js')."' data-token='{$element->token}' data-type='{$element->type->value}' async></script>";
+                                    @endphp
                                     <td class="px-5 py-4">
                                         <div x-data="{ copied: false }" class="flex items-center gap-2">
-                                            <code class="max-w-xs truncate rounded bg-slate-100 px-2 py-1 text-xs font-mono text-slate-600">{{ $element->token }}</code>
+                                            <code class="max-w-xs truncate rounded bg-slate-100 px-2 py-1 text-xs font-mono text-slate-600">
+                                                {{ $isTrigger ? 'data-ihsan="'.$element->token.'"' : $element->token }}
+                                            </code>
                                             <button
                                                 type="button"
-                                                @click="navigator.clipboard.writeText(`<script src='{{ url('/e/widget.js') }}' data-token='{{ $element->token }}' data-type='{{ $element->type->value }}' async><\/script>`); copied = true; setTimeout(() => copied = false, 2000)"
+                                                @click="navigator.clipboard.writeText(@js($embedCode)); copied = true; setTimeout(() => copied = false, 2000)"
                                                 class="shrink-0 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
                                                 title="Copy embed code"
                                             >

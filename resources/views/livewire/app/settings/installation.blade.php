@@ -1,26 +1,11 @@
 @php
-    use App\Enums\ElementType;
-
-    $triggerTypes = [ElementType::Button->value, ElementType::Link->value];
-
     $loaderSnippet = '<script src="' . url('/e/loader.js') . '" data-ihsan-loader async></script>';
-
-    // Build one combined block: data-ihsan comment for triggers, full <script> tag for self-rendering elements.
-    $elementsBlock = collect($this->elements)->map(function ($element) {
-        if (in_array($element->type->value, [ElementType::Button->value, ElementType::Link->value])) {
-            return "<!-- {$element->name} ({$element->type->label()}) — add this attribute to your existing button/link -->\n".
-                   "data-ihsan=\"{$element->token}\"";
-        }
-
-        return "<!-- {$element->name} ({$element->type->label()}) — paste where you want it to appear -->\n".
-               '<script src="'.$this->widgetUrl().'" data-token="'.$element->token.'" data-type="'.$element->type->value.'" async></script>';
-    })->implode("\n\n");
 @endphp
 
 <div class="space-y-8">
 
     {{-- Page Header --}}
-    <x-ui.page-header title="Installation" subtitle="Two copy-paste steps to embed your donation elements." />
+    <x-ui.page-header title="Installation" subtitle="Three quick steps to embed your donation elements on any website." />
 
     {{-- ─── Step 1: Loader snippet ─────────────────────────────────────────── --}}
     <div>
@@ -62,65 +47,60 @@
         </div>
     </div>
 
-    {{-- ─── Step 2: All elements, one block ────────────────────────────────── --}}
+    {{-- ─── Step 2: Tracking IDs ───────────────────────────────────────────── --}}
     <div>
         <div class="mb-5 flex items-center gap-3">
             <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">2</span>
             <div>
-                <h2 class="text-base font-semibold text-slate-900">Add your elements</h2>
-                <p class="mt-0.5 text-sm text-slate-500">All your active elements, combined into one block. Copy once and place each part where it belongs.</p>
+                <h2 class="text-base font-semibold text-slate-900">Connect your tracking</h2>
+                <p class="mt-0.5 text-sm text-slate-500">Add your Meta Pixel ID and Google Analytics / Ads container ID so every donation tracked automatically.</p>
             </div>
         </div>
 
-        @if (count($this->elements) === 0)
-            <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-14 text-center">
-                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                    <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/>
+        <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-4">
+            <div class="flex items-center gap-3">
+                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50">
+                    <svg class="h-4.5 w-4.5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 013 5.25m18 0H3"/>
                     </svg>
                 </div>
-                <p class="mt-3 text-sm font-medium text-slate-900">No active elements yet</p>
-                <p class="mt-1 text-xs text-slate-500">Create an element first, then come back to get its embed code.</p>
-                <x-ui.button variant="outline" size="sm" class="mt-4" href="{{ route('app.elements.index') }}">
-                    Go to Elements
-                </x-ui.button>
-            </div>
-        @else
-            <div class="rounded-xl border border-slate-200 bg-white" x-data="{ copied: false }">
-                <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3">
-                    <div class="flex items-center gap-2">
-                        <span class="flex h-2 w-2 rounded-full bg-emerald-400"></span>
-                        <span class="text-xs font-medium text-slate-500">{{ count($this->elements) }} active element{{ count($this->elements) === 1 ? '' : 's' }}</span>
-                    </div>
-                    <button
-                        type="button"
-                        x-on:click="navigator.clipboard.writeText(@js($elementsBlock)); copied = true; setTimeout(() => copied = false, 2000)"
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                    >
-                        <template x-if="!copied">
-                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
-                            </svg>
-                        </template>
-                        <template x-if="copied">
-                            <svg class="h-3.5 w-3.5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
-                            </svg>
-                        </template>
-                        <span x-text="copied ? 'Copied!' : 'Copy all'"></span>
-                    </button>
-                </div>
-                <div class="px-5 py-4">
-                    <pre class="overflow-x-auto rounded-lg bg-slate-950 px-4 py-3 text-xs leading-relaxed text-slate-300"><code>{{ $elementsBlock }}</code></pre>
-                </div>
-                <div class="border-t border-slate-50 bg-slate-50/60 px-5 py-3">
-                    <p class="text-xs text-slate-500">
-                        Lines starting with <code class="rounded bg-slate-200 px-1 py-0.5 font-mono">data-ihsan="..."</code> are attributes — add them to your existing buttons/links.
-                        Lines starting with <code class="rounded bg-slate-200 px-1 py-0.5 font-mono">&lt;script&gt;</code> are full snippets — paste them where you want that element to appear.
-                    </p>
+                <div>
+                    <p class="text-sm font-medium text-slate-900">Meta, Google Analytics, Google Ads, TikTok</p>
+                    <p class="text-xs text-slate-500">Configure once in Tracking & Analytics — applies to all your elements.</p>
                 </div>
             </div>
-        @endif
+            <x-ui.button variant="outline" size="sm" href="{{ route('app.settings.tracking') }}">
+                Configure tracking
+            </x-ui.button>
+        </div>
+    </div>
+
+    {{-- ─── Step 3: Element embed codes ────────────────────────────────────── --}}
+    <div>
+        <div class="mb-5 flex items-center gap-3">
+            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">3</span>
+            <div>
+                <h2 class="text-base font-semibold text-slate-900">Add your elements</h2>
+                <p class="mt-0.5 text-sm text-slate-500">Each element has its own embed code, ready to copy from the Elements page.</p>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-4">
+            <div class="flex items-center gap-3">
+                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50">
+                    <svg class="h-4.5 w-4.5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zm-7.518-.267A8.25 8.25 0 1120.25 10.5M8.288 14.212A5.25 5.25 0 1117.25 10.5"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-900">{{ count($this->elements) }} active element{{ count($this->elements) === 1 ? '' : 's' }}</p>
+                    <p class="text-xs text-slate-500">Each row has its own copy button — buttons/links get a <code class="rounded bg-slate-100 px-1 py-0.5 font-mono">data-ihsan</code> attribute, other elements get a full snippet.</p>
+                </div>
+            </div>
+            <x-ui.button variant="outline" size="sm" href="{{ route('app.elements.index') }}">
+                Go to Elements
+            </x-ui.button>
+        </div>
     </div>
 
     {{-- ─── Platform Guides ────────────────────────────────────────────────── --}}
@@ -141,7 +121,7 @@
                         'steps' => [
                             'Open your website\'s HTML editor and find the <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">&lt;head&gt;</code> section.',
                             'Paste the loader snippet (Step 1 above) inside <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">&lt;head&gt;</code>.',
-                            'Paste the elements block (Step 2 above) — attribute lines onto your buttons, script lines wherever they should appear.',
+                            'Go to <strong>Elements</strong>, copy the embed code for each element, and place it where it belongs.',
                         ],
                     ],
                     'wp' => [
@@ -170,7 +150,7 @@
                         'icon_color' => 'text-slate-700',
                         'steps' => [
                             'Go to <strong>Website → Pages → Website Tools → Code Injection</strong> and paste the loader snippet in the <em>Header</em> section.',
-                            'On your page, add a <strong>Code Block</strong> and paste the script-tag lines from your elements block.',
+                            'On your page, add a <strong>Code Block</strong> and paste the embed code copied from the Elements page.',
                         ],
                     ],
                     'wix' => [
