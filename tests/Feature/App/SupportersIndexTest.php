@@ -74,6 +74,15 @@ it('shows approximate MYR lifetime amount for foreign currency donations', funct
     $response->assertSee('≈ MYR 575.00');
 });
 
+it('displays donor names in title case', function () {
+    $this->donor->update(['name' => 'AHMAD BIN ABU']);
+
+    $response = $this->actingAs($this->user)->get(route('app.supporters.index'));
+
+    $response->assertSee('Ahmad Bin Abu');
+    $response->assertDontSee('AHMAD BIN ABU');
+});
+
 it('redirects guests to login', function () {
     $this->get(route('app.supporters.index'))->assertRedirect('/login');
 });

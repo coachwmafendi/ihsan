@@ -11,7 +11,7 @@
                 @endif
             </div>
             <div>
-                <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ $donor->name }}</h1>
+                <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ \Illuminate\Support\Str::title($donor->name) }}</h1>
                 <p class="mt-1 text-sm text-slate-500">Supporter since {{ $donor->created_at->format('M d, Y') }}</p>
             </div>
         </div>
