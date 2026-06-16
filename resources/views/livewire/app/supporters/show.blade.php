@@ -181,7 +181,10 @@
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
                                     @foreach ($this->recentDonations as $donation)
-                                        <tr class="transition-colors hover:bg-slate-50">
+                                        <tr
+                                            class="cursor-pointer transition-colors hover:bg-slate-50"
+                                            onclick="window.location='{{ route('app.donations.show', $donation) }}'"
+                                        >
                                             <td class="px-4 py-3 text-sm text-slate-500">
                                                 {{ $donation->created_at->format('M d, Y') }}
                                             </td>
@@ -190,7 +193,7 @@
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-600">
                                                 @if ($donation->campaign)
-                                                    <a href="{{ route('app.campaigns.edit', $donation->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
+                                                    <a href="{{ route('app.campaigns.edit', $donation->campaign) }}" wire:navigate.stop class="hover:text-teal-600" onclick="event.stopPropagation()">
                                                         {{ $donation->campaign->title }}
                                                     </a>
                                                 @else
@@ -229,7 +232,10 @@
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 bg-white">
                                         @foreach ($this->recentSubscriptions as $subscription)
-                                            <tr class="transition-colors hover:bg-slate-50">
+                                            <tr
+                                                class="cursor-pointer transition-colors hover:bg-slate-50"
+                                                onclick="window.location='{{ route('app.subscriptions.show', $subscription) }}'"
+                                            >
                                                 <td class="px-4 py-3 text-sm font-semibold text-slate-900">
                                                     {{ $subscription->currency_symbol }} {{ number_format((float) $subscription->amount, 2) }}
                                                 </td>
@@ -243,7 +249,7 @@
                                                 </td>
                                                 <td class="px-4 py-3 text-sm text-slate-600">
                                                     @if ($subscription->campaign)
-                                                        <a href="{{ route('app.campaigns.edit', $subscription->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
+                                                        <a href="{{ route('app.campaigns.edit', $subscription->campaign) }}" wire:navigate.stop class="hover:text-teal-600" onclick="event.stopPropagation()">
                                                             {{ $subscription->campaign->title }}
                                                         </a>
                                                     @else
@@ -399,7 +405,7 @@
     <div>
         <a href="{{ route('app.supporters.index') }}" wire:navigate class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-700">
             <x-heroicon-o-arrow-left class="size-4 mr-1" />
-            Back to donors
+            Back to Supporters
         </a>
     </div>
 </div>

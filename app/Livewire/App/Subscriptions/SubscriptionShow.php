@@ -54,6 +54,21 @@ class SubscriptionShow extends Component
             ->get();
     }
 
+    public function formattedAmount(): string
+    {
+        return $this->subscription->currency_symbol.' '.number_format((float) $this->subscription->amount, 2).' '.strtoupper($this->subscription->currency);
+    }
+
+    public function frequencyLabel(): string
+    {
+        return ucfirst($this->subscription->interval->value);
+    }
+
+    public function feeCoveredLabel(): string
+    {
+        return $this->subscription->cover_fee ? 'Covered' : 'Not covered';
+    }
+
     public function render()
     {
         return view('livewire.app.subscriptions.show', [

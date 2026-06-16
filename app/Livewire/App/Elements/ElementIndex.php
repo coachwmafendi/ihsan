@@ -28,6 +28,9 @@ class ElementIndex extends Component
     #[Url(except: '')]
     public string $typeFilter = '';
 
+    #[Url(except: '')]
+    public string $statusFilter = '';
+
     public string $sortField = 'created_at';
 
     public string $sortDirection = 'desc';
@@ -204,6 +207,11 @@ class ElementIndex extends Component
         $this->resetPage();
     }
 
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function sortBy(string $field): void
     {
         if ($this->sortField === $field) {
@@ -240,6 +248,10 @@ class ElementIndex extends Component
 
         if (filled($this->typeFilter)) {
             $query->where('type', $this->typeFilter);
+        }
+
+        if (filled($this->statusFilter)) {
+            $query->where('is_active', $this->statusFilter === 'active');
         }
 
         return $query;

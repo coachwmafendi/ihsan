@@ -70,6 +70,14 @@
                 <flux:select.option value="link">Link</flux:select.option>
             </x-ui.select>
         </div>
+
+        <div class="w-40">
+            <x-ui.select wire:model.live="statusFilter" class="h-10">
+                <flux:select.option value="">All Statuses</flux:select.option>
+                <flux:select.option value="active">Active</flux:select.option>
+                <flux:select.option value="inactive">Inactive</flux:select.option>
+            </x-ui.select>
+        </div>
     </div>
 
     {{-- Elements Table --}}

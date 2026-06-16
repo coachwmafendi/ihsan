@@ -93,6 +93,32 @@ it('searches donations by donor name', function () {
     $response->assertDontSee($this->donation->public_id);
 });
 
+it('displays donation detail sections', function () {
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Donation amount')
+        ->assertSee('Payment & fees')
+        ->assertSee('Personal information')
+        ->assertSee('Source')
+        ->assertSee('Insights')
+        ->assertSee('Receipts')
+        ->assertSee($this->donor->name)
+        ->assertSee($this->campaign->title);
+});
+
+it('shows refund modal and validates reason', function () {
+    $this->donation->update(['stripe_charge_id' => 'ch_test_123']);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->call('openRefundModal')
+        ->assertSet('showRefundModal', true)
+        ->call('confirmRefund')
+        ->assertHasErrors(['refundReason' => 'required'])
+        ->set('refundReason', 'duplicate')
+        ->assertSet('refundReason', 'duplicate');
+});
+
 it('redirects guests to login', function () {
     $this->get(route('app.donations.index'))->assertRedirect('/login');
     $this->get(route('app.donations.show', $this->donation))->assertRedirect('/login');
