@@ -68,7 +68,7 @@ class SendNewSubscriptionNotification implements ShouldQueue
         if (strtolower($donation->currency) !== 'myr' && $donation->base_amount !== null) {
             $base = number_format((float) $donation->base_amount, 2);
 
-            return "≈ MYR {$base} ({$symbol} {$amount})";
+            return "{$symbol} {$amount} (≈ MYR {$base})";
         }
 
         return "{$symbol} {$amount}";

@@ -20,8 +20,11 @@ class NewSubscriptionNotification extends Mailable
 
     public function envelope(): Envelope
     {
+        $donorName = $this->donation->donor?->name ?? 'Someone';
+        $campaignTitle = $this->donation->campaign?->title ?? 'your campaign';
+
         return new Envelope(
-            subject: 'New Recurring Subscription — '.config('app.name'),
+            subject: "New Recurring Subscription {$this->amountDisplay} by {$donorName} on {$campaignTitle} — ".config('app.name'),
         );
     }
 
