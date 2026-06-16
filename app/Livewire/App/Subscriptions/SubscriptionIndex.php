@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Subscriptions;
 
+use App\Models\Campaign;
 use App\Models\Subscription;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -24,6 +26,18 @@ class SubscriptionIndex extends Component
     #[Url(except: '')]
     public string $statusFilter = '';
 
+    #[Url(except: '')]
+    public string $campaignFilter = '';
+
+    #[Url(except: 'all_time')]
+    public string $period = 'all_time';
+
+    #[Url(except: '')]
+    public string $dateFrom = '';
+
+    #[Url(except: '')]
+    public string $dateTo = '';
+
     public string $sortField = 'created_at';
 
     public string $sortDirection = 'desc';
@@ -35,6 +49,34 @@ class SubscriptionIndex extends Component
 
     public function updatedStatusFilter(): void
     {
+        $this->resetPage();
+    }
+
+    public function updatedCampaignFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPeriod(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearDate(): void
+    {
+        $this->period = 'all_time';
+        $this->dateFrom = '';
+        $this->dateTo = '';
         $this->resetPage();
     }
 
@@ -54,6 +96,72 @@ class SubscriptionIndex extends Component
         return Auth::user()?->organization;
     }
 
+    #[Computed]
+    public function campaigns()
+    {
+        $org = $this->organization;
+
+        if (! $org) {
+            return collect();
+        }
+
+        return Campaign::where('organization_id', $org->id)
+            ->orderBy('title')
+            ->get(['id', 'title']);
+    }
+
+    #[Computed]
+    public function dateChipLabel(): string
+    {
+        if ($this->period === 'custom' && $this->dateFrom && $this->dateTo) {
+            return Carbon::parse($this->dateFrom)->format('M d').' – '.Carbon::parse($this->dateTo)->format('M d, Y');
+        }
+
+        return match ($this->period) {
+            'today' => 'Today',
+            'yesterday' => 'Yesterday',
+            '7_days' => 'Last 7 days',
+            '14_days' => 'Last 14 days',
+            '30_days' => 'Last 30 days',
+            'this_week' => 'This week',
+            'this_month' => 'This month',
+            'this_year' => 'This year',
+            'last_week' => 'Last week',
+            'last_month' => 'Last month',
+            'last_year' => 'Last year',
+            default => 'Date',
+        };
+    }
+
+    /**
+     * @return array{?Carbon, ?Carbon}
+     */
+    public function periodRange(): array
+    {
+        if ($this->period === 'custom') {
+            return [
+                $this->dateFrom ? Carbon::parse($this->dateFrom)->startOfDay() : null,
+                $this->dateTo ? Carbon::parse($this->dateTo)->endOfDay() : null,
+            ];
+        }
+
+        return match ($this->period) {
+            'today' => [now()->startOfDay(), now()->endOfDay()],
+            'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
+            '7_days' => [now()->subDays(6)->startOfDay(), now()->endOfDay()],
+            '14_days' => [now()->subDays(13)->startOfDay(), now()->endOfDay()],
+            '30_days' => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
+            '90_days' => [now()->subDays(89)->startOfDay(), now()->endOfDay()],
+            'this_week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'this_month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'this_year' => [now()->startOfYear(), now()->endOfYear()],
+            'last_week' => [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()],
+            'last_month' => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+            'last_year' => [now()->subYear()->startOfYear(), now()->subYear()->endOfYear()],
+            default => [null, null],
+        };
+    }
+
     private function baseQuery(): Builder
     {
         $org = $this->organization;
@@ -63,7 +171,12 @@ class SubscriptionIndex extends Component
                 $q->whereHas('campaign', fn (Builder $cq) => $cq->where('organization_id', $org->id));
             })
             ->when(! $org, fn (Builder $q) => $q->whereRaw('1 = 0'))
-            ->with(['campaign', 'donor']);
+            ->with([
+                'campaign',
+                'donor',
+                'donations' => fn ($q) => $q->select('id', 'subscription_id', 'payment_method_brand', 'payment_method_type', 'base_amount', 'exchange_rate', 'currency')->orderByDesc('created_at'),
+            ])
+            ->withSum('donations', 'base_amount');
 
         if (filled($this->search)) {
             $search = '%'.$this->search.'%';
@@ -75,6 +188,16 @@ class SubscriptionIndex extends Component
 
         if (filled($this->statusFilter)) {
             $query->where('status', $this->statusFilter);
+        }
+
+        if (filled($this->campaignFilter)) {
+            $query->where('campaign_id', $this->campaignFilter);
+        }
+
+        [$start, $end] = $this->periodRange();
+
+        if ($start !== null && $end !== null) {
+            $query->whereBetween('subscriptions.created_at', [$start, $end]);
         }
 
         return $query;
@@ -109,7 +232,7 @@ class SubscriptionIndex extends Component
     public function render()
     {
         return view('livewire.app.subscriptions.index', [
-            'title' => 'Subscriptions',
+            'title' => 'Recurring Plans',
         ]);
     }
 }
