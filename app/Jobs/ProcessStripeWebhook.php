@@ -195,6 +195,34 @@ class ProcessStripeWebhook implements ShouldQueue
             return;
         }
 
+        $subscription->loadMissing('campaign.organization');
+
+        $grossAmount = (float) (($invoice->amount_paid ?? 0) / 100);
+
+        if ($grossAmount <= 0) {
+            return;
+        }
+
+        $existingDonation = Donation::query()
+            ->where(function ($query) use ($invoice): void {
+                $hasInvoiceId = ! empty($invoice->id);
+
+                if ($hasInvoiceId) {
+                    $query->where('stripe_invoice_id', $invoice->id);
+                }
+
+                if (! empty($invoice->payment_intent)) {
+                    $method = $hasInvoiceId ? 'orWhere' : 'where';
+
+                    $query->{$method}('stripe_payment_intent_id', $invoice->payment_intent);
+                }
+            })
+            ->first();
+
+        if ($existingDonation !== null) {
+            return;
+        }
+
         $subscription->update([
             'status' => SubscriptionStatus::Active,
             'retry_count' => 0,
@@ -204,8 +232,8 @@ class ProcessStripeWebhook implements ShouldQueue
 
         $subscription->increment('payment_count');
 
-        $grossAmount = (float) ($invoice->amount_paid / 100);
         $stripeOptions = filled($event->account ?? null) ? ['stripe_account' => $event->account] : [];
+        $campaign = $subscription->campaign;
 
         $donation = Donation::query()->create([
             'campaign_id' => $subscription->campaign_id,
@@ -220,6 +248,7 @@ class ProcessStripeWebhook implements ShouldQueue
             'type' => DonationType::Recurring,
             'stripe_payment_intent_id' => $invoice->payment_intent,
             'stripe_charge_id' => $invoice->charge,
+            'stripe_invoice_id' => $invoice->id,
         ]);
 
         app(SyncDonationStripeDetails::class)->sync($donation, null, $stripeOptions);
@@ -261,7 +290,6 @@ class ProcessStripeWebhook implements ShouldQueue
             }
         }
 
-        $campaign = $donation->campaign;
         $previousCollected = (float) $campaign->collected_amount;
         $incrementAmount = (float) ($donation->base_amount ?? $grossAmount);
         $campaign->increment('collected_amount', $incrementAmount);

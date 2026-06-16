@@ -1,11 +1,14 @@
 <?php
 
+use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Jobs\ProcessStripeWebhook;
+use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendFailedPaymentNotification;
 use App\Jobs\SendLargeDonationNotification;
+use App\Jobs\SendNewDonationNotification;
 use App\Jobs\SendNewSubscriptionNotification;
 use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Mail\PlatformInvoicePaid;
@@ -22,6 +25,7 @@ use Illuminate\Support\Facades\Queue;
 use Stripe\ApiRequestor;
 use Stripe\HttpClient\ClientInterface;
 use Stripe\HttpClient\CurlClient;
+use Stripe\PaymentIntent as StripePaymentIntent;
 
 it('rejects webhook with invalid signature', function () {
     $response = $this->postJson(route('stripe.webhook'), [
@@ -470,6 +474,111 @@ it('marks platform fee invoices as paid from stripe webhook', function () {
     Mail::assertQueued(PlatformInvoicePaid::class, fn (PlatformInvoicePaid $mailable) => $mailable->invoice->id === $invoice->id);
 });
 
+it('ignores zero amount subscription invoices without sending donation notifications', function () {
+    Queue::fake([
+        SendCampaignMilestoneNotification::class,
+        SendDonationReceipt::class,
+        SendLargeDonationNotification::class,
+        SendNewDonationNotification::class,
+        SyncDonationStripeDetailsJob::class,
+    ]);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'collected_amount' => 0,
+    ]);
+    $donor = Donor::factory()->create([
+        'email' => 'ashrafhakim@google.sg',
+    ]);
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create([
+        'stripe_subscription_id' => 'sub_trial_invoice',
+        'payment_count' => 1,
+    ]);
+
+    (new ProcessStripeWebhook(donorInvoicePaidPayload(
+        subscriptionId: 'sub_trial_invoice',
+        eventId: 'evt_trial_invoice_paid',
+        invoiceId: 'in_trial_invoice',
+        amountPaid: 0,
+        paymentIntentId: null,
+    )))->handle();
+
+    $subscription->refresh();
+    $campaign->refresh();
+
+    expect(Donation::query()->where('subscription_id', $subscription->getKey())->count())->toBe(0)
+        ->and($subscription->payment_count)->toBe(1)
+        ->and($campaign->collected_amount)->toBe('0.00')
+        ->and(WebhookLog::query()->where('stripe_event_id', 'evt_trial_invoice_paid')->first()?->status)->toBe('completed');
+
+    Queue::assertNotPushed(SendNewDonationNotification::class);
+    Queue::assertNotPushed(SendDonationReceipt::class);
+});
+
+it('does not duplicate recurring donation notifications when invoice paid webhooks are retried', function () {
+    Queue::fake([
+        SendCampaignMilestoneNotification::class,
+        SendDonationReceipt::class,
+        SendLargeDonationNotification::class,
+        SendNewDonationNotification::class,
+        SyncDonationStripeDetailsJob::class,
+    ]);
+
+    $this->mock(SyncDonationStripeDetails::class, function ($mock): void {
+        $mock->shouldReceive('sync')
+            ->once()
+            ->andReturn([
+                'payment_intent' => StripePaymentIntent::constructFrom([
+                    'id' => 'pi_recurring_invoice',
+                    'object' => 'payment_intent',
+                ]),
+                'charge_id' => 'ch_recurring_invoice',
+            ]);
+    });
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'collected_amount' => 0,
+    ]);
+    $donor = Donor::factory()->create([
+        'email' => 'ashrafhakim@google.sg',
+    ]);
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create([
+        'stripe_subscription_id' => 'sub_paid_invoice',
+        'payment_count' => 1,
+    ]);
+    $payload = donorInvoicePaidPayload(
+        subscriptionId: 'sub_paid_invoice',
+        eventId: 'evt_paid_invoice_retry',
+        invoiceId: 'in_paid_invoice',
+        amountPaid: 3300,
+        paymentIntentId: 'pi_recurring_invoice',
+        chargeId: 'ch_recurring_invoice',
+    );
+
+    (new ProcessStripeWebhook($payload))->handle();
+
+    WebhookLog::query()
+        ->where('stripe_event_id', 'evt_paid_invoice_retry')
+        ->update([
+            'status' => 'processing',
+            'processed_at' => null,
+        ]);
+
+    (new ProcessStripeWebhook($payload))->handle();
+
+    $subscription->refresh();
+    $campaign->refresh();
+
+    expect(Donation::query()->where('stripe_invoice_id', 'in_paid_invoice')->count())->toBe(1)
+        ->and($subscription->payment_count)->toBe(2)
+        ->and($campaign->collected_amount)->toBe('33.00')
+        ->and(WebhookLog::query()->where('stripe_event_id', 'evt_paid_invoice_retry')->first()?->status)->toBe('completed');
+
+    Queue::assertPushedTimes(SendNewDonationNotification::class, 1);
+    Queue::assertPushedTimes(SendDonationReceipt::class, 1);
+});
+
 function paymentIntentSucceededPayload(Donation $donation, string $eventId): string
 {
     return json_encode([
@@ -497,6 +606,37 @@ function paymentIntentSucceededPayload(Donation $donation, string $eventId): str
                         ],
                     ],
                 ],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+}
+
+function donorInvoicePaidPayload(
+    string $subscriptionId,
+    string $eventId,
+    string $invoiceId,
+    int $amountPaid,
+    ?string $paymentIntentId,
+    ?string $chargeId = null,
+): string {
+    return json_encode([
+        'id' => $eventId,
+        'object' => 'event',
+        'type' => 'invoice.paid',
+        'data' => [
+            'object' => [
+                'id' => $invoiceId,
+                'object' => 'invoice',
+                'status' => 'paid',
+                'amount_paid' => $amountPaid,
+                'subscription' => $subscriptionId,
+                'metadata' => [],
+                'created' => now()->timestamp,
+                'period_start' => now()->timestamp,
+                'period_end' => now()->addMonth()->timestamp,
+                'payment_intent' => $paymentIntentId,
+                'charge' => $chargeId,
+                'currency' => 'sgd',
             ],
         ],
     ], JSON_THROW_ON_ERROR);
