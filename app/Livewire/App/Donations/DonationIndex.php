@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Donations;
 
+use App\Models\Campaign;
 use App\Models\Donation;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,8 +26,20 @@ class DonationIndex extends Component
     #[Url(except: '')]
     public string $statusFilter = '';
 
+    #[Url(except: '')]
+    public string $campaignFilter = '';
+
+    #[Url(except: '')]
+    public string $frequencyFilter = '';
+
     #[Url(except: 'all_time')]
     public string $period = 'all_time';
+
+    #[Url(except: '')]
+    public string $dateFrom = '';
+
+    #[Url(except: '')]
+    public string $dateTo = '';
 
     public string $sortField = 'created_at';
 
@@ -42,8 +55,36 @@ class DonationIndex extends Component
         $this->resetPage();
     }
 
+    public function updatedCampaignFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFrequencyFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatedPeriod(): void
     {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearDate(): void
+    {
+        $this->period = 'all_time';
+        $this->dateFrom = '';
+        $this->dateTo = '';
         $this->resetPage();
     }
 
@@ -63,18 +104,68 @@ class DonationIndex extends Component
         return Auth::user()?->organization;
     }
 
+    #[Computed]
+    public function campaigns()
+    {
+        $org = $this->organization;
+
+        if (! $org) {
+            return collect();
+        }
+
+        return Campaign::where('organization_id', $org->id)
+            ->orderBy('title')
+            ->get(['id', 'title']);
+    }
+
+    #[Computed]
+    public function dateChipLabel(): string
+    {
+        if ($this->period === 'custom' && $this->dateFrom && $this->dateTo) {
+            return Carbon::parse($this->dateFrom)->format('M d').' – '.Carbon::parse($this->dateTo)->format('M d, Y');
+        }
+
+        return match ($this->period) {
+            'today' => 'Today',
+            'yesterday' => 'Yesterday',
+            '7_days' => 'Last 7 days',
+            '14_days' => 'Last 14 days',
+            '30_days' => 'Last 30 days',
+            'this_week' => 'This week',
+            'this_month' => 'This month',
+            'this_year' => 'This year',
+            'last_week' => 'Last week',
+            'last_month' => 'Last month',
+            'last_year' => 'Last year',
+            default => 'Date',
+        };
+    }
+
     /**
      * @return array{?Carbon, ?Carbon}
      */
     public function periodRange(): array
     {
+        if ($this->period === 'custom') {
+            return [
+                $this->dateFrom ? Carbon::parse($this->dateFrom)->startOfDay() : null,
+                $this->dateTo ? Carbon::parse($this->dateTo)->endOfDay() : null,
+            ];
+        }
+
         return match ($this->period) {
             'today' => [now()->startOfDay(), now()->endOfDay()],
             'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
             '7_days' => [now()->subDays(6)->startOfDay(), now()->endOfDay()],
+            '14_days' => [now()->subDays(13)->startOfDay(), now()->endOfDay()],
             '30_days' => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
             '90_days' => [now()->subDays(89)->startOfDay(), now()->endOfDay()],
+            'this_week' => [now()->startOfWeek(), now()->endOfWeek()],
             'this_month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'this_year' => [now()->startOfYear(), now()->endOfYear()],
+            'last_week' => [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()],
+            'last_month' => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+            'last_year' => [now()->subYear()->startOfYear(), now()->subYear()->endOfYear()],
             default => [null, null],
         };
     }
@@ -100,6 +191,14 @@ class DonationIndex extends Component
 
         if (filled($this->statusFilter)) {
             $query->where('status', $this->statusFilter);
+        }
+
+        if (filled($this->campaignFilter)) {
+            $query->where('campaign_id', $this->campaignFilter);
+        }
+
+        if (filled($this->frequencyFilter)) {
+            $query->where('type', $this->frequencyFilter);
         }
 
         [$start, $end] = $this->periodRange();

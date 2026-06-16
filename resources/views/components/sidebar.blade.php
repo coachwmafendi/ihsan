@@ -46,14 +46,10 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
             <x-sidebar-group label="Finance">
                 <x-sidebar-item href="/app/donations" icon="banknotes" label="Donations" :active="$isActive('/app/donations')" />
                 <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans')" />
+                <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
                 <x-sidebar-item href="/app/payouts" icon="wallet" label="Payouts" :active="$isActive('/app/payouts')" />
                 <x-sidebar-item href="/app/billing" icon="credit-card" label="Billing" :active="$isActive('/app/billing')" />
                 <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
-            </x-sidebar-group>
-
-            <x-sidebar-group label="Supporters">
-                <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
-                <x-sidebar-item href="/app/subscriptions" icon="arrow-path-rounded-square" label="Subscriptions" :active="$isActive('/app/subscriptions')" />
             </x-sidebar-group>
 
             <x-sidebar-group label="Organization">
@@ -63,8 +59,8 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                     <x-sidebar-item href="/app/settings/profile" icon="building-office" label="Profile" :active="$isActive('/app/settings/profile')" />
                     <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
                     <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
-                    <x-sidebar-item href="/app/settings/tracking" icon="chart-bar" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
                     <x-sidebar-item href="/app/settings/installation" icon="code-bracket" label="Installation" :active="$isActive('/app/settings/installation')" />
+                    <x-sidebar-item href="/app/settings/tracking" icon="chart-bar" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
                 </x-sidebar-dropdown>
             </x-sidebar-group>
         </nav>
@@ -90,14 +86,10 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
             <x-sidebar-group label="Finance">
                 <x-sidebar-item href="/app/donations" icon="banknotes" label="Donations" :active="$isActive('/app/donations')" />
                 <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans')" />
+                <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
                 <x-sidebar-item href="/app/payouts" icon="wallet" label="Payouts" :active="$isActive('/app/payouts')" />
                 <x-sidebar-item href="/app/billing" icon="credit-card" label="Billing" :active="$isActive('/app/billing')" />
                 <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
-            </x-sidebar-group>
-
-            <x-sidebar-group label="Supporters">
-                <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
-                <x-sidebar-item href="/app/subscriptions" icon="arrow-path-rounded-square" label="Subscriptions" :active="$isActive('/app/subscriptions')" />
             </x-sidebar-group>
 
             <x-sidebar-group label="Organization">
@@ -107,8 +99,8 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                     <x-sidebar-item href="/app/settings/profile" icon="building-office" label="Profile" :active="$isActive('/app/settings/profile')" />
                     <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
                     <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
-                    <x-sidebar-item href="/app/settings/tracking" icon="chart-bar" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
                     <x-sidebar-item href="/app/settings/installation" icon="code-bracket" label="Installation" :active="$isActive('/app/settings/installation')" />
+                    <x-sidebar-item href="/app/settings/tracking" icon="chart-bar" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
                 </x-sidebar-dropdown>
             </x-sidebar-group>
         </nav>
