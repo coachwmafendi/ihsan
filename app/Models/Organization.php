@@ -168,6 +168,16 @@ class Organization extends Model
         return $this->hasMany(ProcessingFee::class);
     }
 
+    public function trackingConfigurations(): HasMany
+    {
+        return $this->hasMany(TrackingConfiguration::class);
+    }
+
+    public function trackingEvents(): HasMany
+    {
+        return $this->hasMany(TrackingEvent::class);
+    }
+
     protected function casts(): array
     {
         return [
