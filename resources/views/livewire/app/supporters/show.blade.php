@@ -44,10 +44,12 @@
                 },
                 { rootMargin: '-20% 0px -60% 0px', threshold: 0 }
             );
-            ['information', 'donations', 'recurring-plans', 'receipts'].forEach((id) => {
-                const el = document.getElementById(id);
-                if (el) observer.observe(el);
-            });
+            ['information', 'donations', @js($this->hasSubscriptions ? 'recurring-plans' : null), 'receipts']
+                .filter(Boolean)
+                .forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) observer.observe(el);
+                });
         "
     >
         {{-- Left Column --}}
@@ -216,57 +218,59 @@
                 </x-ui.card>
             </section>
 
-            {{-- Recurring plans --}}
-            <section id="recurring-plans">
-                <x-ui.card title="Recurring plans" description="Active and past recurring donations">
-                    @if ($this->recentSubscriptions->isNotEmpty())
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-slate-200">
-                                <thead>
-                                    <tr class="bg-slate-50">
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Amount</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Frequency</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Campaign</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 bg-white">
-                                    @foreach ($this->recentSubscriptions as $subscription)
-                                        <tr class="transition-colors hover:bg-slate-50">
-                                            <td class="px-4 py-3 text-sm font-semibold text-slate-900">
-                                                {{ $subscription->currency_symbol }} {{ number_format((float) $subscription->amount, 2) }}
-                                            </td>
-                                            <td class="px-4 py-3 text-sm text-slate-600">
-                                                {{ ucfirst($subscription->interval->value) }}
-                                            </td>
-                                            <td class="px-4 py-3">
-                                                <x-ui.badge status="{{ $subscription->status->value }}" size="sm">
-                                                    {{ $subscription->status->getLabel() }}
-                                                </x-ui.badge>
-                                            </td>
-                                            <td class="px-4 py-3 text-sm text-slate-600">
-                                                @if ($subscription->campaign)
-                                                    <a href="{{ route('app.campaigns.edit', $subscription->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
-                                                        {{ $subscription->campaign->title }}
-                                                    </a>
-                                                @else
-                                                    <span class="text-slate-400">—</span>
-                                                @endif
-                                            </td>
+            @if ($this->hasSubscriptions)
+                {{-- Recurring plans --}}
+                <section id="recurring-plans">
+                    <x-ui.card title="Recurring plans" description="Active and past recurring donations">
+                        @if ($this->recentSubscriptions->isNotEmpty())
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-slate-200">
+                                    <thead>
+                                        <tr class="bg-slate-50">
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Amount</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Frequency</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Campaign</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <x-ui.empty-state
-                            icon="heroicon-o-arrow-path"
-                            title="No recurring plans"
-                            description="Recurring plans from this donor will appear here."
-                        />
-                    @endif
-                </x-ui.card>
-            </section>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 bg-white">
+                                        @foreach ($this->recentSubscriptions as $subscription)
+                                            <tr class="transition-colors hover:bg-slate-50">
+                                                <td class="px-4 py-3 text-sm font-semibold text-slate-900">
+                                                    {{ $subscription->currency_symbol }} {{ number_format((float) $subscription->amount, 2) }}
+                                                </td>
+                                                <td class="px-4 py-3 text-sm text-slate-600">
+                                                    {{ ucfirst($subscription->interval->value) }}
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    <x-ui.badge status="{{ $subscription->status->value }}" size="sm">
+                                                        {{ $subscription->status->getLabel() }}
+                                                    </x-ui.badge>
+                                                </td>
+                                                <td class="px-4 py-3 text-sm text-slate-600">
+                                                    @if ($subscription->campaign)
+                                                        <a href="{{ route('app.campaigns.edit', $subscription->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
+                                                            {{ $subscription->campaign->title }}
+                                                        </a>
+                                                    @else
+                                                        <span class="text-slate-400">—</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <x-ui.empty-state
+                                icon="heroicon-o-arrow-path"
+                                title="No recurring plans"
+                                description="Recurring plans from this donor will appear here."
+                            />
+                        @endif
+                    </x-ui.card>
+                </section>
+            @endif
 
             {{-- Receipts --}}
             <section id="receipts">
@@ -370,16 +374,18 @@
                         <x-heroicon-o-currency-dollar class="size-5 text-slate-400" />
                         Donations
                     </a>
-                    <a
-                        href="#recurring-plans"
-                        :class="active === 'recurring-plans'
-                            ? 'bg-slate-100 text-slate-900'
-                            : 'text-slate-600 hover:bg-slate-50'"
-                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition"
-                    >
-                        <x-heroicon-o-arrow-path class="size-5 text-slate-400" />
-                        Recurring plans
-                    </a>
+                    @if ($this->hasSubscriptions)
+                        <a
+                            href="#recurring-plans"
+                            :class="active === 'recurring-plans'
+                                ? 'bg-slate-100 text-slate-900'
+                                : 'text-slate-600 hover:bg-slate-50'"
+                            class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition"
+                        >
+                            <x-heroicon-o-arrow-path class="size-5 text-slate-400" />
+                            Recurring plans
+                        </a>
+                    @endif
                     <a
                         href="#receipts"
                         :class="active === 'receipts'

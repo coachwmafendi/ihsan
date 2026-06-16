@@ -69,6 +69,14 @@ class SupporterShow extends Component
     }
 
     #[Computed]
+    public function hasSubscriptions(): bool
+    {
+        return $this->donor->subscriptions()
+            ->whereHas('campaign', fn (Builder $q) => $q->where('organization_id', Auth::user()?->organization?->id))
+            ->exists();
+    }
+
+    #[Computed]
     public function activeSubscriptionsCount(): int
     {
         return $this->donor->subscriptions()
