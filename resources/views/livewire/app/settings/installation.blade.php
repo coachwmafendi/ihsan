@@ -7,6 +7,8 @@
     {{-- Page Header --}}
     <x-ui.page-header title="Installation" subtitle="Three quick steps to embed your donation elements on any website." />
 
+
+
     {{-- ─── Step 1: Loader snippet ─────────────────────────────────────────── --}}
     <div>
         <div class="mb-5 flex items-center gap-3">

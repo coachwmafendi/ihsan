@@ -15,6 +15,8 @@
         </x-slot:subtitle>
     </x-ui.page-header>
 
+
+
     <div class="border-b border-slate-200">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
             <button type="button"
@@ -46,18 +48,6 @@
                 :class="tab === 'bank' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Bank
-            </button>
-            <button type="button"
-                @click="tab = 'donor-portal'"
-                :class="tab === 'donor-portal' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
-                class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
-                Donor Portal
-            </button>
-            <button type="button"
-                @click="tab = 'allowed-domains'"
-                :class="tab === 'allowed-domains' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
-                class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
-                Allowed Domains
             </button>
         </nav>
     </div>
@@ -265,102 +255,6 @@
                 </x-slot:footer>
             </x-ui.card>
         </div>
-
-        {{-- Donor Portal --}}
-        <div x-show="tab === 'donor-portal'" x-cloak class="space-y-6">
-            <x-ui.card title="Donor Portal" description="Your public-facing portal where donors can log in and view their donation history.">
-                @php
-                    $org = Auth::user()?->organization;
-                    $portalUrl = $org?->code ? route('donorportal.dashboard', ['organization' => $org->code]) : null;
-                @endphp
-
-                @if ($portalUrl)
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700">Portal URL</label>
-                            <div class="mt-1 flex items-center gap-3">
-                                <input type="text" readonly value="{{ $portalUrl }}" class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700 shadow-sm">
-                                <a href="{{ $portalUrl }}" target="_blank" rel="noopener noreferrer"
-                                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                    </svg>
-                                    Open
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                @else
-                    <p class="text-sm text-slate-500">No portal URL available. Contact support if this persists.</p>
-                @endif
-            </x-ui.card>
-
-            <x-ui.card title="Portal Settings" description="Customise your public donation portal.">
-                <div class="grid gap-6 md:grid-cols-2">
-                    <div>
-                        <label for="portal_tagline" class="block text-sm font-medium text-slate-700">Portal Tagline</label>
-                        <input type="text" id="portal_tagline" wire:model="portal_tagline" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-
-                    <div>
-                        <label for="portal_reply_to_email" class="block text-sm font-medium text-slate-700">Reply-To Email</label>
-                        <input type="email" id="portal_reply_to_email" wire:model="portal_reply_to_email" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label for="portal_receipt_footer" class="block text-sm font-medium text-slate-700">Receipt Footer Text</label>
-                        <textarea id="portal_receipt_footer" wire:model="portal_receipt_footer" rows="3" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"></textarea>
-                    </div>
-                </div>
-            </x-ui.card>
-        </div>
-
-        {{-- Allowed Domains --}}
-        <div x-show="tab === 'allowed-domains'" x-cloak class="space-y-6" x-data="{ newDomain: '' }">
-            <x-ui.card title="Allowed Domains" description="Domains permitted to embed your checkout widget. Only requests originating from these domains will be accepted.">
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                        <p class="text-sm text-slate-600">
-                            <span class="font-medium text-slate-900">{{ count($allowed_domains) }}</span> of <span class="font-medium text-slate-900">{{ App\Livewire\App\Settings\Profile::MAX_ALLOWED_DOMAINS }}</span> domains added
-                        </p>
-                    </div>
-
-                    @if (count($allowed_domains) > 0)
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($allowed_domains as $i => $domain)
-                                <span class="inline-flex items-center gap-1.5 rounded-full bg-teal-50 border border-teal-200 px-3 py-1 text-sm font-medium text-teal-700">
-                                    {{ $domain }}
-                                    <button type="button" wire:click="removeDomain({{ $i }})" class="text-teal-400 hover:text-red-500 transition-colors leading-none">&times;</button>
-                                </span>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-sm text-slate-500">No domains added yet. Add your website domain below.</p>
-                    @endif
-
-                    <div class="flex gap-2">
-                        <input
-                            type="text"
-                            x-model="newDomain"
-                            placeholder="e.g. mywebsite.com or https://mywebsite.com"
-                            @keydown.enter.prevent="if (newDomain.trim() && {{ count($allowed_domains) }} < {{ App\Livewire\App\Settings\Profile::MAX_ALLOWED_DOMAINS }}) { $wire.addDomain(newDomain); newDomain = ''; }"
-                            :disabled="{{ count($allowed_domains) }} >= {{ App\Livewire\App\Settings\Profile::MAX_ALLOWED_DOMAINS }}"
-                            class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
-                        >
-                        <button
-                            type="button"
-                            @click="if (newDomain.trim()) { $wire.addDomain(newDomain); newDomain = ''; }"
-                            :disabled="{{ count($allowed_domains) }} >= {{ App\Livewire\App\Settings\Profile::MAX_ALLOWED_DOMAINS }}"
-                            class="shrink-0 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors disabled:cursor-not-allowed disabled:bg-slate-300">
-                            Add
-                        </button>
-                    </div>
-
-                    <p class="text-xs text-slate-400">Enter domain only (e.g. <code>mywebsite.com</code>) or full URL — <code>www.</code> and path are stripped automatically on save.</p>
-                </div>
-            </x-ui.card>
-        </div>
-        {{-- /Allowed Domains --}}
 
         {{-- Save --}}
         <div class="flex items-center justify-end">

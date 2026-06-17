@@ -55,17 +55,7 @@ class Profile extends Component
 
     public ?string $bank_account_number = null;
 
-    // Settings
-    public array $allowed_domains = [];
-
-    public const MAX_ALLOWED_DOMAINS = 10;
-
-    public ?string $portal_reply_to_email = null;
-
-    public ?string $portal_tagline = null;
-
-    public ?string $portal_receipt_footer = null;
-
+    // Social links (displayed on the public donor portal)
     public ?string $social_facebook = null;
 
     public ?string $social_instagram = null;
@@ -106,38 +96,11 @@ class Profile extends Component
 
         /** @var array<string, mixed> $settings */
         $settings = $org->settings ?? [];
-        $this->allowed_domains = $settings['allowed_domains'] ?? [];
-        $this->portal_reply_to_email = $settings['portal_reply_to_email'] ?? $org->contact_email;
-        $this->portal_tagline = $settings['portal_tagline'] ?? null;
-        $this->portal_receipt_footer = $settings['portal_receipt_footer'] ?? null;
         $this->social_facebook = $settings['social_facebook'] ?? null;
         $this->social_instagram = $settings['social_instagram'] ?? null;
         $this->social_twitter = $settings['social_twitter'] ?? null;
         $this->social_tiktok = $settings['social_tiktok'] ?? null;
         $this->social_youtube = $settings['social_youtube'] ?? null;
-    }
-
-    public function addDomain(string $domain): void
-    {
-        $domain = trim($domain);
-
-        if ($domain === '') {
-            return;
-        }
-
-        if (count($this->allowed_domains) >= self::MAX_ALLOWED_DOMAINS) {
-            $this->dispatch('notify', message: 'You can only add up to '.self::MAX_ALLOWED_DOMAINS.' allowed domains.', variant: 'error');
-
-            return;
-        }
-
-        $this->allowed_domains[] = $domain;
-    }
-
-    public function removeDomain(int $index): void
-    {
-        array_splice($this->allowed_domains, $index, 1);
-        $this->allowed_domains = array_values($this->allowed_domains);
     }
 
     public function save(): void
@@ -156,8 +119,6 @@ class Profile extends Component
             'bank_name' => ['nullable', 'string', 'max:255'],
             'bank_account_name' => ['nullable', 'string', 'max:255'],
             'bank_account_number' => ['nullable', 'string', 'max:255'],
-            'allowed_domains' => ['nullable', 'array', 'max:'.self::MAX_ALLOWED_DOMAINS],
-            'allowed_domains.*' => ['string', 'max:255'],
         ]);
 
         /** @var Organization|null $org */
@@ -171,10 +132,6 @@ class Profile extends Component
         $existingSettings = $org->settings ?? [];
 
         $settings = array_merge($existingSettings, [
-            'allowed_domains' => $this->normalizeDomains($this->allowed_domains),
-            'portal_reply_to_email' => $this->portal_reply_to_email,
-            'portal_tagline' => $this->portal_tagline,
-            'portal_receipt_footer' => $this->portal_receipt_footer,
             'social_facebook' => $this->social_facebook,
             'social_instagram' => $this->social_instagram,
             'social_twitter' => $this->social_twitter,
@@ -213,31 +170,6 @@ class Profile extends Component
         $org->update($updateData);
 
         $this->dispatch('notify', message: 'Organisation profile saved.', variant: 'success');
-    }
-
-    /**
-     * @param  array<int, string>  $domains
-     * @return array<int, string>
-     */
-    private function normalizeDomains(array $domains): array
-    {
-        return collect($domains)
-            ->filter()
-            ->map(function (string $domain): string {
-                $domain = trim($domain);
-                $host = parse_url($domain, PHP_URL_HOST);
-
-                if ($host) {
-                    $domain = $host;
-                }
-
-                $domain = strtolower($domain);
-
-                return str_starts_with($domain, 'www.') ? substr($domain, 4) : $domain;
-            })
-            ->unique()
-            ->values()
-            ->all();
     }
 
     public function render()

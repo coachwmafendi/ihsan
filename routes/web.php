@@ -22,6 +22,8 @@ use App\Livewire\App\Elements\ElementEdit;
 use App\Livewire\App\Elements\ElementIndex;
 use App\Livewire\App\Insights;
 use App\Livewire\App\Notifications\Index as NotificationsIndex;
+use App\Livewire\App\Settings\AllowDomains;
+use App\Livewire\App\Settings\DonorPortal;
 use App\Livewire\App\Settings\Installation;
 use App\Livewire\App\Settings\Notifications;
 use App\Livewire\App\Settings\Payment;
@@ -87,6 +89,8 @@ Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::
     Route::get('/app/settings/notifications', Notifications::class)->name('app.settings.notifications');
     Route::get('/app/settings/tracking', Tracking::class)->name('app.settings.tracking');
     Route::get('/app/settings/installation', Installation::class)->name('app.settings.installation');
+    Route::get('/app/settings/allow-domains', AllowDomains::class)->name('app.settings.allow-domains');
+    Route::get('/app/settings/donor-portal', DonorPortal::class)->name('app.settings.donor-portal');
     Route::get('/app/notifications', NotificationsIndex::class)->name('app.notifications.index');
     Route::get('/app/billing', Billing::class)->name('app.billing');
     Route::get('/app/stripe-onboarding', StripeOnboarding::class)->name('app.stripe-onboarding');

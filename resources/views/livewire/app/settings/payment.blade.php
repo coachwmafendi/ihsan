@@ -15,6 +15,8 @@
         </x-slot:subtitle>
     </x-ui.page-header>
 
+
+
     @php
         $org = Auth::user()?->organization;
         $account = $this->stripeAccount();

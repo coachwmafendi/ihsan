@@ -17,6 +17,8 @@
         </x-slot:subtitle>
     </x-ui.page-header>
 
+
+
     <p class="text-sm text-slate-500 -mt-4">
         Connect advertising and analytics platforms to measure donations and campaign performance.
         Settings apply to all donation forms, widgets, and checkout pages for your organization.

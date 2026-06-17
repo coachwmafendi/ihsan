@@ -15,6 +15,8 @@
         </x-slot:subtitle>
     </x-ui.page-header>
 
+
+
     <x-ui.card title="Email Notifications" description="Choose which account activity emails you receive. Changes are saved automatically.">
         <div class="divide-y divide-slate-100">
             {{-- Donations --}}

@@ -58,9 +58,11 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/app/settings')">
                     <x-sidebar-item href="/app/settings/profile" icon="building-office" label="Profile" :active="$isActive('/app/settings/profile')" />
                     <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
+                    <x-sidebar-item href="/app/settings/allow-domains" icon="globe-alt" label="Allowed Domains" :active="$isActive('/app/settings/allow-domains')" />
+                    <x-sidebar-item href="/app/settings/donor-portal" icon="window" label="Donor Portal" :active="$isActive('/app/settings/donor-portal')" />
                     <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
                     <x-sidebar-item href="/app/settings/installation" icon="code-bracket" label="Installation" :active="$isActive('/app/settings/installation')" />
-                    <x-sidebar-item href="/app/settings/tracking" icon="chart-bar" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
+                    <x-sidebar-item href="/app/settings/tracking" icon="presentation-chart-line" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
                 </x-sidebar-dropdown>
             </x-sidebar-group>
         </nav>
@@ -98,9 +100,11 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/app/settings')">
                     <x-sidebar-item href="/app/settings/profile" icon="building-office" label="Profile" :active="$isActive('/app/settings/profile')" />
                     <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
+                    <x-sidebar-item href="/app/settings/allow-domains" icon="globe-alt" label="Allowed Domains" :active="$isActive('/app/settings/allow-domains')" />
+                    <x-sidebar-item href="/app/settings/donor-portal" icon="window" label="Donor Portal" :active="$isActive('/app/settings/donor-portal')" />
                     <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
                     <x-sidebar-item href="/app/settings/installation" icon="code-bracket" label="Installation" :active="$isActive('/app/settings/installation')" />
-                    <x-sidebar-item href="/app/settings/tracking" icon="chart-bar" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
+                    <x-sidebar-item href="/app/settings/tracking" icon="presentation-chart-line" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
                 </x-sidebar-dropdown>
             </x-sidebar-group>
         </nav>
