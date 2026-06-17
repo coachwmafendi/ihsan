@@ -151,7 +151,7 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Next installment date</dt>
-                            <dd class="border-b border-dashed border-slate-300 pb-0.5 text-sm text-slate-900">
+                            <dd class="w-fit border-b border-dashed border-slate-300 pb-0.5 text-sm text-slate-900">
                                 {{ $subscription->current_period_end?->format('M d, Y, g:i A') ?? '—' }}
                             </dd>
                         </div>
@@ -194,6 +194,13 @@
             {{-- Personal Information --}}
             <section id="section-personal" data-section="section-personal">
                 <x-ui.card title="Personal information" icon="heroicon-o-user">
+                    <x-slot:actions>
+                        @if ($subscription->donor)
+                            <button type="button" wire:click="openEditPersonalModal" class="text-sm font-medium text-teal-600 hover:text-teal-700">
+                                Edit
+                            </button>
+                        @endif
+                    </x-slot:actions>
                     @if ($subscription->donor)
                         <dl class="space-y-5">
                             <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -430,6 +437,65 @@
                     <x-ui.button wireClick="closeUpgradeModal" variant="secondary">Cancel</x-ui.button>
                 </flux:modal.close>
                 <x-ui.button wireClick="upgradeAmount" variant="primary">Save changes</x-ui.button>
+            </div>
+        </div>
+    </flux:modal>
+
+    {{-- Edit Personal Information Modal --}}
+    <flux:modal wire:model="showEditPersonalModal" name="edit-personal-information-modal">
+        <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-slate-900">Edit personal information</h3>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <flux:input wire:model="editFirstName" label="First name" />
+                <flux:input wire:model="editLastName" label="Last name" />
+            </div>
+
+            <flux:input wire:model="editEmail" label="Email" type="email" />
+
+            <flux:input wire:model="editPhone" label="Phone number" />
+
+            <flux:input wire:model="editAddressLine1" label="Mailing address" placeholder="Street address" />
+            <flux:input wire:model="editAddressLine2" placeholder="Apartment / suite / floor" />
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <flux:input wire:model="editAddressCity" placeholder="City" />
+                <div class="grid grid-cols-2 gap-4">
+                    <flux:input wire:model="editAddressState" placeholder="State" />
+                    <flux:input wire:model="editAddressPostalCode" placeholder="Zip code" />
+                </div>
+            </div>
+
+            <flux:select wire:model="editCountry" placeholder="Country">
+                <flux:select.option value="">Country</flux:select.option>
+                <flux:select.option value="MY">Malaysia</flux:select.option>
+                <flux:select.option value="SG">Singapore</flux:select.option>
+                <flux:select.option value="ID">Indonesia</flux:select.option>
+                <flux:select.option value="TH">Thailand</flux:select.option>
+                <flux:select.option value="PH">Philippines</flux:select.option>
+                <flux:select.option value="VN">Vietnam</flux:select.option>
+                <flux:select.option value="US">United States</flux:select.option>
+                <flux:select.option value="CA">Canada</flux:select.option>
+                <flux:select.option value="GB">United Kingdom</flux:select.option>
+                <flux:select.option value="AU">Australia</flux:select.option>
+                <flux:select.option value="NZ">New Zealand</flux:select.option>
+                <flux:select.option value="IN">India</flux:select.option>
+                <flux:select.option value="JP">Japan</flux:select.option>
+                <flux:select.option value="KR">South Korea</flux:select.option>
+                <flux:select.option value="CN">China</flux:select.option>
+                <flux:select.option value="HK">Hong Kong</flux:select.option>
+                <flux:select.option value="TW">Taiwan</flux:select.option>
+                <flux:select.option value="AE">United Arab Emirates</flux:select.option>
+                <flux:select.option value="SA">Saudi Arabia</flux:select.option>
+                <flux:select.option value="QA">Qatar</flux:select.option>
+                <flux:select.option value="TR">Turkey</flux:select.option>
+            </flux:select>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <flux:modal.close>
+                    <x-ui.button wireClick="closeEditPersonalModal" variant="secondary">Cancel</x-ui.button>
+                </flux:modal.close>
+                <x-ui.button wireClick="savePersonalInformation" variant="primary">Save changes</x-ui.button>
             </div>
         </div>
     </flux:modal>

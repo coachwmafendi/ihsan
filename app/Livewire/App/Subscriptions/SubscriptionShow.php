@@ -205,6 +205,97 @@ class SubscriptionShow extends Component
         $this->dispatch('notify', type: 'success', message: 'Subscription campaign updated successfully.');
     }
 
+    public bool $showEditPersonalModal = false;
+
+    public string $editFirstName = '';
+
+    public string $editLastName = '';
+
+    public string $editEmail = '';
+
+    public string $editPhone = '';
+
+    public string $editAddressLine1 = '';
+
+    public string $editAddressLine2 = '';
+
+    public string $editAddressCity = '';
+
+    public string $editAddressState = '';
+
+    public string $editAddressPostalCode = '';
+
+    public string $editCountry = '';
+
+    public function openEditPersonalModal(): void
+    {
+        $donor = $this->subscription->donor;
+
+        if (! $donor) {
+            $this->dispatch('notify', type: 'error', message: 'No supporter information available.');
+
+            return;
+        }
+
+        $nameParts = explode(' ', $donor->name, 2);
+        $this->editFirstName = $nameParts[0] ?? '';
+        $this->editLastName = $nameParts[1] ?? '';
+        $this->editEmail = $donor->email ?? '';
+        $this->editPhone = $donor->phone ?? '';
+        $this->editAddressLine1 = $donor->address_line1 ?? '';
+        $this->editAddressLine2 = $donor->address_line2 ?? '';
+        $this->editAddressCity = $donor->address_city ?? '';
+        $this->editAddressState = $donor->address_state ?? '';
+        $this->editAddressPostalCode = $donor->address_postal_code ?? '';
+        $this->editCountry = $donor->country ?? '';
+        $this->showEditPersonalModal = true;
+    }
+
+    public function closeEditPersonalModal(): void
+    {
+        $this->showEditPersonalModal = false;
+    }
+
+    public function savePersonalInformation(): void
+    {
+        $donor = $this->subscription->donor;
+
+        if (! $donor) {
+            $this->dispatch('notify', type: 'error', message: 'No supporter information available.');
+
+            return;
+        }
+
+        $this->validate([
+            'editFirstName' => ['required', 'string', 'max:255'],
+            'editLastName' => ['nullable', 'string', 'max:255'],
+            'editEmail' => ['required', 'email', 'max:255'],
+            'editPhone' => ['nullable', 'string', 'max:50'],
+            'editAddressLine1' => ['nullable', 'string', 'max:255'],
+            'editAddressLine2' => ['nullable', 'string', 'max:255'],
+            'editAddressCity' => ['nullable', 'string', 'max:255'],
+            'editAddressState' => ['nullable', 'string', 'max:255'],
+            'editAddressPostalCode' => ['nullable', 'string', 'max:50'],
+            'editCountry' => ['nullable', 'string', 'max:2'],
+        ]);
+
+        $donor->update([
+            'name' => trim($this->editFirstName.' '.$this->editLastName),
+            'email' => $this->editEmail,
+            'phone' => $this->editPhone ?: null,
+            'address_line1' => $this->editAddressLine1 ?: null,
+            'address_line2' => $this->editAddressLine2 ?: null,
+            'address_city' => $this->editAddressCity ?: null,
+            'address_state' => $this->editAddressState ?: null,
+            'address_postal_code' => $this->editAddressPostalCode ?: null,
+            'country' => $this->editCountry ?: null,
+        ]);
+
+        $this->subscription->refresh();
+        $this->showEditPersonalModal = false;
+        $this->dispatch('notify', type: 'success', message: 'Personal information updated.');
+    }
+
     public function render()
     {
         return view('livewire.app.subscriptions.show', [
