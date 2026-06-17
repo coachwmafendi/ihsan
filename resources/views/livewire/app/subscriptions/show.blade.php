@@ -307,7 +307,7 @@
 
             {{-- Receipts --}}
             <section id="section-receipts" data-section="section-receipts">
-                <x-ui.card title="Receipts" icon="heroicon-o-receipt-percent">
+                <x-ui.card title="Receipts" icon="heroicon-o-document-text">
                     @if ($this->receiptDonations->isNotEmpty())
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-left text-sm">
@@ -440,7 +440,7 @@
                             :class="activeSection === 'section-receipts' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'"
                             class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold transition"
                         >
-                            <x-heroicon-o-receipt-percent class="size-5" />
+                            <x-heroicon-o-document-text class="size-5" />
                             Receipts
                         </button>
                     </nav>
