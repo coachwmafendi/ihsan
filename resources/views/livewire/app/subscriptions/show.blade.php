@@ -223,6 +223,8 @@
                 <x-ui.card title="Source" icon="heroicon-o-arrow-top-right-on-square">
                     @php
                         $firstDonation = $subscription->donations()->first();
+                        $utm = is_string($firstDonation?->utm_params) ? json_decode($firstDonation->utm_params, true) : ($firstDonation?->utm_params ?? []);
+                        $elementId = $utm['element_id'] ?? null;
                     @endphp
                     <dl class="space-y-5">
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -245,7 +247,12 @@
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Element</dt>
                             <dd class="text-sm font-medium">
-                                @if ($firstDonation?->element_label)
+                                @if ($firstDonation?->element_label && $elementId)
+                                    <a href="{{ route('app.elements.edit', $elementId) }}" wire:navigate class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700">
+                                        <x-heroicon-o-squares-2x2 class="size-4" />
+                                        {{ $firstDonation->element_label }}
+                                    </a>
+                                @elseif ($firstDonation?->element_label)
                                     <span class="inline-flex items-center gap-1 text-slate-900">
                                         <x-heroicon-o-squares-2x2 class="size-4" />
                                         {{ $firstDonation->element_label }}
