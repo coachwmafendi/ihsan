@@ -22,12 +22,13 @@ use App\Livewire\App\Elements\ElementEdit;
 use App\Livewire\App\Elements\ElementIndex;
 use App\Livewire\App\Insights;
 use App\Livewire\App\Notifications\Index as NotificationsIndex;
+use App\Livewire\App\Settings\Account;
 use App\Livewire\App\Settings\AllowDomains;
 use App\Livewire\App\Settings\DonorPortal;
 use App\Livewire\App\Settings\Installation;
 use App\Livewire\App\Settings\Notifications;
+use App\Livewire\App\Settings\Organization as OrganizationSettings;
 use App\Livewire\App\Settings\Payment;
-use App\Livewire\App\Settings\Profile;
 use App\Livewire\App\Settings\Tracking;
 use App\Livewire\App\StripeOnboarding;
 use App\Livewire\App\Subscriptions\SubscriptionIndex;
@@ -84,13 +85,14 @@ Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::
     Route::get('/app/supporters', SupporterIndex::class)->name('app.supporters.index');
     Route::get('/app/supporters/{donor:public_id}', SupporterShow::class)->name('app.supporters.show');
 
-    Route::get('/app/settings/profile', Profile::class)->name('app.settings.profile');
+    Route::get('/app/settings/organization', OrganizationSettings::class)->name('app.settings.organization');
     Route::get('/app/settings/payment', Payment::class)->name('app.settings.payment');
     Route::get('/app/settings/notifications', Notifications::class)->name('app.settings.notifications');
     Route::get('/app/settings/tracking', Tracking::class)->name('app.settings.tracking');
     Route::get('/app/settings/installation', Installation::class)->name('app.settings.installation');
     Route::get('/app/settings/allow-domains', AllowDomains::class)->name('app.settings.allow-domains');
     Route::get('/app/settings/donor-portal', DonorPortal::class)->name('app.settings.donor-portal');
+    Route::get('/app/settings/account', Account::class)->name('app.settings.account');
     Route::get('/app/notifications', NotificationsIndex::class)->name('app.notifications.index');
     Route::get('/app/billing', Billing::class)->name('app.billing');
     Route::get('/app/stripe-onboarding', StripeOnboarding::class)->name('app.stripe-onboarding');
@@ -130,12 +132,9 @@ use App\Http\Controllers\DonorPortalController;
 use App\Http\Controllers\DonorProfileController;
 use App\Http\Controllers\DonorSubscriptionController;
 use App\Models\Donor;
-use App\Models\Organization;
-use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 // Organization logo (served from private storage)
-Route::get('/org/{organization}/logo', function (Organization $organization): ?StreamedResponse {
+Route::get('/org/{organization}/logo', function (App\Models\Organization $organization): ?StreamedResponse {
     if (! filled($organization->logo_path)) {
         abort(404);
     }
@@ -177,7 +176,7 @@ Route::get('/donor/{donor}/photo', function (Donor $donor): ?StreamedResponse {
 
 // Donor portal
 Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(function () {
-    Route::get('/', fn (Organization $organization) => redirect()->route('donorportal.dashboard', $organization));
+    Route::get('/', fn (\App\Models\Organization $organization) => redirect()->route('donorportal.dashboard', $organization));
     Route::get('login', [DonorAuthController::class, 'showLoginForm'])->name('login');
     Route::post('login', [DonorAuthController::class, 'sendMagicLink'])
         ->middleware('throttle:donor-magic-link')
