@@ -193,3 +193,23 @@ it('validates payment details form', function () {
         ->call('savePaymentDetails')
         ->assertHasErrors(['editAmount']);
 });
+
+it('opens the skip installments modal and computes next installment date', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'current_period_end' => now()->addMonth(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->call('openSkipModal')
+        ->assertSet('showSkipModal', true)
+        ->assertSet('skipDuration', '1')
+        ->assertSee('Skip installments')
+        ->set('skipDuration', 'custom')
+        ->set('customSkipMonths', 3)
+        ->assertSee($subscription->current_period_end->copy()->addMonths(3)->format('M d, Y, g:i A'));
+});

@@ -39,6 +39,9 @@ class SubscriptionShow extends Component
         if (! $hasOrgCampaign) {
             abort(404);
         }
+
+        $this->skipDuration = '1';
+        $this->customSkipMonths = 1;
     }
 
     #[Computed]
@@ -448,6 +451,58 @@ class SubscriptionShow extends Component
 
         $this->subscription->refresh();
         $this->dispatch('notify', type: 'success', message: 'Subscription paused for one month.');
+    }
+
+    public bool $showSkipModal = false;
+
+    public string $skipDuration = '1';
+
+    public $customSkipMonths = 1;
+
+    public function openSkipModal(): void
+    {
+        $this->skipDuration = '1';
+        $this->customSkipMonths = 1;
+        $this->showSkipModal = true;
+    }
+
+    public function closeSkipModal(): void
+    {
+        $this->showSkipModal = false;
+    }
+
+    #[Computed]
+    public function skipNextInstallmentDate(): ?CarbonInterface
+    {
+        $base = $this->subscription->current_period_end ?? now();
+
+        return $base->copy()->addMonths($this->resolveSkipMonths());
+    }
+
+    public function confirmSkip(): void
+    {
+        $months = $this->resolveSkipMonths();
+
+        try {
+            app(ManageStripeSubscription::class)->pause($this->subscription, $months);
+        } catch (\Exception $e) {
+            $this->dispatch('notify', type: 'error', message: 'Unable to skip installments. Please try again.');
+
+            return;
+        }
+
+        $this->subscription->refresh();
+        $this->showSkipModal = false;
+        $this->dispatch('notify', type: 'success', message: 'Subscription skipped for '.$months.' month'.($months > 1 ? 's' : '').'.');
+    }
+
+    private function resolveSkipMonths(): int
+    {
+        if ($this->skipDuration === 'custom') {
+            return max(1, min(12, (int) $this->customSkipMonths));
+        }
+
+        return (int) $this->skipDuration;
     }
 
     public bool $showEditModal = false;

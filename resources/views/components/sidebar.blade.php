@@ -55,7 +55,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
 
                 <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/app/settings')">
                     <x-sidebar-item href="/app/settings/organization" icon="building-office" label="Organization" :active="$isActive('/app/settings/organization')" />
-                    <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
+                    <x-sidebar-item href="/app/settings/payment" icon="stripe" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
                     <x-sidebar-item href="/app/settings/account" icon="user-circle" label="Account" :active="$isActive('/app/settings/account')" />
                     <x-sidebar-item href="/app/settings/allow-domains" icon="globe-alt" label="Allowed Domains" :active="$isActive('/app/settings/allow-domains')" />
                     <x-sidebar-item href="/app/settings/donor-portal" icon="window" label="Donor Portal" :active="$isActive('/app/settings/donor-portal')" />
@@ -96,7 +96,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
 
                 <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/app/settings')">
                     <x-sidebar-item href="/app/settings/organization" icon="building-office" label="Organization" :active="$isActive('/app/settings/organization')" />
-                    <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
+                    <x-sidebar-item href="/app/settings/payment" icon="stripe" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
                     <x-sidebar-item href="/app/settings/account" icon="user-circle" label="Account" :active="$isActive('/app/settings/account')" />
                     <x-sidebar-item href="/app/settings/allow-domains" icon="globe-alt" label="Allowed Domains" :active="$isActive('/app/settings/allow-domains')" />
                     <x-sidebar-item href="/app/settings/donor-portal" icon="window" label="Donor Portal" :active="$isActive('/app/settings/donor-portal')" />

@@ -115,7 +115,7 @@ class DonationShow extends Component
 
     public function payoutAmount(): string
     {
-        return 'MYR '.number_format((float) ($this->donation->base_amount ?? $this->donation->net_amount), 2);
+        return 'MYR '.number_format((float) ($this->donation->net_amount ?? $this->donation->base_amount ?? $this->donation->gross_amount), 2);
     }
 
     public function effectiveFeeRate(): string

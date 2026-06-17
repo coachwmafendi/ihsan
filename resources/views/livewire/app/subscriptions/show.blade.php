@@ -321,7 +321,7 @@
 
             {{-- Recent Payments --}}
             <section id="section-payments" data-section="section-payments">
-                <x-ui.card title="Installments" icon="heroicon-o-receipt-percent">
+                <x-ui.card title="Installments" icon="heroicon-o-arrows-right-left">
                     @if ($this->recentPayments->isNotEmpty())
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-left text-sm">
@@ -357,7 +357,7 @@
                         </div>
                     @else
                         <x-ui.empty-state
-                            icon="heroicon-o-banknotes"
+                            icon="heroicon-o-arrows-right-left"
                             title="No payments yet"
                             description="Payments for this subscription will appear here."
                         />
@@ -367,7 +367,7 @@
 
             {{-- Receipts --}}
             <section id="section-receipts" data-section="section-receipts">
-                <x-ui.card title="Receipts" icon="heroicon-o-document-text">
+                <x-ui.card title="Receipts" icon="heroicon-o-receipt-percent">
                     @if ($this->receiptDonations->isNotEmpty())
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-left text-sm">
@@ -411,7 +411,7 @@
                         </div>
                     @else
                         <x-ui.empty-state
-                            icon="heroicon-o-document-text"
+                            icon="heroicon-o-receipt-percent"
                             title="No receipts yet"
                             description="Receipts for donations in this plan will appear here."
                         />
@@ -433,7 +433,7 @@
                         Edit payment details
                     </button>
                     <button
-                        wire:click="pauseSubscription()"
+                        wire:click="openSkipModal"
                         class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                     >
                         <x-heroicon-o-arrow-right-circle class="size-5 text-slate-400" />
@@ -490,7 +490,7 @@
                             :class="activeSection === 'section-payments' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'"
                             class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold transition"
                         >
-                            <x-heroicon-o-receipt-percent class="size-5" />
+                            <x-heroicon-o-arrows-right-left class="size-5" />
                             Installments
                         </button>
                         <button
@@ -499,7 +499,7 @@
                             :class="activeSection === 'section-receipts' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'"
                             class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold transition"
                         >
-                            <x-heroicon-o-document-text class="size-5" />
+                            <x-heroicon-o-receipt-percent class="size-5" />
                             Receipts
                         </button>
                     </nav>
@@ -786,6 +786,51 @@
                     <x-ui.button wireClick="closeCancelModal" variant="secondary">Keep recurring</x-ui.button>
                 </flux:modal.close>
                 <x-ui.button wireClick="cancelSubscription" variant="danger">Cancel recurring</x-ui.button>
+            </div>
+        </div>
+    </flux:modal>
+
+    {{-- Skip Installments Modal --}}
+    <flux:modal wire:model="showSkipModal" name="skip-installments-modal">
+        <div class="space-y-6">
+            <div>
+                <h3 class="text-lg font-semibold text-slate-900">Skip installments</h3>
+            </div>
+
+            <div class="space-y-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" wire:model.live="skipDuration" value="1" class="size-4 border-slate-300 text-teal-600 focus:ring-teal-600">
+                    <span class="text-sm text-slate-900">Skip for 1 month</span>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" wire:model.live="skipDuration" value="3" class="size-4 border-slate-300 text-teal-600 focus:ring-teal-600">
+                    <span class="text-sm text-slate-900">Skip for 3 month</span>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" wire:model.live="skipDuration" value="custom" class="size-4 border-slate-300 text-teal-600 focus:ring-teal-600">
+                    <span class="text-sm text-slate-900">Skip for 1-12 months</span>
+                </label>
+
+                @if ($skipDuration === 'custom')
+                    <div class="pl-7">
+                        <input type="number" wire:model.live="customSkipMonths" min="1" max="12" class="block w-32 rounded-lg border border-slate-300 py-2 px-3 text-sm text-slate-900 focus:border-teal-500 focus:ring-teal-500">
+                    </div>
+                @endif
+            </div>
+
+            <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                <p class="text-sm text-slate-700">
+                    The next installment will be made on <span class="font-semibold text-slate-900">{{ $this->skipNextInstallmentDate?->format('M d, Y, g:i A') ?? '—' }}</span>
+                </p>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <flux:modal.close>
+                    <x-ui.button wireClick="closeSkipModal" variant="secondary">Cancel</x-ui.button>
+                </flux:modal.close>
+                <x-ui.button wireClick="confirmSkip" variant="primary">Confirm</x-ui.button>
             </div>
         </div>
     </flux:modal>
