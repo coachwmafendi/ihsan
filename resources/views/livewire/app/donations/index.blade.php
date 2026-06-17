@@ -380,7 +380,7 @@
                                         {{-- Recurring indicator --}}
                                         @if ($donation->subscription_id)
                                             <x-heroicon-o-arrow-path class="size-4 text-teal-500" title="Recurring" />
-                                            <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-50 px-1 text-[10px] font-semibold text-teal-600" title="Installment {{ $donation->subscription?->payment_count ?? 1 }}">{{ $donation->subscription?->payment_count ?? 1 }}</span>
+                                            <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-50 px-1 text-[10px] font-semibold text-teal-600" title="{{ Number::ordinal($donation->subscription?->payment_count ?? 1) }} installment">{{ $donation->subscription?->payment_count ?? 1 }}</span>
                                         @endif
                                     </div>
                                 </td>
