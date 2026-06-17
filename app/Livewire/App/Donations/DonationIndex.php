@@ -179,7 +179,7 @@ class DonationIndex extends Component
                 $q->whereHas('campaign', fn (Builder $cq) => $cq->where('organization_id', $org->id));
             })
             ->when(! $org, fn (Builder $q) => $q->whereRaw('1 = 0'))
-            ->with(['campaign', 'donor']);
+            ->with(['campaign', 'donor', 'subscription']);
 
         if (filled($this->search)) {
             $search = '%'.$this->search.'%';
