@@ -16,6 +16,7 @@
         {{ $slot }}
     </x-app-shell>
 
+    @include('components.ui._tooltip-script')
     @livewireScripts
     @fluxScripts
 
