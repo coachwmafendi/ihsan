@@ -579,6 +579,183 @@ it('does not duplicate recurring donation notifications when invoice paid webhoo
     Queue::assertPushedTimes(SendDonationReceipt::class, 1);
 });
 
+it('stores recurring fee cover details on subscription creation', function () {
+    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendNewSubscriptionNotification::class, SendLargeDonationNotification::class]);
+    config(['services.stripe.secret' => 'sk_test_fake']);
+
+    $organization = Organization::factory()->create([
+        'stripe_account_id' => 'acct_fee_cover_test',
+        'stripe_onboarded' => true,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create([
+        'email' => 'fee-cover@example.test',
+    ]);
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 100,
+        'net_amount' => 100,
+        'processing_fee' => 0,
+        'donor_fee_covered' => 5,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::Recurring,
+        'stripe_payment_intent_id' => 'pi_fee_cover_recurring_123',
+    ]);
+
+    $stripeClient = new class((string) $donation->getKey()) implements ClientInterface
+    {
+        /** @var array<int, array{method: string, url: string, headers: array<int, string>, params: array<string, mixed>}> */
+        public array $requests = [];
+
+        public function __construct(public string $donationId) {}
+
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $this->requests[] = [
+                'method' => $method,
+                'url' => $absUrl,
+                'headers' => $headers,
+                'params' => $params,
+            ];
+
+            $response = match (true) {
+                str_contains($absUrl, '/v1/payment_intents/pi_fee_cover_recurring_123') => [
+                    'id' => 'pi_fee_cover_recurring_123',
+                    'object' => 'payment_intent',
+                    'customer' => 'cus_fee_cover_donor',
+                    'payment_method' => 'pm_fee_cover_card',
+                    'metadata' => [
+                        'donation_id' => $this->donationId,
+                        'donor_email' => 'fee-cover@example.test',
+                    ],
+                    'latest_charge' => [
+                        'id' => 'ch_fee_cover_recurring_123',
+                        'object' => 'charge',
+                        'balance_transaction' => null,
+                    ],
+                    'charges' => [
+                        'object' => 'list',
+                        'data' => [],
+                    ],
+                ],
+                str_contains($absUrl, '/v1/payment_methods/') => [
+                    'id' => 'pm_fee_cover_card',
+                    'object' => 'payment_method',
+                    'type' => 'card',
+                    'card' => [
+                        'brand' => 'visa',
+                        'last4' => '4242',
+                    ],
+                ],
+                str_ends_with($absUrl, '/v1/products') => [
+                    'id' => 'prod_fee_cover_'.count($this->requests),
+                    'object' => 'product',
+                ],
+                str_ends_with($absUrl, '/v1/prices') => [
+                    'id' => 'price_fee_cover_'.count($this->requests),
+                    'object' => 'price',
+                ],
+                str_ends_with($absUrl, '/v1/subscriptions') => [
+                    'id' => 'sub_fee_cover_monthly',
+                    'object' => 'subscription',
+                    'status' => 'active',
+                    'current_period_start' => now()->timestamp,
+                    'current_period_end' => now()->addMonth()->timestamp,
+                ],
+                str_contains($absUrl, '/v1/customers') => $method === 'GET' ? [
+                    'object' => 'list',
+                    'data' => [],
+                    'has_more' => false,
+                ] : [
+                    'id' => 'cus_fee_cover_donor',
+                    'object' => 'customer',
+                ],
+                default => throw new RuntimeException('Unexpected Stripe request: '.$absUrl),
+            };
+
+            return [json_encode($response), 200, []];
+        }
+    };
+
+    ApiRequestor::setHttpClient($stripeClient);
+
+    try {
+        (new ProcessStripeWebhook(feeCoverRecurringPayload($donation)))->handle();
+    } finally {
+        ApiRequestor::setHttpClient(CurlClient::instance());
+    }
+
+    $subscription = Subscription::query()->where('stripe_subscription_id', 'sub_fee_cover_monthly')->first();
+
+    expect($subscription)->not->toBeNull()
+        ->and($subscription->cover_fee)->toBeTrue()
+        ->and($subscription->fee_cover_amount)->toBe(5);
+
+    $subscriptionRequest = collect($stripeClient->requests)
+        ->first(fn (array $request): bool => str_ends_with($request['url'], '/v1/subscriptions'));
+
+    expect($subscriptionRequest['params']['items'])->toHaveCount(2);
+});
+
+it('splits fee cover from recurring invoice paid webhooks', function () {
+    Queue::fake([
+        SendCampaignMilestoneNotification::class,
+        SendDonationReceipt::class,
+        SendLargeDonationNotification::class,
+        SendNewDonationNotification::class,
+        SyncDonationStripeDetailsJob::class,
+    ]);
+
+    $this->mock(SyncDonationStripeDetails::class, function ($mock): void {
+        $mock->shouldReceive('sync')
+            ->once()
+            ->andReturn([
+                'payment_intent' => StripePaymentIntent::constructFrom([
+                    'id' => 'pi_fee_cover_invoice',
+                    'object' => 'payment_intent',
+                ]),
+                'charge_id' => 'ch_fee_cover_invoice',
+            ]);
+    });
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'collected_amount' => 0,
+    ]);
+    $donor = Donor::factory()->create();
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create([
+        'stripe_subscription_id' => 'sub_fee_cover_invoice',
+        'amount' => 50,
+        'currency' => 'myr',
+        'cover_fee' => true,
+        'fee_cover_amount' => 3,
+        'payment_count' => 1,
+    ]);
+
+    (new ProcessStripeWebhook(donorInvoicePaidPayload(
+        subscriptionId: 'sub_fee_cover_invoice',
+        eventId: 'evt_fee_cover_invoice_paid',
+        invoiceId: 'in_fee_cover_invoice',
+        amountPaid: 5300,
+        paymentIntentId: 'pi_fee_cover_invoice',
+        chargeId: 'ch_fee_cover_invoice',
+    )))->handle();
+
+    $subscription->refresh();
+    $campaign->refresh();
+    $donation = Donation::query()->where('stripe_invoice_id', 'in_fee_cover_invoice')->first();
+
+    expect($donation)->not->toBeNull()
+        ->and($donation->gross_amount)->toBe('50.00')
+        ->and($donation->donor_fee_covered)->toBe('3.00')
+        ->and($subscription->payment_count)->toBe(2)
+        ->and($campaign->collected_amount)->toBe('50.00')
+        ->and(WebhookLog::query()->where('stripe_event_id', 'evt_fee_cover_invoice_paid')->first()?->status)->toBe('completed');
+
+    Queue::assertPushedTimes(SendDonationReceipt::class, 1);
+    Queue::assertPushedTimes(SendNewDonationNotification::class, 1);
+});
+
 function paymentIntentSucceededPayload(Donation $donation, string $eventId): string
 {
     return json_encode([
@@ -692,6 +869,40 @@ function connectedPaymentIntentSucceededPayload(Donation $donation, string $even
                     'donor_email' => $donation->donor?->email ?? '',
                     'campaign_id' => (string) $donation->campaign_id,
                     'organization_id' => (string) $donation->campaign?->organization_id,
+                ],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+}
+
+function feeCoverRecurringPayload(Donation $donation): string
+{
+    return json_encode([
+        'id' => 'evt_fee_cover_recurring_123',
+        'object' => 'event',
+        'account' => 'acct_fee_cover_test',
+        'type' => 'payment_intent.succeeded',
+        'data' => [
+            'object' => [
+                'id' => $donation->stripe_payment_intent_id,
+                'object' => 'payment_intent',
+                'customer' => 'cus_fee_cover_donor',
+                'payment_method' => 'pm_fee_cover_card',
+                'metadata' => [
+                    'donation_id' => (string) $donation->getKey(),
+                    'donor_email' => $donation->donor?->email ?? '',
+                    'campaign_id' => (string) $donation->campaign_id,
+                    'organization_id' => (string) $donation->campaign?->organization_id,
+                ],
+                'charges' => [
+                    'object' => 'list',
+                    'data' => [
+                        [
+                            'id' => 'ch_fee_cover_recurring_123',
+                            'object' => 'charge',
+                            'balance_transaction' => null,
+                        ],
+                    ],
                 ],
             ],
         ],

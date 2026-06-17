@@ -61,6 +61,8 @@ class CreateRecurringSubscription
             'currency' => $donation->currency,
             'interval' => SubscriptionInterval::Monthly,
             'status' => SubscriptionStatus::Active,
+            'cover_fee' => (float) ($donation->donor_fee_covered ?? 0) > 0,
+            'fee_cover_amount' => (float) ($donation->donor_fee_covered ?? 0) > 0 ? (float) $donation->donor_fee_covered : null,
             'current_period_start' => $currentPeriodStart,
             'current_period_end' => $currentPeriodEnd,
         ]);
@@ -120,9 +122,28 @@ class CreateRecurringSubscription
             'recurring' => ['interval' => 'month'],
         ], $stripeOptions);
 
+        $items = [['price' => $price->id]];
+
+        $feeCoverAmount = (float) ($donation->donor_fee_covered ?? 0);
+        if ($feeCoverAmount > 0) {
+            $feeProduct = StripeProduct::create([
+                'name' => ($donation->campaign?->title ?? 'Donation').' - Processing fee cover',
+                'metadata' => ['campaign_id' => (string) $donation->campaign_id, 'type' => 'fee_cover'],
+            ], $stripeOptions);
+
+            $feePrice = StripePrice::create([
+                'product' => $feeProduct->id,
+                'currency' => $donation->currency,
+                'unit_amount' => (int) ($feeCoverAmount * 100),
+                'recurring' => ['interval' => 'month'],
+            ], $stripeOptions);
+
+            $items[] = ['price' => $feePrice->id];
+        }
+
         $params = [
             'customer' => $customerId,
-            'items' => [['price' => $price->id]],
+            'items' => $items,
             'default_payment_method' => $paymentMethodId,
             'trial_end' => $currentPeriodEnd->getTimestamp(),
             'metadata' => [

@@ -197,10 +197,20 @@ class ProcessStripeWebhook implements ShouldQueue
 
         $subscription->loadMissing('campaign.organization');
 
-        $grossAmount = (float) (($invoice->amount_paid ?? 0) / 100);
+        $invoiceTotal = (float) (($invoice->amount_paid ?? 0) / 100);
 
-        if ($grossAmount <= 0) {
+        if ($invoiceTotal <= 0) {
             return;
+        }
+
+        $feeCoverAmount = (float) ($subscription->fee_cover_amount ?? 0);
+
+        if ($feeCoverAmount > 0) {
+            $grossAmount = (float) $subscription->amount;
+            $donorFeeCovered = max(0, $invoiceTotal - $grossAmount);
+        } else {
+            $grossAmount = $invoiceTotal;
+            $donorFeeCovered = 0.0;
         }
 
         $existingDonation = Donation::query()
@@ -240,6 +250,7 @@ class ProcessStripeWebhook implements ShouldQueue
             'donor_id' => $subscription->donor_id,
             'subscription_id' => $subscription->getKey(),
             'gross_amount' => $grossAmount,
+            'donor_fee_covered' => $donorFeeCovered,
             'stripe_fee' => 0,
             'processing_fee' => 0,
             'net_amount' => $grossAmount,

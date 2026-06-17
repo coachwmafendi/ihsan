@@ -31,6 +31,8 @@ class SubscriptionFactory extends Factory
             'currency' => 'myr',
             'interval' => SubscriptionInterval::Monthly,
             'status' => SubscriptionStatus::Active,
+            'cover_fee' => false,
+            'fee_cover_amount' => null,
             'retry_count' => 0,
             'current_period_start' => now(),
             'current_period_end' => now()->addMonth(),

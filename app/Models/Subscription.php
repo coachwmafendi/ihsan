@@ -39,6 +39,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property int $payment_count
  * @property bool $cancel_at_period_end
  * @property bool $cover_fee
+ * @property numeric|null $fee_cover_amount
  * @property CarbonImmutable|null $cancel_at
  * @property numeric|null $max_plan_amount
  * @property int|null $max_plan_installments
@@ -81,7 +82,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['campaign_id', 'donor_id', 'source', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'cancel_at_period_end', 'cover_fee', 'cancel_at', 'max_plan_amount', 'max_plan_installments', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
+#[Fillable(['campaign_id', 'donor_id', 'source', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'cancel_at_period_end', 'cover_fee', 'fee_cover_amount', 'cancel_at', 'max_plan_amount', 'max_plan_installments', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */
