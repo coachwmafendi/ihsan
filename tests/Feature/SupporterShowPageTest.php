@@ -142,6 +142,23 @@ it('marks the active section menu including recurring plans when subscriptions e
         ->assertSeeHtml('sticky top-24');
 });
 
+it('renders an impersonation form on the open donor portal action', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Open Donor Portal')
+        ->assertSeeHtml('action="'.e(route('admin.donor-portal.impersonate', $donor)).'"')
+        ->assertSeeHtml('target="_blank"');
+});
+
 it('opens the edit modal and saves the supporter details', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([

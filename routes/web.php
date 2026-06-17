@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DonationCampaignImageController;
+use App\Http\Controllers\DonorImpersonationController;
 use App\Http\Controllers\EmbedCheckoutController;
 use App\Http\Controllers\PublicElementController;
 use App\Http\Controllers\ReceiptDownloadController;
@@ -70,6 +71,13 @@ Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
     ->name('stripe.payment-intent');
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
+
+Route::middleware(['auth', EnsureNgoAdmin::class])->group(function () {
+    Route::post('/app/supporters/{donor:public_id}/impersonate', [DonorImpersonationController::class, 'impersonate'])
+        ->name('admin.donor-portal.impersonate');
+    Route::post('/app/impersonate/exit', [DonorImpersonationController::class, 'exit'])
+        ->name('admin.donor-portal.exit');
+});
 
 Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::class])->group(function () {
     Route::get('/app', fn () => redirect()->route('app.insights'))->name('app');

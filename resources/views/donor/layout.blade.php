@@ -9,6 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="flex min-h-screen flex-col bg-slate-50 antialiased" x-data="{ reportOpen: false }">
+    <x-admin-impersonation-bar />
+
     <header class="bg-slate-900" x-data="{ mobileNavOpen: false }">
         <div class="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6 py-4">
             @if (isset($organization) && filled($organization->logo_path))

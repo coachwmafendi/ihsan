@@ -124,20 +124,6 @@ class SupporterShow extends Component
         return $lastDonation?->created_at->format('M d, Y');
     }
 
-    #[Computed]
-    public function donorPortalUrl(): ?string
-    {
-        $org = Auth::user()?->organization;
-
-        if (! $org) {
-            return null;
-        }
-
-        $token = $this->donor->generateMagicToken();
-
-        return route('donorportal.magic-login', ['organization' => $org->code, 'token' => $token]);
-    }
-
     public function openEditModal(): void
     {
         $nameParts = explode(' ', $this->donor->name, 2);

@@ -348,16 +348,16 @@
                         <x-heroicon-o-currency-dollar class="size-5 text-slate-400" />
                         Make donation
                     </a>
-                    @if ($this->donorPortalUrl)
-                        <a
-                            href="{{ $this->donorPortalUrl }}"
-                            target="_blank"
-                            class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    <form method="POST" action="{{ route('admin.donor-portal.impersonate', $donor) }}" target="_blank" class="contents">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                         >
                             <x-heroicon-o-face-smile class="size-5 text-slate-400" />
                             Open Donor Portal
-                        </a>
-                    @endif
+                        </button>
+                    </form>
                 </div>
 
                 {{-- Navigation --}}
