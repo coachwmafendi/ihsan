@@ -304,6 +304,60 @@
                     @endif
                 </x-ui.card>
             </section>
+
+            {{-- Receipts --}}
+            <section id="section-receipts" data-section="section-receipts">
+                <x-ui.card title="Receipts" icon="heroicon-o-receipt-percent">
+                    @if ($this->receiptDonations->isNotEmpty())
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-left text-sm">
+                                <thead>
+                                    <tr class="border-b border-slate-100">
+                                        <th class="py-2 pr-4 font-medium text-slate-900">Receipt number</th>
+                                        <th class="py-2 pr-4 font-medium text-slate-900">Amount</th>
+                                        <th class="py-2 pr-4 font-medium text-slate-900">Donation date</th>
+                                        <th class="py-2"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($this->receiptDonations as $donation)
+                                        <tr class="border-b border-slate-50 last:border-0">
+                                            <td class="py-3 pr-4">
+                                                <div class="flex items-center gap-2">
+                                                    @if ($donation->status->value === 'succeeded')
+                                                        <x-heroicon-o-check-circle class="size-5 text-emerald-500" />
+                                                        <span class="font-medium text-slate-900">{{ $donation->public_id }}</span>
+                                                    @else
+                                                        <span class="font-medium text-slate-900">{{ $donation->public_id }}</span>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td class="py-3 pr-4 font-medium text-slate-900">
+                                                {{ $donation->currency_symbol }} {{ number_format((float) $donation->gross_amount, 2) }}
+                                            </td>
+                                            <td class="py-3 pr-4 text-slate-600">{{ $donation->created_at->format('M d, Y') }}</td>
+                                            <td class="py-3 text-right">
+                                                @if ($donation->status->value === 'succeeded')
+                                                    <a href="{{ route('donations.receipt.download', ['donation' => $donation->public_id]) }}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900">
+                                                        <x-heroicon-o-arrow-down-tray class="size-4" />
+                                                        Download
+                                                    </a>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <x-ui.empty-state
+                            icon="heroicon-o-document-text"
+                            title="No receipts yet"
+                            description="Receipts for donations in this plan will appear here."
+                        />
+                    @endif
+                </x-ui.card>
+            </section>
         </div>
 
         {{-- Right Column / Floating Menu --}}
@@ -379,6 +433,15 @@
                         >
                             <x-heroicon-o-receipt-percent class="size-5" />
                             Installments
+                        </button>
+                        <button
+                            type="button"
+                            @click="scrollToSection('section-receipts')"
+                            :class="activeSection === 'section-receipts' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'"
+                            class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold transition"
+                        >
+                            <x-heroicon-o-receipt-percent class="size-5" />
+                            Receipts
                         </button>
                     </nav>
                 </div>

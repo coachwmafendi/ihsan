@@ -76,6 +76,14 @@ class SubscriptionShow extends Component
     }
 
     #[Computed]
+    public function receiptDonations()
+    {
+        return $this->subscription->donations()
+            ->latest()
+            ->get();
+    }
+
+    #[Computed]
     public function latestDonation(): ?Donation
     {
         return $this->subscription->donations()->latest()->first();
