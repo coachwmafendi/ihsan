@@ -125,7 +125,6 @@ class Insights extends Component
                     ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
                     ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
                     ->where('donations.currency', '!=', 'myr')
-                    ->whereNotNull('donations.base_amount')
                     ->selectRaw('COUNT(*) > 0'),
                 'has_report_approximation'
             )

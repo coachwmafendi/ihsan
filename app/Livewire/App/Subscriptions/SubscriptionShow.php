@@ -11,6 +11,7 @@ use App\Models\Donation;
 use App\Models\Subscription;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
 use Livewire\Attributes\Computed;
@@ -61,16 +62,31 @@ class SubscriptionShow extends Component
     #[Computed]
     public function totalMyrAmount(): array
     {
-        $total = (float) $this->subscription->donations()->sum(Donation::reportAmountColumn());
-        $hasApproximation = $this->subscription->donations()
-            ->where('currency', '!=', 'myr')
-            ->whereNotNull('base_amount')
-            ->exists();
+        $query = $this->subscription->donations();
 
         return [
-            'amount' => $total,
-            'hasApproximation' => $hasApproximation,
+            'amount' => (float) $query->sum(Donation::reportAmountColumn()),
+            'hasApproximation' => Donation::hasReportApproximations($query->getQuery()),
         ];
+    }
+
+    #[Computed]
+    public function originalAmounts(): Collection
+    {
+        return $this->subscription->donations()
+            ->selectRaw('currency, ROUND(SUM(gross_amount), 2) as total')
+            ->groupBy('currency')
+            ->get()
+            ->mapWithKeys(fn ($item) => [strtoupper($item->currency) => (float) $item->total]);
+    }
+
+    #[Computed]
+    public function hasForeignWithoutBase(): bool
+    {
+        return $this->subscription->donations()
+            ->where('currency', '!=', 'myr')
+            ->whereNull('base_amount')
+            ->exists();
     }
 
     #[Computed]

@@ -45,7 +45,9 @@
                     <x-heroicon-o-clipboard-document class="size-3.5" />
                 </button>
                 <span x-show="copied" x-transition class="text-xs text-emerald-600">Copied!</span>
-                <span>· Total {{ $this->totalMyrAmount['hasApproximation'] ? '≈' : '' }} MYR {{ number_format($this->totalMyrAmount['amount'], 2) }}</span>
+                <span>· Total {{ $this->hasForeignWithoutBase
+                    ? $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ')
+                    : ($this->totalMyrAmount['hasApproximation'] ? '≈' : '').' MYR '.number_format($this->totalMyrAmount['amount'], 2) }}</span>
             </p>
         </div>
     </div>
@@ -184,7 +186,11 @@
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Total donated to date</dt>
                             <dd class="text-sm font-medium text-slate-900">
-                                {{ $this->totalMyrAmount['hasApproximation'] ? '≈' : '' }} MYR {{ number_format($this->totalMyrAmount['amount'], 2) }}
+                                @if ($this->hasForeignWithoutBase)
+                                    {{ $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') }}
+                                @else
+                                    {{ $this->totalMyrAmount['hasApproximation'] ? '≈' : '' }} MYR {{ number_format($this->totalMyrAmount['amount'], 2) }}
+                                @endif
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">

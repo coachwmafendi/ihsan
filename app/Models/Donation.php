@@ -311,7 +311,6 @@ class Donation extends Model
     {
         return (clone $query)
             ->where('currency', '!=', 'myr')
-            ->whereNotNull('base_amount')
             ->exists();
     }
 

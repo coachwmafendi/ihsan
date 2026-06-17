@@ -119,6 +119,23 @@ it('shows refund modal and validates reason', function () {
         ->assertSet('refundReason', 'duplicate');
 });
 
+it('shows original currency total for foreign donations without base amount', function () {
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'currency' => 'usd',
+        'gross_amount' => 150.00,
+        'base_amount' => null,
+        'status' => 'succeeded',
+    ]);
+
+    $response = $this->actingAs($this->user)->get(route('app.donations.index'));
+
+    $response->assertOk()
+        ->assertSee('USD 150.00')
+        ->assertSee('Original currency totals');
+});
+
 it('redirects guests to login', function () {
     $this->get(route('app.donations.index'))->assertRedirect('/login');
     $this->get(route('app.donations.show', $this->donation))->assertRedirect('/login');

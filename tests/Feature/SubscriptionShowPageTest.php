@@ -4,6 +4,7 @@ use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Livewire\App\Subscriptions\SubscriptionShow;
 use App\Models\Campaign;
+use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
@@ -212,4 +213,37 @@ it('opens the skip installments modal and computes next installment date', funct
         ->set('skipDuration', 'custom')
         ->set('customSkipMonths', 3)
         ->assertSee($subscription->current_period_end->copy()->addMonths(3)->format('M d, Y, g:i A'));
+});
+
+it('shows original currency totals when subscription donations lack base amount', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'currency' => 'usd',
+        'amount' => 50.00,
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $subscription->id,
+        'currency' => 'usd',
+        'gross_amount' => 50.00,
+        'base_amount' => null,
+    ]);
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $subscription->id,
+        'currency' => 'usd',
+        'gross_amount' => 50.00,
+        'base_amount' => null,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('USD 100.00')
+        ->assertDontSee('MYR 100.00');
 });

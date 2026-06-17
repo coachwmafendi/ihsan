@@ -8,6 +8,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -249,6 +250,25 @@ class DonationIndex extends Component
             'amount' => (float) $query->sum(Donation::reportAmountColumn()),
             'isApproximate' => Donation::hasReportApproximations($this->baseQuery()),
         ];
+    }
+
+    #[Computed]
+    public function originalAmounts(): Collection
+    {
+        return $this->baseQuery()
+            ->selectRaw('currency, ROUND(SUM(gross_amount), 2) as total')
+            ->groupBy('currency')
+            ->get()
+            ->mapWithKeys(fn ($item) => [strtoupper($item->currency) => (float) $item->total]);
+    }
+
+    #[Computed]
+    public function hasForeignWithoutBase(): bool
+    {
+        return $this->baseQuery()
+            ->where('currency', '!=', 'myr')
+            ->whereNull('base_amount')
+            ->exists();
     }
 
     public function render()
