@@ -182,6 +182,20 @@
                 </div>
             </div>
         </div>
+
+        {{-- Per Page --}}
+        <div class="ml-auto flex items-center gap-2">
+            <x-heroicon-o-list-bullet class="size-4 text-slate-400" />
+            <select
+                wire:model.live="perPage"
+                class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+            >
+                <option value="10">10 rows</option>
+                <option value="25">25 rows</option>
+                <option value="50">50 rows</option>
+                <option value="100">100 rows</option>
+            </select>
+        </div>
     </div>
 
     {{-- Donors Table --}}

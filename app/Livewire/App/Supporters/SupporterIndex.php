@@ -37,6 +37,9 @@ class SupporterIndex extends Component
 
     public string $sortDirection = 'desc';
 
+    #[Url(except: 25)]
+    public int $perPage = 25;
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -53,6 +56,11 @@ class SupporterIndex extends Component
     }
 
     public function updatedDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage(): void
     {
         $this->resetPage();
     }
@@ -191,7 +199,9 @@ class SupporterIndex extends Component
 
         $query->orderBy($field, $direction);
 
-        return $query->paginate(25);
+        $perPage = in_array($this->perPage, [10, 25, 50, 100], true) ? $this->perPage : 25;
+
+        return $query->paginate($perPage);
     }
 
     #[Computed]

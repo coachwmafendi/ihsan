@@ -86,3 +86,29 @@ it('displays donor names in title case', function () {
 it('redirects guests to login', function () {
     $this->get(route('app.supporters.index'))->assertRedirect('/login');
 });
+
+it('paginates supporters based on per page selection', function () {
+    $donors = Donor::factory()->count(29)->create();
+
+    foreach ($donors as $donor) {
+        Donation::factory()->create([
+            'campaign_id' => $this->campaign->id,
+            'donor_id' => $donor->id,
+        ]);
+    }
+
+    $component = Livewire::actingAs($this->user)->test(SupporterIndex::class);
+
+    expect($component->instance()->donors)->toHaveCount(25);
+
+    $component->set('perPage', 10);
+
+    $paginated = $component->instance()->donors;
+
+    expect($paginated)->toHaveCount(10)
+        ->and($paginated->total())->toBe(30);
+
+    $component->set('perPage', 50);
+
+    expect($component->instance()->donors)->toHaveCount(30);
+});
