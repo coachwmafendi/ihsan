@@ -39,9 +39,13 @@
                 @click="open = !open"
                 class="flex items-center gap-2 p-1 pr-2 rounded-lg hover:bg-slate-100 transition-colors"
             >
-                <div class="size-8 rounded-full bg-teal-100 flex items-center justify-center">
-                    <span class="text-sm font-medium text-teal-700">{{ substr(auth()->user()?->name ?? 'U', 0, 1) }}</span>
-                </div>
+                @if (auth()->user()?->avatarUrl())
+                    <img src="{{ auth()->user()->avatarUrl() }}" alt="{{ auth()->user()?->name }}" class="size-8 rounded-full object-cover border border-slate-200">
+                @else
+                    <div class="size-8 rounded-full bg-teal-100 flex items-center justify-center">
+                        <span class="text-sm font-medium text-teal-700">{{ substr(auth()->user()?->name ?? 'U', 0, 1) }}</span>
+                    </div>
+                @endif
                 <x-heroicon-o-chevron-down class="size-4 text-slate-400" />
             </button>
 
@@ -62,9 +66,9 @@
                     <p class="text-xs text-slate-500">{{ auth()->user()?->email }}</p>
                 </div>
 
-                <a href="/app/settings/profile" wire:navigate class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-                    <x-heroicon-o-cog-6-tooth class="size-4" />
-                    Settings
+                <a href="/app/settings/account" wire:navigate class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                    <x-heroicon-o-user-circle class="size-4" />
+                    Account
                 </a>
 
                 <form method="POST" action="{{ route('logout') }}" class="block">

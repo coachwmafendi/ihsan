@@ -67,9 +67,9 @@ $unreadCount = auth()->user()?->getUnreadNotificationsCountAttribute() ?? 0;
                     <p class="text-xs text-slate-500">{{ auth()->user()?->email }}</p>
                 </div>
 
-                <a href="/app/settings/profile" wire:navigate class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-                    <x-heroicon-o-cog-6-tooth class="size-4" />
-                    Settings
+                <a href="/app/settings/account" wire:navigate class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                    <x-heroicon-o-user-circle class="size-4" />
+                    Account
                 </a>
 
                 <form method="POST" action="{{ route('logout') }}" class="block">

@@ -23,6 +23,12 @@ class Topbar extends Component
         $this->unreadCount = Auth::user()?->getUnreadNotificationsCountAttribute() ?? 0;
     }
 
+    #[On('account-updated')]
+    public function refreshProfile(): void
+    {
+        // Re-renders the topbar so the new avatar/name are reflected.
+    }
+
     public function render()
     {
         return view('livewire.app.topbar', [

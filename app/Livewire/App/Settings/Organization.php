@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Settings;
 
-use App\Models\Organization;
+use App\Models\Organization as OrganizationModel;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -12,7 +12,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 
 #[Layout('layouts.app')]
-class Profile extends Component
+class Organization extends Component
 {
     use WithFileUploads;
 
@@ -68,7 +68,7 @@ class Profile extends Component
 
     public function mount(): void
     {
-        /** @var Organization|null $org */
+        /** @var OrganizationModel|null $org */
         $org = Auth::user()?->organization;
 
         if (! $org) {
@@ -121,7 +121,7 @@ class Profile extends Component
             'bank_account_number' => ['nullable', 'string', 'max:255'],
         ]);
 
-        /** @var Organization|null $org */
+        /** @var OrganizationModel|null $org */
         $org = Auth::user()?->organization;
 
         if (! $org) {
@@ -174,6 +174,6 @@ class Profile extends Component
 
     public function render()
     {
-        return view('livewire.app.settings.profile', ['title' => 'Settings — Profile']);
+        return view('livewire.app.settings.organization', ['title' => 'Settings — Organization']);
     }
 }

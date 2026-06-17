@@ -9,13 +9,11 @@
                             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                         </svg>
                     </li>
-                    <li class="font-medium text-slate-900">Profile</li>
+                    <li class="font-medium text-slate-900">Organization</li>
                 </ol>
             </nav>
         </x-slot:subtitle>
     </x-ui.page-header>
-
-
 
     <div class="border-b border-slate-200">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">

@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Enums\UserRole;
+use App\Livewire\App\Settings\Account;
 use App\Livewire\App\Settings\AllowDomains;
 use App\Livewire\App\Settings\DonorPortal;
-use App\Livewire\App\Settings\Profile;
 use App\Models\Organization;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
@@ -18,17 +20,17 @@ beforeEach(function () {
     ]);
 });
 
-// Settings Profile
-it('renders settings profile page', function () {
+// Settings Organization
+it('renders settings organization page', function () {
     actingAs($this->user)
-        ->get('/app/settings/profile')
+        ->get('/app/settings/organization')
         ->assertOk()
         ->assertSee('Settings')
-        ->assertSee('Profile');
+        ->assertSee('Organization');
 });
 
-it('redirects guests from settings profile', function () {
-    get('/app/settings/profile')->assertRedirect('/login');
+it('redirects guests from settings organization', function () {
+    get('/app/settings/organization')->assertRedirect('/login');
 });
 
 // Settings Payment
@@ -197,4 +199,104 @@ it('defaults donor portal reply-to email to organisation contact email', functio
 
     Livewire::test(DonorPortal::class)
         ->assertSet('portal_reply_to_email', 'contact@example.com');
+});
+
+// Settings Account
+it('renders settings account page', function () {
+    actingAs($this->user)
+        ->get('/app/settings/account')
+        ->assertOk()
+        ->assertSee('Settings')
+        ->assertSee('Account');
+});
+
+it('redirects guests from settings account', function () {
+    get('/app/settings/account')->assertRedirect('/login');
+});
+
+it('updates account name', function () {
+    actingAs($this->user);
+
+    Livewire::test(Account::class)
+        ->set('name', 'Updated Name')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($this->user->fresh()->name)->toBe('Updated Name');
+});
+
+it('updates password with correct current password', function () {
+    actingAs($this->user);
+
+    Livewire::test(Account::class)
+        ->set('current_password', 'password')
+        ->set('password', 'new-password')
+        ->set('password_confirmation', 'new-password')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Hash::check('new-password', $this->user->fresh()->password))->toBeTrue();
+});
+
+it('rejects password update with incorrect current password', function () {
+    actingAs($this->user);
+
+    Livewire::test(Account::class)
+        ->set('current_password', 'wrong-password')
+        ->set('password', 'new-password')
+        ->set('password_confirmation', 'new-password')
+        ->call('save')
+        ->assertHasErrors(['current_password']);
+
+    expect(Hash::check('password', $this->user->fresh()->password))->toBeTrue();
+});
+
+it('rejects duplicate email', function () {
+    $otherUser = User::factory()->create([
+        'organization_id' => $this->organization->id,
+        'email' => 'taken@example.com',
+    ]);
+
+    actingAs($this->user);
+
+    Livewire::test(Account::class)
+        ->set('name', 'Name')
+        ->set('email', 'taken@example.com')
+        ->call('save')
+        ->assertHasErrors(['email']);
+});
+
+it('prevents organization admin from changing email', function () {
+    actingAs($this->user);
+
+    Livewire::test(Account::class)
+        ->set('name', 'Updated Name')
+        ->set('email', 'new@example.com')
+        ->call('save')
+        ->assertHasErrors(['email']);
+
+    $user = $this->user->fresh();
+
+    expect($user->name)->toBe('Updated Name');
+    expect($user->email)->not->toBe('new@example.com');
+});
+
+it('allows platform admin to change email', function () {
+    $superAdmin = User::factory()->create([
+        'role' => UserRole::SuperAdmin,
+        'email' => 'super@example.com',
+    ]);
+
+    actingAs($superAdmin);
+
+    Livewire::test(Account::class)
+        ->set('name', 'Super Admin')
+        ->set('email', 'newsuper@example.com')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $user = $superAdmin->fresh();
+
+    expect($user->name)->toBe('Super Admin');
+    expect($user->email)->toBe('newsuper@example.com');
 });
