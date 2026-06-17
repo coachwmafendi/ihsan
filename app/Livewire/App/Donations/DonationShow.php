@@ -98,7 +98,7 @@ class DonationShow extends Component
 
     public function platformFee(): string
     {
-        return $this->donation->currency_symbol.' '.number_format((float) $this->donation->processing_fee, 2).' '.strtoupper($this->donation->currency);
+        return $this->donation->currency_symbol.' '.number_format($this->feeInDisplayCurrency((float) $this->donation->processing_fee), 2).' '.strtoupper($this->donation->currency);
     }
 
     public function platformFeeBase(): string
@@ -110,23 +110,33 @@ class DonationShow extends Component
 
     public function paymentProcessingFee(): string
     {
-        return $this->donation->currency_symbol.' '.number_format((float) $this->donation->stripe_fee, 2).' '.strtoupper($this->donation->currency);
+        return $this->donation->currency_symbol.' '.number_format($this->feeInDisplayCurrency((float) $this->donation->stripe_fee), 2).' '.strtoupper($this->donation->currency);
     }
 
     public function payoutAmount(): string
     {
-        return 'MYR '.number_format((float) ($this->donation->net_amount ?? $this->donation->base_amount ?? $this->donation->gross_amount), 2);
+        $amount = (float) ($this->donation->net_amount ?? $this->donation->gross_amount);
+
+        if ($this->donation->base_amount !== null) {
+            return 'MYR '.number_format($amount, 2);
+        }
+
+        return $this->donation->currency_symbol.' '.number_format($amount, 2).' '.strtoupper($this->donation->currency);
     }
 
     public function effectiveFeeRate(): string
     {
-        $gross = (float) $this->donation->gross_amount;
-        if ($gross <= 0) {
+        $base = (float) ($this->donation->base_amount ?? $this->donation->gross_amount);
+        if ($base <= 0) {
             return '0.00%';
         }
 
-        $fees = (float) $this->donation->stripe_fee + (float) $this->donation->processing_fee - (float) $this->donation->donor_fee_covered;
-        $rate = max(0, ($fees / $gross) * 100);
+        $donorFeeCovered = $this->donation->currency === 'myr'
+            ? (float) $this->donation->donor_fee_covered
+            : ((float) $this->donation->donor_fee_covered * (float) ($this->donation->exchange_rate ?? 1));
+
+        $fees = (float) $this->donation->stripe_fee + (float) $this->donation->processing_fee - $donorFeeCovered;
+        $rate = max(0, ($fees / $base) * 100);
 
         return number_format($rate, 2).'%';
     }
@@ -195,6 +205,15 @@ class DonationShow extends Component
         }
 
         return $fee * ($base / $gross);
+    }
+
+    private function feeInDisplayCurrency(float $fee): float
+    {
+        if ($this->donation->currency === 'myr' || $this->donation->exchange_rate === null || (float) $this->donation->exchange_rate <= 0) {
+            return $fee;
+        }
+
+        return $fee / (float) $this->donation->exchange_rate;
     }
 
     public function canRefund(): bool

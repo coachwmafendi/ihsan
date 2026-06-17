@@ -277,6 +277,10 @@ class Donation extends Model
     public function formattedReportAmount(): Attribute
     {
         return Attribute::get(function () {
+            if ($this->base_amount === null) {
+                return $this->formatted_amount;
+            }
+
             $prefix = $this->is_report_approximate ? '≈ MYR' : 'MYR';
 
             return $prefix.' '.number_format($this->report_amount, 2);
