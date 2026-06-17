@@ -266,18 +266,34 @@ class Donation extends Model
 
     public function reportAmount(): Attribute
     {
-        return Attribute::get(fn () => (float) ($this->base_amount ?? $this->gross_amount));
+        return Attribute::get(function () {
+            if ($this->base_amount !== null) {
+                return (float) $this->base_amount;
+            }
+
+            $gross = (float) $this->gross_amount;
+
+            if (strtolower($this->currency ?? '') === 'myr') {
+                return $gross;
+            }
+
+            if ($this->exchange_rate !== null) {
+                return $gross * (float) $this->exchange_rate;
+            }
+
+            return $gross;
+        });
     }
 
     public function isReportApproximate(): Attribute
     {
-        return Attribute::get(fn () => $this->currency !== 'myr' && $this->base_amount !== null);
+        return Attribute::get(fn () => $this->currency !== 'myr');
     }
 
     public function formattedReportAmount(): Attribute
     {
         return Attribute::get(function () {
-            if ($this->base_amount === null) {
+            if ($this->currency !== 'myr' && $this->base_amount === null && $this->exchange_rate === null) {
                 return $this->formatted_amount;
             }
 
@@ -294,7 +310,13 @@ class Donation extends Model
 
     public static function reportAmountColumn(): Expression
     {
-        return DB::raw('COALESCE('.(new static)->qualifyColumn('base_amount').', '.(new static)->qualifyColumn('gross_amount').')');
+        $table = (new static)->getTable();
+        $baseAmount = $table.'.base_amount';
+        $grossAmount = $table.'.gross_amount';
+        $currency = $table.'.currency';
+        $exchangeRate = $table.'.exchange_rate';
+
+        return DB::raw("COALESCE({$baseAmount}, CASE WHEN LOWER({$currency}) = 'myr' THEN {$grossAmount} ELSE {$grossAmount} * {$exchangeRate} END, {$grossAmount})");
     }
 
     public static function reportAmountSql(): string
@@ -304,7 +326,13 @@ class Donation extends Model
 
     public static function reportSumColumn(): Expression
     {
-        return DB::raw('SUM(COALESCE('.(new static)->qualifyColumn('base_amount').', '.(new static)->qualifyColumn('gross_amount').'))');
+        $table = (new static)->getTable();
+        $baseAmount = $table.'.base_amount';
+        $grossAmount = $table.'.gross_amount';
+        $currency = $table.'.currency';
+        $exchangeRate = $table.'.exchange_rate';
+
+        return DB::raw("SUM(COALESCE({$baseAmount}, CASE WHEN LOWER({$currency}) = 'myr' THEN {$grossAmount} ELSE {$grossAmount} * {$exchangeRate} END, {$grossAmount}))");
     }
 
     public static function hasReportApproximations(Builder $query): bool
@@ -324,6 +352,7 @@ class Donation extends Model
             'net_amount' => 'decimal:2',
             'base_currency' => 'string',
             'base_amount' => 'decimal:2',
+            'exchange_rate' => 'decimal:6',
             'is_anonymous' => 'boolean',
             'utm_params' => 'array',
             'stripe_fee_details' => 'array',

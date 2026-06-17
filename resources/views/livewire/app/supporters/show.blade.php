@@ -11,13 +11,9 @@
                 </span>
                 <span class="inline-flex items-center gap-1 whitespace-nowrap">
                     <span class="text-slate-300">·</span>
-                    @if ($this->hasForeignWithoutBase)
-                        <span title="Original currency totals">Lifetime donated {{ $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') }}</span>
-                    @elseif ($this->totalAmount['isApproximate'])
-                        <span>Lifetime donated ≈ MYR {{ number_format($this->totalAmount['amount'], 2) }}</span>
-                    @else
-                        <span>Lifetime donated MYR {{ number_format($this->totalAmount['amount'], 2) }}</span>
-                    @endif
+                    <span title="{{ $this->originalAmounts->isNotEmpty() ? $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') : '' }}">
+                        Lifetime donated {{ $this->totalAmount['isApproximate'] ? '≈' : '' }} MYR {{ number_format($this->totalAmount['amount'], 2) }}
+                    </span>
                 </span>
                 <span class="inline-flex items-center gap-1 whitespace-nowrap">
                     <span class="text-slate-300">·</span>

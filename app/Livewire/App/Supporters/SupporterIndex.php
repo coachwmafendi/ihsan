@@ -164,17 +164,8 @@ class SupporterIndex extends Component
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.donor_id', 'donors.id')
                     ->where('donations.currency', '!=', 'myr')
-                    ->whereNotNull('donations.base_amount')
                     ->selectRaw('COUNT(*) > 0'),
                 'has_report_approximation'
-            )
-            ->selectSub(
-                fn ($q) => $q->from('donations')
-                    ->whereColumn('donations.donor_id', 'donors.id')
-                    ->where('donations.currency', '!=', 'myr')
-                    ->whereNull('donations.base_amount')
-                    ->selectRaw('COUNT(*) > 0'),
-                'has_foreign_without_base'
             );
 
         if (filled($this->search)) {

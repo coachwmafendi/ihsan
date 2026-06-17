@@ -37,7 +37,7 @@ it('renders the supporter detail page with sections and menus', function () {
         ->assertSee('Information');
 });
 
-it('shows original currency lifetime total when foreign donations lack base amount', function () {
+it('shows approximate myr lifetime total when foreign donations lack base amount', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([
         'role' => UserRole::NgoAdmin,
@@ -59,8 +59,7 @@ it('shows original currency lifetime total when foreign donations lack base amou
     $this->actingAs($user)
         ->get('/app/supporters/'.$donor->public_id)
         ->assertOk()
-        ->assertSee('USD 200.00')
-        ->assertDontSee('MYR 200.00');
+        ->assertSee('Lifetime donated ≈ MYR 200.00');
 });
 
 it('hides recurring plans section and menu when supporter has no subscriptions', function () {

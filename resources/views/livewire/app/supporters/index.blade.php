@@ -328,9 +328,7 @@
                                             : null;
                                         $tooltip = $exactLabel;
                                     @endphp
-                                    @if ($donor->has_foreign_without_base && $exactLabel)
-                                        <span class="text-sm font-semibold text-slate-900" @if ($tooltip) title="{{ $tooltip }}" @endif>{{ $exactLabel }}</span>
-                                    @elseif ($donor->has_report_approximation)
+                                    @if ($donor->has_report_approximation)
                                         <span class="text-sm font-semibold text-slate-900" @if ($tooltip) title="{{ $tooltip }}" @endif>≈ MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
                                     @else
                                         <span class="text-sm font-semibold text-slate-900" @if ($tooltip) title="{{ $tooltip }}" @endif>MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>

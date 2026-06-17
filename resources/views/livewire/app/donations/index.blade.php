@@ -13,10 +13,8 @@
         <x-ui.stat-card label="Total Donations" value="{{ number_format($this->totalCount) }}" />
         <x-ui.stat-card
             label="Total Amount"
-            value="{{ $this->hasForeignWithoutBase
-                ? $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ')
-                : ($this->totalAmount['isApproximate'] ? '≈ ' : '').'MYR '.number_format($this->totalAmount['amount'], 2) }}"
-            subtext="{{ $this->hasForeignWithoutBase ? 'Original currency totals' : ($this->totalAmount['isApproximate'] ? 'Includes foreign currency donations' : null) }}"
+            value="{{ ($this->totalAmount['isApproximate'] ? '≈ ' : '').'MYR '.number_format($this->totalAmount['amount'], 2) }}"
+            subtext="{{ $this->originalAmounts->isNotEmpty() ? $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') : null }}"
         />
     </div>
 

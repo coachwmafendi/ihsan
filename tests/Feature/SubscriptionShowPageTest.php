@@ -215,7 +215,7 @@ it('opens the skip installments modal and computes next installment date', funct
         ->assertSee($subscription->current_period_end->copy()->addMonths(3)->format('M d, Y, g:i A'));
 });
 
-it('shows original currency totals when subscription donations lack base amount', function () {
+it('shows approximate myr total when subscription donations lack base amount', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,
         'donor_id' => $this->donor->id,
@@ -244,6 +244,5 @@ it('shows original currency totals when subscription donations lack base amount'
 
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
-        ->assertSee('USD 100.00')
-        ->assertDontSee('MYR 100.00');
+        ->assertSee('≈ MYR 100.00');
 });

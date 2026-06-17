@@ -81,15 +81,6 @@ class SubscriptionShow extends Component
     }
 
     #[Computed]
-    public function hasForeignWithoutBase(): bool
-    {
-        return $this->subscription->donations()
-            ->where('currency', '!=', 'myr')
-            ->whereNull('base_amount')
-            ->exists();
-    }
-
-    #[Computed]
     public function recentPayments()
     {
         return $this->subscription->donations()

@@ -80,15 +80,6 @@ class SupporterShow extends Component
     }
 
     #[Computed]
-    public function hasForeignWithoutBase(): bool
-    {
-        return $this->scopedDonations()
-            ->where('currency', '!=', 'myr')
-            ->whereNull('base_amount')
-            ->exists();
-    }
-
-    #[Computed]
     public function hasSubscriptions(): bool
     {
         return $this->donor->subscriptions()

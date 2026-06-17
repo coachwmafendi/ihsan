@@ -262,15 +262,6 @@ class DonationIndex extends Component
             ->mapWithKeys(fn ($item) => [strtoupper($item->currency) => (float) $item->total]);
     }
 
-    #[Computed]
-    public function hasForeignWithoutBase(): bool
-    {
-        return $this->baseQuery()
-            ->where('currency', '!=', 'myr')
-            ->whereNull('base_amount')
-            ->exists();
-    }
-
     public function render()
     {
         return view('livewire.app.donations.index', [

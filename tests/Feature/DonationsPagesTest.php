@@ -119,7 +119,7 @@ it('shows refund modal and validates reason', function () {
         ->assertSet('refundReason', 'duplicate');
 });
 
-it('shows original currency total for foreign donations without base amount', function () {
+it('shows approximate myr total for foreign donations without base amount', function () {
     Donation::factory()->create([
         'campaign_id' => $this->campaign->id,
         'donor_id' => $this->donor->id,
@@ -132,8 +132,8 @@ it('shows original currency total for foreign donations without base amount', fu
     $response = $this->actingAs($this->user)->get(route('app.donations.index'));
 
     $response->assertOk()
-        ->assertSee('USD 150.00')
-        ->assertSee('Original currency totals');
+        ->assertSee('≈ MYR')
+        ->assertSee('USD 150.00');
 });
 
 it('redirects guests to login', function () {

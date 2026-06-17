@@ -83,7 +83,7 @@ it('displays donor names in title case', function () {
     $response->assertDontSee('AHMAD BIN ABU');
 });
 
-it('shows original currency lifetime total for foreign donations without base amount', function () {
+it('shows approximate myr lifetime total for foreign donations without base amount', function () {
     $donor = Donor::factory()->create();
 
     Donation::factory()->create([
@@ -104,8 +104,7 @@ it('shows original currency lifetime total for foreign donations without base am
     $this->actingAs($this->user)
         ->get(route('app.supporters.index'))
         ->assertOk()
-        ->assertSee('USD 200.00')
-        ->assertDontSee('MYR 200.00');
+        ->assertSee('≈ MYR 200.00');
 });
 
 it('redirects guests to login', function () {
