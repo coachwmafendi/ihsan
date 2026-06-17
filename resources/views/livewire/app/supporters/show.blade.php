@@ -4,18 +4,30 @@
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ \Illuminate\Support\Str::title($donor->name) }}</h1>
-            <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
-                <span class="inline-flex items-center gap-1">
+            <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
+                <span class="inline-flex items-center gap-1 whitespace-nowrap">
                     ID {{ $donor->public_id }}
                     <x-ui.copy-button value="{{ $donor->public_id }}" size="sm" />
                 </span>
-                <span class="text-slate-300">·</span>
-                <span>Lifetime donated MYR {{ number_format($this->totalAmount['amount'], 2) }}</span>
-                <span class="text-slate-300">·</span>
-                <span>Last donation {{ $this->lastDonationDate ?? '—' }}</span>
-                <span class="text-slate-300">·</span>
-                <span>Supporter since {{ $donor->created_at->format('M d, Y') }}</span>
-            </p>
+                <span class="inline-flex items-center gap-1 whitespace-nowrap">
+                    <span class="text-slate-300">·</span>
+                    @if ($this->hasForeignWithoutBase)
+                        <span title="Original currency totals">Lifetime donated {{ $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') }}</span>
+                    @elseif ($this->totalAmount['isApproximate'])
+                        <span>Lifetime donated ≈ MYR {{ number_format($this->totalAmount['amount'], 2) }}</span>
+                    @else
+                        <span>Lifetime donated MYR {{ number_format($this->totalAmount['amount'], 2) }}</span>
+                    @endif
+                </span>
+                <span class="inline-flex items-center gap-1 whitespace-nowrap">
+                    <span class="text-slate-300">·</span>
+                    <span>Last donation {{ $this->lastDonationDate ?? '—' }}</span>
+                </span>
+                <span class="inline-flex items-center gap-1 whitespace-nowrap">
+                    <span class="text-slate-300">·</span>
+                    <span>Supporter since {{ $donor->created_at->format('M d, Y') }}</span>
+                </span>
+            </div>
         </div>
         <div class="flex items-center gap-2 lg:hidden">
             <x-ui.button
@@ -274,7 +286,7 @@
 
             {{-- Receipts --}}
             <section id="receipts">
-                <x-ui.card title="Receipts" icon="heroicon-o-document-text">
+                <x-ui.card title="Receipts" icon="heroicon-o-receipt-percent">
                     @if ($this->receiptDonations->isNotEmpty())
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-slate-200">
@@ -294,7 +306,7 @@
                                             </td>
                                             <td class="px-4 py-3 text-sm font-medium text-slate-900">
                                                 <a href="{{ route('donations.receipt.download', ['donation' => $donation->public_id]) }}" target="_blank" class="inline-flex items-center gap-1.5 text-teal-600 hover:text-teal-700">
-                                                    <x-heroicon-o-document-text class="size-4" />
+                                                    <x-heroicon-o-receipt-percent class="size-4" />
                                                     {{ $donation->invoice_number ?? 'Receipt' }}
                                                     <x-heroicon-o-arrow-down-tray class="size-4" />
                                                 </a>
@@ -318,7 +330,7 @@
                         </div>
                     @else
                         <x-ui.empty-state
-                            icon="heroicon-o-document-text"
+                            icon="heroicon-o-receipt-percent"
                             title="No receipts yet"
                             description="Receipts for this donor will appear here once donations are made."
                         />
@@ -393,7 +405,7 @@
                             : 'text-slate-600 hover:bg-slate-50'"
                         class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition"
                     >
-                        <x-heroicon-o-document-text class="size-5 text-slate-400" />
+                        <x-heroicon-o-receipt-percent class="size-5 text-slate-400" />
                         Receipts
                     </a>
                 </nav>

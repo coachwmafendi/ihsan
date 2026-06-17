@@ -205,7 +205,7 @@
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead>
                         <tr class="bg-slate-50">
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('name')" class="group inline-flex items-center gap-1">
                                     Name
                                     @if ($sortField === 'name')
@@ -219,7 +219,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('email')" class="group inline-flex items-center gap-1">
                                     Email
                                     @if ($sortField === 'email')
@@ -233,7 +233,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('donations_count')" class="group inline-flex items-center gap-1">
                                     Donations
                                     @if ($sortField === 'donations_count')
@@ -247,7 +247,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('lifetime_report_amount')" class="group inline-flex items-center gap-1">
                                     Lifetime donated
                                     @if ($sortField === 'lifetime_report_amount')
@@ -261,7 +261,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('donations_min_created_at')" class="group inline-flex items-center gap-1">
                                     First Donation
                                     @if ($sortField === 'donations_min_created_at')
@@ -275,7 +275,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('donations_max_created_at')" class="group inline-flex items-center gap-1">
                                     Last Donation
                                     @if ($sortField === 'donations_max_created_at')
@@ -289,7 +289,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
                                     Created
                                     @if ($sortField === 'created_at')
@@ -323,23 +323,26 @@
                                 <td class="px-5 py-4">
                                     @php
                                         $exact = $exactAmounts->get($donor->id, collect());
-                                        $tooltip = $exact->isNotEmpty()
-                                            ? $exact->map(fn ($amount, $currency) => $currency.' '.number_format((float) $amount, 2))->join(', ')
+                                        $exactLabel = $exact->isNotEmpty()
+                                            ? $exact->map(fn ($amount, $currency) => strtoupper($currency).' '.number_format((float) $amount, 2))->join(', ')
                                             : null;
+                                        $tooltip = $exactLabel;
                                     @endphp
-                                    @if ($donor->has_report_approximation)
+                                    @if ($donor->has_foreign_without_base && $exactLabel)
+                                        <span class="text-sm font-semibold text-slate-900" @if ($tooltip) title="{{ $tooltip }}" @endif>{{ $exactLabel }}</span>
+                                    @elseif ($donor->has_report_approximation)
                                         <span class="text-sm font-semibold text-slate-900" @if ($tooltip) title="{{ $tooltip }}" @endif>≈ MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
                                     @else
                                         <span class="text-sm font-semibold text-slate-900" @if ($tooltip) title="{{ $tooltip }}" @endif>MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
                                     @endif
                                 </td>
-                                <td class="px-5 py-4 text-sm text-slate-500">
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
                                     {{ $donor->donations_min_created_at ? \Carbon\Carbon::parse($donor->donations_min_created_at)->format('M d, Y') : '-' }}
                                 </td>
-                                <td class="px-5 py-4 text-sm text-slate-500">
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
                                     {{ $donor->donations_max_created_at ? \Carbon\Carbon::parse($donor->donations_max_created_at)->format('M d, Y') : '-' }}
                                 </td>
-                                <td class="px-5 py-4 text-sm text-slate-500">
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
                                     {{ $donor->created_at->format('M d, Y') }}
                                 </td>
                             </tr>

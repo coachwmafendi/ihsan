@@ -37,6 +37,32 @@ it('renders the supporter detail page with sections and menus', function () {
         ->assertSee('Information');
 });
 
+it('shows original currency lifetime total when foreign donations lack base amount', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($donor)->for($campaign)->create([
+        'currency' => 'usd',
+        'gross_amount' => 100.00,
+        'base_amount' => null,
+    ]);
+    Donation::factory()->for($donor)->for($campaign)->create([
+        'currency' => 'usd',
+        'gross_amount' => 100.00,
+        'base_amount' => null,
+    ]);
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('USD 200.00')
+        ->assertDontSee('MYR 200.00');
+});
+
 it('hides recurring plans section and menu when supporter has no subscriptions', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([

@@ -10,6 +10,7 @@ use App\Models\Donor;
 use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -66,6 +67,25 @@ class SupporterShow extends Component
             'amount' => (float) $query->sum(Donation::reportAmountColumn()),
             'isApproximate' => Donation::hasReportApproximations($query->getQuery()),
         ];
+    }
+
+    #[Computed]
+    public function originalAmounts(): Collection
+    {
+        return $this->scopedDonations()
+            ->selectRaw('currency, ROUND(SUM(gross_amount), 2) as total')
+            ->groupBy('currency')
+            ->get()
+            ->mapWithKeys(fn ($item) => [strtoupper($item->currency) => (float) $item->total]);
+    }
+
+    #[Computed]
+    public function hasForeignWithoutBase(): bool
+    {
+        return $this->scopedDonations()
+            ->where('currency', '!=', 'myr')
+            ->whereNull('base_amount')
+            ->exists();
     }
 
     #[Computed]

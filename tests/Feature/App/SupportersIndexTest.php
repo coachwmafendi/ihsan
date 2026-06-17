@@ -83,6 +83,31 @@ it('displays donor names in title case', function () {
     $response->assertDontSee('AHMAD BIN ABU');
 });
 
+it('shows original currency lifetime total for foreign donations without base amount', function () {
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $donor->id,
+        'currency' => 'usd',
+        'gross_amount' => 100.00,
+        'base_amount' => null,
+    ]);
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $donor->id,
+        'currency' => 'usd',
+        'gross_amount' => 100.00,
+        'base_amount' => null,
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('app.supporters.index'))
+        ->assertOk()
+        ->assertSee('USD 200.00')
+        ->assertDontSee('MYR 200.00');
+});
+
 it('redirects guests to login', function () {
     $this->get(route('app.supporters.index'))->assertRedirect('/login');
 });
