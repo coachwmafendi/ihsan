@@ -50,6 +50,58 @@
         </div>
     </div>
 
+    {{-- Status Banner --}}
+    @php
+        $intervalLabel = strtolower($subscription->interval->value);
+        $dateClass = 'border-b border-dashed border-slate-400';
+    @endphp
+
+    @switch($subscription->status->value)
+        @case('active')
+            @if ($subscription->cancel_at_period_end)
+                <x-ui.alert variant="warning" icon="heroicon-o-exclamation-triangle">
+                    This {{ $intervalLabel }} recurring donation is scheduled to cancel. The final installment will be charged on <span class="{{ $dateClass }}">{{ $this->nextInstallmentDate?->format('M d, Y, g:i A') }}</span>.
+                </x-ui.alert>
+            @else
+                <x-ui.alert variant="info" icon="heroicon-o-information-circle">
+                    This {{ $intervalLabel }} recurring donation is active. Installment #{{ $this->nextInstallmentNumber }} will be charged on <span class="{{ $dateClass }}">{{ $this->nextInstallmentDate?->format('M d, Y, g:i A') }}</span>.
+                </x-ui.alert>
+            @endif
+            @break
+
+        @case('paused')
+            <x-ui.alert variant="warning" icon="heroicon-o-pause-circle">
+                @if ($subscription->paused_until)
+                    This {{ $intervalLabel }} recurring donation is paused. Installments will resume on <span class="{{ $dateClass }}">{{ $subscription->paused_until->format('M d, Y, g:i A') }}</span>.
+                @else
+                    This {{ $intervalLabel }} recurring donation is paused. Installments are currently on hold.
+                @endif
+            </x-ui.alert>
+            @break
+
+        @case('cancelled')
+            <x-ui.alert variant="danger" icon="heroicon-o-x-circle">
+                @if ($subscription->cancelled_at)
+                    This recurring donation was cancelled on <span class="{{ $dateClass }}">{{ $subscription->cancelled_at->format('M d, Y, g:i A') }}</span>. No further charges will be made.
+                @else
+                    This recurring donation has been cancelled. No further charges will be made.
+                @endif
+            </x-ui.alert>
+            @break
+
+        @case('past_due')
+            <x-ui.alert variant="danger" icon="heroicon-o-exclamation-circle">
+                The most recent installment failed. We will retry the payment shortly.
+            </x-ui.alert>
+            @break
+
+        @case('incomplete')
+            <x-ui.alert variant="warning" icon="heroicon-o-exclamation-triangle">
+                This recurring donation is incomplete. Please complete the payment setup.
+            </x-ui.alert>
+            @break
+    @endswitch
+
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_18rem] xl:grid-cols-[1fr_20rem]">
         {{-- Left Column --}}
         <div class="space-y-6">
@@ -152,7 +204,7 @@
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Next installment date</dt>
                             <dd class="w-fit border-b border-dashed border-slate-300 pb-0.5 text-sm text-slate-900">
-                                {{ $subscription->current_period_end?->format('M d, Y, g:i A') ?? '—' }}
+                                {{ $this->nextInstallmentDate?->format('M d, Y, g:i A') ?? '—' }}
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -374,7 +426,7 @@
                 {{-- Floating Action Menu --}}
                 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     <button
-                        wire:click="$set('showUpgradeModal', true)"
+                        wire:click="openEditPaymentDetailsModal"
                         class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                     >
                         <x-heroicon-o-pencil class="size-5 text-slate-400" />
@@ -487,6 +539,186 @@
                     <x-ui.button wireClick="closeEditModal" variant="secondary">Cancel</x-ui.button>
                 </flux:modal.close>
                 <x-ui.button wireClick="saveSubscription" variant="primary">Save changes</x-ui.button>
+            </div>
+        </div>
+    </flux:modal>
+
+    {{-- Edit Payment Details Modal --}}
+    <flux:modal wire:model="showEditPaymentDetailsModal" name="edit-payment-details-modal">
+        <div class="space-y-6" x-data="editPaymentDetailsModal()">
+            <div>
+                <h3 class="text-lg font-semibold text-slate-900">Edit payment details</h3>
+            </div>
+
+            <div class="space-y-4">
+                {{-- Installment amount --}}
+                <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[160px_1fr]">
+                    <label class="text-sm font-medium text-slate-900">Installment amount</label>
+                    <div class="flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 transition focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
+                        <span class="text-base font-medium text-slate-900">{{ $subscription->currency_symbol }}</span>
+                        <input type="number" wire:model.live="editAmount" step="0.01" min="1" max="99999.99" class="min-w-0 flex-1 border-0 bg-transparent px-1 text-base text-slate-900 outline-none placeholder:text-slate-400">
+                        <span class="text-sm text-slate-400">{{ strtoupper($subscription->currency) }}</span>
+                    </div>
+                </div>
+
+                {{-- Frequency --}}
+                <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[160px_1fr]">
+                    <label class="text-sm font-medium text-slate-900">Frequency</label>
+                    <flux:select wire:model.live="editInterval">
+                        <flux:select.option value="monthly">Monthly</flux:select.option>
+                        <flux:select.option value="weekly">Weekly</flux:select.option>
+                        <flux:select.option value="yearly">Yearly</flux:select.option>
+                    </flux:select>
+                </div>
+
+                {{-- Starting on --}}
+                <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[160px_1fr]">
+                    <label class="text-sm font-medium text-slate-900">Starting on</label>
+                    <flux:select wire:model.live="editBillingDay">
+                        @php
+                            $ordinal = fn (int $day): string => $day.((($day % 100) >= 11 && ($day % 100) <= 13) ? 'th' : match ($day % 10) { 1 => 'st', 2 => 'nd', 3 => 'rd', default => 'th' });
+                        @endphp
+                        @for ($day = 1; $day <= 28; $day++)
+                            <flux:select.option value="{{ $day }}">{{ $ordinal($day) }}</flux:select.option>
+                        @endfor
+                    </flux:select>
+                </div>
+
+                {{-- Process a payment now --}}
+                <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[160px_1fr]">
+                    <div></div>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" wire:model="editProcessPaymentNow" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600">
+                        <span class="text-sm text-slate-700">Process a payment now</span>
+                    </label>
+                </div>
+
+                {{-- End date --}}
+                <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-[160px_1fr]">
+                    <label class="text-sm font-medium text-slate-900 pt-2.5">End date</label>
+                    <div class="space-y-1.5">
+                        <div class="relative">
+                            <x-heroicon-o-calendar-days class="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            <input
+                                type="{{ $editEndDate ? 'date' : 'text' }}"
+                                onfocus="this.type='date'"
+                                onblur="if (! this.value) this.type='text'"
+                                wire:model="editEndDate"
+                                placeholder="dd/mm/yyyy"
+                                class="block w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:ring-teal-500"
+                            >
+                        </div>
+                        <p class="text-xs text-slate-500">Leave blank for unlimited.</p>
+                    </div>
+                </div>
+
+                {{-- Max plan amount --}}
+                <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[160px_1fr]">
+                    <label class="text-sm font-medium text-slate-900">Max plan amount</label>
+                    @if ($editHasMaxPlanAmount)
+                        <div class="flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 transition focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
+                            <span class="text-base font-medium text-slate-900">{{ $subscription->currency_symbol }}</span>
+                            <input type="number" wire:model="editMaxPlanAmount" step="0.01" min="1" max="99999.99" class="min-w-0 flex-1 border-0 bg-transparent px-1 text-base text-slate-900 outline-none placeholder:text-slate-400">
+                        </div>
+                    @else
+                        <button type="button" wire:click="$set('editHasMaxPlanAmount', true)" class="inline-flex items-center gap-1.5 justify-self-start text-sm font-medium text-teal-600 hover:text-teal-700">
+                            <x-heroicon-o-plus class="size-4" />
+                            Add limit
+                        </button>
+                    @endif
+                </div>
+
+                {{-- Max plan installments --}}
+                <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[160px_1fr]">
+                    <label class="text-sm font-medium text-slate-900">Max plan installments</label>
+                    @if ($editHasMaxPlanInstallments)
+                        <input type="number" wire:model="editMaxPlanInstallments" min="1" class="block w-full rounded-lg border border-slate-300 py-2 px-3 text-sm text-slate-900 focus:border-teal-500 focus:ring-teal-500">
+                    @else
+                        <button type="button" wire:click="$set('editHasMaxPlanInstallments', true)" class="inline-flex items-center gap-1.5 justify-self-start text-sm font-medium text-teal-600 hover:text-teal-700">
+                            <x-heroicon-o-plus class="size-4" />
+                            Add limit
+                        </button>
+                    @endif
+                </div>
+
+                {{-- Estimated transaction costs --}}
+                <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[160px_1fr]">
+                    <label class="text-sm font-medium text-slate-900">Estimated transaction costs</label>
+                    <div class="text-sm font-semibold text-slate-900">{{ $subscription->currency_symbol }}{{ number_format($this->transactionCostEstimate, 2) }}</div>
+                </div>
+
+                {{-- Cover transaction costs --}}
+                <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-[160px_1fr]">
+                    <div></div>
+                    <label class="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 cursor-pointer">
+                        <input type="checkbox" wire:model.live="editCoverFee" class="mt-0.5 size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600">
+                        <span class="text-sm font-semibold text-slate-900">Cover transaction costs</span>
+                        <x-heroicon-o-question-mark-circle class="mt-0.5 size-4 text-slate-400" />
+                    </label>
+                </div>
+
+                {{-- Payment method --}}
+                <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-[160px_1fr]">
+                    <label class="text-sm font-medium text-slate-900">Payment method</label>
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" wire:model.live="editPaymentMethod" value="existing" class="size-4 border-slate-300 text-teal-600 focus:ring-teal-600">
+                            <div class="flex flex-wrap items-center gap-2 text-sm text-slate-900">
+                                @php
+                                    $existingCardIcon = match (strtolower($this->latestDonation?->payment_method_brand ?? '')) {
+                                        'visa' => 'icons.visa',
+                                        'mastercard' => 'icons.mastercard',
+                                        'amex' => 'icons.amex',
+                                        'discover' => 'icons.discover',
+                                        'diners' => 'icons.diners',
+                                        'jcb' => 'icons.jcb',
+                                        'maestro' => 'icons.maestro',
+                                        'unionpay' => 'icons.unionpay',
+                                        default => 'heroicon-o-credit-card',
+                                    };
+                                @endphp
+                                <x-dynamic-component :component="$existingCardIcon" class="size-6" />
+                                <span>{{ $this->latestDonation?->payment_method_brand ? ucfirst($this->latestDonation->payment_method_brand) : 'Card' }}</span>
+                                @if ($this->latestDonation?->payment_method_last4)
+                                    <span class="text-slate-500">•••• {{ $this->latestDonation->payment_method_last4 }}</span>
+                                @endif
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" wire:model.live="editPaymentMethod" value="new" class="size-4 border-slate-300 text-teal-600 focus:ring-teal-600">
+                            <span class="text-sm text-slate-900">New credit card</span>
+                        </label>
+
+                        @if ($editPaymentMethod === 'new' && $setupIntentClientSecret)
+                            <div class="rounded-lg border border-slate-200 p-3">
+                                <div id="stripe-payment-element" class="rounded-lg border border-slate-300 p-3"></div>
+                                <div x-show="error" class="mt-2 text-xs text-red-600" x-text="error"></div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Next installment summary --}}
+                <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+                    <p class="text-sm text-slate-700">
+                        The next installment of <span class="font-semibold text-slate-900">{{ $this->nextInstallmentDisplay['amount'] }}</span>
+                        @if ($editCoverFee)
+                            <span class="text-slate-600">(with costs covered)</span>
+                        @endif
+                        will run on <span class="font-semibold text-slate-900">{{ $this->nextInstallmentDisplay['date'] }}</span>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <flux:modal.close>
+                    <x-ui.button wireClick="closeEditPaymentDetailsModal" variant="secondary">Cancel</x-ui.button>
+                </flux:modal.close>
+                <button type="button" @click="submit" :disabled="loading" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span x-show="loading" class="mr-2">Saving...</span>
+                    <span>Save changes</span>
+                </button>
             </div>
         </div>
     </flux:modal>
@@ -616,4 +848,111 @@
             </div>
         </div>
     </flux:modal>
+
+    <script>
+        function editPaymentDetailsModal() {
+            return {
+                stripe: null,
+                elements: null,
+                cardElement: null,
+                loading: false,
+                error: '',
+
+                init() {
+                    this.$watch('$wire.editPaymentMethod', (value) => {
+                        if (value === 'new' && this.$wire.setupIntentClientSecret) {
+                            this.$nextTick(() => this.mountElements());
+                        }
+                    });
+
+                    this.$watch('$wire.setupIntentClientSecret', (secret) => {
+                        if (secret && this.$wire.editPaymentMethod === 'new') {
+                            this.$nextTick(() => this.mountElements());
+                        }
+                    });
+                },
+
+                async loadStripe() {
+                    if (window.Stripe) {
+                        return;
+                    }
+
+                    return new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://js.stripe.com/v3/';
+                        script.async = true;
+                        script.onload = resolve;
+                        script.onerror = () => reject(new Error('Failed to load Stripe'));
+                        document.head.appendChild(script);
+                    });
+                },
+
+                async mountElements() {
+                    try {
+                        await this.loadStripe();
+                    } catch (e) {
+                        this.error = 'Stripe failed to load. Please try again.';
+                        return;
+                    }
+
+                    const container = document.getElementById('stripe-payment-element');
+                    if (! container) {
+                        return;
+                    }
+
+                    const stripeConfig = {};
+                    if (this.$wire.setupIntentStripeAccount) {
+                        stripeConfig.stripeAccount = this.$wire.setupIntentStripeAccount;
+                    }
+
+                    this.stripe = Stripe('{{ config('services.stripe.key') }}', stripeConfig);
+                    this.elements = this.stripe.elements({
+                        clientSecret: this.$wire.setupIntentClientSecret,
+                        appearance: { theme: 'stripe' },
+                    });
+
+                    this.cardElement = this.elements.create('payment', {
+                        paymentMethodTypes: ['card'],
+                        wallets: {
+                            link: 'never',
+                        },
+                    });
+
+                    this.cardElement.mount('#stripe-payment-element');
+
+                    this.cardElement.on('change', (event) => {
+                        this.error = event.error ? event.error.message : '';
+                    });
+                },
+
+                async submit() {
+                    if (this.$wire.editPaymentMethod !== 'new') {
+                        this.$wire.savePaymentDetails();
+                        return;
+                    }
+
+                    this.loading = true;
+                    this.error = '';
+
+                    const { setupIntent, error } = await this.stripe.confirmSetup({
+                        elements: this.elements,
+                        redirect: 'if_required',
+                    });
+
+                    if (error) {
+                        this.error = error.message;
+                        this.loading = false;
+                        return;
+                    }
+
+                    try {
+                        await this.$wire.updatePaymentMethodFromJs(setupIntent.payment_method);
+                        await this.$wire.savePaymentDetails();
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+            };
+        }
+    </script>
 </div>

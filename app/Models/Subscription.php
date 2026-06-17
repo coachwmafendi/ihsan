@@ -40,6 +40,8 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property bool $cancel_at_period_end
  * @property bool $cover_fee
  * @property CarbonImmutable|null $cancel_at
+ * @property numeric|null $max_plan_amount
+ * @property int|null $max_plan_installments
  * @property string|null $public_id
  * @property string|null $source
  * @property-read Collection<int, Activity> $activitiesAsSubject
@@ -79,7 +81,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['campaign_id', 'donor_id', 'source', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'cancel_at_period_end', 'cover_fee', 'cancel_at', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
+#[Fillable(['campaign_id', 'donor_id', 'source', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'cancel_at_period_end', 'cover_fee', 'cancel_at', 'max_plan_amount', 'max_plan_installments', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */
@@ -141,6 +143,8 @@ class Subscription extends Model
             'cancelled_at' => 'datetime',
             'cancel_at' => 'datetime',
             'cover_fee' => 'boolean',
+            'max_plan_amount' => 'decimal:2',
+            'max_plan_installments' => 'integer',
             'interval' => SubscriptionInterval::class,
             'status' => SubscriptionStatus::class,
         ];
