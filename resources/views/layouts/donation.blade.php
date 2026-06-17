@@ -111,7 +111,19 @@
                             },
                             mountPaymentElement() {
                                 const container = document.getElementById('payment-element');
-                                if (!container || container.hasChildNodes()) return;
+                                if (!container) return;
+
+                                if (paymentElement) {
+                                    paymentElement.unmount();
+                                    paymentElement = null;
+                                }
+
+                                if (elements) {
+                                    elements = null;
+                                }
+
+                                container.innerHTML = '';
+
                                 const amount = Math.round(parseFloat(this.amount || 0) * 100);
                                 const isRecurring = this.frequency === 'monthly';
                                 elements = stripe.elements({
