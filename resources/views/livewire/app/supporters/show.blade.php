@@ -168,7 +168,7 @@
 
             {{-- Donations --}}
             <section id="donations">
-                <x-ui.card title="Donations" icon="heroicon-o-banknotes" description="Last 10 donations">
+                <x-ui.card title="Donations" icon="heroicon-o-banknotes">
                     @if ($this->recentDonations->isNotEmpty())
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-slate-200">
@@ -218,7 +218,7 @@
             @if ($this->hasSubscriptions)
                 {{-- Recurring plans --}}
                 <section id="recurring-plans">
-                    <x-ui.card title="Recurring plans" icon="heroicon-o-arrow-path" description="Active and past recurring donations">
+                    <x-ui.card title="Recurring plans" icon="heroicon-o-arrow-path">
                         @if ($this->recentSubscriptions->isNotEmpty())
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-slate-200">
@@ -274,7 +274,7 @@
 
             {{-- Receipts --}}
             <section id="receipts">
-                <x-ui.card title="Receipts" icon="heroicon-o-document-text" description="Donation receipts available for download">
+                <x-ui.card title="Receipts" icon="heroicon-o-document-text">
                     @if ($this->receiptDonations->isNotEmpty())
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-slate-200">
