@@ -7,7 +7,9 @@ use App\Jobs\SendSubscriptionAmountChangedNotification;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\URL;
 
 class DonorSubscriptionController extends Controller
 {
@@ -166,6 +168,62 @@ class DonorSubscriptionController extends Controller
             'symbol' => $symbol,
             'interval' => $interval,
             'presetOptions' => $presetOptions,
+        ]);
+    }
+
+    public function showIncreaseLink(Organization $organization, Subscription $subscription)
+    {
+        abort_unless($subscription->campaign?->organization_id === $organization->getKey(), 403);
+
+        $subscription->loadMissing('campaign');
+        $expiresAt = Carbon::createFromTimestamp((int) request()->query('expires'));
+        $changeAmountUrl = URL::temporarySignedRoute(
+            'donorportal.subscriptions.change-amount-link',
+            $expiresAt,
+            ['organization' => $organization, 'subscription' => $subscription],
+        );
+
+        $symbol = $subscription->currency_symbol;
+
+        return view('donor.subscription-increase', [
+            'organization' => $organization,
+            'subscription' => $subscription,
+            'currentAmount' => (float) $subscription->amount,
+            'currency' => $subscription->currency,
+            'symbol' => $symbol,
+            'interval' => $subscription->interval->value,
+            'presetOptions' => [
+                ['increment' => 5, 'label' => '+ '.$symbol.'5'],
+                ['increment' => 80, 'label' => '+ '.$symbol.'80'],
+                ['increment' => 100, 'label' => '+ '.$symbol.'100'],
+            ],
+            'changeAmountUrl' => $changeAmountUrl,
+        ]);
+    }
+
+    public function changeAmountLink(Organization $organization, Subscription $subscription)
+    {
+        abort_unless($subscription->campaign?->organization_id === $organization->getKey(), 403);
+
+        $subscription->loadMissing('campaign');
+
+        $data = request()->validate([
+            'new_amount' => 'required|numeric|min:1|max:99999.99',
+        ]);
+
+        $previousAmount = (float) $subscription->amount;
+
+        try {
+            app(ManageStripeSubscription::class)->changeAmount($subscription, (float) $data['new_amount']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Unable to update subscription amount. Please try again later.'], 500);
+        }
+
+        dispatch(new SendSubscriptionAmountChangedNotification($subscription, $previousAmount));
+
+        return response()->json([
+            'success' => true,
+            'new_amount' => (float) $data['new_amount'],
         ]);
     }
 

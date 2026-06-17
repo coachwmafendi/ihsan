@@ -79,7 +79,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['campaign_id', 'donor_id', 'source', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'cancel_at_period_end', 'cover_fee', 'cancel_at', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at'])]
+#[Fillable(['campaign_id', 'donor_id', 'source', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'cancel_at_period_end', 'cover_fee', 'cancel_at', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */

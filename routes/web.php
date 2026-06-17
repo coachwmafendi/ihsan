@@ -133,9 +133,10 @@ use App\Http\Controllers\DonorPortalController;
 use App\Http\Controllers\DonorProfileController;
 use App\Http\Controllers\DonorSubscriptionController;
 use App\Models\Donor;
+use App\Models\Organization;
 
 // Organization logo (served from private storage)
-Route::get('/org/{organization}/logo', function (App\Models\Organization $organization): ?StreamedResponse {
+Route::get('/org/{organization}/logo', function (Organization $organization): ?StreamedResponse {
     if (! filled($organization->logo_path)) {
         abort(404);
     }
@@ -177,7 +178,7 @@ Route::get('/donor/{donor}/photo', function (Donor $donor): ?StreamedResponse {
 
 // Donor portal
 Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(function () {
-    Route::get('/', fn (\App\Models\Organization $organization) => redirect()->route('donorportal.dashboard', $organization));
+    Route::get('/', fn (Organization $organization) => redirect()->route('donorportal.dashboard', $organization));
     Route::get('login', [DonorAuthController::class, 'showLoginForm'])->name('login');
     Route::post('login', [DonorAuthController::class, 'sendMagicLink'])
         ->middleware('throttle:donor-magic-link')
@@ -186,6 +187,11 @@ Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(fu
         ->middleware('throttle:10,60')
         ->name('magic-login');
     Route::post('logout', [DonorAuthController::class, 'logout'])->name('logout');
+
+    Route::middleware('signed')->group(function () {
+        Route::get('subscriptions/{subscription}/increase-link', [DonorSubscriptionController::class, 'showIncreaseLink'])->name('subscriptions.increase-link');
+        Route::post('subscriptions/{subscription}/change-amount-link', [DonorSubscriptionController::class, 'changeAmountLink'])->name('subscriptions.change-amount-link');
+    });
 
     Route::middleware('donor.auth')->group(function () {
         Route::get('dashboard', [DonorDashboardController::class, 'dashboard'])->name('dashboard');

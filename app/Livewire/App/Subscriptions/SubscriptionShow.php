@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Livewire\App\Subscriptions;
 
 use App\Actions\Stripe\ManageStripeSubscription;
+use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -18,8 +20,6 @@ class SubscriptionShow extends Component
     public Subscription $subscription;
 
     public bool $showUpgradeModal = false;
-
-    public float $newAmount = 0;
 
     public function mount(): void
     {
@@ -112,7 +112,6 @@ class SubscriptionShow extends Component
 
     public function openUpgradeModal(): void
     {
-        $this->newAmount = (float) $this->subscription->amount;
         $this->showUpgradeModal = true;
     }
 
@@ -121,36 +120,46 @@ class SubscriptionShow extends Component
         $this->showUpgradeModal = false;
     }
 
-    public function upgradeAmount(): void
+    public function upgradeUrl(): string
     {
-        $this->validate([
-            'newAmount' => 'required|numeric|min:1|max:99999.99',
-        ]);
+        $organization = $this->subscription->campaign?->organization;
 
-        if ((float) $this->newAmount === (float) $this->subscription->amount) {
-            $this->closeUpgradeModal();
-
-            return;
+        if (! $organization) {
+            return '';
         }
 
-        try {
-            app(ManageStripeSubscription::class)->changeAmount(
-                $this->subscription,
-                (float) $this->newAmount,
-            );
-        } catch (\Exception $e) {
-            $this->dispatch('notify', type: 'error', message: 'Unable to update subscription amount. Please try again.');
+        return URL::temporarySignedRoute(
+            'donorportal.subscriptions.increase-link',
+            now()->addDays(7),
+            ['organization' => $organization, 'subscription' => $this->subscription],
+        );
+    }
 
-            return;
-        }
+    public bool $showCancelModal = false;
 
-        $this->subscription->refresh();
-        $this->closeUpgradeModal();
-        $this->dispatch('notify', type: 'success', message: 'Subscription amount updated successfully.');
+    public string $cancelReason = '';
+
+    public string $cancelDetails = '';
+
+    public function openCancelModal(): void
+    {
+        $this->cancelReason = '';
+        $this->cancelDetails = '';
+        $this->showCancelModal = true;
+    }
+
+    public function closeCancelModal(): void
+    {
+        $this->showCancelModal = false;
     }
 
     public function cancelSubscription(): void
     {
+        $this->validate([
+            'cancelReason' => 'nullable|string|max:255',
+            'cancelDetails' => 'nullable|string|max:1000',
+        ]);
+
         try {
             app(ManageStripeSubscription::class)->cancel($this->subscription, false);
         } catch (\Exception $e) {
@@ -159,7 +168,17 @@ class SubscriptionShow extends Component
             return;
         }
 
+        $reason = $this->cancelReason;
+        if ($this->cancelDetails) {
+            $reason = $this->cancelReason ? $this->cancelReason.': '.$this->cancelDetails : $this->cancelDetails;
+        }
+
+        if ($reason) {
+            $this->subscription->update(['cancellation_reason' => $reason]);
+        }
+
         $this->subscription->refresh();
+        $this->showCancelModal = false;
         $this->dispatch('notify', type: 'success', message: 'Subscription will cancel at the end of the billing period.');
     }
 
@@ -198,7 +217,7 @@ class SubscriptionShow extends Component
             'editCampaignId' => 'required|exists:campaigns,id',
         ]);
 
-        $campaign = \App\Models\Campaign::find($this->editCampaignId);
+        $campaign = Campaign::find($this->editCampaignId);
         $org = Auth::user()?->organization;
 
         if (! $campaign || $campaign->organization_id !== $org?->id) {

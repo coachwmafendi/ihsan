@@ -38,7 +38,7 @@
 
         try {
             const res = await fetch(
-                @js(route('donorportal.subscriptions.change-amount', ['organization' => $organization, 'subscription' => $subscription])),
+                @js($changeAmountUrl ?? route('donorportal.subscriptions.change-amount', ['organization' => $organization, 'subscription' => $subscription])),
                 {
                     method: 'POST',
                     headers: {

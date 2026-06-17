@@ -395,8 +395,7 @@
                         Offer plan upgrade
                     </button>
                     <button
-                        wire:click="cancelSubscription()"
-                        onclick="return confirm('Are you sure you want to cancel this subscription?')"
+                        wire:click="openCancelModal"
                         class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 transition hover:bg-red-50"
                     >
                         <x-heroicon-o-trash class="size-5 text-red-400" />
@@ -492,22 +491,69 @@
         </div>
     </flux:modal>
 
-    {{-- Upgrade Amount Modal --}}
+    {{-- Recurring Upgrade Link Modal --}}
     <flux:modal wire:model="showUpgradeModal" name="upgrade-amount-modal">
-        <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-slate-900">Offer plan upgrade</h3>
+        <div class="space-y-4" x-data="{ copied: false }">
+            <div>
+                <h3 class="text-lg font-semibold text-slate-900">Recurring amount upgrade link</h3>
+                <p class="mt-1 text-sm text-slate-500">Leads to a page offering to increase the recurring plan amount.</p>
+            </div>
 
-            <p class="text-sm text-slate-600">
-                Update the recurring amount for this subscription.
-            </p>
+            <p class="text-sm text-slate-600">Upgrade links let supporters quickly increase their recurring donation or cover transaction fees, helping boost upgrades by 35–65% and increasing average donations by 50–110%.</p>
 
-            <flux:input wire:model="newAmount" label="New amount" type="number" step="0.01" min="1" max="99999.99" />
+            <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                <span class="flex-1 truncate text-sm text-slate-700 font-mono">{{ $this->upgradeUrl() }}</span>
+                <button
+                    type="button"
+                    @click="navigator.clipboard.writeText('{{ $this->upgradeUrl() }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                    class="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                    <x-heroicon-o-clipboard-document class="size-4" />
+                    <span x-show="!copied">Copy</span>
+                    <span x-show="copied" x-cloak class="text-emerald-600">Copied!</span>
+                </button>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <flux:modal.close>
+                    <x-ui.button wireClick="closeUpgradeModal" variant="secondary">Close</x-ui.button>
+                </flux:modal.close>
+            </div>
+        </div>
+    </flux:modal>
+
+    {{-- Cancel Recurring Modal --}}
+    <flux:modal wire:model="showCancelModal" name="cancel-recurring-modal">
+        <div class="space-y-5">
+            <div>
+                <h3 class="text-lg font-semibold text-slate-900">Cancel recurring</h3>
+                <p class="mt-2 text-sm text-slate-600">Ending a recurring plan halts future payments and triggers a cancellation email to the supporter, if enabled.</p>
+            </div>
+
+            <flux:select wire:model="cancelReason" label="Cancellation reason" placeholder="Select reason">
+                <flux:select.option value="">Select reason</flux:select.option>
+                <flux:select.option value="Financial difficulty">Financial difficulty</flux:select.option>
+                <flux:select.option value="Life changes">Life changes</flux:select.option>
+                <flux:select.option value="Switched donation method">Switched donation method</flux:select.option>
+                <flux:select.option value="Change in giving preferences">Change in giving preferences</flux:select.option>
+                <flux:select.option value="Subscription consolidation">Subscription consolidation</flux:select.option>
+                <flux:select.option value="Loss of confidence in organization">Loss of confidence in organization</flux:select.option>
+                <flux:select.option value="Technical error">Technical error</flux:select.option>
+                <flux:select.option value="Created by mistake">Created by mistake</flux:select.option>
+                <flux:select.option value="Unclear reason">Unclear reason</flux:select.option>
+                <flux:select.option value="Other">Other</flux:select.option>
+            </flux:select>
+
+            <div class="space-y-2">
+                <label class="block text-sm font-semibold text-slate-900">Details <span class="font-normal text-slate-400">(optional)</span></label>
+                <flux:textarea wire:model="cancelDetails" rows="3" />
+            </div>
 
             <div class="flex justify-end gap-3 pt-2">
                 <flux:modal.close>
-                    <x-ui.button wireClick="closeUpgradeModal" variant="secondary">Cancel</x-ui.button>
+                    <x-ui.button wireClick="closeCancelModal" variant="secondary">Keep recurring</x-ui.button>
                 </flux:modal.close>
-                <x-ui.button wireClick="upgradeAmount" variant="primary">Save changes</x-ui.button>
+                <x-ui.button wireClick="cancelSubscription" variant="danger">Cancel recurring</x-ui.button>
             </div>
         </div>
     </flux:modal>
