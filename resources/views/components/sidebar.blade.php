@@ -47,8 +47,6 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-item href="/app/donations" icon="banknotes" label="Donations" :active="$isActive('/app/donations')" />
                 <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans')" />
                 <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
-                <x-sidebar-item href="/app/payouts" icon="wallet" label="Payouts" :active="$isActive('/app/payouts')" />
-                <x-sidebar-item href="/app/billing" icon="credit-card" label="Billing" :active="$isActive('/app/billing')" />
                 <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
             </x-sidebar-group>
 
@@ -90,8 +88,6 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-item href="/app/donations" icon="banknotes" label="Donations" :active="$isActive('/app/donations')" />
                 <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans')" />
                 <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
-                <x-sidebar-item href="/app/payouts" icon="wallet" label="Payouts" :active="$isActive('/app/payouts')" />
-                <x-sidebar-item href="/app/billing" icon="credit-card" label="Billing" :active="$isActive('/app/billing')" />
                 <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
             </x-sidebar-group>
 
