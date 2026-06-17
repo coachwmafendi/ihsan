@@ -38,6 +38,7 @@ use App\Livewire\App\Supporters\SupporterShow;
 use App\Livewire\App\VirtualTerminal;
 use App\Livewire\Auth\RegisterOrganization;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 Route::view('/', 'welcome')->name('home');
 Route::get('/register-organization', RegisterOrganization::class)->name('register.org');
