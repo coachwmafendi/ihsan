@@ -21,7 +21,7 @@ class LargeDonationNotification extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '🚨 Large Donation Received — '.$this->donation->currency_symbol.' '.number_format($this->donation->gross_amount).' — '.config('app.name'),
+            subject: '🚨 Large Donation Received — '.$this->subjectAmount().' by '.$this->donorName().' on '.$this->campaignTitle().' — '.config('app.name'),
         );
     }
 
@@ -30,5 +30,20 @@ class LargeDonationNotification extends Mailable
         return new Content(
             view: 'emails.large-donation-notification',
         );
+    }
+
+    private function subjectAmount(): string
+    {
+        return $this->donation->total_charged_with_conversion;
+    }
+
+    private function donorName(): string
+    {
+        return $this->donation->donor?->name ?? 'a donor';
+    }
+
+    private function campaignTitle(): string
+    {
+        return $this->donation->campaign?->title ?? 'a campaign';
     }
 }

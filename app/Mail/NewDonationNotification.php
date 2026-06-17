@@ -22,9 +22,10 @@ class NewDonationNotification extends Mailable
     {
         $donorName = $this->donation->donor?->name ?? 'Someone';
         $campaignTitle = $this->donation->campaign?->title ?? 'your campaign';
+        $amount = $this->donation->total_charged_with_conversion;
 
         return new Envelope(
-            subject: "New One-Time donation {$this->amountDisplay} by {$donorName} on {$campaignTitle} — ".config('app.name'),
+            subject: "New One-Time donation {$amount} by {$donorName} on {$campaignTitle} — ".config('app.name'),
         );
     }
 

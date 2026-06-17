@@ -11,7 +11,7 @@
         <p>Hi <strong>{{ $donation->campaign->organization->name }}</strong>,</p>
 
         <p style="font-size: 1.125rem;">
-            A donation worth <strong style="color: #7c3aed; font-size: 1.5rem;">{{ $amountDisplay }}</strong>
+            A donation worth <strong style="color: #7c3aed; font-size: 1.5rem;">{{ $donation->total_charged_with_conversion }}</strong>
             has been received for <strong>{{ $donation->campaign->title }}</strong>.
         </p>
 
@@ -28,7 +28,7 @@
             </tr>
             <tr style="background: #fff;">
                 <td style="padding: 12px 16px; color: #6b7280;">{{ $hasCoveredFee ? 'Donation (incl. fee)' : 'Donation' }}</td>
-                <td style="padding: 12px 16px; font-weight: 700; font-size: 1.25rem; color: #7c3aed;">{{ $amountDisplay }}</td>
+                <td style="padding: 12px 16px; font-weight: 700; font-size: 1.25rem; color: #7c3aed;">{{ $donation->total_charged_with_conversion }}</td>
             </tr>
             @if ($hasCoveredFee)
                 <tr style="background: #f5f3ff;">

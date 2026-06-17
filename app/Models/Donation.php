@@ -82,6 +82,8 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property-read Donor $donor
  * @property-read mixed $element_label
  * @property-read mixed $formatted_amount
+ * @property-read float $total_charged
+ * @property-read mixed $total_charged_with_conversion
  * @property-read mixed $payment_method_display
  * @property-read ProcessingFee|null $processingFee
  * @property-read Subscription|null $subscription
@@ -306,6 +308,31 @@ class Donation extends Model
     public function formattedOriginalAmount(): Attribute
     {
         return Attribute::get(fn () => $this->formatted_amount);
+    }
+
+    public function totalCharged(): Attribute
+    {
+        return Attribute::get(fn () => (float) $this->gross_amount + (float) $this->donor_fee_covered);
+    }
+
+    public function totalChargedWithConversion(): Attribute
+    {
+        return Attribute::get(function () {
+            $symbol = $this->currency_symbol;
+            $amount = number_format($this->total_charged, 2);
+
+            if (strtolower($this->currency) !== 'myr' && $this->base_amount !== null) {
+                $exchangeRate = (float) ($this->exchange_rate ?? 0);
+                $feeInBase = $exchangeRate > 0
+                    ? round((float) $this->donor_fee_covered * $exchangeRate, 2)
+                    : (float) $this->donor_fee_covered;
+                $base = number_format((float) $this->base_amount + $feeInBase, 2);
+
+                return "{$symbol} {$amount} (≈ MYR {$base})";
+            }
+
+            return "{$symbol} {$amount}";
+        });
     }
 
     public static function reportAmountColumn(): Expression

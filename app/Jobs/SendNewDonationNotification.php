@@ -6,7 +6,6 @@ use App\Enums\UserRole;
 use App\Mail\NewDonationNotification;
 use App\Models\Donation;
 use App\Models\User;
-use App\Support\Currency;
 use App\Support\MailtrapThrottle;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -71,18 +70,6 @@ class SendNewDonationNotification implements ShouldQueue
 
     private function formatAmount(Donation $donation): string
     {
-        $symbol = Currency::symbol($donation->currency);
-        $total = (float) $donation->gross_amount + (float) $donation->donor_fee_covered;
-        $amount = number_format($total, 2);
-
-        if (strtolower($donation->currency) !== 'myr' && $donation->base_amount !== null) {
-            $exchangeRate = (float) ($donation->exchange_rate ?? 0);
-            $feeInBase = $exchangeRate > 0 ? round((float) $donation->donor_fee_covered * $exchangeRate, 2) : (float) $donation->donor_fee_covered;
-            $base = number_format((float) $donation->base_amount + $feeInBase, 2);
-
-            return "{$symbol} {$amount} (≈ MYR {$base})";
-        }
-
-        return "{$symbol} {$amount}";
+        return $donation->total_charged_with_conversion;
     }
 }

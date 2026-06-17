@@ -100,9 +100,7 @@
     @php
         $symbol = $donation->currency_symbol;
         $hasCoveredFee = $donation->donor_fee_covered > 0;
-        $totalCharged = $hasCoveredFee
-            ? $symbol.' '.number_format((float) ($donation->gross_amount + $donation->donor_fee_covered), 2)
-            : null;
+        $totalCharged = $donation->total_charged_with_conversion;
     @endphp
 
     <table>
@@ -112,7 +110,7 @@
         </tr>
         <tr>
             <td>Donation Amount</td>
-            <td class="amount">{{ $donation->formatted_amount }}</td>
+            <td class="amount">{{ $hasCoveredFee ? $donation->formatted_amount : $donation->total_charged_with_conversion }}</td>
         </tr>
         @if ($hasCoveredFee)
             <tr>
