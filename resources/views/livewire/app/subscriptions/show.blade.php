@@ -50,61 +50,61 @@
         </div>
     </div>
 
-    {{-- Status Banner --}}
-    @php
-        $intervalLabel = strtolower($subscription->interval->value);
-        $dateClass = 'border-b border-dashed border-slate-400';
-    @endphp
-
-    @switch($subscription->status->value)
-        @case('active')
-            @if ($subscription->cancel_at_period_end)
-                <x-ui.alert variant="warning" icon="heroicon-o-exclamation-triangle">
-                    This {{ $intervalLabel }} recurring donation is scheduled to cancel. The final installment will be charged on <span class="{{ $dateClass }}">{{ $this->nextInstallmentDate?->format('M d, Y, g:i A') }}</span>.
-                </x-ui.alert>
-            @else
-                <x-ui.alert variant="info" icon="heroicon-o-information-circle">
-                    This {{ $intervalLabel }} recurring donation is active. Installment #{{ $this->nextInstallmentNumber }} will be charged on <span class="{{ $dateClass }}">{{ $this->nextInstallmentDate?->format('M d, Y, g:i A') }}</span>.
-                </x-ui.alert>
-            @endif
-            @break
-
-        @case('paused')
-            <x-ui.alert variant="warning" icon="heroicon-o-pause-circle">
-                @if ($subscription->paused_until)
-                    This {{ $intervalLabel }} recurring donation is paused. Installments will resume on <span class="{{ $dateClass }}">{{ $subscription->paused_until->format('M d, Y, g:i A') }}</span>.
-                @else
-                    This {{ $intervalLabel }} recurring donation is paused. Installments are currently on hold.
-                @endif
-            </x-ui.alert>
-            @break
-
-        @case('cancelled')
-            <x-ui.alert variant="danger" icon="heroicon-o-x-circle">
-                @if ($subscription->cancelled_at)
-                    This recurring donation was cancelled on <span class="{{ $dateClass }}">{{ $subscription->cancelled_at->format('M d, Y, g:i A') }}</span>. No further charges will be made.
-                @else
-                    This recurring donation has been cancelled. No further charges will be made.
-                @endif
-            </x-ui.alert>
-            @break
-
-        @case('past_due')
-            <x-ui.alert variant="danger" icon="heroicon-o-exclamation-circle">
-                The most recent installment failed. We will retry the payment shortly.
-            </x-ui.alert>
-            @break
-
-        @case('incomplete')
-            <x-ui.alert variant="warning" icon="heroicon-o-exclamation-triangle">
-                This recurring donation is incomplete. Please complete the payment setup.
-            </x-ui.alert>
-            @break
-    @endswitch
-
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_18rem] xl:grid-cols-[1fr_20rem]">
         {{-- Left Column --}}
         <div class="space-y-6">
+            {{-- Status Banner --}}
+            @php
+                $intervalLabel = strtolower($subscription->interval->value);
+                $dateClass = 'border-b border-dashed border-slate-400';
+            @endphp
+
+            @switch($subscription->status->value)
+                @case('active')
+                    @if ($subscription->cancel_at_period_end)
+                        <x-ui.alert :compact="true" variant="warning" icon="heroicon-o-exclamation-triangle">
+                            This {{ $intervalLabel }} recurring donation is scheduled to cancel. The final installment will be charged on <span class="{{ $dateClass }}">{{ $this->nextInstallmentDate?->format('M d, Y, g:i A') }}</span>.
+                        </x-ui.alert>
+                    @else
+                        <x-ui.alert :compact="true" variant="info" icon="heroicon-o-information-circle">
+                            This {{ $intervalLabel }} recurring donation is active. Installment #{{ $this->nextInstallmentNumber }} will be charged on <span class="{{ $dateClass }}">{{ $this->nextInstallmentDate?->format('M d, Y, g:i A') }}</span>.
+                        </x-ui.alert>
+                    @endif
+                    @break
+
+                @case('paused')
+                    <x-ui.alert :compact="true" variant="warning" icon="heroicon-o-pause-circle">
+                        @if ($subscription->paused_until)
+                            This {{ $intervalLabel }} recurring donation is paused. Installments will resume on <span class="{{ $dateClass }}">{{ $subscription->paused_until->format('M d, Y, g:i A') }}</span>.
+                        @else
+                            This {{ $intervalLabel }} recurring donation is paused. Installments are currently on hold.
+                        @endif
+                    </x-ui.alert>
+                    @break
+
+                @case('cancelled')
+                    <x-ui.alert :compact="true" variant="danger" icon="heroicon-o-x-circle">
+                        @if ($subscription->cancelled_at)
+                            This recurring donation was cancelled on <span class="{{ $dateClass }}">{{ $subscription->cancelled_at->format('M d, Y, g:i A') }}</span>. No further charges will be made.
+                        @else
+                            This recurring donation has been cancelled. No further charges will be made.
+                        @endif
+                    </x-ui.alert>
+                    @break
+
+                @case('past_due')
+                    <x-ui.alert :compact="true" variant="danger" icon="heroicon-o-exclamation-circle">
+                        The most recent installment failed. We will retry the payment shortly.
+                    </x-ui.alert>
+                    @break
+
+                @case('incomplete')
+                    <x-ui.alert :compact="true" variant="warning" icon="heroicon-o-exclamation-triangle">
+                        This recurring donation is incomplete. Please complete the payment setup.
+                    </x-ui.alert>
+                    @break
+            @endswitch
+
             {{-- Subscription --}}
             <section id="section-subscription" data-section="section-subscription">
                 <x-ui.card title="Recurring plan" icon="heroicon-o-arrow-path">

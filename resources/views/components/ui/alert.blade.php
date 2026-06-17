@@ -2,9 +2,13 @@
 @props([
     'variant' => 'info',
     'icon' => null,
+    'compact' => false,
 ])
 
 @php
+$boxPadding = $compact ? 'rounded-lg px-3 py-2.5 gap-2' : 'rounded-xl px-4 py-4 gap-3';
+$iconClasses = $compact ? 'size-4 mt-0.5' : 'size-5 mt-0.5';
+
 $styles = match ($variant) {
     'success' => [
         'box' => 'bg-emerald-50 border-emerald-200',
@@ -38,9 +42,9 @@ $defaultIcon = match ($variant) {
 $icon ??= $defaultIcon;
 @endphp
 
-<div {{ $attributes->merge(['class' => 'flex items-start gap-3 rounded-xl border px-4 py-4 '.$styles['box']]) }}>
+<div {{ $attributes->merge(['class' => 'flex items-start border '.$boxPadding.' '.$styles['box']]) }}>
     @if ($icon)
-        <x-dynamic-component :component="$icon" class="size-5 shrink-0 mt-0.5 {{ $styles['icon'] }}" />
+        <x-dynamic-component :component="$icon" class="shrink-0 {{ $iconClasses }} {{ $styles['icon'] }}" />
     @endif
 
     <div class="text-sm {{ $styles['text'] }}">
