@@ -18,8 +18,8 @@
                 <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
                     <tr>
                         <td style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
-                            @if (filled($organization->logo_path))
-                                <img src="{{ route('organization.logo', $organization) }}" alt="{{ $organization->name }}" style="max-height: 40px; width: auto; display: block;">
+                            @if (filled($organization->logoUrl()))
+                                <img src="{{ $organization->logoUrl() }}" alt="{{ $organization->name }}" style="max-height: 40px; width: auto; display: block;">
                             @else
                                 <p style="margin: 0; font-size: 18px; font-weight: 700; color: #0f766e;">{{ $organization->name }}</p>
                             @endif

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
@@ -147,6 +148,19 @@ class Organization extends Model
         } while (static::where('code', $code)->exists());
 
         return $code;
+    }
+
+    public function logoUrl(): string
+    {
+        if (! filled($this->logo_path)) {
+            return '';
+        }
+
+        if (Storage::disk('public')->exists($this->logo_path)) {
+            return Storage::disk('public')->url($this->logo_path);
+        }
+
+        return route('organization.logo', $this);
     }
 
     public function users(): HasMany
