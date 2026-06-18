@@ -43,11 +43,10 @@ class TrackingScriptService
         return [
             'enabled' => true,
             'pixel_id' => $config->credential('pixel_id'),
-            'options' => [
-                'track_page_views' => $config->option('track_page_views'),
-                'track_donation_starts' => $config->option('track_donation_starts'),
-                'track_successful_donations' => $config->option('track_successful_donations'),
-            ],
+            'options' => array_merge(
+                $config->provider->defaultOptions(),
+                $config->options ?? []
+            ),
         ];
     }
 
@@ -63,11 +62,10 @@ class TrackingScriptService
         return [
             'enabled' => true,
             'measurement_id' => $config->credential('measurement_id'),
-            'options' => [
-                'track_page_views' => $config->option('track_page_views'),
-                'track_checkout_starts' => $config->option('track_checkout_starts'),
-                'track_purchases' => $config->option('track_purchases'),
-            ],
+            'options' => array_merge(
+                $config->provider->defaultOptions(),
+                $config->options ?? []
+            ),
         ];
     }
 
@@ -84,9 +82,10 @@ class TrackingScriptService
             'enabled' => true,
             'conversion_id' => $config->credential('conversion_id'),
             'conversion_label' => $config->credential('conversion_label'),
-            'options' => [
-                'track_conversions' => $config->option('track_conversions'),
-            ],
+            'options' => array_merge(
+                $config->provider->defaultOptions(),
+                $config->options ?? []
+            ),
         ];
     }
 
@@ -102,10 +101,10 @@ class TrackingScriptService
         return [
             'enabled' => true,
             'pixel_id' => $config->credential('pixel_id'),
-            'options' => [
-                'track_page_views' => $config->option('track_page_views'),
-                'track_donation_events' => $config->option('track_donation_events'),
-            ],
+            'options' => array_merge(
+                $config->provider->defaultOptions(),
+                $config->options ?? []
+            ),
         ];
     }
 
@@ -122,11 +121,10 @@ class TrackingScriptService
             'enabled' => true,
             'partner_id' => $config->credential('partner_id'),
             'conversion_id' => $config->credential('conversion_id'),
-            'options' => [
-                'track_page_views' => $config->option('track_page_views'),
-                'track_donation_starts' => $config->option('track_donation_starts'),
-                'track_conversions' => $config->option('track_conversions'),
-            ],
+            'options' => array_merge(
+                $config->provider->defaultOptions(),
+                $config->options ?? []
+            ),
         ];
     }
 
@@ -143,11 +141,10 @@ class TrackingScriptService
             'enabled' => true,
             'pixel_id' => $config->credential('pixel_id'),
             'conversion_id' => $config->credential('conversion_id'),
-            'options' => [
-                'track_page_views' => $config->option('track_page_views'),
-                'track_donation_starts' => $config->option('track_donation_starts'),
-                'track_conversions' => $config->option('track_conversions'),
-            ],
+            'options' => array_merge(
+                $config->provider->defaultOptions(),
+                $config->options ?? []
+            ),
         ];
     }
 
@@ -163,11 +160,10 @@ class TrackingScriptService
         return [
             'enabled' => true,
             'pixel_id' => $config->credential('pixel_id'),
-            'options' => [
-                'track_page_views' => $config->option('track_page_views'),
-                'track_donation_starts' => $config->option('track_donation_starts'),
-                'track_conversions' => $config->option('track_conversions'),
-            ],
+            'options' => array_merge(
+                $config->provider->defaultOptions(),
+                $config->options ?? []
+            ),
         ];
     }
 }
