@@ -98,8 +98,8 @@
         <div class="mb-5 flex items-center gap-3">
             <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">3</span>
             <div>
-                <h2 class="text-base font-semibold text-slate-900">Add your elements</h2>
-                <p class="mt-0.5 text-sm text-slate-500">Each element has its own embed code. For the loader approach, copy only the <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">data-ihsan</code> token and add it to your own buttons.</p>
+                <h2 class="text-base font-semibold text-slate-900">Manage your elements</h2>
+                <p class="mt-0.5 text-sm text-slate-500">View, edit, or copy the embed code for each active element.</p>
             </div>
         </div>
 
@@ -112,7 +112,7 @@
                 </div>
                 <div>
                     <p class="text-sm font-medium text-slate-900">{{ count($this->elements) }} active element{{ count($this->elements) === 1 ? '' : 's' }}</p>
-                    <p class="text-xs text-slate-500">Each row has its own copy button — buttons/links get a <code class="rounded bg-slate-100 px-1 py-0.5 font-mono">data-ihsan</code> attribute, other elements get a full snippet.</p>
+                    <p class="text-xs text-slate-500">Each row has its own copy button for the embed snippet or token.</p>
                 </div>
             </div>
             <x-ui.button variant="outline" size="sm" href="{{ route('app.elements.index') }}">
@@ -125,7 +125,7 @@
     <div>
         <div class="mb-4">
             <h2 class="text-base font-semibold text-slate-900">Platform guides</h2>
-            <p class="mt-0.5 text-sm text-slate-500">Step-by-step for adding the loader to your website platform.</p>
+            <p class="mt-0.5 text-sm text-slate-500">Step-by-step for pasting snippets or adding the loader on your website platform.</p>
         </div>
 
         <div class="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100" x-data="{ open: null }">
