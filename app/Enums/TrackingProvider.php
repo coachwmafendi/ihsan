@@ -108,7 +108,7 @@ enum TrackingProvider: string
                 ['key' => 'track_donation_events', 'label' => 'Track Donation Events', 'description' => 'Send CompletePayment events with donation value.'],
             ],
             self::LinkedIn => [
-                ['key' => 'track_page_views', 'label' => 'Track Page Views', 'description' => 'Emit PageView-style noscript fallback when the Insight Tag loads.'],
+                ['key' => 'track_page_views', 'label' => 'Emit noscript page-view fallback', 'description' => 'Emit the LinkedIn noscript PageView pixel when the Insight Tag loads.'],
                 ['key' => 'track_donation_starts', 'label' => 'Track Donation Starts', 'description' => 'Fire a conversion event when donors begin checkout.'],
                 ['key' => 'track_conversions', 'label' => 'Track Donation Conversions', 'description' => 'Report completed donations as LinkedIn conversions.'],
             ],
