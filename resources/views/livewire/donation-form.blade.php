@@ -275,6 +275,7 @@
                     <div
                         wire:ignore.self
                         x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId))"
+                        class="relative"
                     >
 
                         {{-- Step progress indicator --}}
@@ -554,12 +555,19 @@
                             </form>
                         </div>{{-- end Step 3 --}}
 
-                        {{-- Processing --}}
-                        <div x-show="processing" x-cloak class="py-8 text-center">
-                            <div class="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-teal-50">
-                                <svg class="size-5 animate-spin text-teal-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        {{-- Processing overlay --}}
+                        <div
+                            x-show="processing"
+                            x-cloak
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            class="absolute inset-0 z-30 flex flex-col items-center justify-center rounded-xl bg-white/95 px-4 text-center backdrop-blur-sm"
+                        >
+                            <div class="flex size-16 items-center justify-center rounded-full bg-teal-50">
+                                <svg class="size-7 animate-spin text-teal-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                             </div>
-                            <h2 class="text-base font-semibold text-slate-900">Processing payment...</h2>
+                            <h2 class="mt-4 text-lg font-semibold text-slate-900">Processing payment...</h2>
                             <p class="mt-1 text-sm text-slate-500">Please wait while we process your donation.</p>
                         </div>
 
@@ -773,7 +781,7 @@
                         theme: 'stripe',
                         variables: {
                             colorPrimary: '#0d9488',
-                            fontSizeBase: '16px',
+                            fontSizeBase: '15px',
                         },
                     },
                 });

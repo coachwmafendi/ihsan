@@ -139,7 +139,7 @@
                                         theme: 'stripe',
                                         variables: {
                                             colorPrimary: '#0d9488',
-                                            fontSizeBase: '16px',
+                                            fontSizeBase: '15px',
                                         },
                                     },
                                 });
