@@ -9,6 +9,7 @@ use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class DonorAuthController extends Controller
 {
@@ -27,17 +28,19 @@ class DonorAuthController extends Controller
 
         RateLimiter::hit('donor-magic-link-email:'.$validated['email']);
 
-        if ($donor !== null) {
+        if ($donor !== null && $donor->canReceiveEmails()) {
             $token = $donor->generateMagicToken();
-            $mailable = new MagicLink($donor, $token, $organization);
-
-            Mail::to($donor->email)->queue($mailable);
+            $messageId = Str::uuid()->toString();
+            $mailable = new MagicLink($donor, $token, $organization, $messageId);
 
             app(LogDonorEmail::class)->handle(
                 donor: $donor,
                 mailable: $mailable,
                 organization: $organization,
+                messageId: $messageId,
             );
+
+            Mail::to($donor->email)->queue($mailable);
         }
 
         usleep(random_int(100000, 200000));

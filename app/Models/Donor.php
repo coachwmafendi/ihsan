@@ -24,6 +24,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $magic_token
  * @property CarbonImmutable|null $magic_token_expires_at
  * @property CarbonImmutable|null $email_opt_out_at
+ * @property CarbonImmutable|null $email_bounced_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property string|null $address_line1
@@ -74,7 +75,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['public_id', 'name', 'email', 'phone', 'title', 'occupation', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'email_opt_out_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale', 'photo_path'])]
+#[Fillable(['public_id', 'name', 'email', 'phone', 'title', 'occupation', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'email_opt_out_at', 'email_bounced_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale', 'photo_path'])]
 class Donor extends Model
 {
     /** @use HasFactory<DonorFactory> */
@@ -146,12 +147,30 @@ class Donor extends Model
         return [
             'magic_token_expires_at' => 'datetime',
             'email_opt_out_at' => 'datetime',
+            'email_bounced_at' => 'datetime',
         ];
     }
 
     public function hasOptedOutOfEmails(): bool
     {
         return $this->email_opt_out_at !== null;
+    }
+
+    public function hasBouncedEmail(): bool
+    {
+        return $this->email_bounced_at !== null;
+    }
+
+    public function canReceiveEmails(): bool
+    {
+        return ! $this->hasOptedOutOfEmails() && ! $this->hasBouncedEmail();
+    }
+
+    public function markEmailBounced(): void
+    {
+        $this->update([
+            'email_bounced_at' => now(),
+        ]);
     }
 
     public function getPhotoUrlAttribute(): ?string
