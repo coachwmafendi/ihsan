@@ -62,7 +62,8 @@ it('maps linkedin events in ihsantrack', function () {
     $response = $this->get(route('donations.show', $element));
 
     $response->assertOk();
-    $response->assertSee("lintrk('track', { conversion_id: '87654321' })", false);
+    $response->assertSee('var linkedInConversionId = tracking.linkedin.conversion_id;', false);
+    $response->assertSee("lintrk('track', { conversion_id: linkedInConversionId })", false);
     $response->assertSee('conversion_value: payload ? payload.value : undefined', false);
 });
 
