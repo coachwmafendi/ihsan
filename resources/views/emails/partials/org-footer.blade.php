@@ -44,7 +44,7 @@
 
     @if (isset($unsubscribeUrl))
         <p style="margin: 0; font-size: 0.8125rem;">
-            <a href="{{ $unsubscribeUrl }}" style="color: #64748b; text-decoration: underline;">
+            <a href="{{ $unsubscribeUrl }}" target="_blank" rel="noopener noreferrer" style="color: #64748b; text-decoration: underline;">
                 Don’t send me these emails anymore
             </a>
         </p>
