@@ -16,10 +16,10 @@
         @endphp
 
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Donor</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->donor->name }}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Supporter</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->donor->name }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $hasCoveredFee ? 'Donation (incl. fee)' : 'Donation' }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $amountDisplay }}</td></tr>
             @if ($hasCoveredFee)
-                <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Fee Covered by Donor</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $symbol }} {{ number_format((float) $donation->donor_fee_covered, 2) }}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Fee Covered by Supporter</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $symbol }} {{ number_format((float) $donation->donor_fee_covered, 2) }}</td></tr>
             @endif
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Net to Organisation</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #16a34a;">{{ $netAmount }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Frequency</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">Monthly</td></tr>
