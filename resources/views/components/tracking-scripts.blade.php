@@ -43,7 +43,7 @@
         </noscript>
     @endif
 
-    @if ($linkedIn && ($linkedIn['options']['track_page_views'] ?? true))
+    @if ($linkedIn)
         <script type="text/javascript">
             _linkedin_partner_id = @js($linkedIn['partner_id']);
             window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
@@ -62,9 +62,11 @@
             })(window.lintrk);
         </script>
 
-        <noscript>
-            <img height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid={{ urlencode($linkedIn['partner_id']) }}&fmt=gif" />
-        </noscript>
+        @if ($linkedIn['options']['track_page_views'] ?? true)
+            <noscript>
+                <img height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid={{ urlencode($linkedIn['partner_id']) }}&fmt=gif" />
+            </noscript>
+        @endif
     @endif
 
     @if ($needsGtag)
