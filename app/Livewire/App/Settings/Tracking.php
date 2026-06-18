@@ -23,6 +23,9 @@ class Tracking extends Component
     /** @var array<string, array<string, bool>> Option toggles keyed by provider slug */
     public array $options = [];
 
+    /** Selected provider slug shown in the right detail panel. */
+    public string $selectedProvider = '';
+
     // Advanced settings
     public string $attributionWindow = '30';
 
@@ -91,6 +94,13 @@ class Tracking extends Component
         $this->captureTtclid = (bool) ($advanced['capture_ttclid'] ?? true);
         $this->captureReferrer = (bool) ($advanced['capture_referrer'] ?? true);
         $this->captureLandingPage = (bool) ($advanced['capture_landing_page'] ?? true);
+
+        $defaultProvider = collect($configs)
+            ->first(fn (TrackingConfiguration $c) => $c->isConfigured())
+            ?->provider
+            ?? TrackingProvider::Meta;
+
+        $this->selectedProvider = $defaultProvider->value;
     }
 
     public function saveProvider(string $providerSlug): void
@@ -293,6 +303,23 @@ class Tracking extends Component
         }
 
         return TrackingConfiguration::allForOrganization($org)->all();
+    }
+
+    public function selectProvider(string $slug): void
+    {
+        $this->selectedProvider = $slug;
+    }
+
+    #[Computed]
+    public function selectedConfiguration(): ?TrackingConfiguration
+    {
+        return collect($this->configurations)
+            ->first(fn (TrackingConfiguration $c) => $c->provider->value === $this->selectedProvider);
+    }
+
+    public function selectedProviderStatus(): TrackingProviderStatus
+    {
+        return $this->selectedConfiguration?->status ?? TrackingProviderStatus::NotConfigured;
     }
 
     /** @return array<int, array<string, mixed>> */
