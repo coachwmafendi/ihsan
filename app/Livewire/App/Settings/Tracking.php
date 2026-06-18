@@ -8,6 +8,7 @@ use App\Enums\TrackingProvider;
 use App\Enums\TrackingProviderStatus;
 use App\Models\TrackingConfiguration;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -150,8 +151,57 @@ class Tracking extends Component
             return;
         }
 
-        // TODO: dispatch a job to actually test the provider connection
-        $this->dispatch('notify', type: 'success', message: "{$provider->label()} connection test sent.");
+        match ($provider) {
+            TrackingProvider::Meta => $this->testMetaConnection(),
+            default => $this->dispatch('notify', type: 'info', message: "{$provider->label()} connection test is not implemented yet."),
+        };
+    }
+
+    private function testMetaConnection(): void
+    {
+        $pixelId = $this->credentials['meta']['pixel_id'] ?? null;
+        $accessToken = $this->credentials['meta']['access_token'] ?? null;
+
+        if (empty($pixelId) || empty($accessToken)) {
+            $this->dispatch('notify', type: 'error', message: 'Meta Pixel ID and Conversion API Access Token are both required to test the server-side connection.');
+
+            return;
+        }
+
+        $url = "https://graph.facebook.com/v18.0/{$pixelId}/events";
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->timeout(30)
+                ->connectTimeout(10)
+                ->post($url, [
+                    'data' => [[
+                        'event_name' => 'PageView',
+                        'event_time' => now()->timestamp,
+                        'action_source' => 'website',
+                        'event_source_url' => url('/'),
+                    ]],
+                ]);
+
+            if ($response->successful()) {
+                $eventsReceived = $response->json('events_received', 0);
+
+                if ($eventsReceived > 0) {
+                    $this->dispatch('notify', type: 'success', message: 'Meta connection OK. Test PageView event accepted.');
+
+                    return;
+                }
+
+                $this->dispatch('notify', type: 'warning', message: 'Meta responded but did not accept the test event. Check Pixel ID and token permissions.');
+
+                return;
+            }
+
+            $message = $response->json('error.message') ?? $response->body();
+            $this->dispatch('notify', type: 'error', message: "Meta connection failed: {$message}");
+        } catch (\Exception $e) {
+            $this->dispatch('notify', type: 'error', message: "Meta connection failed: {$e->getMessage()}");
+        }
     }
 
     public function saveAdvanced(): void
