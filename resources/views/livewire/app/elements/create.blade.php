@@ -61,7 +61,7 @@
                     </div>
                     <button
                         type="button"
-                        wire:click="$toggle('is_active')"
+                        wire:click="toggleIsActive"
                         class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $is_active ? 'bg-teal-600' : 'bg-slate-200' }}"
                         role="switch"
                         aria-checked="{{ $is_active ? 'true' : 'false' }}"

@@ -86,6 +86,11 @@ class ElementCreate extends Component
             ->get();
     }
 
+    public function toggleIsActive(): void
+    {
+        $this->is_active = ! $this->is_active;
+    }
+
     public function save(): void
     {
         $validated = $this->validate();

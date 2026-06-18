@@ -196,15 +196,12 @@
                                 </td>
                                 @if (! $showArchived)
                                     @php
-                                        $isTrigger = in_array($element->type->value, ['button', 'link']);
-                                        $embedCode = $isTrigger
-                                            ? 'data-ihsan="'.$element->token.'"'
-                                            : "<script src='".url('/e/widget.js')."' data-token='{$element->token}' data-type='{$element->type->value}' async></script>";
+                                        $embedCode = '<script src="' . url('/e/widget.js') . '" data-token="' . $element->token . '" data-type="' . $element->type->value . '" async></script>';
                                     @endphp
                                     <td class="px-5 py-4">
                                         <div x-data="{ copied: false }" class="flex items-center gap-2">
                                             <code class="max-w-xs truncate rounded bg-slate-100 px-2 py-1 text-xs font-mono text-slate-600">
-                                                {{ $isTrigger ? 'data-ihsan="'.$element->token.'"' : $element->token }}
+                                                data-token="{{ $element->token }}"
                                             </code>
                                             <x-ui.tooltip text="Copy embed code">
                                                 <button
