@@ -20,6 +20,7 @@
 
 <span
     {{ $attributes->merge(['class' => 'inline-block align-middle']) }}
+    wire:ignore
     x-data="uiTooltip({ text: @js($tooltipText), position: @js($position), align: @js($align), delay: @js((int) $delay), disabled: @js((bool) $disabled) })"
     :aria-describedby="open ? tipId : null"
     @if (! $isInteractive && ! $disabled && $hasContent)
