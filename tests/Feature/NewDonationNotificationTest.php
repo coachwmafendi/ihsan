@@ -60,7 +60,7 @@ test('recurring donation notification subject includes payment number', function
     $mailable = new NewDonationNotification($donation, 'RM 50.00');
 
     expect($mailable->envelope()->subject)
-        ->toBe('Recurring payment #4 received RM 50.00 by Ahmad Rizal on Iftar Ramadan — Ihsan');
+        ->toBe('4th recurring RM 50.00 donation by Ahmad Rizal on Iftar Ramadan');
 });
 
 test('recurring donation notification email body matches new layout', function () {
@@ -86,8 +86,6 @@ test('recurring donation notification email body matches new layout', function (
 
     expect($html)
         ->toContain('3rd recurring RM 50.00 donation by Ahmad Rizal on Iftar Ramadan')
-        ->toContain('You\'ve received your <strong>3rd</strong> recurring donation')
-        ->toContain('/ month')
         ->toContain('Supporter')
         ->toContain('Email')
         ->toContain('Donation ID')
@@ -95,6 +93,8 @@ test('recurring donation notification email body matches new layout', function (
         ->toContain('Next Billing Date')
         ->toContain('View in Ihsan')
         ->toContain('app/donations/'.$donation->public_id)
+        ->not->toContain('You\'ve received your')
+        ->not->toContain('Hi <strong>')
         ->not->toContain('Payment Number')
         ->not->toContain('Frequency');
 });
