@@ -25,6 +25,7 @@ A donation has been **{{ $action }}** by the fraud prevention system.
 View Fraud Dashboard
 @endcomponent
 
-Thanks,<br>
-{{ config('app.name') }}
+If you have a question, contact us at [support@getihsan.my](mailto:support@getihsan.my) and include email reference "{{ $donation->campaign?->organization?->public_id ?? '' }}" in your message. To manage your email settings <a href="{{ route('app.settings.notifications') }}" target="_blank" rel="noopener noreferrer">update your notification settings</a>.
+
+Sent with ❤️ from {{ config('app.name') }}
 @endcomponent

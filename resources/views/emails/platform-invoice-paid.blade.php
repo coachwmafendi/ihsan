@@ -34,6 +34,7 @@
         <p style="margin-top: 20px; font-size: 0.875rem; color: #94a3b8;">
             This receipt was sent automatically by {{ config('app.name') }}.
         </p>
+        @include('emails.partials.admin-footer', ['organization' => $invoice->organization])
     </div>
 </body>
 </html>

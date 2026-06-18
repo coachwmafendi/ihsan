@@ -59,7 +59,7 @@
         <p style="font-size: 0.875rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px;">
             You are receiving this because large donation notifications are enabled for your organisation. Manage your notification preferences in the control panel.
         </p>
-        <p style="margin-top: 8px; font-size: 12px; color: #94a3b8;">Sent with ❤️ from {{ config('app.name') }}</p>
+        @include('emails.partials.admin-footer', ['organization' => $donation->campaign->organization])
 
     </div>
 </body>
