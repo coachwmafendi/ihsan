@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Http\Controllers\DonorNotificationController;
 use App\Models\Campaign;
 use App\Models\Donor;
 use Illuminate\Bus\Queueable;
@@ -35,6 +36,10 @@ class CampaignCompletedDonorNotification extends Mailable
     {
         return new Content(
             view: 'emails.campaign-completed-donor-notification',
+            with: [
+                'donor' => $this->donor,
+                'unsubscribeUrl' => DonorNotificationController::unsubscribeUrl($this->donor),
+            ],
         );
     }
 }

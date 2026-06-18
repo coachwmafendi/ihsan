@@ -388,6 +388,10 @@ class ProcessStripeWebhook implements ShouldQueue
         $isFinalAttempt = $is27th && $retryCount >= 4;
 
         if ($retryCount === 1 || $retryCount === 2 || $retryCount === 3 || $isFinalAttempt) {
+            if ($subscription->donor?->hasOptedOutOfEmails()) {
+                return;
+            }
+
             $mailable = new DonorDunningNotification($subscription, $retryCount, $isFinalAttempt);
 
             Mail::to($subscription->donor->email)

@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Http\Controllers\DonorNotificationController;
 use App\Models\Donor;
 use App\Models\Organization;
 use Illuminate\Bus\Queueable;
@@ -31,6 +32,10 @@ class MagicLink extends Mailable
     {
         return new Content(
             view: 'emails.magic-link',
+            with: [
+                'donor' => $this->donor,
+                'unsubscribeUrl' => DonorNotificationController::unsubscribeUrl($this->donor),
+            ],
         );
     }
 }

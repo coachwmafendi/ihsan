@@ -35,9 +35,17 @@
     @endif
 
     @if (filled($organization->website_url))
-        <p style="margin: 0;">
+        <p style="margin: 0 0 16px 0;">
             <a href="{{ $organization->website_url }}" target="_blank" rel="noopener noreferrer" style="color: #64748b; text-decoration: underline;">
                 {{ $organization->website_url }}
+            </a>
+        </p>
+    @endif
+
+    @if (isset($unsubscribeUrl))
+        <p style="margin: 0; font-size: 0.8125rem;">
+            <a href="{{ $unsubscribeUrl }}" style="color: #64748b; text-decoration: underline;">
+                Don’t send me these emails anymore
             </a>
         </p>
     @endif

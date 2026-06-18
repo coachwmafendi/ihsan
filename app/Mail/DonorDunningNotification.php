@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Http\Controllers\DonorNotificationController;
 use App\Models\Subscription;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -39,6 +40,14 @@ class DonorDunningNotification extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.donor-dunning-notification');
+        $donor = $this->subscription->donor;
+
+        return new Content(
+            view: 'emails.donor-dunning-notification',
+            with: [
+                'donor' => $donor,
+                'unsubscribeUrl' => $donor ? DonorNotificationController::unsubscribeUrl($donor) : null,
+            ],
+        );
     }
 }

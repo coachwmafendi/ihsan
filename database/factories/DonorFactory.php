@@ -27,6 +27,7 @@ class DonorFactory extends Factory
             'address_city' => fake()->optional()->city(),
             'country' => fake()->optional()->randomElement(['my', 'sg', 'id']),
             'photo_path' => null,
+            'email_opt_out_at' => null,
         ];
     }
 }

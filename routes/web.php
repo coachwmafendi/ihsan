@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DonationCampaignImageController;
 use App\Http\Controllers\DonorImpersonationController;
+use App\Http\Controllers\DonorNotificationController;
 use App\Http\Controllers\EmbedCheckoutController;
 use App\Http\Controllers\PublicElementController;
 use App\Http\Controllers\ReceiptDownloadController;
@@ -183,6 +184,14 @@ Route::get('/donor/{donor}/photo', function (Donor $donor): ?StreamedResponse {
 
     return $disk->response($donor->photo_path);
 })->name('donor.photo');
+
+// Donor notification preferences (signed links from emails)
+Route::middleware('signed')->group(function () {
+    Route::get('/donor/notifications/{donor}', [DonorNotificationController::class, 'edit'])
+        ->name('donor.notifications.edit');
+    Route::post('/donor/notifications/{donor}', [DonorNotificationController::class, 'update'])
+        ->name('donor.notifications.update');
+});
 
 // Donor portal
 Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(function () {

@@ -2,6 +2,8 @@
 
 namespace App\Mail;
 
+use App\Http\Controllers\DonorNotificationController;
+use App\Mail\Concerns\SetsDonorLocale;
 use App\Models\Donation;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Bus\Queueable;
@@ -14,7 +16,7 @@ use Illuminate\Queue\SerializesModels;
 
 class DonationReceipt extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, SetsDonorLocale;
 
     public function __construct(
         public Donation $donation,
@@ -26,17 +28,25 @@ class DonationReceipt extends Mailable
         $orgName = $org?->name ?? config('app.name');
         $replyTo = $org?->settings['portal_reply_to_email'] ?? null;
 
+        $this->setLocaleForDonor($this->donation->donor);
+
         return new Envelope(
             from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName),
-            subject: 'Your Donation Receipt — '.$orgName,
+            subject: __('emails.receipt.subject', ['name' => $orgName]),
             replyTo: $replyTo ? [new Address($replyTo, $org->name)] : [],
         );
     }
 
     public function content(): Content
     {
+        $donor = $this->donation->donor;
+
         return new Content(
             view: 'emails.donation-receipt',
+            with: [
+                'donor' => $donor,
+                'unsubscribeUrl' => $donor ? DonorNotificationController::unsubscribeUrl($donor) : null,
+            ],
         );
     }
 

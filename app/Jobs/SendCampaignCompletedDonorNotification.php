@@ -45,6 +45,10 @@ class SendCampaignCompletedDonorNotification implements ShouldQueue
         }
 
         Donor::query()->whereIn('id', $donorIds)->each(function (Donor $donor) {
+            if ($donor->hasOptedOutOfEmails()) {
+                return;
+            }
+
             $mailable = new CampaignCompletedDonorNotification(
                 campaign: $this->campaign,
                 donor: $donor,
