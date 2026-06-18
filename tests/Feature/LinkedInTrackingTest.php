@@ -146,6 +146,47 @@ it('does not send linkedin conversion without conversion id', function () {
     expect(TrackingEvent::query()->count())->toBe(0);
 });
 
+it('does not send linkedin conversion when track_conversions is disabled', function () {
+    Http::fake();
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donation = Donation::factory()->for($campaign)->create([
+        'gross_amount' => 50.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    TrackingConfiguration::factory()->for($organization)->linkedin(
+        credentials: ['conversion_id' => '87654321', 'access_token' => 'test-token'],
+        options: ['track_conversions' => false],
+    )->create();
+
+    (new SendLinkedInConversionEvent($donation))->handle();
+
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), 'linkedin.com'));
+    expect(TrackingEvent::query()->count())->toBe(0);
+});
+
+it('does not render linkedin conversion calls when conversion_id is blank', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+
+    TrackingConfiguration::factory()->for($organization)->linkedin([
+        'partner_id' => '1234567',
+        'conversion_id' => '',
+    ])->create();
+
+    $response = $this->get(route('donations.show', $element));
+
+    $response->assertOk();
+    $response->assertSee('if (linkedInConversionId) {', false);
+    $response->assertDontSee("lintrk('track', { conversion_id: linkedInConversionId })", false);
+});
+
 it('records failed linkedin conversion when api errors', function () {
     Http::fake([
         'https://api.linkedin.com/*' => Http::response(['message' => 'Invalid token'], 401),

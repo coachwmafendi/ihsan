@@ -226,17 +226,19 @@
                 var linkedInOptions = tracking.linkedin.options || {};
 
                 if (linkedInConversionId) {
-                    if (eventName === 'InitiateCheckout' && linkedInOptions.track_donation_starts !== false) {
-                        lintrk('track', { conversion_id: linkedInConversionId });
-                    }
+                    @if (! empty($linkedIn['conversion_id']))
+                        if (eventName === 'InitiateCheckout' && linkedInOptions.track_donation_starts !== false) {
+                            lintrk('track', { conversion_id: linkedInConversionId });
+                        }
 
-                    if (eventName === 'Purchase' && linkedInOptions.track_conversions !== false) {
-                        lintrk('track', {
-                            conversion_id: linkedInConversionId,
-                            conversion_value: payload ? payload.value : undefined,
-                            currency: payload ? payload.currency : undefined,
-                        });
-                    }
+                        if (eventName === 'Purchase' && linkedInOptions.track_conversions !== false) {
+                            lintrk('track', {
+                                conversion_id: linkedInConversionId,
+                                conversion_value: payload ? payload.value : undefined,
+                                currency: payload ? payload.currency : undefined,
+                            });
+                        }
+                    @endif
                 }
             }
 
