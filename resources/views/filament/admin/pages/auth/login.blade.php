@@ -5,7 +5,7 @@
             <div class="w-full max-w-sm">
                 {{-- Logo --}}
                 <div class="flex justify-center mb-8">
-                    <img src="{{ asset('logo-ihsan.png') }}" alt="ihsan" class="h-10">
+                    <img src="{{ asset('logo-ihsan.svg') }}" alt="ihsan" class="h-10">
                 </div>
 
                 {{-- Heading --}}

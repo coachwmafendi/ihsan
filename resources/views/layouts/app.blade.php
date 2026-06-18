@@ -11,6 +11,10 @@
     @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('components.ui._tooltip-script')
+
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 </head>
 <body class="font-sans antialiased">
     <x-app-shell>

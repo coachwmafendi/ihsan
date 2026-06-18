@@ -47,8 +47,10 @@ class AdminPanelProvider extends PanelProvider
             ->breadcrumbs(false)
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('16rem')
-            ->brandLogo(asset('logo-ihsan.png'))
+            ->brandLogo(asset('logo-ihsan.svg'))
+            ->darkModeBrandLogo(asset('logo-ihsan-dark.svg'))
             ->brandLogoHeight('2rem')
+            ->favicon(asset('favicon.svg'))
             ->login(AdminLogin::class)
             ->profile(EditProfile::class)
             ->colors([

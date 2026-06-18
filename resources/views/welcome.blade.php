@@ -4,7 +4,10 @@
     {{-- Nav --}}
     <nav class="fixed top-0 inset-x-0 z-50 bg-[#0f172a]/80 backdrop-blur-lg border-b border-white/5" x-data="{ open: false }">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <a href="{{ route('home') }}" class="text-white font-bold text-lg tracking-tight">Ihsan</a>
+            <a href="{{ route('home') }}" class="flex items-center gap-2 text-white font-bold text-lg tracking-tight">
+                <x-app-logo-icon class="h-7 w-auto" />
+                <span>Ihsan</span>
+            </a>
 
             <div class="hidden md:flex items-center gap-6 text-sm">
                 <a href="#features" class="text-slate-400 hover:text-white transition-colors">@lang('nav.features')</a>
