@@ -186,16 +186,14 @@
             if (typeof lintrk === 'function' && tracking.linkedin && tracking.linkedin.enabled) {
                 var linkedInConversionId = tracking.linkedin.conversion_id;
 
-                if (! linkedInConversionId) {
-                    return;
-                }
+                if (linkedInConversionId) {
+                    if (eventName === 'InitiateCheckout' && tracking.linkedin.options?.track_donation_starts !== false) {
+                        lintrk('track', { conversion_id: linkedInConversionId });
+                    }
 
-                if (eventName === 'InitiateCheckout' && tracking.linkedin.options?.track_donation_starts !== false) {
-                    lintrk('track', { conversion_id: linkedInConversionId });
-                }
-
-                if (eventName === 'Purchase' && tracking.linkedin.options?.track_conversions !== false) {
-                    lintrk('track', { conversion_id: linkedInConversionId, value: payload ? payload.value : undefined, currency: payload ? payload.currency : undefined });
+                    if (eventName === 'Purchase' && tracking.linkedin.options?.track_conversions !== false) {
+                        lintrk('track', { conversion_id: linkedInConversionId, value: payload ? payload.value : undefined, currency: payload ? payload.currency : undefined });
+                    }
                 }
             }
         };
