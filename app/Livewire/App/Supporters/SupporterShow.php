@@ -40,7 +40,15 @@ class SupporterShow extends Component
 
     public bool $showPreviewModal = false;
 
+    public ?int $previewLogId = null;
+
     public ?string $previewSubject = null;
+
+    public ?string $previewSentAt = null;
+
+    public ?string $previewFromName = null;
+
+    public ?string $previewFromEmail = null;
 
     public ?string $previewHtml = null;
 
@@ -285,15 +293,33 @@ class SupporterShow extends Component
             return;
         }
 
+        $this->previewLogId = $log->id;
         $this->previewSubject = $log->subject;
+        $this->previewSentAt = $log->sent_at?->format('M d, Y, g:i A');
+        $this->previewFromName = $org->name;
+        $this->previewFromEmail = $org->contact_email ?? '';
         $this->previewHtml = $html;
         $this->showPreviewModal = true;
+    }
+
+    public function resendFromModal(): void
+    {
+        if ($this->previewLogId === null) {
+            return;
+        }
+
+        $this->resendEmail($this->previewLogId);
+        $this->closePreviewModal();
     }
 
     public function closePreviewModal(): void
     {
         $this->showPreviewModal = false;
+        $this->previewLogId = null;
         $this->previewSubject = null;
+        $this->previewSentAt = null;
+        $this->previewFromName = null;
+        $this->previewFromEmail = null;
         $this->previewHtml = null;
     }
 

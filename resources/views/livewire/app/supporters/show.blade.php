@@ -352,18 +352,16 @@
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
                                     @foreach ($this->emailLogs as $log)
-                                        <tr class="transition-colors hover:bg-slate-50" wire:key="email-log-{{ $log->id }}">
+                                        <tr
+                                            class="cursor-pointer transition-colors hover:bg-slate-50"
+                                            wire:click="previewEmail({{ $log->id }})"
+                                            wire:key="email-log-{{ $log->id }}"
+                                        >
                                             <td class="px-4 py-3 text-sm text-slate-500">
                                                 {{ $log->sent_at?->format('M d, Y, g:i A') ?? '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-sm font-medium text-slate-900">
-                                                <button
-                                                    type="button"
-                                                    wire:click="previewEmail({{ $log->id }})"
-                                                    class="text-left hover:text-teal-600"
-                                                >
-                                                    {{ $log->subject }}
-                                                </button>
+                                                {{ $log->subject }}
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-500">
                                                 {{ $log->opened_at?->format('M d, Y, g:i A') ?? '—' }}
@@ -371,7 +369,7 @@
                                             <td class="px-4 py-3 text-right">
                                                 <button
                                                     type="button"
-                                                    wire:click="resendEmail({{ $log->id }})"
+                                                    wire:click.stop="resendEmail({{ $log->id }})"
                                                     class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 transition hover:text-teal-600"
                                                 >
                                                     <x-heroicon-o-arrow-path class="size-4" />
@@ -489,38 +487,70 @@
     {{-- Email Preview Modal --}}
     <div
         x-cloak
+        x-data="{}"
         x-show="$wire.showPreviewModal"
         x-on:keydown.escape.window="$wire.closePreviewModal()"
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+        x-on:click.self="$wire.closePreviewModal()"
     >
-        <div
-            x-on:click.outside="$wire.closePreviewModal()"
-            class="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-xl bg-white shadow-lg"
-        >
-            <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                <div class="min-w-0">
-                    <h3
-                        class="truncate text-lg font-semibold text-slate-900"
-                        x-text="$wire.previewSubject || 'Email Preview'"
-                    ></h3>
-                </div>
+        <div class="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-xl">
+            {{-- Modal header --}}
+            <div class="flex items-start justify-between border-b border-slate-200 px-5 py-4">
+                <h3 class="text-lg font-semibold text-slate-900">Email</h3>
                 <button
                     type="button"
-                    wire:click="closePreviewModal"
-                    class="text-slate-400 transition hover:text-slate-600"
+                    x-on:click="$wire.closePreviewModal()"
+                    class="ml-4 shrink-0 text-slate-400 transition hover:text-slate-600"
                 >
                     <x-heroicon-o-x-mark class="size-5" />
                 </button>
             </div>
 
-            <div class="flex-1 overflow-auto bg-slate-100 p-0">
-                @if ($this->previewHtml)
-                    <iframe
-                        :srcdoc="$wire.previewHtml"
-                        class="h-[60vh] w-full bg-white"
-                        title="Email preview"
-                    ></iframe>
-                @endif
+            {{-- Email metadata --}}
+            <div class="border-b border-slate-200 px-5 py-3 text-sm">
+                <div class="flex items-baseline gap-3 py-1">
+                    <span class="w-16 shrink-0 text-right text-slate-500">From:</span>
+                    <span class="text-slate-800">
+                        <span x-text="$wire.previewFromName"></span>
+                        <span class="text-slate-500" x-show="$wire.previewFromEmail">&lt;<span x-text="$wire.previewFromEmail"></span>&gt;</span>
+                    </span>
+                    <span class="ml-auto shrink-0 text-slate-400" x-text="$wire.previewSentAt"></span>
+                </div>
+                <div class="flex items-baseline gap-3 py-1">
+                    <span class="w-16 shrink-0 text-right text-slate-500">To:</span>
+                    <span class="text-slate-800">
+                        {{ \Illuminate\Support\Str::title($donor->name) }}
+                        <span class="text-slate-500">&lt;{{ $donor->email }}&gt;</span>
+                    </span>
+                    <button
+                        type="button"
+                        wire:click="resendFromModal"
+                        class="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                    >
+                        <x-heroicon-o-arrow-path class="size-3.5" />
+                        Resend
+                    </button>
+                </div>
+                <div class="flex items-baseline gap-3 py-1">
+                    <span class="w-16 shrink-0 text-right text-slate-500">Subject:</span>
+                    <span class="font-medium text-slate-900" x-text="$wire.previewSubject"></span>
+                </div>
+            </div>
+
+            {{-- Email body iframe --}}
+            <div class="flex-1 overflow-hidden bg-slate-100">
+                <iframe
+                    x-ref="previewFrame"
+                    x-effect="
+                        const html = $wire.previewHtml;
+                        if (html && $refs.previewFrame) {
+                            $refs.previewFrame.srcdoc = html;
+                        }
+                    "
+                    class="h-[60vh] w-full bg-white"
+                    title="Email preview"
+                    sandbox
+                ></iframe>
             </div>
         </div>
     </div>
