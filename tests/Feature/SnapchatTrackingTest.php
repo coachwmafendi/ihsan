@@ -90,9 +90,16 @@ it('sends snapchat purchase conversion via api', function () {
     (new SendSnapchatConversionEvent($donation))->handle();
 
     Http::assertSent(function ($request) {
+        $data = $request->data();
+
         return str_starts_with($request->url(), 'https://tr.snapchat.com/v2/conversion')
-            && is_array($request->data()['events'] ?? null)
-            && ($request->data()['events'][0]['event_type'] ?? null) === 'PURCHASE';
+            && ($data['pixel_id'] ?? null) === 'pixel-snap-123'
+            && is_array($data['events'] ?? null)
+            && ($data['events'][0]['event_type'] ?? null) === 'PURCHASE'
+            && ($data['events'][0]['event_conversion_type'] ?? null) === 'WEB'
+            && ($data['events'][0]['price'] ?? null) === 100.0
+            && ($data['events'][0]['currency'] ?? null) === 'MYR'
+            && ($data['events'][0]['hashed_email'] ?? null) === hash('sha256', 'donor@example.com');
     });
 
     $event = TrackingEvent::query()->firstOrFail();
@@ -118,6 +125,28 @@ it('does not send snapchat conversion without access token', function () {
     TrackingConfiguration::factory()->for($organization)->snapchat([
         'pixel_id' => 'pixel-snap-123',
         'access_token' => '',
+    ])->create();
+
+    (new SendSnapchatConversionEvent($donation))->handle();
+
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), 'snapchat.com'));
+    expect(TrackingEvent::query()->count())->toBe(0);
+});
+
+it('does not send snapchat conversion without pixel id', function () {
+    Http::fake();
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donation = Donation::factory()->for($campaign)->create([
+        'gross_amount' => 50.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    TrackingConfiguration::factory()->for($organization)->snapchat([
+        'pixel_id' => '',
+        'access_token' => 'test-token',
     ])->create();
 
     (new SendSnapchatConversionEvent($donation))->handle();
