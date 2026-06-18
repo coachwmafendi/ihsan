@@ -2,6 +2,8 @@
 
 namespace App\Enums;
 
+use App\Models\TrackingConfiguration;
+
 enum TrackingProvider: string
 {
     case Meta = 'meta';
@@ -66,10 +68,12 @@ enum TrackingProvider: string
             self::LinkedIn => [
                 ['key' => 'partner_id', 'label' => 'Partner ID', 'type' => 'text', 'placeholder' => '1234567'],
                 ['key' => 'conversion_id', 'label' => 'Conversion ID', 'type' => 'text', 'placeholder' => '12345678'],
+                ['key' => 'access_token', 'label' => 'Conversion API Access Token', 'type' => 'password', 'placeholder' => '••••••••••••••••'],
             ],
             self::XAds => [
                 ['key' => 'pixel_id', 'label' => 'Pixel ID', 'type' => 'text', 'placeholder' => 'o1234'],
                 ['key' => 'conversion_id', 'label' => 'Conversion Event ID', 'type' => 'text', 'placeholder' => 'tw-o1234-abcde'],
+                ['key' => 'access_token', 'label' => 'Conversion API Access Token', 'type' => 'password', 'placeholder' => '••••••••••••••••'],
             ],
             self::Snapchat => [
                 ['key' => 'pixel_id', 'label' => 'Pixel ID', 'type' => 'text', 'placeholder' => 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'],
@@ -104,14 +108,18 @@ enum TrackingProvider: string
                 ['key' => 'track_donation_events', 'label' => 'Track Donation Events', 'description' => 'Send CompletePayment events with donation value.'],
             ],
             self::LinkedIn => [
+                ['key' => 'track_page_views', 'label' => 'Track Page Views', 'description' => 'Load the LinkedIn Insight Tag base code.'],
+                ['key' => 'track_donation_starts', 'label' => 'Track Donation Starts', 'description' => 'Fire a conversion event when donors begin checkout.'],
                 ['key' => 'track_conversions', 'label' => 'Track Donation Conversions', 'description' => 'Report completed donations as LinkedIn conversions.'],
             ],
             self::XAds => [
-                ['key' => 'track_page_views', 'label' => 'Track Page Views', 'description' => 'Send PageView events on each page load.'],
+                ['key' => 'track_page_views', 'label' => 'Track Page Views', 'description' => 'Load the X Pixel base code.'],
+                ['key' => 'track_donation_starts', 'label' => 'Track Donation Starts', 'description' => 'Fire a checkout-start conversion event.'],
                 ['key' => 'track_conversions', 'label' => 'Track Donation Conversions', 'description' => 'Report completed donations as X conversion events.'],
             ],
             self::Snapchat => [
                 ['key' => 'track_page_views', 'label' => 'Track Page Views', 'description' => 'Send PAGE_VIEW events on each page load.'],
+                ['key' => 'track_donation_starts', 'label' => 'Track Donation Starts', 'description' => 'Send START_CHECKOUT events when donors begin checkout.'],
                 ['key' => 'track_conversions', 'label' => 'Track Donation Conversions', 'description' => 'Send PURCHASE events with donation value.'],
             ],
         };
