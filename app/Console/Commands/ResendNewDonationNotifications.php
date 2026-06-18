@@ -13,6 +13,7 @@ class ResendNewDonationNotifications extends Command
     protected $signature = 'notifications:resend-new-donation
                             {--donation= : Resend for a specific donation by public_id}
                             {--days=7 : Resend for succeeded donations in the last N days}
+                            {--latest= : Resend the latest N succeeded donations}
                             {--all : Resend for all succeeded donations}
                             {--dry-run : Preview which notifications would be queued without sending}
                             {--force : Skip confirmation prompt}';
@@ -35,6 +36,23 @@ class ResendNewDonationNotifications extends Command
             }
 
             return $this->dispatchForDonations(collect([$donation]));
+        }
+
+        $latest = $this->option('latest');
+
+        if ($latest !== null) {
+            $limit = (int) $latest;
+
+            $this->info("Targeting the latest {$limit} succeeded donation(s).");
+
+            return $this->dispatchForDonations(
+                Donation::with(['donor', 'campaign.organization'])
+                    ->where('status', DonationStatus::Succeeded)
+                    ->where('gross_amount', '>', 0)
+                    ->latest()
+                    ->limit($limit)
+                    ->get()
+            );
         }
 
         $query = Donation::with(['donor', 'campaign.organization'])
