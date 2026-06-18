@@ -15,6 +15,7 @@ use App\Models\Organization;
 use App\Models\TrackingConfiguration;
 use App\Models\TrackingEvent;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Stripe\PaymentIntent;
 
 uses()->group('tracking');
@@ -96,7 +97,7 @@ it('respects the track page views option', function () {
 });
 
 it('dispatches meta conversion event job after payment confirmation', function () {
-    Bus::fake([SendMetaConversionEvent::class]);
+    Queue::fake([SendMetaConversionEvent::class]);
 
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();
@@ -133,7 +134,7 @@ it('dispatches meta conversion event job after payment confirmation', function (
     Livewire::test(DonationForm::class, ['element' => $element])
         ->call('confirmPayment', 'pi_dispatch_test', $paymentIntent);
 
-    Bus::assertDispatched(SendMetaConversionEvent::class, function (SendMetaConversionEvent $job) use ($donation) {
+    Queue::assertPushed(SendMetaConversionEvent::class, function (SendMetaConversionEvent $job) use ($donation) {
         return $job->donation->is($donation);
     });
 });

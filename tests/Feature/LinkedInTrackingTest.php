@@ -15,8 +15,8 @@ use App\Models\Element;
 use App\Models\Organization;
 use App\Models\TrackingConfiguration;
 use App\Models\TrackingEvent;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 use Stripe\PaymentIntent;
 
@@ -218,7 +218,7 @@ it('records failed linkedin conversion when api errors', function () {
 });
 
 it('dispatches linkedin, x ads and snapchat conversion jobs on payment confirmation', function () {
-    Bus::fake([
+    Queue::fake([
         SendLinkedInConversionEvent::class,
         SendXAdsConversionEvent::class,
         SendSnapchatConversionEvent::class,
@@ -256,7 +256,7 @@ it('dispatches linkedin, x ads and snapchat conversion jobs on payment confirmat
     Livewire::test(DonationForm::class, ['element' => $element])
         ->call('confirmPayment', 'pi_dispatch_all', $paymentIntent);
 
-    Bus::assertDispatched(SendLinkedInConversionEvent::class, fn ($job) => $job->donation->is($donation));
-    Bus::assertDispatched(SendXAdsConversionEvent::class, fn ($job) => $job->donation->is($donation));
-    Bus::assertDispatched(SendSnapchatConversionEvent::class, fn ($job) => $job->donation->is($donation));
+    Queue::assertPushed(SendLinkedInConversionEvent::class, fn ($job) => $job->donation->is($donation));
+    Queue::assertPushed(SendXAdsConversionEvent::class, fn ($job) => $job->donation->is($donation));
+    Queue::assertPushed(SendSnapchatConversionEvent::class, fn ($job) => $job->donation->is($donation));
 });
