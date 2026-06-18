@@ -69,6 +69,44 @@
         @endif
     @endif
 
+    @if ($xAds)
+        <script>
+            !function(e,t,n,s,u,a){
+                e.twq || (s = e.twq = function() { s.exe ? s.exe.apply(s, arguments) : s.queue.push(arguments); }, s.version = '1.1', s.queue = [], u = t.createElement(n), u.async = !0, u.src = 'https://static.ads-twitter.com/uwt.js', a = t.getElementsByTagName(n)[0], a.parentNode.insertBefore(u, a));
+            }(window, document, 'script');
+
+            twq('config', @js($xAds['pixel_id']));
+
+            @if ($xAds['options']['track_page_views'] ?? true)
+                twq('track', 'PageView');
+            @endif
+        </script>
+    @endif
+
+    @if ($snapchat)
+        <script type="text/javascript">
+            (function(e,t,n){
+                if(e.snaptr) return;
+                var a=e.snaptr=function(){
+                    a.handleRequest ? a.handleRequest.apply(a,arguments) : a.queue.push(arguments)
+                };
+                a.queue=[];
+                var s='script';
+                var r=t.createElement(s);
+                r.async=true;
+                r.src=n;
+                var u=t.getElementsByTagName(s)[0];
+                u.parentNode.insertBefore(r,u);
+            })(window,document,'https://sc-static.net/scevent.min.js');
+
+            snaptr('init', @js($snapchat['pixel_id']), { 'user_email': undefined });
+
+            @if ($snapchat['options']['track_page_views'] ?? true)
+                snaptr('track', 'PAGE_VIEW');
+            @endif
+        </script>
+    @endif
+
     @if ($needsGtag)
         <script async src="https://www.googletagmanager.com/gtag/js?id={{ urlencode($ga4['measurement_id'] ?? $googleAds['conversion_id'] ?? '') }}"></script>
         <script>
@@ -199,6 +237,42 @@
                             currency: payload ? payload.currency : undefined,
                         });
                     }
+                }
+            }
+
+            // X Ads Pixel
+            if (typeof twq === 'function' && tracking.x_ads && tracking.x_ads.enabled) {
+                var xAdsConversionId = tracking.x_ads.conversion_id;
+                var xAdsOptions = tracking.x_ads.options || {};
+
+                if (xAdsConversionId) {
+                    if (eventName === 'InitiateCheckout' && xAdsOptions.track_donation_starts !== false) {
+                        twq('event', xAdsConversionId);
+                    }
+
+                    if (eventName === 'Purchase' && xAdsOptions.track_conversions !== false) {
+                        twq('event', xAdsConversionId, {
+                            value: payload ? payload.value : undefined,
+                            currency: payload ? payload.currency : undefined,
+                        });
+                    }
+                }
+            }
+
+            // Snapchat Pixel
+            if (typeof snaptr === 'function' && tracking.snapchat && tracking.snapchat.enabled) {
+                var snapchatOptions = tracking.snapchat.options || {};
+                var snapArgs = {
+                    value: payload ? payload.value : undefined,
+                    currency: payload ? payload.currency : undefined,
+                };
+
+                if (eventName === 'InitiateCheckout' && snapchatOptions.track_donation_starts !== false) {
+                    snaptr('track', 'START_CHECKOUT', snapArgs);
+                }
+
+                if (eventName === 'Purchase' && snapchatOptions.track_conversions !== false) {
+                    snaptr('track', 'PURCHASE', snapArgs);
                 }
             }
         };
