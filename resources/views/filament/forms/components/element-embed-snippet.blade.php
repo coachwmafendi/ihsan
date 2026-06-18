@@ -40,10 +40,11 @@
                     <span x-show="copied" x-cloak class="text-emerald-600">Copied!</span>
                 </button>
             </div>
-            <pre class="overflow-x-auto cursor-pointer select-all p-4 text-xs leading-relaxed text-zinc-700 transition hover:bg-zinc-100/50"
-                 title="Click to copy"
-                 x-on:click="navigator.clipboard.writeText(code).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
-            ><code x-text="code" class="pointer-events-none"></code></pre>
+            <x-ui.tooltip text="Click to copy">
+                <pre class="overflow-x-auto cursor-pointer select-all p-4 text-xs leading-relaxed text-zinc-700 transition hover:bg-zinc-100/50"
+                     x-on:click="navigator.clipboard.writeText(code).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
+                ><code x-text="code" class="pointer-events-none"></code></pre>
+            </x-ui.tooltip>
         </div>
     </div>
     @endif

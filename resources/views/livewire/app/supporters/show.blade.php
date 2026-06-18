@@ -11,9 +11,11 @@
                 </span>
                 <span class="inline-flex items-center gap-1 whitespace-nowrap">
                     <span class="text-slate-300">·</span>
-                    <span title="{{ $this->originalAmounts->isNotEmpty() ? $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') : '' }}">
-                        Lifetime donated {{ $this->totalAmount['isApproximate'] ? '≈' : '' }} MYR {{ number_format($this->totalAmount['amount'], 2) }}
-                    </span>
+                    <x-ui.tooltip :text="$this->originalAmounts->isNotEmpty() ? $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') : ''">
+                        <span>
+                            Lifetime donated {{ $this->totalAmount['isApproximate'] ? '≈' : '' }} MYR {{ number_format($this->totalAmount['amount'], 2) }}
+                        </span>
+                    </x-ui.tooltip>
                 </span>
                 <span class="inline-flex items-center gap-1 whitespace-nowrap">
                     <span class="text-slate-300">·</span>

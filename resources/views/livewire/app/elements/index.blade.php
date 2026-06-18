@@ -206,13 +206,13 @@
                                             <code class="max-w-xs truncate rounded bg-slate-100 px-2 py-1 text-xs font-mono text-slate-600">
                                                 {{ $isTrigger ? 'data-ihsan="'.$element->token.'"' : $element->token }}
                                             </code>
-                                            <button
-                                                type="button"
-                                                @click="navigator.clipboard.writeText(@js($embedCode)); copied = true; setTimeout(() => copied = false, 2000)"
-                                                class="shrink-0 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-                                                title="Copy embed code"
-                                            >
-                                                <template x-if="!copied">
+                                            <x-ui.tooltip text="Copy embed code">
+                                                <button
+                                                    type="button"
+                                                    @click="navigator.clipboard.writeText(@js($embedCode)); copied = true; setTimeout(() => copied = false, 2000)"
+                                                    class="shrink-0 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                                                >
+                                                    <template x-if="!copied">
                                                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                                     </svg>
@@ -223,6 +223,7 @@
                                                     </svg>
                                                 </template>
                                             </button>
+                                        </x-ui.tooltip>
                                         </div>
                                     </td>
                                 @endif

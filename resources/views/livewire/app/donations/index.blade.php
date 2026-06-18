@@ -375,12 +375,18 @@
                                         @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
                                             <span class="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600">G Pay</span>
                                         @elseif ($pmType === 'card' || filled($pmBrand))
-                                            <x-heroicon-o-credit-card class="size-4 text-slate-400" title="{{ ucfirst($pmBrand) }}" />
+                                            <x-ui.tooltip :text="ucfirst($pmBrand)">
+                                                <x-heroicon-o-credit-card class="size-4 text-slate-400" />
+                                            </x-ui.tooltip>
                                         @endif
                                         {{-- Recurring indicator --}}
                                         @if ($donation->subscription_id)
-                                            <x-heroicon-o-arrow-path class="size-4 text-teal-500" title="Recurring" />
-                                            <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-50 px-1 text-[10px] font-semibold text-teal-600" title="{{ Number::ordinal($donation->subscription?->payment_count ?? 1) }} installment">{{ $donation->subscription?->payment_count ?? 1 }}</span>
+                                            <x-ui.tooltip text="Recurring">
+                                                <x-heroicon-o-arrow-path class="size-4 text-teal-500" />
+                                            </x-ui.tooltip>
+                                            <x-ui.tooltip :text="Number::ordinal($donation->subscription?->payment_count ?? 1).' installment'">
+                                                <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-50 px-1 text-[10px] font-semibold text-teal-600">{{ $donation->subscription?->payment_count ?? 1 }}</span>
+                                            </x-ui.tooltip>
                                         @endif
                                     </div>
                                 </td>
@@ -388,11 +394,17 @@
                                     <div class="flex items-center gap-1.5">
                                         <span class="text-sm font-medium text-slate-900">{{ $donation->donor?->name ?? 'Anonymous' }}</span>
                                         @if ($donation->device_type === 'mobile')
-                                            <x-heroicon-o-device-phone-mobile class="size-3.5 shrink-0 text-slate-400" title="Mobile donation" />
+                                            <x-ui.tooltip text="Mobile donation">
+                                                <x-heroicon-o-device-phone-mobile class="size-3.5 shrink-0 text-slate-400" />
+                                            </x-ui.tooltip>
                                         @elseif ($donation->device_type === 'tablet')
-                                            <x-heroicon-o-device-tablet class="size-3.5 shrink-0 text-slate-400" title="Tablet donation" />
+                                            <x-ui.tooltip text="Tablet donation">
+                                                <x-heroicon-o-device-tablet class="size-3.5 shrink-0 text-slate-400" />
+                                            </x-ui.tooltip>
                                         @elseif ($donation->device_type === 'desktop')
-                                            <x-heroicon-o-computer-desktop class="size-3.5 shrink-0 text-slate-400" title="Desktop donation" />
+                                            <x-ui.tooltip text="Desktop donation">
+                                                <x-heroicon-o-computer-desktop class="size-3.5 shrink-0 text-slate-400" />
+                                            </x-ui.tooltip>
                                         @endif
                                     </div>
                                     @if ($donation->donor?->email)

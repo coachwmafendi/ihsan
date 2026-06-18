@@ -36,13 +36,14 @@
         <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ $this->formattedOriginalAmount() }} donation</h1>
         <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
             <span>ID {{ $donation->public_id }}</span>
-            <button
-                x-on:click="navigator.clipboard.writeText('{{ $donation->public_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                class="inline-flex items-center rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                title="Copy donation ID"
-            >
-                <x-heroicon-o-clipboard-document class="size-3.5" />
-            </button>
+            <x-ui.tooltip text="Copy donation ID">
+                <button
+                    x-on:click="navigator.clipboard.writeText('{{ $donation->public_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                    class="inline-flex items-center rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                >
+                    <x-heroicon-o-clipboard-document class="size-3.5" />
+                </button>
+            </x-ui.tooltip>
             <span x-show="copied" x-transition class="text-xs text-emerald-600">Copied!</span>
             @if ($donation->currency !== 'myr' && $donation->base_amount !== null)
                 <span>· ≈ {{ $this->formattedBaseAmount() }}</span>
@@ -71,13 +72,14 @@
                             <dt class="text-sm text-slate-500">Donation ID</dt>
                             <dd class="flex items-center gap-2 text-sm font-medium text-slate-900">
                                 {{ $donation->public_id }}
-                                <button
-                                    x-on:click="navigator.clipboard.writeText('{{ $donation->public_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                                    class="inline-flex items-center rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                                    title="Copy donation ID"
-                                >
-                                    <x-heroicon-o-clipboard-document class="size-3.5" />
-                                </button>
+                                <x-ui.tooltip text="Copy donation ID">
+                                    <button
+                                        x-on:click="navigator.clipboard.writeText('{{ $donation->public_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                        class="inline-flex items-center rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                                    >
+                                        <x-heroicon-o-clipboard-document class="size-3.5" />
+                                    </button>
+                                </x-ui.tooltip>
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -149,7 +151,10 @@
                                 @if ($donation->currency !== 'myr' && $donation->base_amount !== null)
                                     <span class="text-slate-400">≈ {{ $this->platformFeeBase() }}</span>
                                 @endif
-                                <x-heroicon-o-question-mark-circle class="inline-block size-4 text-slate-400" title="Platform fee charged by Ihsan" />
+                                <x-ui.tooltip>
+                                    <x-heroicon-o-question-mark-circle class="inline-block size-4 text-slate-400" />
+                                    <x-slot:tip>Platform <strong>fee</strong> charged by Ihsan.</x-slot:tip>
+                                </x-ui.tooltip>
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -160,7 +165,9 @@
                             <dt class="text-sm text-slate-500">Payout amount</dt>
                             <dd class="text-sm font-medium text-slate-900">
                                 {{ $this->payoutAmount() }}
-                                <x-heroicon-o-question-mark-circle class="inline-block size-4 text-slate-400" title="Net amount received after fees" />
+                                <x-ui.tooltip text="Net amount received after fees">
+                                    <x-heroicon-o-question-mark-circle class="inline-block size-4 text-slate-400" />
+                                </x-ui.tooltip>
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -329,11 +336,16 @@
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Element</dt>
                             <dd class="text-sm font-medium">
-                                @if ($donation->element_label)
-                                    <a href="#" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700">
+                                @if ($element = $donation->element)
+                                    <a href="{{ route('app.elements.edit', $element) }}" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700">
                                         <x-heroicon-o-squares-2x2 class="size-4" />
                                         {{ $donation->element_label }}
                                     </a>
+                                @elseif ($donation->element_label)
+                                    <span class="inline-flex items-center gap-1 text-slate-700">
+                                        <x-heroicon-o-squares-2x2 class="size-4" />
+                                        {{ $donation->element_label }}
+                                    </span>
                                 @else
                                     <span class="text-slate-500">—</span>
                                 @endif

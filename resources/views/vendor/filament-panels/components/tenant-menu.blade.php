@@ -39,20 +39,10 @@
     "
 >
     <x-slot name="trigger">
+        @if ($isSidebarCollapsibleOnDesktop)
+            <x-ui.tooltip :text="$currentTenantName" position="right" align="start" x-bind:disabled="$store.sidebar.isOpen">
+        @endif
         <button
-            @if ($isSidebarCollapsibleOnDesktop)
-                x-data="{ tooltip: false }"
-                x-effect="
-                    tooltip = $store.sidebar.isOpen
-                        ? false
-                        : {
-                              content: @js($currentTenantName),
-                              placement: document.dir === 'rtl' ? 'left' : 'right',
-                              theme: $store.theme,
-                          }
-                "
-                x-tooltip.html="tooltip"
-            @endif
             type="button"
             class="fi-tenant-menu-trigger"
         >
@@ -84,6 +74,9 @@
                 ]))
             }}
         </button>
+        @if ($isSidebarCollapsibleOnDesktop)
+            </x-ui.tooltip>
+        @endif
     </x-slot>
 
     @if ($itemsBeforeTenantSwitcher->isNotEmpty())

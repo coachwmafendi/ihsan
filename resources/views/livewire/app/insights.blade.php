@@ -50,8 +50,14 @@
                 @endphp
                     <div class="flex items-end justify-between gap-4">
                     <div>
-                        <div class="text-2xl font-bold text-slate-900" @if($this->donationTrendHasApproximation) title="Includes converted foreign currencies" @endif>
-                            @if($this->donationTrendHasApproximation)≈ @endif MYR {{ number_format($this->donationTrendTotal, 2) }}
+                        <div class="text-2xl font-bold text-slate-900">
+                            @if($this->donationTrendHasApproximation)
+                                <x-ui.tooltip text="Includes converted foreign currencies">
+                                    <span>@if($this->donationTrendHasApproximation)≈ @endif MYR {{ number_format($this->donationTrendTotal, 2) }}</span>
+                                </x-ui.tooltip>
+                            @else
+                                <span>@if($this->donationTrendHasApproximation)≈ @endif MYR {{ number_format($this->donationTrendTotal, 2) }}</span>
+                            @endif
                         </div>
                         <div class="text-sm text-slate-500">Total in period</div>
                     </div>
@@ -68,8 +74,10 @@
                             $maxAmount = max(array_column($this->donationTrend, 'amount')) ?: 1;
                             $heightPercent = $maxAmount > 0 ? ($point['amount'] / $maxAmount) * 100 : 0;
                         @endphp
-                            <div class="flex flex-1 flex-col items-center gap-1" title="{{ $point['date'] }}: {{ ($point['has_approximation'] ? '≈ ' : '').'MYR '.number_format($point['amount'], 2) }}">
-                            <div class="w-full rounded-t bg-teal-500/20 transition-all duration-300 hover:bg-teal-500/40" style="height: {{ max($heightPercent, 2) }}%;"></div>
+                            <div class="flex flex-1 flex-col items-center gap-1">
+                            <x-ui.tooltip :text="$point['date'].': '.($point['has_approximation'] ? '≈ ' : '').'MYR '.number_format($point['amount'], 2)">
+                                <div class="w-full rounded-t bg-teal-500/20 transition-all duration-300 hover:bg-teal-500/40" style="height: {{ max($heightPercent, 2) }}%;"></div>
+                            </x-ui.tooltip>
                             @if(count($this->donationTrend) <= 14 || $loop->index % ceil(count($this->donationTrend) / 7) === 0)
                                 <span class="text-[10px] text-slate-400">{{ $point['date'] }}</span>
                             @endif
@@ -96,9 +104,16 @@
                                 <div class="flex items-center justify-between mb-1.5">
                                 <span class="text-sm font-medium text-slate-700">{{ $campaign['name'] }}</span>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-sm font-semibold text-slate-900" @if($campaign['has_approximation']) title="Includes donations converted from foreign currencies" @endif>
-                                        @if($campaign['has_approximation'])≈ @endif MYR {{ number_format($campaign['amount'], 2) }}
-                                    </span>
+                                    @php
+                                        $campaignApprox = $campaign['has_approximation'] ? '≈ ' : '';
+                                    @endphp
+                                    @if ($campaign['has_approximation'])
+                                        <x-ui.tooltip text="Includes donations converted from foreign currencies">
+                                            <span class="text-sm font-semibold text-slate-900">{{ $campaignApprox }}MYR {{ number_format($campaign['amount'], 2) }}</span>
+                                        </x-ui.tooltip>
+                                    @else
+                                        <span class="text-sm font-semibold text-slate-900">{{ $campaignApprox }}MYR {{ number_format($campaign['amount'], 2) }}</span>
+                                    @endif
                                     <span class="text-xs text-slate-400">{{ $percentage }}%</span>
                                 </div>
                             </div>
@@ -229,9 +244,16 @@
                                     <p class="text-sm font-medium text-slate-900 truncate max-w-[200px]">{{ $campaign['name'] }}</p>
                                 </div>
                             </div>
-                            <span class="text-sm font-semibold text-slate-900" @if($campaign['has_approximation']) title="Includes donations converted from foreign currencies" @endif>
-                                @if($campaign['has_approximation'])≈ @endif MYR {{ number_format($campaign['amount'], 2) }}
-                            </span>
+                            @php
+                                $campaignApprox = $campaign['has_approximation'] ? '≈ ' : '';
+                            @endphp
+                            @if ($campaign['has_approximation'])
+                                <x-ui.tooltip text="Includes donations converted from foreign currencies">
+                                    <span class="text-sm font-semibold text-slate-900">{{ $campaignApprox }}MYR {{ number_format($campaign['amount'], 2) }}</span>
+                                </x-ui.tooltip>
+                            @else
+                                <span class="text-sm font-semibold text-slate-900">{{ $campaignApprox }}MYR {{ number_format($campaign['amount'], 2) }}</span>
+                            @endif
                         </div>
                         @if(!$loop->last)
                             <div class="border-b border-slate-100"></div>

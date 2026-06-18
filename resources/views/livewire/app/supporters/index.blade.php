@@ -328,10 +328,16 @@
                                             : null;
                                         $tooltip = $exactLabel;
                                     @endphp
-                                    @if ($donor->has_report_approximation)
-                                        <span class="text-sm font-semibold text-slate-900" @if ($tooltip) title="{{ $tooltip }}" @endif>≈ MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
-                                    @else
-                                        <span class="text-sm font-semibold text-slate-900" @if ($tooltip) title="{{ $tooltip }}" @endif>MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
+                                    @php
+                                        $showApprox = $donor->has_report_approximation;
+                                        $prefix = $showApprox ? '≈ ' : '';
+                                    @endphp
+                                    @if ($tooltip)
+                                        <x-ui.tooltip :text="$tooltip">
+                                    @endif
+                                        <span class="text-sm font-semibold text-slate-900">{{ $prefix }}MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
+                                    @if ($tooltip)
+                                        </x-ui.tooltip>
                                     @endif
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">

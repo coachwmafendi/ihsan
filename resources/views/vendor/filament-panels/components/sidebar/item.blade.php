@@ -31,22 +31,12 @@
         ])
     }}
 >
+    @if ($sidebarCollapsible && (! $subNavigation))
+        <x-ui.tooltip :text="$slot->toHtml()" position="right" align="start" x-bind:disabled="$store.sidebar.isOpen">
+    @endif
     <a
         {{ \Filament\Support\generate_href_html($url, $shouldOpenUrlInNewTab) }}
         x-on:click="window.matchMedia(`(max-width: 1024px)`).matches && $store.sidebar.close()"
-        @if ($sidebarCollapsible && (! $subNavigation))
-            x-data="{ tooltip: false }"
-            x-effect="
-                tooltip = $store.sidebar.isOpen
-                    ? false
-                    : {
-                          content: @js($slot->toHtml()),
-                          placement: document.dir === 'rtl' ? 'left' : 'right',
-                          theme: $store.theme,
-                      }
-            "
-            x-tooltip.html="tooltip"
-        @endif
         class="fi-sidebar-item-btn"
     >
         @if (filled($icon) && ((! $subGrouped) || ($sidebarCollapsible && (! $subNavigation))))
@@ -111,6 +101,9 @@
             </span>
         @endif
     </a>
+    @if ($sidebarCollapsible && (! $subNavigation))
+        </x-ui.tooltip>
+    @endif
 
     @if (($active || $activeChildItems) && $childItems)
         <ul class="fi-sidebar-sub-group-items">

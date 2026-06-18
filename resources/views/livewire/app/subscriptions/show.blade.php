@@ -37,15 +37,18 @@
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ $this->subscription->currency_symbol }}{{ number_format((float) $this->subscription->amount, 2) }} {{ strtoupper($this->subscription->currency) }} recurring plan</h1>
             <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
                 <span>ID {{ $subscription->public_id }}</span>
-                <button
-                    x-on:click="navigator.clipboard.writeText('{{ $subscription->public_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                    class="inline-flex items-center rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                    title="Copy subscription ID"
-                >
-                    <x-heroicon-o-clipboard-document class="size-3.5" />
-                </button>
+                <x-ui.tooltip text="Copy subscription ID">
+                    <button
+                        x-on:click="navigator.clipboard.writeText('{{ $subscription->public_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                        class="inline-flex items-center rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                    >
+                        <x-heroicon-o-clipboard-document class="size-3.5" />
+                    </button>
+                </x-ui.tooltip>
                 <span x-show="copied" x-transition class="text-xs text-emerald-600">Copied!</span>
-                <span title="{{ $this->originalAmounts->isNotEmpty() ? $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') : '' }}">· Total {{ $this->totalMyrAmount['hasApproximation'] ? '≈' : '' }} MYR {{ number_format($this->totalMyrAmount['amount'], 2) }}</span>
+                <x-ui.tooltip :text="$this->originalAmounts->isNotEmpty() ? $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') : ''">
+                    <span>· Total {{ $this->totalMyrAmount['hasApproximation'] ? '≈' : '' }} MYR {{ number_format($this->totalMyrAmount['amount'], 2) }}</span>
+                </x-ui.tooltip>
             </p>
         </div>
     </div>
@@ -119,13 +122,14 @@
                             <dt class="text-sm text-slate-500">Recurring plan ID</dt>
                             <dd class="flex items-center gap-2 text-sm font-medium text-slate-900">
                                 {{ $subscription->public_id }}
-                                <button
-                                    x-on:click="navigator.clipboard.writeText('{{ $subscription->public_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                                    class="inline-flex items-center rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                                    title="Copy recurring plan ID"
-                                >
-                                    <x-heroicon-o-clipboard-document class="size-3.5" />
-                                </button>
+                                <x-ui.tooltip text="Copy recurring plan ID">
+                                    <button
+                                        x-on:click="navigator.clipboard.writeText('{{ $subscription->public_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                        class="inline-flex items-center rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                                    >
+                                        <x-heroicon-o-clipboard-document class="size-3.5" />
+                                    </button>
+                                </x-ui.tooltip>
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -183,8 +187,10 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Total donated to date</dt>
-                            <dd class="text-sm font-medium text-slate-900" title="{{ $this->originalAmounts->isNotEmpty() ? $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') : '' }}">
-                                {{ $this->totalMyrAmount['hasApproximation'] ? '≈' : '' }} MYR {{ number_format($this->totalMyrAmount['amount'], 2) }}
+                            <dd class="text-sm font-medium text-slate-900">
+                                <x-ui.tooltip :text="$this->originalAmounts->isNotEmpty() ? $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') : ''">
+                                    <span>{{ $this->totalMyrAmount['hasApproximation'] ? '≈' : '' }} MYR {{ number_format($this->totalMyrAmount['amount'], 2) }}</span>
+                                </x-ui.tooltip>
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -275,9 +281,7 @@
                 <x-ui.card title="Source" icon="heroicon-o-arrow-top-right-on-square">
                     @php
                         $firstDonation = $subscription->donations()->first();
-                        $utm = is_string($firstDonation?->utm_params) ? json_decode($firstDonation->utm_params, true) : ($firstDonation?->utm_params ?? []);
-                        $elementId = $utm['element_id'] ?? null;
-                        $element = $elementId ? \App\Models\Element::find($elementId) : null;
+                        $element = $firstDonation?->element;
                     @endphp
                     <dl class="space-y-5">
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -300,13 +304,13 @@
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Element</dt>
                             <dd class="text-sm font-medium">
-                                @if ($firstDonation?->element_label && $element)
-                                    <a href="{{ route('app.elements.edit', $element->public_id) }}" wire:navigate class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700">
+                                @if ($element)
+                                    <a href="{{ route('app.elements.edit', $element) }}" wire:navigate class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700">
                                         <x-heroicon-o-squares-2x2 class="size-4" />
-                                        {{ $firstDonation->element_label }}
+                                        {{ $firstDonation?->element_label }}
                                     </a>
                                 @elseif ($firstDonation?->element_label)
-                                    <span class="inline-flex items-center gap-1 text-slate-900">
+                                    <span class="inline-flex items-center gap-1 text-slate-700">
                                         <x-heroicon-o-squares-2x2 class="size-4" />
                                         {{ $firstDonation->element_label }}
                                     </span>

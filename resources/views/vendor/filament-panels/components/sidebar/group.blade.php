@@ -66,22 +66,13 @@
             x-show="! $store.sidebar.isOpen"
         >
             <x-slot name="trigger">
-                <button
-                    x-data="{ tooltip: false }"
-                    x-effect="
-                        tooltip = $store.sidebar.isOpen
-                            ? false
-                            : {
-                                  content: @js($label),
-                                  placement: document.dir === 'rtl' ? 'left' : 'right',
-                                  theme: $store.theme,
-                              }
-                    "
-                    x-tooltip.html="tooltip"
-                    class="fi-sidebar-group-dropdown-trigger-btn"
-                >
-                    {{ \Filament\Support\generate_icon_html($icon, size: \Filament\Support\Enums\IconSize::Large) }}
-                </button>
+                <x-ui.tooltip :text="$label" position="right" align="start" x-bind:disabled="$store.sidebar.isOpen">
+                    <button
+                        class="fi-sidebar-group-dropdown-trigger-btn"
+                    >
+                        {{ \Filament\Support\generate_icon_html($icon, size: \Filament\Support\Enums\IconSize::Large) }}
+                    </button>
+                </x-ui.tooltip>
             </x-slot>
 
             @php

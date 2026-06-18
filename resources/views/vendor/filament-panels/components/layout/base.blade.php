@@ -145,6 +145,18 @@
         @include('components.ui._tooltip-script')
         @filamentScripts(withCore: true)
 
+        <script data-navigate-once>
+            document.addEventListener('DOMContentLoaded', () => {
+                if (window.tippy) {
+                    tippy.setDefaultProps({
+                        delay: [75, 0],
+                        duration: [100, 75],
+                        moveTransition: 'transform 0.1s ease-out',
+                    });
+                }
+            });
+        </script>
+
         @if (filament()->hasBroadcasting() && config('filament.broadcasting.echo'))
             <script data-navigate-once>
                 window.Echo = new window.EchoFactory(@js(config('filament.broadcasting.echo')))

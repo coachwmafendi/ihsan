@@ -75,9 +75,16 @@
                                         <p class="text-xs text-slate-500">{{ $campaign->donations_count ?? 0 }} donations</p>
                                     </div>
                                 </div>
-                                <span class="text-sm font-semibold text-slate-900" @if($campaign->has_report_approximation) title="Includes donations converted from foreign currencies" @endif>
-                                    @if($campaign->has_report_approximation)≈ @endif MYR {{ number_format(($campaign->report_amount ?? 0), 2) }}
-                                </span>
+                                @php
+                                    $campaignApprox = $campaign->has_report_approximation ? '≈ ' : '';
+                                @endphp
+                                @if ($campaign->has_report_approximation)
+                                    <x-ui.tooltip text="Includes donations converted from foreign currencies">
+                                        <span class="text-sm font-semibold text-slate-900">{{ $campaignApprox }}MYR {{ number_format(($campaign->report_amount ?? 0), 2) }}</span>
+                                    </x-ui.tooltip>
+                                @else
+                                    <span class="text-sm font-semibold text-slate-900">{{ $campaignApprox }}MYR {{ number_format(($campaign->report_amount ?? 0), 2) }}</span>
+                                @endif
                             </div>
                             @if(!$loop->last)
                                 <div class="border-b border-slate-100"></div>

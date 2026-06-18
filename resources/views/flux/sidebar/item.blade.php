@@ -52,7 +52,7 @@ $classes = Flux::classes()
     ;
 @endphp
 
-<flux:tooltip :position="$tooltipPosition">
+<x-ui.tooltip :text="$tooltip" position="{{ $tooltipPosition }}" align="start" x-bind:disabled="$store.sidebar.isOpen">
     <flux:button-or-link :attributes="$attributes->class($classes)" data-flux-sidebar-item>
         <?php if ($icon): ?>
             <div class="relative">
@@ -87,8 +87,4 @@ $classes = Flux::classes()
             <flux:navlist.badge :attributes="$badgeAttributes" class="in-data-flux-sidebar-collapsed-desktop:not-in-data-flux-sidebar-group-dropdown:hidden">{{ $badge }}</flux:navlist.badge>
         <?php endif; ?>
     </flux:button-or-link>
-
-    <flux:tooltip.content :kbd="$tooltipKbd" class="not-in-data-flux-sidebar-collapsed-desktop:hidden in-data-flux-sidebar-group-dropdown:hidden cursor-default">
-        {{ $tooltip }}
-    </flux:tooltip.content>
-</flux:tooltip>
+</x-ui.tooltip>

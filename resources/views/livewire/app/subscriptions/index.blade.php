@@ -292,9 +292,9 @@
                                             {{ $isMyr ? '' : '≈ ' }}MYR {{ number_format($myrAmount, 2) }}/{{ $subscription->interval->value }}
                                         </span>
                                         @if (! $isMyr)
-                                            <flux:tooltip content="{{ $subscription->currency_symbol }} {{ number_format((float) $subscription->amount, 2) }}/{{ $subscription->interval->value }}">
+                                            <x-ui.tooltip :text="$subscription->currency_symbol.' '.number_format((float) $subscription->amount, 2).'/'.$subscription->interval->value">
                                                 <x-heroicon-o-information-circle class="size-3.5 text-slate-400" />
-                                            </flux:tooltip>
+                                            </x-ui.tooltip>
                                         @endif
                                         {{-- Payment method icon --}}
                                         @if ($pmBrand === 'apple_pay' || $pmType === 'apple_pay')

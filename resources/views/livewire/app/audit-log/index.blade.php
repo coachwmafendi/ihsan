@@ -114,7 +114,9 @@
                                                 <li>
                                                     <span class="font-medium">{{ $change['field'] }}</span>
                                                     <span class="text-slate-400">→</span>
-                                                    <span class="text-slate-500" title="Old: {{ $change['old'] }}">{{ $change['new'] }}</span>
+                                                    <x-ui.tooltip :text="'Old: '.$change['old']">
+                                                        <span class="text-slate-500">{{ $change['new'] }}</span>
+                                                    </x-ui.tooltip>
                                                 </li>
                                             @endforeach
                                             @if (count($changes) > 3)

@@ -1,63 +1,92 @@
 // Shared Alpine tooltip data provider. Used by resources/js/app.js and the
 // Filament admin layout so tooltips behave consistently across the app.
 document.addEventListener('alpine:init', () => {
-    Alpine.data('uiTooltip', ({ position = 'top', align = 'center', delay = 75, disabled = false } = {}) => ({
+    Alpine.data('uiTooltip', ({ text = '', position = 'top', align = 'center', delay = 75, disabled = false } = {}) => ({
         open: false,
         timer: null,
+        text,
         tipId: 'tooltip-' + Math.random().toString(36).slice(2, 9),
         triggerEl: null,
         style: {},
         disabled,
 
         init() {
-            if (! this.$refs.trigger) {
-                return;
-            }
+            this.$nextTick(() => {
+                const focusableSelector = 'button, a[href], input, select, textarea';
 
-            this.triggerEl = this.$refs.trigger;
+                this.triggerEl = this.$el.matches(focusableSelector)
+                    ? this.$el
+                    : (this.$el.querySelector(focusableSelector) || this.$el);
+            });
 
             this.hideOnResize = () => { if (this.open) this.hide(); };
             this.hideOnScroll = () => { if (this.open) this.hide(); };
+
             window.addEventListener('resize', this.hideOnResize);
             window.addEventListener('scroll', this.hideOnScroll, true);
         },
 
         destroy() {
-            if (this.hideOnResize) window.removeEventListener('resize', this.hideOnResize);
-            if (this.hideOnScroll) window.removeEventListener('scroll', this.hideOnScroll, true);
+            if (this.hideOnResize) {
+                window.removeEventListener('resize', this.hideOnResize);
+            }
+
+            if (this.hideOnScroll) {
+                window.removeEventListener('scroll', this.hideOnScroll, true);
+            }
+
             this.hide();
         },
 
         canShow() {
-            const text = this.$el.dataset.tooltipText ?? '';
-            return ! this.disabled && text.length > 0;
+            const isDisabled = this.disabled || this.$el.hasAttribute('disabled');
+
+            if (isDisabled) {
+                return false;
+            }
+
+            return this.text.length > 0 || (this.$refs.tooltip?.textContent?.trim().length ?? 0) > 0;
         },
 
-        show() {
-            if (! this.canShow()) return;
+        show(showDelay = this.delay) {
+            if (! this.canShow()) {
+                return;
+            }
 
-            if (this.timer) clearTimeout(this.timer);
+            if (this.timer) {
+                clearTimeout(this.timer);
+            }
 
             this.timer = setTimeout(() => {
-                if (! this.canShow()) return;
+                if (! this.canShow()) {
+                    return;
+                }
+
                 this.open = true;
                 this.$nextTick(() => this.reposition());
-            }, delay);
+            }, showDelay);
         },
 
         hide() {
-            if (this.timer) clearTimeout(this.timer);
+            if (this.timer) {
+                clearTimeout(this.timer);
+            }
+
             this.timer = null;
             this.open = false;
         },
 
         reposition() {
-            if (! this.triggerEl) return;
+            if (! this.triggerEl) {
+                return;
+            }
 
             const trigger = this.triggerEl.getBoundingClientRect();
             const tooltip = this.$refs.tooltip?.getBoundingClientRect();
 
-            if (! tooltip || ! trigger.width || ! trigger.height) return;
+            if (! tooltip || ! trigger.width || ! trigger.height) {
+                return;
+            }
 
             const viewport = { w: window.innerWidth, h: window.innerHeight };
             const GAP = 8;
@@ -117,7 +146,7 @@ document.addEventListener('alpine:init', () => {
                 top = Math.max(GAP, Math.min(top, viewport.h - tooltip.height - GAP));
             }
 
-            this.style = { top: `${top}px`, left: `${left}px` };
+            this.style = { top: `${top}px`, left: `${left}px`, position: 'fixed' };
         },
     }));
 });

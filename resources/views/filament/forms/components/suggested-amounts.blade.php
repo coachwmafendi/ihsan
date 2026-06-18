@@ -142,16 +142,17 @@
                 <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
                     <template x-for="(amount, index) in currentAmounts" :key="`${activeCurrency}-${activeTab}-${index}`">
                         <div class="group relative rounded-lg border border-zinc-200 bg-zinc-50/60 p-3 transition hover:border-zinc-300 focus-within:border-primary-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/20 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:focus-within:bg-zinc-950">
-                            <button
-                                type="button"
-                                @click="if (canRemove) removeAmount(index)"
-                                :class="canRemove ? 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500' : 'bg-zinc-300 dark:bg-zinc-600 cursor-not-allowed'"
-                                class="absolute -right-1.5 -top-1.5 hidden size-5 items-center justify-center rounded-full text-white shadow-sm transition group-hover:flex"
-                                :aria-label="canRemove ? 'Remove amount' : 'Minimum 3 options required'"
-                                :title="canRemove ? '' : 'Minimum 3 options required'"
-                            >
-                                <svg class="size-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
+                            <x-ui.tooltip text="Minimum 3 options required" x-bind:disabled="canRemove">
+                                <button
+                                    type="button"
+                                    @click="if (canRemove) removeAmount(index)"
+                                    :class="canRemove ? 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500' : 'bg-zinc-300 dark:bg-zinc-600 cursor-not-allowed'"
+                                    class="absolute -right-1.5 -top-1.5 hidden size-5 items-center justify-center rounded-full text-white shadow-sm transition group-hover:flex"
+                                    :aria-label="canRemove ? 'Remove amount' : 'Minimum 3 options required'"
+                                >
+                                    <svg class="size-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </x-ui.tooltip>
 
                             <span class="mb-2 block text-xs font-medium text-zinc-500 dark:text-zinc-400" x-text="'Option ' + (index + 1)"></span>
                             <span class="flex min-h-11 items-center rounded-md border border-zinc-200 bg-white shadow-xs transition group-focus-within:border-primary-500 dark:border-white/10 dark:bg-zinc-900">
@@ -172,16 +173,17 @@
                     </template>
                 </div>
 
-                <button
-                    type="button"
-                    @click="if (canAdd) addAmount()"
-                    :class="canAdd ? 'border-zinc-300 hover:border-primary-400 hover:text-primary-600 dark:border-white/20 dark:hover:border-primary-500 dark:hover:text-primary-400' : 'border-zinc-200 text-zinc-400 dark:border-white/5 dark:text-zinc-600 cursor-not-allowed'"
-                    class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-3 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                    :title="canAdd ? '' : 'Maximum 6 options'"
-                >
-                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                    Add amount
-                </button>
+                <x-ui.tooltip text="Maximum 6 options" x-bind:disabled="canAdd">
+                    <button
+                        type="button"
+                        @click="if (canAdd) addAmount()"
+                        :class="canAdd ? 'border-zinc-300 hover:border-primary-400 hover:text-primary-600 dark:border-white/20 dark:hover:border-primary-500 dark:hover:text-primary-400' : 'border-zinc-200 text-zinc-400 dark:border-white/5 dark:text-zinc-600 cursor-not-allowed'"
+                        class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-3 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                    >
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Add amount
+                    </button>
+                </x-ui.tooltip>
             </div>
 
             <div
