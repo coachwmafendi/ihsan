@@ -9,42 +9,58 @@
 
 
 
-    {{-- ─── Step 1: Loader snippet ─────────────────────────────────────────── --}}
+    {{-- ─── Step 1: Choose how to embed ────────────────────────────────────── --}}
     <div>
         <div class="mb-5 flex items-center gap-3">
             <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">1</span>
             <div>
-                <h2 class="text-base font-semibold text-slate-900">Add the loader to your website — once</h2>
-                <p class="mt-0.5 text-sm text-slate-500">Paste this snippet inside the <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">&lt;head&gt;</code> section of every page. Done once, ever.</p>
+                <h2 class="text-base font-semibold text-slate-900">Choose how to embed</h2>
+                <p class="mt-0.5 text-sm text-slate-500">Pick the option that matches how your website is built. Tracking works with either option.</p>
             </div>
         </div>
 
-        <div class="rounded-xl border border-slate-200 bg-white" x-data="{ copied: false }">
-            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3">
-                <div class="flex items-center gap-2">
-                    <span class="flex h-2 w-2 rounded-full bg-emerald-400"></span>
-                    <span class="text-xs font-medium text-slate-500">HTML · paste once in <code class="font-mono">&lt;head&gt;</code></span>
+        <div class="grid gap-4 md:grid-cols-2">
+            {{-- Option A: per-element snippet --}}
+            <div class="rounded-xl border border-slate-200 bg-white p-5">
+                <div class="mb-3 flex items-center gap-2">
+                    <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Recommended</span>
                 </div>
-                <button
-                    type="button"
-                    x-on:click="navigator.clipboard.writeText(@js($loaderSnippet)); copied = true; setTimeout(() => copied = false, 2000)"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                >
-                    <template x-if="!copied">
-                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
-                        </svg>
-                    </template>
-                    <template x-if="copied">
-                        <svg class="h-3.5 w-3.5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
-                        </svg>
-                    </template>
-                    <span x-text="copied ? 'Copied!' : 'Copy'"></span>
-                </button>
+                <h3 class="text-sm font-semibold text-slate-900">Per-element snippet</h3>
+                <p class="mt-1 text-sm text-slate-500">Copy the ready-made snippet for each element and paste it where you want it to appear. No loader required.</p>
+                <ul class="mt-3 space-y-1 text-xs text-slate-500">
+                    <li class="flex items-center gap-1.5"><svg class="h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg> Works immediately</li>
+                    <li class="flex items-center gap-1.5"><svg class="h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg> Floating button, popup, form, button, QR, link</li>
+                </ul>
+                <div class="mt-4">
+                    <x-ui.button variant="outline" size="sm" href="{{ route('app.elements.index') }}">
+                        Go to Elements
+                    </x-ui.button>
+                </div>
             </div>
-            <div class="px-5 py-4">
-                <pre class="overflow-x-auto rounded-lg bg-slate-950 px-4 py-3 text-xs leading-relaxed text-slate-300"><code>{{ $loaderSnippet }}</code></pre>
+
+            {{-- Option B: universal loader --}}
+            <div class="rounded-xl border border-slate-200 bg-white p-5">
+                <h3 class="text-sm font-semibold text-slate-900">Universal loader</h3>
+                <p class="mt-1 text-sm text-slate-500">Add the loader once in your <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">&lt;head&gt;</code>, then wire your own buttons with <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">data-ihsan="TOKEN"</code> or call <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">Ihsan.open('TOKEN')</code>.</p>
+                <ul class="mt-3 space-y-1 text-xs text-slate-500">
+                    <li class="flex items-center gap-1.5"><svg class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg> Best for custom themes / many buttons</li>
+                    <li class="flex items-center gap-1.5"><svg class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg> Advanced use only</li>
+                </ul>
+                <div class="mt-4" x-data="{ copied: false }">
+                    <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-500">Loader snippet</span>
+                            <button
+                                type="button"
+                                x-on:click="navigator.clipboard.writeText(@js($loaderSnippet)); copied = true; setTimeout(() => copied = false, 2000)"
+                                class="inline-flex items-center gap-1 text-xs font-medium text-slate-700 hover:text-slate-900"
+                            >
+                                <span x-text="copied ? 'Copied!' : 'Copy'"></span>
+                            </button>
+                        </div>
+                        <pre class="mt-2 overflow-x-auto rounded bg-slate-950 px-3 py-2 text-[10px] leading-relaxed text-slate-300"><code>{{ $loaderSnippet }}</code></pre>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -55,7 +71,7 @@
             <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">2</span>
             <div>
                 <h2 class="text-base font-semibold text-slate-900">Connect your tracking</h2>
-                <p class="mt-0.5 text-sm text-slate-500">Add your Meta Pixel ID and Google Analytics / Ads container ID so every donation tracked automatically.</p>
+                <p class="mt-0.5 text-sm text-slate-500">Add your Meta Pixel ID, Google Analytics / Ads container ID, etc. Events fire on the donation page automatically regardless of which embed option you chose.</p>
             </div>
         </div>
 
@@ -83,7 +99,7 @@
             <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">3</span>
             <div>
                 <h2 class="text-base font-semibold text-slate-900">Add your elements</h2>
-                <p class="mt-0.5 text-sm text-slate-500">Each element has its own embed code, ready to copy from the Elements page.</p>
+                <p class="mt-0.5 text-sm text-slate-500">Each element has its own embed code. For the loader approach, copy only the <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">data-ihsan</code> token and add it to your own buttons.</p>
             </div>
         </div>
 
@@ -121,9 +137,8 @@
                         'icon_bg' => 'bg-orange-50',
                         'icon_color' => 'text-orange-500',
                         'steps' => [
-                            'Open your website\'s HTML editor and find the <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">&lt;head&gt;</code> section.',
-                            'Paste the loader snippet (Step 1 above) inside <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">&lt;head&gt;</code>.',
-                            'Go to <strong>Elements</strong>, copy the embed code for each element, and place it where it belongs.',
+                            'Simplest: Go to <strong>Elements</strong>, copy the snippet for each element, and paste it where it should appear.',
+                            'Advanced option: Paste the loader snippet inside the <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">&lt;head&gt;</code> section once, then add <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">data-ihsan="TOKEN"</code> to your own buttons.',
                         ],
                     ],
                     'wp' => [
@@ -131,9 +146,8 @@
                         'icon_bg' => 'bg-blue-50',
                         'icon_color' => 'text-blue-600',
                         'steps' => [
-                            'Install the <strong>Insert Headers and Footers</strong> plugin.',
-                            'Go to <strong>Settings → Insert Headers and Footers</strong> and paste the loader snippet in the <em>Header</em> section.',
-                            'On pages with donate buttons, edit the block and add <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">data-ihsan="TOKEN"</code> to your button HTML via a Custom HTML block.',
+                            'Simplest: Add an HTML block on the page and paste the per-element snippet from the Elements page.',
+                            'Advanced option: Install <strong>Insert Headers and Footers</strong>, paste the loader snippet in the <em>Header</em> section, then add <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">data-ihsan="TOKEN"</code> to your button HTML.',
                         ],
                     ],
                     'webflow' => [
@@ -141,8 +155,8 @@
                         'icon_bg' => 'bg-indigo-50',
                         'icon_color' => 'text-indigo-600',
                         'steps' => [
-                            'Go to <strong>Project Settings → Custom Code</strong> and paste the loader snippet in the <em>Head Code</em> section.',
-                            'On your donate button element, open <strong>Element Settings → Custom Attributes</strong> and add attribute <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">data-ihsan</code> with value <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">TOKEN</code>.',
+                            'Simplest: Add an Embed element and paste the per-element snippet from the Elements page.',
+                            'Advanced option: Paste the loader snippet in <strong>Project Settings → Custom Code → Head Code</strong>, then add a custom attribute <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">data-ihsan</code> with value <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">TOKEN</code> to your button.',
                             'Publish your site.',
                         ],
                     ],
@@ -151,8 +165,8 @@
                         'icon_bg' => 'bg-slate-100',
                         'icon_color' => 'text-slate-700',
                         'steps' => [
-                            'Go to <strong>Website → Pages → Website Tools → Code Injection</strong> and paste the loader snippet in the <em>Header</em> section.',
-                            'On your page, add a <strong>Code Block</strong> and paste the embed code copied from the Elements page.',
+                            'Simplest: On your page, add a <strong>Code Block</strong> and paste the per-element snippet from the Elements page.',
+                            'Advanced option: Go to <strong>Website → Pages → Website Tools → Code Injection</strong> and paste the loader snippet in the <em>Header</em> section, then use Code Blocks with <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">data-ihsan="TOKEN"</code>.',
                         ],
                     ],
                     'wix' => [
@@ -160,8 +174,8 @@
                         'icon_bg' => 'bg-amber-50',
                         'icon_color' => 'text-amber-600',
                         'steps' => [
-                            'Go to <strong>Settings → Advanced → Custom Code</strong> and add the loader snippet to the <em>Head</em> section, loading on <em>All pages</em>.',
-                            'To wire a donate button, go to your button in the editor → <strong>Settings → Link</strong> → set it to trigger <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">Ihsan.open(\'TOKEN\')</code> via a code snippet on click, or use a Code Embed element.',
+                            'Simplest: Add an HTML iframe / embed element and paste the per-element snippet from the Elements page.',
+                            'Advanced option: Go to <strong>Settings → Advanced → Custom Code</strong>, add the loader snippet to the <em>Head</em> on all pages, then trigger <code class="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono">Ihsan.open(\'TOKEN\')</code> from your button.',
                         ],
                     ],
                 ];
