@@ -73,3 +73,33 @@ it('shows an error when meta test connection fails', function () {
         ->call('testConnection', 'meta')
         ->assertDispatched('notify', type: 'error');
 });
+
+it('tests the google analytics 4 measurement id is reachable', function () {
+    Http::fake([
+        'www.googletagmanager.com/gtag/js?id=G-18P2G9HYKC' => Http::response("gtag('config', 'G-18P2G9HYKC');", 200),
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(Tracking::class)
+        ->set('credentials.ga4.measurement_id', 'G-18P2G9HYKC')
+        ->call('testConnection', 'ga4')
+        ->assertDispatched('notify', type: 'success');
+
+    Http::assertSent(function ($request) {
+        return $request->url() === 'https://www.googletagmanager.com/gtag/js?id=G-18P2G9HYKC';
+    });
+});
+
+it('shows an error when google analytics 4 test connection fails', function () {
+    Http::fake([
+        'www.googletagmanager.com/gtag/js?id=G-BADID' => Http::response('Not Found', 404),
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(Tracking::class)
+        ->set('credentials.ga4.measurement_id', 'G-BADID')
+        ->call('testConnection', 'ga4')
+        ->assertDispatched('notify', type: 'error');
+});

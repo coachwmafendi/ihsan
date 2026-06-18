@@ -153,6 +153,7 @@ class Tracking extends Component
 
         match ($provider) {
             TrackingProvider::Meta => $this->testMetaConnection(),
+            TrackingProvider::GoogleAnalytics4 => $this->testGa4Connection(),
             default => $this->dispatch('notify', type: 'info', message: "{$provider->label()} connection test is not implemented yet."),
         };
     }
@@ -201,6 +202,41 @@ class Tracking extends Component
             $this->dispatch('notify', type: 'error', message: "Meta connection failed: {$message}");
         } catch (\Exception $e) {
             $this->dispatch('notify', type: 'error', message: "Meta connection failed: {$e->getMessage()}");
+        }
+    }
+
+    private function testGa4Connection(): void
+    {
+        $measurementId = $this->credentials['ga4']['measurement_id'] ?? null;
+
+        if (empty($measurementId)) {
+            $this->dispatch('notify', type: 'error', message: 'Google Analytics 4 Measurement ID is required.');
+
+            return;
+        }
+
+        $url = "https://www.googletagmanager.com/gtag/js?id={$measurementId}";
+
+        try {
+            $response = Http::timeout(30)
+                ->connectTimeout(10)
+                ->get($url);
+
+            if ($response->successful() && str_contains($response->body(), $measurementId)) {
+                $this->dispatch('notify', type: 'success', message: 'Google Analytics 4 connection OK. Measurement ID is reachable.');
+
+                return;
+            }
+
+            if ($response->failed()) {
+                $this->dispatch('notify', type: 'error', message: 'Google Analytics 4 connection failed. Measurement ID may be invalid.');
+
+                return;
+            }
+
+            $this->dispatch('notify', type: 'warning', message: 'Google Analytics 4 responded unexpectedly. Please verify the Measurement ID.');
+        } catch (\Exception $e) {
+            $this->dispatch('notify', type: 'error', message: "Google Analytics 4 connection failed: {$e->getMessage()}");
         }
     }
 
