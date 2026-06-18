@@ -68,8 +68,8 @@
         </x-ui.card>
 
         <x-ui.card title="Change Password" description="Leave blank if you do not want to change your password.">
-            <div class="grid gap-6 md:grid-cols-2">
-                <div class="md:col-span-2">
+            <div class="grid gap-6 max-w-lg">
+                <div>
                     <label for="current_password" class="block text-sm font-medium text-slate-700">Current Password</label>
                     <input type="password" id="current_password" wire:model="current_password" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     @error('current_password') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
