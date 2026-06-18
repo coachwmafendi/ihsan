@@ -35,7 +35,7 @@ it('logs a donor email when a donation receipt is sent', function () {
     $log = $donor->emailLogs()->first();
     expect($log)
         ->mailable_class->toBe(DonationReceipt::class)
-        ->subject->toBe('Your Donation Receipt — '.config('app.name'))
+        ->subject->toBe('Your Donation Receipt — '.$organization->name)
         ->organization_id->toBe($organization->getKey())
         ->donation_id->toBe($donation->getKey());
 });

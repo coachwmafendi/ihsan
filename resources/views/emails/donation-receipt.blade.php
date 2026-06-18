@@ -40,6 +40,8 @@
             <a href="{{ route('donorportal.dashboard', $donation->campaign->organization) }}" style="color: #0d9488; text-decoration: underline;">Go to your donor portal</a>
             to view your donation history, manage subscriptions, and download receipts.
         </p>
+
+        @include('emails.partials.org-footer', ['organization' => $donation->campaign->organization])
     </div>
 </body>
 </html>

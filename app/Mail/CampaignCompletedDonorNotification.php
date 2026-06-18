@@ -6,6 +6,7 @@ use App\Models\Campaign;
 use App\Models\Donor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -21,7 +22,11 @@ class CampaignCompletedDonorNotification extends Mailable
 
     public function envelope(): Envelope
     {
+        $org = $this->campaign->organization;
+        $orgName = $org?->name ?? config('app.name');
+
         return new Envelope(
+            from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName),
             subject: '🎉 Target Tercapai — '.$this->campaign->title,
         );
     }

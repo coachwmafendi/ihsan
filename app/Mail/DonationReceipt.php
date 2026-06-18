@@ -23,10 +23,12 @@ class DonationReceipt extends Mailable
     public function envelope(): Envelope
     {
         $org = $this->donation->campaign?->organization;
+        $orgName = $org?->name ?? config('app.name');
         $replyTo = $org?->settings['portal_reply_to_email'] ?? null;
 
         return new Envelope(
-            subject: 'Your Donation Receipt — '.config('app.name'),
+            from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName),
+            subject: 'Your Donation Receipt — '.$orgName,
             replyTo: $replyTo ? [new Address($replyTo, $org->name)] : [],
         );
     }

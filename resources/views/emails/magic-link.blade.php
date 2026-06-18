@@ -15,6 +15,8 @@
         </a>
 
         <p style="color: #94a3b8; font-size: 14px;">This link expires in 24 hours. If you did not request this, please ignore this email.</p>
+
+        @include('emails.partials.org-footer', ['organization' => $organization])
     </div>
 </body>
 </html>

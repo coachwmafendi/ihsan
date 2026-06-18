@@ -23,7 +23,7 @@ it('builds donation receipt mailable with correct subject', function () {
 
     $mailable = new DonationReceipt($donation);
 
-    $mailable->assertHasSubject('Your Donation Receipt — '.config('app.name'));
+    $mailable->assertHasSubject('Your Donation Receipt — Test Org');
     $mailable->assertSeeInHtml('RM 100');
     $mailable->assertSeeInHtml('Test Campaign');
     $mailable->assertSeeInHtml('Thank you');
@@ -51,4 +51,28 @@ it('shows fee breakdown in donor receipt when donor covered fees', function () {
     $mailable->assertSeeInHtml('100.00'); // donation amount
     $mailable->assertSeeInHtml('3.20');   // fee
     $mailable->assertSeeInHtml('103.20'); // total charged
+});
+
+it('includes organization contact footer in donor receipt', function () {
+    $organization = Organization::factory()->create([
+        'name' => 'Maahad Tahfiz Muntazatut Taqwa',
+        'address_line_1' => 'Lot 3234, Jalan Dengkil',
+        'city' => 'Banting',
+        'state' => 'Selangor',
+        'postcode' => '42700',
+        'country' => 'Malaysia',
+        'contact_phone' => '+60123244895',
+        'contact_email' => 'maahad@example.com',
+        'website_url' => 'https://maahad.example.com',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create();
+
+    $mailable = new DonationReceipt($donation);
+    $mailable->assertSeeInHtml('Maahad Tahfiz Muntazatut Taqwa');
+    $mailable->assertSeeInHtml('Lot 3234, Jalan Dengkil, Banting, Selangor, 42700, Malaysia');
+    $mailable->assertSeeInHtml('+60123244895');
+    $mailable->assertSeeInHtml('maahad@example.com');
+    $mailable->assertSeeInHtml('https://maahad.example.com');
 });

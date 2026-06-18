@@ -18,6 +18,8 @@
         <p style="font-size: 0.875rem; color: #94a3b8;">
             You are receiving this because you donated to this campaign.
         </p>
+
+        @include('emails.partials.org-footer', ['organization' => $campaign->organization])
     </div>
 </body>
 </html>

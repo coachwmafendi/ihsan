@@ -206,7 +206,7 @@ it('renders the emails section with sent emails for the donor', function () {
     $donation = Donation::factory()->for($donor)->for($campaign)->create();
 
     DonorEmailLog::factory()->donation($donation)->create([
-        'subject' => 'Your Donation Receipt — ihsan.test',
+        'subject' => 'Your Donation Receipt — '.$organization->name,
         'sent_at' => now()->subDay(),
     ]);
 
@@ -218,7 +218,7 @@ it('renders the emails section with sent emails for the donor', function () {
         ->assertSee('Subject')
         ->assertSee('Opened')
         ->assertSee('Resend')
-        ->assertSee('Your Donation Receipt — ihsan.test');
+        ->assertSee('Your Donation Receipt — '.$organization->name);
 });
 
 it('shows empty state when no emails have been sent to the donor', function () {
@@ -276,7 +276,7 @@ it('resends a donation receipt email and creates a new log entry', function () {
 
     $log = DonorEmailLog::factory()->donation($donation)->create([
         'mailable_class' => DonationReceipt::class,
-        'subject' => 'Your Donation Receipt — ihsan.test',
+        'subject' => 'Your Donation Receipt — '.$organization->name,
         'sent_at' => now()->subDay(),
     ]);
 
@@ -304,7 +304,7 @@ it('opens a preview modal with rendered email html when subject is clicked', fun
 
     $log = DonorEmailLog::factory()->donation($donation)->create([
         'mailable_class' => DonationReceipt::class,
-        'subject' => 'Your Donation Receipt — ihsan.test',
+        'subject' => 'Your Donation Receipt — '.$organization->name,
     ]);
 
     $component = Livewire::actingAs($user)

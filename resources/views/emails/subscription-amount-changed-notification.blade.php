@@ -51,7 +51,7 @@
             </p>
         @endif
 
-        <p style="margin-top: 8px; font-size: 12px; color: #94a3b8;">Sent with ❤️ from {{ config('app.name') }}</p>
+        @include('emails.partials.org-footer', ['organization' => $subscription->campaign->organization])
     </div>
 </body>
 </html>
