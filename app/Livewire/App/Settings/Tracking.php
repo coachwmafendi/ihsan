@@ -162,9 +162,16 @@ class Tracking extends Component
     {
         $pixelId = $this->credentials['meta']['pixel_id'] ?? null;
         $accessToken = $this->credentials['meta']['access_token'] ?? null;
+        $user = Auth::user();
 
         if (empty($pixelId) || empty($accessToken)) {
             $this->dispatch('notify', type: 'error', message: 'Meta Pixel ID and Conversion API Access Token are both required to test the server-side connection.');
+
+            return;
+        }
+
+        if (! $user) {
+            $this->dispatch('notify', type: 'error', message: 'You must be signed in to test the Meta connection.');
 
             return;
         }
@@ -181,6 +188,13 @@ class Tracking extends Component
                         'event_time' => now()->timestamp,
                         'action_source' => 'website',
                         'event_source_url' => url('/'),
+                        'event_id' => 'meta_test_'.now()->timestamp,
+                        'user_data' => [
+                            'em' => hash('sha256', strtolower($user->email ?? '')),
+                            'external_id' => hash('sha256', (string) $user->id),
+                            'client_ip_address' => request()->ip() ?? '127.0.0.1',
+                            'client_user_agent' => request()->userAgent() ?? 'Ihsan/ConnectionTest',
+                        ],
                     ]],
                 ]);
 

@@ -45,8 +45,12 @@ it('tests the meta connection with a real server event', function () {
         ->assertDispatched('notify', type: 'success');
 
     Http::assertSent(function ($request) {
+        $data = $request->data()['data'][0] ?? [];
+        $userData = $data['user_data'] ?? [];
+
         return str_contains($request->url(), 'graph.facebook.com/v18.0/123456789012345/events')
-            && $request->data()['data'][0]['event_name'] === 'PageView';
+            && ($data['event_name'] ?? null) === 'PageView'
+            && isset($userData['em'], $userData['external_id'], $userData['client_ip_address'], $userData['client_user_agent']);
     });
 });
 
