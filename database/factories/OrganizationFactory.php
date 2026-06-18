@@ -27,6 +27,7 @@ class OrganizationFactory extends Factory
     public function definition(): array
     {
         return [
+            'public_id' => null,
             'name' => fake()->company(),
             'code' => fake()->unique()->regexify('[A-Z]{8}'),
             'registration_type' => 'others',

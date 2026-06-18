@@ -7,6 +7,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
 use App\Models\MonthlyInvoice;
+use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\PublicIdGenerator;
@@ -32,6 +33,7 @@ class BackfillPublicIds extends Command
             ['label' => 'Subscriptions', 'class' => Subscription::class],
             ['label' => 'Elements', 'class' => Element::class],
             ['label' => 'Monthly Invoices', 'class' => MonthlyInvoice::class],
+            ['label' => 'Organizations', 'class' => Organization::class],
         ];
 
         foreach ($models as $model) {

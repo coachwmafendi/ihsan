@@ -7,6 +7,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
 use App\Models\MonthlyInvoice;
+use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,7 @@ class PublicIdGenerator
         Subscription::class => ['prefix' => 'R', 'randomLength' => 7],
         Element::class => ['prefix' => 'E', 'randomLength' => 7],
         MonthlyInvoice::class => ['prefix' => 'I', 'randomLength' => 7],
+        Organization::class => ['prefix' => 'O', 'randomLength' => 7],
     ];
 
     private const MAX_RETRIES = 10;

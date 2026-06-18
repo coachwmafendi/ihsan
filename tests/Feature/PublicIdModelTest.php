@@ -29,6 +29,7 @@ describe('public_id model integration', function () {
         'Subscription' => [Subscription::class, fn () => Subscription::factory()->create()],
         'Element' => [Element::class, fn () => Element::factory()->create()],
         'MonthlyInvoice' => [MonthlyInvoice::class, fn () => MonthlyInvoice::factory()->create()],
+        'Organization' => [Organization::class, fn () => Organization::factory()->create()],
     ]);
 
     it('generates correct format for each model', function (string $modelClass, string $prefix, int $expectedLength) {
@@ -46,6 +47,7 @@ describe('public_id model integration', function () {
         'Subscription' => [Subscription::class, 'R', 8],
         'Element' => [Element::class, 'E', 8],
         'MonthlyInvoice' => [MonthlyInvoice::class, 'I', 8],
+        'Organization' => [Organization::class, 'O', 8],
     ]);
 
     it('retries when collision occurs', function () {
