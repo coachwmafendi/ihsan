@@ -145,7 +145,7 @@
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
-                            <dt class="text-sm text-slate-500">Platform fee</dt>
+                            <dt class="text-sm text-slate-500">Processing fee</dt>
                             <dd class="text-sm font-medium text-slate-900">
                                 {{ $this->platformFee() }}
                                 @if ($donation->currency !== 'myr' && $donation->base_amount !== null)
@@ -153,12 +153,12 @@
                                 @endif
                                 <x-ui.tooltip>
                                     <x-heroicon-o-question-mark-circle class="inline-block size-4 text-slate-400" />
-                                    <x-slot:tip>Platform <strong>fee</strong> charged by Ihsan.</x-slot:tip>
+                                    <x-slot:tip>Processing <strong>fee</strong> charged by Ihsan.</x-slot:tip>
                                 </x-ui.tooltip>
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
-                            <dt class="text-sm text-slate-500">Payment processing fee</dt>
+                            <dt class="text-sm text-slate-500">Stripe fee</dt>
                             <dd class="text-sm font-medium text-slate-900">{{ $this->paymentProcessingFee() }}</dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">

@@ -24,7 +24,7 @@
             />
             <x-admin.metric-card
                 icon="heroicon-o-receipt-percent"
-                label="Platform fees this month"
+                label="Processing fees this month"
                 :value="'MYR '.$processingFeesThisMonth"
                 :note="($processingFeesMomChange >= 0 ? '▲ ' : '▼ ').abs($processingFeesMomChange).'% vs last month'"
             />
