@@ -761,13 +761,15 @@ it('splits fee cover from recurring invoice paid webhooks', function () {
     Queue::assertPushedTimes(SendNewDonationNotification::class, 1);
 });
 
-it('dispatches meta conversion event for payment intent succeeded webhook', function () {
+it('dispatches conversion events for payment intent succeeded webhook', function () {
     Queue::fake([
         SendMetaConversionEvent::class,
         SendLinkedInConversionEvent::class,
         SendXAdsConversionEvent::class,
         SendSnapchatConversionEvent::class,
         SendDonationReceipt::class,
+        SendNewDonationNotification::class,
+        SendLargeDonationNotification::class,
         SyncDonationStripeDetailsJob::class,
     ]);
 
@@ -787,15 +789,13 @@ it('dispatches meta conversion event for payment intent succeeded webhook', func
 
     (new ProcessStripeWebhook(paymentIntentSucceededPayload($donation, 'evt_meta_webhook_123')))->handle();
 
-    Queue::assertPushed(SendMetaConversionEvent::class, function (SendMetaConversionEvent $job) use ($donation) {
-        return $job->donation->is($donation);
-    });
+    Queue::assertPushed(SendMetaConversionEvent::class, fn (SendMetaConversionEvent $job) => $job->donation->is($donation));
     Queue::assertPushed(SendLinkedInConversionEvent::class, fn ($job) => $job->donation->is($donation));
     Queue::assertPushed(SendXAdsConversionEvent::class, fn ($job) => $job->donation->is($donation));
     Queue::assertPushed(SendSnapchatConversionEvent::class, fn ($job) => $job->donation->is($donation));
 });
 
-it('dispatches meta conversion event for recurring invoice paid webhook', function () {
+it('dispatches conversion events for recurring invoice paid webhook', function () {
     Queue::fake([
         SendMetaConversionEvent::class,
         SendLinkedInConversionEvent::class,
@@ -803,6 +803,7 @@ it('dispatches meta conversion event for recurring invoice paid webhook', functi
         SendSnapchatConversionEvent::class,
         SendDonationReceipt::class,
         SendNewDonationNotification::class,
+        SendLargeDonationNotification::class,
         SyncDonationStripeDetailsJob::class,
     ]);
 
@@ -844,9 +845,7 @@ it('dispatches meta conversion event for recurring invoice paid webhook', functi
 
     expect($donation)->not->toBeNull();
 
-    Queue::assertPushed(SendMetaConversionEvent::class, function (SendMetaConversionEvent $job) use ($donation) {
-        return $job->donation->is($donation);
-    });
+    Queue::assertPushed(SendMetaConversionEvent::class, fn (SendMetaConversionEvent $job) => $job->donation->is($donation));
     Queue::assertPushed(SendLinkedInConversionEvent::class, fn ($job) => $job->donation->is($donation));
     Queue::assertPushed(SendXAdsConversionEvent::class, fn ($job) => $job->donation->is($donation));
     Queue::assertPushed(SendSnapchatConversionEvent::class, fn ($job) => $job->donation->is($donation));
