@@ -22,25 +22,25 @@
             type="button"
             x-on:click="
                 navigator.clipboard.writeText('{{ $value }}').then(() => {
-                    copied = true;
-                    setTimeout(() => copied = false, 2000);
+                    $parent.copied = true;
+                    setTimeout(() => $parent.copied = false, 2000);
                 })
             "
             class="inline-flex items-center gap-1 text-gray-400 transition hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 {{ $class }}"
         >
             <x-heroicon-o-clipboard-document
-                x-show="!copied"
+                x-show="!$parent.copied"
                 class="{{ $iconSize }} shrink-0"
             />
             <x-heroicon-o-check
-                x-show="copied"
+                x-show="$parent.copied"
                 x-cloak
                 class="{{ $iconSize }} shrink-0 text-green-600"
             />
         </button>
 
         <x-slot:tip>
-            <span x-text="copied ? @js($copiedText) : @js($title)"></span>
+            <span>{{ $title }}</span>
         </x-slot:tip>
     </x-ui.tooltip>
 

@@ -10,13 +10,13 @@
     @fonts
     @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('components.ui._tooltip-script')
 </head>
 <body class="font-sans antialiased">
     <x-app-shell>
         {{ $slot }}
     </x-app-shell>
 
-    @include('components.ui._tooltip-script')
     @livewireScripts
     @fluxScripts
 
