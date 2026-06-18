@@ -214,6 +214,16 @@ class Tracking extends Component
             ->toArray();
     }
 
+    public function toggleShowAdvanced(): void
+    {
+        $this->showAdvanced = ! $this->showAdvanced;
+    }
+
+    public function toggleShowAttribution(): void
+    {
+        $this->showAttribution = ! $this->showAttribution;
+    }
+
     public function render(): View
     {
         return view('livewire.app.settings.tracking', [

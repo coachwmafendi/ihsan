@@ -138,7 +138,7 @@
     <div class="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <button
             type="button"
-            wire:click="$toggle('showAdvanced')"
+            wire:click="toggleShowAdvanced"
             class="flex w-full items-center justify-between px-5 py-4 text-left transition hover:bg-slate-50/60"
         >
             <div class="flex items-center gap-3">
@@ -302,7 +302,7 @@
         <x-slot:title>Donation Attribution Preview</x-slot:title>
         <x-slot:description>How attribution data is stored with each donation.</x-slot:description>
         <x-slot:actions>
-            <x-ui.button variant="ghost" size="sm" wireClick="$toggle('showAttribution')">
+            <x-ui.button variant="ghost" size="sm" wireClick="toggleShowAttribution">
                 {{ $showAttribution ? 'Hide' : 'Show example' }}
             </x-ui.button>
         </x-slot:actions>
@@ -377,7 +377,7 @@
                 </div>
                 <p class="mt-3 text-sm font-medium text-slate-900">See how attribution is captured</p>
                 <p class="mt-1 text-xs text-slate-500 max-w-sm">View an example of the full attribution data stored with each donation — source, medium, campaign, and all click IDs.</p>
-                <x-ui.button variant="outline" size="sm" class="mt-4" wireClick="$toggle('showAttribution')">
+                <x-ui.button variant="outline" size="sm" class="mt-4" wireClick="toggleShowAttribution">
                     Show attribution example
                 </x-ui.button>
             </div>
