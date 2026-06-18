@@ -4,6 +4,8 @@
     $t = fn (string $key, array $replace = []) => trans($key, $replace, $locale);
 @endphp
 
+@section('preheader', $t('emails.magic_link.preheader', ['name' => $organization->name]))
+
 @section('title', $t('emails.magic_link.title', ['name' => $organization->name]))
 
 @section('content')

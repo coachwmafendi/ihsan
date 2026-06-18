@@ -10,6 +10,7 @@ use App\Models\Donor;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class SendCampaignCompletedDonorNotification implements ShouldQueue
 {
@@ -49,12 +50,12 @@ class SendCampaignCompletedDonorNotification implements ShouldQueue
                 return;
             }
 
+            $messageId = Str::uuid()->toString();
             $mailable = new CampaignCompletedDonorNotification(
                 campaign: $this->campaign,
                 donor: $donor,
+                messageId: $messageId,
             );
-
-            Mail::to($donor->email)->queue($mailable);
 
             app(LogDonorEmail::class)->handle(
                 donor: $donor,
@@ -63,7 +64,10 @@ class SendCampaignCompletedDonorNotification implements ShouldQueue
                 metadata: [
                     'campaign_id' => $this->campaign->getKey(),
                 ],
+                messageId: $messageId,
             );
+
+            Mail::to($donor->email)->queue($mailable);
         });
     }
 }

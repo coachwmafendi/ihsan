@@ -12,6 +12,7 @@ use App\Models\Campaign;
 use App\Models\DonorEmailLog;
 use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class ResendDonorEmail
 {
@@ -21,15 +22,14 @@ class ResendDonorEmail
 
     public function handle(DonorEmailLog $log): ?DonorEmailLog
     {
-        $mailable = $this->recreateMailable($log);
+        $messageId = Str::uuid()->toString();
+        $mailable = $this->recreateMailable($log, $messageId);
 
         if ($mailable === null) {
             return null;
         }
 
-        Mail::to($log->donor->email)->queue($mailable);
-
-        return $this->logger->handle(
+        $newLog = $this->logger->handle(
             donor: $log->donor,
             mailable: $mailable,
             organization: $log->organization,
@@ -37,30 +37,35 @@ class ResendDonorEmail
             subscription: $log->subscription,
             resentFrom: $log,
             metadata: $log->metadata ?? [],
+            messageId: $messageId,
         );
+
+        Mail::to($log->donor->email)->queue($mailable);
+
+        return $newLog;
     }
 
-    private function recreateMailable(DonorEmailLog $log): ?Mailable
+    private function recreateMailable(DonorEmailLog $log, string $messageId): ?Mailable
     {
         return match ($log->mailable_class) {
-            DonationReceipt::class => $this->recreateDonationReceipt($log),
-            CampaignCompletedDonorNotification::class => $this->recreateCampaignCompleted($log),
-            SubscriptionAmountChangedNotification::class => $this->recreateSubscriptionAmountChanged($log),
-            DonorDunningNotification::class => $this->recreateDonorDunning($log),
+            DonationReceipt::class => $this->recreateDonationReceipt($log, $messageId),
+            CampaignCompletedDonorNotification::class => $this->recreateCampaignCompleted($log, $messageId),
+            SubscriptionAmountChangedNotification::class => $this->recreateSubscriptionAmountChanged($log, $messageId),
+            DonorDunningNotification::class => $this->recreateDonorDunning($log, $messageId),
             default => null,
         };
     }
 
-    private function recreateDonationReceipt(DonorEmailLog $log): ?Mailable
+    private function recreateDonationReceipt(DonorEmailLog $log, string $messageId): ?Mailable
     {
         if ($log->donation === null) {
             return null;
         }
 
-        return new DonationReceipt($log->donation);
+        return new DonationReceipt($log->donation, $messageId);
     }
 
-    private function recreateCampaignCompleted(DonorEmailLog $log): ?Mailable
+    private function recreateCampaignCompleted(DonorEmailLog $log, string $messageId): ?Mailable
     {
         $campaign = $log->metadata['campaign_id']
             ? Campaign::query()->find($log->metadata['campaign_id'])
@@ -70,10 +75,10 @@ class ResendDonorEmail
             return null;
         }
 
-        return new CampaignCompletedDonorNotification($campaign, $log->donor);
+        return new CampaignCompletedDonorNotification($campaign, $log->donor, $messageId);
     }
 
-    private function recreateSubscriptionAmountChanged(DonorEmailLog $log): ?Mailable
+    private function recreateSubscriptionAmountChanged(DonorEmailLog $log, string $messageId): ?Mailable
     {
         if ($log->subscription === null) {
             return null;
@@ -88,10 +93,11 @@ class ResendDonorEmail
             $previousAmount,
             $amountDisplay,
             true,
+            $messageId,
         );
     }
 
-    private function recreateDonorDunning(DonorEmailLog $log): ?Mailable
+    private function recreateDonorDunning(DonorEmailLog $log, string $messageId): ?Mailable
     {
         if ($log->subscription === null) {
             return null;
@@ -101,6 +107,6 @@ class ResendDonorEmail
         $retryCount = (int) ($metadata['retry_count'] ?? 1);
         $isFinalAttempt = (bool) ($metadata['is_final_attempt'] ?? false);
 
-        return new DonorDunningNotification($log->subscription, $retryCount, $isFinalAttempt);
+        return new DonorDunningNotification($log->subscription, $retryCount, $isFinalAttempt, $messageId);
     }
 }

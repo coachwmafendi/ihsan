@@ -21,6 +21,7 @@ class LogDonorEmail
         ?Subscription $subscription = null,
         ?DonorEmailLog $resentFrom = null,
         array $metadata = [],
+        ?string $messageId = null,
     ): DonorEmailLog {
         $subject = $this->resolveSubject($mailable);
 
@@ -31,7 +32,9 @@ class LogDonorEmail
             'subscription_id' => $subscription?->getKey(),
             'resent_from_id' => $resentFrom?->getKey(),
             'mailable_class' => $mailable::class,
+            'message_id' => $messageId,
             'subject' => $subject,
+            'delivery_status' => 'queued',
             'metadata' => empty($metadata) ? null : $metadata,
             'sent_at' => now(),
         ]);

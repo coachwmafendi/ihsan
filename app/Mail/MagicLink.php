@@ -11,6 +11,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
 
 class MagicLink extends Mailable
@@ -21,7 +22,12 @@ class MagicLink extends Mailable
         public Donor $donor,
         public string $token,
         public Organization $organization,
-    ) {}
+        public ?string $messageId = null,
+    ) {
+        if ($this->messageId) {
+            $this->metadata('donor_email_log_message_id', $this->messageId);
+        }
+    }
 
     public function envelope(): Envelope
     {
@@ -30,6 +36,13 @@ class MagicLink extends Mailable
         return new Envelope(
             from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $this->organization->name),
             subject: trans('emails.magic_link.title', ['name' => $this->organization->name], $locale),
+        );
+    }
+
+    public function headers(): Headers
+    {
+        return new Headers(
+            text: $this->messageId ? ['X-Donor-Email-Log-Message-Id' => $this->messageId] : [],
         );
     }
 

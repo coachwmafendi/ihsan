@@ -8,6 +8,7 @@ return [
     'receipt' => [
         'subject' => 'Resit Derma Anda — :name',
         'title' => 'Terima kasih atas derma anda!',
+        'preheader' => 'Derma anda berjumlah :amount kepada :campaign telah diterima.',
         'intro' => 'Derma anda berjumlah :amount kepada :campaign telah diterima dengan jayanya.',
         'recurring_note' => 'Ini adalah derma berulang. Anda akan menerima resit bagi setiap pembayaran yang berjaya.',
         'donation' => 'Derma',
@@ -32,6 +33,9 @@ return [
         'heading_final' => 'Peluang Terakhir Bulan Ini',
         'heading_almost_final' => 'Percubaan Akhir Esok',
         'heading_default' => 'Pembayaran Gagal',
+        'preheader_final' => 'Ini adalah peluang terakhir untuk mengekalkan derma berulang anda bagi :campaign.',
+        'preheader_almost_final' => 'Esok adalah percubaan akhir untuk memproses derma berulang anda bagi :campaign.',
+        'preheader_default' => 'Kami tidak dapat memproses derma berulang anda bagi :campaign. Sila kemaskini kad anda.',
         'intro_final' => 'Ini adalah percubaan akhir untuk memproses derma berulang anda bagi :campaign bulan ini.',
         'intro_almost_final' => 'Esok adalah percubaan akhir untuk memproses derma berulang anda bagi :campaign.',
         'intro_default' => 'Kami tidak dapat memproses derma berulang anda bagi :campaign.',
@@ -48,6 +52,7 @@ return [
     'subscription_amount_changed' => [
         'subject' => 'Jumlah Langganan Dikemaskini — :name',
         'title' => 'Jumlah Langganan Dikemaskini',
+        'preheader' => 'Jumlah derma berulang anda bagi :campaign telah dikemaskini kepada :amount setiap :interval.',
         'intro' => 'Derma berulang bagi :campaign telah dikemaskini daripada :previous kepada :amount setiap :interval.',
         'donor' => 'Donor',
         'previous_amount' => 'Jumlah Sebelum',
@@ -63,6 +68,7 @@ return [
     'campaign_completed' => [
         'subject' => 'Sasaran Tercapai — :campaign',
         'title' => 'Sasaran Tercapai!',
+        'preheader' => ':campaign oleh :organization telah mencapai sasaran :amount. Terima kasih atas sumbangan anda.',
         'intro' => 'Terima kasih atas sokongan anda! Kempen :campaign oleh :organization telah berjaya mencapai sasaran :amount.',
         'thanks' => 'Setiap derma yang anda berikan membantu menjayakan kempen ini. Kami amat menghargai sumbangan anda.',
         'reason' => 'Anda menerima email ini kerana telah menderma kepada kempen ini.',
@@ -70,6 +76,7 @@ return [
 
     'magic_link' => [
         'title' => ':name — Portal Donor',
+        'preheader' => 'Gunakan pautan ini untuk akses portal donor anda bagi :name.',
         'intro' => 'Klik butang di bawah untuk akses portal donor anda di mana anda boleh melihat sejarah derma, urus langganan, dan muat turun resit.',
         'button' => 'Akses Portal Donor',
         'expiry' => 'Pautan ini tamat tempoh dalam 24 jam. Jika anda tidak memintanya, sila abaikan email ini.',

@@ -9,6 +9,7 @@ use App\Http\Controllers\ReceiptDownloadController;
 use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\Webhooks\EmailWebhookController;
 use App\Http\Middleware\EnsureNgoAdmin;
 use App\Http\Middleware\RedirectIfStripeNotOnboarded;
 use App\Livewire\App\AuditLog\Index as AuditLogIndex;
@@ -72,6 +73,8 @@ Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
     ->name('stripe.payment-intent');
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
+Route::post('/webhooks/mailgun', [EmailWebhookController::class, 'mailgun'])->name('webhooks.mailgun');
+Route::post('/webhooks/postmark', [EmailWebhookController::class, 'postmark'])->name('webhooks.postmark');
 
 Route::middleware(['auth', EnsureNgoAdmin::class])->group(function () {
     Route::post('/app/supporters/{donor:public_id}/impersonate', [DonorImpersonationController::class, 'impersonate'])

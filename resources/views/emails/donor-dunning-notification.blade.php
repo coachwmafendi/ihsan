@@ -4,6 +4,12 @@
     $t = fn (string $key, array $replace = []) => trans($key, $replace, $locale);
 @endphp
 
+@section('preheader', $t(match (true) {
+    $isFinalAttempt => 'emails.dunning.preheader_final',
+    $retryCount >= 3 => 'emails.dunning.preheader_almost_final',
+    default => 'emails.dunning.preheader_default',
+}, ['campaign' => $subscription->campaign->title]))
+
 @section('content')
     @if ($isFinalAttempt)
         <h1 style="color: #dc2626;">{{ $t('emails.dunning.heading_final') }}</h1>

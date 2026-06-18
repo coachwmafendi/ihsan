@@ -4,6 +4,12 @@
     $t = fn (string $key, array $replace = []) => trans($key, $replace, $locale);
 @endphp
 
+@section('preheader', $t('emails.subscription_amount_changed.preheader', [
+    'campaign' => $subscription->campaign->title,
+    'amount' => $amountDisplay,
+    'interval' => $subscription->interval->value,
+]))
+
 @section('title', $t('emails.subscription_amount_changed.title'))
 
 @section('content')

@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Listeners\RecordDonorEmailDelivery;
 use App\Listeners\UpdateLastLoginAt;
 use App\Models\Setting;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -38,6 +40,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             Login::class,
             UpdateLastLoginAt::class,
+        );
+
+        Event::listen(
+            MessageSent::class,
+            RecordDonorEmailDelivery::class,
         );
     }
 

@@ -22,6 +22,7 @@ use App\Services\FraudDetectionService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Stripe\Event as StripeEvent;
 use Stripe\Stripe;
 
@@ -392,10 +393,8 @@ class ProcessStripeWebhook implements ShouldQueue
                 return;
             }
 
-            $mailable = new DonorDunningNotification($subscription, $retryCount, $isFinalAttempt);
-
-            Mail::to($subscription->donor->email)
-                ->queue($mailable);
+            $messageId = Str::uuid()->toString();
+            $mailable = new DonorDunningNotification($subscription, $retryCount, $isFinalAttempt, $messageId);
 
             app(LogDonorEmail::class)->handle(
                 donor: $subscription->donor,
@@ -406,7 +405,11 @@ class ProcessStripeWebhook implements ShouldQueue
                     'retry_count' => $retryCount,
                     'is_final_attempt' => $isFinalAttempt,
                 ],
+                messageId: $messageId,
             );
+
+            Mail::to($subscription->donor->email)
+                ->queue($mailable);
         }
 
         if ($invoice->next_payment_attempt === null) {

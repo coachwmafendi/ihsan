@@ -11,6 +11,7 @@ use App\Support\MailtrapThrottle;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class SendSubscriptionAmountChangedNotification implements ShouldQueue
 {
@@ -41,15 +42,14 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
 
         // Notify donor
         if (filled($subscription->donor?->email) && ! $subscription->donor->hasOptedOutOfEmails()) {
+            $messageId = Str::uuid()->toString();
             $donorMail = new SubscriptionAmountChangedNotification(
                 $subscription,
                 $this->previousAmount,
                 $amountDisplay,
                 true,
+                $messageId,
             );
-
-            Mail::to($subscription->donor->email)
-                ->queue($donorMail);
 
             app(LogDonorEmail::class)->handle(
                 donor: $subscription->donor,
@@ -60,7 +60,11 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
                     'previous_amount' => $this->previousAmount,
                     'amount_display' => $amountDisplay,
                 ],
+                messageId: $messageId,
             );
+
+            Mail::to($subscription->donor->email)
+                ->queue($donorMail);
         }
 
         // Notify org admins

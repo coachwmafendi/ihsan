@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
             '/stripe/webhook',
+            '/webhooks/mailgun',
+            '/webhooks/postmark',
         ]);
 
         $middleware->trustProxies(at: env('TRUSTED_PROXIES'));

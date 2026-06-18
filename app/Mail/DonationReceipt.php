@@ -12,6 +12,7 @@ use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
 
 class DonationReceipt extends Mailable
@@ -20,7 +21,12 @@ class DonationReceipt extends Mailable
 
     public function __construct(
         public Donation $donation,
-    ) {}
+        public ?string $messageId = null,
+    ) {
+        if ($this->messageId) {
+            $this->metadata('donor_email_log_message_id', $this->messageId);
+        }
+    }
 
     public function envelope(): Envelope
     {
@@ -47,6 +53,13 @@ class DonationReceipt extends Mailable
                 'locale' => $this->donorLocale($donor),
                 'unsubscribeUrl' => $donor ? DonorNotificationController::unsubscribeUrl($donor) : null,
             ],
+        );
+    }
+
+    public function headers(): Headers
+    {
+        return new Headers(
+            text: $this->messageId ? ['X-Donor-Email-Log-Message-Id' => $this->messageId] : [],
         );
     }
 

@@ -4,6 +4,12 @@
     $t = fn (string $key, array $replace = []) => trans($key, $replace, $locale);
 @endphp
 
+@section('preheader', $t('emails.campaign_completed.preheader', [
+    'campaign' => $campaign->title,
+    'organization' => $campaign->organization->name,
+    'amount' => 'RM '.number_format((float) $campaign->target_amount, 2),
+]))
+
 @section('title', $t('emails.campaign_completed.title'))
 
 @section('content')

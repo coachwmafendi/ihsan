@@ -7,6 +7,11 @@
     <title>@hasSection('title')@yield('title') — @endif{{ config('app.name') }}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; color: #1a1a2e; background-color: #f8fafc;">
+    @hasSection('preheader')
+        <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all; font-size: 1px; line-height: 1px; color: #ffffff;">
+            @yield('preheader') &nbsp;&#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847; &#8199;&#847;
+        </div>
+    @endif
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
         <tr>
             <td align="center" style="padding: 20px 10px;">

@@ -38,7 +38,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['donor_id', 'organization_id', 'donation_id', 'subscription_id', 'resent_from_id', 'mailable_class', 'subject', 'metadata', 'sent_at', 'opened_at'])]
+#[Fillable([
+    'donor_id', 'organization_id', 'donation_id', 'subscription_id', 'resent_from_id',
+    'mailable_class', 'message_id', 'provider_message_id', 'subject', 'delivery_status',
+    'metadata', 'sent_at', 'opened_at', 'delivered_at', 'bounced_at', 'bounce_reason', 'complained_at',
+])]
 class DonorEmailLog extends Model
 {
     /** @use HasFactory<DonorEmailLogFactory> */
@@ -50,6 +54,9 @@ class DonorEmailLog extends Model
             'metadata' => 'array',
             'sent_at' => 'datetime',
             'opened_at' => 'datetime',
+            'delivered_at' => 'datetime',
+            'bounced_at' => 'datetime',
+            'complained_at' => 'datetime',
         ];
     }
 

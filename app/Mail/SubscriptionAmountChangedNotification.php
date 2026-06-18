@@ -10,6 +10,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
 
 class SubscriptionAmountChangedNotification extends Mailable
@@ -21,7 +22,12 @@ class SubscriptionAmountChangedNotification extends Mailable
         public float $previousAmount,
         public string $amountDisplay,
         public bool $isDonor = false,
-    ) {}
+        public ?string $messageId = null,
+    ) {
+        if ($this->messageId) {
+            $this->metadata('donor_email_log_message_id', $this->messageId);
+        }
+    }
 
     public function envelope(): Envelope
     {
@@ -36,6 +42,13 @@ class SubscriptionAmountChangedNotification extends Mailable
                 ? new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName)
                 : null,
             subject: trans('emails.subscription_amount_changed.subject', ['name' => $orgName], $locale),
+        );
+    }
+
+    public function headers(): Headers
+    {
+        return new Headers(
+            text: $this->messageId ? ['X-Donor-Email-Log-Message-Id' => $this->messageId] : [],
         );
     }
 

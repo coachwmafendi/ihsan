@@ -8,6 +8,7 @@ return [
     'receipt' => [
         'subject' => 'Your Donation Receipt — :name',
         'title' => 'Thank you for your donation!',
+        'preheader' => 'Your donation of :amount to :campaign has been received.',
         'intro' => 'Your donation of :amount to :campaign has been received successfully.',
         'recurring_note' => 'This is a recurring donation. You will receive a receipt for each successful payment.',
         'donation' => 'Donation',
@@ -32,6 +33,9 @@ return [
         'heading_final' => 'Last Chance This Month',
         'heading_almost_final' => 'Final Attempt Tomorrow',
         'heading_default' => 'Payment Failed',
+        'preheader_final' => 'This is your final chance to keep your recurring donation for :campaign active.',
+        'preheader_almost_final' => 'Tomorrow is the final attempt to process your recurring donation for :campaign.',
+        'preheader_default' => 'We could not process your recurring donation for :campaign. Please update your card.',
         'intro_final' => 'This is the final attempt to process your recurring donation for :campaign this month.',
         'intro_almost_final' => 'Tomorrow is the final attempt to process your recurring donation for :campaign.',
         'intro_default' => 'We couldn\'t process your recurring donation for :campaign.',
@@ -48,6 +52,7 @@ return [
     'subscription_amount_changed' => [
         'subject' => 'Subscription Amount Updated — :name',
         'title' => 'Subscription Amount Updated',
+        'preheader' => 'Your recurring donation amount for :campaign has been updated to :amount per :interval.',
         'intro' => 'The recurring donation for :campaign has been updated from :previous to :amount per :interval.',
         'donor' => 'Donor',
         'previous_amount' => 'Previous Amount',
@@ -63,6 +68,7 @@ return [
     'campaign_completed' => [
         'subject' => 'Target Reached — :campaign',
         'title' => 'Target Reached!',
+        'preheader' => ':campaign by :organization has reached its target of :amount. Thank you for helping make it happen.',
         'intro' => 'Thank you for your support! The campaign :campaign by :organization has successfully reached its target of :amount.',
         'thanks' => 'Every donation you made helped make this campaign a success. We truly appreciate your contribution.',
         'reason' => 'You are receiving this because you donated to this campaign.',
@@ -70,6 +76,7 @@ return [
 
     'magic_link' => [
         'title' => ':name — Donor Portal',
+        'preheader' => 'Use this link to access your donation portal for :name.',
         'intro' => 'Click the button below to access your donation portal where you can view your donation history, manage subscriptions, and download receipts.',
         'button' => 'Access Donation Portal',
         'expiry' => 'This link expires in 24 hours. If you did not request this, please ignore this email.',

@@ -4,6 +4,8 @@
     $t = fn (string $key, array $replace = []) => trans($key, $replace, $locale);
 @endphp
 
+@section('preheader', $t('emails.receipt.preheader', ['amount' => $donation->total_charged_with_conversion, 'campaign' => $donation->campaign->title]))
+
 @section('title', $t('emails.receipt.title'))
 
 @section('content')
