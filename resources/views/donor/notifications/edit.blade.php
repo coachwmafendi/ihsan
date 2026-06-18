@@ -1,7 +1,6 @@
 <x-layouts::auth.card>
     <div class="text-center">
-        <x-app-logo-icon class="mx-auto h-10 w-auto text-black dark:text-white" />
-        <h1 class="mt-4 text-xl font-semibold text-stone-900 dark:text-stone-100">Email preferences</h1>
+        <h1 class="text-xl font-semibold text-stone-900 dark:text-stone-100">Email preferences</h1>
         <p class="mt-2 text-sm text-stone-500 dark:text-stone-400">
             Manage email notifications for {{ $donor->email }}
         </p>
