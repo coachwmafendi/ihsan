@@ -85,7 +85,9 @@ test('recurring donation notification email body matches new layout', function (
     $html = $mailable->render();
 
     expect($html)
-        ->toContain('3rd recurring RM 50.00 donation by Ahmad Rizal on Iftar Ramadan')
+        ->toContain('You\'ve received your <strong>3rd</strong> recurring donation')
+        ->toContain('RM 50.00')
+        ->toContain('Ahmad Rizal')
         ->toContain('Supporter')
         ->toContain('Email')
         ->toContain('Donation ID')
@@ -93,8 +95,7 @@ test('recurring donation notification email body matches new layout', function (
         ->toContain('Next Billing Date')
         ->toContain('View in Ihsan')
         ->toContain('app/donations/'.$donation->public_id)
-        ->not->toContain('You\'ve received your')
-        ->not->toContain('Hi <strong>')
+        ->toContain('Hi <strong>')
         ->not->toContain('Payment Number')
         ->not->toContain('Frequency');
 });

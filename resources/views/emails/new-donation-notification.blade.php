@@ -46,7 +46,9 @@
                 };
             @endphp
 
-            <h1 style="color: #16a34a; font-size: 24px; line-height: 1.3;">{{ $ordinal }} recurring {{ $amountWithConversionOriginalFirst }} donation by {{ $donation->donor->name }} on {{ $donation->campaign->title }}</h1>
+            <p>Hi <strong>{{ $donation->campaign->organization->name }}</strong>,</p>
+
+            <p>You've received your <strong>{{ $ordinal }}</strong> recurring donation of <strong>{{ $amountWithConversionOriginalFirst }}</strong> from <strong>{{ $donation->donor->name }}</strong> for <strong>{{ $donation->campaign->title }}</strong>.</p>
 
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Supporter</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->donor->name }}</td></tr>
