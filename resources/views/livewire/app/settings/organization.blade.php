@@ -80,7 +80,9 @@
                     <div class="md:col-span-2">
                         <label for="logo" class="block text-sm font-medium text-slate-700">Logo</label>
                         <div class="mt-1 flex items-center gap-4">
-                            @if ($existing_logo)
+                            @if ($logo)
+                                <img src="{{ $logo->temporaryUrl() }}" alt="New logo preview" class="h-16 w-16 rounded-lg object-cover border border-slate-200">
+                            @elseif ($existing_logo)
                                 <img src="{{ Storage::disk('public')->url($existing_logo) }}" alt="Current logo" class="h-16 w-16 rounded-lg object-cover border border-slate-200">
                             @else
                                 <div class="h-16 w-16 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
@@ -92,6 +94,7 @@
                             <input type="file" id="logo" wire:model="logo" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100">
                         </div>
                         <div wire:loading wire:target="logo" class="mt-2 text-sm text-slate-500">Uploading...</div>
+                        @error('logo') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </x-ui.card>

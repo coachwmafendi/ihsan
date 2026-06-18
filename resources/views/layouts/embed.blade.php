@@ -6,6 +6,7 @@
         <title>{{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}</title>
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <x-tracking-scripts :organization="$organization ?? null" :configs="$trackingConfigs ?? null" />
         <script src="https://js.stripe.com/v3/"></script>
         @livewireStyles
     </head>

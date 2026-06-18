@@ -27,6 +27,14 @@ class AllowDomains extends Component
 
         $settings = $org->settings ?? [];
         $this->allowed_domains = $settings['allowed_domains'] ?? [];
+
+        if ($this->allowed_domains === [] && $org->website_url) {
+            $domain = $this->normalizeDomain($org->website_url);
+
+            if ($domain !== '') {
+                $this->allowed_domains[] = $domain;
+            }
+        }
     }
 
     public function addDomain(string $domain): void
@@ -75,6 +83,20 @@ class AllowDomains extends Component
         $this->dispatch('notify', message: 'Allowed domains saved.', variant: 'success');
     }
 
+    private function normalizeDomain(string $domain): string
+    {
+        $domain = trim($domain);
+        $host = parse_url($domain, PHP_URL_HOST);
+
+        if ($host) {
+            $domain = $host;
+        }
+
+        $domain = strtolower($domain);
+
+        return str_starts_with($domain, 'www.') ? substr($domain, 4) : $domain;
+    }
+
     /**
      * @param  array<int, string>  $domains
      * @return array<int, string>
@@ -83,18 +105,7 @@ class AllowDomains extends Component
     {
         return collect($domains)
             ->filter()
-            ->map(function (string $domain): string {
-                $domain = trim($domain);
-                $host = parse_url($domain, PHP_URL_HOST);
-
-                if ($host) {
-                    $domain = $host;
-                }
-
-                $domain = strtolower($domain);
-
-                return str_starts_with($domain, 'www.') ? substr($domain, 4) : $domain;
-            })
+            ->map(fn (string $domain): string => $this->normalizeDomain($domain))
             ->unique()
             ->values()
             ->all();

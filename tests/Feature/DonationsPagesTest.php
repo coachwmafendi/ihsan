@@ -4,6 +4,7 @@ use App\Livewire\App\Donations\DonationShow;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\Element;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -139,4 +140,26 @@ it('shows approximate myr total for foreign donations without base amount', func
 it('redirects guests to login', function () {
     $this->get(route('app.donations.index'))->assertRedirect('/login');
     $this->get(route('app.donations.show', $this->donation))->assertRedirect('/login');
+});
+
+it('links the source element to the element edit page', function () {
+    $element = Element::factory()->create([
+        'organization_id' => $this->organization->id,
+        'campaign_id' => $this->campaign->id,
+    ]);
+
+    $this->donation->update([
+        'utm_params' => [
+            'source' => 'element',
+            'element_token' => $element->token,
+            'element_type' => 'button',
+            'element_name' => $element->name,
+        ],
+    ]);
+    $this->donation->refresh();
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee($element->name)
+        ->assertSeeHtml('href="'.e(route('app.elements.edit', $element)).'"');
 });

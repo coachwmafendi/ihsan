@@ -16,7 +16,7 @@ class RedirectIfStripeNotOnboarded
             return $next($request);
         }
 
-        if ($request->routeIs('app.stripe-onboarding')) {
+        if ($request->routeIs(['app.stripe-onboarding', 'stripe.connect.redirect'])) {
             return $next($request);
         }
 

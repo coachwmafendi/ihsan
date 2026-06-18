@@ -274,7 +274,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol))"
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId))"
                     >
 
                         {{-- Step progress indicator --}}
@@ -621,7 +621,7 @@
 @script
 {{-- donationStep Alpine component registered in layouts/donation.blade.php via alpine:init --}}
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM') => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null) => {
         let stripe = null;
         let elements = null;
         let paymentElement = null;
@@ -641,6 +641,7 @@
             coverFee: initialCoverFee,
             isEmbed: initialIsEmbed,
             isPopup: initialIsPopup,
+            donationPublicId: initialDonationPublicId,
             processing: false,
             currentStep: initialStep > 1 ? initialStep : 1,
             stepErrors: {},
@@ -814,9 +815,62 @@
                 }
 
                 this.currentStep++;
+                if (this.currentStep === 2) {
+                    this.trackInitiateCheckout();
+                }
                 if (this.currentStep === 3) {
                     this.$nextTick(() => this.mountPaymentElement());
                 }
+            },
+
+            trackInitiateCheckout() {
+                if (typeof window.IhsanTrack !== 'function') {
+                    return;
+                }
+
+                const amountNumber = parseFloat(this.amount);
+                if (!Number.isFinite(amountNumber) || amountNumber <= 0) {
+                    return;
+                }
+
+                window.IhsanTrack('InitiateCheckout', {
+                    value: amountNumber,
+                    currency: this.currency.toUpperCase(),
+                    content_type: 'product',
+                    contents: [{
+                        id: 'donation',
+                        quantity: 1,
+                        item_price: amountNumber,
+                    }],
+                });
+            },
+
+            trackPurchase() {
+                if (typeof window.IhsanTrack !== 'function') {
+                    return;
+                }
+
+                if (!this.donationPublicId) {
+                    return;
+                }
+
+                const amountNumber = parseFloat(this.amount);
+                if (!Number.isFinite(amountNumber) || amountNumber <= 0) {
+                    return;
+                }
+
+                window.IhsanTrack('Purchase', {
+                    value: amountNumber,
+                    currency: this.currency.toUpperCase(),
+                    content_type: 'product',
+                    contents: [{
+                        id: 'donation',
+                        quantity: 1,
+                        item_price: amountNumber,
+                    }],
+                }, {
+                    eventID: 'purchase_' + this.donationPublicId,
+                });
             },
 
             prevStep() {
@@ -943,8 +997,10 @@
                     return;
                 }
 
+                this.donationPublicId = $wire.donationPublicId;
                 this.processing = false;
                 this.currentStep = 'success';
+                this.trackPurchase();
             },
         };
     });

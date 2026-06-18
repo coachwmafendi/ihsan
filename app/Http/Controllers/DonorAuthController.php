@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\DonorEmailLog\LogDonorEmail;
 use App\Mail\MagicLink;
 use App\Models\Donor;
 use App\Models\Organization;
@@ -28,8 +29,15 @@ class DonorAuthController extends Controller
 
         if ($donor !== null) {
             $token = $donor->generateMagicToken();
+            $mailable = new MagicLink($donor, $token, $organization);
 
-            Mail::to($donor->email)->queue(new MagicLink($donor, $token, $organization));
+            Mail::to($donor->email)->queue($mailable);
+
+            app(LogDonorEmail::class)->handle(
+                donor: $donor,
+                mailable: $mailable,
+                organization: $organization,
+            );
         }
 
         usleep(random_int(100000, 200000));

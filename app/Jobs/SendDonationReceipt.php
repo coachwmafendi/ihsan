@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Actions\DonorEmailLog\LogDonorEmail;
 use App\Mail\DonationReceipt;
 use App\Models\Donation;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -24,8 +25,17 @@ class SendDonationReceipt implements ShouldQueue
             return;
         }
 
+        $mailable = new DonationReceipt($this->donation);
+
         Mail::to($this->donation->donor->email)
-            ->send(new DonationReceipt($this->donation));
+            ->send($mailable);
+
+        app(LogDonorEmail::class)->handle(
+            donor: $this->donation->donor,
+            mailable: $mailable,
+            organization: $this->donation->campaign?->organization,
+            donation: $this->donation,
+        );
 
         $this->donation->update(['receipt_sent_at' => now()]);
     }

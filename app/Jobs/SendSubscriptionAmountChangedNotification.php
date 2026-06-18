@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Actions\DonorEmailLog\LogDonorEmail;
 use App\Enums\UserRole;
 use App\Mail\SubscriptionAmountChangedNotification;
 use App\Models\Subscription;
@@ -49,6 +50,17 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
 
             Mail::to($subscription->donor->email)
                 ->queue($donorMail);
+
+            app(LogDonorEmail::class)->handle(
+                donor: $subscription->donor,
+                mailable: $donorMail,
+                organization: $org,
+                subscription: $subscription,
+                metadata: [
+                    'previous_amount' => $this->previousAmount,
+                    'amount_display' => $amountDisplay,
+                ],
+            );
         }
 
         // Notify org admins

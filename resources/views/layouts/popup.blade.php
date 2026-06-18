@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
+        <x-tracking-scripts :organization="$organization ?? null" :configs="$trackingConfigs ?? null" />
         <script src="https://js.stripe.com/v3/"></script>
         @livewireStyles
     </head>

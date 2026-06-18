@@ -2,6 +2,7 @@
 
 namespace App\Actions\Stripe;
 
+use App\Actions\DonorEmailLog\LogDonorEmail;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Mail\DonationReceipt;
@@ -116,7 +117,16 @@ class ProcessVirtualTerminalDonation
         // Sync payment method details to local cache
         $this->syncPaymentMethod($donor, $paymentIntent->payment_method, $stripeOptions);
 
-        Mail::to($donor->email)->queue(new DonationReceipt($donation));
+        $mailable = new DonationReceipt($donation);
+
+        Mail::to($donor->email)->queue($mailable);
+
+        app(LogDonorEmail::class)->handle(
+            donor: $donor,
+            mailable: $mailable,
+            organization: $organization,
+            donation: $donation,
+        );
 
         return $donation;
     }

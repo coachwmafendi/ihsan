@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Actions\Stripe\CreateConnectAccount;
 use App\Livewire\App\StripeOnboarding;
 use App\Models\Organization;
 use App\Models\User;
@@ -65,21 +64,30 @@ it('allows org admins with a connected account to access the app normally', func
         ->assertOk();
 });
 
-it('creates a stripe connect account and redirects to stripe when connect is clicked', function () {
+it('redirects to Stripe Connect OAuth when connect is clicked', function () {
     $organization = Organization::factory()->withoutStripe()->create();
     $user = User::factory()->create([
         'organization_id' => $organization->id,
     ]);
 
-    $service = $this->mock(CreateConnectAccount::class);
-    $service->shouldReceive('create')->once()->withAnyArgs();
-    $service->shouldReceive('generateOnboardingLink')->once()->withAnyArgs()->andReturn('https://connect.stripe.com/setup/s/onboarding');
-
     $this->actingAs($user);
 
     Livewire::test(StripeOnboarding::class)
         ->call('connect')
-        ->assertRedirect('https://connect.stripe.com/setup/s/onboarding');
+        ->assertRedirect(route('stripe.connect.redirect'));
+});
+
+it('redirects un-onboarded admins to Stripe OAuth from the connect redirect route', function () {
+    $organization = Organization::factory()->withoutStripe()->create();
+    $user = User::factory()->create([
+        'organization_id' => $organization->id,
+    ]);
+
+    $response = actingAs($user)
+        ->get(route('stripe.connect.redirect'));
+
+    $response->assertRedirect();
+    expect($response->headers->get('Location'))->toStartWith('https://connect.stripe.com/oauth/authorize');
 });
 
 it('shows a success modal when returning from Stripe after onboarding', function () {

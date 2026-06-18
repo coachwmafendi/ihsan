@@ -54,7 +54,7 @@
                 },
                 { rootMargin: '-20% 0px -60% 0px', threshold: 0 }
             );
-            ['information', 'donations', @js($this->hasSubscriptions ? 'recurring-plans' : null), 'receipts']
+            ['information', 'donations', @js($this->hasSubscriptions ? 'recurring-plans' : null), 'receipts', 'emails']
                 .filter(Boolean)
                 .forEach((id) => {
                     const el = document.getElementById(id);
@@ -335,6 +335,63 @@
                     @endif
                 </x-ui.card>
             </section>
+
+            {{-- Emails --}}
+            <section id="emails">
+                <x-ui.card title="Emails" icon="heroicon-o-envelope">
+                    @if ($this->emailLogs->isNotEmpty())
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-200">
+                                <thead>
+                                    <tr class="bg-slate-50">
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Sent</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Subject</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Opened</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                                    @foreach ($this->emailLogs as $log)
+                                        <tr class="transition-colors hover:bg-slate-50" wire:key="email-log-{{ $log->id }}">
+                                            <td class="px-4 py-3 text-sm text-slate-500">
+                                                {{ $log->sent_at?->format('M d, Y, g:i A') ?? '—' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm font-medium text-slate-900">
+                                                <button
+                                                    type="button"
+                                                    wire:click="previewEmail({{ $log->id }})"
+                                                    class="text-left hover:text-teal-600"
+                                                >
+                                                    {{ $log->subject }}
+                                                </button>
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-slate-500">
+                                                {{ $log->opened_at?->format('M d, Y, g:i A') ?? '—' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-right">
+                                                <button
+                                                    type="button"
+                                                    wire:click="resendEmail({{ $log->id }})"
+                                                    class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                                                >
+                                                    <x-heroicon-o-arrow-path class="size-4" />
+                                                    Resend
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <x-ui.empty-state
+                            icon="heroicon-o-envelope"
+                            title="No emails yet"
+                            description="Emails sent to this supporter will appear here."
+                        />
+                    @endif
+                </x-ui.card>
+            </section>
         </div>
 
         {{-- Right Sticky Menu --}}
@@ -406,6 +463,16 @@
                         <x-heroicon-o-receipt-percent class="size-5 text-slate-400" />
                         Receipts
                     </a>
+                    <a
+                        href="#emails"
+                        :class="active === 'emails'
+                            ? 'bg-slate-100 text-slate-900'
+                            : 'text-slate-600 hover:bg-slate-50'"
+                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition"
+                    >
+                        <x-heroicon-o-envelope class="size-5 text-slate-400" />
+                        Emails
+                    </a>
                 </nav>
             </div>
         </div>
@@ -417,5 +484,44 @@
             <x-heroicon-o-arrow-left class="size-4 mr-1" />
             Back to Supporters
         </a>
+    </div>
+
+    {{-- Email Preview Modal --}}
+    <div
+        x-cloak
+        x-show="$wire.showPreviewModal"
+        x-on:keydown.escape.window="$wire.closePreviewModal()"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+    >
+        <div
+            x-on:click.outside="$wire.closePreviewModal()"
+            class="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-xl bg-white shadow-lg"
+        >
+            <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                <div class="min-w-0">
+                    <h3
+                        class="truncate text-lg font-semibold text-slate-900"
+                        x-text="$wire.previewSubject || 'Email Preview'"
+                    ></h3>
+                </div>
+                <button
+                    type="button"
+                    wire:click="closePreviewModal"
+                    class="text-slate-400 transition hover:text-slate-600"
+                >
+                    <x-heroicon-o-x-mark class="size-5" />
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-auto bg-slate-100 p-0">
+                @if ($this->previewHtml)
+                    <iframe
+                        :srcdoc="$wire.previewHtml"
+                        class="h-[60vh] w-full bg-white"
+                        title="Email preview"
+                    ></iframe>
+                @endif
+            </div>
+        </div>
     </div>
 </div>

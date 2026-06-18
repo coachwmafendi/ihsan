@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Supporters;
 
+use App\Actions\DonorEmailLog\PreviewDonorEmail;
+use App\Actions\DonorEmailLog\ResendDonorEmail;
 use App\Enums\SubscriptionStatus;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\Organization;
 use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -34,6 +37,12 @@ class SupporterShow extends Component
     public string $email = '';
 
     public bool $updateRecurringPlans = true;
+
+    public bool $showPreviewModal = false;
+
+    public ?string $previewSubject = null;
+
+    public ?string $previewHtml = null;
 
     public function mount(): void
     {
@@ -216,6 +225,76 @@ class SupporterShow extends Component
             ->latest()
             ->limit(10)
             ->get();
+    }
+
+    #[Computed]
+    public function emailLogs()
+    {
+        $orgId = Auth::user()?->organization?->getKey();
+
+        return $this->donor->emailLogs()
+            ->when($orgId, fn (Builder $q) => $q->where('organization_id', $orgId))
+            ->latest('sent_at')
+            ->limit(50)
+            ->get();
+    }
+
+    public function resendEmail(int $id): void
+    {
+        $org = Auth::user()?->organization;
+
+        if (! $org instanceof Organization) {
+            abort(404);
+        }
+
+        $log = $this->donor->emailLogs()
+            ->whereKey($id)
+            ->when($org->getKey(), fn (Builder $q, int $orgId) => $q->where('organization_id', $orgId))
+            ->firstOrFail();
+
+        $newLog = app(ResendDonorEmail::class)->handle($log);
+
+        if ($newLog === null) {
+            $this->dispatch('notify', variant: 'danger', message: 'This email cannot be resent.');
+
+            return;
+        }
+
+        $this->dispatch('notify', variant: 'success', message: 'Email queued to be resent.');
+    }
+
+    public function previewEmail(int $id): void
+    {
+        $org = Auth::user()?->organization;
+
+        if (! $org instanceof Organization) {
+            abort(404);
+        }
+
+        $log = $this->donor->emailLogs()
+            ->whereKey($id)
+            ->when($org->getKey(), fn (Builder $q, int $orgId) => $q->where('organization_id', $orgId))
+            ->with(['donation.donor', 'donation.campaign.organization', 'subscription.donor', 'subscription.campaign.organization'])
+            ->firstOrFail();
+
+        $html = app(PreviewDonorEmail::class)->handle($log);
+
+        if ($html === null) {
+            $this->dispatch('notify', variant: 'danger', message: 'This email cannot be previewed.');
+
+            return;
+        }
+
+        $this->previewSubject = $log->subject;
+        $this->previewHtml = $html;
+        $this->showPreviewModal = true;
+    }
+
+    public function closePreviewModal(): void
+    {
+        $this->showPreviewModal = false;
+        $this->previewSubject = null;
+        $this->previewHtml = null;
     }
 
     private function scopedDonations(): HasMany

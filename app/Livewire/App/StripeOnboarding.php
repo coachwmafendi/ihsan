@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\App;
 
-use App\Actions\Stripe\CreateConnectAccount;
 use App\Models\User;
 use App\Services\AuditLogLogger;
 use Illuminate\Support\Facades\Auth;
@@ -82,21 +81,7 @@ class StripeOnboarding extends Component
             return;
         }
 
-        try {
-            $service = app(CreateConnectAccount::class);
-
-            if (! $org->stripe_account_id) {
-                $service->create($org);
-            }
-
-            $url = $service->generateOnboardingLink($org);
-        } catch (\Throwable) {
-            $this->dispatch('notify', message: 'Unable to start Stripe Connect onboarding. Please try again.', variant: 'danger');
-
-            return;
-        }
-
-        $this->redirect($url, navigate: false);
+        $this->redirect(route('stripe.connect.redirect'), navigate: false);
     }
 
     public function render()

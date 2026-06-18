@@ -77,7 +77,7 @@ class Organization extends Component
 
         $this->name = $org->name ?? '';
         $this->ros_rob_number = $org->ros_rob_number;
-        $this->description = $org->description;
+        $this->description = $org->description ? strip_tags($org->description) : null;
         $this->website_url = $org->website_url;
         $this->contact_email = $org->contact_email;
         $this->contact_phone = $org->contact_phone;

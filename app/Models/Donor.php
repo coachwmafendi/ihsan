@@ -117,6 +117,11 @@ class Donor extends Model
         return $this->hasMany(DonorPaymentMethod::class);
     }
 
+    public function emailLogs(): HasMany
+    {
+        return $this->hasMany(DonorEmailLog::class)->latest('sent_at');
+    }
+
     public function generateMagicToken(): string
     {
         $token = Str::random(64);

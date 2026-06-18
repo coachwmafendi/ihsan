@@ -12,6 +12,7 @@ use App\Enums\ElementType;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendLargeDonationNotification;
+use App\Jobs\SendMetaConversionEvent;
 use App\Jobs\SendNewDonationNotification;
 use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
@@ -19,6 +20,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
 use App\Services\FraudDetectionService;
+use App\Services\TrackingScriptService;
 use App\Support\ClientInfo;
 use App\Support\Currency;
 use Illuminate\Validation\Rule;
@@ -58,6 +60,8 @@ class DonationForm extends Component
     public string $currency = 'myr';
 
     public bool $coverFee = true;
+
+    public ?string $donationPublicId = null;
 
     /**
      * @return array<int, string>
@@ -261,6 +265,7 @@ class DonationForm extends Component
             }
 
             SendLargeDonationNotification::dispatch($donation);
+            SendMetaConversionEvent::dispatch($donation);
             SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
         } catch (\Exception $e) {
             // Log error silently
@@ -297,10 +302,25 @@ class DonationForm extends Component
 
         $campaignId = $this->element?->campaign_id ?? $this->campaign?->getKey();
 
+        $pageQuery = [];
+        if (filled($this->pageUrl)) {
+            $parsed = parse_url($this->pageUrl);
+            parse_str($parsed['query'] ?? '', $pageQuery);
+        }
+
         $utmParams = [
             'frequency' => $validated['frequency'],
             'dedicate' => (bool) ($validated['dedicate'] ?? false),
             'source' => $this->element ? 'element' : 'direct',
+            'utm_source' => $pageQuery['utm_source'] ?? null,
+            'utm_medium' => $pageQuery['utm_medium'] ?? null,
+            'utm_campaign' => $pageQuery['utm_campaign'] ?? null,
+            'utm_content' => $pageQuery['utm_content'] ?? null,
+            'utm_term' => $pageQuery['utm_term'] ?? null,
+            'fbclid' => $pageQuery['fbclid'] ?? null,
+            'gclid' => $pageQuery['gclid'] ?? null,
+            'ttclid' => $pageQuery['ttclid'] ?? null,
+            'referrer' => request()->header('referer'),
         ];
 
         if ($this->element) {
@@ -357,6 +377,8 @@ class DonationForm extends Component
             'utm_params' => $utmParams,
             ...$clientInfo,
         ]);
+
+        $this->donationPublicId = $donation->public_id;
 
         // Send fraud notifications for flagged donations (blocked donations throw before this)
         if ($fraudStatus === 'flagged') {
@@ -493,7 +515,13 @@ class DonationForm extends Component
             $this->campaign = Campaign::query()->find($this->campaign->getKey());
         }
 
+        $organization = $this->element?->campaign?->organization ?? $this->campaign?->organization;
+        $trackingConfigs = $organization ? TrackingScriptService::config($organization) : [];
+
         return view('livewire.donation-form')
-            ->layout($this->isEmbed ? 'layouts.embed' : ($this->isPopup ? 'layouts.popup' : 'layouts.donation'));
+            ->layout($this->isEmbed ? 'layouts.embed' : ($this->isPopup ? 'layouts.popup' : 'layouts.donation'), [
+                'organization' => $organization,
+                'trackingConfigs' => $trackingConfigs,
+            ]);
     }
 }

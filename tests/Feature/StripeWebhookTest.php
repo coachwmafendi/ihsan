@@ -8,6 +8,7 @@ use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendFailedPaymentNotification;
 use App\Jobs\SendLargeDonationNotification;
+use App\Jobs\SendMetaConversionEvent;
 use App\Jobs\SendNewDonationNotification;
 use App\Jobs\SendNewSubscriptionNotification;
 use App\Jobs\SyncDonationStripeDetailsJob;
@@ -19,6 +20,7 @@ use App\Models\MonthlyInvoice;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\Subscription;
+use App\Models\TrackingConfiguration;
 use App\Models\WebhookLog;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
@@ -756,6 +758,76 @@ it('splits fee cover from recurring invoice paid webhooks', function () {
     Queue::assertPushedTimes(SendNewDonationNotification::class, 1);
 });
 
+it('dispatches meta conversion event for payment intent succeeded webhook', function () {
+    Queue::fake([SendMetaConversionEvent::class, SendDonationReceipt::class, SyncDonationStripeDetailsJob::class]);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 50,
+        'net_amount' => 50,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::OneTime,
+        'stripe_payment_intent_id' => 'pi_meta_webhook_123',
+    ]);
+
+    TrackingConfiguration::factory()->for($organization)->meta()->create();
+
+    (new ProcessStripeWebhook(paymentIntentSucceededPayload($donation, 'evt_meta_webhook_123')))->handle();
+
+    Queue::assertPushed(SendMetaConversionEvent::class, function (SendMetaConversionEvent $job) use ($donation) {
+        return $job->donation->is($donation);
+    });
+});
+
+it('dispatches meta conversion event for recurring invoice paid webhook', function () {
+    Queue::fake([SendMetaConversionEvent::class, SendDonationReceipt::class, SendNewDonationNotification::class, SyncDonationStripeDetailsJob::class]);
+
+    $this->mock(SyncDonationStripeDetails::class, function ($mock): void {
+        $mock->shouldReceive('sync')
+            ->once()
+            ->andReturn([
+                'payment_intent' => StripePaymentIntent::constructFrom([
+                    'id' => 'pi_meta_invoice',
+                    'object' => 'payment_intent',
+                ]),
+                'charge_id' => 'ch_meta_invoice',
+            ]);
+    });
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create([
+        'stripe_subscription_id' => 'sub_meta_invoice',
+        'amount' => 30,
+        'fee_cover_amount' => 0,
+        'payment_count' => 1,
+    ]);
+
+    TrackingConfiguration::factory()->for($organization)->meta()->create();
+
+    (new ProcessStripeWebhook(donorInvoicePaidPayload(
+        subscriptionId: 'sub_meta_invoice',
+        eventId: 'evt_meta_invoice_paid',
+        invoiceId: 'in_meta_invoice',
+        amountPaid: 3000,
+        paymentIntentId: 'pi_meta_invoice',
+        chargeId: 'ch_meta_invoice',
+    )))->handle();
+
+    $donation = Donation::query()->where('stripe_invoice_id', 'in_meta_invoice')->first();
+
+    expect($donation)->not->toBeNull();
+
+    Queue::assertPushed(SendMetaConversionEvent::class, function (SendMetaConversionEvent $job) use ($donation) {
+        return $job->donation->is($donation);
+    });
+});
+
 function paymentIntentSucceededPayload(Donation $donation, string $eventId): string
 {
     return json_encode([
@@ -976,6 +1048,42 @@ function invoicePaymentFailedPayload(string $subscriptionId, int $attemptCount, 
     ], JSON_THROW_ON_ERROR);
 }
 
+it('sets stripe_onboarded_at when account becomes onboarded via webhook', function () {
+    $organization = Organization::factory()->create([
+        'stripe_account_id' => 'acct_onboarded_webhook',
+        'stripe_onboarded' => false,
+        'stripe_onboarded_at' => null,
+    ]);
+
+    $payload = accountUpdatedPayload('acct_onboarded_webhook', true, 'evt_account_onboarded');
+
+    (new ProcessStripeWebhook($payload))->handle();
+
+    $organization->refresh();
+
+    expect($organization->stripe_onboarded)->toBeTrue()
+        ->and($organization->stripe_onboarded_at)->not->toBeNull();
+});
+
+it('does not overwrite existing stripe_onboarded_at on subsequent account webhooks', function () {
+    $onboardedAt = now()->subDays(5);
+
+    $organization = Organization::factory()->create([
+        'stripe_account_id' => 'acct_already_onboarded',
+        'stripe_onboarded' => true,
+        'stripe_onboarded_at' => $onboardedAt,
+    ]);
+
+    $payload = accountUpdatedPayload('acct_already_onboarded', true, 'evt_account_already_onboarded');
+
+    (new ProcessStripeWebhook($payload))->handle();
+
+    $organization->refresh();
+
+    expect($organization->stripe_onboarded)->toBeTrue()
+        ->and($organization->stripe_onboarded_at->toDateTimeString())->toBe($onboardedAt->toDateTimeString());
+});
+
 it('rejects webhook with invalid payload', function () {
     $response = $this->call('POST', route('stripe.webhook'), content: 'not-json', server: [
         'HTTP_Stripe-Signature' => 't=123,v1=whatever',
@@ -983,3 +1091,19 @@ it('rejects webhook with invalid payload', function () {
 
     $response->assertStatus(400);
 });
+
+function accountUpdatedPayload(string $accountId, bool $chargesEnabled, string $eventId): string
+{
+    return json_encode([
+        'id' => $eventId,
+        'object' => 'event',
+        'type' => 'account.updated',
+        'data' => [
+            'object' => [
+                'id' => $accountId,
+                'object' => 'account',
+                'charges_enabled' => $chargesEnabled,
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+}

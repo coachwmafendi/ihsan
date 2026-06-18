@@ -6,6 +6,7 @@ use App\Enums\TrackingProvider;
 use App\Enums\TrackingProviderStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['organization_id', 'provider', 'is_enabled', 'credentials', 'options', 'status', 'error_message', 'last_tested_at', 'last_event_at'])]
 class TrackingConfiguration extends Model
 {
+    use HasFactory;
+
     protected function casts(): array
     {
         return [

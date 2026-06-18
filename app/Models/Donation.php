@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
@@ -201,9 +202,30 @@ class Donation extends Model
         return $this->hasOne(ProcessingFee::class);
     }
 
+    public function emailLogs(): HasMany
+    {
+        return $this->hasMany(DonorEmailLog::class);
+    }
+
     public function currencySymbol(): Attribute
     {
         return Attribute::get(fn () => Currency::symbol($this->currency));
+    }
+
+    public function element(): Attribute
+    {
+        return Attribute::get(function (): ?Element {
+            $utm = $this->utm_params;
+            $utm = is_string($utm) ? json_decode($utm, true) ?? [] : ($utm ?? []);
+
+            $token = $utm['element_token'] ?? null;
+
+            if (! $token) {
+                return null;
+            }
+
+            return Element::where('token', $token)->first();
+        });
     }
 
     public function elementLabel(): Attribute

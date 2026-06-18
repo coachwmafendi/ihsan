@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Actions\DonorEmailLog\LogDonorEmail;
 use App\Actions\Stripe\CreateRecurringSubscription;
 use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\DonationStatus;
@@ -135,6 +136,7 @@ class ProcessStripeWebhook implements ShouldQueue
             }
 
             SendLargeDonationNotification::dispatch($donation);
+            SendMetaConversionEvent::dispatch($donation);
         }
 
         SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
@@ -311,6 +313,7 @@ class ProcessStripeWebhook implements ShouldQueue
         SendDonationReceipt::dispatch($donation);
         SendNewDonationNotification::dispatch($donation);
         SendLargeDonationNotification::dispatch($donation);
+        SendMetaConversionEvent::dispatch($donation);
         SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
     }
 
@@ -379,8 +382,21 @@ class ProcessStripeWebhook implements ShouldQueue
         $isFinalAttempt = $is27th && $retryCount >= 4;
 
         if ($retryCount === 1 || $retryCount === 2 || $retryCount === 3 || $isFinalAttempt) {
+            $mailable = new DonorDunningNotification($subscription, $retryCount, $isFinalAttempt);
+
             Mail::to($subscription->donor->email)
-                ->queue(new DonorDunningNotification($subscription, $retryCount, $isFinalAttempt));
+                ->queue($mailable);
+
+            app(LogDonorEmail::class)->handle(
+                donor: $subscription->donor,
+                mailable: $mailable,
+                organization: $subscription->campaign?->organization,
+                subscription: $subscription,
+                metadata: [
+                    'retry_count' => $retryCount,
+                    'is_final_attempt' => $isFinalAttempt,
+                ],
+            );
         }
 
         if ($invoice->next_payment_attempt === null) {
@@ -468,10 +484,20 @@ class ProcessStripeWebhook implements ShouldQueue
     {
         $account = $event->data->object;
 
-        Organization::query()
+        $organization = Organization::query()
             ->where('stripe_account_id', $account->id)
-            ->update([
-                'stripe_onboarded' => $account->charges_enabled,
-            ]);
+            ->first();
+
+        if (! $organization) {
+            return;
+        }
+
+        $updates = ['stripe_onboarded' => $account->charges_enabled];
+
+        if ($account->charges_enabled && $organization->stripe_onboarded_at === null) {
+            $updates['stripe_onboarded_at'] = now();
+        }
+
+        $organization->update($updates);
     }
 }

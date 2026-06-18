@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 use App\Enums\UserRole;
 use App\Livewire\App\Supporters\SupporterShow;
+use App\Mail\DonationReceipt;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\DonorEmailLog;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 
 it('renders the supporter detail page with sections and menus', function () {
@@ -189,4 +192,147 @@ it('opens the edit modal and saves the supporter details', function () {
         ->email->toBe('siti@example.com');
 
     $component->assertSet('editing', false);
+});
+
+it('renders the emails section with sent emails for the donor', function () {
+    Mail::fake();
+
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    DonorEmailLog::factory()->donation($donation)->create([
+        'subject' => 'Your Donation Receipt — ihsan.test',
+        'sent_at' => now()->subDay(),
+    ]);
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Emails')
+        ->assertSee('Sent')
+        ->assertSee('Subject')
+        ->assertSee('Opened')
+        ->assertSee('Resend')
+        ->assertSee('Your Donation Receipt — ihsan.test');
+});
+
+it('shows empty state when no emails have been sent to the donor', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Emails')
+        ->assertSee('No emails yet');
+});
+
+it('does not show email logs from other organizations', function () {
+    Mail::fake();
+
+    $organization = Organization::factory()->create();
+    $otherOrganization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    DonorEmailLog::factory()->donation($donation)->create([
+        'organization_id' => $otherOrganization->getKey(),
+        'subject' => 'Other Org Email',
+        'sent_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Emails')
+        ->assertDontSee('Other Org Email')
+        ->assertSee('No emails yet');
+});
+
+it('resends a donation receipt email and creates a new log entry', function () {
+    Mail::fake();
+
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    $log = DonorEmailLog::factory()->donation($donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — ihsan.test',
+        'sent_at' => now()->subDay(),
+    ]);
+
+    $component = Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor]);
+
+    $component->call('resendEmail', $log->getKey())
+        ->assertDispatched('notify', variant: 'success');
+
+    Mail::assertQueued(DonationReceipt::class, function (DonationReceipt $mail) use ($donation) {
+        return $mail->donation->is($donation);
+    });
+
+    expect($log->fresh()->resends)->toHaveCount(1);
+});
+
+it('opens a preview modal with rendered email html when subject is clicked', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    $log = DonorEmailLog::factory()->donation($donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — ihsan.test',
+    ]);
+
+    $component = Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor]);
+
+    $component->call('previewEmail', $log->getKey())
+        ->assertSet('showPreviewModal', true)
+        ->assertSet('previewSubject', $log->subject)
+        ->assertSet('previewHtml', fn ($html) => is_string($html) && str_contains($html, 'Thank you for your donation!'));
+});
+
+it('notifies the user when an email cannot be previewed', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    $log = DonorEmailLog::factory()->donation($donation)->create([
+        'mailable_class' => 'App\\Mail\\UnknownMailable',
+        'subject' => 'Unknown email',
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->call('previewEmail', $log->getKey())
+        ->assertSet('showPreviewModal', false)
+        ->assertDispatched('notify', variant: 'danger');
 });

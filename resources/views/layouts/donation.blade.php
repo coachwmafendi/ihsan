@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
+        <x-tracking-scripts :organization="$organization ?? null" :configs="$trackingConfigs ?? null" />
         <script src="https://js.stripe.com/v3/"></script>
         @livewireStyles
     </head>
@@ -20,7 +21,7 @@
             document.addEventListener('alpine:init', () => {
                 if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
                     Alpine._donationStepRegistered = true;
-                    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialCurrencySymbol = 'RM') => {
+                    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null) => {
                         let stripe = null;
                         let elements = null;
                         let paymentElement = null;
@@ -39,6 +40,8 @@
                             feeConfig: initialFeeConfig,
                             coverFee: initialCoverFee,
                             isEmbed: initialIsEmbed,
+                            isPopup: initialIsPopup,
+                            donationPublicId: initialDonationPublicId,
                             processing: false,
                             currentStep: initialStep > 1 ? initialStep : 1,
                             stepErrors: {},
@@ -164,7 +167,31 @@
                                     return;
                                 }
                                 this.currentStep++;
+                                if (this.currentStep === 2) this.trackInitiateCheckout();
                                 if (this.currentStep === 3) this.$nextTick(() => this.mountPaymentElement());
+                            },
+                            trackInitiateCheckout() {
+                                if (typeof window.IhsanTrack !== 'function') return;
+                                const amountNumber = parseFloat(this.amount);
+                                if (!Number.isFinite(amountNumber) || amountNumber <= 0) return;
+                                window.IhsanTrack('InitiateCheckout', {
+                                    value: amountNumber,
+                                    currency: this.currency.toUpperCase(),
+                                    content_type: 'product',
+                                    contents: [{ id: 'donation', quantity: 1, item_price: amountNumber }],
+                                });
+                            },
+                            trackPurchase() {
+                                if (typeof window.IhsanTrack !== 'function') return;
+                                if (!this.donationPublicId) return;
+                                const amountNumber = parseFloat(this.amount);
+                                if (!Number.isFinite(amountNumber) || amountNumber <= 0) return;
+                                window.IhsanTrack('Purchase', {
+                                    value: amountNumber,
+                                    currency: this.currency.toUpperCase(),
+                                    content_type: 'product',
+                                    contents: [{ id: 'donation', quantity: 1, item_price: amountNumber }],
+                                }, { eventID: 'purchase_' + this.donationPublicId });
                             },
                             prevStep() { if (this.currentStep > 1) this.currentStep--; },
                             async init() {
@@ -206,8 +233,10 @@
                                     redirect: 'if_required',
                                 });
                                 if (confirmError) { this.processing = false; this.currentStep = 'error'; this.cardError = confirmError.message; return; }
+                                this.donationPublicId = $wire.donationPublicId;
                                 this.processing = false;
                                 this.currentStep = 'success';
+                                this.trackPurchase();
                             },
                         };
                     });

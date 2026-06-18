@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Actions\DonorEmailLog\LogDonorEmail;
 use App\Enums\DonationStatus;
 use App\Mail\CampaignCompletedDonorNotification;
 use App\Models\Campaign;
@@ -44,11 +45,21 @@ class SendCampaignCompletedDonorNotification implements ShouldQueue
         }
 
         Donor::query()->whereIn('id', $donorIds)->each(function (Donor $donor) {
-            Mail::to($donor->email)
-                ->queue(new CampaignCompletedDonorNotification(
-                    campaign: $this->campaign,
-                    donor: $donor,
-                ));
+            $mailable = new CampaignCompletedDonorNotification(
+                campaign: $this->campaign,
+                donor: $donor,
+            );
+
+            Mail::to($donor->email)->queue($mailable);
+
+            app(LogDonorEmail::class)->handle(
+                donor: $donor,
+                mailable: $mailable,
+                organization: $this->campaign->organization,
+                metadata: [
+                    'campaign_id' => $this->campaign->getKey(),
+                ],
+            );
         });
     }
 }
