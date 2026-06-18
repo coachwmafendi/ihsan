@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\DonationStatus;
 use App\Enums\TrackingProvider;
 use App\Models\Donation;
 use App\Models\TrackingConfiguration;
@@ -35,6 +36,10 @@ class SendSnapchatConversionEvent implements ShouldQueue
             return;
         }
 
+        if ($this->donation->status !== DonationStatus::Succeeded) {
+            return;
+        }
+
         $config = TrackingConfiguration::query()
             ->where('organization_id', $organization->id)
             ->where('provider', TrackingProvider::Snapchat)
@@ -64,13 +69,17 @@ class SendSnapchatConversionEvent implements ShouldQueue
                 ->connectTimeout(10)
                 ->post('https://tr.snapchat.com/v2/conversion', [
                     'pixel_id' => $pixelId,
-                    'event_type' => 'PURCHASE',
-                    'event_conversion_type' => 'WEB',
-                    'event_time' => $this->donation->updated_at?->toIso8601String() ?? now()->toIso8601String(),
-                    'event_id' => 'purchase_'.$this->donation->public_id,
-                    'hashed_email' => $event['user_data']['em'] ?? '',
-                    'price' => (float) ($this->donation->base_amount ?? $this->donation->gross_amount),
-                    'currency' => strtoupper($this->donation->currency),
+                    'events' => [
+                        [
+                            'event_type' => 'PURCHASE',
+                            'event_conversion_type' => 'WEB',
+                            'event_time' => $this->donation->updated_at?->getTimestamp() ?? now()->getTimestamp(),
+                            'event_id' => 'purchase_'.$this->donation->public_id,
+                            'hashed_email' => $event['user_data']['em'] ?? '',
+                            'price' => (float) ($this->donation->base_amount ?? $this->donation->gross_amount),
+                            'currency' => strtoupper($this->donation->currency),
+                        ],
+                    ],
                 ]);
 
             $this->recordEvent($event, $response->successful() ? 'sent' : 'failed', $response->json() ?: ['body' => $response->body()]);

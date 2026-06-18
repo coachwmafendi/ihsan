@@ -90,7 +90,9 @@ it('sends snapchat purchase conversion via api', function () {
     (new SendSnapchatConversionEvent($donation))->handle();
 
     Http::assertSent(function ($request) {
-        return str_starts_with($request->url(), 'https://tr.snapchat.com/v2/conversion');
+        return str_starts_with($request->url(), 'https://tr.snapchat.com/v2/conversion')
+            && is_array($request->data()['events'] ?? null)
+            && ($request->data()['events'][0]['event_type'] ?? null) === 'PURCHASE';
     });
 
     $event = TrackingEvent::query()->firstOrFail();
