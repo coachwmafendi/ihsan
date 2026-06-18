@@ -15,9 +15,11 @@ it('shows both embed options and the loader snippet', function () {
     $this->actingAs($user)
         ->get(route('app.settings.installation'))
         ->assertOk()
-        ->assertSee('Per-element snippet', false)
-        ->assertSee('Universal loader', false)
-        ->assertSee('No loader required', false)
+        ->assertSee('Copy-paste ready code', false)
+        ->assertSee('One script for custom buttons', false)
+        ->assertSee('No extra script needed', false)
+        ->assertSee('Easiest option', false)
+        ->assertSee('Developer / advanced option', false)
         ->assertSee(url('/e/loader.js'), false)
         ->assertSee('data-ihsan-loader', false);
 });
