@@ -66,6 +66,26 @@ class CampaignCreate extends Component
         $this->suggested_amounts = array_values($this->suggested_amounts);
     }
 
+    public function toggleHasTarget(): void
+    {
+        $this->has_target = ! $this->has_target;
+    }
+
+    public function toggleHasEndDate(): void
+    {
+        $this->has_end_date = ! $this->has_end_date;
+    }
+
+    public function toggleAllowRecurring(): void
+    {
+        $this->allow_recurring = ! $this->allow_recurring;
+    }
+
+    public function toggleAllowCustomAmount(): void
+    {
+        $this->allow_custom_amount = ! $this->allow_custom_amount;
+    }
+
     public function save(): void
     {
         $validated = $this->validate();

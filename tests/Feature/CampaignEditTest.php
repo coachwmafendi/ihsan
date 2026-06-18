@@ -10,6 +10,8 @@ use App\Models\Campaign;
 use App\Models\Element;
 use App\Models\Organization;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -80,6 +82,42 @@ it('updates a campaign', function () {
     expect($campaign->title)->toBe('Updated Title')
         ->and($campaign->status->value)->toBe('active')
         ->and($campaign->config['allow_cover_fee'] ?? true)->toBeFalse();
+});
+
+it('toggles has_target and has_end_date on and off', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'has_target' => false,
+        'has_end_date' => false,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSet('has_target', false)
+        ->assertSet('has_end_date', false)
+        ->call('toggleHasTarget')
+        ->assertSet('has_target', true)
+        ->call('toggleHasEndDate')
+        ->assertSet('has_end_date', true)
+        ->call('toggleHasTarget')
+        ->assertSet('has_target', false)
+        ->call('toggleHasEndDate')
+        ->assertSet('has_end_date', false);
+});
+
+it('accepts a new campaign image for preview', function () {
+    Storage::fake('public');
+
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->set('image', UploadedFile::fake()->image('campaign.jpg'))
+        ->assertHasNoErrors('image');
 });
 
 it('sanitizes target amount to seven whole-number digits and other amounts to five', function () {

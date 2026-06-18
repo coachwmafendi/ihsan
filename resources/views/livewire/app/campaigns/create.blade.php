@@ -55,7 +55,7 @@
                     <input
                         type="file"
                         id="image"
-                        wire:model="image"
+                        wire:model.live="image"
                         accept="image/*"
                         class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100"
                     />
@@ -81,7 +81,7 @@
                     </div>
                     <button
                         type="button"
-                        wire:click="$toggle('has_target')"
+                        wire:click="toggleHasTarget"
                         class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $has_target ? 'bg-teal-600' : 'bg-slate-200' }}"
                         role="switch"
                         aria-checked="{{ $has_target ? 'true' : 'false' }}"
@@ -115,7 +115,7 @@
                     </div>
                     <button
                         type="button"
-                        wire:click="$toggle('has_end_date')"
+                        wire:click="toggleHasEndDate"
                         class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $has_end_date ? 'bg-teal-600' : 'bg-slate-200' }}"
                         role="switch"
                         aria-checked="{{ $has_end_date ? 'true' : 'false' }}"
@@ -149,7 +149,7 @@
                     </div>
                     <button
                         type="button"
-                        wire:click="$toggle('allow_recurring')"
+                        wire:click="toggleAllowRecurring"
                         class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $allow_recurring ? 'bg-teal-600' : 'bg-slate-200' }}"
                         role="switch"
                         aria-checked="{{ $allow_recurring ? 'true' : 'false' }}"
@@ -167,7 +167,7 @@
                     </div>
                     <button
                         type="button"
-                        wire:click="$toggle('allow_custom_amount')"
+                        wire:click="toggleAllowCustomAmount"
                         class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $allow_custom_amount ? 'bg-teal-600' : 'bg-slate-200' }}"
                         role="switch"
                         aria-checked="{{ $allow_custom_amount ? 'true' : 'false' }}"

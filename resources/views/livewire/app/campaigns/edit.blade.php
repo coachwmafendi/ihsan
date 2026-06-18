@@ -233,7 +233,9 @@
                     <div>
                         <label for="image" class="block text-sm font-medium text-slate-700">Campaign Image</label>
                         <div class="mt-1 flex items-center gap-4">
-                            @if ($existing_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing_image))
+                            @if ($image)
+                                <img src="{{ $image->temporaryUrl() }}" alt="New campaign image preview" class="h-20 w-20 rounded-lg object-cover border border-slate-200" />
+                            @elseif ($existing_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing_image))
                                 <img src="{{ Storage::disk('public')->url($existing_image) }}" alt="Current campaign image" class="h-20 w-20 rounded-lg object-cover border border-slate-200" />
                             @else
                                 <div class="flex h-20 w-20 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
@@ -244,7 +246,7 @@
                                 <input
                                     type="file"
                                     id="image"
-                                    wire:model="image"
+                                    wire:model.live="image"
                                     accept="image/*"
                                     class="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100"
                                 />
@@ -275,7 +277,7 @@
                         </div>
                         <button
                             type="button"
-                            wire:click="$toggle('has_target')"
+                            wire:click="toggleHasTarget"
                             class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $has_target ? 'bg-teal-600' : 'bg-slate-200' }}"
                             role="switch"
                             aria-checked="{{ $has_target ? 'true' : 'false' }}"
@@ -312,7 +314,7 @@
                         </div>
                         <button
                             type="button"
-                            wire:click="$toggle('has_end_date')"
+                            wire:click="toggleHasEndDate"
                             class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $has_end_date ? 'bg-teal-600' : 'bg-slate-200' }}"
                             role="switch"
                             aria-checked="{{ $has_end_date ? 'true' : 'false' }}"
@@ -623,7 +625,7 @@
                                     </div>
                                     <button
                                         type="button"
-                                        wire:click="$toggle('allow_cover_fee')"
+                                        wire:click="toggleAllowCoverFee"
                                         class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $allow_cover_fee ? 'bg-teal-600' : 'bg-slate-200' }}"
                                         role="switch"
                                         aria-checked="{{ $allow_cover_fee ? 'true' : 'false' }}"
@@ -635,7 +637,7 @@
                                 <div class="rounded-lg bg-slate-50 p-4">
                                     <div class="flex items-start gap-2 text-sm text-slate-700">
                                         <x-heroicon-o-information-circle class="mt-0.5 size-5 shrink-0 text-slate-400" />
-                                        <span>Platform processing fee is <strong>{{ number_format((float) config('services.stripe.processing_fee_percent', 2.5), 1) }}%</strong> plus a fixed fee per transaction.</span>
+                                        <span>Processing fee is <strong>{{ number_format((float) config('services.stripe.processing_fee_percent', 2.5), 1) }}%</strong> plus a fixed fee per transaction.</span>
                                     </div>
                                 </div>
 

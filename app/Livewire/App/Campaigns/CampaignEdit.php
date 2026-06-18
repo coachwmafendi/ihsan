@@ -577,6 +577,21 @@ class CampaignEdit extends Component
         $this->existing_image = null;
     }
 
+    public function toggleHasTarget(): void
+    {
+        $this->has_target = ! $this->has_target;
+    }
+
+    public function toggleHasEndDate(): void
+    {
+        $this->has_end_date = ! $this->has_end_date;
+    }
+
+    public function toggleAllowCoverFee(): void
+    {
+        $this->allow_cover_fee = ! $this->allow_cover_fee;
+    }
+
     public function render()
     {
         return view('livewire.app.campaigns.edit', [
