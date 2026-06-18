@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CampaignStatus;
 use App\Enums\ElementType;
 use App\Models\Element;
 use App\Support\Currency;
@@ -19,7 +20,10 @@ class PublicElementController extends Controller
             ->with('campaign')
             ->first();
 
-        if (! $element) {
+        if (
+            ! $element
+            || ($element->campaign !== null && $element->campaign->status !== CampaignStatus::Active)
+        ) {
             return response()->json(['error' => 'Element not found'], 404)
                 ->header('Access-Control-Allow-Origin', '*');
         }

@@ -119,7 +119,9 @@ class DonationForm extends Component
 
         if ($element instanceof Element) {
             abort_if(
-                ! $element->is_active || $element->campaign === null,
+                ! $element->is_active
+                    || $element->campaign === null
+                    || $element->campaign->status !== CampaignStatus::Active,
                 404
             );
 
@@ -141,7 +143,9 @@ class DonationForm extends Component
             // Direct initialization (tests) via pre-set property
             $element = $this->element;
             abort_if(
-                ! $element->is_active || $element->campaign === null,
+                ! $element->is_active
+                    || $element->campaign === null
+                    || $element->campaign->status !== CampaignStatus::Active,
                 404
             );
 

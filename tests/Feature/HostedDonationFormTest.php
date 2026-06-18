@@ -64,6 +64,23 @@ it('renders a hosted donation form for an active form element token', function (
         ->assertSee('x-show="currentStep === \'error\'"', false);
 });
 
+it('returns 404 for an active element linked to a draft campaign', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'status' => CampaignStatus::Draft,
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Popup,
+        'is_active' => true,
+    ]);
+
+    $this->get(route('donations.show', $element))
+        ->assertNotFound();
+
+    Livewire::test(DonationForm::class, ['element' => $element])
+        ->assertNotFound();
+});
+
 it('uses the saved secure donation template for standard form elements', function () {
     $organization = Organization::factory()->create([
         'name' => 'PUSAT TAHFIZ ANNUR',

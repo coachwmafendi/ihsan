@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CampaignStatus;
 use App\Enums\ElementType;
 use App\Models\Campaign;
 use App\Models\Element;
@@ -86,6 +87,20 @@ it('returns an optimized campaign image url for widget preloading', function () 
             'campaign_image_url',
             url('/donate/campaign/IMAGE2026/image?variant=modal')
         );
+});
+
+it('returns 404 when the linked campaign is not active', function () {
+    $org = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create([
+        'status' => CampaignStatus::Draft,
+    ]);
+    $element = Element::factory()->for($org)->for($campaign)->create([
+        'type' => ElementType::FloatingButton,
+        'is_active' => true,
+    ]);
+
+    $this->getJson(route('api.public.elements.show', $element->token))
+        ->assertNotFound();
 });
 
 it('returns element data with merged default settings for floating button', function () {

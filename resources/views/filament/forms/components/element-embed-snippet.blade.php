@@ -2,7 +2,7 @@
     use App\Support\EmbedWidget;
 
     $type = $liveType ?? ($element?->type?->value ?? null);
-    $baseUrl = config('app.url');
+    $baseUrl = url('/');
     $widgetSrc = EmbedWidget::scriptUrl();
     $token = $element?->token;
 @endphp
