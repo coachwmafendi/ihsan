@@ -76,3 +76,17 @@ it('includes organization contact footer in donor receipt', function () {
     $mailable->assertSeeInHtml('maahad@example.com');
     $mailable->assertSeeInHtml('https://maahad.example.com');
 });
+
+it('renders receipt in donor locale when set to malay', function () {
+    $organization = Organization::factory()->create(['name' => 'Test Org']);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create(['locale' => 'ms', 'name' => 'Ahmad']);
+    $donation = Donation::factory()->for($campaign)->for($donor)->create();
+
+    $mailable = new DonationReceipt($donation);
+
+    $mailable->assertHasSubject('Resit Derma Anda — Test Org');
+    $mailable->assertSeeInHtml('Terima kasih atas derma anda!');
+    $mailable->assertSeeInHtml('Hi Ahmad');
+    $mailable->assertSeeInHtml('Organisasi');
+});

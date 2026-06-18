@@ -1,22 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; color: #1a1a2e;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #0f766e; margin: 0 0 16px 0;">{{ $organization->name }} — Donor Portal</h2>
+@extends('emails.layouts.donor', ['organization' => $organization, 'locale' => $locale])
 
-        <p>Hi <strong>{{ $donor->name }}</strong>,</p>
+@php
+    $t = fn (string $key, array $replace = []) => trans($key, $replace, $locale);
+@endphp
 
-        <p>Click the button below to access your donation portal where you can view your donation history, manage subscriptions, and download receipts.</p>
+@section('title', $t('emails.magic_link.title', ['name' => $organization->name]))
 
-        <a href="{{ route('donorportal.magic-login', ['organization' => $organization, 'token' => $token]) }}"
-           style="display: inline-block; padding: 12px 24px; background-color: #0f766e; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0;">
-            Access Donation Portal
-        </a>
+@section('content')
+    <h2 style="color: #0f766e; margin: 0 0 16px 0;">{{ $t('emails.magic_link.title', ['name' => $organization->name]) }}</h2>
 
-        <p style="color: #94a3b8; font-size: 14px;">This link expires in 24 hours. If you did not request this, please ignore this email.</p>
+    <p>{{ $t('emails.common.greeting', ['name' => $donor->name]) }},</p>
 
-        @include('emails.partials.org-footer', ['organization' => $organization])
-    </div>
-</body>
-</html>
+    <p>{{ $t('emails.magic_link.intro') }}</p>
+
+    <a href="{{ route('donorportal.magic-login', ['organization' => $organization, 'token' => $token]) }}"
+       style="display: inline-block; padding: 12px 24px; background-color: #0f766e; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0;">
+        {{ $t('emails.magic_link.button') }}
+    </a>
+
+    <p style="color: #94a3b8; font-size: 14px;">{{ $t('emails.magic_link.expiry') }}</p>
+@endsection

@@ -1,0 +1,77 @@
+<?php
+
+return [
+    'common' => [
+        'greeting' => 'Hi :name',
+    ],
+
+    'receipt' => [
+        'subject' => 'Your Donation Receipt — :name',
+        'title' => 'Thank you for your donation!',
+        'intro' => 'Your donation of :amount to :campaign has been received successfully.',
+        'recurring_note' => 'This is a recurring donation. You will receive a receipt for each successful payment.',
+        'donation' => 'Donation',
+        'amount' => 'Amount',
+        'processing_fee' => 'Processing Fee',
+        'total_charged' => 'Total Charged',
+        'campaign' => 'Campaign',
+        'organization' => 'Organization',
+        'date' => 'Date',
+        'payment_method' => 'Payment Method',
+        'status' => 'Status',
+        'successful' => 'Successful',
+        'closing' => 'Thank you for your support!',
+        'donor_portal_cta' => 'Go to your donor portal',
+        'donor_portal_text' => 'to view your donation history, manage subscriptions, and download receipts.',
+    ],
+
+    'dunning' => [
+        'subject_final' => 'Last Chance to Update Payment — :name',
+        'subject_almost_final' => 'Final Attempt Tomorrow — :name',
+        'subject_default' => 'Payment Failed — Update Your Card — :name',
+        'heading_final' => 'Last Chance This Month',
+        'heading_almost_final' => 'Final Attempt Tomorrow',
+        'heading_default' => 'Payment Failed',
+        'intro_final' => 'This is the final attempt to process your recurring donation for :campaign this month.',
+        'intro_almost_final' => 'Tomorrow is the final attempt to process your recurring donation for :campaign.',
+        'intro_default' => 'We couldn\'t process your recurring donation for :campaign.',
+        'campaign' => 'Campaign',
+        'amount' => 'Amount',
+        'frequency' => 'Frequency',
+        'attempt' => 'Attempt',
+        'update_payment' => 'Update Payment Method',
+        'already_updated' => 'If you\'ve already updated your card, no action needed — Stripe will retry automatically.',
+        'final' => 'final',
+        'attempt_note' => 'This is attempt #:retry of :total for this billing period.',
+    ],
+
+    'subscription_amount_changed' => [
+        'subject' => 'Subscription Amount Updated — :name',
+        'title' => 'Subscription Amount Updated',
+        'intro' => 'The recurring donation for :campaign has been updated from :previous to :amount per :interval.',
+        'donor' => 'Donor',
+        'previous_amount' => 'Previous Amount',
+        'new_amount' => 'New Amount',
+        'frequency' => 'Frequency',
+        'campaign' => 'Campaign',
+        'date' => 'Date',
+        'reason' => 'You are receiving this because a recurring donation amount was updated.',
+        'donor_portal_cta' => 'Go to your donor portal',
+        'donor_portal_text' => 'to view your donation history, manage subscriptions, and download receipts.',
+    ],
+
+    'campaign_completed' => [
+        'subject' => 'Target Reached — :campaign',
+        'title' => 'Target Reached!',
+        'intro' => 'Thank you for your support! The campaign :campaign by :organization has successfully reached its target of :amount.',
+        'thanks' => 'Every donation you made helped make this campaign a success. We truly appreciate your contribution.',
+        'reason' => 'You are receiving this because you donated to this campaign.',
+    ],
+
+    'magic_link' => [
+        'title' => ':name — Donor Portal',
+        'intro' => 'Click the button below to access your donation portal where you can view your donation history, manage subscriptions, and download receipts.',
+        'button' => 'Access Donation Portal',
+        'expiry' => 'This link expires in 24 hours. If you did not request this, please ignore this email.',
+    ],
+];

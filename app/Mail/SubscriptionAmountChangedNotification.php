@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Http\Controllers\DonorNotificationController;
+use App\Mail\Concerns\SetsDonorLocale;
 use App\Models\Subscription;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -13,7 +14,7 @@ use Illuminate\Queue\SerializesModels;
 
 class SubscriptionAmountChangedNotification extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, SetsDonorLocale;
 
     public function __construct(
         public Subscription $subscription,
@@ -26,12 +27,15 @@ class SubscriptionAmountChangedNotification extends Mailable
     {
         $org = $this->subscription->campaign?->organization;
         $orgName = $org?->name ?? config('app.name');
+        $locale = $this->isDonor
+            ? $this->donorLocale($this->subscription->donor)
+            : config('app.locale');
 
         return new Envelope(
             from: $this->isDonor
                 ? new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName)
                 : null,
-            subject: 'Subscription Amount Updated — '.$orgName,
+            subject: trans('emails.subscription_amount_changed.subject', ['name' => $orgName], $locale),
         );
     }
 
@@ -43,6 +47,9 @@ class SubscriptionAmountChangedNotification extends Mailable
             view: 'emails.subscription-amount-changed-notification',
             with: [
                 'donor' => $donor,
+                'locale' => $this->isDonor
+                    ? $this->donorLocale($donor)
+                    : config('app.locale'),
                 'unsubscribeUrl' => $donor ? DonorNotificationController::unsubscribeUrl($donor) : null,
             ],
         );

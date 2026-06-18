@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Http\Controllers\DonorNotificationController;
+use App\Mail\Concerns\SetsDonorLocale;
 use App\Models\Campaign;
 use App\Models\Donor;
 use Illuminate\Bus\Queueable;
@@ -14,7 +15,7 @@ use Illuminate\Queue\SerializesModels;
 
 class CampaignCompletedDonorNotification extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, SetsDonorLocale;
 
     public function __construct(
         public Campaign $campaign,
@@ -25,10 +26,11 @@ class CampaignCompletedDonorNotification extends Mailable
     {
         $org = $this->campaign->organization;
         $orgName = $org?->name ?? config('app.name');
+        $locale = $this->donorLocale($this->donor);
 
         return new Envelope(
             from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName),
-            subject: '🎉 Target Tercapai — '.$this->campaign->title,
+            subject: trans('emails.campaign_completed.subject', ['campaign' => $this->campaign->title], $locale),
         );
     }
 
@@ -38,6 +40,7 @@ class CampaignCompletedDonorNotification extends Mailable
             view: 'emails.campaign-completed-donor-notification',
             with: [
                 'donor' => $this->donor,
+                'locale' => $this->donorLocale($this->donor),
                 'unsubscribeUrl' => DonorNotificationController::unsubscribeUrl($this->donor),
             ],
         );

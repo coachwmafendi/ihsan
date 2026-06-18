@@ -1,57 +1,60 @@
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; color: #1a1a2e;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #2563eb;">Subscription Amount Updated</h1>
+@extends('emails.layouts.donor', ['organization' => $subscription->campaign->organization, 'locale' => $locale])
 
-        <p>Hi <strong>{{ $recipientName ?? 'there' }}</strong>,</p>
+@php
+    $t = fn (string $key, array $replace = []) => trans($key, $replace, $locale);
+@endphp
 
-        <p>
-            The recurring donation for <strong>{{ $subscription->campaign->title }}</strong>
-            has been updated from <strong>{{ $subscription->currency_symbol }} {{ number_format($previousAmount, 2) }}</strong>
-            to <strong>{{ $amountDisplay }}</strong> per {{ $subscription->interval->value }}.
+@section('title', $t('emails.subscription_amount_changed.title'))
+
+@section('content')
+    <h1 style="color: #2563eb;">{{ $t('emails.subscription_amount_changed.title') }}</h1>
+
+    <p>{{ $t('emails.common.greeting', ['name' => $donor->name]) }},</p>
+
+    <p>
+        {{ $t('emails.subscription_amount_changed.intro', [
+            'campaign' => $subscription->campaign->title,
+            'previous' => $subscription->currency_symbol.' '.number_format($previousAmount, 2),
+            'amount' => $amountDisplay,
+            'interval' => $subscription->interval->value,
+        ]) }}
+    </p>
+
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.subscription_amount_changed.donor') }}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $subscription->donor->name }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.subscription_amount_changed.previous_amount') }}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $subscription->currency_symbol }} {{ number_format($previousAmount, 2) }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.subscription_amount_changed.new_amount') }}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $amountDisplay }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.subscription_amount_changed.frequency') }}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ str($subscription->interval->value)->headline() }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.subscription_amount_changed.campaign') }}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $subscription->campaign->title }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; color: #64748b;">{{ $t('emails.subscription_amount_changed.date') }}</td>
+            <td style="padding: 8px;">{{ now()->format('d M Y, h:i A') }}</td>
+        </tr>
+    </table>
+
+    <p style="font-size: 0.875rem; color: #94a3b8;">
+        {{ $t('emails.subscription_amount_changed.reason') }}
+    </p>
+
+    @if ($isDonor)
+        <p style="font-size: 0.875rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 24px;">
+            <a href="{{ route('donorportal.dashboard', $subscription->campaign->organization) }}" style="color: #0d9488; text-decoration: underline;">{{ $t('emails.subscription_amount_changed.donor_portal_cta') }}</a>
+            {{ $t('emails.subscription_amount_changed.donor_portal_text') }}
         </p>
-
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Donor</td>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $subscription->donor->name }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Previous Amount</td>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $subscription->currency_symbol }} {{ number_format($previousAmount, 2) }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">New Amount</td>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $amountDisplay }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Frequency</td>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ str($subscription->interval->value)->headline() }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Campaign</td>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $subscription->campaign->title }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; color: #64748b;">Date</td>
-                <td style="padding: 8px;">{{ now()->format('d M Y, h:i A') }}</td>
-            </tr>
-        </table>
-
-        <p style="font-size: 0.875rem; color: #94a3b8;">
-            You are receiving this because a recurring donation amount was updated.
-        </p>
-
-        @if ($isDonor)
-            <p style="font-size: 0.875rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 24px;">
-                <a href="{{ route('donorportal.dashboard', $subscription->campaign->organization) }}" style="color: #0d9488; text-decoration: underline;">Go to your donor portal</a>
-                to view your donation history, manage subscriptions, and download receipts.
-            </p>
-        @endif
-
-        @include('emails.partials.org-footer', ['organization' => $subscription->campaign->organization])
-    </div>
-</body>
-</html>
+    @endif
+@endsection

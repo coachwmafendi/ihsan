@@ -27,12 +27,11 @@ class DonationReceipt extends Mailable
         $org = $this->donation->campaign?->organization;
         $orgName = $org?->name ?? config('app.name');
         $replyTo = $org?->settings['portal_reply_to_email'] ?? null;
-
-        $this->setLocaleForDonor($this->donation->donor);
+        $locale = $this->donorLocale($this->donation->donor);
 
         return new Envelope(
             from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName),
-            subject: __('emails.receipt.subject', ['name' => $orgName]),
+            subject: trans('emails.receipt.subject', ['name' => $orgName], $locale),
             replyTo: $replyTo ? [new Address($replyTo, $org->name)] : [],
         );
     }
@@ -45,6 +44,7 @@ class DonationReceipt extends Mailable
             view: 'emails.donation-receipt',
             with: [
                 'donor' => $donor,
+                'locale' => $this->donorLocale($donor),
                 'unsubscribeUrl' => $donor ? DonorNotificationController::unsubscribeUrl($donor) : null,
             ],
         );

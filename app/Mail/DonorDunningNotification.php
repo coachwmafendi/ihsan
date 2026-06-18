@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Http\Controllers\DonorNotificationController;
+use App\Mail\Concerns\SetsDonorLocale;
 use App\Models\Subscription;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -13,7 +14,7 @@ use Illuminate\Queue\SerializesModels;
 
 class DonorDunningNotification extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, SetsDonorLocale;
 
     public function __construct(
         public Subscription $subscription,
@@ -25,11 +26,12 @@ class DonorDunningNotification extends Mailable
     {
         $org = $this->subscription->campaign?->organization;
         $orgName = $org?->name ?? config('app.name');
+        $locale = $this->donorLocale($this->subscription->donor);
 
         $subject = match (true) {
-            $this->isFinalAttempt => 'Last Chance to Update Payment — '.$orgName,
-            $this->retryCount >= 3 => 'Final Attempt Tomorrow — '.$orgName,
-            default => 'Payment Failed — Update Your Card — '.$orgName,
+            $this->isFinalAttempt => trans('emails.dunning.subject_final', ['name' => $orgName], $locale),
+            $this->retryCount >= 3 => trans('emails.dunning.subject_almost_final', ['name' => $orgName], $locale),
+            default => trans('emails.dunning.subject_default', ['name' => $orgName], $locale),
         };
 
         return new Envelope(
@@ -46,6 +48,7 @@ class DonorDunningNotification extends Mailable
             view: 'emails.donor-dunning-notification',
             with: [
                 'donor' => $donor,
+                'locale' => $this->donorLocale($donor),
                 'unsubscribeUrl' => $donor ? DonorNotificationController::unsubscribeUrl($donor) : null,
             ],
         );
