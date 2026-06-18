@@ -8,9 +8,12 @@ use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendFailedPaymentNotification;
 use App\Jobs\SendLargeDonationNotification;
+use App\Jobs\SendLinkedInConversionEvent;
 use App\Jobs\SendMetaConversionEvent;
 use App\Jobs\SendNewDonationNotification;
 use App\Jobs\SendNewSubscriptionNotification;
+use App\Jobs\SendSnapchatConversionEvent;
+use App\Jobs\SendXAdsConversionEvent;
 use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Mail\PlatformInvoicePaid;
 use App\Models\Campaign;
@@ -759,7 +762,14 @@ it('splits fee cover from recurring invoice paid webhooks', function () {
 });
 
 it('dispatches meta conversion event for payment intent succeeded webhook', function () {
-    Queue::fake([SendMetaConversionEvent::class, SendDonationReceipt::class, SyncDonationStripeDetailsJob::class]);
+    Queue::fake([
+        SendMetaConversionEvent::class,
+        SendLinkedInConversionEvent::class,
+        SendXAdsConversionEvent::class,
+        SendSnapchatConversionEvent::class,
+        SendDonationReceipt::class,
+        SyncDonationStripeDetailsJob::class,
+    ]);
 
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();
@@ -780,10 +790,21 @@ it('dispatches meta conversion event for payment intent succeeded webhook', func
     Queue::assertPushed(SendMetaConversionEvent::class, function (SendMetaConversionEvent $job) use ($donation) {
         return $job->donation->is($donation);
     });
+    Queue::assertPushed(SendLinkedInConversionEvent::class, fn ($job) => $job->donation->is($donation));
+    Queue::assertPushed(SendXAdsConversionEvent::class, fn ($job) => $job->donation->is($donation));
+    Queue::assertPushed(SendSnapchatConversionEvent::class, fn ($job) => $job->donation->is($donation));
 });
 
 it('dispatches meta conversion event for recurring invoice paid webhook', function () {
-    Queue::fake([SendMetaConversionEvent::class, SendDonationReceipt::class, SendNewDonationNotification::class, SyncDonationStripeDetailsJob::class]);
+    Queue::fake([
+        SendMetaConversionEvent::class,
+        SendLinkedInConversionEvent::class,
+        SendXAdsConversionEvent::class,
+        SendSnapchatConversionEvent::class,
+        SendDonationReceipt::class,
+        SendNewDonationNotification::class,
+        SyncDonationStripeDetailsJob::class,
+    ]);
 
     $this->mock(SyncDonationStripeDetails::class, function ($mock): void {
         $mock->shouldReceive('sync')
@@ -826,6 +847,9 @@ it('dispatches meta conversion event for recurring invoice paid webhook', functi
     Queue::assertPushed(SendMetaConversionEvent::class, function (SendMetaConversionEvent $job) use ($donation) {
         return $job->donation->is($donation);
     });
+    Queue::assertPushed(SendLinkedInConversionEvent::class, fn ($job) => $job->donation->is($donation));
+    Queue::assertPushed(SendXAdsConversionEvent::class, fn ($job) => $job->donation->is($donation));
+    Queue::assertPushed(SendSnapchatConversionEvent::class, fn ($job) => $job->donation->is($donation));
 });
 
 function paymentIntentSucceededPayload(Donation $donation, string $eventId): string
