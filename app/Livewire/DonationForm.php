@@ -12,8 +12,11 @@ use App\Enums\ElementType;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendLargeDonationNotification;
+use App\Jobs\SendLinkedInConversionEvent;
 use App\Jobs\SendMetaConversionEvent;
 use App\Jobs\SendNewDonationNotification;
+use App\Jobs\SendSnapchatConversionEvent;
+use App\Jobs\SendXAdsConversionEvent;
 use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
 use App\Models\Donation;
@@ -266,6 +269,9 @@ class DonationForm extends Component
 
             SendLargeDonationNotification::dispatch($donation);
             SendMetaConversionEvent::dispatch($donation);
+            SendLinkedInConversionEvent::dispatch($donation);
+            SendXAdsConversionEvent::dispatch($donation);
+            SendSnapchatConversionEvent::dispatch($donation);
             SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
         } catch (\Exception $e) {
             // Log error silently

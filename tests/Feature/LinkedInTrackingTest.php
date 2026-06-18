@@ -5,13 +5,20 @@ use App\Enums\DonationType;
 use App\Enums\ElementType;
 use App\Enums\TrackingProvider;
 use App\Jobs\SendLinkedInConversionEvent;
+use App\Jobs\SendSnapchatConversionEvent;
+use App\Jobs\SendXAdsConversionEvent;
+use App\Livewire\DonationForm;
 use App\Models\Campaign;
 use App\Models\Donation;
+use App\Models\Donor;
 use App\Models\Element;
 use App\Models\Organization;
 use App\Models\TrackingConfiguration;
 use App\Models\TrackingEvent;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
+use Livewire\Livewire;
+use Stripe\PaymentIntent;
 
 uses()->group('tracking');
 
@@ -208,4 +215,48 @@ it('records failed linkedin conversion when api errors', function () {
     (new SendLinkedInConversionEvent($donation))->handle();
 
     expect(TrackingEvent::query()->firstOrFail()->status)->toBe('failed');
+});
+
+it('dispatches linkedin, x ads and snapchat conversion jobs on payment confirmation', function () {
+    Bus::fake([
+        SendLinkedInConversionEvent::class,
+        SendXAdsConversionEvent::class,
+        SendSnapchatConversionEvent::class,
+    ]);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'stripe_payment_intent_id' => 'pi_dispatch_all',
+        'gross_amount' => 50.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::OneTime,
+    ]);
+
+    $paymentIntent = PaymentIntent::constructFrom([
+        'id' => 'pi_dispatch_all',
+        'object' => 'payment_intent',
+        'payment_method' => null,
+        'charges' => [
+            'object' => 'list',
+            'data' => [[
+                'id' => 'ch_dispatch_all',
+                'object' => 'charge',
+                'balance_transaction' => null,
+                'payment_method_details' => null,
+            ]],
+        ],
+    ]);
+
+    Livewire::test(DonationForm::class, ['element' => $element])
+        ->call('confirmPayment', 'pi_dispatch_all', $paymentIntent);
+
+    Bus::assertDispatched(SendLinkedInConversionEvent::class, fn ($job) => $job->donation->is($donation));
+    Bus::assertDispatched(SendXAdsConversionEvent::class, fn ($job) => $job->donation->is($donation));
+    Bus::assertDispatched(SendSnapchatConversionEvent::class, fn ($job) => $job->donation->is($donation));
 });
