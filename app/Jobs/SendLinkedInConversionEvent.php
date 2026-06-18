@@ -55,6 +55,12 @@ class SendLinkedInConversionEvent implements ShouldQueue
             return;
         }
 
+        $conversionId = $config->credential('conversion_id');
+
+        if (! $conversionId) {
+            return;
+        }
+
         $event = $this->buildEvent();
 
         try {
@@ -63,7 +69,7 @@ class SendLinkedInConversionEvent implements ShouldQueue
                 ->timeout(30)
                 ->connectTimeout(10)
                 ->post('https://api.linkedin.com/rest/conversions', [
-                    'conversion' => 'urn:lla:llaPartnerConversion:'.($config->credential('conversion_id') ?? ''),
+                    'conversion' => 'urn:lla:llaPartnerConversion:'.$conversionId,
                     'conversionHappenedAt' => ($this->donation->updated_at?->getTimestamp() ?? now()->getTimestamp()) * 1000,
                     'conversionValue' => [
                         'currencyCode' => strtoupper($this->donation->currency),

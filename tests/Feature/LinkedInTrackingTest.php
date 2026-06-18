@@ -124,6 +124,28 @@ it('does not send linkedin conversion without access token', function () {
     expect(TrackingEvent::query()->count())->toBe(0);
 });
 
+it('does not send linkedin conversion without conversion id', function () {
+    Http::fake();
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donation = Donation::factory()->for($campaign)->create([
+        'gross_amount' => 50.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    TrackingConfiguration::factory()->for($organization)->linkedin([
+        'conversion_id' => '',
+        'access_token' => 'test-token',
+    ])->create();
+
+    (new SendLinkedInConversionEvent($donation))->handle();
+
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), 'linkedin.com'));
+    expect(TrackingEvent::query()->count())->toBe(0);
+});
+
 it('records failed linkedin conversion when api errors', function () {
     Http::fake([
         'https://api.linkedin.com/*' => Http::response(['message' => 'Invalid token'], 401),
