@@ -19,6 +19,9 @@ use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\WebhookLog;
 use App\Services\FraudDetectionService;
+use App\Jobs\SendLinkedInConversionEvent;
+use App\Jobs\SendSnapchatConversionEvent;
+use App\Jobs\SendXAdsConversionEvent;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -137,6 +140,9 @@ class ProcessStripeWebhook implements ShouldQueue
 
             SendLargeDonationNotification::dispatch($donation);
             SendMetaConversionEvent::dispatch($donation);
+            SendLinkedInConversionEvent::dispatch($donation);
+            SendXAdsConversionEvent::dispatch($donation);
+            SendSnapchatConversionEvent::dispatch($donation);
         }
 
         SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
@@ -314,6 +320,9 @@ class ProcessStripeWebhook implements ShouldQueue
         SendNewDonationNotification::dispatch($donation);
         SendLargeDonationNotification::dispatch($donation);
         SendMetaConversionEvent::dispatch($donation);
+        SendLinkedInConversionEvent::dispatch($donation);
+        SendXAdsConversionEvent::dispatch($donation);
+        SendSnapchatConversionEvent::dispatch($donation);
         SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
     }
 
