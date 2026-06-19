@@ -42,6 +42,12 @@
 
     <p>{{ $t('emails.receipt.closing') }}</p>
 
+    @if ($donation->type === \App\Enums\DonationType::Recurring)
+        <p style="margin: 24px 0;">
+            <a href="{{ route('donorportal.donations.receipt.download', ['organization' => $donation->campaign->organization, 'donation' => $donation]) }}" style="display: inline-block; background-color: #0f766e; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">{{ $t('emails.receipt.download_receipt') }}</a>
+        </p>
+    @endif
+
     <p style="font-size: 0.875rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 24px;">
         <a href="{{ route('donorportal.dashboard', $donation->campaign->organization) }}" style="color: #0d9488; text-decoration: underline;">{{ $t('emails.receipt.donor_portal_cta') }}</a>
         {{ $t('emails.receipt.donor_portal_text') }}

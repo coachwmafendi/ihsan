@@ -7,6 +7,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
+use Illuminate\Mail\Mailables\Attachment;
 
 it('builds donation receipt mailable with correct subject', function () {
     $organization = Organization::factory()->create(['name' => 'Test Org']);
@@ -89,4 +90,67 @@ it('renders receipt in donor locale when set to malay', function () {
     $mailable->assertSeeInHtml('Terima kasih atas derma anda!');
     $mailable->assertSeeInHtml('Hi Ahmad');
     $mailable->assertSeeInHtml('Organisasi');
+});
+
+it('attaches pdf receipt for one-time donations', function () {
+    $organization = Organization::factory()->create(['code' => 'testorg']);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'type' => DonationType::OneTime,
+        'status' => DonationStatus::Succeeded,
+        'invoice_number' => 'INV-123',
+    ]);
+
+    $mailable = new DonationReceipt($donation);
+    $attachments = $mailable->attachments();
+
+    expect($attachments)->toHaveCount(1)
+        ->and($attachments[0])->toBeInstanceOf(Attachment::class)
+        ->and($attachments[0]->as)->toBe('Ihsan-testorg-INV-123.pdf');
+});
+
+it('does not attach pdf receipt for recurring donations', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'type' => DonationType::Recurring,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $mailable = new DonationReceipt($donation);
+
+    expect($mailable->attachments())->toBeEmpty();
+});
+
+it('shows download receipt button for recurring donations', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'type' => DonationType::Recurring,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $mailable = new DonationReceipt($donation);
+
+    $mailable->assertSeeInHtml('Download Receipt');
+    $mailable->assertSeeInHtml(
+        route('donorportal.donations.receipt.download', ['organization' => $organization, 'donation' => $donation])
+    );
+});
+
+it('does not show download receipt button for one-time donations', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'type' => DonationType::OneTime,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $mailable = new DonationReceipt($donation);
+
+    $mailable->assertDontSeeInHtml('Download Receipt');
 });

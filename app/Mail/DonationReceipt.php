@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Enums\DonationType;
 use App\Http\Controllers\DonorNotificationController;
 use App\Mail\Concerns\SetsDonorLocale;
 use App\Models\Donation;
@@ -65,6 +66,10 @@ class DonationReceipt extends Mailable
 
     public function attachments(): array
     {
+        if ($this->donation->type === DonationType::Recurring) {
+            return [];
+        }
+
         $pdf = Pdf::loadView('emails.donation-receipt-pdf', [
             'donation' => $this->donation,
         ]);

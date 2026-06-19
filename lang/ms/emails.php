@@ -22,6 +22,7 @@ return [
         'status' => 'Status',
         'successful' => 'Berjaya',
         'closing' => 'Terima kasih atas sokongan anda!',
+        'download_receipt' => 'Muat Turun Resit',
         'donor_portal_cta' => 'Pergi ke portal donor anda',
         'donor_portal_text' => 'untuk melihat sejarah derma, urus langganan, dan muat turun resit.',
     ],

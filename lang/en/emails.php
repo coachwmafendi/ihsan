@@ -22,6 +22,7 @@ return [
         'status' => 'Status',
         'successful' => 'Successful',
         'closing' => 'Thank you for your support!',
+        'download_receipt' => 'Download Receipt',
         'donor_portal_cta' => 'Go to your donor portal',
         'donor_portal_text' => 'to view your donation history, manage subscriptions, and download receipts.',
     ],
