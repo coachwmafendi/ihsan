@@ -33,3 +33,29 @@ it('renders campaign page settings with required labels', function () {
         ->assertSee('Sharing URL')
         ->assertSee('Default sharing message');
 });
+
+it('persists campaign page settings on save', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'config' => [],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->set('postDonationMode', 'redirect')
+        ->set('thank_you_message', 'Thanks!')
+        ->set('redirect_url', 'https://example.com/thanks')
+        ->set('shareChannels', ['facebook', 'email'])
+        ->set('shareMessage', 'Support this campaign!')
+        ->call('save');
+
+    $campaign->refresh();
+
+    expect($campaign->config)
+        ->post_donation_mode->toBe('redirect')
+        ->share_channels->toBe(['facebook', 'email'])
+        ->share_message->toBe('Support this campaign!')
+        ->and($campaign->thank_you_message)->toBe('Thanks!')
+        ->and($campaign->redirect_url)->toBe('https://example.com/thanks');
+});

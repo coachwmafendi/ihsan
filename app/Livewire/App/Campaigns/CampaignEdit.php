@@ -523,6 +523,9 @@ class CampaignEdit extends Component
             'allow_cover_fee' => $this->allow_cover_fee,
             'show_comment' => $this->show_comment,
             'show_phone' => $this->show_phone,
+            'post_donation_mode' => $this->postDonationMode,
+            'share_channels' => $this->shareChannels,
+            'share_message' => $this->shareMessage,
         ]);
 
         $this->campaign->update([
