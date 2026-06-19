@@ -438,9 +438,9 @@ class CampaignEdit extends Component
         return $result;
     }
 
-    public function getCurrencySymbol(): string
+    public function getCurrencySymbolFor(string $currency): string
     {
-        return match ($this->activeCurrency) {
+        return match ($currency) {
             'USD' => '$',
             'SGD' => 'S$',
             'AUD' => 'A$',
@@ -448,6 +448,25 @@ class CampaignEdit extends Component
             'EUR' => '€',
             default => 'RM',
         };
+    }
+
+    public function getCurrencySymbol(): string
+    {
+        return $this->getCurrencySymbolFor($this->activeCurrency);
+    }
+
+    /**
+     * @return array<string, array<int, array{value: int|float, label: string}>>
+     */
+    public function getDefaultCurrencySuggestedAmounts(): array
+    {
+        $defaults = $this->defaultAmountsForCurrency($this->default_currency);
+        $stored = $this->allSuggestedAmounts[$this->default_currency] ?? [];
+
+        return [
+            'one_time' => $this->backfillSuggestedDefaults($stored['one_time'] ?? [], $defaults['one_time']),
+            'monthly' => $this->backfillSuggestedDefaults($stored['monthly'] ?? [], $defaults['monthly']),
+        ];
     }
 
     public function save(): void
