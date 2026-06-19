@@ -939,7 +939,7 @@
                                     </div>
                                 </div>
 
-                                @php $campaignPageUrl = url('/campaigns/'.$campaign->public_id); @endphp
+                                @php $campaignPageUrl = route('campaigns.public', $campaign->public_id); @endphp
                                 <div>
                                     <label for="campaign_page_url" class="block text-sm font-medium text-slate-700">Sharing URL</label>
                                     <div class="mt-1.5 flex items-center gap-2">

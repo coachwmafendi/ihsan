@@ -61,6 +61,8 @@ class DonationForm extends Component
 
     public bool $isPopup = false;
 
+    public bool $isPublicPage = false;
+
     public string $pageUrl = '';
 
     public string $currency = 'myr';
@@ -134,7 +136,7 @@ class DonationForm extends Component
             $this->setElementPresentationMode($element);
         } elseif ($campaign instanceof Campaign) {
             abort_if(
-                $campaign->status !== CampaignStatus::Active || ! $campaign->checkout_modal_enabled,
+                $campaign->status !== CampaignStatus::Active || (! $this->isPublicPage && ! $campaign->checkout_modal_enabled),
                 404
             );
 
@@ -160,7 +162,7 @@ class DonationForm extends Component
             // Direct initialization (tests) via pre-set property
             $campaign = $this->campaign;
             abort_if(
-                $campaign->status !== CampaignStatus::Active || ! $campaign->checkout_modal_enabled,
+                $campaign->status !== CampaignStatus::Active || (! $this->isPublicPage && ! $campaign->checkout_modal_enabled),
                 404
             );
 
@@ -208,7 +210,7 @@ class DonationForm extends Component
 
     private function setCampaignPresentationMode(): void
     {
-        $this->isEmbed = request()->query('embed') !== null;
+        $this->isEmbed = $this->isPublicPage || request()->query('embed') !== null;
         $this->isPopup = request()->query('popup') !== null;
     }
 

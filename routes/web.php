@@ -40,6 +40,7 @@ use App\Livewire\App\Supporters\SupporterIndex;
 use App\Livewire\App\Supporters\SupporterShow;
 use App\Livewire\App\VirtualTerminal;
 use App\Livewire\Auth\RegisterOrganization;
+use App\Livewire\CampaignPublicPage;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -60,6 +61,7 @@ Route::get('/donate/{element:token}/image', DonationCampaignImageController::cla
 Route::get('/donate/campaign/{campaign:form_parameter}/image', [DonationCampaignImageController::class, 'campaignImage'])->name('donations.campaign-image-campaign');
 Route::livewire('/donate/{element:token}', DonationForm::class)->name('donations.show');
 Route::livewire('/donate/campaign/{campaign:form_parameter}', DonationForm::class)->name('donations.campaign-show');
+Route::livewire('/campaigns/{campaign:public_id}', CampaignPublicPage::class)->name('campaigns.public');
 Route::get('/e/widget.js', [EmbedCheckoutController::class, 'widget'])->name('widget.script');
 Route::get('/e/loader.js', [EmbedCheckoutController::class, 'loader'])->name('loader.script');
 Route::get('/embed.js', [EmbedCheckoutController::class, 'script'])->name('embed.script');
