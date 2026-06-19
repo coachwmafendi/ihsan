@@ -32,7 +32,7 @@ it('loads button config defaults when editing a button element', function () {
 
     Livewire::test(ElementEdit::class, ['element' => $element])
         ->assertSet('config_button_color', 'bg-blue-600 hover:bg-blue-700')
-        ->assertSet('config_button_size', 'text-base px-6 py-3')
+        ->assertSet('config_button_size', 'medium')
         ->assertSet('config_corner_radius', 8)
         ->assertSet('config_button_icon', 'heart')
         ->assertSet('config_button_effect', 'none');
@@ -48,7 +48,7 @@ it('saves button colour, size, radius and icon config', function () {
     Livewire::test(ElementEdit::class, ['element' => $element])
         ->set('config_button_text', 'Sumbangkan')
         ->set('config_button_color', 'bg-teal-600 hover:bg-teal-700')
-        ->set('config_button_size', 'text-lg px-8 py-4')
+        ->set('config_button_size', 'large')
         ->set('config_corner_radius', 12)
         ->set('config_button_icon', 'star')
         ->call('save')
@@ -60,7 +60,7 @@ it('saves button colour, size, radius and icon config', function () {
     expect($element->config)->toMatchArray([
         'button_text' => 'Sumbangkan',
         'button_color' => 'bg-teal-600 hover:bg-teal-700',
-        'button_size' => 'text-lg px-8 py-4',
+        'button_size' => 'large',
         'corner_radius' => 12,
         'button_icon' => 'star',
     ])
@@ -90,7 +90,7 @@ it('exposes button icon in the public element api', function () {
         'type' => ElementType::Button,
         'config' => [
             'button_color' => 'bg-orange-600 hover:bg-orange-700',
-            'button_size' => 'text-sm px-4 py-2',
+            'button_size' => 'small',
             'corner_radius' => 4,
             'button_icon' => 'gift',
         ],
@@ -101,7 +101,7 @@ it('exposes button icon in the public element api', function () {
     expect($response->getData(true)['settings'])
         ->toMatchArray([
             'button_color' => 'bg-orange-600 hover:bg-orange-700',
-            'button_size' => 'text-sm px-4 py-2',
+            'button_size' => 'small',
             'corner_radius' => 4,
             'button_icon' => 'gift',
         ]);
@@ -119,7 +119,7 @@ it('preserves existing button effect config on save', function () {
     $this->actingAs($this->user);
 
     Livewire::test(ElementEdit::class, ['element' => $element])
-        ->set('config_button_size', 'text-sm px-4 py-2')
+        ->set('config_button_size', 'small')
         ->call('save')
         ->assertHasNoErrors();
 
@@ -179,7 +179,7 @@ it('loads button config defaults when editing a sticky button element', function
 
     Livewire::test(ElementEdit::class, ['element' => $element])
         ->assertSet('config_button_color', 'bg-blue-600 hover:bg-blue-700')
-        ->assertSet('config_button_size', 'text-base px-6 py-3')
+        ->assertSet('config_button_size', 'medium')
         ->assertSet('config_corner_radius', 8)
         ->assertSet('config_button_icon', 'heart')
         ->assertSet('config_button_effect', 'none')
@@ -196,7 +196,7 @@ it('saves button style config for sticky button elements', function () {
     Livewire::test(ElementEdit::class, ['element' => $element])
         ->set('config_button_text', 'Sumbang')
         ->set('config_button_color', 'bg-teal-600 hover:bg-teal-700')
-        ->set('config_button_size', 'text-lg px-8 py-4')
+        ->set('config_button_size', 'large')
         ->set('config_corner_radius', 12)
         ->set('config_button_icon', 'star')
         ->set('config_button_effect', 'gradient_blue_purple')
@@ -210,7 +210,7 @@ it('saves button style config for sticky button elements', function () {
     expect($element->config)->toMatchArray([
         'button_text' => 'Sumbang',
         'button_color' => 'bg-teal-600 hover:bg-teal-700',
-        'button_size' => 'text-lg px-8 py-4',
+        'button_size' => 'large',
         'corner_radius' => 12,
         'button_icon' => 'star',
         'button_effect' => 'gradient_blue_purple',
@@ -239,7 +239,7 @@ it('creates sticky button elements with default button style config', function (
     expect($element->config['button_text'])->toBe('Donate')
         ->and($element->config['button_icon'])->toBe('heart')
         ->and($element->config['button_color'])->toBe('bg-blue-600 hover:bg-blue-700')
-        ->and($element->config['button_size'])->toBe('text-base px-6 py-3')
+        ->and($element->config['button_size'])->toBe('medium')
         ->and($element->config['corner_radius'])->toBe(8)
         ->and($element->config['button_effect'])->toBe('none')
         ->and($element->config['position'])->toBe('right-center');
@@ -550,4 +550,50 @@ it('reflects popup title and message in the live preview', function () {
         ->set('config_message', 'Bantu mangsa banjir hari ini.')
         ->assertSee('Tabung Kecemasan')
         ->assertSee('Bantu mangsa banjir hari ini.');
+});
+
+it('reflects button size and radius in the live preview', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Button,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_button_size', 'large')
+        ->set('config_corner_radius', 20)
+        ->assertSeeInOrder([
+            'padding: 16px 32px',
+            'font-size: 18px',
+            'border-radius: 20px',
+        ]);
+});
+
+it('reflects floating button size changes in the live preview', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::FloatingButton,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_button_size', 'small')
+        ->assertSee('padding: 8px 16px');
+});
+
+it('reflects sticky button size and radius in the live preview', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::StickyButton,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_button_size', 'large')
+        ->set('config_corner_radius', 24)
+        ->assertSeeInOrder([
+            'border-radius: 24px 0 0 24px',
+            'width: 60px',
+            'font-size: 17px',
+        ]);
 });

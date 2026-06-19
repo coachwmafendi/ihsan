@@ -105,11 +105,14 @@
             @endif
             <div class="flex min-h-[120px] items-center justify-center">
                 @php
-                    $sizeClass = $config['button_size'] ?? 'text-base px-6 py-3';
+                    $sizeMap = [
+                        'small'  => ['padding' => '8px 16px', 'font' => '14px'],
+                        'medium' => ['padding' => '12px 24px', 'font' => '16px'],
+                        'large'  => ['padding' => '16px 32px', 'font' => '18px'],
+                    ];
+                    $sz = $sizeMap[$config['button_size'] ?? 'medium'] ?? $sizeMap['medium'];
                     $colorClass = $config['button_color'] ?? 'bg-blue-600 hover:bg-blue-700';
-                    $btnClass = $hasEffect
-                        ? "ihsan-effect-{$effectId} {$sizeClass}"
-                        : "{$sizeClass} {$colorClass}";
+                    $btnClass = $hasEffect ? "ihsan-effect-{$effectId}" : $colorClass;
                     $buttonIcon = $config['button_icon'] ?? 'heart';
                     $buttonIcons = [
                         'heart' => '<svg class="size-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
@@ -123,7 +126,7 @@
                 <button
                     type="button"
                     class="{{ $btnClass }} inline-flex items-center justify-center gap-2 font-semibold text-white focus:outline-none"
-                    style="border-radius: {{ ($config['corner_radius'] ?? 8) }}px"
+                    style="padding: {{ $sz['padding'] }}; font-size: {{ $sz['font'] }}; border-radius: {{ ($config['corner_radius'] ?? 8) }}px"
                 >
                     {!! $buttonIconSvg !!}
                     <span>{{ $config['button_text'] ?? 'Donate Now' }}</span>
@@ -334,13 +337,7 @@
                     'medium' => ['font' => '16px', 'padding' => '10px 24px'],
                     'large' => ['font' => '18px', 'padding' => '12px 32px'],
                 ];
-                $sizeClass = $config['button_size'] ?? '';
-                $sizeKey = match (true) {
-                    str_contains($sizeClass, 'px-4') => 'small',
-                    str_contains($sizeClass, 'px-8') => 'large',
-                    str_contains($sizeClass, 'px-6') => 'medium',
-                    default => strtolower($config['size'] ?? 'medium'),
-                };
+                $sizeKey = strtolower($config['button_size'] ?? $config['size'] ?? 'medium');
                 $ls = $linkSizes[$sizeKey] ?? $linkSizes['medium'];
                 $alignClass = match($linkAlignment) {
                     'center' => 'text-center',

@@ -98,7 +98,7 @@ class ElementIndex extends Component
             'button' => [
                 'button_text' => 'Donate',
                 'button_color' => 'bg-blue-600 hover:bg-blue-700',
-                'button_size' => 'text-base px-6 py-3',
+                'button_size' => 'medium',
                 'corner_radius' => 8,
                 'button_icon' => 'heart',
                 'button_effect' => 'none',
@@ -106,7 +106,7 @@ class ElementIndex extends Component
             'sticky_button' => [
                 'button_text' => 'Donate',
                 'button_color' => 'bg-blue-600 hover:bg-blue-700',
-                'button_size' => 'text-base px-6 py-3',
+                'button_size' => 'medium',
                 'corner_radius' => 8,
                 'button_icon' => 'heart',
                 'button_effect' => 'none',

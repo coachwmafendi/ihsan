@@ -42,8 +42,9 @@ class ElementEdit extends Component
 
     public string $config_button_color = 'bg-blue-600 hover:bg-blue-700';
 
-    public string $config_button_size = 'text-base px-6 py-3';
+    public string $config_button_size = 'medium';
 
+    #[Validate('nullable|integer|min:0|max:100')]
     public int $config_corner_radius = 8;
 
     public string $config_button_icon = 'heart';
@@ -128,11 +129,10 @@ class ElementEdit extends Component
         $this->config_size = $config['size'] ?? 'medium';
         $this->config_alignment = $config['alignment'] ?? 'center';
         $this->config_button_color = $config['button_color'] ?? $config['color'] ?? 'bg-blue-600 hover:bg-blue-700';
-        $this->config_button_size = $config['button_size'] ?? 'text-base px-6 py-3';
+        $this->config_button_size = $config['button_size'] ?? 'medium';
         $this->config_corner_radius = (int) ($config['corner_radius'] ?? 8);
         $this->config_button_icon = $config['button_icon'] ?? $config['icon'] ?? 'heart';
         $this->config_button_effect = $config['button_effect'] ?? 'none';
-        $this->config_alignment = $config['alignment'] ?? 'center';
         $this->config_position = $config['position'] ?? 'right-center';
 
         $this->config_action = $config['action'] ?? 'checkout_modal';
