@@ -71,7 +71,7 @@
             @php
                 $provider = collect($providers)->first(fn ($p) => $p->value === $selectedProvider);
                 $slug = $provider?->value ?? '';
-                $detailStatus = $this->selectedProviderStatus();
+                $detailStatus = $this->selectedProviderStatus;
                 $credFields = $provider?->credentialFields() ?? [];
                 $optFields = $provider?->optionFields() ?? [];
             @endphp

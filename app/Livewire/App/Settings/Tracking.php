@@ -317,6 +317,7 @@ class Tracking extends Component
             ->first(fn (TrackingConfiguration $c) => $c->provider->value === $this->selectedProvider);
     }
 
+    #[Computed]
     public function selectedProviderStatus(): TrackingProviderStatus
     {
         return $this->selectedConfiguration?->status ?? TrackingProviderStatus::NotConfigured;
