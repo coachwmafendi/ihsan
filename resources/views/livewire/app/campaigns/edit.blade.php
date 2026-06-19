@@ -105,7 +105,9 @@
                         {{-- Goal & Duration --}}
                         <div
                             class="group cursor-pointer rounded-lg transition-colors hover:bg-slate-50"
-                            wire:click="$set('activeTab', 'settings')"
+                            @click="tab = 'settings'"
+                            role="button"
+                            tabindex="0"
                             title="Edit in Campaign Settings"
                         >
                             <div class="flex items-center justify-between">
