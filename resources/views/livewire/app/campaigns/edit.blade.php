@@ -168,7 +168,7 @@
                         </button>
                     </x-slot:actions>
 
-                    <div class="space-y-4">
+                    <dl class="space-y-4">
                         {{-- Goal & Duration --}}
                         <div>
                             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Goal & Duration</dt>
@@ -255,7 +255,7 @@
                                 </strong>
                             </dd>
                         </div>
-                    </div>
+                    </dl>
                 </x-ui.card>
 
                 <x-ui.card title="Linked Elements" description="Embed elements using this campaign">
