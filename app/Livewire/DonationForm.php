@@ -11,9 +11,11 @@ use App\Enums\DonationType;
 use App\Enums\ElementType;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
+use App\Jobs\SendGa4TrackingEvent;
 use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendLinkedInConversionEvent;
 use App\Jobs\SendMetaConversionEvent;
+use App\Jobs\SendMetaTrackingEvent;
 use App\Jobs\SendNewDonationNotification;
 use App\Jobs\SendSnapchatConversionEvent;
 use App\Jobs\SendXAdsConversionEvent;
@@ -26,6 +28,7 @@ use App\Services\FraudDetectionService;
 use App\Services\TrackingScriptService;
 use App\Support\ClientInfo;
 use App\Support\Currency;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Renderless;
@@ -409,6 +412,134 @@ class DonationForm extends Component
 
             throw $e;
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildTrackingContext(): array
+    {
+        $campaign = $this->element?->campaign ?? $this->campaign;
+        $organization = $campaign?->organization;
+
+        if (! $organization) {
+            return [];
+        }
+
+        $pageQuery = [];
+        if (filled($this->pageUrl)) {
+            $parsed = parse_url($this->pageUrl);
+            parse_str($parsed['query'] ?? '', $pageQuery);
+        }
+
+        $userData = [
+            'client_ip_address' => request()->ip(),
+            'client_user_agent' => request()->userAgent(),
+            'external_id' => hash('sha256', session()->getId() ?: Str::uuid()->toString()),
+        ];
+
+        if (filled($this->email)) {
+            $userData['em'] = hash('sha256', strtolower(trim($this->email)));
+        }
+
+        if (filled($pageQuery['fbclid'] ?? null)) {
+            $userData['fbc'] = 'fb.1.'.time().'.'.$pageQuery['fbclid'];
+        }
+
+        return [
+            'organization_id' => $organization->id,
+            'event_source_url' => $this->pageUrl ?: request()->fullUrl(),
+            'campaign_name' => $campaign?->title,
+            'user_data' => array_filter($userData),
+        ];
+    }
+
+    #[Renderless]
+    public function trackServerPageView(): void
+    {
+        if (session()->get('ihsan.tracking.pageview.sent')) {
+            return;
+        }
+
+        $context = $this->buildTrackingContext();
+        if (empty($context)) {
+            return;
+        }
+
+        SendMetaTrackingEvent::dispatch(
+            $context['organization_id'],
+            'PageView',
+            $context['event_source_url'],
+            $context['user_data'],
+            [],
+            $context['campaign_name'],
+        );
+
+        SendGa4TrackingEvent::dispatch(
+            $context['organization_id'],
+            'page_view',
+            $context['user_data']['external_id'] ?? (string) Str::uuid(),
+            $context['event_source_url'],
+            [],
+            $context['campaign_name'],
+        );
+
+        session()->put('ihsan.tracking.pageview.sent', true);
+    }
+
+    #[Renderless]
+    public function trackServerInitiateCheckout(): void
+    {
+        if (session()->get('ihsan.tracking.initiate.sent')) {
+            return;
+        }
+
+        $context = $this->buildTrackingContext();
+        if (empty($context)) {
+            return;
+        }
+
+        $amount = (float) $this->amount;
+
+        if ($amount <= 0) {
+            return;
+        }
+
+        $currency = strtoupper($this->currency);
+
+        $metaCustomData = [
+            'value' => $amount,
+            'currency' => $currency,
+            'content_type' => 'product',
+            'contents' => [[
+                'id' => 'donation',
+                'quantity' => 1,
+                'item_price' => $amount,
+            ]],
+        ];
+
+        SendMetaTrackingEvent::dispatch(
+            $context['organization_id'],
+            'InitiateCheckout',
+            $context['event_source_url'],
+            $context['user_data'],
+            $metaCustomData,
+            $context['campaign_name'],
+        );
+
+        SendGa4TrackingEvent::dispatch(
+            $context['organization_id'],
+            'begin_checkout',
+            $context['user_data']['external_id'] ?? (string) Str::uuid(),
+            $context['event_source_url'],
+            [
+                'value' => $amount,
+                'currency' => $currency,
+            ],
+            $context['campaign_name'],
+        );
+
+        session()->put('ihsan.tracking.initiate.sent', true);
     }
 
     /**

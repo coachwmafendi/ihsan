@@ -171,6 +171,8 @@
                                 if (this.currentStep === 3) this.$nextTick(() => this.mountPaymentElement());
                             },
                             trackInitiateCheckout() {
+                                if (this._initiateSent) return;
+                                this._initiateSent = true;
                                 if (typeof window.IhsanTrack !== 'function') return;
                                 const amountNumber = parseFloat(this.amount);
                                 if (!Number.isFinite(amountNumber) || amountNumber <= 0) return;
@@ -180,6 +182,9 @@
                                     content_type: 'product',
                                     contents: [{ id: 'donation', quantity: 1, item_price: amountNumber }],
                                 });
+                                if (this.$wire && typeof this.$wire.trackServerInitiateCheckout === 'function') {
+                                    this.$wire.trackServerInitiateCheckout();
+                                }
                             },
                             trackPurchase() {
                                 if (typeof window.IhsanTrack !== 'function') return;

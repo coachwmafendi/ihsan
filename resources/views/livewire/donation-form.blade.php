@@ -275,6 +275,7 @@
                     <div
                         wire:ignore.self
                         x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId))"
+                        x-init="$wire.trackServerPageView()"
                         class="relative"
                     >
 
@@ -832,25 +833,32 @@
             },
 
             trackInitiateCheckout() {
-                if (typeof window.IhsanTrack !== 'function') {
+                if (this._initiateSent) {
                     return;
                 }
+                this._initiateSent = true;
 
                 const amountNumber = parseFloat(this.amount);
                 if (!Number.isFinite(amountNumber) || amountNumber <= 0) {
                     return;
                 }
 
-                window.IhsanTrack('InitiateCheckout', {
-                    value: amountNumber,
-                    currency: this.currency.toUpperCase(),
-                    content_type: 'product',
-                    contents: [{
-                        id: 'donation',
-                        quantity: 1,
-                        item_price: amountNumber,
-                    }],
-                });
+                if (typeof window.IhsanTrack === 'function') {
+                    window.IhsanTrack('InitiateCheckout', {
+                        value: amountNumber,
+                        currency: this.currency.toUpperCase(),
+                        content_type: 'product',
+                        contents: [{
+                            id: 'donation',
+                            quantity: 1,
+                            item_price: amountNumber,
+                        }],
+                    });
+                }
+
+                if (this.$wire && typeof this.$wire.trackServerInitiateCheckout === 'function') {
+                    this.$wire.trackServerInitiateCheckout();
+                }
             },
 
             trackPurchase() {
