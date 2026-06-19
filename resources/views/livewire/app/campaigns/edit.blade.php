@@ -231,33 +231,6 @@
 
             {{-- Right Column --}}
             <div class="space-y-6">
-                <x-ui.card title="Details">
-                    <dl class="space-y-3">
-                        <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Campaign ID</dt>
-                            <dd class="mt-0.5 text-sm text-slate-900 font-mono">{{ $campaign->public_id }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Form Parameter</dt>
-                            <dd class="mt-0.5 text-sm text-slate-900 font-mono">{{ $campaign->form_parameter }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Recurring</dt>
-                            <dd class="mt-0.5 text-sm text-slate-900">{{ $campaign->allow_recurring ? 'Allowed' : 'Not allowed' }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Custom Amount</dt>
-                            <dd class="mt-0.5 text-sm text-slate-900">{{ $campaign->allow_custom_amount ? 'Allowed' : 'Not allowed' }}</dd>
-                        </div>
-                        @if ($campaign->minimum_amount)
-                            <div>
-                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Minimum Amount</dt>
-                                <dd class="mt-0.5 text-sm text-slate-900">{{ $this->getCurrencySymbol() }} {{ number_format((float) $campaign->minimum_amount, 2) }}</dd>
-                            </div>
-                        @endif
-                    </dl>
-                </x-ui.card>
-
                 <x-ui.card title="Linked Elements" description="Embed elements using this campaign">
                     @php $elements = $campaign->elements()->select(['id','public_id','token','name','type','created_at'])->get(); @endphp
                     @if ($elements->isNotEmpty())
