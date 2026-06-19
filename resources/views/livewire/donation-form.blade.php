@@ -48,6 +48,10 @@
     $introTextPlain = strip_tags($introText);
     $introTruncated = str($introTextPlain)->limit(300)->toString();
     $isLongIntro = strlen($introTextPlain) > 300;
+    $postDonationMode = $campaign?->config['post_donation_mode'] ?? 'default';
+    $shareChannels = $campaign?->config['share_channels'] ?? ['facebook', 'x', 'linkedin', 'email'];
+    $shareMessage = $campaign?->config['share_message'] ?? '';
+    $shareUrl = $campaign ? route('campaigns.public', $campaign) : request()->fullUrl();
     $connectedStripeAccountId = $organization->stripe_onboarded ? $organization->stripe_account_id : null;
     $currencySymbol = \App\Support\Currency::symbol($this->currency);
     $minimumAmount = (float) ($campaign->minimum_amount ?? 5);
@@ -580,6 +584,67 @@
                             <h2 class="text-lg font-semibold text-slate-900">Thank you, <span x-text="donorName"></span>!</h2>
                             <p class="mt-1 text-sm text-slate-500">Receipt sent to <span x-text="donorEmail"></span>.</p>
                             <p class="mt-1 text-sm text-slate-500">{{ ($this->campaign ?? $this->element?->campaign)?->thank_you_message ?: $this->config('success_message', 'Thank you for your donation!') }}</p>
+
+                            @if ($postDonationMode !== 'redirect' && ! empty($shareChannels))
+                                <div class="mt-6">
+                                    <p class="mb-3 text-sm font-semibold text-slate-700">Share this campaign</p>
+                                    <div class="flex items-center justify-center gap-3">
+                                        @if (in_array('facebook', $shareChannels, true))
+                                            <a
+                                                href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($shareUrl) }}"
+                                                target="_blank" rel="noopener noreferrer"
+                                                aria-label="Share on Facebook"
+                                                class="inline-flex items-center justify-center size-9 rounded-full bg-slate-100 text-slate-600 hover:bg-teal-100 hover:text-teal-700"
+                                            >
+                                                <svg class="size-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                                                </svg>
+                                            </a>
+                                        @endif
+
+                                        @if (in_array('x', $shareChannels, true))
+                                            <a
+                                                href="https://twitter.com/intent/tweet?url={{ urlencode($shareUrl) }}&text={{ urlencode($shareMessage) }}"
+                                                target="_blank" rel="noopener noreferrer"
+                                                aria-label="Share on X"
+                                                class="inline-flex items-center justify-center size-9 rounded-full bg-slate-100 text-slate-600 hover:bg-teal-100 hover:text-teal-700"
+                                            >
+                                                <svg class="size-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                                </svg>
+                                            </a>
+                                        @endif
+
+                                        @if (in_array('linkedin', $shareChannels, true))
+                                            <a
+                                                href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode($shareUrl) }}"
+                                                target="_blank" rel="noopener noreferrer"
+                                                aria-label="Share on LinkedIn"
+                                                class="inline-flex items-center justify-center size-9 rounded-full bg-slate-100 text-slate-600 hover:bg-teal-100 hover:text-teal-700"
+                                            >
+                                                <svg class="size-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                                                    <rect x="2" y="9" width="4" height="12" />
+                                                    <circle cx="4" cy="4" r="2" />
+                                                </svg>
+                                            </a>
+                                        @endif
+
+                                        @if (in_array('email', $shareChannels, true))
+                                            <a
+                                                href="mailto:?subject={{ urlencode('Support this campaign') }}&body={{ urlencode($shareMessage."\n\n".$shareUrl) }}"
+                                                aria-label="Share by email"
+                                                class="inline-flex items-center justify-center size-9 rounded-full bg-slate-100 text-slate-600 hover:bg-teal-100 hover:text-teal-700"
+                                            >
+                                                <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                </svg>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+
                             @if ($isPopup)
                                 <button
                                     type="button"
