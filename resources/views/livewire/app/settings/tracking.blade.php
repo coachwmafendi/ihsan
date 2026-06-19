@@ -28,16 +28,19 @@
     <div class="grid gap-6 lg:grid-cols-[280px_1fr] lg:items-start">
         {{-- Provider sidebar --}}
         <nav aria-label="Providers" class="space-y-1 {{ $selectedProvider ? 'hidden lg:block' : 'block' }}">
+            @php $configurations = collect($this->configurations); @endphp
             @foreach ($providers as $provider)
                 @php
                     $slug = $provider->value;
-                    $config = collect($this->configurations)->first(fn ($c) => $c->provider === $provider);
+                    $config = $configurations->first(fn ($c) => $c->provider === $provider);
                     $status = $config?->status ?? \App\Enums\TrackingProviderStatus::NotConfigured;
                     $isActive = $selectedProvider === $slug;
                 @endphp
                 <button
                     type="button"
+                    aria-current="{{ $isActive ? 'true' : 'false' }}"
                     wire:click="selectProvider('{{ $slug }}')"
+                    wire:key="provider-sidebar-{{ $slug }}"
                     class="group flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition {{ $isActive ? 'border-teal-200 bg-teal-50/60' : 'border-transparent bg-white hover:bg-slate-50' }}"
                 >
                     <div class="flex items-center gap-3 min-w-0">
@@ -68,7 +71,6 @@
             @php
                 $provider = collect($providers)->first(fn ($p) => $p->value === $selectedProvider);
                 $slug = $provider?->value ?? '';
-                $detailConfig = $this->selectedConfiguration;
                 $detailStatus = $this->selectedProviderStatus();
                 $credFields = $provider?->credentialFields() ?? [];
                 $optFields = $provider?->optionFields() ?? [];
