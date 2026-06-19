@@ -30,7 +30,7 @@ class ElementEdit extends Component
 
     public bool $showArchiveModal = false;
 
-    public string $config_title = 'Support our cause';
+    public string $config_title = '';
 
     #[Validate('nullable|string|max:100')]
     public string $config_message = 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
@@ -121,7 +121,7 @@ class ElementEdit extends Component
         $this->is_active = $element->is_active;
 
         $config = $element->config ?? [];
-        $this->config_title = $config['title'] ?? 'Support our cause';
+        $this->config_title = $config['title'] ?? '';
         $this->config_message = $config['message'] ?? 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
         $this->config_button_text = $this->element->type === ElementType::QrCode
             ? ($config['label'] ?? 'Scan to donate')
@@ -161,12 +161,11 @@ class ElementEdit extends Component
             abort(403);
         }
 
-        $defaultTitle = 'Support our cause';
         $defaultMessage = 'Give waqf today. May Allah accept our waqf and bless our families with endless rewards.';
         $usesContent = in_array($this->element->type, [ElementType::Form, ElementType::Popup, ElementType::QrCode], true);
 
         $config = array_filter([
-            'title' => $usesContent ? (filled($this->config_title) ? $this->config_title : $defaultTitle) : $this->config_title,
+            'title' => $this->config_title,
             'message' => $usesContent ? (filled($this->config_message) ? $this->config_message : $defaultMessage) : $this->config_message,
             'button_text' => $this->element->type === ElementType::QrCode ? null : $this->config_button_text,
             'submit_text' => $this->element->type === ElementType::Form ? $this->config_button_text : null,

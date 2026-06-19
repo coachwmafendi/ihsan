@@ -469,7 +469,7 @@
                         <x-element-preview
                             :type="$element->type"
                             :config="array_merge($element->config ?? [], array_filter([
-                                'title' => $element->type->value === 'form' ? null : $config_title,
+                                'title' => $element->type->value === 'form' ? '' : $config_title,
                                 'message' => $config_message,
                                 'button_text' => $config_button_text,
                                 'submit_text' => $config_button_text,

@@ -138,13 +138,13 @@
                                             </span>
                                             @if ($campaign->has_target && $campaign->target_amount)
                                                 <div class="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
-                                                    <div class="h-1 w-16 rounded-full bg-slate-100">
+                                                    <div class="h-2.5 w-28 overflow-hidden rounded-full bg-gray-200 ring-1 ring-gray-300">
                                                         @php
                                                             $pct = $campaign->target_amount > 0
                                                                 ? min(100, ($campaign->collected_amount / $campaign->target_amount) * 100)
                                                                 : 0;
                                                         @endphp
-                                                        <div class="h-1 rounded-full bg-teal-600" style="width: {{ $pct }}%"></div>
+                                                        <div class="h-full rounded-full bg-teal-500 transition-all" style="width: {{ $pct }}%"></div>
                                                     </div>
                                                     <span>{{ number_format($pct, 0) }}%</span>
                                                 </div>

@@ -12,9 +12,9 @@
     $percentage = max(0, min(100, (int) $percentage));
 
     $sizeClasses = [
-        'sm' => 'h-1.5',
-        'md' => 'h-2.5',
-        'lg' => 'h-4',
+        'sm' => 'h-3',
+        'md' => 'h-5',
+        'lg' => 'h-6',
     ];
     $barSize = $sizeClasses[$size] ?? $sizeClasses['md'];
 
@@ -42,7 +42,7 @@
         </div>
     @endif
 
-    <div class="w-full overflow-hidden rounded-full bg-gray-100 ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700">
+    <div class="w-full overflow-hidden rounded-full bg-gray-200 ring-1 ring-gray-300 dark:bg-gray-800 dark:ring-gray-600">
         <div
             class="rounded-full transition-all duration-500 ease-out {{ $barSize }} {{ $barColor }}"
             style="width: {{ $percentage }}%; {{ $percentage > 0 && $percentage < 4 ? 'min-width: 4px;' : '' }}"
