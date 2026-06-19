@@ -96,7 +96,7 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
         </div>
 
         {{-- Right column: donation form --}}
-        <div class="lg:pl-4">
+        <div class="lg:sticky lg:top-8 lg:self-start lg:pl-4">
             @livewire('donation-form', ['campaign' => $campaign, 'isPublicPage' => true], key('donation-form-'.$campaign->public_id))
         </div>
     </div>
