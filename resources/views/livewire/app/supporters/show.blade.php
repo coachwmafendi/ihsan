@@ -604,16 +604,22 @@
                 <button
                     type="button"
                     x-on:click="$wire.closeResendModal()"
-                    class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    wire:loading.attr="disabled"
+                    wire:target="resendConfirmed"
+                    class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
                 >
                     Cancel
                 </button>
                 <button
                     type="button"
                     wire:click="resendConfirmed"
-                    class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                    wire:loading.attr="disabled"
+                    wire:target="resendConfirmed"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
                 >
-                    Resend
+                    <x-heroicon-o-arrow-path class="size-4 animate-spin" wire:loading wire:target="resendConfirmed" />
+                    <span wire:loading.remove wire:target="resendConfirmed">Resend</span>
+                    <span wire:loading wire:target="resendConfirmed">Resending...</span>
                 </button>
             </div>
         </div>
