@@ -24,115 +24,136 @@
         Settings apply to all donation forms, widgets, and checkout pages for your organization.
     </p>
 
-    {{-- Provider Status Overview --}}
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        @foreach ($this->configurations as $config)
-            @php
-                $status = $config->status;
-                $provider = $config->provider;
-            @endphp
-            <div class="rounded-xl border border-slate-200 bg-white p-4">
-                <div class="flex items-start justify-between gap-2">
-                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-100 bg-slate-50">
-                        @include('livewire.app.settings.tracking-provider-icon', ['provider' => $provider])
+    {{-- Provider two-pane layout --}}
+    <div class="grid gap-6 lg:grid-cols-[280px_1fr] lg:items-start">
+        {{-- Provider sidebar --}}
+        <nav aria-label="Providers" class="space-y-1 {{ $selectedProvider ? 'hidden lg:block' : 'block' }}">
+            @foreach ($providers as $provider)
+                @php
+                    $slug = $provider->value;
+                    $config = collect($this->configurations)->first(fn ($c) => $c->provider === $provider);
+                    $status = $config?->status ?? \App\Enums\TrackingProviderStatus::NotConfigured;
+                    $isActive = $selectedProvider === $slug;
+                @endphp
+                <button
+                    type="button"
+                    wire:click="selectProvider('{{ $slug }}')"
+                    class="group flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition {{ $isActive ? 'border-teal-200 bg-teal-50/60' : 'border-transparent bg-white hover:bg-slate-50' }}"
+                >
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-slate-100 bg-slate-50">
+                            @include('livewire.app.settings.tracking-provider-icon', ['provider' => $provider])
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-slate-900 truncate">{{ $provider->label() }}</p>
+                            <p class="text-xs text-slate-500 truncate">
+                                @if ($config?->last_event_at)
+                                    Last event {{ $config->last_event_at->diffForHumans() }}
+                                @else
+                                    No events recorded
+                                @endif
+                            </p>
+                        </div>
                     </div>
-                    <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset {{ $status->badgeClass() }}">
+                    <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ring-inset {{ $status->badgeClass() }} shrink-0">
                         <span class="h-1.5 w-1.5 rounded-full {{ $status->dotClass() }}"></span>
                         {{ $status->label() }}
                     </span>
-                </div>
-                <p class="mt-3 text-sm font-medium text-slate-900 leading-tight">{{ $provider->label() }}</p>
-                <p class="mt-0.5 text-xs text-slate-400">
-                    @if ($config->last_event_at)
-                        Last event {{ $config->last_event_at->diffForHumans() }}
-                    @else
-                        No events recorded
-                    @endif
-                </p>
-            </div>
-        @endforeach
-    </div>
+                </button>
+            @endforeach
+        </nav>
 
-    {{-- Provider Config Cards (data-driven) --}}
-    @foreach ($providers as $provider)
-        @php
-            $slug = $provider->value;
-            $config = collect($this->configurations)->first(fn ($c) => $c->provider === $provider);
-            $status = $config?->status ?? \App\Enums\TrackingProviderStatus::NotConfigured;
-            $credFields = $provider->credentialFields();
-            $optFields = $provider->optionFields();
-        @endphp
+        {{-- Provider detail panel --}}
+        <div class="{{ $selectedProvider ? 'block' : 'hidden lg:block' }}">
+            @php
+                $provider = collect($providers)->first(fn ($p) => $p->value === $selectedProvider);
+                $slug = $provider?->value ?? '';
+                $detailConfig = $this->selectedConfiguration;
+                $detailStatus = $this->selectedProviderStatus();
+                $credFields = $provider?->credentialFields() ?? [];
+                $optFields = $provider?->optionFields() ?? [];
+            @endphp
 
-        <x-ui.card>
-            <x-slot:title>
-                <div class="flex items-center gap-2.5">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-50 border border-slate-100">
-                        @include('livewire.app.settings.tracking-provider-icon', ['provider' => $provider, 'size' => 'sm'])
-                    </div>
-                    {{ $provider->label() }}
-                </div>
-            </x-slot:title>
-            <x-slot:description>{{ $provider->description() }}</x-slot:description>
-            <x-slot:actions>
-                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset {{ $status->badgeClass() }}">
-                    <span class="h-1.5 w-1.5 rounded-full {{ $status->dotClass() }}"></span>
-                    {{ $status->label() }}
-                </span>
-            </x-slot:actions>
-
-            <div class="space-y-5">
-                {{-- Credential Fields --}}
-                <div class="grid gap-4 {{ count($credFields) > 1 ? 'sm:grid-cols-2' : 'max-w-sm' }}">
-                    @foreach ($credFields as $field)
-                        <div class="space-y-1.5">
-                            <label class="text-sm font-medium text-slate-700">{{ $field['label'] }}</label>
-                            <input
-                                type="{{ $field['type'] }}"
-                                wire:model="credentials.{{ $slug }}.{{ $field['key'] }}"
-                                placeholder="{{ $field['placeholder'] }}"
-                                class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            />
-                            @if (!empty($field['hint']))
-                                <p class="text-xs text-slate-400">{{ $field['hint'] }}</p>
-                            @endif
+            @if ($provider)
+                <x-ui.card>
+                    <x-slot:title>
+                        <div class="flex items-center gap-2.5">
+                            <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-100 bg-slate-50">
+                                @include('livewire.app.settings.tracking-provider-icon', ['provider' => $provider, 'size' => 'sm'])
+                            </div>
+                            {{ $provider->label() }}
                         </div>
-                    @endforeach
-                </div>
+                    </x-slot:title>
+                    <x-slot:description>{{ $provider->description() }}</x-slot:description>
+                    <x-slot:actions>
+                        <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset {{ $detailStatus->badgeClass() }}">
+                            <span class="h-1.5 w-1.5 rounded-full {{ $detailStatus->dotClass() }}"></span>
+                            {{ $detailStatus->label() }}
+                        </span>
+                    </x-slot:actions>
 
-                {{-- Option Toggles --}}
-                @if (count($optFields) > 0)
-                    <div class="rounded-lg border border-slate-100 bg-slate-50/60 divide-y divide-slate-100">
-                        @foreach ($optFields as $opt)
-                            <label class="flex cursor-pointer items-center justify-between px-4 py-3">
-                                <div>
-                                    <p class="text-sm font-medium text-slate-800">{{ $opt['label'] }}</p>
-                                    <p class="text-xs text-slate-500 mt-0.5">{{ $opt['description'] }}</p>
+                    <div class="space-y-5">
+                        <div class="grid gap-4 {{ count($credFields) > 1 ? 'sm:grid-cols-2' : 'max-w-sm' }}">
+                            @foreach ($credFields as $field)
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-medium text-slate-700">{{ $field['label'] }}</label>
+                                    <input
+                                        type="{{ $field['type'] }}"
+                                        wire:model="credentials.{{ $slug }}.{{ $field['key'] }}"
+                                        placeholder="{{ $field['placeholder'] }}"
+                                        class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    />
+                                    @if (! empty($field['hint']))
+                                        <p class="text-xs text-slate-400">{{ $field['hint'] }}</p>
+                                    @endif
                                 </div>
-                                <input
-                                    type="checkbox"
-                                    wire:model="options.{{ $slug }}.{{ $opt['key'] }}"
-                                    class="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                                />
-                            </label>
-                        @endforeach
-                    </div>
-                @endif
+                            @endforeach
+                        </div>
 
-                {{-- Actions --}}
-                <div class="flex items-center justify-between border-t border-slate-100 pt-4">
-                    <x-ui.button variant="outline" size="sm" wireClick="testConnection('{{ $slug }}')">
-                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                        Test Connection
-                    </x-ui.button>
-                    <x-ui.button variant="primary" wireClick="saveProvider('{{ $slug }}')">
-                        Save Changes
-                    </x-ui.button>
+                        @if (count($optFields) > 0)
+                            <div class="rounded-lg border border-slate-100 bg-slate-50/60 divide-y divide-slate-100">
+                                @foreach ($optFields as $opt)
+                                    <label class="flex cursor-pointer items-center justify-between px-4 py-3">
+                                        <div>
+                                            <p class="text-sm font-medium text-slate-800">{{ $opt['label'] }}</p>
+                                            <p class="text-xs text-slate-500 mt-0.5">{{ $opt['description'] }}</p>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            wire:model="options.{{ $slug }}.{{ $opt['key'] }}"
+                                            class="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                        />
+                                    </label>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        <div class="flex flex-col-reverse items-center justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-row">
+                            <x-ui.button variant="outline" size="sm" wireClick="selectProvider('')" class="w-full sm:w-auto lg:hidden">
+                                Back to providers
+                            </x-ui.button>
+                            <div class="flex w-full items-center justify-between gap-3 sm:justify-end">
+                                <x-ui.button variant="outline" size="sm" wireClick="testConnection('{{ $slug }}')">
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    </svg>
+                                    Test Connection
+                                </x-ui.button>
+                                <x-ui.button variant="primary" wireClick="saveProvider('{{ $slug }}')">
+                                    Save Changes
+                                </x-ui.button>
+                            </div>
+                        </div>
+                    </div>
+                </x-ui.card>
+            @else
+                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-8 text-center">
+                    <p class="text-sm font-medium text-slate-900">Select a provider</p>
+                    <p class="text-xs text-slate-500 mt-1">Choose a tracking provider from the sidebar to configure it.</p>
                 </div>
-            </div>
-        </x-ui.card>
-    @endforeach
+            @endif
+        </div>
+    </div>
 
     {{-- Advanced Tracking --}}
     <div class="rounded-xl border border-slate-200 bg-white overflow-hidden">
