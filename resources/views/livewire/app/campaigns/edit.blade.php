@@ -97,67 +97,6 @@
                     </x-ui.card>
                 @endif
 
-                <x-ui.card title="Recent Donations" description="Last 10 donations to this campaign">
-                    @php $recent = $campaign->donations()->with('donor')->latest()->limit(10)->get(); @endphp
-                    @if ($recent->isNotEmpty())
-                        <div class="divide-y divide-slate-100">
-                            @foreach ($recent as $donation)
-                                <div class="flex items-center justify-between py-3">
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50">
-                                            <x-heroicon-o-user class="size-4 text-slate-400" />
-                                        </div>
-                                        <div>
-                                            <p class="text-sm font-medium text-slate-900">{{ $donation->donor?->name ?? 'Anonymous' }}</p>
-                                            <p class="text-xs text-slate-500">{{ $donation->created_at->format('M d, Y H:i') }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-sm font-semibold text-slate-900">{{ $this->getCurrencySymbol() }} {{ number_format((float) $donation->gross_amount, 2) }}</p>
-                                        <x-ui.badge status="{{ $donation->status->value }}" size="sm">{{ ucfirst($donation->status->value) }}</x-ui.badge>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <x-ui.empty-state
-                            icon="heroicon-o-banknotes"
-                            title="No donations yet"
-                            description="Donations to this campaign will appear here."
-                        />
-                    @endif
-                </x-ui.card>
-            </div>
-
-            {{-- Right Column --}}
-            <div class="space-y-6">
-                <x-ui.card title="Details">
-                    <dl class="space-y-3">
-                        <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Campaign ID</dt>
-                            <dd class="mt-0.5 text-sm text-slate-900 font-mono">{{ $campaign->public_id }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Form Parameter</dt>
-                            <dd class="mt-0.5 text-sm text-slate-900 font-mono">{{ $campaign->form_parameter }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Recurring</dt>
-                            <dd class="mt-0.5 text-sm text-slate-900">{{ $campaign->allow_recurring ? 'Allowed' : 'Not allowed' }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Custom Amount</dt>
-                            <dd class="mt-0.5 text-sm text-slate-900">{{ $campaign->allow_custom_amount ? 'Allowed' : 'Not allowed' }}</dd>
-                        </div>
-                        @if ($campaign->minimum_amount)
-                            <div>
-                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Minimum Amount</dt>
-                                <dd class="mt-0.5 text-sm text-slate-900">{{ $this->getCurrencySymbol() }} {{ number_format((float) $campaign->minimum_amount, 2) }}</dd>
-                            </div>
-                        @endif
-                    </dl>
-                </x-ui.card>
-
                 <x-ui.card title="Configuration">
                     <x-slot:actions>
                         <button type="button" wire:click="$set('activeTab', 'settings')" class="text-sm font-medium text-teal-600 hover:text-teal-700">
@@ -255,6 +194,67 @@
                                 </strong>
                             </dd>
                         </div>
+                    </dl>
+                </x-ui.card>
+
+                <x-ui.card title="Recent Donations" description="Last 10 donations to this campaign">
+                    @php $recent = $campaign->donations()->with('donor')->latest()->limit(10)->get(); @endphp
+                    @if ($recent->isNotEmpty())
+                        <div class="divide-y divide-slate-100">
+                            @foreach ($recent as $donation)
+                                <div class="flex items-center justify-between py-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50">
+                                            <x-heroicon-o-user class="size-4 text-slate-400" />
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-slate-900">{{ $donation->donor?->name ?? 'Anonymous' }}</p>
+                                            <p class="text-xs text-slate-500">{{ $donation->created_at->format('M d, Y H:i') }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-semibold text-slate-900">{{ $this->getCurrencySymbol() }} {{ number_format((float) $donation->gross_amount, 2) }}</p>
+                                        <x-ui.badge status="{{ $donation->status->value }}" size="sm">{{ ucfirst($donation->status->value) }}</x-ui.badge>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <x-ui.empty-state
+                            icon="heroicon-o-banknotes"
+                            title="No donations yet"
+                            description="Donations to this campaign will appear here."
+                        />
+                    @endif
+                </x-ui.card>
+            </div>
+
+            {{-- Right Column --}}
+            <div class="space-y-6">
+                <x-ui.card title="Details">
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Campaign ID</dt>
+                            <dd class="mt-0.5 text-sm text-slate-900 font-mono">{{ $campaign->public_id }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Form Parameter</dt>
+                            <dd class="mt-0.5 text-sm text-slate-900 font-mono">{{ $campaign->form_parameter }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Recurring</dt>
+                            <dd class="mt-0.5 text-sm text-slate-900">{{ $campaign->allow_recurring ? 'Allowed' : 'Not allowed' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Custom Amount</dt>
+                            <dd class="mt-0.5 text-sm text-slate-900">{{ $campaign->allow_custom_amount ? 'Allowed' : 'Not allowed' }}</dd>
+                        </div>
+                        @if ($campaign->minimum_amount)
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Minimum Amount</dt>
+                                <dd class="mt-0.5 text-sm text-slate-900">{{ $this->getCurrencySymbol() }} {{ number_format((float) $campaign->minimum_amount, 2) }}</dd>
+                            </div>
+                        @endif
                     </dl>
                 </x-ui.card>
 
