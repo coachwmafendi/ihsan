@@ -299,7 +299,7 @@ it('resends a donation receipt email and creates a new log entry', function () {
     expect($log->fresh()->resends)->toHaveCount(1);
 });
 
-it('keeps the email preview modal open while resending from the preview modal', function () {
+it('closes both modals after resending from the preview modal', function () {
     Mail::fake();
 
     $organization = Organization::factory()->create();
@@ -325,7 +325,7 @@ it('keeps the email preview modal open while resending from the preview modal', 
         ->assertSet('showResendModal', true)
         ->call('resendConfirmed')
         ->assertSet('showResendModal', false)
-        ->assertSet('showPreviewModal', true);
+        ->assertSet('showPreviewModal', false);
 });
 
 it('resends a donation receipt to an edited email address', function () {
@@ -446,4 +446,50 @@ it('shows the custom recipient email for a resent log entry', function () {
         ->test(SupporterShow::class, ['donor' => $donor])
         ->call('previewEmail', $log->getKey())
         ->assertSet('previewToEmail', 'resent@example.com');
+});
+
+it('shows a resent badge next to the subject for resend log entries', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    $originalLog = DonorEmailLog::factory()->donation($donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — '.$organization->name,
+    ]);
+
+    $resentLog = DonorEmailLog::factory()->donation($donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — '.$organization->name,
+        'resent_from_id' => $originalLog->getKey(),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->assertSee($resentLog->subject)
+        ->assertSee('Resent');
+});
+
+it('does not show a resent badge for original email log entries', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    DonorEmailLog::factory()->donation($donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — '.$organization->name,
+        'resent_from_id' => null,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->assertDontSee('Resent');
 });

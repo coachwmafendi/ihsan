@@ -288,6 +288,7 @@ class SupporterShow extends Component
 
         $this->resendEmail($this->resendLogId, $this->resendRecipientEmail);
         $this->closeResendModal();
+        $this->closePreviewModal();
     }
 
     private function resendEmail(int $id, ?string $toEmail = null): void

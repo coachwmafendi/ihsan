@@ -361,7 +361,12 @@
                                                 {{ $log->sent_at?->format('M d, Y, g:i A') ?? '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-sm font-medium text-slate-900">
-                                                {{ $log->subject }}
+                                                <span class="inline-flex items-center gap-2">
+                                                    {{ $log->subject }}
+                                                    @if (filled($log->resent_from_id))
+                                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Resent</span>
+                                                    @endif
+                                                </span>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-500">
                                                 {{ $log->opened_at?->format('M d, Y, g:i A') ?? '—' }}
