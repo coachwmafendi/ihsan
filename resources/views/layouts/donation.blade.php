@@ -241,10 +241,21 @@
                                 if (confirmError) { this.processing = false; this.currentStep = 'error'; this.cardError = confirmError.message; return; }
                                 this.donationPublicId = $wire.donationPublicId;
                                 this.processing = false;
-                                this.currentStep = 'success';
                                 this.trackPurchase();
 
-                                if (this.redirectUrl && !this.isPopup && !this.isEmbed) {
+                                if (this.isPopup) {
+                                    if (this.redirectUrl) {
+                                        setTimeout(() => { window.top.location.href = this.redirectUrl; }, 500);
+                                    } else {
+                                        this.$el.dispatchEvent(new CustomEvent('close-popup', { bubbles: true }));
+                                        window.parent.postMessage({ type: 'ihsan:close-modal' }, '*');
+                                    }
+                                    return;
+                                }
+
+                                this.currentStep = 'success';
+
+                                if (this.redirectUrl && !this.isEmbed) {
                                     setTimeout(() => { window.location.href = this.redirectUrl; }, 1500);
                                 }
                             },
