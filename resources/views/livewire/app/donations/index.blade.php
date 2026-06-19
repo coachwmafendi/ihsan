@@ -281,7 +281,7 @@
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead>
                         <tr class="bg-slate-50">
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap min-w-[180px] px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
                                     Date
                                     @if ($sortField === 'created_at')
@@ -295,7 +295,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap min-w-[180px] px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('gross_amount')" class="group inline-flex items-center gap-1">
                                     Donation
                                     @if ($sortField === 'gross_amount')
@@ -359,10 +359,10 @@
                                 class="cursor-pointer transition-colors hover:bg-slate-50"
                                 onclick="window.location='{{ route('app.donations.show', $donation) }}'"
                             >
-                                <td class="px-5 py-4 text-sm text-slate-500">
+                                <td class="whitespace-nowrap min-w-[180px] px-5 py-4 text-sm text-slate-500">
                                     {{ $donation->created_at->format('M d, Y, g:i A') }}
                                 </td>
-                                <td class="px-5 py-4">
+                                <td class="whitespace-nowrap min-w-[180px] px-5 py-4">
                                     <div class="flex items-center gap-2">
                                         <x-donation-report-amount :donation="$donation" />
                                         {{-- Payment method icon --}}
@@ -375,7 +375,7 @@
                                         @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
                                             <span class="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600">G Pay</span>
                                         @elseif ($pmType === 'card' || filled($pmBrand))
-                                            <x-ui.tooltip :text="ucfirst($pmBrand)">
+                                            <x-ui.tooltip :text="\Illuminate\Support\Str::headline($pmBrand)">
                                                 <x-heroicon-o-credit-card class="size-4 text-slate-400" />
                                             </x-ui.tooltip>
                                         @endif

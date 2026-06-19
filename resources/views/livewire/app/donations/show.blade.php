@@ -211,7 +211,22 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Payment method</dt>
-                            <dd class="text-sm font-medium text-slate-900">{{ $donation->payment_method_type ? ucfirst($donation->payment_method_type) : 'Card' }}</dd>
+                            <dd class="flex items-center gap-2 text-sm font-medium text-slate-900">
+                                @php
+                                    $pmType = strtolower($donation->payment_method_type ?? '');
+                                    $pmBrand = strtolower($donation->payment_method_brand ?? '');
+
+                                    $paymentLabel = match (true) {
+                                        $pmType === 'apple_pay' || $pmBrand === 'apple_pay' => 'Apple Pay',
+                                        $pmType === 'google_pay' || $pmBrand === 'google_pay' => 'Google Pay',
+                                        $pmBrand !== '' => \Illuminate\Support\Str::headline($donation->payment_method_brand),
+                                        $pmType !== '' => \Illuminate\Support\Str::headline($donation->payment_method_type),
+                                        default => 'Card',
+                                    };
+                                @endphp
+                                <x-heroicon-o-credit-card class="size-5 text-slate-500" />
+                                {{ $paymentLabel }}
+                            </dd>
                         </div>
                         @if ($donation->payment_method_brand || $donation->payment_method_last4)
                             <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -231,7 +246,7 @@
                                         };
                                     @endphp
                                     <x-dynamic-component :component="$cardIcon" class="size-8" />
-                                    {{ $donation->payment_method_brand ? ucfirst($donation->payment_method_brand) : 'Card' }}
+                                    {{ $donation->payment_method_brand ? \Illuminate\Support\Str::headline($donation->payment_method_brand) : 'Card' }}
                                     @if ($donation->payment_method_last4)
                                         <span class="text-slate-500">•••• {{ $donation->payment_method_last4 }}</span>
                                     @endif

@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -260,7 +261,7 @@ class Donation extends Model
                 return 'Card';
             }
 
-            $display = $brand ? ucfirst($brand) : 'Card';
+            $display = $brand ? Str::headline($brand) : 'Card';
 
             if ($last4) {
                 $display .= ' **** '.$last4;
