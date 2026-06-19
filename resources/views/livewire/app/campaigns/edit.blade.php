@@ -105,7 +105,7 @@
                         {{-- Goal & Duration --}}
                         <div
                             class="group cursor-pointer rounded-lg transition-colors hover:bg-slate-50"
-                            @click="tab = 'settings'"
+                            @click="tab = 'settings'; $nextTick(() => document.getElementById('campaign-settings-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))"
                             role="button"
                             tabindex="0"
                             title="Edit in Campaign Settings"
@@ -303,7 +303,7 @@
 
     <form wire:submit="save" class="space-y-6">
         {{-- Settings Tab --}}
-        <div x-show="tab === 'settings'" x-cloak class="space-y-6">
+        <div x-show="tab === 'settings'" x-cloak id="campaign-settings-section" class="space-y-6">
             <x-ui.card title="Basic Information">
                 <div class="space-y-4">
                     <div>
