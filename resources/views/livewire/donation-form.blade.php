@@ -89,7 +89,7 @@
             <div class="min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8">
                 <main class="mx-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
         @endif
-            @if ($campaignImageUrl)
+            @if ($campaignImageUrl && ! $isPublicPage)
                 <div class="p-2.5 pb-0 sm:p-3 sm:pb-0 {{ $isPopup ? 'lg:p-4 lg:pb-0' : '' }}">
                     <div
                         x-data="{ imageLoaded: false }"
@@ -118,6 +118,7 @@
                 </div>
             @endif
 
+            @if (! $isPublicPage)
             <div class="px-6 py-6 {{ $isPopup ? 'lg:flex lg:flex-1 lg:flex-col lg:justify-between lg:px-8 lg:py-7' : '' }}">
                 <div>
                 <div class="mb-5">
@@ -163,6 +164,7 @@
                 @endif
                 </div>
             </div>
+            @endif
 
             @if ($isPopup)
                 </section>
@@ -208,14 +210,15 @@
                 </div>
     @elseif ($isEmbed)
         <div class="px-4 py-5 sm:px-5">
-            <div class="mb-3">
-                <div class="min-w-0">
-                    <p class="truncate text-xs font-medium text-slate-500">{{ $organization->name }}</p>
-                    <h1 class="text-sm font-semibold text-slate-950">{{ $campaign->title }}</h1>
+            @if (! $isPublicPage)
+                <div class="mb-3">
+                    <div class="min-w-0">
+                        <p class="truncate text-xs font-medium text-slate-500">{{ $organization->name }}</p>
+                        <h1 class="text-sm font-semibold text-slate-950">{{ $campaign->title }}</h1>
+                    </div>
                 </div>
-            </div>
 
-            @if ($campaign->has_target)
+                @if ($campaign->has_target)
                 @php
                     $targetAmount = max((float) $campaign->target_amount, 1);
                     $collectedAmount = (float) $campaign->collected_amount;
@@ -232,6 +235,7 @@
                         <div class="h-3 rounded-full bg-teal-700" style="width: {{ $progressWidth }}%"></div>
                     </div>
                 </div>
+                @endif
             @endif
     @elseif (! $isCompact)
         <div class="min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8">
