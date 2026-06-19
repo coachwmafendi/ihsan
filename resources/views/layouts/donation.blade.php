@@ -21,7 +21,7 @@
             document.addEventListener('alpine:init', () => {
                 if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
                     Alpine._donationStepRegistered = true;
-                    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '') => {
+                    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false) => {
                         let stripe = null;
                         let elements = null;
                         let paymentElement = null;
@@ -41,6 +41,7 @@
                             coverFee: initialCoverFee,
                             isEmbed: initialIsEmbed,
                             isPopup: initialIsPopup,
+                            isPublicPage: initialIsPublicPage,
                             donationPublicId: initialDonationPublicId,
                             redirectUrl: initialRedirectUrl,
                             processing: false,
@@ -163,7 +164,7 @@
                                 if (this.currentStep === 1 && !this.validateStep1()) return;
                                 if (this.currentStep === 2 && !this.validateStep2()) return;
                                 if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
-                                if (this.isEmbed && this.currentStep === 1) {
+                                if (this.isEmbed && ! this.isPublicPage && this.currentStep === 1) {
                                     window.parent.postMessage({ type: 'ihsan:step-continue', amount: this.amount, frequency: this.frequency, currency: this.currency, coverFee: this.coverFee ? 1 : 0 }, '*');
                                     return;
                                 }

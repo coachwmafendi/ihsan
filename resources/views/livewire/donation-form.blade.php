@@ -282,7 +282,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($this->campaign?->redirect_url ?? $this->element?->campaign?->redirect_url))"
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($this->campaign?->redirect_url ?? $this->element?->campaign?->redirect_url), @js($this->isPublicPage))"
                         x-init="$wire.trackServerPageView()"
                         class="relative"
                     >
@@ -699,7 +699,7 @@
 @script
 {{-- donationStep Alpine component registered in layouts/donation.blade.php via alpine:init --}}
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '') => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false) => {
         let stripe = null;
         let elements = null;
         let paymentElement = null;
@@ -719,6 +719,7 @@
             coverFee: initialCoverFee,
             isEmbed: initialIsEmbed,
             isPopup: initialIsPopup,
+            isPublicPage: initialIsPublicPage,
             donationPublicId: initialDonationPublicId,
             redirectUrl: initialRedirectUrl,
             processing: false,
@@ -880,7 +881,7 @@
                 if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
 
                 // Embed step 1: hand off to parent modal instead of advancing in iframe
-                if (this.isEmbed && this.currentStep === 1) {
+                if (this.isEmbed && ! this.isPublicPage && this.currentStep === 1) {
                     var embedToken = window.location.pathname.split('/').filter(Boolean).pop();
                     window.parent.postMessage({
                         type: 'ihsan:step-continue',

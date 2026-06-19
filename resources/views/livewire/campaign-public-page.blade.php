@@ -77,7 +77,7 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
 
                     @if ($target > 0)
                         <div class="mt-6">
-                            <div class="relative mb-7">
+                            <div class="relative mb-10">
                                 {{-- Percentage label --}}
                                 <span
                                     class="absolute -top-5 -translate-x-1/2 text-xs font-bold text-[#10b981] transition-all duration-1000 ease-out"
@@ -86,15 +86,22 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                                     {{ number_format($progressPercent, 1) }}%
                                 </span>
 
-                                {{-- Segmented progress bar --}}
-                                <div class="flex h-3 gap-1">
+                                {{-- Continuous milestone track --}}
+                                <div class="relative h-3 rounded-full bg-slate-200">
+                                    <div
+                                        class="absolute left-0 top-0 h-full rounded-full bg-[#10b981] transition-all duration-1000 ease-out"
+                                        style="width: {{ $progressPercent }}%"
+                                    ></div>
+
+                                    {{-- Segment dividers --}}
                                     @foreach ($segments as $segment)
-                                        <div class="relative h-full flex-1 overflow-hidden rounded-full bg-slate-200">
-                                            <div
-                                                class="absolute left-0 top-0 h-full rounded-full bg-[#10b981] transition-all duration-1000 ease-out"
-                                                style="width: {{ $segment['fill'] }}%"
-                                            ></div>
-                                        </div>
+                                        @php
+                                            $dividerPosition = ($segment['end'] / $target) * 100;
+                                        @endphp
+                                        <div
+                                            class="absolute top-0 h-full w-0.5 bg-white"
+                                            style="left: {{ $dividerPosition }}%"
+                                        ></div>
                                     @endforeach
                                 </div>
 
@@ -106,32 +113,36 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                                         $isCurrent = $index === $currentCheckpointIndex;
                                     @endphp
                                     <div
-                                        class="absolute top-1/2 -translate-y-1/2"
-                                        style="left: calc({{ $position }}% - 6px)"
+                                        class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                                        style="left: {{ $position }}%"
                                     >
                                         @if ($isCurrent)
-                                            <span class="block size-4 animate-pulse rounded-full border-2 border-white bg-white shadow-sm ring-2 ring-[#10b981]"></span>
+                                            <span class="block size-5 animate-pulse rounded-full border-[3px] border-white bg-[#10b981] shadow-md ring-2 ring-[#10b981]"></span>
                                         @elseif ($isCompleted || $index === 0)
-                                            <span class="block size-3 rounded-full bg-[#10b981]"></span>
+                                            <span class="block size-4 rounded-full border-2 border-white bg-[#10b981] shadow-md"></span>
                                         @else
-                                            <span class="block size-3 rounded-full bg-slate-300"></span>
+                                            <span class="block size-4 rounded-full border-2 border-white bg-slate-400 shadow-md"></span>
                                         @endif
                                     </div>
                                 @endforeach
                             </div>
 
                             {{-- Checkpoint labels --}}
-                            <div class="grid grid-cols-5 gap-1">
+                            <div class="mt-4 flex items-start justify-between gap-2 text-[10px] font-semibold leading-none">
                                 @foreach ($checkpoints as $index => $amount)
                                     @php
                                         $isCurrent = $index === $currentCheckpointIndex;
-                                        $label = $amount === 0 ? 'RM0' : 'RM'.number_format($amount / 1000, 0).'k';
+                                        $label = match ($index) {
+                                            0 => 'RM '.number_format($raised, 2),
+                                            default => 'RM'.number_format($amount / 1000, 0).'k',
+                                        };
+                                        $baseClasses = $index === 0
+                                            ? 'shrink-0 text-left'
+                                            : ($index === count($checkpoints) - 1 ? 'shrink-0 text-right' : 'flex-1 text-center');
                                     @endphp
-                                    <div class="text-center">
-                                        <span class="text-[10px] font-semibold leading-none {{ $isCurrent ? 'text-[#10b981]' : 'text-slate-400' }}">
-                                            {{ $label }}
-                                        </span>
-                                    </div>
+                                    <span class="block whitespace-nowrap {{ $baseClasses }} {{ $isCurrent ? 'text-[#10b981]' : 'text-slate-400' }}">
+                                        {{ $label }}
+                                    </span>
                                 @endforeach
                             </div>
                         </div>
