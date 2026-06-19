@@ -1,4 +1,5 @@
 <div class="space-y-6">
+    @php $configurations = collect($this->configurations); @endphp
 
     {{-- Page Header --}}
     <x-ui.page-header title="Tracking & Analytics">
@@ -28,7 +29,6 @@
     <div class="grid gap-6 lg:grid-cols-[280px_1fr] lg:items-start">
         {{-- Provider sidebar --}}
         <nav aria-label="Providers" class="space-y-1 {{ $selectedProvider ? 'hidden lg:block' : 'block' }}">
-            @php $configurations = collect($this->configurations); @endphp
             @foreach ($providers as $provider)
                 @php
                     $slug = $provider->value;
@@ -38,7 +38,7 @@
                 @endphp
                 <button
                     type="button"
-                    aria-current="{{ $isActive ? 'true' : 'false' }}"
+                    aria-pressed="{{ $isActive ? 'true' : 'false' }}"
                     wire:click="selectProvider('{{ $slug }}')"
                     wire:key="provider-sidebar-{{ $slug }}"
                     class="group flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition {{ $isActive ? 'border-teal-200 bg-teal-50/60' : 'border-transparent bg-white hover:bg-slate-50' }}"
@@ -380,7 +380,7 @@
                     <div class="flex flex-wrap gap-2">
                         @foreach ($providers as $p)
                             @php
-                                $c = collect($this->configurations)->first(fn ($cfg) => $cfg->provider === $p);
+                                $c = $configurations->first(fn ($cfg) => $cfg->provider === $p);
                                 $fired = $c && $c->isConfigured();
                             @endphp
                             <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset {{ $fired ? 'bg-teal-50 text-teal-700 ring-teal-600/20' : 'bg-slate-50 text-slate-500 ring-slate-500/10' }}">

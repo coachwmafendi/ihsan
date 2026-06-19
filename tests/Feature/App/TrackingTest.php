@@ -46,6 +46,7 @@ it('switches provider detail when a sidebar provider is selected', function () {
 
     Livewire::test(Tracking::class)
         ->assertSet('selectedProvider', 'meta')
+        ->assertSee('Conversion API Access Token')
         ->call('selectProvider', 'ga4')
         ->assertSet('selectedProvider', 'ga4')
         ->assertSee('Measurement ID')
