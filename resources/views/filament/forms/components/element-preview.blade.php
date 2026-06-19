@@ -380,8 +380,8 @@
             @endif
             <div class="relative flex min-h-[300px] w-full items-center justify-center rounded-xl bg-zinc-50/80 p-4">
                 <div class="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-zinc-200/60">
-                    <button type="button" class="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-zinc-100/80 text-zinc-400 transition hover:bg-zinc-200 hover:text-zinc-600">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button type="button" class="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-500 shadow-md transition hover:bg-zinc-100 hover:text-zinc-900">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                     @if($imageUrl && $popupLayout === 'full')
                         <div class="relative h-48 w-full">
