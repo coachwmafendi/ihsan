@@ -172,7 +172,7 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 capitalize">
-                                        {{ str_replace('_', ' ', $element->type->value) }}
+                                        {{ $element->is_donor_portal_default ? 'Donor Portal Button' : str_replace('_', ' ', $element->type->value) }}
                                     </span>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">

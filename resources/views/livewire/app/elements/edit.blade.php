@@ -3,6 +3,7 @@
     $isButtonLike = in_array($element->type->value, ['button', 'floating_button', 'sticky_button', 'link'], true);
     $isQrCode = $element->type->value === 'qr_code';
     $embedCode = '<script src="' . url('/e/widget.js') . '" data-token="' . $element->token . '" data-type="' . $element->type->value . '" async></script>';
+    $typeDisplayLabel = $element->is_donor_portal_default ? 'Donor Portal Button' : $element->type->label();
 @endphp
 
 <div class="space-y-6">
@@ -19,7 +20,7 @@
         <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
             {{ $element->name }}
             <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                Type: {{ $element->type->label() }}
+                Type: {{ $typeDisplayLabel }}
             </span>
         </p>
     </div>
@@ -388,7 +389,7 @@
                             <div class="border-b border-zinc-100 px-4 py-2">
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Preview</h3>
-                                    <span class="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">{{ $element->type->label() }}</span>
+                                    <span class="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">{{ $typeDisplayLabel }}</span>
                                 </div>
                             </div>
 

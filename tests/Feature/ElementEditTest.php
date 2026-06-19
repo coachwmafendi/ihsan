@@ -635,3 +635,27 @@ it('reflects sticky button size and radius in the live preview', function () {
             'font-size: 17px',
         ]);
 });
+
+it('displays Donor Portal Button label for the default donor portal element', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Button,
+        'is_donor_portal_default' => true,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->assertSee('Donor Portal Button');
+});
+
+it('shows Donor Portal Button label in the element list', function () {
+    Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Button,
+        'is_donor_portal_default' => true,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementIndex::class)
+        ->assertSee('Donor Portal Button');
+});
