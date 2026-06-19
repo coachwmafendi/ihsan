@@ -429,7 +429,7 @@ it('displays a configuration snapshot on the overview tab', function () {
         ->assertSee('Custom amount on')
         ->assertSee('Min RM 5')
         ->assertSee('Checkout Defaults')
-        ->assertSee('One-time')
+        ->assertSee('One time')
         ->assertSee('RM 50')
         ->assertSee('MYR')
         ->assertSee('Off')
@@ -438,11 +438,48 @@ it('displays a configuration snapshot on the overview tab', function () {
         ->assertSee('Comment on')
         ->assertSee('Phone on')
         ->assertSee('Post Donation')
-        ->assertSee('Set')
+        ->assertSeeText('Thank-you message: Set')
         ->assertSee('https://example.com/thank-you')
         ->assertSee('Suggested Amounts')
         ->assertSee('500')
         ->assertSee('300');
+});
+
+it('displays default configuration values when fields are empty', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'has_target' => false,
+        'has_end_date' => false,
+        'thank_you_message' => null,
+        'redirect_url' => null,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSee('No target')
+        ->assertSee('No end date')
+        ->assertSeeText('Thank-you message: Not set')
+        ->assertSeeText('Redirect URL: None');
+});
+
+it('falls back to legacy suggested amounts when config is empty', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'config' => ['default_currency' => 'MYR'],
+        'suggested_amounts_one_time' => [
+            ['value' => 123, 'label' => ''],
+        ],
+        'suggested_amounts_monthly' => [
+            ['value' => 45, 'label' => ''],
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSee('123')
+        ->assertSee('45');
 });
 
 it('provides quick edit links to settings and checkout tabs', function () {
