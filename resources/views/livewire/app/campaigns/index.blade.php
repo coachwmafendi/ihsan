@@ -137,15 +137,18 @@
                                                 {{ $campaign->title }}
                                             </span>
                                             @if ($campaign->has_target && $campaign->target_amount)
+                                                @php
+                                                        $pct = $campaign->target_amount > 0
+                                                            ? min(100, ($campaign->collected_amount / $campaign->target_amount) * 100)
+                                                            : 0;
+                                                        $tooltipText = 'RM ' . number_format((float) $campaign->collected_amount, 2) . ' of RM ' . number_format((float) $campaign->target_amount, 2);
+                                                    @endphp
                                                 <div class="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
-                                                    <div class="h-2.5 w-28 overflow-hidden rounded-full bg-gray-200 ring-1 ring-gray-300">
-                                                        @php
-                                                            $pct = $campaign->target_amount > 0
-                                                                ? min(100, ($campaign->collected_amount / $campaign->target_amount) * 100)
-                                                                : 0;
-                                                        @endphp
-                                                        <div class="h-full rounded-full bg-teal-500 transition-all" style="width: {{ $pct }}%"></div>
-                                                    </div>
+                                                    <x-ui.tooltip :text="$tooltipText">
+                                                        <div class="h-2.5 w-28 overflow-hidden rounded-full bg-gray-200 ring-1 ring-gray-300">
+                                                            <div class="h-full rounded-full bg-teal-500 transition-all" style="width: {{ $pct }}%"></div>
+                                                        </div>
+                                                    </x-ui.tooltip>
                                                     <span>{{ number_format($pct, 0) }}%</span>
                                                 </div>
                                             @endif

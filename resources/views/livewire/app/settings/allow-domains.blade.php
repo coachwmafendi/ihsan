@@ -18,7 +18,7 @@
 
 
     <form wire:submit="save" class="space-y-6" x-data="{ newDomain: '' }">
-        <x-ui.card title="Allowed Domains" description="Domains permitted to embed your checkout widget. Only requests originating from these domains will be accepted.">
+        <x-ui.card title="Allowed Domains" description="Domains permitted to embed your elements and checkout modal. Only requests originating from these domains will be accepted.">
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
                     <p class="text-sm text-slate-600">
