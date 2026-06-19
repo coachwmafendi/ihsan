@@ -776,11 +776,11 @@
       var ctaBtn = '<button data-cta style="display:inline-block;background:' + ctaBg + ";color:#fff;padding:12px 32px;border:0;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.14);" + '">' + btnText + "</button>";
 
       var cardHtml = '<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;box-shadow:0 24px 80px rgba(15,23,42,.28);text-align:center;position:relative;overflow:hidden;">';
-      cardHtml += closeBtn;
       if (isFull && hasImage) {
         cardHtml += '<div style="height:180px;background:url(' + esc(s.image_url) + ') center/cover no-repeat;"></div>';
       }
       cardHtml += '<div style="padding:32px;position:relative;">';
+      cardHtml += closeBtn;
       if (!isFull && hasImage) {
         cardHtml += '<img src="' + esc(s.image_url) + '" style="width:100%;height:150px;object-fit:cover;border-radius:12px;margin-bottom:16px;">';
       }
