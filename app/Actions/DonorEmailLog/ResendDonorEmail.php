@@ -20,13 +20,20 @@ class ResendDonorEmail
         private LogDonorEmail $logger,
     ) {}
 
-    public function handle(DonorEmailLog $log): ?DonorEmailLog
+    public function handle(DonorEmailLog $log, ?string $toEmail = null): ?DonorEmailLog
     {
         $messageId = Str::uuid()->toString();
         $mailable = $this->recreateMailable($log, $messageId);
 
         if ($mailable === null) {
             return null;
+        }
+
+        $recipient = $toEmail ?? $log->donor->email;
+
+        $metadata = $log->metadata ?? [];
+        if ($toEmail !== null && $toEmail !== $log->donor->email) {
+            $metadata['resent_to_email'] = $toEmail;
         }
 
         $newLog = $this->logger->handle(
@@ -36,11 +43,11 @@ class ResendDonorEmail
             donation: $log->donation,
             subscription: $log->subscription,
             resentFrom: $log,
-            metadata: $log->metadata ?? [],
+            metadata: $metadata,
             messageId: $messageId,
         );
 
-        Mail::to($log->donor->email)->queue($mailable);
+        Mail::to($recipient)->queue($mailable);
 
         return $newLog;
     }

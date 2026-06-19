@@ -300,6 +300,35 @@ it('resends a donation receipt email and creates a new log entry', function () {
     expect($log->fresh()->resends)->toHaveCount(1);
 });
 
+it('resends a donation receipt to an edited email address', function () {
+    Mail::fake();
+
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create(['email' => 'original@example.com']);
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    $log = DonorEmailLog::factory()->donation($donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — '.$organization->name,
+        'sent_at' => now()->subDay(),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->call('confirmResend', $log->getKey())
+        ->set('resendRecipientEmail', 'edited@example.com')
+        ->call('resendConfirmed')
+        ->assertDispatched('notify', variant: 'success');
+
+    Mail::assertQueued(DonationReceipt::class, function (DonationReceipt $mail) {
+        return $mail->hasTo('edited@example.com');
+    });
+});
+
 it('opens a preview modal with rendered email html when subject is clicked', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([

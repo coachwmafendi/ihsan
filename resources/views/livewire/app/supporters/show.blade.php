@@ -561,7 +561,7 @@
         x-data="{}"
         x-show="$wire.showResendModal"
         x-on:keydown.escape.window="$wire.closeResendModal()"
-        class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4"
+        class="fixed inset-0 z-[100] flex items-start justify-center bg-slate-900/50 p-4 pt-20"
         x-on:click.self="$wire.closeResendModal()"
     >
         <div class="w-full max-w-md rounded-xl bg-white shadow-xl">
@@ -588,9 +588,8 @@
                     <input
                         id="resend-email-address"
                         type="email"
-                        x-bind:value="$wire.resendRecipientEmail"
-                        disabled
-                        class="mt-1 block w-full rounded-lg border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        wire:model="resendRecipientEmail"
+                        class="mt-1 block w-full rounded-lg border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                     />
                 </div>
             </div>

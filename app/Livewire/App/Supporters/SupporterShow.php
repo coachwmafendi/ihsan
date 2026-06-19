@@ -266,6 +266,7 @@ class SupporterShow extends Component
             ->when($org->getKey(), fn (Builder $q, int $orgId) => $q->where('organization_id', $orgId))
             ->firstOrFail();
 
+        $this->closePreviewModal();
         $this->resendLogId = $log->id;
         $this->resendRecipientEmail = $log->donor->email;
         $this->showResendModal = true;
@@ -284,12 +285,12 @@ class SupporterShow extends Component
             return;
         }
 
-        $this->resendEmail($this->resendLogId);
+        $this->resendEmail($this->resendLogId, $this->resendRecipientEmail);
         $this->closeResendModal();
         $this->closePreviewModal();
     }
 
-    private function resendEmail(int $id): void
+    private function resendEmail(int $id, ?string $toEmail = null): void
     {
         $org = Auth::user()?->organization;
 
@@ -302,7 +303,7 @@ class SupporterShow extends Component
             ->when($org->getKey(), fn (Builder $q, int $orgId) => $q->where('organization_id', $orgId))
             ->firstOrFail();
 
-        $newLog = app(ResendDonorEmail::class)->handle($log);
+        $newLog = app(ResendDonorEmail::class)->handle($log, $toEmail);
 
         if ($newLog === null) {
             $this->dispatch('notify', variant: 'danger', message: 'This email cannot be resent.');
