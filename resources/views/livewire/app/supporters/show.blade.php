@@ -520,7 +520,7 @@
                     <span class="w-16 shrink-0 text-right text-slate-500">To:</span>
                     <span class="text-slate-800">
                         {{ \Illuminate\Support\Str::title($donor->name) }}
-                        <span class="text-slate-500">&lt;{{ $donor->email }}&gt;</span>
+                        <span class="text-slate-500">&lt;<span x-text="$wire.previewToEmail"></span>&gt;</span>
                     </span>
                     <button
                         type="button"

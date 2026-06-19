@@ -52,6 +52,8 @@ class SupporterShow extends Component
 
     public ?string $previewHtml = null;
 
+    public ?string $previewToEmail = null;
+
     public bool $showResendModal = false;
 
     public ?int $resendLogId = null;
@@ -339,6 +341,7 @@ class SupporterShow extends Component
         $this->previewSentAt = $log->sent_at?->format('M d, Y, g:i A');
         $this->previewFromName = $org->name;
         $this->previewFromEmail = config('mail.from.address', 'no-reply@getihsan.my');
+        $this->previewToEmail = $log->metadata['resent_to_email'] ?? $this->donor->email;
         $this->previewHtml = $html;
         $this->showPreviewModal = true;
     }
@@ -360,6 +363,7 @@ class SupporterShow extends Component
         $this->previewSentAt = null;
         $this->previewFromName = null;
         $this->previewFromEmail = null;
+        $this->previewToEmail = null;
         $this->previewHtml = null;
     }
 

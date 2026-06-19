@@ -426,3 +426,24 @@ it('shows the system from address in the email preview modal', function () {
         ->assertSet('previewFromName', 'Test Org')
         ->assertSet('previewFromEmail', 'no-reply@getihsan.my');
 });
+
+it('shows the custom recipient email for a resent log entry', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create(['email' => 'original@example.com']);
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    $log = DonorEmailLog::factory()->donation($donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — '.$organization->name,
+        'metadata' => ['resent_to_email' => 'resent@example.com'],
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->call('previewEmail', $log->getKey())
+        ->assertSet('previewToEmail', 'resent@example.com');
+});
