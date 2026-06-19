@@ -42,7 +42,7 @@
         </div>
     @endif
 
-    <div class="w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+    <div class="w-full overflow-hidden rounded-full bg-gray-100 ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700">
         <div
             class="rounded-full transition-all duration-500 ease-out {{ $barSize }} {{ $barColor }}"
             style="width: {{ $percentage }}%; {{ $percentage > 0 && $percentage < 4 ? 'min-width: 4px;' : '' }}"
