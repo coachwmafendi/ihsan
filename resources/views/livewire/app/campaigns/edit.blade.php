@@ -797,33 +797,196 @@
 
     {{-- Campaign Page Tab --}}
     <div x-show="tab === 'campaign-page'" x-cloak class="space-y-6">
-        <x-ui.card title="Campaign Page">
-            <div class="space-y-6">
-                <div>
-                    <h3 class="text-sm font-medium text-slate-900">Thank you screen</h3>
-                    <div class="mt-3 space-y-3">
-                        <label class="flex cursor-pointer items-start gap-3">
-                            <input type="radio" wire:model="postDonationMode" value="default" class="mt-0.5 h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600" />
-                            <span class="text-sm text-slate-700">Show supporters the default thank you screen.</span>
-                        </label>
-                        <label class="flex cursor-pointer items-start gap-3">
-                            <input type="radio" wire:model="postDonationMode" value="redirect" class="mt-0.5 h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600" />
-                            <span class="text-sm text-slate-700">Redirect supporters to a specific URL.</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700">Sharing URL</label>
-                    <input type="text" readonly value="{{ route('donations.campaign-show', $campaign) }}" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600" />
-                </div>
-
-                <div>
-                    <label for="share_message" class="block text-sm font-medium text-slate-700">Default sharing message</label>
-                    <textarea id="share_message" wire:model="shareMessage" rows="3" maxlength="280" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"></textarea>
-                </div>
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+            {{-- Left sidebar --}}
+            <div class="lg:col-span-1">
+                <x-ui.card>
+                    <nav class="flex flex-col space-y-1" aria-label="Campaign page sections">
+                        <button type="button"
+                            wire:click="$set('campaignPagePanel', 'thank-you')"
+                            class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $campaignPagePanel === 'thank-you' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                        >
+                            <x-heroicon-o-heart class="size-5" />
+                            Thank you screen
+                        </button>
+                        <button type="button" disabled class="inline-flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-400">
+                            <x-heroicon-o-document-text class="size-5" />
+                            Content
+                        </button>
+                        <button type="button" disabled class="inline-flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-400">
+                            <x-heroicon-o-chart-bar class="size-5" />
+                            Campaign progress
+                        </button>
+                        <button type="button" disabled class="inline-flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-400">
+                            <x-heroicon-o-users class="size-5" />
+                            Supporter impact
+                        </button>
+                        <button type="button" disabled class="inline-flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-400">
+                            <x-heroicon-o-list-bullet class="size-5" />
+                            Multiple designations
+                        </button>
+                        <button type="button" disabled class="inline-flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-400">
+                            <x-heroicon-o-sparkles class="size-5" />
+                            Benefits
+                        </button>
+                    </nav>
+                </x-ui.card>
             </div>
-        </x-ui.card>
+
+            {{-- Right panel --}}
+            <div class="lg:col-span-3">
+                @if ($campaignPagePanel === 'thank-you')
+                    <x-ui.card title="Thank you screen" description="Choose what to show supporters after they donate.">
+                        <div class="space-y-6">
+                            {{-- Post-donation mode --}}
+                            <div class="space-y-3">
+                                <span class="block text-sm font-medium text-slate-900">Post-donation experience</span>
+
+                                <label class="flex cursor-pointer items-start gap-3">
+                                    <input
+                                        type="radio"
+                                        wire:model.live="postDonationMode"
+                                        value="default"
+                                        class="mt-0.5 h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600"
+                                    />
+                                    <span class="text-sm font-semibold text-slate-900">Show supporters the default thank you screen</span>
+                                </label>
+                                <p class="ml-7 text-sm text-slate-500">Display a thank-you message on the campaign page after a successful donation.</p>
+
+                                <label class="flex cursor-pointer items-start gap-3">
+                                    <input
+                                        type="radio"
+                                        wire:model.live="postDonationMode"
+                                        value="redirect"
+                                        class="mt-0.5 h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600"
+                                    />
+                                    <span class="text-sm font-semibold text-slate-900">Redirect supporters to a specific URL</span>
+                                </label>
+                                <p class="ml-7 text-sm text-slate-500">Send donors to an external thank-you page instead.</p>
+
+                                @if ($postDonationMode === 'default')
+                                    <div class="ml-7">
+                                        <label for="thank_you_message" class="block text-sm font-medium text-slate-700">Thank-you message</label>
+                                        <textarea
+                                            id="thank_you_message"
+                                            wire:model="thank_you_message"
+                                            rows="3"
+                                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                            placeholder="Thank you for your generous donation!"
+                                        ></textarea>
+                                        @error('thank_you_message') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                    </div>
+                                @endif
+
+                                @if ($postDonationMode === 'redirect')
+                                    <div class="ml-7">
+                                        <label for="redirect_url" class="block text-sm font-medium text-slate-700">Redirect URL</label>
+                                        <input
+                                            type="url"
+                                            id="redirect_url"
+                                            wire:model="redirect_url"
+                                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                            placeholder="https://example.com/thank-you"
+                                        />
+                                        @error('redirect_url') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="border-t border-slate-100"></div>
+
+                            {{-- Sharing --}}
+                            <div class="space-y-4">
+                                <div>
+                                    <span class="block text-sm font-medium text-slate-900">Sharing channels</span>
+                                    <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                        <label class="flex cursor-pointer items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                wire:model="shareChannels"
+                                                value="facebook"
+                                                class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                            />
+                                            <span class="text-sm text-slate-700">Facebook</span>
+                                        </label>
+                                        <label class="flex cursor-pointer items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                wire:model="shareChannels"
+                                                value="x"
+                                                class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                            />
+                                            <span class="text-sm text-slate-700">X</span>
+                                        </label>
+                                        <label class="flex cursor-pointer items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                wire:model="shareChannels"
+                                                value="linkedin"
+                                                class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                            />
+                                            <span class="text-sm text-slate-700">LinkedIn</span>
+                                        </label>
+                                        <label class="flex cursor-pointer items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                wire:model="shareChannels"
+                                                value="email"
+                                                class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                            />
+                                            <span class="text-sm text-slate-700">Email</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                @php $campaignPageUrl = url('/campaigns/'.$campaign->public_id); @endphp
+                                <div>
+                                    <label for="campaign_page_url" class="block text-sm font-medium text-slate-700">Sharing URL</label>
+                                    <div class="mt-1.5 flex items-center gap-2">
+                                        <input
+                                            id="campaign_page_url"
+                                            type="text"
+                                            readonly
+                                            value="{{ $campaignPageUrl }}"
+                                            class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600"
+                                        />
+                                        <x-ui.copy-button value="{{ $campaignPageUrl }}" title="Copy URL" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="share_message" class="block text-sm font-medium text-slate-700">Default sharing message</label>
+                                    <textarea
+                                        id="share_message"
+                                        wire:model="shareMessage"
+                                        rows="3"
+                                        maxlength="280"
+                                        class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    ></textarea>
+                                    <div class="mt-1 flex items-center justify-between">
+                                        @error('shareMessage') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                                        <p class="ml-auto text-xs text-slate-500">{{ strlen($shareMessage ?? '') }}/280</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                                <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
+                                <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
+                            </div>
+                        </div>
+                    </x-ui.card>
+                @else
+                    <x-ui.card>
+                        <x-ui.empty-state
+                            icon="heroicon-o-cube"
+                            title="Section not available"
+                            description="Choose a section from the sidebar to edit."
+                        />
+                    </x-ui.card>
+                @endif
+            </div>
+        </div>
     </div>
 
     {{-- Embed & Share Tab --}}
