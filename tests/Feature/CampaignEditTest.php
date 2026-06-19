@@ -383,3 +383,78 @@ it('prevents unauthorized access', function () {
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
         ->assertForbidden();
 });
+
+it('displays a configuration snapshot on the overview tab', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'has_target' => true,
+        'target_amount' => 10000,
+        'has_end_date' => true,
+        'end_date' => now()->addMonth(),
+        'allow_recurring' => true,
+        'allow_custom_amount' => true,
+        'minimum_amount' => 5,
+        'thank_you_message' => 'Thank you for your support!',
+        'redirect_url' => 'https://example.com/thank-you',
+        'config' => [
+            'default_frequency' => 'one_time',
+            'default_amount' => 50,
+            'default_currency' => 'MYR',
+            'currency_autodetect' => false,
+            'allow_cover_fee' => true,
+            'show_comment' => true,
+            'show_phone' => true,
+            'suggested_amounts_by_currency' => [
+                'MYR' => [
+                    'one_time' => [
+                        ['value' => 500, 'label' => ''],
+                        ['value' => 100, 'label' => ''],
+                    ],
+                    'monthly' => [
+                        ['value' => 300, 'label' => ''],
+                    ],
+                ],
+            ],
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSee('Configuration')
+        ->assertSee('Goal & Duration')
+        ->assertSee('RM 10,000')
+        ->assertSee('Donation Options')
+        ->assertSee('Recurring on')
+        ->assertSee('Custom amount on')
+        ->assertSee('Min RM 5')
+        ->assertSee('Checkout Defaults')
+        ->assertSee('One-time')
+        ->assertSee('RM 50')
+        ->assertSee('MYR')
+        ->assertSee('Off')
+        ->assertSee('Checkout Fields')
+        ->assertSee('Cover fee on')
+        ->assertSee('Comment on')
+        ->assertSee('Phone on')
+        ->assertSee('Post Donation')
+        ->assertSee('Set')
+        ->assertSee('https://example.com/thank-you')
+        ->assertSee('Suggested Amounts')
+        ->assertSee('500')
+        ->assertSee('300');
+});
+
+it('provides quick edit links to settings and checkout tabs', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSee('Edit Settings')
+        ->assertSee('Edit Checkout')
+        ->assertSee("wire:click=\"\$set('activeTab', 'settings')\"", false)
+        ->assertSee("wire:click=\"\$set('activeTab', 'checkout')\"", false);
+});

@@ -171,7 +171,7 @@
                     <dl class="space-y-4">
                         {{-- Goal & Duration --}}
                         <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Goal & Duration</dt>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Goal &amp; Duration</dt>
                             <dd class="mt-0.5 text-sm text-slate-900">
                                 @if ($campaign->has_target && $campaign->target_amount)
                                     Target {{ $this->getCurrencySymbolFor($this->default_currency) }} {{ number_format((float) $campaign->target_amount, 2) }}
