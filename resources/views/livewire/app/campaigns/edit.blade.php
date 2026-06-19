@@ -236,18 +236,46 @@
                     @if ($elements->isNotEmpty())
                         <div class="divide-y divide-slate-100">
                             @foreach ($elements as $element)
-                                <div class="flex items-center justify-between py-3">
+                                @php
+                                    $embedCode = '<script src="' . url('/e/widget.js') . '" data-token="' . $element->token . '" data-type="' . $element->type->value . '" async></script>';
+                                    $typeLabel = ucfirst(str_replace('_', ' ', $element->type->value));
+                                @endphp
+                                <a
+                                    href="{{ route('app.elements.edit', $element) }}"
+                                    wire:navigate
+                                    class="group flex items-center justify-between py-3"
+                                >
                                     <div class="flex items-center gap-3">
-                                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50">
-                                            <x-heroicon-o-code-bracket class="size-4 text-slate-400" />
+                                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 group-hover:bg-teal-50 transition-colors">
+                                            <x-heroicon-o-code-bracket class="size-4 text-slate-400 group-hover:text-teal-500 transition-colors" />
                                         </div>
                                         <div>
-                                            <p class="text-sm font-medium text-slate-900">{{ $element->name }}</p>
-                                            <p class="text-xs text-slate-500">{{ ucfirst($element->type->value) }}</p>
+                                            <p class="text-sm font-medium text-slate-900 group-hover:text-teal-700 transition-colors">{{ $element->name }}</p>
+                                            <p class="text-xs text-slate-500">{{ $typeLabel }}</p>
                                         </div>
                                     </div>
-                                    <code class="rounded bg-slate-50 px-2 py-0.5 text-xs text-slate-600 font-mono">{{ $element->public_id }}</code>
-                                </div>
+                                    <div class="flex items-center gap-2" x-data="{ copied: false }">
+                                        <code class="rounded bg-slate-50 px-2 py-0.5 text-xs text-slate-600 font-mono group-hover:bg-slate-100 transition-colors">{{ $element->public_id }}</code>
+                                        <button
+                                            type="button"
+                                            title="Copy embed code"
+                                            @click.stop.prevent="navigator.clipboard.writeText(@js($embedCode)); copied = true; setTimeout(() => copied = false, 2000)"
+                                            class="shrink-0 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                                            aria-label="Copy embed code"
+                                        >
+                                            <template x-if="!copied">
+                                                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                                </svg>
+                                            </template>
+                                            <template x-if="copied">
+                                                <svg class="size-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                            </template>
+                                        </button>
+                                    </div>
+                                </a>
                             @endforeach
                         </div>
                     @else
