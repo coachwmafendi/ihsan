@@ -128,6 +128,19 @@ it('preserves existing button effect config on save', function () {
     expect($element->config['button_effect'])->toBe('gradient_teal_green');
 });
 
+it('renders a gradient effect in the button preview', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Button,
+        'config' => ['button_effect' => 'gradient_emerald_teal'],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->assertSee('preview-effect-')
+        ->assertSee('linear-gradient(120deg,#10b981,#0d9488,#34d399,#10b981)');
+});
+
 it('saves a gradient button effect', function () {
     $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
         'type' => ElementType::Button,
@@ -579,6 +592,20 @@ it('reflects floating button size changes in the live preview', function () {
     Livewire::test(ElementEdit::class, ['element' => $element])
         ->set('config_button_size', 'small')
         ->assertSee('padding: 8px 16px');
+});
+
+it('reflects form title and submit text in the live preview', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_title', 'Bantu pembinaan surau')
+        ->set('config_button_text', 'Sumbang Sekarang')
+        ->assertSee('Bantu pembinaan surau')
+        ->assertSee('Sumbang Sekarang');
 });
 
 it('reflects sticky button size and radius in the live preview', function () {
