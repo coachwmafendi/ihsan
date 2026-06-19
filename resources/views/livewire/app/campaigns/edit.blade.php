@@ -158,6 +158,106 @@
                     </dl>
                 </x-ui.card>
 
+                <x-ui.card title="Configuration">
+                    <x-slot:actions>
+                        <button type="button" wire:click="$set('activeTab', 'settings')" class="text-sm font-medium text-teal-600 hover:text-teal-700">
+                            Edit Settings
+                        </button>
+                        <button type="button" wire:click="$set('activeTab', 'checkout')" class="text-sm font-medium text-teal-600 hover:text-teal-700">
+                            Edit Checkout
+                        </button>
+                    </x-slot:actions>
+
+                    <div class="space-y-4">
+                        {{-- Goal & Duration --}}
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Goal & Duration</dt>
+                            <dd class="mt-0.5 text-sm text-slate-900">
+                                @if ($campaign->has_target && $campaign->target_amount)
+                                    Target {{ $this->getCurrencySymbolFor($this->default_currency) }} {{ number_format((float) $campaign->target_amount, 2) }}
+                                @else
+                                    No target
+                                @endif
+                                ·
+                                @if ($campaign->has_end_date && $campaign->end_date)
+                                    Ends {{ $campaign->end_date->format('M d, Y') }}
+                                @else
+                                    No end date
+                                @endif
+                            </dd>
+                        </div>
+
+                        {{-- Donation Options --}}
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Donation Options</dt>
+                            <dd class="mt-1.5 flex flex-wrap gap-2">
+                                <x-ui.badge status="{{ $campaign->allow_recurring ? 'success' : 'default' }}" size="sm">
+                                    {{ $campaign->allow_recurring ? 'Recurring on' : 'Recurring off' }}
+                                </x-ui.badge>
+                                <x-ui.badge status="{{ $campaign->allow_custom_amount ? 'success' : 'default' }}" size="sm">
+                                    {{ $campaign->allow_custom_amount ? 'Custom amount on' : 'Custom amount off' }}
+                                </x-ui.badge>
+                                @if ($campaign->minimum_amount)
+                                    <x-ui.badge status="default" size="sm">Min {{ $this->getCurrencySymbolFor($this->default_currency) }} {{ number_format((float) $campaign->minimum_amount, 2) }}</x-ui.badge>
+                                @endif
+                            </dd>
+                        </div>
+
+                        {{-- Checkout Defaults --}}
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Checkout Defaults</dt>
+                            <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed">
+                                Default frequency: <strong>{{ ucfirst(str_replace('_', ' ', $this->default_frequency)) }}</strong><br>
+                                Default amount: <strong>{{ $this->getCurrencySymbolFor($this->default_currency) }} {{ number_format((float) ($this->default_amount ?? 50), 2) }}</strong><br>
+                                Default currency: <strong>{{ $this->default_currency }}</strong><br>
+                                Currency auto-detect: <strong>{{ $this->currency_autodetect ? 'On' : 'Off' }}</strong>
+                            </dd>
+                        </div>
+
+                        {{-- Checkout Fields --}}
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Checkout Fields</dt>
+                            <dd class="mt-1.5 flex flex-wrap gap-2">
+                                <x-ui.badge status="{{ $this->allow_cover_fee ? 'success' : 'default' }}" size="sm">
+                                    Cover fee {{ $this->allow_cover_fee ? 'on' : 'off' }}
+                                </x-ui.badge>
+                                <x-ui.badge status="{{ $this->show_comment ? 'success' : 'default' }}" size="sm">
+                                    Comment {{ $this->show_comment ? 'on' : 'off' }}
+                                </x-ui.badge>
+                                <x-ui.badge status="{{ $this->show_phone ? 'success' : 'default' }}" size="sm">
+                                    Phone {{ $this->show_phone ? 'on' : 'off' }}
+                                </x-ui.badge>
+                            </dd>
+                        </div>
+
+                        {{-- Post Donation --}}
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Post Donation</dt>
+                            <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed">
+                                Thank-you message: <strong>{{ $campaign->thank_you_message ? 'Set' : 'Not set' }}</strong><br>
+                                Redirect URL: <strong>{{ $campaign->redirect_url ?: 'None' }}</strong>
+                            </dd>
+                        </div>
+
+                        {{-- Suggested Amounts --}}
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Suggested Amounts ({{ $this->default_currency }})</dt>
+                            <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed">
+                                @php $defaultAmounts = $this->getDefaultCurrencySuggestedAmounts(); @endphp
+                                One-time:
+                                <strong>
+                                    {{ collect($defaultAmounts['one_time'] ?? [])->pluck('value')->filter(fn ($v) => $v > 0)->implode(', ') ?: 'None' }}
+                                </strong>
+                                <br>
+                                Monthly:
+                                <strong>
+                                    {{ collect($defaultAmounts['monthly'] ?? [])->pluck('value')->filter(fn ($v) => $v > 0)->implode(', ') ?: 'None' }}
+                                </strong>
+                            </dd>
+                        </div>
+                    </div>
+                </x-ui.card>
+
                 <x-ui.card title="Linked Elements" description="Embed elements using this campaign">
                     @php $elements = $campaign->elements()->select(['id','public_id','token','name','type','created_at'])->get(); @endphp
                     @if ($elements->isNotEmpty())
