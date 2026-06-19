@@ -803,31 +803,25 @@
                 <x-ui.card>
                     <nav class="flex flex-col space-y-1" aria-label="Campaign page sections">
                         <button type="button"
+                            wire:click="$set('campaignPagePanel', 'content')"
+                            class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $campaignPagePanel === 'content' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                        >
+                            <x-heroicon-o-document-text class="size-5" />
+                            Content
+                        </button>
+                        <button type="button"
+                            wire:click="$set('campaignPagePanel', 'progress')"
+                            class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $campaignPagePanel === 'progress' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                        >
+                            <x-heroicon-o-chart-bar class="size-5" />
+                            Campaign progress
+                        </button>
+                        <button type="button"
                             wire:click="$set('campaignPagePanel', 'thank-you')"
                             class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $campaignPagePanel === 'thank-you' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
                         >
                             <x-heroicon-o-heart class="size-5" />
                             Thank you screen
-                        </button>
-                        <button type="button" disabled class="inline-flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-400">
-                            <x-heroicon-o-document-text class="size-5" />
-                            Content
-                        </button>
-                        <button type="button" disabled class="inline-flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-400">
-                            <x-heroicon-o-chart-bar class="size-5" />
-                            Campaign progress
-                        </button>
-                        <button type="button" disabled class="inline-flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-400">
-                            <x-heroicon-o-users class="size-5" />
-                            Supporter impact
-                        </button>
-                        <button type="button" disabled class="inline-flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-400">
-                            <x-heroicon-o-list-bullet class="size-5" />
-                            Multiple designations
-                        </button>
-                        <button type="button" disabled class="inline-flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-400">
-                            <x-heroicon-o-sparkles class="size-5" />
-                            Benefits
                         </button>
                     </nav>
                 </x-ui.card>
@@ -974,6 +968,123 @@
                                 <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
                                 <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
                             </div>
+                        </div>
+                    </x-ui.card>
+                @elseif ($campaignPagePanel === 'content')
+                    <x-ui.card title="Content" description="Customize what visitors see on the public campaign page.">
+                        <div class="space-y-6">
+                            {{-- Logo --}}
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700">Logo</label>
+                                <div class="mt-2 flex items-start gap-4">
+                                    @if ($contentLogo)
+                                        <img src="{{ $contentLogo->temporaryUrl() }}" alt="New logo preview" class="h-16 rounded-lg border border-slate-200 object-contain">
+                                    @elseif ($existingContentLogo)
+                                        <img src="{{ Storage::disk('public')->url($existingContentLogo) }}" alt="Current logo" class="h-16 rounded-lg border border-slate-200 object-contain">
+                                    @elseif ($campaign->organization->logo_path)
+                                        <img src="{{ $campaign->organization->logoUrl() }}" alt="Organization logo" class="h-16 rounded-lg border border-slate-200 object-contain">
+                                    @endif
+                                    <div class="flex-1">
+                                        <input type="file" id="content_logo" wire:model="contentLogo" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100">
+                                        <p class="mt-1 text-xs text-slate-500">Leave empty to use the organization logo.</p>
+                                        <div wire:loading wire:target="contentLogo" class="mt-2 text-sm text-slate-500">Uploading...</div>
+                                        @error('contentLogo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Image --}}
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700">Image</label>
+                                <div class="mt-2 flex items-start gap-4">
+                                    @if ($contentImage)
+                                        <img src="{{ $contentImage->temporaryUrl() }}" alt="New image preview" class="h-24 w-40 rounded-lg border border-slate-200 object-cover">
+                                    @elseif ($existingContentImage)
+                                        <img src="{{ Storage::disk('public')->url($existingContentImage) }}" alt="Current image" class="h-24 w-40 rounded-lg border border-slate-200 object-cover">
+                                    @elseif ($existing_image)
+                                        <img src="{{ Storage::disk('public')->url($existing_image) }}" alt="Campaign image" class="h-24 w-40 rounded-lg border border-slate-200 object-cover">
+                                    @endif
+                                    <div class="flex-1">
+                                        <input type="file" id="content_image" wire:model="contentImage" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100">
+                                        <p class="mt-1 text-xs text-slate-500">Leave empty to use the main campaign image.</p>
+                                        <div wire:loading wire:target="contentImage" class="mt-2 text-sm text-slate-500">Uploading...</div>
+                                        @error('contentImage') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Title --}}
+                            <div>
+                                <label for="content_title" class="block text-sm font-medium text-slate-700">Title</label>
+                                <input type="text" id="content_title" wire:model="contentTitle" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500" placeholder="{{ $campaign->title }}">
+                                @error('contentTitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- Message --}}
+                            <div>
+                                <label for="content_message" class="block text-sm font-medium text-slate-700">Message</label>
+                                <textarea id="content_message" wire:model="contentMessage" rows="5" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"></textarea>
+                                <div class="mt-1 flex items-center justify-between">
+                                    @error('contentMessage') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                                    <p class="ml-auto text-xs text-slate-500">{{ str_word_count($contentMessage ?? '') }}/200 words</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                            <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
+                            <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
+                        </div>
+                    </x-ui.card>
+                @elseif ($campaignPagePanel === 'progress')
+                    <x-ui.card title="Campaign progress" description="Choose what to show about your campaign’s progress.">
+                        <div class="space-y-6">
+                            {{-- Show total raised amount --}}
+                            <label class="flex cursor-pointer items-start gap-3">
+                                <input type="checkbox" wire:model="show_total_raised" class="mt-0.5 size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600">
+                                <span class="text-sm font-semibold text-slate-900">Show total raised amount</span>
+                            </label>
+
+                            <div class="border-t border-slate-100"></div>
+
+                            {{-- Campaign goal --}}
+                            <div class="space-y-3">
+                                <label class="flex cursor-pointer items-start gap-3">
+                                    <input type="checkbox" wire:model.live="has_target" class="mt-0.5 size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600">
+                                    <span class="text-sm font-semibold text-slate-900">Add campaign goal</span>
+                                </label>
+
+                                @if ($has_target)
+                                    <div class="ml-7">
+                                        <label for="target_amount" class="block text-sm font-medium text-slate-700">Goal amount</label>
+                                        <input type="number" id="target_amount" wire:model="target_amount" min="0" max="9999999" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500" placeholder="10000">
+                                        @error('target_amount') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="border-t border-slate-100"></div>
+
+                            {{-- End date --}}
+                            <div class="space-y-3">
+                                <label class="flex cursor-pointer items-start gap-3">
+                                    <input type="checkbox" wire:model.live="has_end_date" class="mt-0.5 size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600">
+                                    <span class="text-sm font-semibold text-slate-900">Set end date</span>
+                                </label>
+
+                                @if ($has_end_date)
+                                    <div class="ml-7">
+                                        <label for="end_date" class="block text-sm font-medium text-slate-700">End date</label>
+                                        <input type="date" id="end_date" wire:model="end_date" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                        @error('end_date') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                            <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
+                            <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
                         </div>
                     </x-ui.card>
                 @else

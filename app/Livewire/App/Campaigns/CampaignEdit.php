@@ -103,7 +103,9 @@ class CampaignEdit extends Component
     #[Validate('nullable|url|max:500')]
     public ?string $redirect_url = null;
 
-    public string $campaignPagePanel = 'thank-you';
+    public string $campaignPagePanel = 'content';
+
+    public bool $show_total_raised = true;
 
     public string $postDonationMode = 'default';
 
@@ -112,6 +114,21 @@ class CampaignEdit extends Component
 
     #[Validate('nullable|string|max:280')]
     public ?string $shareMessage = null;
+
+    public ?string $existingContentLogo = null;
+
+    #[Validate('nullable|image|max:5120')]
+    public $contentLogo = null;
+
+    public ?string $existingContentImage = null;
+
+    #[Validate('nullable|image|max:5120')]
+    public $contentImage = null;
+
+    #[Validate('nullable|string|max:255')]
+    public ?string $contentTitle = null;
+
+    public ?string $contentMessage = null;
 
     public function mount(Campaign $campaign): void
     {
@@ -135,6 +152,13 @@ class CampaignEdit extends Component
         $this->postDonationMode = $campaign->config['post_donation_mode'] ?? 'default';
         $this->shareChannels = $campaign->config['share_channels'] ?? ['facebook', 'x', 'linkedin', 'email'];
         $this->shareMessage = $campaign->config['share_message'] ?? null;
+
+        $this->show_total_raised = $campaign->config['show_total_raised'] ?? true;
+
+        $this->existingContentLogo = $campaign->config['content_logo'] ?? null;
+        $this->existingContentImage = $campaign->config['content_image'] ?? null;
+        $this->contentTitle = $campaign->config['content_title'] ?? $campaign->title;
+        $this->contentMessage = $campaign->config['content_message'] ?? $campaign->description;
 
         $org = Auth::user()?->organization;
 
@@ -486,6 +510,12 @@ class CampaignEdit extends Component
     {
         $validated = $this->validate();
 
+        if (str_word_count($this->contentMessage ?? '') > 200) {
+            $this->addError('contentMessage', 'Message must not exceed 200 words.');
+
+            return;
+        }
+
         // Save current active currency amounts back into nested array
         $defaults = $this->defaultAmountsForCurrency($this->activeCurrency);
         $this->allSuggestedAmounts[$this->activeCurrency] = [
@@ -526,6 +556,9 @@ class CampaignEdit extends Component
             'post_donation_mode' => $this->postDonationMode,
             'share_channels' => $this->shareChannels,
             'share_message' => $this->shareMessage,
+            'show_total_raised' => $this->show_total_raised,
+            'content_title' => $this->contentTitle ?: null,
+            'content_message' => $this->contentMessage ?: null,
         ]);
 
         $this->campaign->update([
@@ -552,6 +585,24 @@ class CampaignEdit extends Component
             $this->campaign->update(['image_path' => $path]);
             $this->existing_image = $path;
             $this->image = null;
+        }
+
+        if ($this->contentLogo) {
+            $path = $this->contentLogo->store("campaigns/{$this->campaign->id}/logos", 'public');
+            $config = $this->campaign->config ?? [];
+            $config['content_logo'] = $path;
+            $this->campaign->update(['config' => $config]);
+            $this->existingContentLogo = $path;
+            $this->contentLogo = null;
+        }
+
+        if ($this->contentImage) {
+            $path = $this->contentImage->store("campaigns/{$this->campaign->id}/images", 'public');
+            $config = $this->campaign->config ?? [];
+            $config['content_image'] = $path;
+            $this->campaign->update(['config' => $config]);
+            $this->existingContentImage = $path;
+            $this->contentImage = null;
         }
 
         $this->dispatch('notify', message: 'Campaign saved.', variant: 'success');
