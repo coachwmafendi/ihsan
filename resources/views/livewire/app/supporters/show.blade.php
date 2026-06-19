@@ -543,7 +543,24 @@
             </div>
 
             {{-- Email body iframe --}}
-            <div class="flex-1 overflow-hidden bg-slate-100">
+            <div class="relative flex-1 overflow-hidden bg-slate-100">
+                {{-- Loading skeleton --}}
+                <div
+                    x-show="! $wire.previewHtml"
+                    class="absolute inset-0 z-10 flex flex-col gap-4 bg-white p-8"
+                >
+                    <div class="h-6 w-3/4 animate-pulse rounded bg-slate-200"></div>
+                    <div class="h-4 w-1/2 animate-pulse rounded bg-slate-200"></div>
+                    <div class="mt-4 space-y-3">
+                        <div class="h-4 w-full animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-4 w-full animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-4 w-5/6 animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-4 w-4/5 animate-pulse rounded bg-slate-200"></div>
+                    </div>
+                    <div class="mt-6 h-32 w-full animate-pulse rounded-lg bg-slate-200"></div>
+                    <div class="mt-4 h-4 w-2/3 animate-pulse rounded bg-slate-200"></div>
+                </div>
+
                 <iframe
                     x-ref="previewFrame"
                     x-effect="
@@ -553,6 +570,7 @@
                         }
                     "
                     class="h-[60vh] w-full bg-white"
+                    :class="{ 'invisible': ! $wire.previewHtml }"
                     title="Email preview"
                     sandbox
                 ></iframe>
