@@ -283,7 +283,14 @@ it('resends a donation receipt email and creates a new log entry', function () {
     $component = Livewire::actingAs($user)
         ->test(SupporterShow::class, ['donor' => $donor]);
 
-    $component->call('resendEmail', $log->getKey())
+    $component->call('confirmResend', $log->getKey())
+        ->assertSet('showResendModal', true)
+        ->assertSet('resendLogId', $log->getKey())
+        ->assertSet('resendRecipientEmail', $donor->email);
+
+    $component->call('resendConfirmed')
+        ->assertSet('showResendModal', false)
+        ->assertSet('showPreviewModal', false)
         ->assertDispatched('notify', variant: 'success');
 
     Mail::assertQueued(DonationReceipt::class, function (DonationReceipt $mail) use ($donation) {
@@ -335,4 +342,30 @@ it('notifies the user when an email cannot be previewed', function () {
         ->call('previewEmail', $log->getKey())
         ->assertSet('showPreviewModal', false)
         ->assertDispatched('notify', variant: 'danger');
+});
+
+it('shows the system from address in the email preview modal', function () {
+    config()->set('mail.from.address', 'no-reply@getihsan.my');
+
+    $organization = Organization::factory()->create([
+        'name' => 'Test Org',
+        'contact_email' => 'testorg@gmail.com',
+    ]);
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    $log = DonorEmailLog::factory()->donation($donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — Test Org',
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->call('previewEmail', $log->getKey())
+        ->assertSet('previewFromName', 'Test Org')
+        ->assertSet('previewFromEmail', 'no-reply@getihsan.my');
 });

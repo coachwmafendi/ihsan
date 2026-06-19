@@ -52,6 +52,12 @@ class SupporterShow extends Component
 
     public ?string $previewHtml = null;
 
+    public bool $showResendModal = false;
+
+    public ?int $resendLogId = null;
+
+    public ?string $resendRecipientEmail = null;
+
     public function mount(): void
     {
         $org = Auth::user()?->organization;
@@ -247,7 +253,43 @@ class SupporterShow extends Component
             ->get();
     }
 
-    public function resendEmail(int $id): void
+    public function confirmResend(int $id): void
+    {
+        $org = Auth::user()?->organization;
+
+        if (! $org instanceof Organization) {
+            abort(404);
+        }
+
+        $log = $this->donor->emailLogs()
+            ->whereKey($id)
+            ->when($org->getKey(), fn (Builder $q, int $orgId) => $q->where('organization_id', $orgId))
+            ->firstOrFail();
+
+        $this->resendLogId = $log->id;
+        $this->resendRecipientEmail = $log->donor->email;
+        $this->showResendModal = true;
+    }
+
+    public function closeResendModal(): void
+    {
+        $this->showResendModal = false;
+        $this->resendLogId = null;
+        $this->resendRecipientEmail = null;
+    }
+
+    public function resendConfirmed(): void
+    {
+        if ($this->resendLogId === null) {
+            return;
+        }
+
+        $this->resendEmail($this->resendLogId);
+        $this->closeResendModal();
+        $this->closePreviewModal();
+    }
+
+    private function resendEmail(int $id): void
     {
         $org = Auth::user()?->organization;
 
@@ -297,7 +339,7 @@ class SupporterShow extends Component
         $this->previewSubject = $log->subject;
         $this->previewSentAt = $log->sent_at?->format('M d, Y, g:i A');
         $this->previewFromName = $org->name;
-        $this->previewFromEmail = $org->contact_email ?? '';
+        $this->previewFromEmail = config('mail.from.address', 'no-reply@getihsan.my');
         $this->previewHtml = $html;
         $this->showPreviewModal = true;
     }
@@ -308,8 +350,7 @@ class SupporterShow extends Component
             return;
         }
 
-        $this->resendEmail($this->previewLogId);
-        $this->closePreviewModal();
+        $this->confirmResend($this->previewLogId);
     }
 
     public function closePreviewModal(): void

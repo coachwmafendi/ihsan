@@ -369,7 +369,7 @@
                                             <td class="px-4 py-3 text-right">
                                                 <button
                                                     type="button"
-                                                    wire:click.stop="resendEmail({{ $log->id }})"
+                                                    wire:click.stop="confirmResend({{ $log->id }})"
                                                     class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 transition hover:text-teal-600"
                                                 >
                                                     <x-heroicon-o-arrow-path class="size-4" />
@@ -551,6 +551,66 @@
                     title="Email preview"
                     sandbox
                 ></iframe>
+            </div>
+        </div>
+    </div>
+
+    {{-- Resend Confirmation Modal --}}
+    <div
+        x-cloak
+        x-data="{}"
+        x-show="$wire.showResendModal"
+        x-on:keydown.escape.window="$wire.closeResendModal()"
+        class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4"
+        x-on:click.self="$wire.closeResendModal()"
+    >
+        <div class="w-full max-w-md rounded-xl bg-white shadow-xl">
+            {{-- Modal header --}}
+            <div class="flex items-start justify-between border-b border-slate-200 px-5 py-4">
+                <h3 class="text-lg font-semibold text-slate-900">Resend email</h3>
+                <button
+                    type="button"
+                    x-on:click="$wire.closeResendModal()"
+                    class="ml-4 shrink-0 text-slate-400 transition hover:text-slate-600"
+                >
+                    <x-heroicon-o-x-mark class="size-5" />
+                </button>
+            </div>
+
+            {{-- Modal body --}}
+            <div class="space-y-4 px-5 py-4">
+                <p class="text-sm text-slate-700">
+                    This will resend the email to the supporter. Are you sure you want to continue?
+                </p>
+
+                <div>
+                    <label for="resend-email-address" class="block text-sm font-medium text-slate-700">Email address</label>
+                    <input
+                        id="resend-email-address"
+                        type="email"
+                        x-bind:value="$wire.resendRecipientEmail"
+                        disabled
+                        class="mt-1 block w-full rounded-lg border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                    />
+                </div>
+            </div>
+
+            {{-- Modal footer --}}
+            <div class="flex justify-end gap-3 border-t border-slate-200 px-5 py-4">
+                <button
+                    type="button"
+                    x-on:click="$wire.closeResendModal()"
+                    class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    wire:click="resendConfirmed"
+                    class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                >
+                    Resend
+                </button>
             </div>
         </div>
     </div>
