@@ -36,18 +36,34 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                     $raised = (float) $campaign->collected_amount;
                     $target = (float) ($campaign->target_amount ?? 0);
                     $progressPercent = $target > 0 ? min(100, ($raised / $target) * 100) : 0;
-                    $milestoneFractions = [0, 0.1, 0.25, 0.5, 1];
-                    $milestones = array_map(fn (float $fraction): float => $target * $fraction, $milestoneFractions);
-                    $nextMilestoneIndex = null;
-                    foreach ($milestones as $index => $amount) {
+                    $checkpoints = [0, $target * 0.1, $target * 0.25, $target * 0.5, $target];
+                    $segments = [];
+                    for ($i = 1; $i < count($checkpoints); $i++) {
+                        $start = $checkpoints[$i - 1];
+                        $end = $checkpoints[$i];
+                        $range = $end - $start;
+                        if ($range <= 0) {
+                            $fill = 0;
+                        } elseif ($raised >= $end) {
+                            $fill = 100;
+                        } elseif ($raised <= $start) {
+                            $fill = 0;
+                        } else {
+                            $fill = (($raised - $start) / $range) * 100;
+                        }
+                        $segments[] = ['start' => $start, 'end' => $end, 'range' => $range, 'fill' => $fill];
+                    }
+
+                    $currentCheckpointIndex = null;
+                    foreach ($checkpoints as $index => $amount) {
                         if ($amount > $raised) {
-                            $nextMilestoneIndex = $index;
+                            $currentCheckpointIndex = $index;
                             break;
                         }
                     }
-                    $goalReached = $nextMilestoneIndex === null && $raised >= $target && $target > 0;
-                    $nextMilestoneAmount = $milestones[$nextMilestoneIndex] ?? $target;
-                    $leftToNext = max(0, $nextMilestoneAmount - $raised);
+                    $goalReached = $currentCheckpointIndex === null && $raised >= $target && $target > 0;
+                    $currentCheckpointAmount = $checkpoints[$currentCheckpointIndex] ?? $target;
+                    $leftToNext = max(0, $currentCheckpointAmount - $raised);
                 @endphp
 
                 <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -61,44 +77,58 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
 
                     @if ($target > 0)
                         <div class="mt-6">
-                            {{-- Progress track --}}
-                            <div class="relative h-2 rounded-full bg-slate-200">
-                                <div
-                                    class="absolute left-0 top-0 h-full rounded-full bg-emerald-500 transition-all duration-1000 ease-out"
-                                    style="width: {{ $progressPercent }}%"
-                                ></div>
+                            <div class="relative mb-7">
+                                {{-- Percentage label --}}
+                                <span
+                                    class="absolute -top-5 -translate-x-1/2 text-xs font-bold text-[#10b981] transition-all duration-1000 ease-out"
+                                    style="left: {{ $progressPercent }}%"
+                                >
+                                    {{ number_format($progressPercent, 1) }}%
+                                </span>
 
-                                {{-- Current progress indicator --}}
-                                <div
-                                    class="absolute top-1/2 size-4 -translate-y-1/2 rounded-full border-2 border-white bg-emerald-600 shadow-sm transition-all duration-1000 ease-out"
-                                    style="left: calc({{ $progressPercent }}% - 8px)"
-                                ></div>
+                                {{-- Segmented progress bar --}}
+                                <div class="flex h-3 gap-1">
+                                    @foreach ($segments as $segment)
+                                        <div class="relative h-full flex-1 overflow-hidden rounded-full bg-slate-200">
+                                            <div
+                                                class="absolute left-0 top-0 h-full rounded-full bg-[#10b981] transition-all duration-1000 ease-out"
+                                                style="width: {{ $segment['fill'] }}%"
+                                            ></div>
+                                        </div>
+                                    @endforeach
+                                </div>
 
-                                {{-- Milestone dots --}}
-                                @foreach ($milestones as $index => $amount)
+                                {{-- Checkpoint dots --}}
+                                @foreach ($checkpoints as $index => $amount)
                                     @php
-                                        $position = $target > 0 ? ($amount / $target) * 100 : 0;
-                                        $completed = $raised >= $amount && $index > 0;
-                                        $isNext = $index === $nextMilestoneIndex;
+                                        $position = ($amount / $target) * 100;
+                                        $isCompleted = $index > 0 && $raised >= $amount;
+                                        $isCurrent = $index === $currentCheckpointIndex;
                                     @endphp
                                     <div
-                                        class="absolute top-1/2 -translate-y-1/2 @if ($completed) text-emerald-600 @elseif ($isNext) text-emerald-500 @else text-slate-300 @endif"
+                                        class="absolute top-1/2 -translate-y-1/2"
                                         style="left: calc({{ $position }}% - 6px)"
                                     >
-                                        <span class="block size-3 rounded-full {{ $completed ? 'bg-emerald-500' : ($isNext ? 'bg-white ring-2 ring-emerald-500' : 'bg-slate-300') }}"></span>
+                                        @if ($isCurrent)
+                                            <span class="block size-4 animate-pulse rounded-full border-2 border-white bg-white shadow-sm ring-2 ring-[#10b981]"></span>
+                                        @elseif ($isCompleted || $index === 0)
+                                            <span class="block size-3 rounded-full bg-[#10b981]"></span>
+                                        @else
+                                            <span class="block size-3 rounded-full bg-slate-300"></span>
+                                        @endif
                                     </div>
                                 @endforeach
                             </div>
 
-                            {{-- Milestone labels --}}
-                            <div class="mt-2 grid grid-cols-5 gap-1">
-                                @foreach ($milestones as $index => $amount)
+                            {{-- Checkpoint labels --}}
+                            <div class="grid grid-cols-5 gap-1">
+                                @foreach ($checkpoints as $index => $amount)
                                     @php
-                                        $isNext = $index === $nextMilestoneIndex;
+                                        $isCurrent = $index === $currentCheckpointIndex;
                                         $label = $amount === 0 ? 'RM0' : 'RM'.number_format($amount / 1000, 0).'k';
                                     @endphp
                                     <div class="text-center">
-                                        <span class="text-[10px] font-semibold leading-none {{ $isNext ? 'text-emerald-600' : 'text-slate-400' }}">
+                                        <span class="text-[10px] font-semibold leading-none {{ $isCurrent ? 'text-[#10b981]' : 'text-slate-400' }}">
                                             {{ $label }}
                                         </span>
                                     </div>
@@ -112,7 +142,7 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                                 <p class="text-sm font-semibold text-emerald-800">🎉 Goal reached!</p>
                                 <p class="mt-0.5 text-xs text-emerald-600">Thank you for helping us hit the target.</p>
                             @else
-                                <p class="text-xs font-medium text-emerald-700">Next milestone: RM {{ number_format($nextMilestoneAmount, 2) }}</p>
+                                <p class="text-xs font-medium text-emerald-700">Next milestone: RM {{ number_format($currentCheckpointAmount, 2) }}</p>
                                 <p class="mt-1 text-sm font-semibold text-emerald-900">RM {{ number_format($leftToNext, 2) }} left to reach next milestone</p>
                                 <p class="mt-1 text-xs text-emerald-600">“Almost there! Help us reach the next milestone.”</p>
                             @endif
