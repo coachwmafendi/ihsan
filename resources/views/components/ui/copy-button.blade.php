@@ -16,43 +16,39 @@
     $iconSize = $sizeClasses[$size] ?? $sizeClasses['md'];
 @endphp
 
-<span class="relative inline-flex items-center" x-data="{ copied: false }">
-    <x-ui.tooltip>
+<x-ui.tooltip :text="$title">
+    <span class="relative inline-flex items-center" x-data="{ copied: false }">
         <button
             type="button"
             x-on:click="
                 navigator.clipboard.writeText('{{ $value }}').then(() => {
-                    $parent.copied = true;
-                    setTimeout(() => $parent.copied = false, 2000);
+                    copied = true;
+                    setTimeout(() => copied = false, 2000);
                 })
             "
-            class="inline-flex items-center gap-1 text-gray-400 transition hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 {{ $class }}"
+            class="inline-flex items-center gap-1 text-slate-400 transition hover:text-slate-700 dark:text-gray-500 dark:hover:text-gray-300 {{ $class }}"
         >
             <x-heroicon-o-clipboard-document
-                x-show="!$parent.copied"
+                x-show="!copied"
                 class="{{ $iconSize }} shrink-0"
             />
             <x-heroicon-o-check
-                x-show="$parent.copied"
+                x-show="copied"
                 x-cloak
                 class="{{ $iconSize }} shrink-0 text-green-600"
             />
         </button>
 
-        <x-slot:tip>
-            <span>{{ $title }}</span>
-        </x-slot:tip>
-    </x-ui.tooltip>
-
-    <span
-        x-show="copied"
-        x-cloak
-        x-transition:enter="transition ease-out duration-150"
-        x-transition:enter-start="opacity-0 translate-y-1"
-        x-transition:enter-end="opacity-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-100"
-        x-transition:leave-start="opacity-100 translate-y-0"
-        x-transition:leave-end="opacity-0 translate-y-1"
-        class="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-slate-800 px-2 py-1 text-xs font-medium text-white shadow-sm"
-    >{{ $copiedText }}</span>
-</span>
+        <span
+            x-show="copied"
+            x-cloak
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 translate-y-1"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 translate-y-1"
+            class="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-slate-800 px-2 py-1 text-xs font-medium text-white shadow-sm"
+        >{{ $copiedText }}</span>
+    </span>
+</x-ui.tooltip>
