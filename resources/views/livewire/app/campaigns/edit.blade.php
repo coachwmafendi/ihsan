@@ -305,29 +305,31 @@
         {{-- Settings Tab --}}
         <div x-show="tab === 'settings'" x-cloak id="campaign-settings-section" class="space-y-6">
             <x-ui.card title="Basic Information">
-                <div class="space-y-4">
-                    <div>
-                        <label for="title" class="block text-sm font-medium text-slate-700">Campaign Title <span class="text-red-500">*</span></label>
-                        <input
-                            type="text"
-                            id="title"
-                            wire:model="title"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            placeholder="e.g. Ramadan Fundraiser 2026"
-                        />
-                        @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
+                <div class="space-y-5">
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                        <div>
+                            <label for="title" class="block text-sm font-medium text-slate-700">Campaign Title <span class="text-red-500">*</span></label>
+                            <input
+                                type="text"
+                                id="title"
+                                wire:model="title"
+                                class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                placeholder="e.g. Ramadan Fundraiser 2026"
+                            />
+                            @error('title') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
 
-                    <div>
-                        <label for="status" class="block text-sm font-medium text-slate-700">Status <span class="text-red-500">*</span></label>
-                        <x-ui.select id="status" wire:model="status" class="mt-1 block w-full">
-                            <flux:select.option value="draft">Draft</flux:select.option>
-                            <flux:select.option value="active">Active</flux:select.option>
-                            <flux:select.option value="paused">Paused</flux:select.option>
-                            <flux:select.option value="ended">Ended</flux:select.option>
-                            <flux:select.option value="archived">Archived</flux:select.option>
-                        </x-ui.select>
-                        @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        <div>
+                            <label for="status" class="block text-sm font-medium text-slate-700">Status <span class="text-red-500">*</span></label>
+                            <x-ui.select id="status" wire:model="status" class="mt-1.5 block w-full max-w-[12rem]">
+                                <flux:select.option value="draft">Draft</flux:select.option>
+                                <flux:select.option value="active">Active</flux:select.option>
+                                <flux:select.option value="paused">Paused</flux:select.option>
+                                <flux:select.option value="ended">Ended</flux:select.option>
+                                <flux:select.option value="archived">Archived</flux:select.option>
+                            </x-ui.select>
+                            @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
                     </div>
 
                     <div>
@@ -335,8 +337,8 @@
                         <textarea
                             id="description"
                             wire:model="description"
-                            rows="4"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                            rows="3"
+                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                             placeholder="Describe the purpose of this campaign..."
                         ></textarea>
                         @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -344,7 +346,7 @@
 
                     <div>
                         <label for="image" class="block text-sm font-medium text-slate-700">Campaign Image</label>
-                        <div class="mt-1 flex items-center gap-4">
+                        <div class="mt-1.5 flex items-center gap-4">
                             @if ($image)
                                 <img src="{{ $image->temporaryUrl() }}" alt="New campaign image preview" class="h-20 w-20 rounded-lg object-cover border border-slate-200" />
                             @elseif ($existing_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing_image))
@@ -354,7 +356,7 @@
                                     <x-heroicon-o-photo class="size-8" />
                                 </div>
                             @endif
-                            <div class="flex-1">
+                            <div class="flex items-center gap-3">
                                 <input
                                     type="file"
                                     id="image"
@@ -363,7 +365,7 @@
                                     class="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100"
                                 />
                                 @if ($existing_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing_image))
-                                    <button type="button" wire:click="removeImage" class="mt-2 text-xs text-red-600 hover:text-red-800">Remove image</button>
+                                    <button type="button" wire:click="removeImage" class="text-xs text-slate-500 hover:text-red-700 hover:underline">Remove</button>
                                 @endif
                             </div>
                         </div>
@@ -379,76 +381,81 @@
                 </div>
             </x-ui.card>
 
-            <x-ui.card title="Campaign Settings">
-                <div class="space-y-6">
-                    {{-- Target --}}
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <h3 class="text-sm font-medium text-slate-900">Fundraising Target</h3>
-                            <p class="text-xs text-slate-500">Set a goal amount for this campaign</p>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {{-- Campaign Goal --}}
+                <x-ui.card>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-sm font-medium text-slate-900">Campaign Goal</h3>
+                            <button
+                                type="button"
+                                wire:click="toggleHasTarget"
+                                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $has_target ? 'bg-teal-600' : 'bg-slate-200' }}"
+                                role="switch"
+                                aria-checked="{{ $has_target ? 'true' : 'false' }}"
+                            >
+                                <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $has_target ? 'translate-x-5' : 'translate-x-0' }}"></span>
+                            </button>
                         </div>
-                        <button
-                            type="button"
-                            wire:click="toggleHasTarget"
-                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $has_target ? 'bg-teal-600' : 'bg-slate-200' }}"
-                            role="switch"
-                            aria-checked="{{ $has_target ? 'true' : 'false' }}"
-                        >
-                            <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $has_target ? 'translate-x-5' : 'translate-x-0' }}"></span>
-                        </button>
+
+                        @if ($has_target)
+                            <div class="space-y-1.5">
+                                <label for="target_amount" class="block text-sm font-medium text-slate-700">Target Amount</label>
+                                <div class="relative max-w-[12rem]">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-500">RM</span>
+                                    <input
+                                        type="text"
+                                        inputmode="numeric"
+                                        maxlength="7"
+                                        pattern="[0-9]*"
+                                        id="target_amount"
+                                        wire:model="target_amount"
+                                        x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 7)"
+                                        class="block w-full rounded-lg border border-slate-300 bg-white py-2 pl-10 pr-3 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                        placeholder="10000"
+                                    />
+                                </div>
+                                @error('target_amount') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                        @else
+                            <p class="text-sm text-slate-500">No fundraising target set.</p>
+                        @endif
                     </div>
+                </x-ui.card>
 
-                    @if ($has_target)
-                        <div>
-                            <label for="target_amount" class="block text-sm font-medium text-slate-700">Target Amount (RM)</label>
-                            <input
-                                type="text"
-                                inputmode="numeric"
-                                maxlength="7"
-                                pattern="[0-9]*"
-                                id="target_amount"
-                                wire:model="target_amount"
-                                x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 7)"
-                                class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                placeholder="10000"
-                            />
-                            @error('target_amount') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                {{-- Campaign Duration --}}
+                <x-ui.card>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-sm font-medium text-slate-900">Campaign Duration</h3>
+                            <button
+                                type="button"
+                                wire:click="toggleHasEndDate"
+                                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $has_end_date ? 'bg-teal-600' : 'bg-slate-200' }}"
+                                role="switch"
+                                aria-checked="{{ $has_end_date ? 'true' : 'false' }}"
+                            >
+                                <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $has_end_date ? 'translate-x-5' : 'translate-x-0' }}"></span>
+                            </button>
                         </div>
-                    @endif
 
-                    <div class="border-t border-slate-100"></div>
-
-                    {{-- End Date --}}
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <h3 class="text-sm font-medium text-slate-900">End Date</h3>
-                            <p class="text-xs text-slate-500">Set an end date for this campaign</p>
-                        </div>
-                        <button
-                            type="button"
-                            wire:click="toggleHasEndDate"
-                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 {{ $has_end_date ? 'bg-teal-600' : 'bg-slate-200' }}"
-                            role="switch"
-                            aria-checked="{{ $has_end_date ? 'true' : 'false' }}"
-                        >
-                            <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $has_end_date ? 'translate-x-5' : 'translate-x-0' }}"></span>
-                        </button>
+                        @if ($has_end_date)
+                            <div class="space-y-1.5">
+                                <label for="end_date" class="block text-sm font-medium text-slate-700">End Date</label>
+                                <input
+                                    type="date"
+                                    id="end_date"
+                                    wire:model="end_date"
+                                    class="block w-full max-w-[13rem] rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                />
+                                @error('end_date') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                        @else
+                            <p class="text-sm text-slate-500">This campaign runs indefinitely.</p>
+                        @endif
                     </div>
-
-                    @if ($has_end_date)
-                        <div>
-                            <label for="end_date" class="block text-sm font-medium text-slate-700">End Date</label>
-                            <input
-                                type="date"
-                                id="end_date"
-                                wire:model="end_date"
-                                class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            />
-                            @error('end_date') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                        </div>
-                    @endif
-                </div>
-            </x-ui.card>
+                </x-ui.card>
+            </div>
 
             <x-ui.card title="Post-Donation">
                 <div class="space-y-4">
