@@ -103,8 +103,15 @@
 
                     <dl class="space-y-4">
                         {{-- Goal & Duration --}}
-                        <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Goal &amp; Duration</dt>
+                        <div
+                            class="group cursor-pointer rounded-lg transition-colors hover:bg-slate-50"
+                            wire:click="$set('activeTab', 'settings')"
+                            title="Edit in Campaign Settings"
+                        >
+                            <div class="flex items-center justify-between">
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500 group-hover:text-slate-600">Goal &amp; Duration</dt>
+                                <x-heroicon-m-pencil class="size-3.5 text-slate-400 opacity-0 transition-opacity group-hover:opacity-100" />
+                            </div>
                             <dd class="mt-0.5 text-sm text-slate-900">
                                 @if ($campaign->has_target && $campaign->target_amount)
                                     Target {{ $this->getCurrencySymbolFor($this->default_currency) }} {{ number_format((float) $campaign->target_amount, 2) }}
