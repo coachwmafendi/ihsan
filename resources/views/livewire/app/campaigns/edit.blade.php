@@ -56,6 +56,12 @@
                 Embed & Share
             </button>
             <button type="button"
+                @click="tab = 'campaign-page'"
+                :class="tab === 'campaign-page' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
+                Campaign Page
+            </button>
+            <button type="button"
                 @click="tab = 'actions'"
                 :class="tab === 'actions' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
@@ -788,6 +794,37 @@
             </div>
         </div>
     </form>
+
+    {{-- Campaign Page Tab --}}
+    <div x-show="tab === 'campaign-page'" x-cloak class="space-y-6">
+        <x-ui.card title="Campaign Page">
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-sm font-medium text-slate-900">Thank you screen</h3>
+                    <div class="mt-3 space-y-3">
+                        <label class="flex cursor-pointer items-start gap-3">
+                            <input type="radio" wire:model="postDonationMode" value="default" class="mt-0.5 h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600" />
+                            <span class="text-sm text-slate-700">Show supporters the default thank you screen.</span>
+                        </label>
+                        <label class="flex cursor-pointer items-start gap-3">
+                            <input type="radio" wire:model="postDonationMode" value="redirect" class="mt-0.5 h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600" />
+                            <span class="text-sm text-slate-700">Redirect supporters to a specific URL.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Sharing URL</label>
+                    <input type="text" readonly value="{{ route('donations.campaign-show', $campaign) }}" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600" />
+                </div>
+
+                <div>
+                    <label for="share_message" class="block text-sm font-medium text-slate-700">Default sharing message</label>
+                    <textarea id="share_message" wire:model="shareMessage" rows="3" maxlength="280" class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"></textarea>
+                </div>
+            </div>
+        </x-ui.card>
+    </div>
 
     {{-- Embed & Share Tab --}}
     <div x-show="tab === 'embed'" x-cloak class="space-y-6">

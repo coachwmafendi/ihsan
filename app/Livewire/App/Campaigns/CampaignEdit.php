@@ -103,6 +103,16 @@ class CampaignEdit extends Component
     #[Validate('nullable|url|max:500')]
     public ?string $redirect_url = null;
 
+    public string $campaignPagePanel = 'thank-you';
+
+    public string $postDonationMode = 'default';
+
+    /** @var string[] */
+    public array $shareChannels = ['facebook', 'x', 'linkedin', 'email'];
+
+    #[Validate('nullable|string|max:280')]
+    public ?string $shareMessage = null;
+
     public function mount(Campaign $campaign): void
     {
         $this->authorize('update', $campaign);
@@ -122,6 +132,9 @@ class CampaignEdit extends Component
         $this->minimum_amount = $this->sanitizeOptionalAmount($campaign->minimum_amount);
         $this->thank_you_message = $campaign->thank_you_message;
         $this->redirect_url = $campaign->redirect_url;
+        $this->postDonationMode = $campaign->config['post_donation_mode'] ?? 'default';
+        $this->shareChannels = $campaign->config['share_channels'] ?? ['facebook', 'x', 'linkedin', 'email'];
+        $this->shareMessage = $campaign->config['share_message'] ?? null;
 
         $org = Auth::user()?->organization;
 
