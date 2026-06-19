@@ -266,7 +266,6 @@ class SupporterShow extends Component
             ->when($org->getKey(), fn (Builder $q, int $orgId) => $q->where('organization_id', $orgId))
             ->firstOrFail();
 
-        $this->closePreviewModal();
         $this->resendLogId = $log->id;
         $this->resendRecipientEmail = $log->donor->email;
         $this->showResendModal = true;
@@ -287,7 +286,6 @@ class SupporterShow extends Component
 
         $this->resendEmail($this->resendLogId, $this->resendRecipientEmail);
         $this->closeResendModal();
-        $this->closePreviewModal();
     }
 
     private function resendEmail(int $id, ?string $toEmail = null): void

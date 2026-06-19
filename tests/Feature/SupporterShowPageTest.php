@@ -290,7 +290,6 @@ it('resends a donation receipt email and creates a new log entry', function () {
 
     $component->call('resendConfirmed')
         ->assertSet('showResendModal', false)
-        ->assertSet('showPreviewModal', false)
         ->assertDispatched('notify', variant: 'success');
 
     Mail::assertQueued(DonationReceipt::class, function (DonationReceipt $mail) use ($donation) {
@@ -298,6 +297,35 @@ it('resends a donation receipt email and creates a new log entry', function () {
     });
 
     expect($log->fresh()->resends)->toHaveCount(1);
+});
+
+it('keeps the email preview modal open while resending from the preview modal', function () {
+    Mail::fake();
+
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    $log = DonorEmailLog::factory()->donation($donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — '.$organization->name,
+        'sent_at' => now()->subDay(),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->call('previewEmail', $log->getKey())
+        ->assertSet('showPreviewModal', true)
+        ->call('resendFromModal')
+        ->assertSet('showPreviewModal', true)
+        ->assertSet('showResendModal', true)
+        ->call('resendConfirmed')
+        ->assertSet('showResendModal', false)
+        ->assertSet('showPreviewModal', true);
 });
 
 it('resends a donation receipt to an edited email address', function () {
