@@ -56,6 +56,7 @@ enum TrackingProvider: string
             ],
             self::GoogleAnalytics4 => [
                 ['key' => 'measurement_id', 'label' => 'Measurement ID', 'type' => 'text', 'placeholder' => 'G-XXXXXXXXXX', 'hint' => 'Found in GA4 → Admin → Data Streams → your stream.'],
+                ['key' => 'api_secret', 'label' => 'Measurement Protocol API Secret', 'type' => 'password', 'placeholder' => '••••••••••••••••', 'hint' => 'Found in GA4 → Admin → Data Streams → your stream → Measurement Protocol API secrets.'],
             ],
             self::GoogleAds => [
                 ['key' => 'conversion_id', 'label' => 'Conversion ID', 'type' => 'text', 'placeholder' => 'AW-XXXXXXXXXX'],
