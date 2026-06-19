@@ -91,12 +91,6 @@
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {{-- Left Column --}}
             <div class="lg:col-span-2 space-y-6">
-                @if ($campaign->description)
-                    <x-ui.card title="About">
-                        <p class="text-sm text-slate-600 leading-relaxed">{{ $campaign->description }}</p>
-                    </x-ui.card>
-                @endif
-
                 <x-ui.card title="Configuration">
                     <x-slot:actions>
                         <button type="button" wire:click="$set('activeTab', 'settings')" class="text-sm font-medium text-teal-600 hover:text-teal-700">
@@ -123,6 +117,14 @@
                                 @else
                                     No end date
                                 @endif
+                            </dd>
+                        </div>
+
+                        {{-- Description --}}
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Description</dt>
+                            <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed">
+                                {{ $campaign->description ? \Illuminate\Support\Str::limit($campaign->description, 150) : 'Not set' }}
                             </dd>
                         </div>
 
