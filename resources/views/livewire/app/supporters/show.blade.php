@@ -293,7 +293,7 @@
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Receipt</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Amount</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Campaign</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Issue Date</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -312,14 +312,8 @@
                                             <td class="px-4 py-3 text-sm text-slate-900">
                                                 {{ $donation->currency_symbol }} {{ number_format((float) $donation->gross_amount, 2) }}
                                             </td>
-                                            <td class="px-4 py-3 text-sm text-slate-600">
-                                                @if ($donation->campaign)
-                                                    <a href="{{ route('app.campaigns.edit', $donation->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
-                                                        {{ $donation->campaign->title }}
-                                                    </a>
-                                                @else
-                                                    <span class="text-slate-400">—</span>
-                                                @endif
+                                            <td class="px-4 py-3 text-sm text-slate-500">
+                                                {{ $donation->receipt_sent_at?->format('M d, Y') ?? $donation->created_at->format('M d, Y') }}
                                             </td>
                                         </tr>
                                     @endforeach
