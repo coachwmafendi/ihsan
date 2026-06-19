@@ -769,7 +769,7 @@
       var btnText = esc(s.button_text || s.text || "Derma Sekarang");
       var hasImage = !!s.image_url;
       var isFull = s.layout === "full";
-      var closeBtn = '<button data-close style="position:absolute;top:8px;right:8px;width:36px;height:36px;border:0;border-radius:50%;background:#fff;color:#64748b;font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.14);transition:background .15s,color .15s;z-index:2;" onmouseenter="this.style.background=\'#f1f5f9\';this.style.color=\'#0f172a\';" onmouseleave="this.style.background=\'#fff\';this.style.color=\'#64748b\';">&times;</button>';
+      var closeBtn = '<button data-close style="position:absolute;top:0;right:0;width:36px;height:36px;border:0;border-radius:50%;background:#fff;color:#64748b;font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.14);transition:background .15s,color .15s;z-index:2;" onmouseenter="this.style.background=\'#f1f5f9\';this.style.color=\'#0f172a\';" onmouseleave="this.style.background=\'#fff\';this.style.color=\'#64748b\';">&times;</button>';
       var ctaBg = popupHasEffect
         ? popupEffectGradients[popupEffect] + ";background-size:300% 300%;animation:ihsan-grad-" + popupEffect + " 4s ease infinite"
         : color;
