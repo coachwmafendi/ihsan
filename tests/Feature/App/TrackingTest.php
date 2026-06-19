@@ -31,6 +31,27 @@ it('toggles advanced and attribution sections on and off', function () {
         ->assertSet('showAttribution', false);
 });
 
+it('shows the provider sidebar and defaults to Meta setup', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(Tracking::class)
+        ->assertSet('selectedProvider', 'meta')
+        ->assertSee('Meta Ads')
+        ->assertSee('Google Analytics 4')
+        ->assertSee('Event Diagnostics');
+});
+
+it('switches provider detail when a sidebar provider is selected', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(Tracking::class)
+        ->assertSet('selectedProvider', 'meta')
+        ->call('selectProvider', 'ga4')
+        ->assertSet('selectedProvider', 'ga4')
+        ->assertSee('Measurement ID')
+        ->assertDontSee('Conversion API Access Token');
+});
+
 it('tests the meta connection with a real server event', function () {
     Http::fake([
         'graph.facebook.com/v18.0/*/events' => Http::response(['events_received' => 1], 200),
