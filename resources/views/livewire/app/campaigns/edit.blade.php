@@ -321,7 +321,7 @@
 
                         <div>
                             <label for="status" class="block text-sm font-medium text-slate-700">Status <span class="text-red-500">*</span></label>
-                            <x-ui.select id="status" wire:model="status" class="mt-1.5 block w-full w-44">
+                            <x-ui.select id="status" wire:model="status" class="mt-1.5 block w-full" style="max-width: 11rem;">
                                 <flux:select.option value="draft">Draft</flux:select.option>
                                 <flux:select.option value="active">Active</flux:select.option>
                                 <flux:select.option value="paused">Paused</flux:select.option>
@@ -401,7 +401,7 @@
                         @if ($has_target)
                             <div class="space-y-1.5">
                                 <label for="target_amount" class="block text-sm font-medium text-slate-700">Target Amount</label>
-                                <div class="relative w-44">
+                                <div class="relative" style="max-width: 11rem;">
                                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-500">RM</span>
                                     <input
                                         type="text"
@@ -446,7 +446,8 @@
                                     type="date"
                                     id="end_date"
                                     wire:model="end_date"
-                                    class="block w-48 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    style="max-width: 13rem;"
                                 />
                                 @error('end_date') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
                             </div>
