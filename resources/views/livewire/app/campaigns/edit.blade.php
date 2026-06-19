@@ -458,39 +458,6 @@
                 </x-ui.card>
             </div>
 
-            <x-ui.card
-                title="Post-Donation"
-                description="Shown after a donor successfully completes a payment. Checkout modals close automatically instead of showing this message. Redirect URL only applies to hosted donation pages."
-            >
-                <div class="space-y-5">
-                    <div>
-                        <label for="thank_you_message" class="block text-sm font-medium text-slate-700">Thank You Message</label>
-                        <textarea
-                            id="thank_you_message"
-                            wire:model="thank_you_message"
-                            rows="3"
-                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            placeholder="Shown to donors after they complete a donation..."
-                        ></textarea>
-                        <p class="mt-1.5 text-xs text-slate-500">This message is shown on the hosted donation page only. Checkout modals close automatically and do not show this message.</p>
-                        @error('thank_you_message') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div>
-                        <label for="redirect_url" class="block text-sm font-medium text-slate-700">Redirect URL</label>
-                        <input
-                            type="url"
-                            id="redirect_url"
-                            wire:model="redirect_url"
-                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            placeholder="https://example.com/thank-you"
-                        />
-                        <p class="mt-1.5 text-xs text-slate-500">Only applies to hosted donation pages. Checkout modals redirect immediately after payment if this is set, or close if left empty.</p>
-                        @error('redirect_url') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-            </x-ui.card>
-
             <div class="flex items-center justify-end gap-3">
                 <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
                 <x-ui.button type="submit" variant="primary">Save Changes</x-ui.button>

@@ -526,8 +526,8 @@ class CampaignEdit extends Component
             'suggested_amounts' => null,
             'suggested_amounts_one_time' => $oneTime ?: null,
             'suggested_amounts_monthly' => $monthly ?: null,
-            'thank_you_message' => $validated['thank_you_message'] ?? null,
-            'redirect_url' => $validated['redirect_url'] ?? null,
+            'thank_you_message' => $this->thank_you_message,
+            'redirect_url' => $this->redirect_url,
             'config' => $config,
         ]);
 
