@@ -274,7 +274,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId))"
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($this->campaign?->redirect_url ?? $this->element?->campaign?->redirect_url))"
                         x-init="$wire.trackServerPageView()"
                         class="relative"
                     >
@@ -579,7 +579,7 @@
                             </div>
                             <h2 class="text-lg font-semibold text-slate-900">Thank you, <span x-text="donorName"></span>!</h2>
                             <p class="mt-1 text-sm text-slate-500">Receipt sent to <span x-text="donorEmail"></span>.</p>
-                            <p class="mt-1 text-sm text-slate-500">{{ $this->config('success_message', 'Thank you for your donation!') }}</p>
+                            <p class="mt-1 text-sm text-slate-500">{{ ($this->campaign ?? $this->element?->campaign)?->thank_you_message ?: $this->config('success_message', 'Thank you for your donation!') }}</p>
                             @if ($isPopup)
                                 <button
                                     type="button"
@@ -630,7 +630,7 @@
 @script
 {{-- donationStep Alpine component registered in layouts/donation.blade.php via alpine:init --}}
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null) => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '') => {
         let stripe = null;
         let elements = null;
         let paymentElement = null;
@@ -651,6 +651,7 @@
             isEmbed: initialIsEmbed,
             isPopup: initialIsPopup,
             donationPublicId: initialDonationPublicId,
+            redirectUrl: initialRedirectUrl,
             processing: false,
             currentStep: initialStep > 1 ? initialStep : 1,
             stepErrors: {},
@@ -1017,6 +1018,10 @@
                 this.processing = false;
                 this.currentStep = 'success';
                 this.trackPurchase();
+
+                if (this.redirectUrl && !this.isPopup && !this.isEmbed) {
+                    setTimeout(() => { window.location.href = this.redirectUrl; }, 1500);
+                }
             },
         };
     });
