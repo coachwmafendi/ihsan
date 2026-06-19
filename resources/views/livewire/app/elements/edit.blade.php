@@ -29,22 +29,38 @@
             {{-- Left column: Form fields --}}
             <div class="space-y-6 lg:col-span-2">
                 {{-- Embed Code --}}
-                <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
-                    <div class="space-y-3">
-                        <div class="relative" x-data="{ code: @js($embedCode), copied: false }">
-                            <pre class="overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-300"><code x-text="code"></code></pre>
+                <div x-data="{ code: @js($embedCode), copied: false, copy() { navigator.clipboard.writeText(this.code).then(() => { this.copied = true; setTimeout(() => this.copied = false, 2000) }) } }">
+                    <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
+                        <x-slot:actions>
                             <button
                                 type="button"
-                                @click="navigator.clipboard.writeText(code).then(() => { copied = true; setTimeout(() => copied = false, 2000) })"
-                                class="absolute right-2 top-2 rounded-md bg-slate-700 px-2 py-1 text-xs text-white hover:bg-slate-600"
+                                @click="copy()"
+                                class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-slate-700"
                             >
+                                <x-heroicon-o-clipboard-document class="size-4" x-show="!copied" />
+                                <x-heroicon-o-check class="size-4" x-show="copied" x-cloak />
                                 <span x-show="!copied">Copy</span>
                                 <span x-show="copied" x-cloak>Copied!</span>
                             </button>
+                        </x-slot:actions>
+
+                        <div class="space-y-3">
+                            <textarea
+                                x-ref="codeBox"
+                                readonly
+                                rows="3"
+                                @click="$refs.codeBox.select()"
+                                class="w-full resize-none rounded-lg bg-slate-900 p-4 font-mono text-xs leading-relaxed text-slate-300 focus:outline-none"
+                                style="white-space: pre-wrap; overflow-wrap: break-word"
+                            >{{ $embedCode }}</textarea>
+
+                            <div class="flex flex-col gap-1 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                                <span>Paste this inside your page’s <code class="rounded bg-slate-100 px-1 py-0.5 font-mono text-slate-700">&lt;body&gt;</code> tag.</span>
+                                <span class="font-mono">Token: {{ $element->token }}</span>
+                            </div>
                         </div>
-                        <p class="text-xs text-slate-500">Token: {{ $element->token }}</p>
-                    </div>
-                </x-ui.card>
+                    </x-ui.card>
+                </div>
 
                 {{-- Basic Info --}}
                 <x-ui.card title="Basic Information">
