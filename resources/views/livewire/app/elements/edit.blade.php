@@ -94,7 +94,7 @@
                 {{-- Configuration --}}
                 <x-ui.card title="Configuration">
                     <div class="space-y-4">
-                        @if (! $isButtonLike)
+                        @if (! $isButtonLike && $element->type->value !== 'form')
                             <flux:field>
                                 <flux:label>Title</flux:label>
                                 <flux:input wire:model.live="config_title" placeholder="e.g. Support our cause" />
@@ -469,7 +469,7 @@
                         <x-element-preview
                             :type="$element->type"
                             :config="array_merge($element->config ?? [], array_filter([
-                                'title' => $config_title,
+                                'title' => $element->type->value === 'form' ? null : $config_title,
                                 'message' => $config_message,
                                 'button_text' => $config_button_text,
                                 'submit_text' => $config_button_text,
@@ -478,6 +478,8 @@
                                 'corner_radius' => $config_corner_radius,
                                 'button_icon' => $config_button_icon,
                                 'button_effect' => $config_button_effect,
+                                'show_dedication' => false,
+                                'show_comment' => false,
                                 'alignment' => $config_alignment,
                                 'position' => $config_position,
                                 'action' => $config_action,

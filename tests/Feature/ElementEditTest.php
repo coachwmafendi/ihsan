@@ -594,7 +594,7 @@ it('reflects floating button size changes in the live preview', function () {
         ->assertSee('padding: 8px 16px');
 });
 
-it('reflects form title and submit text in the live preview', function () {
+it('does not show title and message fields for form elements', function () {
     $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
         'type' => ElementType::Form,
     ]);
@@ -602,9 +602,20 @@ it('reflects form title and submit text in the live preview', function () {
     $this->actingAs($this->user);
 
     Livewire::test(ElementEdit::class, ['element' => $element])
-        ->set('config_title', 'Bantu pembinaan surau')
+        ->assertSee('Button Text')
+        ->assertDontSee('wire:model.live="config_title"')
+        ->assertDontSee('wire:model.live="config_message"');
+});
+
+it('reflects form submit text in the live preview', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
         ->set('config_button_text', 'Sumbang Sekarang')
-        ->assertSee('Bantu pembinaan surau')
         ->assertSee('Sumbang Sekarang');
 });
 

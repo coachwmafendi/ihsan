@@ -343,7 +343,9 @@
                                         @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
                                             <span class="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600">G Pay</span>
                                         @elseif ($pmType === 'card' || filled($pmBrand))
-                                            <x-heroicon-o-credit-card class="size-4 text-slate-400" />
+                                            <x-ui.tooltip :text="filled($pmBrand) ? \Illuminate\Support\Str::headline($pmBrand) : 'Credit card'">
+                                                <x-icons.credit-card class="size-4 text-slate-500" />
+                                            </x-ui.tooltip>
                                         @endif
                                     </div>
                                 </td>

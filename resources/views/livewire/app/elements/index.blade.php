@@ -158,9 +158,9 @@
                                 </button>
                             </th>
                             @if (! $showArchived)
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Embed Code</th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Embed Code</th>
                             @endif
-                            <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
+                            <th scope="col" class="px-5 py-3 text-right text-xs font-semibold tracking-wider text-slate-500">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">

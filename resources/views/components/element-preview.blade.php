@@ -12,7 +12,7 @@
         ->filter(fn (int $amount) => $amount > 0)
         ->values()
         ->all();
-    $title = $config['title'] ?? $config['heading'] ?? 'Your most generous donation';
+    $title = $config['title'] ?? $config['heading'] ?? null;
     $defaultAmount = (int) ($config['default_amount'] ?? ($defaultAmountsOneTime[0] ?? 5));
     $defaultFrequency = $config['default_frequency'] ?? 'monthly';
     $allowMonthly = $config['allow_monthly'] ?? true;
@@ -58,7 +58,7 @@
                 @php
                     $typeLabel = $type instanceof \BackedEnum
                         ? $type->label()
-                        : (is_string($type) && enum_exists(\App\Enums\ElementType::class) && \App\Enums\ElementType::tryFrom($type)?->label() ?: ucwords(str_replace('_', ' ', $type)));
+                        : (\App\Enums\ElementType::tryFrom($type)?->label() ?? ucwords(str_replace('_', ' ', $type)));
                 @endphp
                 <span class="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
                     {{ $typeLabel }}
@@ -519,7 +519,9 @@
                             </div>
                             @endif
 
-                            <p class="text-center text-xs font-semibold text-zinc-500">{{ $title }}</p>
+                            @if(filled($title))
+                                <p class="text-center text-xs font-semibold text-zinc-500">{{ $title }}</p>
+                            @endif
 
                             @if($showSuggested)
                             <div class="grid grid-cols-3 gap-2">
@@ -592,12 +594,7 @@
                                 x-on:click="submitted = true"
                                 class="ihsan-effect-{{ $formHasEffect ? $formEffectId : '' }} w-full rounded-xl {{ $formHasEffect ? '' : 'bg-teal-600 hover:bg-teal-700 shadow-teal-100 hover:shadow-teal-100' }} px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:shadow-xl active:scale-[0.98]"
                             >
-                                @if(in_array($config['submit_text'] ?? 'Donate and Support', ['Donate and Support', 'Donate Now'], true))
-                                    <span x-show="frequency === 'monthly'">Donate monthly</span>
-                                    <span x-show="frequency !== 'monthly'">Donate once</span>
-                                @else
-                                    {{ $config['submit_text'] }}
-                                @endif
+                                {{ $config['submit_text'] ?? 'Donate and Support' }}
                             </button>
                         </div>
                     </div>

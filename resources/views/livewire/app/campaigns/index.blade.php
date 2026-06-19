@@ -68,7 +68,7 @@
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead>
                         <tr class="bg-slate-50">
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('title')" class="group inline-flex items-center gap-1">
                                     Title
                                     @if ($sortField === 'title')
@@ -82,7 +82,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('status')" class="group inline-flex items-center gap-1">
                                     Status
                                     @if ($sortField === 'status')
@@ -96,9 +96,9 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Raised</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Donations</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Raised</th>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Donations</th>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
                                     Created
                                     @if ($sortField === 'created_at')
@@ -113,7 +113,7 @@
                                 </button>
                             </th>
                             @if ($showArchived)
-                                <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
+                                <th scope="col" class="px-5 py-3 text-right text-xs font-semibold tracking-wider text-slate-500">Actions</th>
                             @endif
                         </tr>
                     </thead>
