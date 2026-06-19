@@ -458,17 +458,21 @@
                 </x-ui.card>
             </div>
 
-            <x-ui.card title="Post-Donation">
-                <div class="space-y-4">
+            <x-ui.card
+                title="Post-Donation"
+                description="Shown after a donor successfully completes a payment. Redirect URL only applies to hosted donation pages; checkout modals and embedded buttons will continue to show the thank-you message."
+            >
+                <div class="space-y-5">
                     <div>
                         <label for="thank_you_message" class="block text-sm font-medium text-slate-700">Thank You Message</label>
                         <textarea
                             id="thank_you_message"
                             wire:model="thank_you_message"
                             rows="3"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                             placeholder="Shown to donors after they complete a donation..."
                         ></textarea>
+                        <p class="mt-1.5 text-xs text-slate-500">This message is shown on the hosted donation page and inside checkout modals.</p>
                         @error('thank_you_message') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
@@ -478,9 +482,10 @@
                             type="url"
                             id="redirect_url"
                             wire:model="redirect_url"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                             placeholder="https://example.com/thank-you"
                         />
+                        <p class="mt-1.5 text-xs text-slate-500">Only applies to hosted donation pages. Leave empty to keep donors on the thank-you screen.</p>
                         @error('redirect_url') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                 </div>
