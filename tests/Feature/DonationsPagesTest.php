@@ -137,6 +137,14 @@ it('shows approximate myr total for foreign donations without base amount', func
         ->assertSee('USD 150.00');
 });
 
+it('renders date and donation columns without wrapping', function () {
+    $response = $this->actingAs($this->user)->get(route('app.donations.index'));
+
+    $response->assertOk()
+        ->assertSeeHtml('class="whitespace-nowrap min-w-[180px] px-5 py-4 text-sm text-slate-500"')
+        ->assertSeeHtml('class="whitespace-nowrap min-w-[180px] px-5 py-4">');
+});
+
 it('redirects guests to login', function () {
     $this->get(route('app.donations.index'))->assertRedirect('/login');
     $this->get(route('app.donations.show', $this->donation))->assertRedirect('/login');

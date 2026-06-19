@@ -480,6 +480,7 @@ class ProcessStripeWebhook implements ShouldQueue
             'past_due' => SubscriptionStatus::PastDue,
             'canceled' => SubscriptionStatus::Cancelled,
             'incomplete' => SubscriptionStatus::Incomplete,
+            'incomplete_expired' => SubscriptionStatus::IncompleteExpired,
             'paused' => SubscriptionStatus::Paused,
             default => null,
         };

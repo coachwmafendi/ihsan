@@ -157,11 +157,13 @@
                     <div class="mt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         @php
                             $statusClass = match ($subscription->status) {
-                                \App\Enums\SubscriptionStatus::Active     => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                \App\Enums\SubscriptionStatus::Cancelled  => 'bg-slate-50 text-slate-600 border-slate-200',
-                                \App\Enums\SubscriptionStatus::PastDue    => 'bg-red-50 text-red-600 border-red-200',
-                                \App\Enums\SubscriptionStatus::Paused     => 'bg-amber-50 text-amber-700 border-amber-200',
-                                \App\Enums\SubscriptionStatus::Incomplete => 'bg-slate-50 text-slate-500 border-slate-200',
+                                \App\Enums\SubscriptionStatus::Active            => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                \App\Enums\SubscriptionStatus::Cancelled         => 'bg-slate-50 text-slate-600 border-slate-200',
+                                \App\Enums\SubscriptionStatus::PastDue           => 'bg-red-50 text-red-600 border-red-200',
+                                \App\Enums\SubscriptionStatus::Paused            => 'bg-amber-50 text-amber-700 border-amber-200',
+                                \App\Enums\SubscriptionStatus::Incomplete        => 'bg-amber-50 text-amber-700 border-amber-200',
+                                \App\Enums\SubscriptionStatus::IncompleteExpired => 'bg-slate-50 text-slate-500 border-slate-200',
+                                \App\Enums\SubscriptionStatus::Completed        => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                             };
                             $statusPrefix = $subscription->status === \App\Enums\SubscriptionStatus::Active ? '● ' : '';
                         @endphp

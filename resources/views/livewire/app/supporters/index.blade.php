@@ -205,7 +205,7 @@
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead>
                         <tr class="bg-slate-50">
-                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap min-w-[200px] px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('name')" class="group inline-flex items-center gap-1">
                                     Name
                                     @if ($sortField === 'name')
@@ -311,7 +311,7 @@
                                 class="cursor-pointer transition-colors hover:bg-slate-50"
                                 onclick="window.location='{{ route('app.supporters.show', $donor) }}'"
                             >
-                                <td class="px-5 py-4">
+                                <td class="whitespace-nowrap min-w-[200px] px-5 py-4">
                                     <p class="text-sm font-medium text-slate-900">{{ \Illuminate\Support\Str::title($donor->name) }}</p>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">

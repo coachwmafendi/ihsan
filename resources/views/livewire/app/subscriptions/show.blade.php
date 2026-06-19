@@ -106,6 +106,18 @@
                         This recurring donation is incomplete. Please complete the payment setup.
                     </x-ui.alert>
                     @break
+
+                @case('incomplete_expired')
+                    <x-ui.alert :compact="true" variant="warning" icon="heroicon-o-clock">
+                        This recurring donation setup expired because the payment was not completed in time.
+                    </x-ui.alert>
+                    @break
+
+                @case('completed')
+                    <x-ui.alert :compact="true" variant="success" icon="heroicon-o-check-badge">
+                        This recurring donation has completed all planned installments.
+                    </x-ui.alert>
+                    @break
             @endswitch
 
             {{-- Subscription --}}

@@ -162,10 +162,13 @@
             <flux:menu>
                 <flux:menu.item wire:click="$set('statusFilter', '')"          @class(['font-semibold text-teal-700' => ! $statusFilter])>All</flux:menu.item>
                 <flux:menu.separator />
-                <flux:menu.item wire:click="$set('statusFilter', 'active')"    @class(['font-semibold text-teal-700' => $statusFilter === 'active'])>Active</flux:menu.item>
-                <flux:menu.item wire:click="$set('statusFilter', 'paused')"    @class(['font-semibold text-teal-700' => $statusFilter === 'paused'])>Paused</flux:menu.item>
-                <flux:menu.item wire:click="$set('statusFilter', 'cancelled')" @class(['font-semibold text-teal-700' => $statusFilter === 'cancelled'])>Cancelled</flux:menu.item>
-                <flux:menu.item wire:click="$set('statusFilter', 'past_due')"  @class(['font-semibold text-teal-700' => $statusFilter === 'past_due'])>Past Due</flux:menu.item>
+                <flux:menu.item wire:click="$set('statusFilter', 'active')"             @class(['font-semibold text-teal-700' => $statusFilter === 'active'])>Active</flux:menu.item>
+                <flux:menu.item wire:click="$set('statusFilter', 'paused')"             @class(['font-semibold text-teal-700' => $statusFilter === 'paused'])>Paused</flux:menu.item>
+                <flux:menu.item wire:click="$set('statusFilter', 'cancelled')"          @class(['font-semibold text-teal-700' => $statusFilter === 'cancelled'])>Cancelled</flux:menu.item>
+                <flux:menu.item wire:click="$set('statusFilter', 'past_due')"           @class(['font-semibold text-teal-700' => $statusFilter === 'past_due'])>Past Due</flux:menu.item>
+                <flux:menu.item wire:click="$set('statusFilter', 'incomplete')"         @class(['font-semibold text-teal-700' => $statusFilter === 'incomplete'])>Incomplete</flux:menu.item>
+                <flux:menu.item wire:click="$set('statusFilter', 'incomplete_expired')" @class(['font-semibold text-teal-700' => $statusFilter === 'incomplete_expired'])>Incomplete Expired</flux:menu.item>
+                <flux:menu.item wire:click="$set('statusFilter', 'completed')"          @class(['font-semibold text-teal-700' => $statusFilter === 'completed'])>Completed</flux:menu.item>
             </flux:menu>
         </flux:dropdown>
 
@@ -212,11 +215,17 @@
 
     {{-- Subscriptions Table --}}
     <x-ui.card>
-        @if ($this->subscriptions->isNotEmpty())
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200">
+        <div class="relative">
+            <div wire:loading.delay class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-sm">
+                <x-heroicon-o-arrow-path class="size-6 animate-spin text-teal-600" />
+            </div>
+
+            @if ($this->subscriptions->isNotEmpty())
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200">
                     <thead>
                         <tr class="bg-slate-50">
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Status</th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
                                     Create date
@@ -245,8 +254,12 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Installments</th>
-                            <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Total</th>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                <x-ui.tooltip text="Installments">
+                                    <x-heroicon-o-arrow-path class="size-4 text-slate-500" />
+                                </x-ui.tooltip>
+                            </th>
+                            <th scope="col" class="px-5 py-3 text-right text-xs font-semibold tracking-wider text-slate-500">Total</th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                 <button wire:click="sortBy('donor')" class="group inline-flex items-center gap-1">
                                     Supporter
@@ -283,6 +296,34 @@
                                 class="cursor-pointer transition-colors hover:bg-slate-50"
                                 onclick="window.location='{{ route('app.subscriptions.show', $subscription) }}'"
                             >
+                                @php
+                                    $statusIcon = match ($subscription->status->value) {
+                                        'active' => 'heroicon-s-check-circle',
+                                        'paused' => 'heroicon-o-pause-circle',
+                                        'cancelled' => 'heroicon-o-x-circle',
+                                        'past_due' => 'heroicon-o-exclamation-circle',
+                                        'incomplete' => 'heroicon-o-exclamation-triangle',
+                                        'incomplete_expired' => 'heroicon-o-clock',
+                                        'completed' => 'heroicon-s-check-badge',
+                                        default => 'heroicon-o-question-mark-circle',
+                                    };
+                                    $statusColor = match ($subscription->status->value) {
+                                        'active' => 'text-emerald-600',
+                                        'paused' => 'text-amber-600',
+                                        'cancelled' => 'text-red-600',
+                                        'past_due' => 'text-amber-600',
+                                        'incomplete' => 'text-amber-600',
+                                        'incomplete_expired' => 'text-slate-500',
+                                        'completed' => 'text-emerald-600',
+                                        default => 'text-slate-500',
+                                    };
+                                @endphp
+                                <td class="px-5 py-4">
+                                    <span class="inline-flex items-center gap-1.5 text-sm font-medium {{ $statusColor }}">
+                                        <x-dynamic-component :component="$statusIcon" class="size-5" />
+                                        {{ $subscription->status->getLabel() }}
+                                    </span>
+                                </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
                                     {{ $subscription->created_at->format('M d, Y, g:i A') }}
                                 </td>
@@ -331,12 +372,13 @@
             <div class="border-t border-slate-100 px-5 py-3">
                 {{ $this->subscriptions->links() }}
             </div>
-        @else
-            <x-ui.empty-state
-                icon="heroicon-o-arrow-path"
-                title="No subscriptions found"
-                description="Try adjusting your search or filter criteria."
-            />
-        @endif
+            @else
+                <x-ui.empty-state
+                    icon="heroicon-o-arrow-path"
+                    title="No subscriptions found"
+                    description="Try adjusting your search or filter criteria."
+                />
+            @endif
+        </div>
     </x-ui.card>
 </div>

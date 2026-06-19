@@ -83,6 +83,14 @@ it('displays donor names in title case', function () {
     $response->assertDontSee('AHMAD BIN ABU');
 });
 
+it('renders the name column without wrapping', function () {
+    $response = $this->actingAs($this->user)->get(route('app.supporters.index'));
+
+    $response->assertOk()
+        ->assertSeeHtml('class="whitespace-nowrap min-w-[200px] px-5 py-4"')
+        ->assertSee($this->donor->name);
+});
+
 it('shows approximate myr lifetime total for foreign donations without base amount', function () {
     $donor = Donor::factory()->create();
 
