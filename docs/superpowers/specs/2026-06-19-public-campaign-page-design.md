@@ -1,88 +1,135 @@
-# Public Campaign Page Design
+# Campaign Page Tab & Public Campaign Page Design
 
 ## Context
 
 - Embedded elements (button, form, popup) and checkout modals are installed on client websites.
 - The existing hosted donation form at `/donate/campaign/{campaign:form_parameter}` is hosted on `ihsan.test` but is currently just a plain donation form and is not actively used.
-- The goal is to repurpose this hosted page into a **public campaign landing page** that feels like a real campaign page rather than a raw donation form.
+- Administrators need a dedicated space to configure a public campaign landing page hosted by Ihsan.
 
 ## Goal
 
-Create a public-facing campaign page hosted on `ihsan.test` that:
+1. Add a **Campaign Page** tab inside the campaign edit screen.
+2. Provide a left-hand sub-navigation with sections (starting with **Thank you screen**; others can be built iteratively).
+3. Allow admins to configure the donor-facing page and post-donation behavior:
+   - Thank you screen: default message or redirect to a URL.
+   - Sharing settings: enabled channels, public page URL, default sharing message.
+4. Build the public campaign landing page that uses these settings.
 
-- Presents campaign information (title, description, image, fundraising progress).
-- Provides a clear call-to-action to donate.
-- Opens the existing checkout modal for payment, consistent with the embedded-element experience.
-- Is shareable via URL, QR code, WhatsApp, etc.
+## Admin UI: Campaign Page Tab
 
-## Proposed Approaches
+### Tab placement
 
-### Approach A: Repurpose the existing hosted donation route
+Insert between **Checkout Modal** and **Embed & Share** in the campaign edit tabs:
 
-- Convert `/donate/campaign/{campaign:form_parameter}` from a donation form into a campaign landing page.
-- The page displays campaign info and a "Donate Now" button.
-- Clicking the button opens the existing checkout modal (`DonationForm` in popup mode) using a default form element tied to the campaign.
-- Keeps the existing URL structure and route name (`donations.campaign-show`).
+`Overview | Settings | Checkout Modal | Campaign Page | Embed & Share | Actions`
 
-**Pros:**
-- No new public route needed.
-- Reuses existing modal/payment flow.
-- Existing share links keep working.
+### Sub-navigation (left sidebar)
 
-**Cons:**
-- URL path says `/donate/...` instead of `/campaign/...`.
-- Need a default element for each campaign (or create one on demand) to drive the modal.
+- Content *(placeholder for future)*
+- Campaign progress *(placeholder for future)*
+- Supporter impact *(placeholder for future)*
+- Multiple designations *(placeholder for future)*
+- Benefits *(placeholder for future)*
+- **Thank you screen** *(implemented first)*
 
-### Approach B: New campaign public page route
+### Thank you screen section
 
-- Create a new route such as `/campaigns/{campaign:public_id}` or `/c/{campaign:slug}`.
-- This route renders a standalone public campaign landing page.
-- The "Donate" button opens the checkout modal using the campaign’s default form element.
-- Keep `/donate/campaign/{form_parameter}` as is or redirect it to the new campaign page.
+#### 1. Post-donation behaviour
 
-**Pros:**
-- Cleaner, more conventional URL (`/campaigns/...`).
-- Separates the campaign marketing page from the donation form.
+Two radio options:
 
-**Cons:**
-- Adds another public route.
-- Existing share/embed links may need updating or redirects.
+- **Show supporters the default thank you screen**
+  - If selected, donors see the built-in success screen after payment.
+  - The success screen text can be customized with a **Thank you message** textarea.
+- **Redirect supporters to a specific URL**
+  - If selected, a **Redirect URL** input appears.
+  - After a successful donation, the hosted campaign page redirects to this URL.
+  - For checkout modals/popups, this redirects the parent page.
 
-## Recommended Approach
+#### 2. Sharing channels
 
-**Approach A — repurpose the existing hosted page.**
+Checkboxes to enable/disable share buttons on the thank-you screen:
 
-Because the hosted route already exists and is not being used as a pure donation form, it is the lowest-friction path to a public campaign page. The URL can be kept as `/donate/campaign/...` for now (it is still a donation entry point) or aliased later.
+- Facebook
+- X (Twitter)
+- LinkedIn
+- Email
+
+#### 3. Sharing URL
+
+Read-only or editable input showing the campaign public page URL, e.g.
+
+```
+https://ihsan.test/campaigns/{public_id}
+```
+
+A copy button should be provided.
+
+#### 4. Default sharing message
+
+Textarea (max 280 characters) used as the pre-filled text when donors share the campaign.
+
+## Data Storage
+
+Reuse existing columns where possible:
+
+- `thank_you_message` — text shown on the default thank-you screen.
+- `redirect_url` — URL to redirect after donation when redirect option is selected.
+
+Add new config keys inside `campaigns.config` JSON:
+
+- `post_donation_mode` — `"default"` or `"redirect"`
+- `share_channels` — array of enabled channel keys, e.g. `["facebook", "x", "linkedin", "email"]`
+- `share_message` — string, default sharing message
+
+## Public Campaign Page
+
+### Route
+
+`/campaigns/{campaign:public_id}`
+
+A new public route for the campaign landing page.
+
+### Layout
+
+Use a clean public layout (`layouts.public`) or adapt `layouts.donation`.
+
+### Page content
+
+- Campaign title
+- Campaign description
+- Campaign image (if set)
+- Fundraising progress (target amount, raised so far, percentage)
+- Status badge
+- Primary CTA: **Donate Now**
+- The donate button opens the existing checkout modal using the campaign’s default form element.
+
+### Post-donation behaviour
+
+The public page feeds the same `DonationForm` component. After payment success:
+
+- If `post_donation_mode` is `"redirect"` and `redirect_url` is set, redirect the browser to `redirect_url`.
+- Otherwise show the default thank-you screen with the configured `thank_you_message`.
+
+### Sharing
+
+On the thank-you screen, show share buttons for enabled channels using the configured `share_message` and the public page URL.
+
+### Fallback route
+
+Keep `/donate/campaign/{campaign:form_parameter}` working for existing links, optionally redirecting to the new public page route.
 
 ## Components
 
-- `App\Livewire\CampaignPublicPage` (new class-based or SFC page component)
-  - Resolves the campaign by `form_parameter`.
-  - Authorizes public access for active campaigns only.
-  - Displays campaign title, description, image, fundraising progress, and status.
-  - Renders a "Donate Now" CTA.
-- Reuse `App\Livewire\DonationForm` for the checkout modal.
-  - Use `isPopup = true` and an appropriate element.
-- Layout: `layouts.donation` (clean, minimal) or a new `layouts.public`.
-
-## Data Flow
-
-1. Request hits `/donate/campaign/{form_parameter}`.
-2. `CampaignPublicPage` loads the campaign and its organization.
-3. If campaign is not active, return 404.
-4. Page renders campaign info and a donate button.
-5. User clicks donate → open checkout modal with `DonationForm`.
-6. Payment success → modal closes automatically (existing popup behavior).
-
-## Open Questions
-
-- Should every campaign have a default form element auto-created for modal purposes?
-- Should the page progress bar be real-time or static on first render?
-- Should the URL use the campaign `slug`, `public_id`, or keep `form_parameter`?
+- `App\Livewire\App\Campaigns\CampaignEdit` — add `activeTab` value `campaign-page` and sub-section state.
+- `App\Livewire\CampaignPublicPage` — new public page component.
+- Reuse `App\Livewire\DonationForm` for checkout modal.
 
 ## Testing
 
-- Feature test: active public campaign page renders expected info and donate button.
-- Feature test: draft/archived campaign returns 404.
-- Feature test: clicking donate opens the checkout modal.
-- Feature test: donation success closes the modal.
+- Feature test: Campaign Page tab renders with Thank you screen section.
+- Feature test: switching post-donation mode toggles fields.
+- Feature test: saving campaign persists `thank_you_message`, `redirect_url`, and config keys.
+- Feature test: public campaign page returns 200 for active campaigns and 404 for inactive campaigns.
+- Feature test: public campaign page shows campaign info and donate button.
+- Feature test: successful donation on public page respects redirect or default thank-you setting.
