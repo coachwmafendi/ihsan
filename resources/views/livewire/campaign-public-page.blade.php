@@ -128,7 +128,7 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                             </div>
 
                             {{-- Checkpoint labels --}}
-                            <div class="mt-4 flex items-start justify-between gap-2 text-[10px] font-semibold leading-none">
+                            <div class="mt-4 flex items-start justify-between gap-2 text-xs font-semibold leading-none">
                                 @foreach ($checkpoints as $index => $amount)
                                     @php
                                         $isCurrent = $index === $currentCheckpointIndex;
