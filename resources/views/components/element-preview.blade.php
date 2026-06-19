@@ -420,12 +420,12 @@
                 </style>
             @endif
             <div class="relative flex min-h-[300px] w-full items-center justify-center rounded-xl bg-zinc-50/80 p-4">
-                <div class="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-zinc-200/60">
-                    <button type="button" class="absolute -right-2 -top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border-2 border-zinc-300 bg-white text-zinc-500 shadow-md transition hover:bg-zinc-100 hover:text-zinc-900">
+                <div class="relative w-full max-w-sm rounded-2xl bg-white shadow-xl ring-1 ring-zinc-200/60">
+                    <button type="button" class="absolute -right-2 -top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border-2 border-zinc-200 bg-white text-zinc-500 shadow-md transition hover:bg-zinc-100 hover:text-zinc-900">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                     @if($imageUrl && $popupLayout === 'full')
-                        <div class="relative h-48 w-full">
+                        <div class="relative h-48 w-full overflow-hidden rounded-t-2xl">
                             <img src="{{ $imageUrl }}" class="h-full w-full object-cover" alt="">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                         </div>
