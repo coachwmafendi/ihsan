@@ -356,7 +356,7 @@
                                     <x-heroicon-o-photo class="size-8" />
                                 </div>
                             @endif
-                            <div class="flex items-center gap-3">
+                            <div class="flex flex-col gap-1.5">
                                 <input
                                     type="file"
                                     id="image"
@@ -365,7 +365,7 @@
                                     class="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100"
                                 />
                                 @if ($existing_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing_image))
-                                    <button type="button" wire:click="removeImage" class="text-xs text-slate-500 hover:text-red-700 hover:underline">Remove</button>
+                                    <button type="button" wire:click="removeImage" class="self-start text-xs text-slate-500 hover:text-red-700 hover:underline">Remove image</button>
                                 @endif
                             </div>
                         </div>
