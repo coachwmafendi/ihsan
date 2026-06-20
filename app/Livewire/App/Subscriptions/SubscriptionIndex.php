@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Subscriptions;
 
+use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
 use App\Models\Subscription;
 use Carbon\Carbon;
@@ -227,6 +228,43 @@ class SubscriptionIndex extends Component
     public function totalCount(): int
     {
         return $this->baseQuery()->count();
+    }
+
+    #[Computed]
+    public function expectedMonthlyTotal(): float
+    {
+        $org = $this->organization;
+
+        if (! $org) {
+            return 0.0;
+        }
+
+        $subscriptions = Subscription::query()
+            ->whereHas('campaign', fn (Builder $q) => $q->where('organization_id', $org->id))
+            ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::PastDue])
+            ->with([
+                'donations' => fn ($q) => $q->select('id', 'subscription_id', 'exchange_rate')->orderByDesc('created_at'),
+            ])
+            ->get(['id', 'amount', 'currency', 'interval']);
+
+        $total = 0.0;
+
+        foreach ($subscriptions as $subscription) {
+            $monthlyFactor = match ($subscription->interval->value) {
+                'weekly' => 52 / 12,
+                'yearly' => 1 / 12,
+                default => 1.0,
+            };
+
+            $latestDonation = $subscription->donations->first();
+            $exchangeRate = strtolower($subscription->currency) === 'myr'
+                ? 1.0
+                : (float) ($latestDonation?->exchange_rate ?? 1.0);
+
+            $total += (float) $subscription->amount * $monthlyFactor * $exchangeRate;
+        }
+
+        return round($total, 2);
     }
 
     public function render()

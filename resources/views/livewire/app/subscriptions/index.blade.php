@@ -11,6 +11,7 @@
     {{-- Summary Stats --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <x-ui.stat-card label="Total Recurring Plans" value="{{ number_format($this->totalCount) }}" />
+        <x-ui.stat-card label="Expected Monthly Total" value="MYR {{ number_format($this->expectedMonthlyTotal, 2) }}" subtext="Active & past due subscriptions" />
     </div>
 
     {{-- Filter chips --}}
