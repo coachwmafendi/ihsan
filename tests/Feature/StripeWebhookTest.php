@@ -227,6 +227,13 @@ it('creates recurring subscriptions in the connected account from payment intent
                     'id' => 'price_connected_monthly',
                     'object' => 'price',
                 ],
+                str_contains($absUrl, '/v1/subscriptions/') => [
+                    'id' => 'sub_connected_monthly',
+                    'object' => 'subscription',
+                    'status' => 'active',
+                    'current_period_start' => now()->timestamp,
+                    'current_period_end' => now()->addMonth()->timestamp,
+                ],
                 str_ends_with($absUrl, '/v1/subscriptions') => [
                     'id' => 'sub_connected_monthly',
                     'object' => 'subscription',
@@ -659,6 +666,13 @@ it('stores recurring fee cover details on subscription creation', function () {
                 str_ends_with($absUrl, '/v1/prices') => [
                     'id' => 'price_fee_cover_'.count($this->requests),
                     'object' => 'price',
+                ],
+                str_contains($absUrl, '/v1/subscriptions/') => [
+                    'id' => 'sub_fee_cover_monthly',
+                    'object' => 'subscription',
+                    'status' => 'active',
+                    'current_period_start' => now()->timestamp,
+                    'current_period_end' => now()->addMonth()->timestamp,
                 ],
                 str_ends_with($absUrl, '/v1/subscriptions') => [
                     'id' => 'sub_fee_cover_monthly',

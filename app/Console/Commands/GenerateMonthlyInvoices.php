@@ -6,6 +6,7 @@ use App\Mail\PlatformInvoiceCreated;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
+use App\Services\StripeMetadata;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -70,10 +71,16 @@ class GenerateMonthlyInvoices extends Command
                 $customerParams = [
                     'email' => $organization->contact_email,
                     'name' => $organization->name,
-                    'metadata' => [
-                        'organization_id' => (string) $organization->id,
-                    ],
+                    'metadata' => StripeMetadata::forOrganizationCustomer(
+                        organization: $organization,
+                        source: 'platform_invoice',
+                    ),
                 ];
+
+                $address = StripeMetadata::organizationAddress($organization);
+                if ($address !== null) {
+                    $customerParams['address'] = $address;
+                }
 
                 $customers = StripeCustomer::all(['email' => $organization->contact_email, 'limit' => 1]);
                 $customer = $customers->first() ?? StripeCustomer::create($customerParams);
@@ -84,11 +91,7 @@ class GenerateMonthlyInvoices extends Command
                     'days_until_due' => 14,
                     'pending_invoice_items_behavior' => 'exclude',
                     'description' => "Ihsan Processing Fees for {$period->format('F Y')} — {$organization->name}",
-                    'metadata' => [
-                        'organization_id' => (string) $organization->id,
-                        'period' => $period->format('Y-m-d'),
-                        'type' => 'processing_fees',
-                    ],
+                    'metadata' => StripeMetadata::forPlatformInvoice($organization, $period),
                 ]);
 
                 InvoiceItem::create([

@@ -5,6 +5,7 @@ namespace App\Actions\Stripe;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Models\Subscription;
+use App\Services\StripeMetadata;
 use Carbon\Carbon;
 use Stripe\Price;
 use Stripe\SetupIntent;
@@ -102,11 +103,16 @@ class ManageStripeSubscription
 
         $effectiveInterval = $interval ?? $subscription->interval->value;
 
+        $campaign = $subscription->campaign;
+
         $price = Price::create([
             'product' => $productId,
             'unit_amount' => (int) ($newAmount * 100),
             'currency' => strtolower($subscription->currency ?? 'myr'),
             'recurring' => ['interval' => $this->stripeInterval($effectiveInterval)],
+            'metadata' => $campaign !== null && $organization !== null
+                ? StripeMetadata::forPrice($campaign, $organization, $newAmount, $subscription->currency ?? 'myr', $this->stripeInterval($effectiveInterval), 'donation')
+                : [],
         ], $stripeOptions);
 
         SubscriptionItem::update($subscriptionItem->id, [
@@ -130,6 +136,7 @@ class ManageStripeSubscription
         Stripe::setApiKey(config('services.stripe.secret'));
 
         $subscription->loadMissing('campaign.organization');
+        $organization = $subscription->campaign?->organization;
         $stripeOptions = $this->stripeOptions($subscription);
 
         $stripeParams = [];
@@ -147,11 +154,17 @@ class ManageStripeSubscription
                 $product = $subscriptionItem->price->product;
                 $productId = is_string($product) ? $product : $product->id;
 
+                $campaign = $subscription->campaign;
+                $interval = $this->stripeInterval($data['interval']);
+
                 $price = Price::create([
                     'product' => $productId,
                     'unit_amount' => (int) ($subscription->amount * 100),
                     'currency' => strtolower($subscription->currency ?? 'myr'),
-                    'recurring' => ['interval' => $this->stripeInterval($data['interval'])],
+                    'recurring' => ['interval' => $interval],
+                    'metadata' => $campaign !== null && $organization !== null
+                        ? StripeMetadata::forPrice($campaign, $organization, (float) $subscription->amount, $subscription->currency ?? 'myr', $interval, 'donation')
+                        : [],
                 ], $stripeOptions);
 
                 SubscriptionItem::update($subscriptionItem->id, [

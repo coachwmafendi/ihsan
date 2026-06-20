@@ -551,6 +551,13 @@ it('creates a connected stripe billing subscription after a monthly payment succ
                     'id' => 'price_connected_monthly',
                     'object' => 'price',
                 ],
+                str_contains($absUrl, '/v1/subscriptions/') => [
+                    'id' => 'sub_connected_monthly',
+                    'object' => 'subscription',
+                    'status' => 'trialing',
+                    'current_period_start' => now()->timestamp,
+                    'current_period_end' => now()->addMonth()->timestamp,
+                ],
                 str_ends_with($absUrl, '/v1/subscriptions') => [
                     'id' => 'sub_connected_monthly',
                     'object' => 'subscription',

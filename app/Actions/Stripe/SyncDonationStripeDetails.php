@@ -4,8 +4,10 @@ namespace App\Actions\Stripe;
 
 use App\Models\Donation;
 use App\Models\DonorPaymentMethod;
+use App\Services\StripeMetadata;
 use Stripe\BalanceTransaction;
 use Stripe\Charge;
+use Stripe\Customer;
 use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\PaymentMethod;
 
@@ -25,6 +27,8 @@ class SyncDonationStripeDetails
         $rawCharge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
         $paymentMethod = $this->retrievePaymentMethod($paymentIntent, $stripeOptions);
         $pmDetails = $this->paymentMethodDetails($paymentMethod, $rawCharge);
+
+        $this->syncCustomerCountry($donation, $paymentMethod, $stripeOptions);
 
         $hasExpandedCharge = ! is_string($rawCharge) && ($rawCharge->balance_transaction ?? null) !== null;
         $shouldRetrieveMissingChargeDetails = ! $hasExpandedCharge;
@@ -412,6 +416,45 @@ class SyncDonationStripeDetails
             'avs_result' => $avs,
             'cvc_result' => $cvc,
         ];
+    }
+
+    private function syncCustomerCountry(Donation $donation, ?PaymentMethod $paymentMethod, array $stripeOptions): void
+    {
+        $donor = $donation->donor;
+
+        if ($donor === null || ! filled($donor->stripe_customer_id)) {
+            return;
+        }
+
+        $country = $paymentMethod?->card?->country ?? null;
+
+        if (blank($country) || filled($donor->country)) {
+            return;
+        }
+
+        try {
+            $update = [
+                'address' => [
+                    'line1' => $donor->address_line1 ?? '',
+                    'line2' => $donor->address_line2 ?? '',
+                    'city' => $donor->address_city ?? '',
+                    'state' => $donor->address_state ?? '',
+                    'postal_code' => $donor->address_postal_code ?? '',
+                    'country' => $country,
+                ],
+            ];
+
+            $locale = StripeMetadata::customerLocale($donor);
+            if ($locale !== null) {
+                $update['preferred_locales'] = $locale;
+            }
+
+            Customer::update($donor->stripe_customer_id, $update, $stripeOptions);
+
+            $donor->update(['country' => $country]);
+        } catch (\Exception $e) {
+            report($e);
+        }
     }
 
     private function processingFeePercent(): float

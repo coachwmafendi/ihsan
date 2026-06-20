@@ -4,6 +4,7 @@ namespace App\Actions\Stripe;
 
 use App\Enums\DonationType;
 use App\Models\Donation;
+use App\Services\StripeMetadata;
 use Stripe\Customer;
 use Stripe\PaymentIntent;
 use Stripe\Stripe;
@@ -41,14 +42,11 @@ class CreatePaymentIntent
             ],
             'receipt_email' => $donation->donor?->email,
             'description' => (string) str($donation->campaign->title)->limit(200),
-            'metadata' => [
-                'donation_id' => (string) $donation->getKey(),
-                'donor_name' => $donation->donor?->name ?? '',
-                'donor_email' => $donation->donor?->email ?? '',
-                'donor_phone' => $donation->donor?->phone ?? '',
-                'campaign_id' => (string) $donation->campaign_id,
-                'organization_id' => (string) $organization->getKey(),
-            ],
+            'metadata' => StripeMetadata::forPaymentIntent(
+                donation: $donation,
+                organization: $organization,
+                element: $donation->element,
+            ),
         ];
 
         if ($donation->type === DonationType::Recurring) {
@@ -60,20 +58,33 @@ class CreatePaymentIntent
             $customerParams = [
                 'email' => $donation->donor?->email,
                 'name' => $donation->donor?->name,
-                'metadata' => [
-                    'donor_id' => (string) $donation->donor_id,
-                    'organization_id' => (string) $organization->getKey(),
-                ],
+                'metadata' => StripeMetadata::forDonorCustomer(
+                    donor: $donation->donor,
+                    organization: $organization,
+                    source: 'donation_checkout',
+                ),
             ];
 
             if (filled($donation->donor?->phone)) {
                 $customerParams['phone'] = $donation->donor->phone;
             }
 
+            $address = StripeMetadata::customerAddress($donation->donor);
+            if ($address !== null) {
+                $customerParams['address'] = $address;
+            }
+
+            $locale = StripeMetadata::customerLocale($donation->donor);
+            if ($locale !== null) {
+                $customerParams['preferred_locales'] = $locale;
+            }
+
             if ($organization->fee_collection_method === 'upfront') {
                 $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
                 $params['application_fee_amount'] = (int) round($params['amount'] * $feePercent / 100);
             }
+
+            $params['metadata'][StripeMetadata::key('platform_fee_amount')] = (string) ($params['application_fee_amount'] ?? 0);
 
             $customer = Customer::create($customerParams, $stripeOptions);
 
@@ -83,6 +94,8 @@ class CreatePaymentIntent
 
             return PaymentIntent::create($params, $stripeOptions);
         }
+
+        $params['metadata'][StripeMetadata::key('platform_fee_amount')] = (string) ($params['application_fee_amount'] ?? 0);
 
         return PaymentIntent::create($params);
     }

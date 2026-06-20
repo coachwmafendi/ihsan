@@ -6,6 +6,7 @@ use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Models\Donation;
 use App\Models\Subscription;
+use App\Services\StripeMetadata;
 use Stripe\Customer as StripeCustomer;
 use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\PaymentMethod;
@@ -25,6 +26,9 @@ class CreateRecurringSubscription
         if ($donation->subscription !== null) {
             return $donation->subscription;
         }
+
+        $donation->loadMissing('campaign.organization');
+        $organization = $donation->campaign?->organization;
 
         $currentPeriodStart = now();
         $currentPeriodEnd = $currentPeriodStart->copy()->addMonth();
@@ -52,7 +56,7 @@ class CreateRecurringSubscription
             }
         }
 
-        return Subscription::query()->create([
+        $subscription = Subscription::query()->create([
             'campaign_id' => $donation->campaign_id,
             'donor_id' => $donation->donor_id,
             'source' => $donation->source,
@@ -67,6 +71,19 @@ class CreateRecurringSubscription
             'current_period_start' => $currentPeriodStart,
             'current_period_end' => $currentPeriodEnd,
         ]);
+
+        if ($stripeSubscriptionId !== null && $organization !== null) {
+            StripeSubscription::update($stripeSubscriptionId, [
+                'metadata' => StripeMetadata::forRecurringSubscription(
+                    donation: $donation,
+                    organization: $organization,
+                    element: $donation->element,
+                    subscription: $subscription,
+                ),
+            ], $stripeOptions);
+        }
+
+        return $subscription;
     }
 
     /**
@@ -74,22 +91,41 @@ class CreateRecurringSubscription
      */
     private function resolveCustomerId(Donation $donation, StripePaymentIntent $paymentIntent, string $paymentMethodId, array $stripeOptions): ?string
     {
-        $donorEmail = $paymentIntent->metadata->donor_email ?? $donation->donor?->email;
+        $donorEmail = $paymentIntent->metadata->{StripeMetadata::key('donor_email')}
+            ?? $paymentIntent->metadata->donor_email
+            ?? $donation->donor?->email;
 
         if ($donorEmail === null) {
             return null;
         }
 
+        $donation->loadMissing('campaign.organization');
+        $organization = $donation->campaign?->organization;
+
         $customerParams = [
             'email' => $donorEmail,
             'name' => $donation->donor?->name,
-            'metadata' => [
-                'donor_id' => (string) $donation->donor_id,
-            ],
+            'metadata' => $organization !== null
+                ? StripeMetadata::forDonorCustomer(
+                    donor: $donation->donor,
+                    organization: $organization,
+                    source: 'recurring_subscription',
+                )
+                : [],
         ];
 
         if (filled($donation->donor?->phone)) {
             $customerParams['phone'] = $donation->donor->phone;
+        }
+
+        $address = StripeMetadata::customerAddress($donation->donor);
+        if ($address !== null) {
+            $customerParams['address'] = $address;
+        }
+
+        $locale = StripeMetadata::customerLocale($donation->donor);
+        if ($locale !== null) {
+            $customerParams['preferred_locales'] = $locale;
         }
 
         $customer = StripeCustomer::all(['email' => $donorEmail, 'limit' => 1], $stripeOptions)->first()
@@ -111,9 +147,16 @@ class CreateRecurringSubscription
      */
     private function createStripeSubscription(Donation $donation, string $customerId, string $paymentMethodId, \DateTimeInterface $currentPeriodEnd, array $stripeOptions): array
     {
+        $donation->loadMissing('campaign.organization');
+        $organization = $donation->campaign?->organization;
+
+        $productMetadata = $organization !== null && $donation->campaign !== null
+            ? StripeMetadata::forProduct($donation->campaign, $organization, 'donation')
+            : [];
+
         $product = StripeProduct::create([
             'name' => $donation->campaign?->title ?? 'Donation',
-            'metadata' => ['campaign_id' => (string) $donation->campaign_id],
+            'metadata' => $productMetadata,
         ], $stripeOptions);
 
         $price = StripePrice::create([
@@ -121,6 +164,9 @@ class CreateRecurringSubscription
             'currency' => $donation->currency,
             'unit_amount' => (int) ((float) $donation->gross_amount * 100),
             'recurring' => ['interval' => 'month'],
+            'metadata' => $organization !== null && $donation->campaign !== null
+                ? StripeMetadata::forPrice($donation->campaign, $organization, (float) $donation->gross_amount, $donation->currency, 'month', 'donation')
+                : [],
         ], $stripeOptions);
 
         $items = [['price' => $price->id]];
@@ -129,7 +175,9 @@ class CreateRecurringSubscription
         if ($feeCoverAmount > 0) {
             $feeProduct = StripeProduct::create([
                 'name' => ($donation->campaign?->title ?? 'Donation').' - Processing fee cover',
-                'metadata' => ['campaign_id' => (string) $donation->campaign_id, 'type' => 'fee_cover'],
+                'metadata' => $organization !== null && $donation->campaign !== null
+                    ? StripeMetadata::forProduct($donation->campaign, $organization, 'fee_cover')
+                    : [],
             ], $stripeOptions);
 
             $feePrice = StripePrice::create([
@@ -137,6 +185,9 @@ class CreateRecurringSubscription
                 'currency' => $donation->currency,
                 'unit_amount' => (int) ($feeCoverAmount * 100),
                 'recurring' => ['interval' => 'month'],
+                'metadata' => $organization !== null && $donation->campaign !== null
+                    ? StripeMetadata::forPrice($donation->campaign, $organization, $feeCoverAmount, $donation->currency, 'month', 'fee_cover')
+                    : [],
             ], $stripeOptions);
 
             $items[] = ['price' => $feePrice->id];
@@ -147,11 +198,13 @@ class CreateRecurringSubscription
             'items' => $items,
             'default_payment_method' => $paymentMethodId,
             'trial_end' => $currentPeriodEnd->getTimestamp(),
-            'metadata' => [
-                'campaign_id' => (string) $donation->campaign_id,
-                'donor_id' => (string) $donation->donor_id,
-                'donation_id' => (string) $donation->getKey(),
-            ],
+            'metadata' => $organization !== null
+                ? StripeMetadata::forRecurringSubscription(
+                    donation: $donation,
+                    organization: $organization,
+                    element: $donation->element,
+                )
+                : [],
         ];
 
         $subscription = StripeSubscription::create($params, $stripeOptions);

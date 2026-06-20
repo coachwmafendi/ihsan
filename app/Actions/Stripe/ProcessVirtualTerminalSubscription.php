@@ -9,6 +9,7 @@ use App\Models\Donor;
 use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Services\StripeMetadata;
 use Stripe\Customer;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
@@ -47,14 +48,27 @@ class ProcessVirtualTerminalSubscription
 
         try {
             if (! $donor->stripe_customer_id) {
-                $customer = Customer::create([
+                $customerParams = [
                     'name' => $donor->name,
                     'email' => $donor->email,
-                    'metadata' => [
-                        'donor_id' => (string) $donor->getKey(),
-                        'organization_id' => (string) $organization->getKey(),
-                    ],
-                ], $stripeOptions);
+                    'metadata' => StripeMetadata::forDonorCustomer(
+                        donor: $donor,
+                        organization: $organization,
+                        source: 'virtual_terminal_subscription',
+                    ),
+                ];
+
+                $address = StripeMetadata::customerAddress($donor);
+                if ($address !== null) {
+                    $customerParams['address'] = $address;
+                }
+
+                $locale = StripeMetadata::customerLocale($donor);
+                if ($locale !== null) {
+                    $customerParams['preferred_locales'] = $locale;
+                }
+
+                $customer = Customer::create($customerParams, $stripeOptions);
 
                 $donor->update(['stripe_customer_id' => $customer->id]);
             }
@@ -79,6 +93,14 @@ class ProcessVirtualTerminalSubscription
                     'currency' => strtolower($currency),
                     'recurring' => ['interval' => 'month'],
                     'product' => $campaign->stripe_product_id,
+                    'metadata' => StripeMetadata::forPrice(
+                        campaign: $campaign,
+                        organization: $organization,
+                        amount: $amount,
+                        currency: $currency,
+                        interval: 'month',
+                        type: 'donation',
+                    ),
                 ], $stripeOptions);
             }
 
@@ -90,12 +112,13 @@ class ProcessVirtualTerminalSubscription
             $subscriptionParams = [
                 'customer' => $donor->stripe_customer_id,
                 'items' => [['price' => $price->id]],
-                'metadata' => [
-                    'campaign_id' => (string) $campaign->getKey(),
-                    'donor_public_id' => $donor->public_id,
-                    'source' => 'virtual_terminal',
-                    'organization_id' => (string) $organization->getKey(),
-                ],
+                'metadata' => StripeMetadata::forVirtualTerminalSubscription(
+                    campaign: $campaign,
+                    donor: $donor,
+                    organization: $organization,
+                    amount: $amount,
+                    currency: $currency,
+                ),
             ];
 
             if ($savedCardId) {
@@ -131,6 +154,17 @@ class ProcessVirtualTerminalSubscription
             'started_at' => now(),
             'current_period_start' => now(),
         ]);
+
+        StripeSubscription::update($stripeSubscription->id, [
+            'metadata' => StripeMetadata::forVirtualTerminalSubscription(
+                campaign: $campaign,
+                donor: $donor,
+                organization: $organization,
+                amount: $amount,
+                currency: $currency,
+                subscription: $subscription,
+            ),
+        ], $stripeOptions);
 
         // TODO: Send subscription confirmation email
 

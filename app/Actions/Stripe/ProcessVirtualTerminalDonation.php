@@ -11,6 +11,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
+use App\Services\StripeMetadata;
 use Illuminate\Support\Facades\Mail;
 use Stripe\Customer;
 use Stripe\Exception\ApiErrorException;
@@ -49,14 +50,27 @@ class ProcessVirtualTerminalDonation
 
         try {
             if (! $donor->stripe_customer_id) {
-                $customer = Customer::create([
+                $customerParams = [
                     'name' => $donor->name,
                     'email' => $donor->email,
-                    'metadata' => [
-                        'donor_id' => (string) $donor->getKey(),
-                        'organization_id' => (string) $organization->getKey(),
-                    ],
-                ], $stripeOptions);
+                    'metadata' => StripeMetadata::forDonorCustomer(
+                        donor: $donor,
+                        organization: $organization,
+                        source: 'virtual_terminal_donation',
+                    ),
+                ];
+
+                $address = StripeMetadata::customerAddress($donor);
+                if ($address !== null) {
+                    $customerParams['address'] = $address;
+                }
+
+                $locale = StripeMetadata::customerLocale($donor);
+                if ($locale !== null) {
+                    $customerParams['preferred_locales'] = $locale;
+                }
+
+                $customer = Customer::create($customerParams, $stripeOptions);
 
                 $donor->update(['stripe_customer_id' => $customer->id]);
             }
@@ -67,10 +81,18 @@ class ProcessVirtualTerminalDonation
                 'customer' => $donor->stripe_customer_id,
                 'description' => (string) str($campaign->title)->limit(200),
                 'metadata' => [
-                    'campaign_id' => (string) $campaign->getKey(),
-                    'donor_public_id' => $donor->public_id,
-                    'source' => 'virtual_terminal',
-                    'organization_id' => (string) $organization->getKey(),
+                    StripeMetadata::key('campaign_id') => (string) $campaign->getKey(),
+                    StripeMetadata::key('campaign_public_id') => $campaign->public_id ?? '',
+                    StripeMetadata::key('campaign_name') => $campaign->title,
+                    StripeMetadata::key('donor_id') => (string) $donor->getKey(),
+                    StripeMetadata::key('donor_public_id') => $donor->public_id ?? '',
+                    StripeMetadata::key('donor_name') => $donor->name,
+                    StripeMetadata::key('donor_email') => $donor->email,
+                    StripeMetadata::key('organization_id') => (string) $organization->getKey(),
+                    StripeMetadata::key('organization_public_id') => $organization->public_id ?? '',
+                    StripeMetadata::key('organization_name') => $organization->name,
+                    StripeMetadata::key('source') => 'virtual_terminal',
+                    StripeMetadata::key('environment') => config('app.env'),
                 ],
                 'receipt_email' => $donor->email,
             ];
@@ -91,6 +113,8 @@ class ProcessVirtualTerminalDonation
                 $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
                 $params['application_fee_amount'] = (int) round($params['amount'] * $feePercent / 100);
             }
+
+            $params['metadata'][StripeMetadata::key('platform_fee_amount')] = (string) ($params['application_fee_amount'] ?? 0);
 
             $paymentIntent = PaymentIntent::create($params, $stripeOptions);
         } catch (CardException $e) {

@@ -19,6 +19,7 @@ use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\WebhookLog;
 use App\Services\FraudDetectionService;
+use App\Services\StripeMetadata;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -80,7 +81,9 @@ class ProcessStripeWebhook implements ShouldQueue
     private function handlePaymentIntentSucceeded(StripeEvent $event): void
     {
         $paymentIntent = $event->data->object;
-        $donationId = $paymentIntent->metadata->donation_id ?? null;
+        $donationId = $paymentIntent->metadata->{StripeMetadata::key('donation_id')}
+            ?? $paymentIntent->metadata->donation_id
+            ?? null;
 
         if ($donationId === null) {
             return;
@@ -161,7 +164,9 @@ class ProcessStripeWebhook implements ShouldQueue
     private function handlePaymentIntentFailed(StripeEvent $event): void
     {
         $paymentIntent = $event->data->object;
-        $donationId = $paymentIntent->metadata->donation_id ?? null;
+        $donationId = $paymentIntent->metadata->{StripeMetadata::key('donation_id')}
+            ?? $paymentIntent->metadata->donation_id
+            ?? null;
 
         if ($donationId === null) {
             return;

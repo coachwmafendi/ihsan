@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\SubscriptionStatus;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Services\StripeMetadata;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Stripe\Customer;
@@ -88,6 +89,7 @@ class DonorProfileController extends Controller
                         'postal_code' => $data['address_postal_code'] ?? '',
                         'country' => $data['country'] ?? '',
                     ],
+                    'preferred_locales' => StripeMetadata::customerLocale($donor) ?? [],
                 ], $stripeOptions);
 
                 $donor->subscriptions()
@@ -99,11 +101,7 @@ class DonorProfileController extends Controller
                         }
 
                         StripeSubscription::update($subscription->stripe_subscription_id, [
-                            'metadata' => [
-                                'donor_name' => $donor->name,
-                                'donor_email' => $donor->email,
-                                'donor_phone' => $donor->phone ?? '',
-                            ],
+                            'metadata' => StripeMetadata::forDonorUpdate($donor),
                         ], $stripeOptions);
                     });
             } catch (\Exception $e) {

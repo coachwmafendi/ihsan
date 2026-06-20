@@ -11,6 +11,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Services\StripeMetadata;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
@@ -197,6 +198,7 @@ class SupporterShow extends Component
                 Customer::update($this->donor->stripe_customer_id, [
                     'name' => $name,
                     'email' => $validated['email'],
+                    'preferred_locales' => StripeMetadata::customerLocale($this->donor) ?? [],
                 ], $stripeOptions);
 
                 $this->donor->subscriptions()
@@ -208,10 +210,7 @@ class SupporterShow extends Component
                         }
 
                         StripeSubscription::update($subscription->stripe_subscription_id, [
-                            'metadata' => [
-                                'donor_name' => $this->donor->name,
-                                'donor_email' => $this->donor->email,
-                            ],
+                            'metadata' => StripeMetadata::forDonorUpdate($this->donor),
                         ], $stripeOptions);
                     });
             } catch (\Exception $e) {

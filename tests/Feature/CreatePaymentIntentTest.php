@@ -70,12 +70,14 @@ it('sends donor contact details to stripe payment intent records', function () {
             'description' => 'Wakaf Pembangunan',
         ])
         ->and($params['metadata'])->toMatchArray([
-            'donation_id' => (string) $donation->getKey(),
-            'donor_name' => 'Aisyah Rahman',
-            'donor_email' => 'aisyah@example.test',
-            'donor_phone' => '+60123456789',
-            'campaign_id' => (string) $campaign->getKey(),
-            'organization_id' => (string) $organization->getKey(),
+            'ihsan_donation_id' => (string) $donation->getKey(),
+            'ihsan_donor_name' => 'Aisyah Rahman',
+            'ihsan_donor_email' => 'aisyah@example.test',
+            'ihsan_donor_phone' => '+60123456789',
+            'ihsan_campaign_id' => (string) $campaign->getKey(),
+            'ihsan_organization_id' => (string) $organization->getKey(),
+            'ihsan_source' => 'checkout_modal',
+            'ihsan_environment' => 'testing',
         ]);
 });
 
