@@ -86,8 +86,8 @@
             <div class="bg-white lg:grid lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_440px] lg:items-stretch">
                 <section class="hidden lg:flex lg:min-h-0 lg:flex-col lg:border-r lg:border-slate-200">
         @else
-            <div class="min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8">
-                <main class="mx-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div class="{{ $isPublicPage ? 'min-h-0 bg-transparent px-0 py-0' : 'min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8' }}">
+                <main class="mx-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white {{ $isPublicPage ? 'shadow-sm' : 'shadow-2xl' }}">
         @endif
             @if ($campaignImageUrl && ! $isPublicPage)
                 <div class="p-2.5 pb-0 sm:p-3 sm:pb-0 {{ $isPopup ? 'lg:p-4 lg:pb-0' : '' }}">
@@ -170,7 +170,7 @@
                 </section>
             @endif
 
-            <section class="border-t border-slate-200 px-6 py-6 {{ $isPopup ? 'lg:border-t-0 lg:px-7 lg:py-7' : '' }}">
+            <section class="px-6 py-6 {{ $isPublicPage ? 'border-t-0' : 'border-t border-slate-200' }} {{ $isPopup ? 'lg:border-t-0 lg:px-7 lg:py-7' : '' }}">
                 @if ($isPopup && $campaignImageUrl)
                     <div class="mb-5 -mx-6 -mt-6 lg:hidden">
                         <div

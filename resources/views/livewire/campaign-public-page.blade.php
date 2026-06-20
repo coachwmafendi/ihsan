@@ -11,26 +11,28 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
 @endphp
 
 <main class="max-w-6xl mx-auto px-4 py-12">
+    <div class="mb-8">
+        <div class="flex items-center gap-3">
+            @if ($contentLogo)
+                <img
+                    src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($contentLogo) }}"
+                    alt="{{ $campaign->organization->name }}"
+                    class="h-10 object-contain"
+                />
+            @endif
+            <p class="text-sm font-medium text-slate-500">{{ $campaign->organization->name }}</p>
+        </div>
+
+        <div class="mt-4">
+            <h1 class="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
+                {{ $contentTitle }}
+            </h1>
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
         {{-- Left column: campaign details --}}
         <div class="space-y-6">
-            <div class="flex items-center gap-3">
-                @if ($contentLogo)
-                    <img
-                        src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($contentLogo) }}"
-                        alt="{{ $campaign->organization->name }}"
-                        class="h-10 object-contain"
-                    />
-                @endif
-                <p class="text-sm font-medium text-slate-500">{{ $campaign->organization->name }}</p>
-            </div>
-
-            <div>
-                <h1 class="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
-                    {{ $contentTitle }}
-                </h1>
-            </div>
-
             @if ($showTotalRaised)
                 @php
                     $raised = (float) $campaign->collected_amount;
