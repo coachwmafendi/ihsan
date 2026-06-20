@@ -124,7 +124,7 @@ it('does not attach pdf receipt for recurring donations', function () {
     expect($mailable->attachments())->toBeEmpty();
 });
 
-it('shows download receipt button for recurring donations', function () {
+it('shows signed download receipt link for recurring donations', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();
     $donor = Donor::factory()->create();
@@ -136,9 +136,7 @@ it('shows download receipt button for recurring donations', function () {
     $mailable = new DonationReceipt($donation);
 
     $mailable->assertSeeInHtml('Download Receipt');
-    $mailable->assertSeeInHtml(
-        route('donorportal.donations.receipt.download', ['organization' => $organization, 'donation' => $donation])
-    );
+    $mailable->assertSeeInHtml('/receipts/'.$donation->public_id);
 });
 
 it('does not show download receipt button for one-time donations', function () {

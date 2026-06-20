@@ -67,6 +67,10 @@ Route::get('/e/loader.js', [EmbedCheckoutController::class, 'loader'])->name('lo
 Route::get('/embed.js', [EmbedCheckoutController::class, 'script'])->name('embed.script');
 Route::get('/checkout/{form}', [EmbedCheckoutController::class, 'checkout'])->name('checkout.form');
 
+Route::get('/receipts/{donation:public_id}', [ReceiptDownloadController::class, 'signed'])
+    ->name('receipts.signed')
+    ->middleware('signed');
+
 Route::get('/api/public/elements/{token}', [PublicElementController::class, 'show'])
     ->name('api.public.elements.show');
 

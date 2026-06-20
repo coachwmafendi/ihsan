@@ -15,6 +15,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\URL;
 
 class DonationReceipt extends Mailable
 {
@@ -53,8 +54,22 @@ class DonationReceipt extends Mailable
                 'donor' => $donor,
                 'locale' => $this->donorLocale($donor),
                 'unsubscribeUrl' => $donor ? DonorNotificationController::unsubscribeUrl($donor) : null,
+                'downloadUrl' => $this->signedReceiptUrl(),
             ],
         );
+    }
+
+    private function signedReceiptUrl(): ?string
+    {
+        if ($this->donation->type !== DonationType::Recurring) {
+            return null;
+        }
+
+        if ($this->donation->status->value !== 'succeeded') {
+            return null;
+        }
+
+        return URL::signedRoute('receipts.signed', ['donation' => $this->donation], now()->addDays(30));
     }
 
     public function headers(): Headers
