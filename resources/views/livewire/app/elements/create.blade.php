@@ -54,7 +54,7 @@
                     @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
-                <div class="flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
                     <div>
                         <h3 class="text-sm font-medium text-slate-900">Active</h3>
                         <p class="text-xs text-slate-500">Make this element visible and usable</p>
@@ -116,7 +116,7 @@
                             <select
                                 id="config_action"
                                 wire:model="config_action"
-                                class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 h-8 py-1.5"
                             >
                                 <option value="checkout_modal">Open checkout modal</option>
                                 <option value="open_campaign_page">Open campaign page</option>
@@ -129,7 +129,7 @@
                                 <select
                                     id="config_trigger"
                                     wire:model="config_trigger"
-                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 h-8 py-1.5"
                                 >
                                     <option value="after_delay">After delay</option>
                                     <option value="immediately">Immediately</option>
@@ -155,7 +155,7 @@
                                 <select
                                     id="config_frequency"
                                     wire:model="config_frequency"
-                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 h-8 py-1.5"
                                 >
                                     <option value="once">Once</option>
                                     <option value="once_per_day">Once per day</option>
@@ -170,7 +170,7 @@
                                 <select
                                     id="config_visibility"
                                     wire:model="config_visibility"
-                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 h-8 py-1.5"
                                 >
                                     <option value="desktop_mobile">Desktop & mobile</option>
                                     <option value="desktop_only">Desktop only</option>
@@ -185,7 +185,7 @@
                                 <select
                                     id="config_layout"
                                     wire:model="config_layout"
-                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 h-8 py-1.5"
                                 >
                                     <option value="simple">Simple</option>
                                     <option value="full">Full banner</option>
@@ -197,7 +197,7 @@
                                 <select
                                     id="config_color"
                                     wire:model="config_color"
-                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 h-8 py-1.5"
                                 >
                                     <option value="campaign">Campaign (green)</option>
                                     <option value="blue">Blue</option>
@@ -227,7 +227,7 @@
                                 <select
                                     id="config_button_effect"
                                     wire:model="config_button_effect"
-                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 h-8 py-1.5"
                                 >
                                     <option value="none">None (solid colour)</option>
                                     <option value="gradient_teal_green">Gradient — Teal &amp; Green</option>

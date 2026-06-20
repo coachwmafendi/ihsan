@@ -68,7 +68,7 @@
                     <div class="space-y-4">
                         <flux:field>
                             <flux:label>Campaign <span class="text-red-500">*</span></flux:label>
-                            <flux:select wire:model="campaign_id" placeholder="Select a campaign">
+                            <flux:select class="h-8 py-1.5" wire:model="campaign_id" placeholder="Select a campaign">
                                 @foreach ($this->campaigns as $campaign)
                                     <flux:select.option value="{{ $campaign->id }}">{{ $campaign->title }}</flux:select.option>
                                 @endforeach
@@ -82,7 +82,7 @@
                             <flux:error name="name" />
                         </flux:field>
 
-                        <div class="flex items-start justify-between gap-4">
+                        <div class="flex items-start gap-3">
                             <div>
                                 <h3 class="text-sm font-medium text-slate-900">Active</h3>
                                 <p class="text-xs text-slate-500">Make this element visible and usable</p>
@@ -116,7 +116,7 @@
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <flux:field>
                                     <flux:label>QR Size</flux:label>
-                                    <flux:select wire:model.live="config_size">
+                                    <flux:select class="h-8 py-1.5" wire:model.live="config_size">
                                         <flux:select.option value="small">Small (150px)</flux:select.option>
                                         <flux:select.option value="medium">Medium (200px)</flux:select.option>
                                         <flux:select.option value="large">Large (250px)</flux:select.option>
@@ -126,7 +126,7 @@
 
                                 <flux:field>
                                     <flux:label>Alignment</flux:label>
-                                    <flux:select wire:model.live="config_alignment">
+                                    <flux:select class="h-8 py-1.5" wire:model.live="config_alignment">
                                         <flux:select.option value="left">Left</flux:select.option>
                                         <flux:select.option value="center">Center</flux:select.option>
                                         <flux:select.option value="right">Right</flux:select.option>
@@ -139,7 +139,7 @@
                             <div class="space-y-4 border-t border-slate-200 pt-4">
                                 <flux:field>
                                     <flux:label for="config_action">Action</flux:label>
-                                    <flux:select id="config_action" wire:model.live="config_action">
+                                    <flux:select class="h-8 py-1.5" id="config_action" wire:model.live="config_action">
                                         <flux:select.option value="checkout_modal">Open checkout modal</flux:select.option>
                                         <flux:select.option value="open_campaign_page">Open campaign page</flux:select.option>
                                     </flux:select>
@@ -148,7 +148,7 @@
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <flux:field>
                                         <flux:label for="config_trigger">Trigger</flux:label>
-                                        <flux:select id="config_trigger" wire:model.live="config_trigger">
+                                        <flux:select class="h-8 py-1.5" id="config_trigger" wire:model.live="config_trigger">
                                             <flux:select.option value="after_delay">After delay</flux:select.option>
                                             <flux:select.option value="immediately">Immediately</flux:select.option>
                                             <flux:select.option value="on_scroll">On scroll</flux:select.option>
@@ -163,7 +163,7 @@
 
                                     <flux:field>
                                         <flux:label for="config_frequency">Frequency</flux:label>
-                                        <flux:select id="config_frequency" wire:model.live="config_frequency">
+                                        <flux:select class="h-8 py-1.5" id="config_frequency" wire:model.live="config_frequency">
                                             <flux:select.option value="once">Once</flux:select.option>
                                             <flux:select.option value="once_per_day">Once per day</flux:select.option>
                                             <flux:select.option value="once_per_session">Once per session</flux:select.option>
@@ -174,7 +174,7 @@
 
                                     <flux:field>
                                         <flux:label for="config_visibility">Visibility</flux:label>
-                                        <flux:select id="config_visibility" wire:model.live="config_visibility">
+                                        <flux:select class="h-8 py-1.5" id="config_visibility" wire:model.live="config_visibility">
                                             <flux:select.option value="desktop_mobile">Desktop & mobile</flux:select.option>
                                             <flux:select.option value="desktop_only">Desktop only</flux:select.option>
                                             <flux:select.option value="mobile_only">Mobile only</flux:select.option>
@@ -185,7 +185,7 @@
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <flux:field>
                                         <flux:label for="config_layout">Layout</flux:label>
-                                        <flux:select id="config_layout" wire:model.live="config_layout">
+                                        <flux:select class="h-8 py-1.5" id="config_layout" wire:model.live="config_layout">
                                             <flux:select.option value="simple">Simple</flux:select.option>
                                             <flux:select.option value="full">Full banner</flux:select.option>
                                         </flux:select>
@@ -193,7 +193,7 @@
 
                                     <flux:field>
                                         <flux:label for="config_color">Colour</flux:label>
-                                        <flux:select id="config_color" wire:model.live="config_color">
+                                        <flux:select class="h-8 py-1.5" id="config_color" wire:model.live="config_color">
                                             <flux:select.option value="campaign">Campaign (green)</flux:select.option>
                                             <flux:select.option value="blue">Blue</flux:select.option>
                                             <flux:select.option value="teal">Teal</flux:select.option>
@@ -213,7 +213,7 @@
 
                                     <flux:field class="sm:col-span-2">
                                         <flux:label for="config_button_effect">Button Effect</flux:label>
-                                        <flux:select id="config_button_effect" wire:model.live="config_button_effect">
+                                        <flux:select class="h-8 py-1.5" id="config_button_effect" wire:model.live="config_button_effect">
                                             <flux:select.option value="none">None (solid colour)</flux:select.option>
                                             <flux:select.option value="gradient_teal_green">Gradient — Teal &amp; Green</flux:select.option>
                                             <flux:select.option value="gradient_blue_purple">Gradient — Blue &amp; Purple</flux:select.option>
@@ -235,7 +235,7 @@
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <flux:field class="sm:col-span-2">
                                     <flux:label>Button Effect</flux:label>
-                                    <flux:select wire:model.live="config_button_effect">
+                                    <flux:select class="h-8 py-1.5" wire:model.live="config_button_effect">
                                         <flux:select.option value="none">None (solid colour)</flux:select.option>
                                         <flux:select.option value="gradient_teal_green">Gradient — Teal &amp; Green</flux:select.option>
                                         <flux:select.option value="gradient_blue_purple">Gradient — Blue &amp; Purple</flux:select.option>
@@ -252,7 +252,7 @@
 
                                 <flux:field>
                                     <flux:label>Button Colour</flux:label>
-                                    <flux:select wire:model.live="config_button_color" :disabled="$config_button_effect !== 'none'">
+                                    <flux:select class="h-8 py-1.5" wire:model.live="config_button_color" :disabled="$config_button_effect !== 'none'">
                                         <flux:select.option value="bg-blue-600 hover:bg-blue-700">Blue</flux:select.option>
                                         <flux:select.option value="bg-teal-600 hover:bg-teal-700">Teal</flux:select.option>
                                         <flux:select.option value="bg-green-600 hover:bg-green-700">Green</flux:select.option>
@@ -265,7 +265,7 @@
 
                                 <flux:field>
                                     <flux:label>Button Size</flux:label>
-                                    <flux:select wire:model.live="config_button_size">
+                                    <flux:select class="h-8 py-1.5" wire:model.live="config_button_size">
                                         <flux:select.option value="small">Small</flux:select.option>
                                         <flux:select.option value="medium">Medium</flux:select.option>
                                         <flux:select.option value="large">Large</flux:select.option>
@@ -279,7 +279,7 @@
 
                                 <flux:field>
                                     <flux:label>Icon</flux:label>
-                                    <flux:select wire:model.live="config_button_icon">
+                                    <flux:select class="h-8 py-1.5" wire:model.live="config_button_icon">
                                         <flux:select.option value="none">No icon</flux:select.option>
                                         <flux:select.option value="heart">Heart</flux:select.option>
                                         <flux:select.option value="hand">Hand</flux:select.option>
@@ -292,7 +292,7 @@
                                 @if ($element->type->value === 'link')
                                     <flux:field>
                                         <flux:label>Alignment</flux:label>
-                                        <flux:select wire:model.live="config_alignment">
+                                        <flux:select class="h-8 py-1.5" wire:model.live="config_alignment">
                                             <flux:select.option value="center">Center</flux:select.option>
                                             <flux:select.option value="left">Left</flux:select.option>
                                             <flux:select.option value="right">Right</flux:select.option>
@@ -303,7 +303,7 @@
                                 @if ($element->type->value === 'sticky_button')
                                     <flux:field>
                                         <flux:label>Position</flux:label>
-                                        <flux:select wire:model.live="config_position">
+                                        <flux:select class="h-8 py-1.5" wire:model.live="config_position">
                                             <flux:select.option value="right-center">Middle Right</flux:select.option>
                                             <flux:select.option value="left-center">Middle Left</flux:select.option>
                                         </flux:select>
