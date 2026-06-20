@@ -50,3 +50,38 @@ it('renders the polished edit admin modal', function () {
         ->assertMountedActionModalSee('Email')
         ->assertMountedActionModalSeeHtml('ihsan-admin-editor-modal');
 });
+
+it('allows inviting the first admin when the organization has no admins', function () {
+    $organization = Organization::factory()->create();
+
+    $this->actingAs(User::factory()->create([
+        'role' => UserRole::SuperAdmin,
+    ]));
+
+    Livewire::test(UsersRelationManager::class, [
+        'ownerRecord' => $organization,
+        'pageClass' => EditOrganization::class,
+    ])
+        ->assertTableActionVisible('create');
+});
+
+it('hides the invite admin action when the organization already has an admin', function () {
+    $organization = Organization::factory()->create();
+
+    User::factory()->create([
+        'organization_id' => $organization->id,
+        'role' => UserRole::NgoAdmin,
+        'name' => 'Ahmad bin Ali',
+        'email' => 'ahmad@example.com',
+    ]);
+
+    $this->actingAs(User::factory()->create([
+        'role' => UserRole::SuperAdmin,
+    ]));
+
+    Livewire::test(UsersRelationManager::class, [
+        'ownerRecord' => $organization,
+        'pageClass' => EditOrganization::class,
+    ])
+        ->assertTableActionHidden('create');
+});

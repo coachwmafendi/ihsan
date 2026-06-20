@@ -22,7 +22,7 @@ class UsersRelationManager extends RelationManager
 {
     protected static string $relationship = 'users';
 
-    protected static ?string $title = 'Organisation Admins';
+    protected static ?string $title = 'Organisation Admin';
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -73,6 +73,7 @@ class UsersRelationManager extends RelationManager
             ->filters([
                 //
             ])
+            ->description('Only one admin login is allowed per organization.')
             ->headerActions([
                 CreateAction::make()
                     ->label('Invite Admin')
@@ -88,6 +89,17 @@ class UsersRelationManager extends RelationManager
                     ->stickyModalHeader()
                     ->stickyModalFooter()
                     ->extraModalWindowAttributes(['class' => 'ihsan-admin-editor-modal'])
+                    ->hidden(fn (RelationManager $livewire): bool => $livewire->getOwnerRecord()->users()->exists())
+                    ->before(function (RelationManager $livewire, CreateAction $action): void {
+                        if ($livewire->getOwnerRecord()->users()->exists()) {
+                            Notification::make()
+                                ->title('Only one admin login is allowed for this organization.')
+                                ->danger()
+                                ->send();
+
+                            $action->halt();
+                        }
+                    })
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['role'] = UserRole::NgoAdmin;
                         $data['password'] = bcrypt(Str::random(40));
