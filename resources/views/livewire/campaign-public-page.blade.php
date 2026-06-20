@@ -67,6 +67,12 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                 @endphp
 
                 <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <style>
+                        @keyframes sparkle-fade {
+                            from { opacity: 0; transform: scale(0.8); }
+                            to { opacity: 0.8; transform: scale(1); }
+                        }
+                    </style>
                     <div class="flex items-end justify-between gap-4">
                         <div>
                             <p class="text-xs font-medium text-slate-500">Raised</p>
@@ -76,12 +82,12 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                     </div>
 
                     @if ($target > 0)
-                        <div class="mt-6">
+                        <div class="mt-6" x-data="{ progress: 0 }" x-init="setTimeout(() => progress = {{ $progressPercent }}, 50)">
                             <div class="relative mb-10">
                                 {{-- Percentage label --}}
                                 <span
-                                    class="absolute -top-5 -translate-x-1/2 text-xs font-bold text-[#10b981] transition-all duration-1000 ease-out"
-                                    style="left: {{ $progressPercent }}%"
+                                    class="absolute -top-5 text-xs font-extrabold text-emerald-600 transition-all duration-1000 ease-out motion-reduce:transition-none {{ $progressPercent >= 100 ? 'right-0 scale-110' : '-translate-x-1/2' }}"
+                                    :style="{{ $progressPercent }} >= 100 ? 'right: 0' : `left: ${progress}%`"
                                 >
                                     {{ number_format($progressPercent, 1) }}%
                                 </span>
@@ -89,8 +95,8 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                                 {{-- Continuous milestone track --}}
                                 <div class="relative h-3 rounded-full bg-slate-200">
                                     <div
-                                        class="absolute left-0 top-0 h-full rounded-full bg-[#10b981] transition-all duration-1000 ease-out"
-                                        style="width: {{ $progressPercent }}%"
+                                        class="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-1000 ease-out motion-reduce:transition-none"
+                                        :style="`width: ${progress}%`"
                                     ></div>
 
                                     {{-- Segment dividers --}}
@@ -103,6 +109,20 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                                             style="left: {{ $dividerPosition }}%"
                                         ></div>
                                     @endforeach
+
+                                    {{-- Decorative celebratory icons --}}
+                                    @if ($progressPercent >= 10)
+                                        <span class="pointer-events-none absolute -top-4 left-[10%] -translate-x-1/2 text-[0.6rem] opacity-0 motion-reduce:opacity-80 animate-[sparkle-fade_0.4s_ease-out_1000ms_forwards] motion-reduce:animate-none" aria-hidden="true">✨</span>
+                                    @endif
+                                    @if ($progressPercent >= 25)
+                                        <span class="pointer-events-none absolute -top-4 left-[25%] -translate-x-1/2 text-[0.6rem] opacity-0 motion-reduce:opacity-80 animate-[sparkle-fade_0.4s_ease-out_1150ms_forwards] motion-reduce:animate-none" aria-hidden="true">✨</span>
+                                    @endif
+                                    @if ($progressPercent >= 50)
+                                        <span class="pointer-events-none absolute -top-4 left-[50%] -translate-x-1/2 text-[0.6rem] opacity-0 motion-reduce:opacity-80 animate-[sparkle-fade_0.4s_ease-out_1300ms_forwards] motion-reduce:animate-none" aria-hidden="true">✨</span>
+                                    @endif
+                                    @if ($progressPercent >= 100)
+                                        <span class="pointer-events-none absolute -top-14 right-2 text-sm" aria-hidden="true">🏁</span>
+                                    @endif
                                 </div>
 
                                 {{-- Checkpoint dots --}}
@@ -117,9 +137,9 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                                         style="left: {{ $position }}%"
                                     >
                                         @if ($isCurrent)
-                                            <span class="block size-5 animate-pulse rounded-full border-[3px] border-white bg-[#10b981] shadow-md ring-2 ring-[#10b981]"></span>
+                                            <span class="block size-5 animate-pulse rounded-full border-[3px] border-white bg-emerald-500 shadow-md ring-2 ring-emerald-400 motion-reduce:animate-none"></span>
                                         @elseif ($isCompleted || $index === 0)
-                                            <span class="block size-4 rounded-full border-2 border-white bg-[#10b981] shadow-md"></span>
+                                            <span class="block size-4 rounded-full border-2 border-white bg-emerald-500 shadow-md"></span>
                                         @else
                                             <span class="block size-4 rounded-full border-2 border-white bg-slate-400 shadow-md"></span>
                                         @endif
@@ -140,7 +160,7 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                                             ? 'shrink-0 text-left'
                                             : ($index === count($checkpoints) - 1 ? 'shrink-0 text-right' : 'flex-1 text-center');
                                     @endphp
-                                    <span class="block whitespace-nowrap {{ $baseClasses }} {{ $isCurrent ? 'text-[#10b981]' : 'text-slate-400' }}">
+                                    <span class="block {{ $baseClasses }} {{ $isCurrent ? 'text-emerald-500' : 'text-slate-400' }}">
                                         {{ $label }}
                                     </span>
                                 @endforeach
@@ -150,8 +170,8 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                         {{-- Next milestone callout --}}
                         <div class="mt-5 rounded-lg border border-emerald-100 bg-emerald-50 p-3">
                             @if ($goalReached)
-                                <p class="text-sm font-semibold text-emerald-800">🎉 Goal reached!</p>
-                                <p class="mt-0.5 text-xs text-emerald-600">Thank you for helping us hit the target.</p>
+                                <p class="text-sm font-extrabold text-emerald-800">🎉 Goal smashed!</p>
+                                <p class="mt-0.5 text-xs font-medium text-emerald-600">We crossed the target. Let’s keep the momentum going!</p>
                             @else
                                 <p class="text-xs font-medium text-emerald-700">Next milestone: RM {{ number_format($currentCheckpointAmount, 2) }}</p>
                                 <p class="mt-1 text-sm font-semibold text-emerald-900">RM {{ number_format($leftToNext, 2) }} left to reach next milestone</p>

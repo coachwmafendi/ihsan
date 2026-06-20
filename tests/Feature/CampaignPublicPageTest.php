@@ -86,3 +86,30 @@ it('hides share buttons when post donation mode is redirect', function () {
         ->assertSuccessful()
         ->assertDontSee('Share this campaign');
 });
+
+it('shows a celebratory callout when the campaign exceeds its target', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => Organization::factory()->create(),
+        'status' => CampaignStatus::Active,
+        'target_amount' => 10000.00,
+        'collected_amount' => 10500.00,
+    ]);
+
+    $this->get('/campaigns/'.$campaign->public_id)
+        ->assertSuccessful()
+        ->assertSee('Goal smashed!')
+        ->assertSee('We crossed the target');
+});
+
+it('does not show the celebratory callout before the target is reached', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => Organization::factory()->create(),
+        'status' => CampaignStatus::Active,
+        'target_amount' => 10000.00,
+        'collected_amount' => 5000.00,
+    ]);
+
+    $this->get('/campaigns/'.$campaign->public_id)
+        ->assertSuccessful()
+        ->assertDontSee('Goal smashed!');
+});
