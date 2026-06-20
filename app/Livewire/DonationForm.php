@@ -323,10 +323,12 @@ class DonationForm extends Component
             parse_str($parsed['query'] ?? '', $pageQuery);
         }
 
+        $source = $this->element ? 'element' : ($this->isPublicPage ? 'campaign_page' : 'checkout_modal');
+
         $utmParams = [
             'frequency' => $validated['frequency'],
             'dedicate' => (bool) ($validated['dedicate'] ?? false),
-            'source' => $this->element ? 'element' : 'direct',
+            'source' => $source,
             'utm_source' => $pageQuery['utm_source'] ?? null,
             'utm_medium' => $pageQuery['utm_medium'] ?? null,
             'utm_campaign' => $pageQuery['utm_campaign'] ?? null,
@@ -378,6 +380,7 @@ class DonationForm extends Component
         $donation = Donation::query()->create([
             'campaign_id' => $campaignId,
             'donor_id' => $donor->getKey(),
+            'source' => $source,
             'gross_amount' => $validated['amount'],
             'stripe_fee' => 0,
             'donor_fee_covered' => $this->estimatedFee,

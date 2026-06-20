@@ -131,6 +131,19 @@ class Subscription extends Model
         return Attribute::get(fn () => Currency::symbol($this->currency));
     }
 
+    public function sourceLabel(): Attribute
+    {
+        return Attribute::get(function (): string {
+            return match ($this->source) {
+                'element' => 'Element',
+                'campaign_page' => 'Campaign Page',
+                'checkout_modal' => 'Checkout Modal',
+                'virtual_terminal' => 'Virtual Terminal',
+                default => 'Checkout Modal',
+            };
+        });
+    }
+
     protected function casts(): array
     {
         return [

@@ -229,6 +229,19 @@ class Donation extends Model
         });
     }
 
+    public function sourceLabel(): Attribute
+    {
+        return Attribute::get(function (): string {
+            return match ($this->source) {
+                'element' => 'Element',
+                'campaign_page' => 'Campaign Page',
+                'checkout_modal' => 'Checkout Modal',
+                'virtual_terminal' => 'Virtual Terminal',
+                default => 'Checkout Modal',
+            };
+        });
+    }
+
     public function elementLabel(): Attribute
     {
         return Attribute::get(function () {

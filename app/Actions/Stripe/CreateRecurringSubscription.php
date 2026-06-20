@@ -55,6 +55,7 @@ class CreateRecurringSubscription
         return Subscription::query()->create([
             'campaign_id' => $donation->campaign_id,
             'donor_id' => $donation->donor_id,
+            'source' => $donation->source,
             'stripe_subscription_id' => $stripeSubscriptionId,
             'stripe_price_id' => $stripePriceId,
             'amount' => (float) $donation->gross_amount,

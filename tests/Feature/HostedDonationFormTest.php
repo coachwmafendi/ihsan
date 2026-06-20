@@ -957,15 +957,75 @@ it('tracks element source in utm_params for all element types', function () {
 
     $donation = Donation::query()->whereHas('donor', fn ($q) => $q->where('email', 'test@utm.test'))->firstOrFail();
 
-    expect($donation->utm_params)->toMatchArray([
-        'source' => 'element',
-        'element_id' => $element->getKey(),
-        'element_token' => 'utm-test-token',
-        'element_type' => 'button',
-        'element_name' => 'Donation Button A',
-        'frequency' => 'one_time',
-        'dedicate' => false,
+    expect($donation->source)->toBe('element')
+        ->and($donation->utm_params)->toMatchArray([
+            'source' => 'element',
+            'element_id' => $element->getKey(),
+            'element_token' => 'utm-test-token',
+            'element_type' => 'button',
+            'element_name' => 'Donation Button A',
+            'frequency' => 'one_time',
+            'dedicate' => false,
+        ]);
+});
+
+it('stores campaign_page source for donations made on a public campaign page', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'suggested_amounts' => [200, 100, 50, 30, 10, 5],
     ]);
+
+    $paymentIntent = PaymentIntent::constructFrom([
+        'id' => 'pi_campaign_page_123',
+        'client_secret' => 'pi_campaign_page_123_secret_abc',
+    ]);
+
+    $this->mock(CreatePaymentIntent::class, function ($mock) use ($paymentIntent): void {
+        $mock->shouldReceive('create')->once()->andReturn($paymentIntent);
+    });
+
+    Livewire::test(DonationForm::class, ['campaign' => $campaign, 'isPublicPage' => true])
+        ->set('frequency', 'one_time')
+        ->set('amount', 50)
+        ->set('name', 'Campaign Page Donor')
+        ->set('email', 'campaign-page@example.test')
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    $donation = Donation::query()->whereHas('donor', fn ($q) => $q->where('email', 'campaign-page@example.test'))->firstOrFail();
+
+    expect($donation->source)->toBe('campaign_page')
+        ->and($donation->utm_params['source'] ?? null)->toBe('campaign_page');
+});
+
+it('stores checkout_modal source for donations made via checkout modal', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'checkout_modal_enabled' => true,
+        'suggested_amounts' => [200, 100, 50, 30, 10, 5],
+    ]);
+
+    $paymentIntent = PaymentIntent::constructFrom([
+        'id' => 'pi_checkout_modal_123',
+        'client_secret' => 'pi_checkout_modal_123_secret_abc',
+    ]);
+
+    $this->mock(CreatePaymentIntent::class, function ($mock) use ($paymentIntent): void {
+        $mock->shouldReceive('create')->once()->andReturn($paymentIntent);
+    });
+
+    Livewire::test(DonationForm::class, ['campaign' => $campaign])
+        ->set('frequency', 'one_time')
+        ->set('amount', 50)
+        ->set('name', 'Checkout Modal Donor')
+        ->set('email', 'checkout-modal@example.test')
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    $donation = Donation::query()->whereHas('donor', fn ($q) => $q->where('email', 'checkout-modal@example.test'))->firstOrFail();
+
+    expect($donation->source)->toBe('checkout_modal')
+        ->and($donation->utm_params['source'] ?? null)->toBe('checkout_modal');
 });
 
 it('validates hosted donation input before creating records', function () {
