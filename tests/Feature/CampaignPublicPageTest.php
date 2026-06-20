@@ -87,6 +87,17 @@ it('hides share buttons when post donation mode is redirect', function () {
         ->assertDontSee('Share this campaign');
 });
 
+it('returns a 404 when the campaign page is disabled', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => Organization::factory()->create(),
+        'status' => CampaignStatus::Active,
+        'campaign_page_enabled' => false,
+    ]);
+
+    $this->get('/campaigns/'.$campaign->public_id)
+        ->assertNotFound();
+});
+
 it('shows a celebratory callout when the campaign exceeds its target', function () {
     $campaign = Campaign::factory()->create([
         'organization_id' => Organization::factory()->create(),

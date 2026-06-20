@@ -175,6 +175,7 @@ class CampaignCreateModal extends Component
             'config' => $source->config,
             'payment_gateway' => $source->payment_gateway,
             'checkout_modal_enabled' => $source->checkout_modal_enabled,
+            'campaign_page_enabled' => $source->campaign_page_enabled,
             'checkout_allowed_domains' => $source->checkout_allowed_domains,
         ]);
     }

@@ -254,6 +254,25 @@ it('accepts a target amount up to seven digits', function () {
     expect($campaign->target_amount)->toBe('9876543.00');
 });
 
+it('saves the campaign page enabled setting', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'campaign_page_enabled' => true,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSet('campaign_page_enabled', true)
+        ->set('campaign_page_enabled', false)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    $campaign->refresh();
+    expect($campaign->campaign_page_enabled)->toBeFalse();
+});
+
 it('saves comment and phone visibility settings', function () {
     $campaign = Campaign::factory()->create([
         'organization_id' => $this->organization->id,

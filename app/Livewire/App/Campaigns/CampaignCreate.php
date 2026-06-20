@@ -132,6 +132,7 @@ class CampaignCreate extends Component
             'end_date' => $this->has_end_date ? ($validated['end_date'] ?? null) : null,
             'allow_recurring' => $this->allow_recurring,
             'allow_custom_amount' => $this->allow_custom_amount,
+            'campaign_page_enabled' => true,
             'minimum_amount' => $validated['minimum_amount'] ?? null,
             'suggested_amounts' => $suggested ?: null,
             'config' => $config,

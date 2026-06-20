@@ -15,7 +15,7 @@ class CampaignPublicPage extends Component
 
     public function mount(Campaign $campaign): void
     {
-        abort_if($campaign->status !== CampaignStatus::Active, 404);
+        abort_if($campaign->status !== CampaignStatus::Active || ! $campaign->campaign_page_enabled, 404);
 
         $this->campaign = $campaign->load('organization');
     }

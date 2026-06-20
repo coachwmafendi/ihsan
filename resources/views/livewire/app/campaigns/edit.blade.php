@@ -381,6 +381,25 @@
                 </div>
             </x-ui.card>
 
+            <x-ui.card title="Campaign formats" description="Choose how supporters can access this campaign.">
+                <div class="space-y-4">
+                    <label class="flex cursor-pointer items-start gap-3">
+                        <input type="checkbox" disabled checked class="mt-0.5 size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600 opacity-70">
+                        <span class="text-sm font-semibold text-slate-900">Checkout Modal</span>
+                        <span class="ml-auto inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Always on</span>
+                    </label>
+                    <p class="text-sm text-slate-500 ml-7">Launches as an overlay on your website. This is the default way to collect donations.</p>
+
+                    <div class="border-t border-slate-100"></div>
+
+                    <label class="flex cursor-pointer items-start gap-3">
+                        <input type="checkbox" wire:model="campaign_page_enabled" class="mt-0.5 size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600">
+                        <span class="text-sm font-semibold text-slate-900">Campaign Page</span>
+                    </label>
+                    <p class="text-sm text-slate-500 ml-7">Launches as a separate donation page with an integrated checkout form. Enable this if this campaign will receive traffic from external sources, such as marketing communications.</p>
+                </div>
+            </x-ui.card>
+
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {{-- Campaign Goal --}}
                 <x-ui.card>

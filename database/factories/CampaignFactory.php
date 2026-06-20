@@ -27,6 +27,7 @@ class CampaignFactory extends Factory
             'target_amount' => 10000.00,
             'collected_amount' => 0,
             'has_target' => true,
+            'campaign_page_enabled' => true,
             'allow_recurring' => true,
             'end_date' => now()->addMonth()->toDateString(),
             'status' => CampaignStatus::Active,

@@ -107,6 +107,8 @@ class CampaignEdit extends Component
 
     public bool $show_total_raised = true;
 
+    public bool $campaign_page_enabled = true;
+
     public string $postDonationMode = 'default';
 
     /** @var string[] */
@@ -154,6 +156,7 @@ class CampaignEdit extends Component
         $this->shareMessage = $campaign->config['share_message'] ?? null;
 
         $this->show_total_raised = $campaign->config['show_total_raised'] ?? true;
+        $this->campaign_page_enabled = $campaign->campaign_page_enabled ?? true;
 
         $this->existingContentLogo = $campaign->config['content_logo'] ?? null;
         $this->existingContentImage = $campaign->config['content_image'] ?? null;
@@ -571,6 +574,7 @@ class CampaignEdit extends Component
             'end_date' => $this->has_end_date ? ($validated['end_date'] ?? null) : null,
             'allow_recurring' => $this->allow_recurring,
             'allow_custom_amount' => $this->allow_custom_amount,
+            'campaign_page_enabled' => $this->campaign_page_enabled,
             'minimum_amount' => $validated['minimum_amount'] ?? null,
             'suggested_amounts' => null,
             'suggested_amounts_one_time' => $oneTime ?: null,
