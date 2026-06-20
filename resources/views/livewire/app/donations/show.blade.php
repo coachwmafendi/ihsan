@@ -333,7 +333,7 @@
                     <dl class="space-y-5">
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Source</dt>
-                            <dd class="text-sm font-medium text-slate-900">{{ $donation->source ? ucfirst(str_replace('_', ' ', $donation->source)) : 'Checkout Modal' }}</dd>
+                            <dd class="text-sm font-medium text-slate-900">{{ $donation->source_label }}</dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">URL</dt>
@@ -420,11 +420,11 @@
                                         <div class="flex items-center gap-2">
                                             <x-heroicon-o-check-circle class="size-5 text-emerald-500" />
                                             @if ($donation->status->value === 'succeeded')
-                                                <a href="{{ route('donations.receipt.download', $donation) }}" class="font-medium text-slate-900 hover:text-blue-600">
-                                                    {{ $donation->public_id }}
+                                                    <a href="{{ route('donations.receipt.download', $donation) }}" class="font-medium text-slate-900 hover:text-blue-600">
+                                                    {{ $donation->invoice_number ?? $donation->public_id }}
                                                 </a>
                                             @else
-                                                <span class="font-medium text-slate-900">{{ $donation->public_id }}</span>
+                                                <span class="font-medium text-slate-900">{{ $donation->invoice_number ?? $donation->public_id }}</span>
                                             @endif
                                         </div>
                                     </td>

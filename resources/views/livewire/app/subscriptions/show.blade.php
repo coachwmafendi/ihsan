@@ -298,7 +298,7 @@
                     <dl class="space-y-5">
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Source</dt>
-                            <dd class="text-sm font-medium text-slate-900">{{ $subscription->source ? ucfirst(str_replace('_', ' ', $subscription->source)) : 'Checkout Modal' }}</dd>
+                            <dd class="text-sm font-medium text-slate-900">{{ $subscription->source_label }}</dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">URL</dt>
@@ -402,9 +402,9 @@
                                                 <div class="flex items-center gap-2">
                                                     @if ($donation->status->value === 'succeeded')
                                                         <x-heroicon-o-check-circle class="size-5 text-emerald-500" />
-                                                        <span class="font-medium text-slate-900">{{ $donation->public_id }}</span>
+                                                        <span class="font-medium text-slate-900">{{ $donation->invoice_number ?? $donation->public_id }}</span>
                                                     @else
-                                                        <span class="font-medium text-slate-900">{{ $donation->public_id }}</span>
+                                                        <span class="font-medium text-slate-900">{{ $donation->invoice_number ?? $donation->public_id }}</span>
                                                     @endif
                                                 </div>
                                             </td>
