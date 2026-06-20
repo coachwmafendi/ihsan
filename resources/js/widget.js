@@ -162,13 +162,20 @@
       "transition:opacity .18s ease",
     ].join(";");
 
-    var modalWrap = document.createElement("div");
-    modalWrap.style.cssText = [
+    var posWrapper = document.createElement("div");
+    posWrapper.style.cssText = [
       "position:relative",
       "width:100%",
       isMobileView ? "max-width:100%" : "max-width:1100px",
       isMobileView ? "height:100%" : "height:90vh",
       isMobileView ? "max-height:100%" : "max-height:820px",
+    ].join(";");
+
+    var modalWrap = document.createElement("div");
+    modalWrap.style.cssText = [
+      "position:relative",
+      "width:100%",
+      "height:100%",
       "-webkit-overflow-scrolling:touch",
       "overflow:hidden",
     ].join(";");
@@ -190,14 +197,14 @@
     closeBtn.innerHTML = "&times;";
     closeBtn.style.cssText = [
       "position:absolute",
-      "top:12px",
-      "right:12px",
+      "top:16px",
+      "right:16px",
       "width:36px",
       "height:36px",
-      "border:0",
+      "border:2px solid rgba(0,0,0,.15)",
       "border-radius:50%",
       "background:#fff",
-      "color:#475569",
+      "color:#1e293b",
       "font-size:22px",
       "line-height:1",
       "cursor:pointer",
@@ -205,8 +212,9 @@
       "align-items:center",
       "justify-content:center",
       "transition:background .15s,color .15s",
-      "z-index:10",
-      "box-shadow:0 2px 8px rgba(0,0,0,.18)",
+      "z-index:2147483647",
+      "box-shadow:0 2px 8px rgba(0,0,0,.25)",
+      "box-sizing:border-box",
     ].join(";");
 
     closeBtn.addEventListener("mouseenter", function () {
@@ -221,7 +229,7 @@
       closeOverlay();
     });
     overlay.addEventListener("click", function (e) {
-      if (e.target === overlay) closeOverlay();
+      if (e.target === overlay || e.target === posWrapper) closeOverlay();
     });
 
     function closeOverlay() {
@@ -248,8 +256,9 @@
     overlay.setAttribute("data-ihsan-overlay", "true");
     modalWrap.appendChild(skeleton);
     modalWrap.appendChild(iframe);
-    modalWrap.appendChild(closeBtn);
-    overlay.appendChild(modalWrap);
+    posWrapper.appendChild(modalWrap);
+    posWrapper.appendChild(closeBtn);
+    overlay.appendChild(posWrapper);
     document.body.appendChild(overlay);
     fadeIn(overlay);
   }
@@ -697,6 +706,7 @@
     var frequency = s.frequency || "once_per_day";
 
     function shouldShow() {
+      if (frequency === "every_page_load") return true;
       if (frequency === "once") return !sessionStorage.getItem("ihsan-popup-" + token);
       if (frequency === "once_per_session") return !sessionStorage.getItem("ihsan-popup-" + token);
       var last = localStorage.getItem("ihsan-popup-" + token);
@@ -712,6 +722,7 @@
     }
 
     function markShown() {
+      if (frequency === "every_page_load") return;
       if (frequency === "once" || frequency === "once_per_session") {
         sessionStorage.setItem("ihsan-popup-" + token, "1");
       } else {
@@ -775,10 +786,10 @@
         : color;
       var ctaBtn = '<button data-cta style="display:inline-block;background:' + ctaBg + ";color:#fff;padding:12px 32px;border:0;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.14);" + '">' + btnText + "</button>";
 
-      var cardHtml = '<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;box-shadow:0 24px 80px rgba(15,23,42,.28);text-align:center;position:relative;overflow:hidden;">';
+      var cardHtml = '<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;box-shadow:0 24px 80px rgba(15,23,42,.28);text-align:center;position:relative;">';
       cardHtml += closeBtn;
       if (isFull && hasImage) {
-        cardHtml += '<div style="height:180px;background:url(' + esc(s.image_url) + ') center/cover no-repeat;"></div>';
+        cardHtml += '<div style="height:180px;background:url(' + esc(s.image_url) + ') center/cover no-repeat;border-radius:16px 16px 0 0;overflow:hidden;"></div>';
       }
       cardHtml += '<div style="padding:32px;position:relative;">';
       if (!isFull && hasImage) {

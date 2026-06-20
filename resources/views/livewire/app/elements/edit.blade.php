@@ -169,6 +169,7 @@
                                             <flux:select.option value="once_per_session">Once per session</flux:select.option>
                                             <flux:select.option value="once_per_week">Once per week</flux:select.option>
                                             <flux:select.option value="once_per_month">Once per month</flux:select.option>
+                                            <flux:select.option value="every_page_load">Every page load</flux:select.option>
                                         </flux:select>
                                     </flux:field>
 

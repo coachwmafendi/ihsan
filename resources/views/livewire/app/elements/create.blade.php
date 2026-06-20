@@ -162,6 +162,7 @@
                                     <option value="once_per_session">Once per session</option>
                                     <option value="once_per_week">Once per week</option>
                                     <option value="once_per_month">Once per month</option>
+                                    <option value="every_page_load">Every page load</option>
                                 </select>
                             </div>
 

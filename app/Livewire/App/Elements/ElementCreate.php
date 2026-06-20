@@ -47,7 +47,7 @@ class ElementCreate extends Component
     #[Validate('integer|min:0|max:3600')]
     public int $config_delay = 8;
 
-    #[Validate('nullable|string|in:once,once_per_day,once_per_session,once_per_week,once_per_month')]
+    #[Validate('nullable|string|in:once,once_per_day,once_per_session,once_per_week,once_per_month,every_page_load')]
     public string $config_frequency = 'once_per_day';
 
     #[Validate('nullable|string|in:desktop_mobile,desktop_only,mobile_only')]
