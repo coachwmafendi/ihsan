@@ -50,8 +50,8 @@
                 Checkout Modal
             </button>
             <button type="button"
-                @click="campaign_page_enabled ? tab = 'campaign-page' : null"
-                :class="tab === 'campaign-page' && campaign_page_enabled ? 'border-teal-500 text-teal-600' : (campaign_page_enabled ? 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' : 'border-transparent text-slate-400 cursor-not-allowed')"
+                @click="$wire.campaign_page_enabled ? tab = 'campaign-page' : null"
+                :class="tab === 'campaign-page' && $wire.campaign_page_enabled ? 'border-teal-500 text-teal-600' : ($wire.campaign_page_enabled ? 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' : 'border-transparent text-slate-400 cursor-not-allowed')"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors"
                 {{ $campaign_page_enabled ? '' : 'disabled' }}>
                 Campaign Page
@@ -184,15 +184,6 @@
                             </dd>
                         </div>
 
-                        {{-- Post Donation --}}
-                        <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Post Donation</dt>
-                            <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed">
-                                Thank-you message: <strong>{{ $campaign->thank_you_message ? 'Set' : 'Not set' }}</strong><br>
-                                Redirect URL: <strong>{{ $campaign->redirect_url ?: 'None' }}</strong>
-                            </dd>
-                        </div>
-
                         {{-- Suggested Amounts --}}
                         <div>
                             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Suggested Amounts ({{ $this->default_currency }})</dt>
@@ -246,6 +237,147 @@
 
             {{-- Right Column --}}
             <div class="space-y-6">
+                <x-ui.card title="Campaign Page">
+                    <x-slot:actions>
+                        <button type="button" wire:click="$set('activeTab', '{{ $campaign_page_enabled ? 'campaign-page' : 'settings' }}')" class="text-sm font-medium text-teal-600 hover:text-teal-700">
+                            {{ $campaign_page_enabled ? 'Edit Campaign Page' : 'Enable Campaign Page' }}
+                        </button>
+                    </x-slot:actions>
+
+                    @if (! $campaign_page_enabled)
+                        <div class="mb-4">
+                            <x-ui.badge status="default" size="sm">Disabled</x-ui.badge>
+                        </div>
+
+                        <x-ui.empty-state
+                            icon="heroicon-o-eye-slash"
+                            title="Campaign Page is disabled"
+                            description="Campaign Page is not enabled. Enable it in Settings > Campaign formats to configure this page."
+                        />
+                    @else
+                        @php $campaignPageUrl = route('campaigns.public', $campaign->public_id); @endphp
+
+                        <dl class="space-y-4">
+                            {{-- Status --}}
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Status</dt>
+                                <dd class="mt-1.5">
+                                    <x-ui.badge status="success" size="sm">Enabled</x-ui.badge>
+                                </dd>
+                            </div>
+
+                            {{-- Public URL --}}
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Public URL</dt>
+                                <dd class="mt-1.5 flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        readonly
+                                        value="{{ $campaignPageUrl }}"
+                                        class="block w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-600"
+                                    />
+                                    <x-ui.copy-button value="{{ $campaignPageUrl }}" title="Copy URL" />
+                                    <a
+                                        href="{{ $campaignPageUrl }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title="Open in new tab"
+                                        class="inline-flex items-center text-slate-400 transition hover:text-slate-700 shrink-0"
+                                    >
+                                        <x-heroicon-o-arrow-top-right-on-square class="size-4 shrink-0" />
+                                    </a>
+                                </dd>
+                            </div>
+
+                            {{-- Content Title --}}
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Content Title</dt>
+                                <dd class="mt-0.5 text-sm text-slate-900">
+                                    {{ $contentTitle }}
+                                    @if (empty($campaign->config['content_title']))
+                                        <span class="text-xs text-slate-400">(fallback)</span>
+                                    @endif
+                                </dd>
+                            </div>
+
+                            {{-- Content Message --}}
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Content Message</dt>
+                                <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed">
+                                    @if (empty($campaign->config['content_message']))
+                                        Not set
+                                    @else
+                                        {{ \Illuminate\Support\Str::limit($contentMessage, 150) }}
+                                    @endif
+                                </dd>
+                            </div>
+
+                            {{-- Show Total Raised --}}
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Show Total Raised</dt>
+                                <dd class="mt-1.5">
+                                    <x-ui.badge status="{{ $show_total_raised ? 'success' : 'default' }}" size="sm">
+                                        {{ $show_total_raised ? 'On' : 'Off' }}
+                                    </x-ui.badge>
+                                </dd>
+                            </div>
+
+                            {{-- Post-Donation Experience --}}
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Post-Donation Experience</dt>
+                                <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed">
+                                    @if ($postDonationMode === 'redirect')
+                                        Redirect to URL
+                                        @if ($redirect_url)
+                                            <br><span class="text-xs text-slate-500 break-all">{{ $redirect_url }}</span>
+                                        @endif
+                                    @else
+                                        Default thank-you screen
+                                    @endif
+                                </dd>
+                            </div>
+
+                            {{-- Thank-You Message --}}
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Thank-You Message</dt>
+                                <dd class="mt-0.5 text-sm text-slate-900">
+                                    {{ $thank_you_message ? 'Set' : 'Not set' }}
+                                </dd>
+                            </div>
+
+                            {{-- Sharing Channels --}}
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Sharing Channels</dt>
+                                <dd class="mt-1.5 flex flex-wrap gap-2">
+                                    @if (empty($shareChannels))
+                                        <span class="text-sm text-slate-500">None</span>
+                                    @else
+                                        @php
+                                            $channelLabels = [
+                                                'facebook' => 'Facebook',
+                                                'x' => 'X',
+                                                'linkedin' => 'LinkedIn',
+                                                'email' => 'Email',
+                                            ];
+                                        @endphp
+                                        @foreach ($shareChannels as $channel)
+                                            <x-ui.badge status="default" size="sm">{{ $channelLabels[$channel] ?? ucfirst($channel) }}</x-ui.badge>
+                                        @endforeach
+                                    @endif
+                                </dd>
+                            </div>
+
+                            {{-- Sharing Message --}}
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Default Sharing Message</dt>
+                                <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed">
+                                    {{ $shareMessage ? \Illuminate\Support\Str::limit($shareMessage, 150) : 'Not set' }}
+                                </dd>
+                            </div>
+                        </dl>
+                    @endif
+                </x-ui.card>
+
                 <x-ui.card title="Linked Elements" description="Embed elements using this campaign">
                     @php $elements = $campaign->elements()->select(['id','public_id','token','name','type','created_at'])->get(); @endphp
                     @if ($elements->isNotEmpty())

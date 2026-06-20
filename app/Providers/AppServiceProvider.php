@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Listeners\RecordDonorEmailDelivery;
+use App\Listeners\SendLoginAlertEmail;
 use App\Listeners\UpdateLastLoginAt;
 use App\Models\Setting;
 use Carbon\CarbonImmutable;
@@ -40,6 +41,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             Login::class,
             UpdateLastLoginAt::class,
+        );
+
+        Event::listen(
+            Login::class,
+            SendLoginAlertEmail::class,
         );
 
         Event::listen(

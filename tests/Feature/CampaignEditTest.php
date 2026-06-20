@@ -415,6 +415,7 @@ it('displays a configuration snapshot on the overview tab', function () {
         'minimum_amount' => 5,
         'thank_you_message' => 'Thank you for your support!',
         'redirect_url' => 'https://example.com/thank-you',
+        'campaign_page_enabled' => true,
         'config' => [
             'default_frequency' => 'one_time',
             'default_amount' => 50,
@@ -423,6 +424,12 @@ it('displays a configuration snapshot on the overview tab', function () {
             'allow_cover_fee' => true,
             'show_comment' => true,
             'show_phone' => true,
+            'show_total_raised' => true,
+            'post_donation_mode' => 'default',
+            'share_channels' => ['facebook', 'x', 'linkedin', 'email'],
+            'share_message' => 'Support our campaign!',
+            'content_title' => 'Campaign Page Title',
+            'content_message' => 'This is the campaign page message.',
             'suggested_amounts_by_currency' => [
                 'MYR' => [
                     'one_time' => [
@@ -456,12 +463,65 @@ it('displays a configuration snapshot on the overview tab', function () {
         ->assertSee('Cover fee on')
         ->assertSee('Comment on')
         ->assertSee('Phone on')
-        ->assertSee('Post Donation')
-        ->assertSeeText('Thank-you message: Set')
-        ->assertSee('https://example.com/thank-you')
         ->assertSee('Suggested Amounts')
         ->assertSee('500')
-        ->assertSee('300');
+        ->assertSee('300')
+        ->assertSee('Campaign Page')
+        ->assertSee('Enabled')
+        ->assertSee('Public URL')
+        ->assertSee(route('campaigns.public', $campaign->public_id))
+        ->assertSee('Campaign Page Title')
+        ->assertSee('This is the campaign page message.')
+        ->assertSee('Show Total Raised')
+        ->assertSee('On')
+        ->assertSee('Post-Donation Experience')
+        ->assertSee('Default thank-you screen')
+        ->assertSee('Sharing Channels')
+        ->assertSee('Facebook')
+        ->assertSee('LinkedIn')
+        ->assertSee('Default Sharing Message')
+        ->assertSee('Support our campaign!')
+        ->assertSee('Edit Campaign Page')
+        ->assertSee("wire:click=\"\$set('activeTab', 'campaign-page')\"", false)
+        ->call('$set', 'activeTab', 'campaign-page')
+        ->assertSet('activeTab', 'campaign-page');
+});
+
+it('shows fallback campaign page content title on the overview tab', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'title' => 'Fallback Campaign Title',
+        'campaign_page_enabled' => true,
+        'config' => [
+            'content_title' => null,
+            'content_message' => null,
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSee('Fallback Campaign Title')
+        ->assertSee('(fallback)')
+        ->assertSeeText('Not set');
+});
+
+it('shows campaign page disabled state on the overview tab', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'campaign_page_enabled' => false,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSee('Campaign Page')
+        ->assertSee('Disabled')
+        ->assertSee('Campaign Page is disabled')
+        ->assertSee('Enable Campaign Page')
+        ->assertSee("wire:click=\"\$set('activeTab', 'settings')\"", false)
+        ->call('$set', 'activeTab', 'settings')
+        ->assertSet('activeTab', 'settings');
 });
 
 it('displays default configuration values when fields are empty', function () {
@@ -477,9 +537,7 @@ it('displays default configuration values when fields are empty', function () {
 
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
         ->assertSee('No target')
-        ->assertSee('No end date')
-        ->assertSeeText('Thank-you message: Not set')
-        ->assertSeeText('Redirect URL: None');
+        ->assertSee('No end date');
 });
 
 it('falls back to legacy suggested amounts when config is empty', function () {
