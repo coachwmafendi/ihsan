@@ -50,12 +50,6 @@
                 Checkout Modal
             </button>
             <button type="button"
-                @click="tab = 'embed'"
-                :class="tab === 'embed' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
-                class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
-                Embed & Share
-            </button>
-            <button type="button"
                 @click="tab = 'campaign-page'"
                 :class="tab === 'campaign-page' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
@@ -1098,69 +1092,6 @@
                 @endif
             </div>
         </div>
-    </div>
-
-    {{-- Embed & Share Tab --}}
-    <div x-show="tab === 'embed'" x-cloak class="space-y-6">
-        @php
-            $campaignUrl = route('donations.campaign-show', $campaign);
-            $whatsappUrl = 'https://wa.me/?text='.urlencode('Support our campaign: '.$campaignUrl);
-            $embedButton = '<a href="'.$campaignUrl.'" class="inline-flex items-center justify-center rounded-lg bg-teal-600 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-700" target="_blank">Donate Now</a>';
-            $embedIframe = '<iframe src="'.$campaignUrl.'" width="100%" height="600" frameborder="0" style="border-radius: 0.75rem;"></iframe>';
-        @endphp
-
-        <x-ui.card title="Share">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700">Campaign Page URL</label>
-                    <div class="mt-1 flex items-center gap-2">
-                        <input type="text" readonly value="{{ $campaignUrl }}" class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600" />
-                        <x-ui.copy-button value="{{ $campaignUrl }}" />
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700">WhatsApp Share</label>
-                    <a href="{{ $whatsappUrl }}" target="_blank" class="mt-1 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                        <x-heroicon-o-share class="size-4" />
-                        Share on WhatsApp
-                    </a>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700">QR Code</label>
-                    <div class="mt-2 inline-block rounded-lg border border-slate-200 p-2">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode($campaignUrl) }}" alt="QR Code" class="h-40 w-40" />
-                    </div>
-                </div>
-            </div>
-        </x-ui.card>
-
-        <x-ui.card title="Embed Code">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700">Button HTML</label>
-                    <div class="mt-1 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                        <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-2">
-                            <span class="text-xs font-medium text-slate-500">Copy to clipboard</span>
-                            <x-ui.copy-button value="{{ $embedButton }}" />
-                        </div>
-                        <pre class="overflow-x-auto p-4 text-xs leading-relaxed text-slate-700"><code>{{ $embedButton }}</code></pre>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700">Iframe Embed</label>
-                    <div class="mt-1 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                        <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-2">
-                            <span class="text-xs font-medium text-slate-500">Copy to clipboard</span>
-                            <x-ui.copy-button value="{{ $embedIframe }}" />
-                        </div>
-                        <pre class="overflow-x-auto p-4 text-xs leading-relaxed text-slate-700"><code>{{ $embedIframe }}</code></pre>
-                    </div>
-                </div>
-            </div>
-        </x-ui.card>
     </div>
 
     {{-- Actions Tab --}}
