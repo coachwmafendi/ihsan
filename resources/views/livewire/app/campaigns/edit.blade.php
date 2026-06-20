@@ -50,10 +50,14 @@
                 Checkout Modal
             </button>
             <button type="button"
-                @click="tab = 'campaign-page'"
-                :class="tab === 'campaign-page' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
-                class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
+                @click="campaign_page_enabled ? tab = 'campaign-page' : null"
+                :class="tab === 'campaign-page' && campaign_page_enabled ? 'border-teal-500 text-teal-600' : (campaign_page_enabled ? 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' : 'border-transparent text-slate-400 cursor-not-allowed')"
+                class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors"
+                {{ $campaign_page_enabled ? '' : 'disabled' }}>
                 Campaign Page
+                @if (! $campaign_page_enabled)
+                    <span class="ml-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">off</span>
+                @endif
             </button>
             <button type="button"
                 @click="tab = 'actions'"
@@ -809,8 +813,18 @@
     </form>
 
     {{-- Campaign Page Tab --}}
-    <div x-show="tab === 'campaign-page'" x-cloak class="space-y-6">
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+    <div x-show="tab === 'campaign-page'" x-cloak class="relative space-y-6">
+        @if (! $campaign_page_enabled)
+            <div class="absolute inset-0 z-10 flex items-start justify-center rounded-xl bg-white/90 pt-20">
+                <x-ui.empty-state
+                    icon="heroicon-o-eye-slash"
+                    title="Campaign Page is disabled"
+                    description="Enable Campaign Page in Settings > Campaign formats to configure this page."
+                />
+            </div>
+        @endif
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-4 {{ $campaign_page_enabled ? '' : 'pointer-events-none opacity-50' }}">
             {{-- Left sidebar --}}
             <div class="lg:col-span-1">
                 <x-ui.card>
