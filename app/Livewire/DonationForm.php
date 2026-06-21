@@ -304,7 +304,7 @@ class DonationForm extends Component
 
             $this->dispatch('campaign-donation-received', campaignPublicId: $campaign->public_id);
         } catch (\Exception $e) {
-            // Log error silently
+            report($e);
         }
     }
 
