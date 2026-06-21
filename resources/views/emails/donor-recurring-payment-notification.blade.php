@@ -12,6 +12,11 @@
 @section('title', $t('emails.donor_recurring_payment.title'))
 
 @section('content')
+    <style>
+        .chip-link { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; }
+        .chip-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.08); background-color: #f0fdfa !important; }
+    </style>
+
     <h1 style="font-size: 32px; color: #0f766e;">{{ $t('emails.donor_recurring_payment.heading') }}</h1>
 
     <p style="font-size: 18px;">{{ $t('emails.common.greeting', ['name' => $donor->name]) }},</p>
@@ -37,17 +42,17 @@
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                 <tr>
                     <td style="text-align: center; padding: 0 6px;">
-                        <a href="{{ $upgradeChips[0]['url'] }}" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff;">
+                        <a href="{{ $upgradeChips[0]['url'] }}" class="chip-link" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;">
                             {{ $upgradeChips[0]['label'] }}
                         </a>
                     </td>
                     <td style="text-align: center; padding: 0 6px;">
-                        <a href="{{ $upgradeChips[1]['url'] }}" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff;">
+                        <a href="{{ $upgradeChips[1]['url'] }}" class="chip-link" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;">
                             {{ $upgradeChips[1]['label'] }}
                         </a>
                     </td>
                     <td style="text-align: center; padding: 0 6px;">
-                        <a href="{{ $upgradeChips[2]['url'] }}" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff;">
+                        <a href="{{ $upgradeChips[2]['url'] }}" class="chip-link" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;">
                             {{ $upgradeChips[2]['label'] }}
                         </a>
                     </td>
@@ -57,8 +62,17 @@
     @endif
 
     @if ($downloadUrl)
-        <p style="margin: 28px 0;">
-            <a href="{{ $downloadUrl }}" style="display: inline-block; background-color: #0f766e; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 18px; font-weight: 600;">{{ $t('emails.receipt.download_receipt') }}</a>
+        <p style="text-align: center; margin: 28px 0;">
+            <a href="{{ $downloadUrl }}" style="display: inline-flex; align-items: center; gap: 10px; background-color: #0f766e; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 18px; font-weight: 600;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <line x1="10" y1="9" x2="8" y2="9"/>
+                </svg>
+                {{ $t('emails.receipt.download_receipt') }}
+            </a>
         </p>
     @endif
 
