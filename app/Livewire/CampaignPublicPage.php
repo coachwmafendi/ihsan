@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Services\TrackingScriptService;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -28,5 +29,15 @@ class CampaignPublicPage extends Component
                 'trackingConfigs' => TrackingScriptService::config($this->campaign->organization),
             ])
             ->title('Support '.$this->campaign->title);
+    }
+
+    #[On('campaign-donation-received')]
+    public function refreshCampaign(string $campaignPublicId): void
+    {
+        if ($campaignPublicId !== $this->campaign->public_id) {
+            return;
+        }
+
+        $this->campaign = Campaign::query()->findOrFail($this->campaign->getKey())->load('organization');
     }
 }

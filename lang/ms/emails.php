@@ -50,6 +50,25 @@ return [
         'attempt_note' => 'Ini adalah percubaan ke-:retry daripada :total bagi tempoh bil ini.',
     ],
 
+    'donor_new_subscription' => [
+        'subject' => 'Terima kasih kerana menyertai sebagai penyokong berulang',
+        'title' => 'Terima kasih atas derma murah hati anda dan kerana memilih untuk menyokong kami secara berulang!',
+        'preheader' => 'Terima kasih kerana menyertai sebagai penyokong berulang bagi :campaign.',
+        'intro' => 'Atas nama semua di :organization, kami ingin menyampaikan penghargaan yang ikhlas atas derma berulang dan sokongan berterusan anda.',
+        'body' => 'Kemurahan hati dan keprihatinan anda memainkan peranan penting dalam mengekalkan misi kami dan membantu kami memberi kesan yang kekal. Kami amat bersyukur mempunyai penyokong seperti anda yang bersama-sama dengan kami dalam perjalanan ini.',
+        'sign_off' => 'Rakan-rakan anda di :organization',
+    ],
+
+    'donor_recurring_payment' => [
+        'subject' => 'Terima kasih atas sokongan berterusan anda!',
+        'title' => 'Terima kasih atas sokongan berterusan anda!',
+        'heading' => 'Kami amat menghargai sokongan berterusan anda.',
+        'preheader' => 'Terima kasih atas sokongan berterusan bagi :campaign.',
+        'intro' => 'Atas nama semua di :organization, kami ingin menyampaikan penghargaan yang ikhlas atas derma berulang terbaharu dan sokongan berterusan anda.',
+        'body' => 'Kemurahan hati dan keprihatinan anda membuatkan misi kami menjadi mungkin. Kami amat bersyukur mempunyai donor seperti anda yang bersama-sama dengan kami mengekalkan perjalanan ini.',
+        'sign_off' => 'Rakan-rakan anda di :organization',
+    ],
+
     'subscription_amount_changed' => [
         'subject' => 'Jumlah Langganan Dikemaskini — :name',
         'title' => 'Jumlah Langganan Dikemaskini',

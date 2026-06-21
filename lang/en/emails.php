@@ -50,6 +50,25 @@ return [
         'attempt_note' => 'This is attempt #:retry of :total for this billing period.',
     ],
 
+    'donor_new_subscription' => [
+        'subject' => 'Thank you for joining as a recurring supporter',
+        'title' => 'Thank you for your generous donation and for choosing to support us on a recurring basis!',
+        'preheader' => 'Thank you for joining as a recurring supporter for :campaign.',
+        'intro' => 'On behalf of everyone at :organization, we would like to express our heartfelt gratitude for your recurring donation and continued support.',
+        'body' => 'Your generosity and compassion play an essential role in sustaining our mission and helping us make a lasting impact. We are truly grateful to have supporters like you standing with us on this journey.',
+        'sign_off' => 'Your friends at :organization',
+    ],
+
+    'donor_recurring_payment' => [
+        'subject' => 'Thank you for your continued support!',
+        'title' => 'Thank you for your continued support!',
+        'heading' => 'We sincerely appreciate your continued support.',
+        'preheader' => 'Thank you for your continued support of :campaign.',
+        'intro' => 'On behalf of everyone at :organization, we would like to express our heartfelt appreciation for your recent recurring donation and continued support.',
+        'body' => 'Your generosity and compassion are what make our mission possible. We are truly grateful for donors like you who stand with us in sustaining this journey.',
+        'sign_off' => 'Your friends at :organization',
+    ],
+
     'subscription_amount_changed' => [
         'subject' => 'Subscription Amount Updated — :name',
         'title' => 'Subscription Amount Updated',

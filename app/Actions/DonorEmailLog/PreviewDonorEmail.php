@@ -7,6 +7,8 @@ namespace App\Actions\DonorEmailLog;
 use App\Mail\CampaignCompletedDonorNotification;
 use App\Mail\DonationReceipt;
 use App\Mail\DonorDunningNotification;
+use App\Mail\DonorNewSubscriptionNotification;
+use App\Mail\DonorRecurringPaymentNotification;
 use App\Mail\SubscriptionAmountChangedNotification;
 use App\Models\Campaign;
 use App\Models\DonorEmailLog;
@@ -38,6 +40,8 @@ class PreviewDonorEmail
             CampaignCompletedDonorNotification::class => $this->recreateCampaignCompleted($log),
             SubscriptionAmountChangedNotification::class => $this->recreateSubscriptionAmountChanged($log),
             DonorDunningNotification::class => $this->recreateDonorDunning($log),
+            DonorNewSubscriptionNotification::class => $this->recreateDonorNewSubscription($log),
+            DonorRecurringPaymentNotification::class => $this->recreateDonorRecurringPayment($log),
             default => null,
         };
     }
@@ -93,5 +97,23 @@ class PreviewDonorEmail
         $isFinalAttempt = (bool) ($metadata['is_final_attempt'] ?? false);
 
         return new DonorDunningNotification($log->subscription, $retryCount, $isFinalAttempt);
+    }
+
+    private function recreateDonorNewSubscription(DonorEmailLog $log): ?Mailable
+    {
+        if ($log->donation === null) {
+            return null;
+        }
+
+        return new DonorNewSubscriptionNotification($log->donation);
+    }
+
+    private function recreateDonorRecurringPayment(DonorEmailLog $log): ?Mailable
+    {
+        if ($log->donation === null) {
+            return null;
+        }
+
+        return new DonorRecurringPaymentNotification($log->donation);
     }
 }

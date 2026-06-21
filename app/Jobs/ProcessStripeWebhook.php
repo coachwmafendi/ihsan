@@ -130,6 +130,7 @@ class ProcessStripeWebhook implements ShouldQueue
             }
 
             SendNewSubscriptionNotification::dispatch($donation);
+            SendDonorNewSubscriptionNotification::dispatch($donation);
         }
 
         if ($wasPending) {
@@ -321,6 +322,7 @@ class ProcessStripeWebhook implements ShouldQueue
 
         SendDonationReceipt::dispatch($donation);
         SendNewDonationNotification::dispatch($donation);
+        SendDonorRecurringPaymentNotification::dispatch($donation);
         SendLargeDonationNotification::dispatch($donation);
         SendMetaConversionEvent::dispatch($donation);
         SendLinkedInConversionEvent::dispatch($donation);

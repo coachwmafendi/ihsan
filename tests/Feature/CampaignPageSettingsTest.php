@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\UserRole;
 use App\Livewire\App\Campaigns\CampaignEdit;
+use App\Livewire\DonationForm;
 use App\Models\Campaign;
 use App\Models\Organization;
 use App\Models\User;
@@ -152,4 +153,28 @@ it('persists campaign page progress settings on save', function () {
         ->has_target->toBeTrue()
         ->target_amount->toBeNumeric()->toEqual(5000)
         ->has_end_date->toBeTrue();
+});
+
+it('treats the public campaign page donation form as non-embed so redirect can fire', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'redirect_url' => 'https://example.com/thanks',
+        'config' => ['post_donation_mode' => 'redirect'],
+    ]);
+
+    Livewire::test(DonationForm::class, ['campaign' => $campaign, 'isPublicPage' => true])
+        ->assertSet('isEmbed', false)
+        ->assertSee('https:\/\/example.com\/thanks', false);
+});
+
+it('does not expose the redirect URL to the donation form when redirect mode is disabled', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'redirect_url' => 'https://example.com/thanks',
+        'config' => ['post_donation_mode' => 'default'],
+    ]);
+
+    Livewire::test(DonationForm::class, ['campaign' => $campaign, 'isPublicPage' => true])
+        ->assertSet('isEmbed', false)
+        ->assertDontSee('https://example.com/thanks', false);
 });

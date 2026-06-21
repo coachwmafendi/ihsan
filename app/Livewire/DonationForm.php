@@ -11,6 +11,7 @@ use App\Enums\DonationType;
 use App\Enums\ElementType;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
+use App\Jobs\SendDonorNewSubscriptionNotification;
 use App\Jobs\SendGa4TrackingEvent;
 use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendLinkedInConversionEvent;
@@ -210,7 +211,7 @@ class DonationForm extends Component
 
     private function setCampaignPresentationMode(): void
     {
-        $this->isEmbed = $this->isPublicPage || request()->query('embed') !== null;
+        $this->isEmbed = request()->query('embed') !== null;
         $this->isPopup = request()->query('popup') !== null;
     }
 
@@ -262,12 +263,16 @@ class DonationForm extends Component
             $campaign->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
             $campaign->refresh();
 
+            $this->dispatch('campaign-donation-received', campaignPublicId: $campaign->public_id);
+
             SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
 
             if ($donation->type === DonationType::Recurring) {
                 $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
                 $donation->update(['subscription_id' => $subscription->getKey()]);
                 $subscription->increment('payment_count');
+
+                SendDonorNewSubscriptionNotification::dispatch($donation);
             }
 
             SendDonationReceipt::dispatch($donation);

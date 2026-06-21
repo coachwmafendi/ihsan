@@ -6,6 +6,8 @@ use App\Enums\DonationType;
 use App\Jobs\ProcessStripeWebhook;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
+use App\Jobs\SendDonorNewSubscriptionNotification;
+use App\Jobs\SendDonorRecurringPaymentNotification;
 use App\Jobs\SendFailedPaymentNotification;
 use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendLinkedInConversionEvent;
@@ -141,7 +143,7 @@ it('does not process the same completed payment intent webhook twice', function 
 });
 
 it('creates recurring subscriptions in the connected account from payment intent webhooks', function () {
-    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendNewSubscriptionNotification::class, SendLargeDonationNotification::class]);
+    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendNewSubscriptionNotification::class, SendDonorNewSubscriptionNotification::class, SendLargeDonationNotification::class]);
     config(['services.stripe.secret' => 'sk_test_fake']);
 
     $stripeClient = new class implements ClientInterface
@@ -305,6 +307,7 @@ it('creates recurring subscriptions in the connected account from payment intent
 
     Queue::assertPushed(SendDonationReceipt::class);
     Queue::assertPushed(SyncDonationStripeDetailsJob::class);
+    Queue::assertPushed(SendDonorNewSubscriptionNotification::class);
 });
 
 it('syncs stripe details for an already succeeded connected donation without duplicating fulfillment', function () {
@@ -492,6 +495,7 @@ it('ignores zero amount subscription invoices without sending donation notificat
         SendDonationReceipt::class,
         SendLargeDonationNotification::class,
         SendNewDonationNotification::class,
+        SendDonorRecurringPaymentNotification::class,
         SyncDonationStripeDetailsJob::class,
     ]);
 
@@ -525,6 +529,7 @@ it('ignores zero amount subscription invoices without sending donation notificat
 
     Queue::assertNotPushed(SendNewDonationNotification::class);
     Queue::assertNotPushed(SendDonationReceipt::class);
+    Queue::assertNotPushed(SendDonorRecurringPaymentNotification::class);
 });
 
 it('does not duplicate recurring donation notifications when invoice paid webhooks are retried', function () {
@@ -533,6 +538,7 @@ it('does not duplicate recurring donation notifications when invoice paid webhoo
         SendDonationReceipt::class,
         SendLargeDonationNotification::class,
         SendNewDonationNotification::class,
+        SendDonorRecurringPaymentNotification::class,
         SyncDonationStripeDetailsJob::class,
     ]);
 
@@ -589,10 +595,11 @@ it('does not duplicate recurring donation notifications when invoice paid webhoo
 
     Queue::assertPushedTimes(SendNewDonationNotification::class, 1);
     Queue::assertPushedTimes(SendDonationReceipt::class, 1);
+    Queue::assertPushedTimes(SendDonorRecurringPaymentNotification::class, 1);
 });
 
 it('stores recurring fee cover details on subscription creation', function () {
-    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendNewSubscriptionNotification::class, SendLargeDonationNotification::class]);
+    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendNewSubscriptionNotification::class, SendDonorNewSubscriptionNotification::class, SendLargeDonationNotification::class]);
     config(['services.stripe.secret' => 'sk_test_fake']);
 
     $organization = Organization::factory()->create([
@@ -714,6 +721,8 @@ it('stores recurring fee cover details on subscription creation', function () {
         ->first(fn (array $request): bool => str_ends_with($request['url'], '/v1/subscriptions'));
 
     expect($subscriptionRequest['params']['items'])->toHaveCount(2);
+
+    Queue::assertPushed(SendDonorNewSubscriptionNotification::class);
 });
 
 it('splits fee cover from recurring invoice paid webhooks', function () {
@@ -722,6 +731,7 @@ it('splits fee cover from recurring invoice paid webhooks', function () {
         SendDonationReceipt::class,
         SendLargeDonationNotification::class,
         SendNewDonationNotification::class,
+        SendDonorRecurringPaymentNotification::class,
         SyncDonationStripeDetailsJob::class,
     ]);
 
@@ -773,6 +783,7 @@ it('splits fee cover from recurring invoice paid webhooks', function () {
 
     Queue::assertPushedTimes(SendDonationReceipt::class, 1);
     Queue::assertPushedTimes(SendNewDonationNotification::class, 1);
+    Queue::assertPushedTimes(SendDonorRecurringPaymentNotification::class, 1);
 });
 
 it('dispatches conversion events for payment intent succeeded webhook', function () {
@@ -817,6 +828,7 @@ it('dispatches conversion events for recurring invoice paid webhook', function (
         SendSnapchatConversionEvent::class,
         SendDonationReceipt::class,
         SendNewDonationNotification::class,
+        SendDonorRecurringPaymentNotification::class,
         SendLargeDonationNotification::class,
         SyncDonationStripeDetailsJob::class,
     ]);
