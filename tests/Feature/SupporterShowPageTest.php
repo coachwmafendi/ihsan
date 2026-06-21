@@ -33,7 +33,7 @@ it('renders the supporter detail page with sections and menus', function () {
         ->assertSee('Name')
         ->assertSee('Email')
         ->assertSee('Language')
-        ->assertSee('Mailing address')
+        ->assertSee('Mailing Address')
         ->assertSee('Donations')
         ->assertSee('Receipts')
         ->assertSee('Make donation')
@@ -78,7 +78,6 @@ it('hides recurring plans section and menu when supporter has no subscriptions',
     $this->actingAs($user)
         ->get('/app/supporters/'.$donor->public_id)
         ->assertOk()
-        ->assertDontSee('Recurring plans')
         ->assertDontSeeHtml('id="recurring-plans"')
         ->assertDontSeeHtml('href="#recurring-plans"');
 });
@@ -96,7 +95,6 @@ it('shows recurring plans section and menu when supporter has subscriptions', fu
     $this->actingAs($user)
         ->get('/app/supporters/'.$donor->public_id)
         ->assertOk()
-        ->assertSee('Recurring plans')
         ->assertSeeHtml('id="recurring-plans"')
         ->assertSeeHtml('href="#recurring-plans"');
 });

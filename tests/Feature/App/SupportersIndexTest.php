@@ -41,7 +41,7 @@ it('renders supporters index with lifetime donated and first and last donation c
     $response = $this->actingAs($this->user)->get(route('app.supporters.index'));
 
     $response->assertStatus(200);
-    $response->assertSee('Lifetime donated');
+    $response->assertSee('Lifetime Donated');
     $response->assertSee('First Donation');
     $response->assertSee('Last Donation');
     $response->assertSee($this->donor->name);

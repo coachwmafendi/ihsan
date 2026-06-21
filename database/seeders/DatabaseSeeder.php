@@ -229,6 +229,7 @@ class DatabaseSeeder extends Seeder
             'amount' => 100.00,
             'interval' => SubscriptionInterval::Monthly,
             'status' => SubscriptionStatus::Incomplete,
+            'payment_count' => 0,
         ]);
 
         Subscription::factory()->for($iftarCampaign)->for($donors[6])->create([

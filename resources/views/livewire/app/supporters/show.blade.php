@@ -95,7 +95,7 @@
                             <dd class="flex-1 text-sm text-slate-900">{{ filled($donor->phone) ? $donor->phone : '—' }}</dd>
                         </div>
                         <div class="flex gap-4">
-                            <dt class="w-36 text-sm text-slate-500">Mailing address</dt>
+                            <dt class="w-36 text-sm text-slate-500">Mailing Address</dt>
                             <dd class="flex-1 text-sm text-slate-900">{{ $this->fullAddress ?? '—' }}</dd>
                         </div>
                     </dl>
@@ -114,7 +114,7 @@
                     class="w-full max-w-2xl rounded-xl bg-white shadow-lg"
                 >
                     <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                        <h3 class="text-lg font-semibold text-slate-900">Edit supporter</h3>
+                        <h3 class="text-lg font-semibold text-slate-900">Edit Supporter</h3>
                         <button
                             type="button"
                             wire:click="closeEditModal"
@@ -127,7 +127,7 @@
                     <form wire:submit.prevent="save" class="flex flex-col">
                         <div class="space-y-5 p-6">
                             <div class="grid grid-cols-[140px_1fr] items-start gap-4">
-                                <label for="firstName" class="text-right text-sm font-medium text-slate-700 pt-2">First name</label>
+                                <label for="firstName" class="text-right text-sm font-medium text-slate-700 pt-2">First Name</label>
                                 <div>
                                     <input
                                         id="firstName"
@@ -140,7 +140,7 @@
                             </div>
 
                             <div class="grid grid-cols-[140px_1fr] items-start gap-4">
-                                <label for="lastName" class="text-right text-sm font-medium text-slate-700 pt-2">Last name</label>
+                                <label for="lastName" class="text-right text-sm font-medium text-slate-700 pt-2">Last Name</label>
                                 <div>
                                     <input
                                         id="lastName"
@@ -198,9 +198,9 @@
                             <table class="min-w-full divide-y divide-slate-200">
                                 <thead>
                                     <tr class="bg-slate-50">
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Amount</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Campaign</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Date</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Amount</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Campaign</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -242,16 +242,16 @@
             @if ($this->hasSubscriptions)
                 {{-- Recurring plans --}}
                 <section id="recurring-plans">
-                    <x-ui.card title="Recurring plans" icon="heroicon-o-arrow-path">
+                    <x-ui.card title="Recurring Plans" icon="heroicon-o-arrow-path">
                         @if ($this->recentSubscriptions->isNotEmpty())
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-slate-200">
                                     <thead>
                                         <tr class="bg-slate-50">
-                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Amount</th>
-                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Frequency</th>
-                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
-                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Campaign</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Amount</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Frequency</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Status</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Campaign</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 bg-white">
@@ -304,10 +304,10 @@
                             <table class="min-w-full divide-y divide-slate-200">
                                 <thead>
                                     <tr class="bg-slate-50">
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Receipt</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Amount</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Issue Date</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Date</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Receipt</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Amount</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Issue Date</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -352,10 +352,10 @@
                             <table class="min-w-full divide-y divide-slate-200">
                                 <thead>
                                     <tr class="bg-slate-50">
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Sent</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Subject</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Opened</th>
-                                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"></th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Sent</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Subject</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Opened</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-slate-500"></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -461,7 +461,7 @@
                             class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition"
                         >
                             <x-heroicon-o-arrow-path class="size-5 text-slate-400" />
-                            Recurring plans
+                            Recurring Plans
                         </a>
                     @endif
                     <a

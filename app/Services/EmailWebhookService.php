@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\DonorEmailLog;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -130,7 +131,35 @@ class EmailWebhookService
                     'complained_at' => now(),
                 ]);
                 break;
+
+            case 'open':
+                $this->markOpened($log);
+                break;
+
+            case 'opened':
+                $this->markOpened($log);
+                break;
         }
+    }
+
+    private function markOpened(DonorEmailLog $log, ?string $timestamp = null, array $extraMetadata = []): void
+    {
+        $openedAt = filled($timestamp) ? CarbonImmutable::parse($timestamp) : now();
+
+        $metadata = $log->metadata ?? [];
+        $metadata['open_count'] = ($metadata['open_count'] ?? 0) + 1;
+        $metadata['last_opened_at'] = $openedAt->toIso8601String();
+
+        foreach ($extraMetadata as $key => $value) {
+            if (filled($value)) {
+                $metadata[$key] = $value;
+            }
+        }
+
+        $log->update([
+            'opened_at' => $openedAt,
+            'metadata' => $metadata,
+        ]);
     }
 
     private function normalizePostmarkEvent(?string $type): string
@@ -139,6 +168,7 @@ class EmailWebhookService
             'Delivery' => 'delivered',
             'Bounce' => 'bounced',
             'SpamComplaint' => 'complained',
+            'Open' => 'open',
             default => strtolower((string) $type),
         };
     }
@@ -239,6 +269,19 @@ class EmailWebhookService
                     'delivery_status' => 'complained',
                     'complained_at' => now(),
                 ]);
+                break;
+
+            case 'open':
+                $open = $event['open'] ?? [];
+
+                $this->markOpened(
+                    $log,
+                    $open['timestamp'] ?? null,
+                    [
+                        'opened_ip' => $open['ipAddress'] ?? null,
+                        'opened_user_agent' => $open['userAgent'] ?? null,
+                    ],
+                );
                 break;
         }
     }

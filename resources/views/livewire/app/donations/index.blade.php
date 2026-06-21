@@ -281,7 +281,7 @@
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead>
                         <tr class="bg-slate-50">
-                            <th scope="col" class="whitespace-nowrap min-w-[180px] px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap min-w-[180px] px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
                                     Date
                                     @if ($sortField === 'created_at')
@@ -295,7 +295,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="whitespace-nowrap min-w-[180px] px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap min-w-[180px] px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('gross_amount')" class="group inline-flex items-center gap-1">
                                     Donation
                                     @if ($sortField === 'gross_amount')
@@ -309,7 +309,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('donor_name')" class="group inline-flex items-center gap-1">
                                     Supporter
                                     @if ($sortField === 'donor_name')
@@ -323,7 +323,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('status')" class="group inline-flex items-center gap-1">
                                     Status
                                     @if ($sortField === 'status')
@@ -337,7 +337,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('campaign')" class="group inline-flex items-center gap-1">
                                     Campaign
                                     @if ($sortField === 'campaign')

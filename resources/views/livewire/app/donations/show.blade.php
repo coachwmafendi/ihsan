@@ -407,10 +407,10 @@
                         <table class="min-w-full text-left text-sm">
                             <thead>
                                 <tr class="border-b border-slate-100">
-                                    <th class="py-2 pr-4 font-medium text-slate-900">Receipt number</th>
+                                    <th class="py-2 pr-4 font-medium text-slate-900">Receipt Number</th>
                                     <th class="py-2 pr-4 font-medium text-slate-900">Amount</th>
-                                    <th class="py-2 pr-4 font-medium text-slate-900">Donation date</th>
-                                    <th class="py-2 pr-4 font-medium text-slate-900">Issue date</th>
+                                    <th class="py-2 pr-4 font-medium text-slate-900">Donation Date</th>
+                                    <th class="py-2 pr-4 font-medium text-slate-900">Issue Date</th>
                                     <th class="py-2"></th>
                                 </tr>
                             </thead>
@@ -460,10 +460,10 @@
                             <table class="min-w-full divide-y divide-slate-200">
                                 <thead>
                                     <tr class="bg-slate-50">
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Sent</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Subject</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Opened</th>
-                                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"></th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Sent</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Subject</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Opened</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-slate-500"></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">

@@ -227,9 +227,9 @@
                     <thead>
                         <tr class="bg-slate-50">
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Status</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
-                                    Create date
+                                    Created
                                     @if ($sortField === 'created_at')
                                         @if ($sortDirection === 'asc')
                                             <x-heroicon-o-chevron-up class="size-3 text-slate-400" />
@@ -241,7 +241,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('amount')" class="group inline-flex items-center gap-1">
                                     Amount
                                     @if ($sortField === 'amount')
@@ -255,13 +255,13 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <x-ui.tooltip text="Installments">
                                     <x-heroicon-o-arrow-path class="size-4 text-slate-500" />
                                 </x-ui.tooltip>
                             </th>
                             <th scope="col" class="px-5 py-3 text-right text-xs font-semibold tracking-wider text-slate-500">Total</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('donor')" class="group inline-flex items-center gap-1">
                                     Supporter
                                     @if ($sortField === 'donor')

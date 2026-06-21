@@ -53,6 +53,9 @@ return [
 
         'ses' => [
             'transport' => 'ses',
+            'options' => array_filter([
+                'ConfigurationSetName' => env('SES_CONFIGURATION_SET'),
+            ]),
         ],
 
         'postmark' => [

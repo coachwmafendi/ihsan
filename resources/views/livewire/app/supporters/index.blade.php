@@ -205,7 +205,7 @@
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead>
                         <tr class="bg-slate-50">
-                            <th scope="col" class="whitespace-nowrap min-w-[200px] px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap min-w-[200px] px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('name')" class="group inline-flex items-center gap-1">
                                     Name
                                     @if ($sortField === 'name')
@@ -219,7 +219,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('email')" class="group inline-flex items-center gap-1">
                                     Email
                                     @if ($sortField === 'email')
@@ -233,7 +233,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('donations_count')" class="group inline-flex items-center gap-1">
                                     Donations
                                     @if ($sortField === 'donations_count')
@@ -247,9 +247,9 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('lifetime_report_amount')" class="group inline-flex items-center gap-1">
-                                    Lifetime donated
+                                    Lifetime Donated
                                     @if ($sortField === 'lifetime_report_amount')
                                         @if ($sortDirection === 'asc')
                                             <x-heroicon-o-chevron-up class="size-3 text-slate-400" />
@@ -261,7 +261,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('donations_min_created_at')" class="group inline-flex items-center gap-1">
                                     First Donation
                                     @if ($sortField === 'donations_min_created_at')
@@ -275,7 +275,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('donations_max_created_at')" class="group inline-flex items-center gap-1">
                                     Last Donation
                                     @if ($sortField === 'donations_max_created_at')
@@ -289,7 +289,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
                                     Created
                                     @if ($sortField === 'created_at')

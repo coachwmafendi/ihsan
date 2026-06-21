@@ -30,6 +30,31 @@ it('marks an email as delivered via mailgun webhook', function () {
         ->delivered_at->not->toBeNull();
 });
 
+it('marks an email as opened via mailgun webhook', function () {
+    $log = DonorEmailLog::factory()->create([
+        'provider_message_id' => 'provider-open-123@example.com',
+        'delivery_status' => 'delivered',
+        'opened_at' => null,
+    ]);
+
+    $this->postJson(route('webhooks.mailgun'), [
+        'signature' => ['timestamp' => '123', 'token' => 'abc', 'signature' => 'ignored_without_secret'],
+        'event-data' => [
+            'event' => 'opened',
+            'recipient' => $log->donor->email,
+            'message' => [
+                'headers' => [
+                    'message-id' => 'provider-open-123@example.com',
+                ],
+            ],
+        ],
+    ])->assertOk();
+
+    expect($log->fresh())
+        ->opened_at->not->toBeNull()
+        ->metadata->open_count->toBe(1);
+});
+
 it('marks an email as bounced via mailgun webhook', function () {
     $log = DonorEmailLog::factory()->create([
         'provider_message_id' => 'provider-bounce@example.com',
@@ -122,6 +147,30 @@ it('rejects postmark webhook with invalid secret', function () {
     ])->assertUnauthorized();
 });
 
+it('marks an email as opened via postmark webhook', function () {
+    $log = DonorEmailLog::factory()->create([
+        'message_id' => Str::uuid()->toString(),
+        'delivery_status' => 'delivered',
+        'opened_at' => null,
+    ]);
+
+    config(['services.postmark.webhook_secret' => 'pm-secret']);
+
+    $this->postJson(route('webhooks.postmark').'?secret=pm-secret', [
+        'RecordType' => 'Open',
+        'MessageID' => 'provider-postmark-open-123',
+        'ReceivedAt' => now()->toIso8601String(),
+        'Recipient' => $log->donor->email,
+        'Metadata' => [
+            'donor_email_log_message_id' => $log->message_id,
+        ],
+    ])->assertOk();
+
+    expect($log->fresh())
+        ->opened_at->not->toBeNull()
+        ->metadata->open_count->toBe(1);
+});
+
 it('marks an email as delivered via direct ses event', function () {
     config(['services.ses.webhook_token' => 'ses-secret-token']);
 
@@ -205,6 +254,102 @@ it('rejects direct ses event with invalid token', function () {
         'eventType' => 'Delivery',
         'mail' => ['messageId' => 'ses-123'],
     ])->assertUnauthorized();
+});
+
+it('marks an email as opened via direct ses open event', function () {
+    config(['services.ses.webhook_token' => 'ses-secret-token']);
+
+    $log = DonorEmailLog::factory()->create([
+        'provider_message_id' => 'ses-open-id-123',
+        'delivery_status' => 'delivered',
+        'opened_at' => null,
+    ]);
+
+    $this->postJson(route('webhooks.ses', ['token' => 'ses-secret-token']), [
+        'eventType' => 'Open',
+        'mail' => [
+            'messageId' => 'ses-open-id-123',
+        ],
+        'open' => [
+            'timestamp' => '2026-06-21T08:30:00.000Z',
+            'ipAddress' => '203.0.113.42',
+            'userAgent' => 'Mozilla/5.0',
+        ],
+    ])->assertOk();
+
+    $freshLog = $log->fresh();
+
+    expect($freshLog)
+        ->opened_at->not->toBeNull()
+        ->opened_at->format('Y-m-d H:i')->toBe('2026-06-21 08:30')
+        ->metadata->open_count->toBe(1)
+        ->metadata->opened_ip->toBe('203.0.113.42')
+        ->metadata->opened_user_agent->toBe('Mozilla/5.0');
+});
+
+it('increments open count on repeated ses open events', function () {
+    config(['services.ses.webhook_token' => 'ses-secret-token']);
+
+    $log = DonorEmailLog::factory()->create([
+        'provider_message_id' => 'ses-open-repeat-123',
+        'delivery_status' => 'delivered',
+        'opened_at' => '2026-06-20 10:00:00',
+        'metadata' => ['open_count' => 1, 'last_opened_at' => '2026-06-20T10:00:00Z'],
+    ]);
+
+    $this->postJson(route('webhooks.ses', ['token' => 'ses-secret-token']), [
+        'eventType' => 'Open',
+        'mail' => [
+            'messageId' => 'ses-open-repeat-123',
+        ],
+        'open' => [
+            'timestamp' => '2026-06-21T08:30:00.000Z',
+        ],
+    ])->assertOk();
+
+    expect($log->fresh())
+        ->metadata->open_count->toBe(2);
+});
+
+it('marks an email as opened via sns wrapped ses open event', function () {
+    config(['services.ses.webhook_token' => 'ses-secret-token']);
+
+    $log = DonorEmailLog::factory()->create([
+        'provider_message_id' => 'sns-ses-open-123',
+        'delivery_status' => 'delivered',
+        'opened_at' => null,
+    ]);
+
+    swapSesSnsValidatorToAlwaysPass();
+
+    $this->postJson(route('webhooks.ses', ['token' => 'ses-secret-token']), [
+        'Type' => 'Notification',
+        'MessageId' => 'sns-message-id-open',
+        'TopicArn' => 'arn:aws:sns:us-east-1:123456789:ses-events',
+        'Message' => json_encode([
+            'eventType' => 'Open',
+            'mail' => [
+                'messageId' => 'sns-ses-open-123',
+            ],
+            'open' => [
+                'timestamp' => '2026-06-21T09:15:00.000Z',
+                'ipAddress' => '198.51.100.10',
+                'userAgent' => 'Apple Mail',
+            ],
+        ]),
+        'Timestamp' => now()->toIso8601String(),
+        'SignatureVersion' => '1',
+        'Signature' => 'dummy',
+        'SigningCertURL' => 'https://sns.us-east-1.amazonaws.com/SimpleNotificationService-123.pem',
+    ])->assertOk();
+
+    $freshLog = $log->fresh();
+
+    expect($freshLog)
+        ->opened_at->not->toBeNull()
+        ->opened_at->format('Y-m-d H:i')->toBe('2026-06-21 09:15')
+        ->metadata->open_count->toBe(1)
+        ->metadata->opened_ip->toBe('198.51.100.10');
 });
 
 it('marks an email as delivered via sns wrapped ses event', function () {
