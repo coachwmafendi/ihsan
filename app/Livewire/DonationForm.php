@@ -275,15 +275,20 @@ class DonationForm extends Component
 
                 SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
 
-                if ($donation->type === DonationType::Recurring) {
-                    $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
-                    $donation->update(['subscription_id' => $subscription->getKey()]);
-                    $subscription->increment('payment_count');
+                $isNewSubscription = $donation->type === DonationType::Recurring
+                    && $donation->subscription_id === null;
 
-                    SendDonorNewSubscriptionNotification::dispatch($donation);
+                if ($isNewSubscription) {
+                    $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
+
+                    if ($subscription->wasRecentlyCreated) {
+                        SendDonorNewSubscriptionNotification::dispatch($donation);
+                    }
                 }
 
-                SendDonationReceipt::dispatch($donation);
+                if (! $isNewSubscription) {
+                    SendDonationReceipt::dispatch($donation);
+                }
 
                 if ($donation->type !== DonationType::Recurring) {
                     SendNewDonationNotification::dispatch($donation);

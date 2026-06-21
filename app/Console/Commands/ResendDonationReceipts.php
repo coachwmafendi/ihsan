@@ -80,7 +80,7 @@ class ResendDonationReceipts extends Command
         $bar->start();
 
         foreach ($donations as $donation) {
-            SendDonationReceipt::dispatch($donation);
+            SendDonationReceipt::dispatch($donation, force: true);
             $bar->advance();
         }
 

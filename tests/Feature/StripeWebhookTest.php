@@ -305,7 +305,7 @@ it('creates recurring subscriptions in the connected account from payment intent
         'default_payment_method' => 'pm_connected_card',
     ]);
 
-    Queue::assertPushed(SendDonationReceipt::class);
+    Queue::assertNotPushed(SendDonationReceipt::class);
     Queue::assertPushed(SyncDonationStripeDetailsJob::class);
     Queue::assertPushed(SendDonorNewSubscriptionNotification::class);
 });

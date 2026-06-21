@@ -111,6 +111,9 @@ class ProcessStripeWebhook implements ShouldQueue
 
         $donation->refresh();
 
+        $isNewSubscription = $donation->type === DonationType::Recurring
+            && ($wasPending || $donation->subscription_id === null);
+
         if ($wasPending) {
             $campaign = $donation->campaign;
             $previousCollected = (float) $campaign->collected_amount;
@@ -121,19 +124,16 @@ class ProcessStripeWebhook implements ShouldQueue
             SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
         }
 
-        if ($donation->type === DonationType::Recurring && ($wasPending || $donation->subscription_id === null)) {
+        if ($isNewSubscription) {
             $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
-            $donation->update(['subscription_id' => $subscription->getKey()]);
 
-            if ($wasPending) {
-                $subscription->increment('payment_count');
+            if ($subscription->wasRecentlyCreated) {
+                SendNewSubscriptionNotification::dispatch($donation);
+                SendDonorNewSubscriptionNotification::dispatch($donation);
             }
-
-            SendNewSubscriptionNotification::dispatch($donation);
-            SendDonorNewSubscriptionNotification::dispatch($donation);
         }
 
-        if ($wasPending) {
+        if ($wasPending && ! $isNewSubscription) {
             SendDonationReceipt::dispatch($donation);
 
             if ($donation->type !== DonationType::Recurring) {

@@ -66,6 +66,36 @@ it('resends a logged donor email and links it to the original log', function () 
     });
 });
 
+it('prevents duplicate donation receipts from concurrent dispatchers', function () {
+    Mail::fake();
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    (new SendDonationReceipt($donation))->handle();
+    (new SendDonationReceipt($donation))->handle();
+
+    Mail::assertSent(DonationReceipt::class, 1);
+    expect($donor->fresh()->emailLogs()->count())->toBe(1);
+});
+
+it('allows resending a receipt when forced', function () {
+    Mail::fake();
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    (new SendDonationReceipt($donation))->handle();
+    (new SendDonationReceipt($donation, force: true))->handle();
+
+    Mail::assertSent(DonationReceipt::class, 2);
+    expect($donor->fresh()->emailLogs()->count())->toBe(2);
+});
+
 it('records no subject when mailable envelope throws', function () {
     $organization = Organization::factory()->create();
     $donor = Donor::factory()->create();

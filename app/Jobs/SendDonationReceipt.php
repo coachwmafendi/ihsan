@@ -16,30 +16,54 @@ class SendDonationReceipt implements ShouldQueue
 
     public function __construct(
         public Donation $donation,
+        public bool $force = false,
     ) {}
 
     public function handle(): void
     {
-        $this->donation->load(['donor', 'campaign.organization']);
+        $donation = Donation::query()->whereKey($this->donation->getKey())->first();
 
-        if ((float) $this->donation->gross_amount <= 0) {
+        if ($donation === null) {
             return;
         }
 
+        $donation->load(['donor', 'campaign.organization']);
+
+        if ((float) $donation->gross_amount <= 0) {
+            return;
+        }
+
+        if (! $this->force && $donation->receipt_sent_at !== null) {
+            return;
+        }
+
+        if (! $this->force) {
+            $claimed = Donation::query()
+                ->whereKey($donation->getKey())
+                ->whereNull('receipt_sent_at')
+                ->update(['receipt_sent_at' => now()]);
+
+            if ($claimed === 0) {
+                return;
+            }
+
+            $donation->refresh();
+        }
+
         $messageId = Str::uuid()->toString();
-        $mailable = new DonationReceipt($this->donation, $messageId);
+        $mailable = new DonationReceipt($donation, $messageId);
 
         app(LogDonorEmail::class)->handle(
-            donor: $this->donation->donor,
+            donor: $donation->donor,
             mailable: $mailable,
-            organization: $this->donation->campaign?->organization,
-            donation: $this->donation,
+            organization: $donation->campaign?->organization,
+            donation: $donation,
             messageId: $messageId,
         );
 
-        Mail::to($this->donation->donor->email)
+        Mail::to($donation->donor->email)
             ->send($mailable);
 
-        $this->donation->update(['receipt_sent_at' => now()]);
+        $donation->update(['receipt_sent_at' => now()]);
     }
 }
