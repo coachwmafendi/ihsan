@@ -347,10 +347,9 @@ it('passes current donor details to stripe billing details', function () {
         ->assertSee('$wire.$set(&#039;name&#039;, this.donorName, false)', false)
         ->assertSee('$wire.$set(&#039;email&#039;, this.donorEmail, false)', false)
         ->assertSee('$wire.$set(&#039;phone&#039;, this.donorPhone, false)', false)
-        ->assertSee('stripe.createPaymentMethod', false)
-        ->assertSee('elements: elements', false)
+        ->assertSee('stripe.confirmPayment({', false)
         ->assertSee('receipt_email: this.donorEmail', false)
-        ->assertSee('payment_method: paymentMethod.id', false);
+        ->assertSee('await $wire.confirmPayment(paymentIntentId)', false);
 });
 
 it('does not render inactive or non form elements', function () {
@@ -890,7 +889,8 @@ it('renders payment step with summary bar and payment element', function () {
         ->assertSee('id="payment-element"', false)
         ->assertSee('Donate monthly')
         ->assertSee('handleSubmit', false)
-        ->assertSee('stripe.createPaymentMethod', false);
+        ->assertSee('stripe.confirmPayment({', false)
+        ->assertSee('await $wire.confirmPayment(paymentIntentId)', false);
 });
 
 it('renders payment success handling that recovers from livewire finalization failures', function () {
@@ -908,7 +908,8 @@ it('renders payment success handling that recovers from livewire finalization fa
     );
 
     expect($html)
-        ->toContain('Donation finalization failed after Stripe success')
+        ->toContain('await $wire.confirmPayment(paymentIntentId)')
+        ->toContain('Server finalization failure should not block the success UX.')
         ->toContain('this.currentStep = \'success\';')
         ->toContain('this.processing = false;');
 });
