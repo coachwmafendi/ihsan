@@ -162,6 +162,47 @@ it('renders an impersonation form on the open donor portal action', function () 
         ->assertSeeHtml('target="_blank"');
 });
 
+it('shows validation errors when saving an invalid email address', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create(['email' => 'ali@example.com']);
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->call('openEditModal')
+        ->set('email', 'not-an-email')
+        ->call('save')
+        ->assertHasErrors(['email']);
+
+    expect($donor->fresh()->email)->toBe('ali@example.com');
+});
+
+it('shows validation error when saving a duplicate email address', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+
+    Donor::factory()->create(['email' => 'existing@example.com']);
+
+    $donor = Donor::factory()->create(['email' => 'ali@example.com']);
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->call('openEditModal')
+        ->set('email', 'existing@example.com')
+        ->call('save')
+        ->assertHasErrors(['email']);
+
+    expect($donor->fresh()->email)->toBe('ali@example.com');
+});
+
 it('opens the edit modal and saves the supporter details', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([

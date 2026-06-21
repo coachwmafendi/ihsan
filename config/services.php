@@ -26,6 +26,8 @@ return [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+        'webhook_token' => env('SES_WEBHOOK_TOKEN'),
+        'topic_arn' => env('SES_WEBHOOK_TOPIC_ARN'),
     ],
 
     'slack' => [

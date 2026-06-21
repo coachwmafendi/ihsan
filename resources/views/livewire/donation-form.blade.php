@@ -137,8 +137,8 @@
                         </div>
                         @if ($isLongIntro)
                             <button type="button" x-on:click="expanded = ! expanded" class="mt-1 text-sm font-semibold text-teal-700 hover:text-teal-800">
-                                <span x-show="! expanded">Baca selengkapnya &darr;</span>
-                                <span x-show="expanded" x-cloak>Tutup &uarr;</span>
+                                <span x-show="! expanded">Read more &darr;</span>
+                                <span x-show="expanded" x-cloak>Close &uarr;</span>
                             </button>
                         @endif
                     </div>

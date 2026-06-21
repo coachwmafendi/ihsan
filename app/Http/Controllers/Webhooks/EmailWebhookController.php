@@ -27,4 +27,11 @@ class EmailWebhookController
 
         return response('OK', 200);
     }
+
+    public function ses(Request $request, string $token): Response
+    {
+        $this->service->processSes($request, $token);
+
+        return response('OK', 200);
+    }
 }

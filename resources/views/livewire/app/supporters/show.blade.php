@@ -124,55 +124,69 @@
                         </button>
                     </div>
 
-                    <div class="space-y-5 p-6">
-                        <div class="grid grid-cols-[140px_1fr] items-center gap-4">
-                            <label for="firstName" class="text-right text-sm font-medium text-slate-700">First name</label>
-                            <input
-                                id="firstName"
-                                type="text"
-                                wire:model="firstName"
-                                class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            />
+                    <form wire:submit.prevent="save" class="flex flex-col">
+                        <div class="space-y-5 p-6">
+                            <div class="grid grid-cols-[140px_1fr] items-start gap-4">
+                                <label for="firstName" class="text-right text-sm font-medium text-slate-700 pt-2">First name</label>
+                                <div>
+                                    <input
+                                        id="firstName"
+                                        type="text"
+                                        wire:model="firstName"
+                                        class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 @error('firstName') border-red-500 focus:border-red-500 focus:ring-red-500 @enderror"
+                                    />
+                                    @error('firstName')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-[140px_1fr] items-start gap-4">
+                                <label for="lastName" class="text-right text-sm font-medium text-slate-700 pt-2">Last name</label>
+                                <div>
+                                    <input
+                                        id="lastName"
+                                        type="text"
+                                        wire:model="lastName"
+                                        class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 @error('lastName') border-red-500 focus:border-red-500 focus:ring-red-500 @enderror"
+                                    />
+                                    @error('lastName')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-[140px_1fr] items-start gap-4">
+                                <label for="editEmail" class="text-right text-sm font-medium text-slate-700 pt-2">Email</label>
+                                <div>
+                                    <input
+                                        id="editEmail"
+                                        type="email"
+                                        wire:model="email"
+                                        class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 @error('email') border-red-500 focus:border-red-500 focus:ring-red-500 @enderror"
+                                    />
+                                    @error('email')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-[140px_1fr] items-start gap-4">
+                                <div></div>
+                                <label class="flex items-center gap-2 text-sm text-slate-700">
+                                    <input
+                                        type="checkbox"
+                                        wire:model="updateRecurringPlans"
+                                        class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                    />
+                                    Update recurring plans
+                                    <x-heroicon-o-question-mark-circle class="size-4 text-slate-400" />
+                                </label>
+                            </div>
                         </div>
 
-                        <div class="grid grid-cols-[140px_1fr] items-center gap-4">
-                            <label for="lastName" class="text-right text-sm font-medium text-slate-700">Last name</label>
-                            <input
-                                id="lastName"
-                                type="text"
-                                wire:model="lastName"
-                                class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            />
+                        <div class="flex justify-end gap-3 border-t border-slate-200 px-5 py-4">
+                            <x-ui.button wireClick="closeEditModal" variant="outline" type="button">Cancel</x-ui.button>
+                            <x-ui.button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="save">
+                                <span wire:loading wire:target="save">Saving...</span>
+                                <span wire:loading.remove wire:target="save">Save changes</span>
+                            </x-ui.button>
                         </div>
-
-                        <div class="grid grid-cols-[140px_1fr] items-center gap-4">
-                            <label for="editEmail" class="text-right text-sm font-medium text-slate-700">Email</label>
-                            <input
-                                id="editEmail"
-                                type="email"
-                                wire:model="email"
-                                class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            />
-                        </div>
-
-                        <div class="grid grid-cols-[140px_1fr] items-start gap-4">
-                            <div></div>
-                            <label class="flex items-center gap-2 text-sm text-slate-700">
-                                <input
-                                    type="checkbox"
-                                    wire:model="updateRecurringPlans"
-                                    class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                                />
-                                Update recurring plans
-                                <x-heroicon-o-question-mark-circle class="size-4 text-slate-400" />
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end gap-3 border-t border-slate-200 px-5 py-4">
-                        <x-ui.button wireClick="closeEditModal" variant="outline">Cancel</x-ui.button>
-                        <x-ui.button wireClick="save" variant="primary">Save changes</x-ui.button>
-                    </div>
+                    </form>
                 </div>
             </div>
 

@@ -81,6 +81,7 @@ Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
 Route::post('/webhooks/mailgun', [EmailWebhookController::class, 'mailgun'])->name('webhooks.mailgun');
 Route::post('/webhooks/postmark', [EmailWebhookController::class, 'postmark'])->name('webhooks.postmark');
+Route::post('/webhooks/ses/{token}', [EmailWebhookController::class, 'ses'])->name('webhooks.ses');
 
 Route::middleware(['auth', EnsureNgoAdmin::class])->group(function () {
     Route::post('/app/supporters/{donor:public_id}/impersonate', [DonorImpersonationController::class, 'impersonate'])
