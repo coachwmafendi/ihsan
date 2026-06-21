@@ -237,11 +237,8 @@ class DonationForm extends Component
     {
         $this->skipRender();
 
-        Stripe::setApiKey(config('services.stripe.secret'));
-
         $donation = Donation::query()
             ->where('stripe_payment_intent_id', $paymentIntentId)
-            ->where('status', DonationStatus::Pending)
             ->first();
 
         if ($donation === null) {
@@ -249,44 +246,58 @@ class DonationForm extends Component
         }
 
         try {
-            $donation->loadMissing('campaign.organization');
-            $stripeOptions = $this->stripeOptionsFor($donation);
-            $synced = app(SyncDonationStripeDetails::class)->sync($donation, $paymentIntent, $stripeOptions);
-            $paymentIntent = $synced['payment_intent'];
+            $wasAlreadySucceeded = $donation->status === DonationStatus::Succeeded;
+            $stripeOptions = [];
 
-            $donation->update([
-                'status' => DonationStatus::Succeeded,
-            ]);
+            if (! $wasAlreadySucceeded) {
+                Stripe::setApiKey(config('services.stripe.secret'));
+                $donation->loadMissing('campaign.organization');
+                $stripeOptions = $this->stripeOptionsFor($donation);
+                $synced = app(SyncDonationStripeDetails::class)->sync($donation, $paymentIntent, $stripeOptions);
+                $paymentIntent = $synced['payment_intent'];
 
+                $donation->update([
+                    'status' => DonationStatus::Succeeded,
+                ]);
+            }
+
+            $donation->refresh();
             $campaign = $donation->campaign;
-            $previousCollected = (float) $campaign->collected_amount;
-            $campaign->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
-            $campaign->refresh();
+
+            if ($campaign === null) {
+                return;
+            }
+
+            if (! $wasAlreadySucceeded) {
+                $previousCollected = (float) $campaign->collected_amount;
+                $campaign->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
+                $campaign->refresh();
+
+                SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
+
+                if ($donation->type === DonationType::Recurring) {
+                    $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
+                    $donation->update(['subscription_id' => $subscription->getKey()]);
+                    $subscription->increment('payment_count');
+
+                    SendDonorNewSubscriptionNotification::dispatch($donation);
+                }
+
+                SendDonationReceipt::dispatch($donation);
+
+                if ($donation->type !== DonationType::Recurring) {
+                    SendNewDonationNotification::dispatch($donation);
+                }
+
+                SendLargeDonationNotification::dispatch($donation);
+                SendMetaConversionEvent::dispatch($donation);
+                SendLinkedInConversionEvent::dispatch($donation);
+                SendXAdsConversionEvent::dispatch($donation);
+                SendSnapchatConversionEvent::dispatch($donation);
+                SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
+            }
 
             $this->dispatch('campaign-donation-received', campaignPublicId: $campaign->public_id);
-
-            SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
-
-            if ($donation->type === DonationType::Recurring) {
-                $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
-                $donation->update(['subscription_id' => $subscription->getKey()]);
-                $subscription->increment('payment_count');
-
-                SendDonorNewSubscriptionNotification::dispatch($donation);
-            }
-
-            SendDonationReceipt::dispatch($donation);
-
-            if ($donation->type !== DonationType::Recurring) {
-                SendNewDonationNotification::dispatch($donation);
-            }
-
-            SendLargeDonationNotification::dispatch($donation);
-            SendMetaConversionEvent::dispatch($donation);
-            SendLinkedInConversionEvent::dispatch($donation);
-            SendXAdsConversionEvent::dispatch($donation);
-            SendSnapchatConversionEvent::dispatch($donation);
-            SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
         } catch (\Exception $e) {
             // Log error silently
         }

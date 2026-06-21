@@ -51,7 +51,7 @@
     $postDonationMode = $campaign?->config['post_donation_mode'] ?? 'default';
     $shareChannels = $campaign?->config['share_channels'] ?? ['facebook', 'x', 'linkedin', 'email'];
     $shareMessage = $campaign?->config['share_message'] ?? '';
-    $redirectUrl = $postDonationMode === 'redirect'
+    $redirectUrl = ($postDonationMode === 'redirect' && $this->isPublicPage)
         ? ($this->campaign?->redirect_url ?? $this->element?->campaign?->redirect_url)
         : null;
     $shareUrl = $campaign ? route('campaigns.public', $campaign) : request()->fullUrl();
@@ -1070,6 +1070,8 @@
                     return;
                 }
 
+                const paymentIntentId = clientSecret.split('_secret_')[0] ?? null;
+
                 const { error: confirmError } = await stripe.confirmPayment({
                     elements,
                     clientSecret,
@@ -1087,23 +1089,21 @@
                     return;
                 }
 
+                if (paymentIntentId) {
+                    try {
+                        await $wire.confirmPayment(paymentIntentId);
+                    } catch (e) {
+                        // Server finalization failure should not block the success UX.
+                    }
+                }
+
                 this.donationPublicId = $wire.donationPublicId;
                 this.processing = false;
                 this.trackPurchase();
 
-                if (this.isPopup) {
-                    if (this.redirectUrl) {
-                        setTimeout(() => { window.top.location.href = this.redirectUrl; }, 500);
-                    } else {
-                        this.$el.dispatchEvent(new CustomEvent('close-popup', { bubbles: true }));
-                        window.parent.postMessage({ type: 'ihsan:close-modal' }, '*');
-                    }
-                    return;
-                }
-
                 this.currentStep = 'success';
 
-                if (this.redirectUrl && !this.isEmbed) {
+                if (this.redirectUrl && ! this.isEmbed) {
                     setTimeout(() => { window.location.href = this.redirectUrl; }, 1500);
                 }
             },

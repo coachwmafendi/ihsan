@@ -230,6 +230,7 @@
                                 let clientSecret;
                                 try { clientSecret = await $wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
                                 if (!clientSecret) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
+                                const paymentIntentId = clientSecret.split('_secret_')[0] ?? null;
                                 const { error: confirmError } = await stripe.confirmPayment({
                                     elements,
                                     clientSecret,
@@ -240,23 +241,20 @@
                                     redirect: 'if_required',
                                 });
                                 if (confirmError) { this.processing = false; this.currentStep = 'error'; this.cardError = confirmError.message; return; }
+                                if (paymentIntentId) {
+                                    try {
+                                        await $wire.confirmPayment(paymentIntentId);
+                                    } catch (e) {
+                                        // Server finalization failure should not block the success UX.
+                                    }
+                                }
                                 this.donationPublicId = $wire.donationPublicId;
                                 this.processing = false;
                                 this.trackPurchase();
 
-                                if (this.isPopup) {
-                                    if (this.redirectUrl) {
-                                        setTimeout(() => { window.top.location.href = this.redirectUrl; }, 500);
-                                    } else {
-                                        this.$el.dispatchEvent(new CustomEvent('close-popup', { bubbles: true }));
-                                        window.parent.postMessage({ type: 'ihsan:close-modal' }, '*');
-                                    }
-                                    return;
-                                }
-
                                 this.currentStep = 'success';
 
-                                if (this.redirectUrl && !this.isEmbed) {
+                                if (this.redirectUrl && ! this.isEmbed) {
                                     setTimeout(() => { window.location.href = this.redirectUrl; }, 1500);
                                 }
                             },
