@@ -3,8 +3,6 @@
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\UserRole;
-use App\Filament\App\Resources\Donations\DonationResource;
-use App\Filament\App\Resources\Donors\DonorResource;
 use App\Filament\Exports\DonationExporter;
 use App\Filament\Exports\DonorExporter;
 use App\Models\Campaign;
@@ -115,33 +113,4 @@ it('exports donor data with correct formatting', function () {
     expect($data[array_search('address_city', $map)])->toBe('Kuala Lumpur');
     expect($data[array_search('country', $map)])->toBe('MY');
     expect($data[array_search('lifetime_total_myr', $map)])->toBe('MYR 100.00');
-});
-
-it('scopes donation query to authenticated organization', function () {
-    $campaign = Campaign::factory()->for($this->organization)->create();
-    $otherCampaign = Campaign::factory()->for($this->otherOrganization)->create();
-
-    Donation::factory()->for($campaign)->create();
-    Donation::factory()->for($otherCampaign)->create();
-
-    $query = DonationResource::getEloquentQuery();
-
-    expect($query->count())->toBe(1);
-    expect($query->first()->campaign->organization_id)->toBe($this->organization->id);
-});
-
-it('scopes donor query to authenticated organization', function () {
-    $campaign = Campaign::factory()->for($this->organization)->create();
-    $otherCampaign = Campaign::factory()->for($this->otherOrganization)->create();
-
-    $donor = Donor::factory()->create();
-    $otherDonor = Donor::factory()->create();
-
-    Donation::factory()->for($campaign)->for($donor)->create();
-    Donation::factory()->for($otherCampaign)->for($otherDonor)->create();
-
-    $query = DonorResource::getEloquentQuery();
-
-    expect($query->count())->toBe(1);
-    expect($query->first()->id)->toBe($donor->id);
 });

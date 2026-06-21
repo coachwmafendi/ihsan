@@ -168,6 +168,7 @@ class DonorSubscriptionController extends Controller
             'symbol' => $symbol,
             'interval' => $interval,
             'presetOptions' => $presetOptions,
+            'selectedIncrement' => $presetOptions[0]['increment'],
         ]);
     }
 
