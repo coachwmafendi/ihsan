@@ -7,6 +7,7 @@ use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -88,7 +89,7 @@ it('renders the name column without wrapping', function () {
 
     $response->assertOk()
         ->assertSeeHtml('class="whitespace-nowrap min-w-[200px] px-5 py-4"')
-        ->assertSee($this->donor->name);
+        ->assertSee(Str::title($this->donor->name));
 });
 
 it('shows approximate myr lifetime total for foreign donations without base amount', function () {

@@ -41,7 +41,7 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
         $amountDisplay = $subscription->currency_symbol.' '.number_format($subscription->amount, 2);
 
         // Notify donor
-        if (filled($subscription->donor?->email) && ! $subscription->donor->canReceiveEmails()) {
+        if (filled($subscription->donor?->email) && $subscription->donor->canReceiveEmails()) {
             $messageId = Str::uuid()->toString();
             $donorMail = new SubscriptionAmountChangedNotification(
                 $subscription,

@@ -12,7 +12,10 @@ use App\Models\Donor;
 use App\Models\DonorEmailLog;
 use App\Models\Organization;
 use App\Models\Subscription;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+
+uses(RefreshDatabase::class);
 
 it('sends a thank you email to a supporter for subsequent recurring payments', function () {
     Mail::fake();
