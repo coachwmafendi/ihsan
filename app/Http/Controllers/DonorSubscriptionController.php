@@ -185,6 +185,16 @@ class DonorSubscriptionController extends Controller
 
         $symbol = $subscription->currency_symbol;
 
+        $presetIncrements = $this->resolvePresetIncrements();
+        $selectedIncrement = $this->resolveSelectedIncrement($presetIncrements);
+
+        $presetOptions = collect($presetIncrements)
+            ->map(fn (int $increment): array => [
+                'increment' => $increment,
+                'label' => '+ '.$symbol.$increment,
+            ])
+            ->all();
+
         return view('donor.subscription-increase', [
             'organization' => $organization,
             'subscription' => $subscription,
@@ -192,13 +202,45 @@ class DonorSubscriptionController extends Controller
             'currency' => $subscription->currency,
             'symbol' => $symbol,
             'interval' => $subscription->interval->value,
-            'presetOptions' => [
-                ['increment' => 5, 'label' => '+ '.$symbol.'5'],
-                ['increment' => 80, 'label' => '+ '.$symbol.'80'],
-                ['increment' => 100, 'label' => '+ '.$symbol.'100'],
-            ],
+            'presetOptions' => $presetOptions,
+            'selectedIncrement' => $selectedIncrement,
             'changeAmountUrl' => $changeAmountUrl,
         ]);
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function resolvePresetIncrements(): array
+    {
+        $query = request()->query('increments');
+
+        if (! filled($query)) {
+            return [5, 80, 100];
+        }
+
+        $increments = collect(explode(',', (string) $query))
+            ->map(fn (string $value): int => (int) trim($value))
+            ->filter(fn (int $value): bool => $value > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        return $increments !== [] ? $increments : [5, 80, 100];
+    }
+
+    /**
+     * @param  array<int, int>  $presetIncrements
+     */
+    private function resolveSelectedIncrement(array $presetIncrements): int
+    {
+        $selected = (int) request()->query('selected');
+
+        if (in_array($selected, $presetIncrements, true)) {
+            return $selected;
+        }
+
+        return $presetIncrements[0] ?? 5;
     }
 
     public function changeAmountLink(Organization $organization, Subscription $subscription)

@@ -155,6 +155,10 @@ it('renders upgrade chips for recurring donations with signed donor portal links
         ->toContain('+ $25/mo')
         ->toContain('+ $35/mo')
         ->toContain(route('donorportal.subscriptions.increase-link', [$organization->code, $subscription->public_id]))
+        ->toContain('increments=')
+        ->toContain('selected=15')
+        ->toContain('selected=25')
+        ->toContain('selected=35')
         ->toContain('signature=')
         ->toContain('expires=');
 });

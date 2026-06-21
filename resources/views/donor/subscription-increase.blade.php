@@ -68,7 +68,7 @@
         }
     }
 }"
-     x-init="selected = 5"
+     x-init="selected = {{ $selectedIncrement }}"
      class="max-w-3xl mx-auto relative">
 
     {{-- Full-screen processing overlay --}}

@@ -85,14 +85,22 @@ class DonorRecurringPaymentNotification extends Mailable
         $shortInterval = $this->intervalShortLabel($subscription->interval, $locale);
         $expires = now()->addDays(7);
 
-        return collect([15, 25, 35])
-            ->map(function (int $increment) use ($symbol, $shortInterval, $expires, $organization, $subscription): array {
+        $increments = [15, 25, 35];
+        $incrementsQuery = implode(',', $increments);
+
+        return collect($increments)
+            ->map(function (int $increment) use ($symbol, $shortInterval, $expires, $organization, $subscription, $incrementsQuery): array {
                 return [
                     'label' => "+ {$symbol}{$increment}/{$shortInterval}",
                     'url' => URL::temporarySignedRoute(
                         'donorportal.subscriptions.increase-link',
                         $expires,
-                        ['organization' => $organization, 'subscription' => $subscription],
+                        [
+                            'organization' => $organization,
+                            'subscription' => $subscription,
+                            'increments' => $incrementsQuery,
+                            'selected' => (string) $increment,
+                        ],
                     ),
                 ];
             })
