@@ -34,13 +34,25 @@
                     'interval' => $t('emails.donor_recurring_payment.upgrade_interval_monthly'),
                 ]) }}
             </p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-                @foreach ($upgradeChips as $chip)
-                    <a href="{{ $chip['url'] }}" style="flex: 1 1 80px; max-width: 140px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 8px; text-decoration: none; text-align: center; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff;">
-                        {{ $chip['label'] }}
-                    </a>
-                @endforeach
-            </div>
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <tr>
+                    <td style="text-align: center; padding: 0 6px;">
+                        <a href="{{ $upgradeChips[0]['url'] }}" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff;">
+                            {{ $upgradeChips[0]['label'] }}
+                        </a>
+                    </td>
+                    <td style="text-align: center; padding: 0 6px;">
+                        <a href="{{ $upgradeChips[1]['url'] }}" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff;">
+                            {{ $upgradeChips[1]['label'] }}
+                        </a>
+                    </td>
+                    <td style="text-align: center; padding: 0 6px;">
+                        <a href="{{ $upgradeChips[2]['url'] }}" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff;">
+                            {{ $upgradeChips[2]['label'] }}
+                        </a>
+                    </td>
+                </tr>
+            </table>
         </div>
     @endif
 
