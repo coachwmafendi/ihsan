@@ -6,6 +6,7 @@ use App\Enums\ElementType;
 use App\Enums\SubscriptionStatus;
 use App\Enums\UserRole;
 use App\Mail\SubscriptionAmountChangedNotification;
+use App\Mail\SupporterSubscriptionAmountChangedNotification;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -795,11 +796,11 @@ it('sends amount change notification to donor and org admins', function () {
         ])
         ->assertOk();
 
-    Mail::assertQueued(SubscriptionAmountChangedNotification::class, 2);
-    Mail::assertQueued(SubscriptionAmountChangedNotification::class, function ($mail) use ($donor) {
+    Mail::assertQueued(SupporterSubscriptionAmountChangedNotification::class, function ($mail) use ($donor) {
         return $mail->hasTo($donor->email);
     });
     Mail::assertQueued(SubscriptionAmountChangedNotification::class, function ($mail) use ($admin) {
-        return $mail->hasTo($admin->email);
+        return $mail->hasTo($admin->email)
+            && str_contains($mail->render(), 'Hi '.$admin->name);
     });
 });

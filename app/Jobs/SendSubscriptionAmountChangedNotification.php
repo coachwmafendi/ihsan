@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Actions\DonorEmailLog\LogDonorEmail;
 use App\Enums\UserRole;
 use App\Mail\SubscriptionAmountChangedNotification;
+use App\Mail\SupporterSubscriptionAmountChangedNotification;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Support\MailtrapThrottle;
@@ -40,14 +41,12 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
 
         $amountDisplay = $subscription->currency_symbol.' '.number_format($subscription->amount, 2);
 
-        // Notify donor
+        // Notify supporter
         if (filled($subscription->donor?->email) && $subscription->donor->canReceiveEmails()) {
             $messageId = Str::uuid()->toString();
-            $donorMail = new SubscriptionAmountChangedNotification(
+            $donorMail = new SupporterSubscriptionAmountChangedNotification(
                 $subscription,
                 $this->previousAmount,
-                $amountDisplay,
-                true,
                 $messageId,
             );
 
@@ -81,6 +80,8 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
                 $this->previousAmount,
                 $amountDisplay,
                 false,
+                null,
+                $admin,
             );
 
             Mail::to($admin->email)

@@ -10,6 +10,7 @@ use App\Mail\DonorDunningNotification;
 use App\Mail\DonorNewSubscriptionNotification;
 use App\Mail\DonorRecurringPaymentNotification;
 use App\Mail\SubscriptionAmountChangedNotification;
+use App\Mail\SupporterSubscriptionAmountChangedNotification;
 use App\Models\Campaign;
 use App\Models\DonorEmailLog;
 use Illuminate\Mail\Mailable;
@@ -60,6 +61,7 @@ class ResendDonorEmail
             DonationReceipt::class => $this->recreateDonationReceipt($log, $messageId),
             CampaignCompletedDonorNotification::class => $this->recreateCampaignCompleted($log, $messageId),
             SubscriptionAmountChangedNotification::class => $this->recreateSubscriptionAmountChanged($log, $messageId),
+            SupporterSubscriptionAmountChangedNotification::class => $this->recreateSupporterSubscriptionAmountChanged($log, $messageId),
             DonorDunningNotification::class => $this->recreateDonorDunning($log, $messageId),
             DonorNewSubscriptionNotification::class => $this->recreateDonorNewSubscription($log, $messageId),
             DonorRecurringPaymentNotification::class => $this->recreateDonorRecurringPayment($log, $messageId),
@@ -104,6 +106,19 @@ class ResendDonorEmail
             $previousAmount,
             $amountDisplay,
             true,
+            $messageId,
+        );
+    }
+
+    private function recreateSupporterSubscriptionAmountChanged(DonorEmailLog $log, string $messageId): ?Mailable
+    {
+        if ($log->subscription === null) {
+            return null;
+        }
+
+        return new SupporterSubscriptionAmountChangedNotification(
+            $log->subscription,
+            (float) ($log->metadata['previous_amount'] ?? $log->subscription->amount),
             $messageId,
         );
     }

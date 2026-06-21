@@ -11,10 +11,13 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Str;
 
 class LoginAlertNotification extends Mailable
 {
     use Queueable, SerializesModels;
+
+    public string $emailReference;
 
     public function __construct(
         public Organization $organization,
@@ -22,7 +25,9 @@ class LoginAlertNotification extends Mailable
         public string $ipAddress,
         public string $browser,
         public CarbonImmutable $loggedInAt,
-    ) {}
+    ) {
+        $this->emailReference = strtoupper(Str::random(8));
+    }
 
     public function envelope(): Envelope
     {
@@ -35,6 +40,9 @@ class LoginAlertNotification extends Mailable
     {
         return new Content(
             view: 'emails.login-alert-notification',
+            with: [
+                'emailReference' => $this->emailReference,
+            ],
         );
     }
 }

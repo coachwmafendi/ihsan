@@ -31,6 +31,8 @@
         <p>Thank you for helping us keep your account secure.</p>
 
         <p>Regards,<br>The {{ config('app.name') }} Team</p>
+
+        @include('emails.partials.admin-support-footer', ['emailReference' => $emailReference])
     </div>
 </body>
 </html>
