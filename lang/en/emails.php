@@ -67,6 +67,12 @@ return [
         'intro' => 'On behalf of everyone at :organization, we would like to express our heartfelt appreciation for your recent recurring donation and continued support.',
         'body' => 'Your generosity and compassion are what make our mission possible. We are truly grateful for donors like you who stand with us in sustaining this journey.',
         'sign_off' => 'Your friends at :organization',
+        'upgrade_heading' => 'Modify your :amount :interval donation',
+        'upgrade_interval_monthly' => 'monthly',
+        'upgrade_interval_short_monthly' => 'mo',
+        'upgrade_interval_short_weekly' => 'wk',
+        'upgrade_interval_short_yearly' => 'yr',
+        'upgrade_interval_short_default' => ':interval',
     ],
 
     'subscription_amount_changed' => [

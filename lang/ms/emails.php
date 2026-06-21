@@ -67,6 +67,12 @@ return [
         'intro' => 'Atas nama semua di :organization, kami ingin menyampaikan penghargaan yang ikhlas atas derma berulang terbaharu dan sokongan berterusan anda.',
         'body' => 'Kemurahan hati dan keprihatinan anda membuatkan misi kami menjadi mungkin. Kami amat bersyukur mempunyai donor seperti anda yang bersama-sama dengan kami mengekalkan perjalanan ini.',
         'sign_off' => 'Rakan-rakan anda di :organization',
+        'upgrade_heading' => 'Ubah suai derma :amount :interval anda',
+        'upgrade_interval_monthly' => 'bulanan',
+        'upgrade_interval_short_monthly' => 'bln',
+        'upgrade_interval_short_weekly' => 'ming',
+        'upgrade_interval_short_yearly' => 'thn',
+        'upgrade_interval_short_default' => ':interval',
     ],
 
     'subscription_amount_changed' => [

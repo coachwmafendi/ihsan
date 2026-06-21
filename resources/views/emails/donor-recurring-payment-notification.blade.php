@@ -26,6 +26,24 @@
 
     <p style="font-size: 18px;">– {{ $t('emails.donor_recurring_payment.sign_off', ['organization' => $donation->campaign->organization->name]) }}</p>
 
+    @if ($upgradeChips)
+        <div style="margin: 32px 0; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; background-color: #ffffff; text-align: center;">
+            <p style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #334155;">
+                {{ $t('emails.donor_recurring_payment.upgrade_heading', [
+                    'amount' => $currentAmountDisplay,
+                    'interval' => $t('emails.donor_recurring_payment.upgrade_interval_monthly'),
+                ]) }}
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                @foreach ($upgradeChips as $chip)
+                    <a href="{{ $chip['url'] }}" style="flex: 1 1 80px; max-width: 140px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 8px; text-decoration: none; text-align: center; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff;">
+                        {{ $chip['label'] }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     @if ($downloadUrl)
         <p style="margin: 28px 0;">
             <a href="{{ $downloadUrl }}" style="display: inline-block; background-color: #0f766e; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 18px; font-weight: 600;">{{ $t('emails.receipt.download_receipt') }}</a>

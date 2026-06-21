@@ -126,5 +126,35 @@ it('renders the recurring payment email in malay when the supporter locale is ms
     $mailable = new DonorRecurringPaymentNotification($donation);
 
     expect($mailable->render())->toContain('Kami amat menghargai sokongan berterusan anda.')
+        ->toContain('+ RM15/bln')
+        ->toContain('+ RM25/bln')
+        ->toContain('+ RM35/bln')
         ->and($mailable->envelope()->subject)->toBe('Terima kasih atas sokongan berterusan anda!');
+});
+
+it('renders upgrade chips for recurring donations with signed donor portal links', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create(['locale' => 'en']);
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create([
+        'amount' => 38.10,
+        'currency' => 'usd',
+    ]);
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'subscription_id' => $subscription->getKey(),
+        'type' => DonationType::Recurring,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $mailable = new DonorRecurringPaymentNotification($donation);
+    $html = $mailable->render();
+
+    expect($html)
+        ->toContain('Modify your $ 38.10 monthly donation')
+        ->toContain('+ $15/mo')
+        ->toContain('+ $25/mo')
+        ->toContain('+ $35/mo')
+        ->toContain(route('donorportal.subscriptions.increase-link', [$organization->code, $subscription->public_id]))
+        ->toContain('signature=')
+        ->toContain('expires=');
 });
