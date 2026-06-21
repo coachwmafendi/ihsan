@@ -126,6 +126,11 @@ class Subscription extends Model
         return $this->hasMany(Donation::class);
     }
 
+    public function emailLogs(): HasMany
+    {
+        return $this->hasMany(DonorEmailLog::class)->latest('sent_at');
+    }
+
     public function currencySymbol(): Attribute
     {
         return Attribute::get(fn () => Currency::symbol($this->currency));

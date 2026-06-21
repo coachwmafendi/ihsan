@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Donations;
 
+use App\Actions\DonorEmailLog\PreviewDonorEmail;
+use App\Actions\DonorEmailLog\ResendDonorEmail;
 use App\Actions\Stripe\RefundDonation;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
+use App\Models\DonorEmailLog;
+use App\Models\Organization;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -47,6 +53,28 @@ class DonationShow extends Component
     public string $editCountry = '';
 
     public bool $editIsAnonymous = false;
+
+    public bool $showPreviewModal = false;
+
+    public ?int $previewLogId = null;
+
+    public ?string $previewSubject = null;
+
+    public ?string $previewSentAt = null;
+
+    public ?string $previewFromName = null;
+
+    public ?string $previewFromEmail = null;
+
+    public ?string $previewHtml = null;
+
+    public ?string $previewToEmail = null;
+
+    public bool $showResendModal = false;
+
+    public ?int $resendLogId = null;
+
+    public ?string $resendRecipientEmail = null;
 
     #[Computed]
     public function netAmount(): string
@@ -356,6 +384,123 @@ class DonationShow extends Component
 
         $this->showEditPersonalModal = false;
         $this->dispatch('notify', message: 'Personal information updated.', variant: 'success');
+    }
+
+    #[Computed]
+    public function emailLogs()
+    {
+        $orgId = Auth::user()?->organization?->getKey();
+
+        return $this->donation->emailLogs()
+            ->when($orgId, fn (Builder $q) => $q->where('organization_id', $orgId))
+            ->latest('sent_at')
+            ->limit(50)
+            ->get();
+    }
+
+    public function confirmResend(int $id): void
+    {
+        $log = $this->findEmailLog($id);
+
+        $this->resendLogId = $log->id;
+        $this->resendRecipientEmail = $log->donor?->email;
+        $this->showResendModal = true;
+    }
+
+    public function closeResendModal(): void
+    {
+        $this->showResendModal = false;
+        $this->resendLogId = null;
+        $this->resendRecipientEmail = null;
+    }
+
+    public function resendConfirmed(): void
+    {
+        if ($this->resendLogId === null) {
+            return;
+        }
+
+        $this->resendEmail($this->resendLogId, $this->resendRecipientEmail);
+        $this->closeResendModal();
+        $this->closePreviewModal();
+    }
+
+    private function resendEmail(int $id, ?string $toEmail = null): void
+    {
+        $log = $this->findEmailLog($id);
+
+        $newLog = app(ResendDonorEmail::class)->handle($log, $toEmail);
+
+        if ($newLog === null) {
+            $this->dispatch('notify', variant: 'danger', message: 'This email cannot be resent.');
+
+            return;
+        }
+
+        $this->dispatch('notify', variant: 'success', message: 'Email queued to be resent.');
+    }
+
+    public function previewEmail(int $id): void
+    {
+        $log = $this->findEmailLog($id, with: ['donor', 'donation.donor', 'donation.campaign.organization', 'subscription.donor', 'subscription.campaign.organization']);
+
+        $html = app(PreviewDonorEmail::class)->handle($log);
+
+        if ($html === null) {
+            $this->dispatch('notify', variant: 'danger', message: 'This email cannot be previewed.');
+
+            return;
+        }
+
+        $org = Auth::user()?->organization;
+
+        $this->previewLogId = $log->id;
+        $this->previewSubject = $log->subject;
+        $this->previewSentAt = $log->sent_at?->format('M d, Y, g:i A');
+        $this->previewFromName = $org?->name;
+        $this->previewFromEmail = config('mail.from.address', 'no-reply@getihsan.my');
+        $this->previewToEmail = $log->metadata['resent_to_email'] ?? $log->donor?->email;
+        $this->previewHtml = $html;
+        $this->showPreviewModal = true;
+    }
+
+    public function resendFromModal(): void
+    {
+        if ($this->previewLogId === null) {
+            return;
+        }
+
+        $this->confirmResend($this->previewLogId);
+    }
+
+    public function closePreviewModal(): void
+    {
+        $this->showPreviewModal = false;
+        $this->previewLogId = null;
+        $this->previewSubject = null;
+        $this->previewSentAt = null;
+        $this->previewFromName = null;
+        $this->previewFromEmail = null;
+        $this->previewToEmail = null;
+        $this->previewHtml = null;
+    }
+
+    /**
+     * @param  array<int, string>  $with
+     */
+    private function findEmailLog(int $id, array $with = []): DonorEmailLog
+    {
+        $org = Auth::user()?->organization;
+
+        if (! $org instanceof Organization) {
+            abort(404);
+        }
+
+        return DonorEmailLog::whereKey($id)
+            ->where('donation_id', $this->donation->getKey())
+            ->where('organization_id', $org->getKey())
+            ->when($with !== [], fn (Builder $q) => $q->with($with))
+            ->firstOrFail();
     }
 
     public function render()

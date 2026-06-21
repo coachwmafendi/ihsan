@@ -434,6 +434,66 @@
                     @endif
                 </x-ui.card>
             </section>
+
+            {{-- Emails --}}
+            <section id="section-emails" data-section="section-emails">
+                <x-ui.card title="Emails" icon="heroicon-o-envelope">
+                    @if ($this->emailLogs->isNotEmpty())
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-200">
+                                <thead>
+                                    <tr class="bg-slate-50">
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Sent</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Subject</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Opened</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                                    @foreach ($this->emailLogs as $log)
+                                        <tr
+                                            class="cursor-pointer transition-colors hover:bg-slate-50"
+                                            wire:click="previewEmail({{ $log->id }})"
+                                            wire:key="email-log-{{ $log->id }}"
+                                        >
+                                            <td class="px-4 py-3 text-sm text-slate-500">
+                                                {{ $log->sent_at?->format('M d, Y, g:i A') ?? '—' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm font-medium text-slate-900">
+                                                <span class="inline-flex items-center gap-2">
+                                                    {{ $log->subject }}
+                                                    @if (filled($log->resent_from_id))
+                                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Resent</span>
+                                                    @endif
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-slate-500">
+                                                {{ $log->opened_at?->format('M d, Y, g:i A') ?? '—' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-right">
+                                                <button
+                                                    type="button"
+                                                    wire:click.stop="confirmResend({{ $log->id }})"
+                                                    class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                                                >
+                                                    <x-heroicon-o-arrow-path class="size-4" />
+                                                    Resend
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <x-ui.empty-state
+                            icon="heroicon-o-envelope"
+                            title="No emails yet"
+                            description="Emails sent for this recurring plan will appear here."
+                        />
+                    @endif
+                </x-ui.card>
+            </section>
         </div>
 
         {{-- Right Column / Floating Menu --}}
@@ -482,6 +542,7 @@
                         >
                             <x-heroicon-o-arrow-path class="size-5" />
                             Recurring plans
+                        </button>
                         <button
                             type="button"
                             @click="scrollToSection('section-personal')"
@@ -517,6 +578,15 @@
                         >
                             <x-heroicon-o-receipt-percent class="size-5" />
                             Receipts
+                        </button>
+                        <button
+                            type="button"
+                            @click="scrollToSection('section-emails')"
+                            :class="activeSection === 'section-emails' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'"
+                            class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold transition"
+                        >
+                            <x-heroicon-o-envelope class="size-5" />
+                            Emails
                         </button>
                     </nav>
                 </div>
@@ -1016,4 +1086,158 @@
             };
         }
     </script>
+
+    {{-- Email Preview Modal --}}
+    <div
+        x-cloak
+        x-data="{}"
+        x-show="$wire.showPreviewModal"
+        x-on:keydown.escape.window="$wire.closePreviewModal()"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+        x-on:click.self="$wire.closePreviewModal()"
+    >
+        <div class="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-xl">
+            {{-- Modal header --}}
+            <div class="flex items-start justify-between border-b border-slate-200 px-5 py-4">
+                <h3 class="text-lg font-semibold text-slate-900">Email</h3>
+                <button
+                    type="button"
+                    x-on:click="$wire.closePreviewModal()"
+                    class="ml-4 shrink-0 text-slate-400 transition hover:text-slate-600"
+                >
+                    <x-heroicon-o-x-mark class="size-5" />
+                </button>
+            </div>
+
+            {{-- Email metadata --}}
+            <div class="border-b border-slate-200 px-5 py-3 text-sm">
+                <div class="flex items-baseline gap-3 py-1">
+                    <span class="w-16 shrink-0 text-right text-slate-500">From:</span>
+                    <span class="text-slate-800">
+                        <span x-text="$wire.previewFromName"></span>
+                        <span class="text-slate-500" x-show="$wire.previewFromEmail">&lt;<span x-text="$wire.previewFromEmail"></span>&gt;</span>
+                    </span>
+                    <span class="ml-auto shrink-0 text-slate-400" x-text="$wire.previewSentAt"></span>
+                </div>
+                <div class="flex items-baseline gap-3 py-1">
+                    <span class="w-16 shrink-0 text-right text-slate-500">To:</span>
+                    <span class="text-slate-800">
+                        {{ $subscription->donor ? \Illuminate\Support\Str::title($subscription->donor->name) : 'Supporter' }}
+                        <span class="text-slate-500">&lt;<span x-text="$wire.previewToEmail"></span>&gt;</span>
+                    </span>
+                    <button
+                        type="button"
+                        wire:click="resendFromModal"
+                        class="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                    >
+                        <x-heroicon-o-arrow-path class="size-3.5" />
+                        Resend
+                    </button>
+                </div>
+                <div class="flex items-baseline gap-3 py-1">
+                    <span class="w-16 shrink-0 text-right text-slate-500">Subject:</span>
+                    <span class="font-medium text-slate-900" x-text="$wire.previewSubject"></span>
+                </div>
+            </div>
+
+            {{-- Email body iframe --}}
+            <div class="relative flex-1 overflow-hidden bg-slate-100">
+                {{-- Loading skeleton --}}
+                <div
+                    x-show="! $wire.previewHtml"
+                    class="absolute inset-0 z-10 flex flex-col gap-4 bg-white p-8"
+                >
+                    <div class="h-6 w-3/4 animate-pulse rounded bg-slate-200"></div>
+                    <div class="h-4 w-1/2 animate-pulse rounded bg-slate-200"></div>
+                    <div class="mt-4 space-y-3">
+                        <div class="h-4 w-full animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-4 w-full animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-4 w-5/6 animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-4 w-4/5 animate-pulse rounded bg-slate-200"></div>
+                    </div>
+                    <div class="mt-6 h-32 w-full animate-pulse rounded-lg bg-slate-200"></div>
+                    <div class="mt-4 h-4 w-2/3 animate-pulse rounded bg-slate-200"></div>
+                </div>
+
+                <iframe
+                    x-ref="previewFrame"
+                    x-effect="
+                        const html = $wire.previewHtml;
+                        if (html && $refs.previewFrame) {
+                            $refs.previewFrame.srcdoc = html;
+                        }
+                    "
+                    class="h-[60vh] w-full bg-white"
+                    :class="{ 'invisible': ! $wire.previewHtml }"
+                    title="Email preview"
+                    sandbox
+                ></iframe>
+            </div>
+        </div>
+    </div>
+
+    {{-- Resend Confirmation Modal --}}
+    <div
+        x-cloak
+        x-data="{}"
+        x-show="$wire.showResendModal"
+        x-on:keydown.escape.window="$wire.closeResendModal()"
+        class="fixed inset-0 z-[100] flex items-start justify-center bg-slate-900/50 p-4 pt-20"
+        x-on:click.self="$wire.closeResendModal()"
+    >
+        <div class="w-full max-w-md rounded-xl bg-white shadow-xl">
+            {{-- Modal header --}}
+            <div class="flex items-start justify-between border-b border-slate-200 px-5 py-4">
+                <h3 class="text-lg font-semibold text-slate-900">Resend email</h3>
+                <button
+                    type="button"
+                    x-on:click="$wire.closeResendModal()"
+                    class="ml-4 shrink-0 text-slate-400 transition hover:text-slate-600"
+                >
+                    <x-heroicon-o-x-mark class="size-5" />
+                </button>
+            </div>
+
+            {{-- Modal body --}}
+            <div class="space-y-4 px-5 py-4">
+                <p class="text-sm text-slate-700">
+                    This will resend the email to the supporter. Are you sure you want to continue?
+                </p>
+
+                <div>
+                    <label for="resend-email-address" class="block text-sm font-medium text-slate-700">Email address</label>
+                    <input
+                        id="resend-email-address"
+                        type="email"
+                        wire:model="resendRecipientEmail"
+                        class="mt-1 block w-full rounded-lg border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                    />
+                </div>
+            </div>
+
+            {{-- Modal footer --}}
+            <div class="flex justify-end gap-3 border-t border-slate-200 px-5 py-4">
+                <button
+                    type="button"
+                    x-on:click="$wire.closeResendModal()"
+                    wire:loading.attr="disabled"
+                    wire:target="resendConfirmed"
+                    class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    wire:click="resendConfirmed"
+                    wire:loading.attr="disabled"
+                    wire:target="resendConfirmed"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
+                >
+                    <x-heroicon-o-arrow-path class="size-4 animate-spin" wire:loading wire:target="resendConfirmed" />
+                    <span wire:loading.remove wire:target="resendConfirmed">Resend</span>
+                    <span wire:loading wire:target="resendConfirmed">Resending...</span>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>

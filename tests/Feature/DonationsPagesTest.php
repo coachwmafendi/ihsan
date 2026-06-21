@@ -1,13 +1,16 @@
 <?php
 
 use App\Livewire\App\Donations\DonationShow;
+use App\Mail\DonationReceipt;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\DonorEmailLog;
 use App\Models\Element;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -170,4 +173,128 @@ it('links the source element to the element edit page', function () {
         ->test(DonationShow::class, ['donation' => $this->donation])
         ->assertSee($element->name)
         ->assertSeeHtml('href="'.e(route('app.elements.edit', $element)).'"');
+});
+
+it('renders the emails section with sent emails for the donation', function () {
+    Mail::fake();
+
+    $log = DonorEmailLog::factory()->donation($this->donation)->create([
+        'subject' => 'Your Donation Receipt — '.$this->organization->name,
+        'sent_at' => now()->subDay(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertStatus(200)
+        ->assertSee('Emails')
+        ->assertSee('Sent')
+        ->assertSee('Subject')
+        ->assertSee('Opened')
+        ->assertSee('Resend')
+        ->assertSee('Your Donation Receipt — '.$this->organization->name);
+});
+
+it('shows empty state when no emails have been sent for the donation', function () {
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Emails')
+        ->assertSee('No emails yet');
+});
+
+it('does not show email logs from other donations', function () {
+    Mail::fake();
+
+    $otherDonation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+    ]);
+
+    DonorEmailLog::factory()->donation($otherDonation)->create([
+        'subject' => 'Other Donation Email',
+        'sent_at' => now(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Emails')
+        ->assertDontSee('Other Donation Email')
+        ->assertSee('No emails yet');
+});
+
+it('does not show donation email logs from other organizations', function () {
+    Mail::fake();
+
+    $otherOrganization = Organization::factory()->create();
+    $otherCampaign = Campaign::factory()->for($otherOrganization)->create();
+    $otherDonation = Donation::factory()->for($this->donor)->for($otherCampaign)->create();
+
+    DonorEmailLog::factory()->donation($otherDonation)->create([
+        'organization_id' => $otherOrganization->id,
+        'subject' => 'Other Org Email',
+        'sent_at' => now(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Emails')
+        ->assertDontSee('Other Org Email')
+        ->assertSee('No emails yet');
+});
+
+it('resends a donation receipt email and creates a new log entry', function () {
+    Mail::fake();
+
+    $log = DonorEmailLog::factory()->donation($this->donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — '.$this->organization->name,
+        'sent_at' => now()->subDay(),
+    ]);
+
+    $component = Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation]);
+
+    $component->call('confirmResend', $log->getKey())
+        ->assertSet('showResendModal', true)
+        ->assertSet('resendLogId', $log->getKey())
+        ->assertSet('resendRecipientEmail', $this->donor->email);
+
+    $component->call('resendConfirmed')
+        ->assertSet('showResendModal', false)
+        ->assertDispatched('notify', variant: 'success');
+
+    Mail::assertQueued(DonationReceipt::class, function (DonationReceipt $mail) {
+        return $mail->donation->is($this->donation);
+    });
+
+    expect($log->fresh()->resends)->toHaveCount(1);
+});
+
+it('previews a donation receipt email with rendered html', function () {
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->call('previewEmail', DonorEmailLog::factory()->donation($this->donation)->create([
+            'mailable_class' => DonationReceipt::class,
+            'subject' => 'Your Donation Receipt — '.$this->organization->name,
+        ])->getKey())
+        ->assertSet('showPreviewModal', true)
+        ->assertSet('previewSubject', 'Your Donation Receipt — '.$this->organization->name)
+        ->assertSet('previewHtml', fn ($html) => is_string($html) && str_contains($html, 'Thank you for your donation!'));
+});
+
+it('shows a resent badge next to the subject for resend log entries', function () {
+    $originalLog = DonorEmailLog::factory()->donation($this->donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — '.$this->organization->name,
+    ]);
+
+    $resentLog = DonorEmailLog::factory()->donation($this->donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Your Donation Receipt — '.$this->organization->name,
+        'resent_from_id' => $originalLog->getKey(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee($resentLog->subject)
+        ->assertSee('Resent');
 });

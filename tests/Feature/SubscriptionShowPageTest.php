@@ -3,13 +3,16 @@
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Livewire\App\Subscriptions\SubscriptionShow;
+use App\Mail\DonationReceipt;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\DonorEmailLog;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -245,4 +248,123 @@ it('shows approximate myr total when subscription donations lack base amount', f
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('≈ MYR 100.00');
+});
+
+it('renders the emails section with sent emails for the subscription', function () {
+    Mail::fake();
+
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+    ]);
+
+    DonorEmailLog::factory()->subscription($subscription)->create([
+        'subject' => 'Thank you for joining as a recurring supporter',
+        'sent_at' => now()->subDay(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertStatus(200)
+        ->assertSee('Emails')
+        ->assertSee('Sent')
+        ->assertSee('Subject')
+        ->assertSee('Opened')
+        ->assertSee('Resend')
+        ->assertSee('Thank you for joining as a recurring supporter');
+});
+
+it('shows empty state when no emails have been sent for the subscription', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Emails')
+        ->assertSee('No emails yet');
+});
+
+it('does not show subscription email logs from other subscriptions', function () {
+    Mail::fake();
+
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+    ]);
+
+    $otherSubscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+    ]);
+
+    DonorEmailLog::factory()->subscription($otherSubscription)->create([
+        'subject' => 'Other Subscription Email',
+        'sent_at' => now(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Emails')
+        ->assertDontSee('Other Subscription Email')
+        ->assertSee('No emails yet');
+});
+
+it('resends a subscription email and creates a new log entry', function () {
+    Mail::fake();
+
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+    ]);
+
+    $donation = Donation::factory()->for($this->donor)->for($this->campaign)->create([
+        'subscription_id' => $subscription->id,
+    ]);
+
+    $log = DonorEmailLog::factory()->subscription($subscription)->donation($donation)->create([
+        'mailable_class' => DonationReceipt::class,
+        'subject' => 'Thank you for joining as a recurring supporter',
+        'sent_at' => now()->subDay(),
+    ]);
+
+    $component = Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription]);
+
+    $component->call('confirmResend', $log->getKey())
+        ->assertSet('showResendModal', true)
+        ->assertSet('resendLogId', $log->getKey())
+        ->assertSet('resendRecipientEmail', $this->donor->email);
+
+    $component->call('resendConfirmed')
+        ->assertSet('showResendModal', false)
+        ->assertDispatched('notify', variant: 'success');
+
+    Mail::assertQueued(DonationReceipt::class, function (DonationReceipt $mail) use ($donation) {
+        return $mail->donation->is($donation);
+    });
+
+    expect($log->fresh()->resends)->toHaveCount(1);
+});
+
+it('previews a subscription email with rendered html', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+    ]);
+
+    $donation = Donation::factory()->for($this->donor)->for($this->campaign)->create([
+        'subscription_id' => $subscription->id,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->call('previewEmail', DonorEmailLog::factory()->subscription($subscription)->donation($donation)->create([
+            'mailable_class' => DonationReceipt::class,
+            'subject' => 'Thank you for joining as a recurring supporter',
+        ])->getKey())
+        ->assertSet('showPreviewModal', true)
+        ->assertSet('previewSubject', 'Thank you for joining as a recurring supporter')
+        ->assertSet('previewHtml', fn ($html) => is_string($html) && str_contains($html, 'Thank you for your donation!'));
 });
