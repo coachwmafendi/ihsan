@@ -148,13 +148,19 @@
                 @endif
 
                 @if ($campaign->has_target)
+                    @php
+                        $donationFormRaised = (float) $campaign->collected_amount;
+                        $donationFormTarget = (float) ($campaign->target_amount ?? 0);
+                        $donationFormProgressPercent = $donationFormTarget > 0 ? min(100, round(($donationFormRaised / $donationFormTarget) * 100)) : 0;
+                        $donationFormProgressWidth = $donationFormProgressPercent > 0 ? max(2, $donationFormProgressPercent) : 0;
+                    @endphp
                     <div class="mt-5">
                         <div class="mb-1.5 flex items-end justify-between gap-4 text-xs">
-                            <span class="font-semibold text-slate-950" x-text="currencySymbol + ' ' + formatCurrency(raisedAmount) + ' raised'"></span>
-                            <span class="text-slate-500" x-text="'Goal ' + currencySymbol + ' ' + formatCurrency(targetAmount)"></span>
+                            <span class="font-semibold text-slate-950" x-text="currencySymbol + ' ' + formatCurrency(raisedAmount) + ' raised'">{{ $currencySymbol }} {{ number_format($donationFormRaised, 2) }} raised</span>
+                            <span class="text-slate-500" x-text="'Goal ' + currencySymbol + ' ' + formatCurrency(targetAmount)">Goal {{ $currencySymbol }} {{ number_format($donationFormTarget, 2) }}</span>
                         </div>
                         <div class="h-3 rounded-full bg-slate-200">
-                            <div class="h-3 rounded-full bg-teal-600" x-bind:style="{ width: progressWidth + '%' }"></div>
+                            <div class="h-3 rounded-full bg-teal-600" x-bind:style="{ width: progressWidth + '%' }" style="width: {{ $donationFormProgressWidth }}%"></div>
                         </div>
                     </div>
                 @endif
@@ -215,15 +221,21 @@
                 </div>
 
                 @if ($campaign->has_target)
-                <div class="mb-3">
-                    <div class="mb-1 flex items-end justify-between gap-4 text-xs">
-                        <span class="font-semibold text-slate-950" x-text="currencySymbol + ' ' + formatCurrency(raisedAmount) + ' raised'"></span>
-                        <span class="text-slate-500" x-text="'Goal ' + currencySymbol + ' ' + formatCurrency(targetAmount)"></span>
+                    @php
+                        $embedFormRaised = (float) $campaign->collected_amount;
+                        $embedFormTarget = (float) ($campaign->target_amount ?? 0);
+                        $embedFormProgressPercent = $embedFormTarget > 0 ? min(100, round(($embedFormRaised / $embedFormTarget) * 100)) : 0;
+                        $embedFormProgressWidth = $embedFormProgressPercent > 0 ? max(2, $embedFormProgressPercent) : 0;
+                    @endphp
+                    <div class="mb-3">
+                        <div class="mb-1 flex items-end justify-between gap-4 text-xs">
+                            <span class="font-semibold text-slate-950" x-text="currencySymbol + ' ' + formatCurrency(raisedAmount) + ' raised'">{{ $currencySymbol }} {{ number_format($embedFormRaised, 2) }} raised</span>
+                            <span class="text-slate-500" x-text="'Goal ' + currencySymbol + ' ' + formatCurrency(targetAmount)">Goal {{ $currencySymbol }} {{ number_format($embedFormTarget, 2) }}</span>
+                        </div>
+                        <div class="h-3 rounded-full bg-slate-200">
+                            <div class="h-3 rounded-full bg-teal-700" x-bind:style="{ width: progressWidth + '%' }" style="width: {{ $embedFormProgressWidth }}%"></div>
+                        </div>
                     </div>
-                    <div class="h-3 rounded-full bg-slate-200">
-                        <div class="h-3 rounded-full bg-teal-700" x-bind:style="{ width: progressWidth + '%' }"></div>
-                    </div>
-                </div>
                 @endif
             @endif
     @elseif (! $isCompact)
