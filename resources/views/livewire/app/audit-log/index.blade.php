@@ -85,7 +85,7 @@
                         @foreach ($this->activities as $activity)
                             <tr class="hover:bg-slate-50">
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
-                                    {{ $activity->created_at->format('M d, Y H:i') }}
+                                    {{ myrTime($activity->created_at) }}
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-900">
                                     <div class="flex items-center gap-2">
