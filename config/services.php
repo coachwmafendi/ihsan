@@ -23,9 +23,9 @@ return [
     ],
 
     'ses' => [
-        'key' => env('AWS_ACCESS_KEY_ID'),
-        'secret' => env('AWS_SECRET_ACCESS_KEY'),
-        'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+        'key' => env('SES_ACCESS_KEY_ID') ?: env('AWS_ACCESS_KEY_ID'),
+        'secret' => env('SES_SECRET_ACCESS_KEY') ?: env('AWS_SECRET_ACCESS_KEY'),
+        'region' => env('SES_REGION') ?: (env('AWS_DEFAULT_REGION') === 'auto' ? 'us-east-1' : env('AWS_DEFAULT_REGION', 'us-east-1')),
         'webhook_token' => env('SES_WEBHOOK_TOKEN'),
         'topic_arn' => env('SES_WEBHOOK_TOPIC_ARN'),
     ],
