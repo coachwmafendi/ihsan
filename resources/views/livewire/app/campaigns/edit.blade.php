@@ -215,7 +215,7 @@
                                         </div>
                                         <div>
                                             <p class="text-sm font-medium text-slate-900">{{ $donation->donor?->name ?? 'Anonymous' }}</p>
-                                            <p class="text-xs text-slate-500">{{ $donation->created_at->format('M d, Y H:i') }}</p>
+                                            <p class="text-xs text-slate-500">{{ myrTime($donation->created_at) }}</p>
                                         </div>
                                     </div>
                                     <div class="text-right">

@@ -66,11 +66,11 @@
                 @case('active')
                     @if ($subscription->cancel_at_period_end)
                         <x-ui.alert :compact="true" variant="warning" icon="heroicon-o-exclamation-triangle">
-                            This {{ $intervalLabel }} recurring donation is scheduled to cancel. The final installment will be charged on <span class="{{ $dateClass }}">{{ $this->nextInstallmentDate?->format('M d, Y, g:i A') }}</span>.
+                            This {{ $intervalLabel }} recurring donation is scheduled to cancel. The final installment will be charged on <span class="{{ $dateClass }}">{{ myrTime($this->nextInstallmentDate) }}</span>.
                         </x-ui.alert>
                     @else
                         <x-ui.alert :compact="true" variant="info" icon="heroicon-o-information-circle">
-                            This {{ $intervalLabel }} recurring donation is active. Installment #{{ $this->nextInstallmentNumber }} will be charged on <span class="{{ $dateClass }}">{{ $this->nextInstallmentDate?->format('M d, Y, g:i A') }}</span>.
+                            This {{ $intervalLabel }} recurring donation is active. Installment #{{ $this->nextInstallmentNumber }} will be charged on <span class="{{ $dateClass }}">{{ myrTime($this->nextInstallmentDate) }}</span>.
                         </x-ui.alert>
                     @endif
                     @break
@@ -78,7 +78,7 @@
                 @case('paused')
                     <x-ui.alert :compact="true" variant="warning" icon="heroicon-o-pause-circle">
                         @if ($subscription->paused_until)
-                            This {{ $intervalLabel }} recurring donation is paused. Installments will resume on <span class="{{ $dateClass }}">{{ $subscription->paused_until->format('M d, Y, g:i A') }}</span>.
+                            This {{ $intervalLabel }} recurring donation is paused. Installments will resume on <span class="{{ $dateClass }}">{{ myrTime($subscription->paused_until) }}</span>.
                         @else
                             This {{ $intervalLabel }} recurring donation is paused. Installments are currently on hold.
                         @endif
@@ -88,7 +88,7 @@
                 @case('cancelled')
                     <x-ui.alert :compact="true" variant="danger" icon="heroicon-o-x-circle">
                         @if ($subscription->cancelled_at)
-                            This recurring donation was cancelled on <span class="{{ $dateClass }}">{{ $subscription->cancelled_at->format('M d, Y, g:i A') }}</span>. No further charges will be made.
+                            This recurring donation was cancelled on <span class="{{ $dateClass }}">{{ myrTime($subscription->cancelled_at) }}</span>. No further charges will be made.
                         @else
                             This recurring donation has been cancelled. No further charges will be made.
                         @endif
@@ -211,7 +211,7 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Creation date</dt>
-                            <dd class="text-sm text-slate-900">{{ $subscription->created_at->format('M d, Y, g:i A') }}</dd>
+                            <dd class="text-sm text-slate-900">{{ myrTime($subscription->created_at) }}</dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Last installment date</dt>
@@ -222,7 +222,7 @@
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Next installment date</dt>
                             <dd class="w-fit border-b border-dashed border-slate-300 pb-0.5 text-sm text-slate-900">
-                                {{ $this->nextInstallmentDate?->format('M d, Y, g:i A') ?? '—' }}
+                                {{ myrTime($this->nextInstallmentDate) }}
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -457,7 +457,7 @@
                                             wire:key="email-log-{{ $log->id }}"
                                         >
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->sent_at?->format('M d, Y, g:i A') ?? '—' }}
+                                                {{ $log->sent_at ? myrTime($log->sent_at) : '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-sm font-medium text-slate-900">
                                                 <span class="inline-flex items-center gap-2">
@@ -468,7 +468,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->opened_at?->format('M d, Y, g:i A') ?? '—' }}
+                                                {{ $log->opened_at ? myrTime($log->opened_at) : '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-right">
                                                 <button
@@ -908,7 +908,7 @@
 
             <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
                 <p class="text-sm text-slate-700">
-                    The next installment will be made on <span class="font-semibold text-slate-900">{{ $this->skipNextInstallmentDate?->format('M d, Y, g:i A') ?? '—' }}</span>
+                    The next installment will be made on <span class="font-semibold text-slate-900">{{ myrTime($this->skipNextInstallmentDate) }}</span>
                 </p>
             </div>
 
