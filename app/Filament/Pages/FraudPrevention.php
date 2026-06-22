@@ -63,7 +63,7 @@ class FraudPrevention extends Page implements HasTable
                 'currency' => $attempt->currency,
                 'reason' => $attempt->reason,
                 'action' => $attempt->action,
-                'created_at' => $attempt->created_at->format('M j, Y H:i'),
+                'created_at' => myrTime($attempt->created_at),
             ])
             ->all();
     }
@@ -122,7 +122,8 @@ class FraudPrevention extends Page implements HasTable
                     ->default('—'),
                 TextColumn::make('created_at')
                     ->label('Blocked At')
-                    ->dateTime('M j, Y H:i')
+                    ->dateTime('M j, Y H:i', timezone: 'Asia/Kuala_Lumpur')
+                    ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
