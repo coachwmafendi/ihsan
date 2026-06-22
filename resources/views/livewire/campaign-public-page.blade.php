@@ -84,12 +84,12 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                     </div>
 
                     @if ($target > 0)
-                        <div class="mt-6" x-data="{ progress: 0 }" x-init="setTimeout(() => progress = {{ $progressPercent }}, 50)">
+                        <div class="mt-6">
                             <div class="relative mb-10">
                                 {{-- Percentage label --}}
                                 <span
                                     class="absolute -top-5 text-xs font-extrabold text-emerald-600 transition-all duration-1000 ease-out motion-reduce:transition-none {{ $progressPercent >= 100 ? 'right-0 scale-110' : '-translate-x-1/2' }}"
-                                    :style="{{ $progressPercent }} >= 100 ? 'right: 0' : `left: ${progress}%`"
+                                    style="{{ $progressPercent >= 100 ? 'right: 0' : 'left: ' . $progressPercent . '%' }}"
                                 >
                                     {{ number_format($progressPercent, 1) }}%
                                 </span>
@@ -98,7 +98,7 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                                 <div class="relative h-3 rounded-full bg-slate-200">
                                     <div
                                         class="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-1000 ease-out motion-reduce:transition-none"
-                                        :style="`width: ${progress}%`"
+                                        style="width: {{ $progressPercent }}%"
                                     ></div>
 
                                     {{-- Segment dividers --}}
