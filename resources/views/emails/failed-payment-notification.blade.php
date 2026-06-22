@@ -22,6 +22,10 @@
 
         <p>Stripe will automatically retry this payment. Please monitor the situation.</p>
 
+        <p style="margin: 24px 0;">
+            <a href="{{ route('app.subscriptions.show', $subscription) }}" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
+        </p>
+
         <p style="font-size: 0.875rem; color: #94a3b8;">
             You are receiving this because your organisation has failed payment notifications enabled.
         </p>

@@ -22,6 +22,10 @@
             <tr><td style="padding: 8px; color: #64748b;">Status</td><td style="padding: 8px; color: #16a34a; font-weight: 600;">{{ $percent >= 100 ? 'Target Achieved!' : 'On Track' }}</td></tr>
         </table>
 
+        <p style="margin: 24px 0;">
+            <a href="{{ route('app.campaigns.edit', $campaign) }}" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
+        </p>
+
         <p style="font-size: 0.875rem; color: #94a3b8;">
             You are receiving this because your organisation has campaign milestone notifications enabled.
         </p>

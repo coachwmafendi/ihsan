@@ -58,6 +58,10 @@
             </div>
         @endif
 
+        <p style="margin: 24px 0;">
+            <a href="{{ route('app.donations.index') }}" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
+        </p>
+
         {{-- Footer --}}
         <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
             <p style="margin: 0 0 4px; font-size: 12px; color: #94a3b8;">
