@@ -149,7 +149,7 @@
                             </p>
                             @if ($subscription->current_period_end)
                                 <p class="mt-0.5 text-xs text-slate-400">
-                                    Next: {{ $subscription->current_period_end->format('d M Y') }}
+                                    Next: {{ myrTime($subscription->current_period_end, withLabel: false, format: 'd M Y') }}
                                 </p>
                             @endif
                         </div>

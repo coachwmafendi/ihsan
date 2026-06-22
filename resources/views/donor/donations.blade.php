@@ -74,7 +74,7 @@
                         </div>
                         <div class="flex-shrink-0 text-right">
                             <p class="text-base font-black text-slate-900">{{ $donation->formatted_amount }}</p>
-                            <p class="mt-0.5 text-xs text-slate-400">{{ $donation->created_at->format('d M Y') }}</p>
+                            <p class="mt-0.5 text-xs text-slate-400">{{ myrTime($donation->created_at, withLabel: false, format: 'd M Y') }}</p>
                         </div>
                     </div>
                     <div class="mt-3 flex flex-wrap items-center gap-2">

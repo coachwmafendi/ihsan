@@ -62,7 +62,7 @@
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Campaign</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->title }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Date</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ myrTime($donation->created_at) }}</td></tr>
                 @if ($subscription !== null && $subscription->current_period_end !== null)
-                    <tr><td style="padding: 8px; color: #64748b;">Next Billing Date</td><td style="padding: 8px;">{{ $subscription->current_period_end->format('d M Y') }}</td></tr>
+                    <tr><td style="padding: 8px; color: #64748b;">Next Billing Date</td><td style="padding: 8px;">{{ myrTime($subscription->current_period_end, withLabel: false, format: 'd M Y') }}</td></tr>
                 @endif
             </table>
 

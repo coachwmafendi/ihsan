@@ -23,7 +23,7 @@
                 </span>
                 <span class="inline-flex items-center gap-1 whitespace-nowrap">
                     <span class="text-slate-300">·</span>
-                    <span>Supporter since {{ $donor->created_at->format('M d, Y') }}</span>
+                    <span>Supporter since {{ myrTime($donor->created_at, withLabel: false, format: 'M d, Y') }}</span>
                 </span>
             </div>
         </div>
@@ -210,7 +210,7 @@
                                             onclick="window.location='{{ route('app.donations.show', $donation) }}'"
                                         >
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $donation->created_at->format('M d, Y') }}
+                                                {{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}
                                             </td>
                                             <td class="px-4 py-3">
                                                 <x-donation-report-amount :donation="$donation" />
@@ -314,7 +314,7 @@
                                     @foreach ($this->receiptDonations as $donation)
                                         <tr class="transition-colors hover:bg-slate-50">
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $donation->created_at->format('M d, Y') }}
+                                                {{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}
                                             </td>
                                             <td class="px-4 py-3 text-sm font-medium text-slate-900">
                                                 <a href="{{ route('donations.receipt.download', ['donation' => $donation->public_id]) }}" target="_blank" class="inline-flex items-center gap-1.5 text-teal-600 hover:text-teal-700">
@@ -327,7 +327,7 @@
                                                 {{ $donation->currency_symbol }} {{ number_format((float) $donation->gross_amount, 2) }}
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $donation->receipt_sent_at?->format('M d, Y') ?? $donation->created_at->format('M d, Y') }}
+                                                {{ $donation->receipt_sent_at ? myrTime($donation->receipt_sent_at, withLabel: false, format: 'M d, Y') : myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}
                                             </td>
                                         </tr>
                                     @endforeach

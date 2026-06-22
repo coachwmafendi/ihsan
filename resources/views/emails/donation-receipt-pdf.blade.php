@@ -95,7 +95,7 @@
 
     <div class="info-row"><strong>Donor</strong> {{ $donation->donor->name }}</div>
     <div class="info-row"><strong>Email</strong> {{ $donation->donor->email }}</div>
-    <div class="info-row"><strong>Date</strong> {{ $donation->created_at->format('d M Y') }}</div>
+    <div class="info-row"><strong>Date</strong> {{ myrTime($donation->created_at, withLabel: false, format: 'd M Y') }}</div>
 
     @php
         $symbol = $donation->currency_symbol;

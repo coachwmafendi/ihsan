@@ -105,7 +105,7 @@
         <div class="header">
             <h1>Donation Receipt</h1>
             <div class="org-name">{{ $donation->campaign->organization->name }}</div>
-            <div class="receipt-number">{{ $donation->invoice_number }} · {{ $donation->created_at->format('d M Y') }}</div>
+            <div class="receipt-number">{{ $donation->invoice_number }} · {{ myrTime($donation->created_at, withLabel: false, format: 'd M Y') }}</div>
         </div>
 
         <div class="info-grid">

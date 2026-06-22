@@ -167,7 +167,7 @@
                                     {{ number_format($campaign->donations_count) }}
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
-                                    {{ $campaign->created_at->format('M d, Y') }}
+                                    {{ myrTime($campaign->created_at, withLabel: false, format: 'M d, Y') }}
                                 </td>
                                 @if ($showArchived)
                                     <td class="px-5 py-4 text-right" wire:click.stop>

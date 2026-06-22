@@ -365,7 +365,7 @@
                                                     <span class="text-slate-400">—</span>
                                                 @endif
                                             </td>
-                                            <td class="py-3 pr-4 text-slate-600">{{ $payment->created_at->format('M d, Y') }}</td>
+                                            <td class="py-3 pr-4 text-slate-600">{{ myrTime($payment->created_at, withLabel: false, format: 'M d, Y') }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -411,7 +411,7 @@
                                             <td class="py-3 pr-4 font-medium text-slate-900">
                                                 {{ $donation->currency_symbol }} {{ number_format((float) $donation->gross_amount, 2) }}
                                             </td>
-                                            <td class="py-3 pr-4 text-slate-600">{{ $donation->created_at->format('M d, Y') }}</td>
+                                            <td class="py-3 pr-4 text-slate-600">{{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}</td>
                                             <td class="py-3 text-right">
                                                 @if ($donation->status->value === 'succeeded')
                                                     <a href="{{ route('donations.receipt.download', ['donation' => $donation->public_id]) }}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900">

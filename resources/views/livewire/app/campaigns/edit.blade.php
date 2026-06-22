@@ -21,9 +21,9 @@
                     <x-ui.copy-button value="{{ $campaign->public_id }}" title="Copy ID" class="p-0.5" />
                 </span>
                 <span>·</span>
-                <span>Created {{ $campaign->created_at->format('M d, Y') }}</span>
+                <span>Created {{ myrTime($campaign->created_at, withLabel: false, format: 'M d, Y') }}</span>
                 <span>·</span>
-                <span>{{ $campaign->end_date ? 'Ends '.$campaign->end_date->format('M d, Y') : 'No end date' }}</span>
+                <span>{{ $campaign->end_date ? 'Ends '.myrTime($campaign->end_date, withLabel: false, format: 'M d, Y') : 'No end date' }}</span>
             </div>
         </div>
     </div>
@@ -126,7 +126,7 @@
                                 @endif
                                 ·
                                 @if ($campaign->has_end_date && $campaign->end_date)
-                                    Ends {{ $campaign->end_date->format('M d, Y') }}
+                                    Ends {{ myrTime($campaign->end_date, withLabel: false, format: 'M d, Y') }}
                                 @else
                                     No end date
                                 @endif

@@ -435,8 +435,8 @@
                                             {{ $this->formattedBaseAmount() }}
                                         @endif
                                     </td>
-                                    <td class="py-3 pr-4 text-slate-600">{{ $donation->created_at->format('M d, Y') }}</td>
-                                    <td class="py-3 pr-4 text-slate-600">{{ $donation->receipt_sent_at?->format('M d, Y') ?? $donation->created_at->format('M d, Y') }}</td>
+                                    <td class="py-3 pr-4 text-slate-600">{{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}</td>
+                                    <td class="py-3 pr-4 text-slate-600">{{ $donation->receipt_sent_at ? myrTime($donation->receipt_sent_at, withLabel: false, format: 'M d, Y') : myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}</td>
                                     <td class="py-3 text-right">
                                         @if ($donation->status->value === 'succeeded')
                                             <a href="{{ route('donations.receipt.download', $donation) }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900">

@@ -345,13 +345,13 @@
                                     @endif
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
-                                    {{ $donor->donations_min_created_at ? \Carbon\Carbon::parse($donor->donations_min_created_at)->format('M d, Y') : '-' }}
+                                    {{ $donor->donations_min_created_at ? myrTime(\Carbon\Carbon::parse($donor->donations_min_created_at), withLabel: false, format: 'M d, Y') : '-' }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
-                                    {{ $donor->donations_max_created_at ? \Carbon\Carbon::parse($donor->donations_max_created_at)->format('M d, Y') : '-' }}
+                                    {{ $donor->donations_max_created_at ? myrTime(\Carbon\Carbon::parse($donor->donations_max_created_at), withLabel: false, format: 'M d, Y') : '-' }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
-                                    {{ $donor->created_at->format('M d, Y') }}
+                                    {{ myrTime($donor->created_at, withLabel: false, format: 'M d, Y') }}
                                 </td>
                             </tr>
                         @endforeach

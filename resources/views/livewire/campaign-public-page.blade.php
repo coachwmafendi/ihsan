@@ -184,7 +184,7 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
 
                     @if ($campaign->has_end_date && $campaign->end_date)
                         <p class="mt-4 text-center text-xs text-slate-400">
-                            Campaign ends {{ $campaign->end_date->format('M j, Y') }}
+                            Campaign ends {{ myrTime($campaign->end_date, withLabel: false, format: 'M j, Y') }}
                         </p>
                     @endif
                 </div>

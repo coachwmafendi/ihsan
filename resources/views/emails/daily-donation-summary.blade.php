@@ -11,7 +11,7 @@
         {{-- Header --}}
         <div style="margin-bottom: 24px;">
             <h1 style="margin: 0 0 4px; font-size: 20px; font-weight: 700; color: #0f766e;">Daily Donation Report</h1>
-            <p style="margin: 0; font-size: 13px; color: #64748b;">{{ now()->format('d M Y') }} &middot; {{ $organization->name }}</p>
+            <p style="margin: 0; font-size: 13px; color: #64748b;">{{ myrTime(now(), withLabel: false, format: 'd M Y') }} &middot; {{ $organization->name }}</p>
         </div>
 
         {{-- Summary row --}}

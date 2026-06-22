@@ -192,7 +192,7 @@
                                     @endif
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
-                                    {{ $element->created_at->format('M d, Y') }}
+                                    {{ myrTime($element->created_at, withLabel: false, format: 'M d, Y') }}
                                 </td>
                                 @if (! $showArchived)
                                     @php
