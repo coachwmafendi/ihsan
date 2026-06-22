@@ -62,11 +62,13 @@ class UsersRelationManager extends RelationManager
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->label('Invited')
-                    ->dateTime()
+                    ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
+                    ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
                     ->sortable(),
                 TextColumn::make('last_login_at')
                     ->label('Last Login')
-                    ->dateTime()
+                    ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
+                    ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
                     ->sortable()
                     ->placeholder('Never'),
             ])

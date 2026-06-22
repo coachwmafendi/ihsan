@@ -38,11 +38,13 @@ class OrganizationsTable
                     ->label('Stripe'),
                 TextColumn::make('approved_at')
                     ->label('Onboarded Date')
-                    ->dateTime()
+                    ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
+                    ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
                     ->sortable()
                     ->placeholder('—'),
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
+                    ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
