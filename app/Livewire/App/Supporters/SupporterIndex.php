@@ -96,7 +96,7 @@ class SupporterIndex extends Component
     public function dateChipLabel(): string
     {
         if ($this->period === 'custom' && $this->dateFrom && $this->dateTo) {
-            return Carbon::parse($this->dateFrom)->format('M d').' – '.Carbon::parse($this->dateTo)->format('M d, Y');
+            return myrTime(Carbon::parse($this->dateFrom), withLabel: false, format: 'M d').' – '.myrTime(Carbon::parse($this->dateTo), withLabel: false, format: 'M d, Y');
         }
 
         return match ($this->period) {

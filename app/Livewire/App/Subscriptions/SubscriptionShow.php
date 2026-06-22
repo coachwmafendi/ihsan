@@ -162,7 +162,7 @@ class SubscriptionShow extends Component
     #[Computed]
     public function lastInstallmentDate(): ?string
     {
-        return $this->latestDonation?->created_at->format('M d, Y, g:i A');
+        return $this->latestDonation?->created_at ? myrTime($this->latestDonation->created_at) : null;
     }
 
     public function formattedAmount(): string
@@ -330,7 +330,7 @@ class SubscriptionShow extends Component
 
         return [
             'amount' => $this->subscription->currency_symbol.' '.number_format($amount, 2),
-            'date' => $this->estimatedNextInstallmentDate()?->format('M d, Y, g:i A') ?? '—',
+            'date' => $this->estimatedNextInstallmentDate() ? myrTime($this->estimatedNextInstallmentDate()) : '—',
         ];
     }
 
@@ -736,7 +736,7 @@ class SubscriptionShow extends Component
 
         $this->previewLogId = $log->id;
         $this->previewSubject = $log->subject;
-        $this->previewSentAt = $log->sent_at?->format('M d, Y, g:i A');
+        $this->previewSentAt = $log->sent_at ? myrTime($log->sent_at) : null;
         $this->previewFromName = $org?->name;
         $this->previewFromEmail = config('mail.from.address', 'no-reply@getihsan.my');
         $this->previewToEmail = $log->metadata['resent_to_email'] ?? $log->donor?->email;

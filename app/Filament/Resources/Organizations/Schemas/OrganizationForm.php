@@ -271,7 +271,7 @@ class OrganizationForm
                                                     ->disabled()
                                                     ->dehydrated(false)
                                                     ->placeholder('—')
-                                                    ->formatStateUsing(fn ($state, $record) => $record?->stripe_onboarded_at?->format('d/m/Y H:i') ?? '—'),
+                                                    ->formatStateUsing(fn ($state, $record) => $record?->stripe_onboarded_at ? myrTime($record->stripe_onboarded_at, format: 'd/m/Y H:i') : '—'),
 
                                                 Toggle::make('stripe_onboarded')
                                                     ->label('Status')

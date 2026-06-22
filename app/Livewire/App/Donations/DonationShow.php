@@ -180,7 +180,7 @@ class DonationShow extends Component
             return null;
         }
 
-        return $this->donation->updated_at?->format('M d, Y, H:i') ?? $this->donation->created_at->format('M d, Y, H:i');
+        return $this->donation->updated_at ? myrTime($this->donation->updated_at) : myrTime($this->donation->created_at);
     }
 
     public function frequencyLabel(): string
@@ -211,7 +211,7 @@ class DonationShow extends Component
 
         $lastDonation = $this->donation->subscription->donations()->latest('created_at')->first();
 
-        return $lastDonation?->created_at?->format('M d, Y, H:i');
+        return $lastDonation?->created_at ? myrTime($lastDonation->created_at) : null;
     }
 
     public function subscriptionNextInstallment(): ?string
@@ -220,7 +220,7 @@ class DonationShow extends Component
             return null;
         }
 
-        return $this->donation->subscription->current_period_end?->format('M d, Y, H:i');
+        return $this->donation->subscription->current_period_end ? myrTime($this->donation->subscription->current_period_end) : null;
     }
 
     private function feeInBaseCurrency(float $fee): float
@@ -456,7 +456,7 @@ class DonationShow extends Component
 
         $this->previewLogId = $log->id;
         $this->previewSubject = $log->subject;
-        $this->previewSentAt = $log->sent_at?->format('M d, Y, g:i A');
+        $this->previewSentAt = $log->sent_at ? myrTime($log->sent_at) : null;
         $this->previewFromName = $org?->name;
         $this->previewFromEmail = config('mail.from.address', 'no-reply@getihsan.my');
         $this->previewToEmail = $log->metadata['resent_to_email'] ?? $log->donor?->email;

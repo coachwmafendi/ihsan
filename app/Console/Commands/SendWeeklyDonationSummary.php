@@ -23,7 +23,7 @@ class SendWeeklyDonationSummary extends Command
     {
         $startOfWeek = now()->subWeek()->startOfWeek();
         $endOfWeek = now()->subWeek()->endOfWeek();
-        $periodLabel = $startOfWeek->format('d M').' – '.$endOfWeek->format('d M Y');
+        $periodLabel = myrTime($startOfWeek, withLabel: false, format: 'd M').' – '.myrTime($endOfWeek, withLabel: false, format: 'd M Y');
 
         $organizations = Organization::query()
             ->where('settings->weekly_report', true)
