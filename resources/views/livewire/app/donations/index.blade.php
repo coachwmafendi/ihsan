@@ -459,7 +459,9 @@
         <form
             method="GET"
             action="{{ route('app.donations.export') }}"
+            @submit="loading = true; setTimeout(() => loading = false, 3000)"
             x-data="{
+                loading: false,
                 fields: @js(collect($this->exportFields)->map(fn (array $field): array => ['key' => $field['key'], 'label' => $field['label'], 'selected' => $field['default'] ?? false])->values()),
                 dragIndex: null,
                 dragOverIndex: null,
@@ -589,7 +591,11 @@
                 <flux:modal.close>
                     <x-ui.button type="button" variant="secondary">Cancel</x-ui.button>
                 </flux:modal.close>
-                <x-ui.button type="submit" variant="primary">Export donations</x-ui.button>
+                <x-ui.button type="submit" variant="primary" x-bind:disabled="loading">
+                    <x-heroicon-o-arrow-path class="size-4 animate-spin" x-show="loading" />
+                    <x-heroicon-o-arrow-up-tray class="size-4" x-show="! loading" />
+                    <span x-text="loading ? 'Exporting...' : 'Export donations'"></span>
+                </x-ui.button>
             </div>
         </form>
     </flux:modal>
