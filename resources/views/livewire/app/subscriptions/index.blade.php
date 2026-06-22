@@ -6,6 +6,10 @@
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">Recurring Plans</h1>
             <p class="mt-1 text-sm text-slate-500">Manage recurring donation plans</p>
         </div>
+        <x-ui.button wireClick="$set('showExportModal', true)" variant="outline">
+            <x-heroicon-o-arrow-up-tray class="size-4" />
+            Quick Export
+        </x-ui.button>
     </div>
 
     {{-- Summary Stats --}}
@@ -384,4 +388,143 @@
             @endif
         </div>
     </x-ui.card>
+
+    {{-- Quick Export Modal --}}
+    <flux:modal wire:model="showExportModal" name="quick-export-recurring-plans" class="max-h-[85vh] max-w-md">
+        <form
+            method="GET"
+            action="{{ route('app.recurring-plans.export') }}"
+            x-data="{
+                fields: @js(collect($this->exportFields)->map(fn (array $field): array => ['key' => $field['key'], 'label' => $field['label'], 'selected' => $field['default'] ?? false])->values()),
+                dragIndex: null,
+                dragOverIndex: null,
+                get selectAll() { return this.fields.length > 0 && this.fields.every(f => f.selected) },
+                set selectAll(value) { this.fields.forEach(f => f.selected = value) },
+                dragStart(index, event) {
+                    this.dragIndex = index;
+                    event.dataTransfer.effectAllowed = 'move';
+                    let row = event.target.closest('[data-row]');
+                    let handle = event.target.closest('[data-handle]');
+                    if (row && handle && event.dataTransfer.setDragImage) {
+                        let rowRect = row.getBoundingClientRect();
+                        let handleRect = handle.getBoundingClientRect();
+                        event.dataTransfer.setDragImage(
+                            row,
+                            handleRect.left - rowRect.left + handleRect.width / 2,
+                            handleRect.top - rowRect.top + handleRect.height / 2
+                        );
+                    }
+                },
+                dragEnter(index, event) { this.dragOverIndex = index; event.dataTransfer.dropEffect = 'move' },
+                dragEnd() { this.dragIndex = null; this.dragOverIndex = null },
+                drop(index, event) {
+                    event.dataTransfer.dropEffect = 'move'
+                    if (this.dragIndex === null || this.dragIndex === index) return
+                    let item = this.fields.splice(this.dragIndex, 1)[0]
+                    this.fields.splice(index, 0, item)
+                    this.dragIndex = null
+                    this.dragOverIndex = null
+                }
+            }"
+            class="flex max-h-[85vh] flex-col gap-6"
+        >
+            <div class="shrink-0">
+                <h3 class="text-lg font-semibold text-slate-900">Export recurring plans</h3>
+                <p class="mt-1 text-sm text-slate-600">
+                    Pick the fields you'd like to include in your export, then drag and drop to set the column order.
+                </p>
+            </div>
+
+            <input type="hidden" name="search" value="{{ $search }}">
+            <input type="hidden" name="statusFilter" value="{{ $statusFilter }}">
+            <input type="hidden" name="campaignFilter" value="{{ $campaignFilter }}">
+            <input type="hidden" name="period" value="{{ $period }}">
+            <input type="hidden" name="dateFrom" value="{{ $dateFrom }}">
+            <input type="hidden" name="dateTo" value="{{ $dateTo }}">
+
+            <div class="shrink-0">
+                <label class="block text-sm font-semibold text-slate-900">Download exported file as</label>
+                <div class="mt-3 flex items-center gap-6">
+                    <label class="inline-flex cursor-pointer items-center gap-2">
+                        <span class="relative flex size-4 shrink-0 items-center justify-center">
+                            <input type="radio" name="format" value="csv" checked class="peer sr-only absolute inset-0">
+                            <span class="absolute inset-0 rounded-full border border-slate-300 bg-white peer-checked:border-teal-600 peer-checked:bg-teal-600"></span>
+                            <span class="relative size-1.5 rounded-full bg-white opacity-0 transition-opacity peer-checked:opacity-100"></span>
+                        </span>
+                        <span class="text-sm text-slate-700">CSV</span>
+                    </label>
+                    <label class="inline-flex cursor-pointer items-center gap-2">
+                        <span class="relative flex size-4 shrink-0 items-center justify-center">
+                            <input type="radio" name="format" value="xls" class="peer sr-only absolute inset-0">
+                            <span class="absolute inset-0 rounded-full border border-slate-300 bg-white peer-checked:border-teal-600 peer-checked:bg-teal-600"></span>
+                            <span class="relative size-1.5 rounded-full bg-white opacity-0 transition-opacity peer-checked:opacity-100"></span>
+                        </span>
+                        <span class="text-sm text-slate-700">XLS</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex min-h-0 flex-col">
+                <label class="block shrink-0 text-sm font-semibold text-slate-900">Exported fields</label>
+                <div class="mt-3 flex-1 space-y-2 overflow-y-auto pr-1">
+                    {{-- Select all --}}
+                    <label class="flex cursor-pointer items-center gap-3 rounded-lg bg-slate-50 px-3 py-2.5">
+                        <span class="relative flex size-4 shrink-0 items-center justify-center">
+                            <input type="checkbox" x-model="selectAll" class="peer sr-only absolute inset-0">
+                            <span class="absolute inset-0 rounded border border-slate-300 bg-white peer-checked:border-teal-600 peer-checked:bg-teal-600"></span>
+                            <svg class="relative size-3 text-white opacity-0 transition-opacity peer-checked:opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </span>
+                        <span class="text-sm text-slate-700">Select all</span>
+                    </label>
+
+                    <template x-for="(field, index) in fields" :key="field.key">
+                        <div
+                            data-row
+                            @dragenter.prevent="dragEnter(index, $event)"
+                            @dragover.prevent="$event.dataTransfer.dropEffect = 'move'"
+                            @drop.prevent="drop(index, $event)"
+                            class="flex items-center gap-3 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 transition-colors"
+                            :class="dragOverIndex === index ? 'bg-teal-50 ring-1 ring-teal-300' : ''"
+                        >
+                            <div
+                                draggable="true"
+                                data-handle
+                                @dragstart="dragStart(index, $event)"
+                                @dragend="dragEnd()"
+                                class="cursor-grab p-1 -m-1 text-slate-400"
+                            >
+                                <svg class="size-4" viewBox="0 0 16 16" fill="currentColor">
+                                    <circle cx="4" cy="4" r="1.5" />
+                                    <circle cx="8" cy="4" r="1.5" />
+                                    <circle cx="12" cy="4" r="1.5" />
+                                    <circle cx="4" cy="12" r="1.5" />
+                                    <circle cx="8" cy="12" r="1.5" />
+                                    <circle cx="12" cy="12" r="1.5" />
+                                </svg>
+                            </div>
+                            <label class="flex flex-1 cursor-pointer items-center gap-3">
+                                <span class="relative flex size-4 shrink-0 items-center justify-center">
+                                    <input type="checkbox" name="fields[]" :value="field.key" x-model="field.selected" class="peer sr-only absolute inset-0">
+                                    <span class="absolute inset-0 rounded border border-slate-300 bg-white peer-checked:border-teal-600 peer-checked:bg-teal-600"></span>
+                                    <svg class="relative size-3 text-white opacity-0 transition-opacity peer-checked:opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </span>
+                                <span class="text-sm text-slate-700" x-text="field.label"></span>
+                            </label>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <div class="flex shrink-0 justify-end gap-3 pt-2">
+                <flux:modal.close>
+                    <x-ui.button type="button" variant="secondary">Cancel</x-ui.button>
+                </flux:modal.close>
+                <x-ui.button type="submit" variant="primary">Export recurring plans</x-ui.button>
+            </div>
+        </form>
+    </flux:modal>
 </div>

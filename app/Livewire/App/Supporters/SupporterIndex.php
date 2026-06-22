@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Supporters;
 
+use App\Http\Controllers\SupporterExportController;
 use App\Models\Donation;
 use App\Models\Donor;
 use Carbon\Carbon;
@@ -39,6 +40,8 @@ class SupporterIndex extends Component
 
     #[Url(except: 25)]
     public int $perPage = 25;
+
+    public bool $showExportModal = false;
 
     public function updatedSearch(): void
     {
@@ -110,6 +113,15 @@ class SupporterIndex extends Component
             'last_year' => 'Last year',
             default => 'Date',
         };
+    }
+
+    /**
+     * @return array<int, array{key: string, label: string, default?: bool}>
+     */
+    #[Computed]
+    public function exportFields(): array
+    {
+        return SupporterExportController::$fields;
     }
 
     /**

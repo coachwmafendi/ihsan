@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\App\Subscriptions;
 
 use App\Enums\SubscriptionStatus;
+use App\Http\Controllers\SubscriptionExportController;
 use App\Models\Campaign;
 use App\Models\Subscription;
 use Carbon\Carbon;
@@ -42,6 +43,8 @@ class SubscriptionIndex extends Component
     public string $sortField = 'created_at';
 
     public string $sortDirection = 'desc';
+
+    public bool $showExportModal = false;
 
     public function updatedSearch(): void
     {
@@ -109,6 +112,15 @@ class SubscriptionIndex extends Component
         return Campaign::where('organization_id', $org->id)
             ->orderBy('title')
             ->get(['id', 'title']);
+    }
+
+    /**
+     * @return array<int, array{key: string, label: string, default?: bool}>
+     */
+    #[Computed]
+    public function exportFields(): array
+    {
+        return SubscriptionExportController::$fields;
     }
 
     #[Computed]

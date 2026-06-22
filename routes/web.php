@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DonationCampaignImageController;
+use App\Http\Controllers\DonationExportController;
 use App\Http\Controllers\DonorImpersonationController;
 use App\Http\Controllers\DonorNotificationController;
 use App\Http\Controllers\EmbedCheckoutController;
@@ -9,6 +10,8 @@ use App\Http\Controllers\ReceiptDownloadController;
 use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\SubscriptionExportController;
+use App\Http\Controllers\SupporterExportController;
 use App\Http\Controllers\Webhooks\EmailWebhookController;
 use App\Http\Middleware\EnsureNgoAdmin;
 use App\Http\Middleware\RedirectIfStripeNotOnboarded;
@@ -100,9 +103,11 @@ Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::
     Route::get('/app/campaigns/{campaign:public_id}/edit', CampaignEdit::class)->name('app.campaigns.edit');
 
     Route::get('/app/donations', DonationIndex::class)->name('app.donations.index');
+    Route::get('/app/donations/export', DonationExportController::class)->name('app.donations.export');
     Route::get('/app/donations/{donation:public_id}', DonationShow::class)->name('app.donations.show');
 
     Route::get('/app/supporters', SupporterIndex::class)->name('app.supporters.index');
+    Route::get('/app/supporters/export', SupporterExportController::class)->name('app.supporters.export');
     Route::get('/app/supporters/{donor:public_id}', SupporterShow::class)->name('app.supporters.show');
 
     Route::get('/app/settings/organization', OrganizationSettings::class)->name('app.settings.organization');
@@ -120,6 +125,7 @@ Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::
     Route::get('/app/subscriptions', SubscriptionIndex::class)->name('app.subscriptions.index');
     Route::get('/app/subscriptions/{subscription:public_id}', SubscriptionShow::class)->name('app.subscriptions.show');
     Route::get('/app/recurring-plans', SubscriptionIndex::class)->name('app.recurring-plans');
+    Route::get('/app/recurring-plans/export', SubscriptionExportController::class)->name('app.recurring-plans.export');
 
     Route::get('/app/elements', ElementIndex::class)->name('app.elements.index');
     Route::get('/app/elements/create', ElementCreate::class)->name('app.elements.create');
@@ -145,14 +151,21 @@ Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::
 Route::get('/stripe/connect/callback', [StripeConnectController::class, 'callback'])
     ->name('stripe.connect.callback');
 
+use App\Enums\SubscriptionInterval;
 use App\Http\Controllers\DonorAuthController;
 use App\Http\Controllers\DonorDashboardController;
 use App\Http\Controllers\DonorDonationController;
 use App\Http\Controllers\DonorPortalController;
 use App\Http\Controllers\DonorProfileController;
 use App\Http\Controllers\DonorSubscriptionController;
+use App\Mail\LoginAlertNotification;
+use App\Mail\SubscriptionAmountChangedNotification;
+use App\Mail\SupporterSubscriptionAmountChangedNotification;
+use App\Models\Campaign;
 use App\Models\Donor;
 use App\Models\Organization;
+use App\Models\Subscription;
+use App\Models\User;
 
 // Organization logo (served from private storage)
 Route::get('/org/{organization}/logo', function (Organization $organization): ?StreamedResponse {
@@ -240,3 +253,98 @@ Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(fu
         Route::post('report-problem', [DonorPortalController::class, 'reportProblem'])->name('report-problem');
     });
 });
+
+if (app()->environment('local')) {
+    Route::get('/dev/preview/subscription-amount-change', function () {
+        $org = new Organization([
+            'name' => 'Ihsan Foundation',
+            'email' => 'org@example.com',
+            'code' => 'ihsan-foundation',
+        ]);
+        $org->id = 1;
+
+        $campaign = new Campaign([
+            'title' => 'Bantuan Banjir',
+            'organization_id' => 1,
+        ]);
+        $campaign->id = 100;
+        $campaign->public_id = 'IH123ABC';
+        $campaign->setRelation('organization', $org);
+
+        $donor = new Donor([
+            'name' => 'Ahmad Abdullah',
+            'email' => 'ahmad@example.com',
+            'locale' => 'ms',
+        ]);
+        $donor->id = 999;
+        $donor->public_id = 'DR123456';
+
+        $subscription = new Subscription([
+            'amount' => 100.00,
+            'currency' => 'myr',
+            'currency_symbol' => 'RM',
+            'interval' => SubscriptionInterval::Monthly,
+        ]);
+        $subscription->id = 200;
+        $subscription->public_id = 'R1234567';
+        $subscription->setRelation('campaign', $campaign);
+        $subscription->setRelation('donor', $donor);
+
+        $admin = new User([
+            'name' => 'Siti Aminah',
+            'email' => 'admin@example.com',
+        ]);
+        $admin->id = 10;
+
+        $amountDisplay = $subscription->currency_symbol.' '.number_format($subscription->amount, 2);
+
+        $supporterHtml = (new SupporterSubscriptionAmountChangedNotification($subscription, 50.00))->render();
+        $adminHtml = (new SubscriptionAmountChangedNotification($subscription, 50.00, $amountDisplay, false, null, $admin))->render();
+
+        $combined = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Email Preview — Subscription Amount Updated</title>
+    <style>
+        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
+        .email-block { margin-bottom: 40px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #0f172a; }
+    </style>
+</head>
+<body>
+    <div class="email-block">
+        <h2>1. Email untuk Supporter / Donor</h2>
+        {$supporterHtml}
+    </div>
+    <div class="email-block">
+        <h2>2. Email untuk Org Admin</h2>
+        {$adminHtml}
+    </div>
+</body>
+</html>
+HTML;
+
+        return response($combined);
+    });
+
+    Route::get('/dev/preview/login-alert', function () {
+        $organization = new Organization([
+            'name' => 'Ihsan Foundation',
+            'email' => 'org@example.com',
+            'code' => 'ihsan-foundation',
+        ]);
+        $organization->id = 1;
+
+        $html = (new LoginAlertNotification(
+            $organization,
+            'Kuala Lumpur, Malaysia',
+            '192.168.1.1',
+            'Chrome on macOS',
+            now()->toImmutable(),
+        ))->render();
+
+        return response($html);
+    });
+}
