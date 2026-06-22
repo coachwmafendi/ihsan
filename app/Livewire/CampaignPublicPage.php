@@ -40,4 +40,9 @@ class CampaignPublicPage extends Component
 
         $this->campaign = Campaign::query()->findOrFail($this->campaign->getKey())->load('organization');
     }
+
+    public function pollCampaign(): void
+    {
+        $this->campaign = Campaign::query()->findOrFail($this->campaign->getKey())->load('organization');
+    }
 }

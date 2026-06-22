@@ -44,6 +44,9 @@
                             isPublicPage: initialIsPublicPage,
                             donationPublicId: initialDonationPublicId,
                             redirectUrl: initialRedirectUrl,
+                            campaignPublicId: '',
+                            raisedAmount: 0,
+                            targetAmount: 0,
                             processing: false,
                             currentStep: initialStep > 1 ? initialStep : 1,
                             stepErrors: {},
@@ -51,6 +54,12 @@
 
                             get fixedFee() { return this.feeConfig[this.currency] ?? 0.50; },
                             get currentAmounts() { return this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts; },
+                            get progressWidth() {
+                                if (!this.targetAmount || this.targetAmount <= 0) return 0;
+                                const percent = Math.round((this.raisedAmount / this.targetAmount) * 100);
+                                return percent > 0 ? Math.max(2, Math.min(100, percent)) : 0;
+                            },
+                            formatCurrency(value) { return Number(value || 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
 
                             amountNumber(value = this.amount) {
                                 const parsed = parseFloat(value);
@@ -202,6 +211,10 @@
                             },
                             prevStep() { if (this.currentStep > 1) this.currentStep--; },
                             async init() {
+                                this.campaignPublicId = this.$el.dataset.campaignPublicId || '';
+                                this.raisedAmount = parseFloat($wire.campaignCollectedAmount) || 0;
+                                this.targetAmount = parseFloat($wire.campaignTargetAmount) || 0;
+
                                 $wire.on('amount-updated', ({ amount }) => { this.setAmount(amount); });
                                 $wire.on('currency-updated', ({ currency, symbol, amount, oneTimeAmounts, monthlyAmounts }) => {
                                     if (currency) this.currency = currency;
@@ -252,7 +265,15 @@
                                 this.processing = false;
                                 this.trackPurchase();
 
+                                if ($wire.campaignCollectedAmount !== undefined) {
+                                    this.raisedAmount = parseFloat($wire.campaignCollectedAmount) || 0;
+                                }
+
                                 this.currentStep = 'success';
+
+                                if (this.campaignPublicId && window.parent !== window) {
+                                    window.parent.postMessage({ type: 'ihsan:donation-success', campaignPublicId: this.campaignPublicId }, '*');
+                                }
 
                                 if (this.redirectUrl && ! this.isEmbed) {
                                     setTimeout(() => { window.location.href = this.redirectUrl; }, 1500);

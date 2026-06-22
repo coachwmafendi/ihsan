@@ -535,14 +535,25 @@
                         {{ \Illuminate\Support\Str::title($donor->name) }}
                         <span class="text-slate-500">&lt;<span x-text="$wire.previewToEmail"></span>&gt;</span>
                     </span>
-                    <button
-                        type="button"
-                        wire:click="resendFromModal"
-                        class="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-                    >
-                        <x-heroicon-o-arrow-path class="size-3.5" />
-                        Resend
-                    </button>
+                    <div class="ml-auto flex flex-col items-end gap-2">
+                        <button
+                            type="button"
+                            wire:click="resendFromModal"
+                            class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                        >
+                            <x-heroicon-o-arrow-path class="size-3.5" />
+                            Resend
+                        </button>
+                        <button
+                            type="button"
+                            x-on:click="if ($wire.previewLogId) window.open('{{ route('app.email-logs.responsive-preview', ['emailLog' => 'LOG_ID_PLACEHOLDER']) }}'.replace('LOG_ID_PLACEHOLDER', $wire.previewLogId), '_blank')"
+                            class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                        >
+                            <x-heroicon-o-device-phone-mobile class="size-3.5" />
+                            Responsive
+                            <span class="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Beta</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="flex items-baseline gap-3 py-1">
                     <span class="w-16 shrink-0 text-right text-slate-500">Subject:</span>

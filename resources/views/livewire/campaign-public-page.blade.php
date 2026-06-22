@@ -68,7 +68,7 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                     $leftToNext = max(0, $currentCheckpointAmount - $raised);
                 @endphp
 
-                <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div wire:poll.10s="pollCampaign" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                     <style>
                         @keyframes sparkle-fade {
                             from { opacity: 0; transform: scale(0.8); }

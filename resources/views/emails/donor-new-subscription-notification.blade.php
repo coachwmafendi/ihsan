@@ -12,7 +12,7 @@
 @section('title', $t('emails.donor_new_subscription.title'))
 
 @section('content')
-    <h1 style="font-size: 32px; color: #0f766e;">{{ $t('emails.donor_new_subscription.title') }}</h1>
+    <h1 style="font-size: 24px; color: #0f766e;">{{ $t('emails.donor_new_subscription.title') }}</h1>
 
     <p style="font-size: 18px;">{{ $t('emails.common.greeting', ['name' => $donor->name]) }},</p>
 

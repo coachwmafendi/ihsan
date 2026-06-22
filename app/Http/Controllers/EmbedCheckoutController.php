@@ -128,8 +128,20 @@ class EmbedCheckoutController extends Controller
     };
 
     window.addEventListener('message', function (event) {
-        if (event.data && event.data.type === 'donation-popup-close') {
+        if (!event.data || !event.data.type) {
+            return;
+        }
+
+        if (event.data.type === 'donation-popup-close') {
             window.IhsanCheckout.close();
+        }
+
+        if (event.data.type === 'ihsan:donation-success') {
+            window.IhsanCheckout.close();
+
+            setTimeout(function () {
+                window.location.reload();
+            }, 1200);
         }
     });
 

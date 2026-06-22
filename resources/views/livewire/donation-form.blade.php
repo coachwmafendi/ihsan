@@ -148,20 +148,13 @@
                 @endif
 
                 @if ($campaign->has_target)
-                    @php
-                        $targetAmount = max((float) $campaign->target_amount, 1);
-                        $collectedAmount = (float) $campaign->collected_amount;
-                        $progressPercent = min(100, round(($collectedAmount / $targetAmount) * 100));
-                        $progressWidth = $progressPercent > 0 ? max(2, $progressPercent) : 0;
-                    @endphp
-
                     <div class="mt-5">
                         <div class="mb-1.5 flex items-end justify-between gap-4 text-xs">
-                            <span class="font-semibold text-slate-950">{{ $currencySymbol }} {{ number_format($collectedAmount, 2) }} raised</span>
-                            <span class="text-slate-500">Goal {{ $currencySymbol }} {{ number_format($targetAmount, 2) }}</span>
+                            <span class="font-semibold text-slate-950" x-text="currencySymbol + ' ' + formatCurrency(raisedAmount) + ' raised'"></span>
+                            <span class="text-slate-500" x-text="'Goal ' + currencySymbol + ' ' + formatCurrency(targetAmount)"></span>
                         </div>
                         <div class="h-3 rounded-full bg-slate-200">
-                            <div class="h-3 rounded-full bg-teal-600" style="width: {{ $progressWidth }}%"></div>
+                            <div class="h-3 rounded-full bg-teal-600" x-bind:style="{ width: progressWidth + '%' }"></div>
                         </div>
                     </div>
                 @endif
@@ -222,20 +215,13 @@
                 </div>
 
                 @if ($campaign->has_target)
-                @php
-                    $targetAmount = max((float) $campaign->target_amount, 1);
-                    $collectedAmount = (float) $campaign->collected_amount;
-                    $progressPercent = min(100, round(($collectedAmount / $targetAmount) * 100));
-                    $progressWidth = $progressPercent > 0 ? max(2, $progressPercent) : 0;
-                @endphp
-
                 <div class="mb-3">
                     <div class="mb-1 flex items-end justify-between gap-4 text-xs">
-                        <span class="font-semibold text-slate-950">{{ $currencySymbol }} {{ number_format($collectedAmount, 2) }} raised</span>
-                        <span class="text-slate-500">Goal {{ $currencySymbol }} {{ number_format($targetAmount, 2) }}</span>
+                        <span class="font-semibold text-slate-950" x-text="currencySymbol + ' ' + formatCurrency(raisedAmount) + ' raised'"></span>
+                        <span class="text-slate-500" x-text="'Goal ' + currencySymbol + ' ' + formatCurrency(targetAmount)"></span>
                     </div>
                     <div class="h-3 rounded-full bg-slate-200">
-                        <div class="h-3 rounded-full bg-teal-700" style="width: {{ $progressWidth }}%"></div>
+                        <div class="h-3 rounded-full bg-teal-700" x-bind:style="{ width: progressWidth + '%' }"></div>
                     </div>
                 </div>
                 @endif
@@ -286,6 +272,7 @@
                     <div
                         wire:ignore.self
                         x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage))"
+                        data-campaign-public-id="{{ $campaign->public_id }}"
                         x-init="$wire.trackServerPageView()"
                         class="relative"
                     >
@@ -725,6 +712,9 @@
             isPublicPage: initialIsPublicPage,
             donationPublicId: initialDonationPublicId,
             redirectUrl: initialRedirectUrl,
+            campaignPublicId: '',
+            raisedAmount: 0,
+            targetAmount: 0,
             processing: false,
             currentStep: initialStep > 1 ? initialStep : 1,
             stepErrors: {},
@@ -736,6 +726,20 @@
 
             get currentAmounts() {
                 return this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
+            },
+
+            get progressWidth() {
+                if (!this.targetAmount || this.targetAmount <= 0) {
+                    return 0;
+                }
+
+                const percent = Math.round((this.raisedAmount / this.targetAmount) * 100);
+
+                return percent > 0 ? Math.max(2, Math.min(100, percent)) : 0;
+            },
+
+            formatCurrency(value) {
+                return Number(value || 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             },
 
             amountNumber(value = this.amount) {
@@ -968,6 +972,10 @@
             },
 
             async init() {
+                this.campaignPublicId = this.$el.dataset.campaignPublicId || '';
+                this.raisedAmount = parseFloat($wire.campaignCollectedAmount) || 0;
+                this.targetAmount = parseFloat($wire.campaignTargetAmount) || 0;
+
                 $wire.on('amount-updated', ({ amount }) => {
                     this.setAmount(amount);
                 });
@@ -1101,7 +1109,15 @@
                 this.processing = false;
                 this.trackPurchase();
 
+                if ($wire.campaignCollectedAmount !== undefined) {
+                    this.raisedAmount = parseFloat($wire.campaignCollectedAmount) || 0;
+                }
+
                 this.currentStep = 'success';
+
+                if (this.campaignPublicId && window.parent !== window) {
+                    window.parent.postMessage({ type: 'ihsan:donation-success', campaignPublicId: this.campaignPublicId }, '*');
+                }
 
                 if (this.redirectUrl && ! this.isEmbed) {
                     setTimeout(() => { window.location.href = this.redirectUrl; }, 1500);

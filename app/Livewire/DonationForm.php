@@ -73,6 +73,10 @@ class DonationForm extends Component
 
     public ?string $donationPublicId = null;
 
+    public float $campaignCollectedAmount = 0.0;
+
+    public float $campaignTargetAmount = 0.0;
+
     /**
      * @return array<int, string>
      */
@@ -176,7 +180,20 @@ class DonationForm extends Component
             abort(404);
         }
 
+        $this->syncCampaignTotals();
         $this->overrideFromQueryParams();
+    }
+
+    private function syncCampaignTotals(): void
+    {
+        $campaign = $this->element?->campaign ?? $this->campaign;
+
+        if ($campaign === null) {
+            return;
+        }
+
+        $this->campaignCollectedAmount = (float) $campaign->collected_amount;
+        $this->campaignTargetAmount = (float) ($campaign->target_amount ?? 0);
     }
 
     private function overrideFromQueryParams(): void
@@ -273,6 +290,9 @@ class DonationForm extends Component
                 $previousCollected = (float) $campaign->collected_amount;
                 $campaign->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
                 $campaign->refresh();
+
+                $this->campaignCollectedAmount = (float) $campaign->collected_amount;
+                $this->campaignTargetAmount = (float) ($campaign->target_amount ?? 0);
 
                 SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
 

@@ -143,3 +143,32 @@ it('refreshes campaign totals when a donation is received on the public page', f
     $component->dispatch('campaign-donation-received', campaignPublicId: $campaign->public_id)
         ->assertSet('campaign.collected_amount', 3500.00);
 });
+
+it('polls campaign totals from the database', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => Organization::factory()->create(),
+        'status' => CampaignStatus::Active,
+        'target_amount' => 10000.00,
+        'collected_amount' => 2000.00,
+    ]);
+
+    $component = Livewire::test(CampaignPublicPage::class, ['campaign' => $campaign]);
+
+    $component->assertSet('campaign.collected_amount', 2000.00);
+
+    $campaign->update(['collected_amount' => 5000.00]);
+
+    $component->call('pollCampaign')
+        ->assertSet('campaign.collected_amount', 5000.00);
+});
+
+it('passes the campaign public id to the donation form root', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => Organization::factory()->create(),
+        'status' => CampaignStatus::Active,
+    ]);
+
+    $this->get('/campaigns/'.$campaign->public_id)
+        ->assertSuccessful()
+        ->assertSee('data-campaign-public-id="'.$campaign->public_id.'"', false);
+});

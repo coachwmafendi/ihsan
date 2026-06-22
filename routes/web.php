@@ -4,6 +4,7 @@ use App\Http\Controllers\DonationCampaignImageController;
 use App\Http\Controllers\DonationExportController;
 use App\Http\Controllers\DonorImpersonationController;
 use App\Http\Controllers\DonorNotificationController;
+use App\Http\Controllers\EmailLogResponsivePreviewController;
 use App\Http\Controllers\EmbedCheckoutController;
 use App\Http\Controllers\PublicElementController;
 use App\Http\Controllers\ReceiptDownloadController;
@@ -109,6 +110,8 @@ Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::
     Route::get('/app/supporters', SupporterIndex::class)->name('app.supporters.index');
     Route::get('/app/supporters/export', SupporterExportController::class)->name('app.supporters.export');
     Route::get('/app/supporters/{donor:public_id}', SupporterShow::class)->name('app.supporters.show');
+    Route::get('/app/email-logs/{emailLog}/responsive-preview', [EmailLogResponsivePreviewController::class, 'show'])
+        ->name('app.email-logs.responsive-preview');
 
     Route::get('/app/settings/organization', OrganizationSettings::class)->name('app.settings.organization');
     Route::get('/app/settings/payment', Payment::class)->name('app.settings.payment');
