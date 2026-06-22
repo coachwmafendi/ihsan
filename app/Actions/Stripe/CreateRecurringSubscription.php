@@ -69,21 +69,21 @@ class CreateRecurringSubscription
             ? $paymentIntent->customer
             : ($paymentIntent->customer->id ?? null);
 
-        if ($paymentMethodId === null) {
-            throw new \RuntimeException('Payment method missing for recurring donation '.$donation->getKey());
+        if ($paymentMethodId !== null) {
+            $customerId ??= $this->resolveCustomerId($donation, $paymentIntent, $paymentMethodId, $stripeOptions);
+
+            [$stripeSubscriptionId, $stripePriceId] = $customerId !== null
+                ? $this->createStripeSubscription(
+                    donation: $donation,
+                    customerId: $customerId,
+                    paymentMethodId: $paymentMethodId,
+                    currentPeriodEnd: $currentPeriodEnd,
+                    stripeOptions: $stripeOptions,
+                )
+                : [null, null];
+        } else {
+            [$stripeSubscriptionId, $stripePriceId] = [null, null];
         }
-
-        $customerId ??= $this->resolveCustomerId($donation, $paymentIntent, $paymentMethodId, $stripeOptions);
-
-        [$stripeSubscriptionId, $stripePriceId] = $customerId !== null
-            ? $this->createStripeSubscription(
-                donation: $donation,
-                customerId: $customerId,
-                paymentMethodId: $paymentMethodId,
-                currentPeriodEnd: $currentPeriodEnd,
-                stripeOptions: $stripeOptions,
-            )
-            : [null, null];
 
         $subscription = DB::transaction(function () use (
             $donation,
