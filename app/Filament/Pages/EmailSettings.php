@@ -152,6 +152,25 @@ class EmailSettings extends Page
     {
         $data = $this->form->getState();
 
+        $oldSettings = [
+            'mail_driver' => Setting::get('mail_driver'),
+            'mail_host' => Setting::get('mail_host'),
+            'mail_port' => Setting::get('mail_port'),
+            'mail_username' => Setting::get('mail_username'),
+            'mail_password' => Setting::get('mail_password') ? '***' : null,
+            'mail_encryption' => Setting::get('mail_encryption'),
+            'mail_from_address' => Setting::get('mail_from_address'),
+            'mail_from_name' => Setting::get('mail_from_name'),
+            'mail_throttle_seconds' => Setting::get('mail_throttle_seconds', 0),
+            'sendmail_path' => Setting::get('sendmail_path'),
+            'ses_key' => Setting::get('ses_key'),
+            'ses_secret' => Setting::get('ses_secret') ? '***' : null,
+            'ses_region' => Setting::get('ses_region'),
+            'mailgun_domain' => Setting::get('mailgun_domain'),
+            'mailgun_secret' => Setting::get('mailgun_secret') ? '***' : null,
+            'postmark_token' => Setting::get('postmark_token') ? '***' : null,
+        ];
+
         Setting::set('mail_driver', $data['mail_driver']);
         Setting::set('mail_from_address', $data['mail_from_address']);
         Setting::set('mail_from_name', $data['mail_from_name']);
@@ -207,6 +226,31 @@ class EmailSettings extends Page
 
         $this->applyMailConfig($data);
 
+        activity()
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'old' => $oldSettings,
+                'new' => [
+                    'mail_driver' => $data['mail_driver'],
+                    'mail_host' => $data['mail_host'] ?? null,
+                    'mail_port' => $data['mail_port'] ?? null,
+                    'mail_username' => $data['mail_username'] ?? null,
+                    'mail_password' => filled($data['mail_password'] ?? null) ? '***' : null,
+                    'mail_encryption' => $data['mail_encryption'] ?? null,
+                    'mail_from_address' => $data['mail_from_address'],
+                    'mail_from_name' => $data['mail_from_name'],
+                    'mail_throttle_seconds' => $data['mail_throttle_seconds'] ?? 0,
+                    'sendmail_path' => $data['sendmail_path'] ?? null,
+                    'ses_key' => $data['ses_key'] ?? null,
+                    'ses_secret' => filled($data['ses_secret'] ?? null) ? '***' : null,
+                    'ses_region' => $data['ses_region'] ?? null,
+                    'mailgun_domain' => $data['mailgun_domain'] ?? null,
+                    'mailgun_secret' => filled($data['mailgun_secret'] ?? null) ? '***' : null,
+                    'postmark_token' => filled($data['postmark_token'] ?? null) ? '***' : null,
+                ],
+            ])
+            ->log('Email settings updated');
+
         Artisan::call('queue:restart');
 
         Notification::make()
@@ -217,18 +261,20 @@ class EmailSettings extends Page
 
     public function sendTestEmail(): void
     {
+        $this->save();
+
         $data = $this->form->getState();
 
         if (blank($data['mail_from_address'])) {
             Notification::make()
-                ->title('Please save the form first and set a From Email.')
+                ->title('Please set a From Email before sending a test.')
                 ->warning()
                 ->send();
 
             return;
         }
 
-        $this->applyMailConfig($data);
+        $this->applyMailConfig();
 
         try {
             Mail::raw('This is a test email from '.config('app.name').'. Your email configuration is working correctly.', function ($message) use ($data) {
