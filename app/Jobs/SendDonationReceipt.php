@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Actions\DonorEmailLog\LogDonorEmail;
+use App\Jobs\Middleware\ThrottleMailtrapMiddleware;
 use App\Mail\DonationReceipt;
 use App\Models\Donation;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,6 +19,11 @@ class SendDonationReceipt implements ShouldQueue
         public Donation $donation,
         public bool $force = false,
     ) {}
+
+    public function middleware(): array
+    {
+        return [new ThrottleMailtrapMiddleware];
+    }
 
     public function handle(): void
     {

@@ -6,7 +6,6 @@ use App\Models\MonthlyInvoice;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Http\Client\RequestException;
-use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;

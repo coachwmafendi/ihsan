@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\Donation;
 use Illuminate\Bus\Queueable;
-use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
 class FraudAlertNotification extends Mailable

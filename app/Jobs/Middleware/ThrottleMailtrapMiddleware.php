@@ -6,31 +6,35 @@ use Closure;
 use Illuminate\Contracts\Queue\Job as JobContract;
 use Illuminate\Mail\SendQueuedMailable;
 use Illuminate\Notifications\SendQueuedNotifications;
-use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Cache;
 
 class ThrottleMailtrapMiddleware
 {
-    public function handle(object $job, Closure $next): void
+    public function handle(object $job, Closure $next): mixed
     {
         if (! $this->shouldThrottle($job)) {
-            $next($job);
-
-            return;
+            return $next($job);
         }
 
-        $limiterKey = config('mail.rate_limit.limiter', 'mailtrap-send');
-        $maxAttempts = (int) config('mail.rate_limit.max_attempts', 1);
-        $decaySeconds = (int) config('mail.rate_limit.decay_seconds', 2);
+        $lockKey = config('mail.rate_limit.limiter', 'mailtrap-send');
+        $gapSeconds = (int) config('mail.rate_limit.decay_seconds', 5);
+        $lockTimeout = max(60, $gapSeconds * 10);
 
-        if (RateLimiter::tooManyAttempts($limiterKey, $maxAttempts)) {
-            $availableIn = RateLimiter::availableIn($limiterKey);
-            $this->release($job, $availableIn + 1);
+        $lock = Cache::lock($lockKey, $lockTimeout);
 
-            return;
+        try {
+            $lock->block($lockTimeout);
+
+            $result = $next($job);
+
+            if ($gapSeconds > 0) {
+                sleep($gapSeconds);
+            }
+
+            return $result;
+        } finally {
+            $lock->release();
         }
-
-        RateLimiter::hit($limiterKey, $decaySeconds);
-        $next($job);
     }
 
     private function shouldThrottle(object $job): bool
@@ -52,23 +56,16 @@ class ThrottleMailtrapMiddleware
 
     private function resolveClassName(object $job): string
     {
-        if ($job instanceof JobContract || method_exists($job, 'resolveName')) {
+        if ($job instanceof JobContract) {
+            $payload = $job->payload();
+
+            return $payload['data']['commandName'] ?? $job->resolveName();
+        }
+
+        if (method_exists($job, 'resolveName')) {
             return $job->resolveName();
         }
 
         return $job::class;
-    }
-
-    private function release(object $job, int $seconds): void
-    {
-        if ($job instanceof JobContract) {
-            $job->release($seconds);
-
-            return;
-        }
-
-        if (method_exists($job, 'release')) {
-            $job->release($seconds);
-        }
     }
 }

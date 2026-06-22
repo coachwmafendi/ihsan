@@ -6,7 +6,6 @@ use App\Enums\DonationType;
 use App\Models\Donation;
 use App\Support\Currency;
 use Illuminate\Bus\Queueable;
-use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;

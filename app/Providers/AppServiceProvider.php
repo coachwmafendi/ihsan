@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Jobs\Middleware\ThrottleMailtrapMiddleware;
 use App\Listeners\RecordDonorEmailDelivery;
 use App\Listeners\SendLoginAlertEmail;
 use App\Listeners\UpdateLastLoginAt;
@@ -12,12 +11,10 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Events\MessageSent;
-use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -41,7 +38,6 @@ class AppServiceProvider extends ServiceProvider
 
         $this->applyMailConfig();
         $this->applyStripeConfig();
-        $this->throttleMailtrapSends();
 
         Event::listen(
             Login::class,
@@ -140,16 +136,6 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('donor-magic-link-email', function (Request $request) {
             return Limit::perMinute(3)->by($request->input('email', $request->ip()));
-        });
-    }
-
-    protected function throttleMailtrapSends(): void
-    {
-        Queue::before(function (JobProcessing $event): void {
-            app(ThrottleMailtrapMiddleware::class)->handle(
-                $event->job,
-                fn () => null,
-            );
         });
     }
 }

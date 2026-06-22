@@ -1,5 +1,7 @@
 <?php
 
+use App\Jobs\SendDonationReceipt;
+
 return [
 
     /*
@@ -22,8 +24,10 @@ return [
         'enabled' => (bool) env('MAIL_RATE_LIMIT_ENABLED', false),
         'limiter' => env('MAIL_RATE_LIMIT_LIMITER', 'mailtrap-send'),
         'max_attempts' => (int) env('MAIL_RATE_LIMIT_MAX_ATTEMPTS', 1),
-        'decay_seconds' => (int) env('MAIL_RATE_LIMIT_DECAY_SECONDS', 2),
-        'job_classes' => [],
+        'decay_seconds' => (int) env('MAIL_RATE_LIMIT_DECAY_SECONDS', 10),
+        'job_classes' => [
+            SendDonationReceipt::class,
+        ],
     ],
 
     /*
