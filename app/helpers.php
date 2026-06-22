@@ -18,7 +18,7 @@ if (! function_exists('money_raw')) {
 }
 
 if (! function_exists('myrTime')) {
-    function myrTime(?CarbonInterface $datetime, bool $withLabel = true, string $format = 'd M Y, h:i A'): string
+    function myrTime(?CarbonInterface $datetime, bool $withLabel = true, string $format = 'd M Y, g:i A'): string
     {
         if (! $datetime) {
             return '—';
