@@ -37,7 +37,7 @@ test('one-time donation notification subject and body include key details', func
         ->toContain($donation->public_id)
         ->toContain('View in Ihsan')
         ->toContain('app/donations/'.$donation->public_id)
-        ->toContain($donation->created_at->format('d M Y, h:i A'));
+        ->toContain(myrTime($donation->created_at));
 });
 
 test('recurring donation notification subject includes payment number', function () {

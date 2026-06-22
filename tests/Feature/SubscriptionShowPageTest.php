@@ -55,7 +55,7 @@ it('shows the active recurring donation status banner', function () {
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('This monthly recurring donation is active.')
         ->assertSee('Installment #4')
-        ->assertSee($subscription->current_period_end->format('M d, Y, g:i A'));
+        ->assertSee(myrTime($subscription->current_period_end));
 });
 
 it('projects the next installment date when current period end is stale', function () {
@@ -79,7 +79,7 @@ it('projects the next installment date when current period end is stale', functi
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('This monthly recurring donation is active.')
         ->assertSee('Installment #4')
-        ->assertSee($expectedDate->format('M d, Y, g:i A'));
+        ->assertSee(myrTime($expectedDate));
 });
 
 it('shows the scheduled cancellation status banner', function () {
@@ -96,7 +96,7 @@ it('shows the scheduled cancellation status banner', function () {
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('This monthly recurring donation is scheduled to cancel.')
         ->assertSee('The final installment will be charged on')
-        ->assertSee($subscription->current_period_end->format('M d, Y, g:i A'));
+        ->assertSee(myrTime($subscription->current_period_end));
 });
 
 it('shows the paused recurring donation status banner', function () {
@@ -112,7 +112,7 @@ it('shows the paused recurring donation status banner', function () {
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('This monthly recurring donation is paused.')
         ->assertSee('Installments will resume on')
-        ->assertSee($subscription->paused_until->format('M d, Y, g:i A'));
+        ->assertSee(myrTime($subscription->paused_until));
 });
 
 it('shows the cancelled recurring donation status banner', function () {
@@ -127,7 +127,7 @@ it('shows the cancelled recurring donation status banner', function () {
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('This recurring donation was cancelled on')
-        ->assertSee($subscription->cancelled_at->format('M d, Y, g:i A'))
+        ->assertSee(myrTime($subscription->cancelled_at))
         ->assertSee('No further charges will be made.');
 });
 
@@ -215,7 +215,7 @@ it('opens the skip installments modal and computes next installment date', funct
         ->assertSee('Skip installments')
         ->set('skipDuration', 'custom')
         ->set('customSkipMonths', 3)
-        ->assertSee($subscription->current_period_end->copy()->addMonths(3)->format('M d, Y, g:i A'));
+        ->assertSee(myrTime($subscription->current_period_end->copy()->addMonths(3)));
 });
 
 it('shows approximate myr total when subscription donations lack base amount', function () {
