@@ -1,7 +1,7 @@
 <?php
 
 use App\Support\MoneyFormatter;
-use Illuminate\Support\Carbon;
+use Carbon\CarbonInterface;
 
 if (! function_exists('money')) {
     function money(float $amount, string $currency = 'MYR'): string
@@ -18,7 +18,7 @@ if (! function_exists('money_raw')) {
 }
 
 if (! function_exists('myrTime')) {
-    function myrTime(?Carbon $datetime, bool $withLabel = true, string $format = 'd M Y, h:i A'): string
+    function myrTime(?CarbonInterface $datetime, bool $withLabel = true, string $format = 'd M Y, h:i A'): string
     {
         if (! $datetime) {
             return '—';
