@@ -18,6 +18,7 @@ use App\Jobs\SendLinkedInConversionEvent;
 use App\Jobs\SendMetaConversionEvent;
 use App\Jobs\SendMetaTrackingEvent;
 use App\Jobs\SendNewDonationNotification;
+use App\Jobs\SendNewSubscriptionNotification;
 use App\Jobs\SendSnapchatConversionEvent;
 use App\Jobs\SendXAdsConversionEvent;
 use App\Jobs\SyncDonationStripeDetailsJob;
@@ -282,6 +283,7 @@ class DonationForm extends Component
                     $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
 
                     if ($subscription->wasRecentlyCreated) {
+                        SendNewSubscriptionNotification::dispatch($donation);
                         SendDonorNewSubscriptionNotification::dispatch($donation);
                     }
                 }

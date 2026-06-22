@@ -16,7 +16,7 @@ class SendDonationReceipt implements ShouldQueue
 
     public function __construct(
         public Donation $donation,
-        public bool $force = false,
+        public ?bool $force = false,
     ) {}
 
     public function handle(): void
@@ -33,11 +33,13 @@ class SendDonationReceipt implements ShouldQueue
             return;
         }
 
-        if (! $this->force && $donation->receipt_sent_at !== null) {
+        $force = $this->force ?? false;
+
+        if (! $force && $donation->receipt_sent_at !== null) {
             return;
         }
 
-        if (! $this->force) {
+        if (! $force) {
             $claimed = Donation::query()
                 ->whereKey($donation->getKey())
                 ->whereNull('receipt_sent_at')

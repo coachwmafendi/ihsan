@@ -7,6 +7,8 @@ use App\Enums\SubscriptionStatus;
 use App\Models\Donation;
 use App\Models\Subscription;
 use App\Services\StripeMetadata;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Stripe\Customer as StripeCustomer;
 use Stripe\PaymentIntent as StripePaymentIntent;
@@ -22,75 +24,115 @@ class CreateRecurringSubscription
      */
     public function create(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions = []): Subscription
     {
-        return DB::transaction(function () use ($donation, $paymentIntent, $stripeOptions): Subscription {
-            $donation = Donation::query()->whereKey($donation->getKey())->lockForUpdate()->firstOrFail();
-            $donation->loadMissing(['campaign', 'donor', 'subscription']);
+        $lock = Cache::lock('create-recurring-subscription.'.$donation->getKey(), 60);
 
-            if ($donation->subscription !== null) {
-                return $donation->subscription;
+        try {
+            $lock->block(30);
+        } catch (LockTimeoutException) {
+            $existingSubscription = $donation->fresh()?->subscription;
+
+            if ($existingSubscription instanceof Subscription) {
+                return $existingSubscription;
             }
 
-            $donation->loadMissing('campaign.organization');
-            $organization = $donation->campaign?->organization;
+            throw new \RuntimeException('Unable to acquire subscription creation lock for donation '.$donation->getKey());
+        }
 
-            $currentPeriodStart = now();
-            $currentPeriodEnd = $currentPeriodStart->copy()->addMonth();
-            $stripeSubscriptionId = null;
-            $stripePriceId = null;
+        try {
+            return $this->createLocked($donation, $paymentIntent, $stripeOptions);
+        } finally {
+            $lock->release();
+        }
+    }
 
-            $paymentMethodId = is_string($paymentIntent->payment_method ?? null)
-                ? $paymentIntent->payment_method
-                : ($paymentIntent->payment_method->id ?? null);
-            $customerId = is_string($paymentIntent->customer ?? null)
-                ? $paymentIntent->customer
-                : ($paymentIntent->customer->id ?? null);
+    /**
+     * @param  array<string, string>  $stripeOptions
+     */
+    private function createLocked(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions = []): Subscription
+    {
+        $existingSubscription = $donation->fresh()?->subscription;
 
-            if ($paymentMethodId !== null) {
-                $customerId ??= $this->resolveCustomerId($donation, $paymentIntent, $paymentMethodId, $stripeOptions);
+        if ($existingSubscription instanceof Subscription) {
+            return $existingSubscription;
+        }
 
-                if ($customerId !== null) {
-                    [$stripeSubscriptionId, $stripePriceId] = $this->createStripeSubscription(
-                        donation: $donation,
-                        customerId: $customerId,
-                        paymentMethodId: $paymentMethodId,
-                        currentPeriodEnd: $currentPeriodEnd,
-                        stripeOptions: $stripeOptions,
-                    );
-                }
+        $donation->loadMissing('campaign.organization');
+        $organization = $donation->campaign?->organization;
+
+        $currentPeriodStart = now();
+        $currentPeriodEnd = $currentPeriodStart->copy()->addMonth();
+
+        $paymentMethodId = is_string($paymentIntent->payment_method ?? null)
+            ? $paymentIntent->payment_method
+            : ($paymentIntent->payment_method->id ?? null);
+        $customerId = is_string($paymentIntent->customer ?? null)
+            ? $paymentIntent->customer
+            : ($paymentIntent->customer->id ?? null);
+
+        if ($paymentMethodId === null) {
+            throw new \RuntimeException('Payment method missing for recurring donation '.$donation->getKey());
+        }
+
+        $customerId ??= $this->resolveCustomerId($donation, $paymentIntent, $paymentMethodId, $stripeOptions);
+
+        [$stripeSubscriptionId, $stripePriceId] = $customerId !== null
+            ? $this->createStripeSubscription(
+                donation: $donation,
+                customerId: $customerId,
+                paymentMethodId: $paymentMethodId,
+                currentPeriodEnd: $currentPeriodEnd,
+                stripeOptions: $stripeOptions,
+            )
+            : [null, null];
+
+        $subscription = DB::transaction(function () use (
+            $donation,
+            $stripeSubscriptionId,
+            $stripePriceId,
+            $currentPeriodStart,
+            $currentPeriodEnd
+        ): Subscription {
+            $freshDonation = Donation::query()->whereKey($donation->getKey())->lockForUpdate()->firstOrFail();
+            $freshDonation->load('subscription');
+
+            if ($freshDonation->subscription !== null) {
+                return $freshDonation->subscription;
             }
 
-            $subscription = Subscription::query()->create([
-                'campaign_id' => $donation->campaign_id,
-                'donor_id' => $donation->donor_id,
-                'source' => $donation->source,
+            $newSubscription = Subscription::query()->create([
+                'campaign_id' => $freshDonation->campaign_id,
+                'donor_id' => $freshDonation->donor_id,
+                'source' => $freshDonation->source,
                 'stripe_subscription_id' => $stripeSubscriptionId,
                 'stripe_price_id' => $stripePriceId,
-                'amount' => (float) $donation->gross_amount,
-                'currency' => $donation->currency,
+                'amount' => (float) $freshDonation->gross_amount,
+                'currency' => $freshDonation->currency,
                 'interval' => SubscriptionInterval::Monthly,
                 'status' => SubscriptionStatus::Active,
-                'cover_fee' => (float) ($donation->donor_fee_covered ?? 0) > 0,
-                'fee_cover_amount' => (float) ($donation->donor_fee_covered ?? 0) > 0 ? (float) $donation->donor_fee_covered : null,
+                'cover_fee' => (float) ($freshDonation->donor_fee_covered ?? 0) > 0,
+                'fee_cover_amount' => (float) ($freshDonation->donor_fee_covered ?? 0) > 0 ? (float) $freshDonation->donor_fee_covered : null,
                 'current_period_start' => $currentPeriodStart,
                 'current_period_end' => $currentPeriodEnd,
                 'payment_count' => 1,
             ]);
 
-            $donation->update(['subscription_id' => $subscription->getKey()]);
+            $freshDonation->update(['subscription_id' => $newSubscription->getKey()]);
 
-            if ($stripeSubscriptionId !== null && $organization !== null) {
-                StripeSubscription::update($stripeSubscriptionId, [
-                    'metadata' => StripeMetadata::forRecurringSubscription(
-                        donation: $donation,
-                        organization: $organization,
-                        element: $donation->element,
-                        subscription: $subscription,
-                    ),
-                ], $stripeOptions);
-            }
-
-            return $subscription;
+            return $newSubscription;
         });
+
+        if ($stripeSubscriptionId !== null && $organization !== null) {
+            StripeSubscription::update($stripeSubscriptionId, [
+                'metadata' => StripeMetadata::forRecurringSubscription(
+                    donation: $donation,
+                    organization: $organization,
+                    element: $donation->element,
+                    subscription: $subscription,
+                ),
+            ], $stripeOptions);
+        }
+
+        return $subscription;
     }
 
     /**
