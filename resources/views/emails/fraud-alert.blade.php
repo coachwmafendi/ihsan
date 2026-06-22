@@ -13,7 +13,7 @@ A donation has been **{{ $action }}** by the fraud prevention system.
 | **Campaign** | {{ $donation->campaign?->title ?? 'N/A' }} |
 | **Reason** | {{ $reason }} |
 | **Risk Score** | {{ $donation->risk_score ?? 'N/A' }} |
-| **Time** | {{ $donation->created_at->format('M j, Y H:i:s') }} |
+| **Time** | {{ myrTime($donation->created_at, format: 'M j, Y H:i:s') }} |
 
 @if ($action === 'blocked')
 **This donation has been blocked and will not be processed.**

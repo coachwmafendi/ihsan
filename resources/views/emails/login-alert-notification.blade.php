@@ -22,7 +22,7 @@
             </tr>
             <tr>
                 <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Date/Time</td>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $loggedInAt->format('d M Y, h:i A') }}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ myrTime($loggedInAt) }}</td>
             </tr>
         </table>
 

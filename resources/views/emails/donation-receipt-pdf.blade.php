@@ -90,7 +90,7 @@
     <div class="header">
         <h1>Donation Receipt</h1>
         <div class="org-name">{{ $donation->campaign->organization->name }}</div>
-        <div class="receipt-number">{{ $donation->invoice_number }} &middot; {{ $donation->created_at->format('d M Y, g:i A') }}</div>
+        <div class="receipt-number">{{ $donation->invoice_number }} &middot; {{ myrTime($donation->created_at) }}</div>
     </div>
 
     <div class="info-row"><strong>Donor</strong> {{ $donation->donor->name }}</div>

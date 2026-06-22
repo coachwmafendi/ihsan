@@ -60,7 +60,7 @@
                 @endif
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Net to Organisation</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #16a34a;">{{ $netAmount }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Campaign</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->title }}</td></tr>
-                <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Date</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->created_at->format('d M Y, h:i A') }}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Date</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ myrTime($donation->created_at) }}</td></tr>
                 @if ($subscription !== null && $subscription->current_period_end !== null)
                     <tr><td style="padding: 8px; color: #64748b;">Next Billing Date</td><td style="padding: 8px;">{{ $subscription->current_period_end->format('d M Y') }}</td></tr>
                 @endif
@@ -87,7 +87,7 @@
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Net to Organisation</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #16a34a;">{{ $netAmount }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Campaign</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->title }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Type</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ ucwords(str_replace('_', ' ', $donation->type->value)) }}</td></tr>
-                <tr><td style="padding: 8px; color: #64748b;">Date</td><td style="padding: 8px;">{{ $donation->created_at->format('d M Y, h:i A') }}</td></tr>
+                <tr><td style="padding: 8px; color: #64748b;">Date</td><td style="padding: 8px;">{{ myrTime($donation->created_at) }}</td></tr>
             </table>
 
             <p style="margin: 24px 0;">

@@ -35,7 +35,7 @@
         @endif
         <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.receipt.campaign') }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->title }}</td></tr>
         <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.receipt.organization') }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->organization->name }}</td></tr>
-        <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.receipt.date') }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->created_at->format('d M Y, g:i A') }}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.receipt.date') }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ myrTime($donation->created_at) }}</td></tr>
         <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.receipt.payment_method') }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->payment_method_display }}</td></tr>
         <tr><td style="padding: 8px; color: #64748b;">{{ $t('emails.receipt.status') }}</td><td style="padding: 8px; color: #16a34a; font-weight: 600;">{{ $t('emails.receipt.successful') }}</td></tr>
     </table>

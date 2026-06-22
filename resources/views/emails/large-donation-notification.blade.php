@@ -46,7 +46,7 @@
             </tr>
             <tr style="background: {{ $hasCoveredFee ? '#fff' : '#f5f3ff' }};">
                 <td style="padding: 12px 16px; color: #6b7280;">Date</td>
-                <td style="padding: 12px 16px;">{{ $donation->created_at->format('d M Y, h:i A') }}</td>
+                <td style="padding: 12px 16px;">{{ myrTime($donation->created_at) }}</td>
             </tr>
         </table>
 

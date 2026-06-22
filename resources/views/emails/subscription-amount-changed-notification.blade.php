@@ -68,7 +68,7 @@
         </tr>
         <tr>
             <td style="padding: 8px; color: #64748b;">{{ $t('emails.subscription_amount_changed.date') }}</td>
-            <td style="padding: 8px;">{{ now()->format('d M Y, h:i A') }}</td>
+            <td style="padding: 8px;">{{ myrTime(now()) }}</td>
         </tr>
     </table>
 

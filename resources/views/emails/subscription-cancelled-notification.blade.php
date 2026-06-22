@@ -14,7 +14,7 @@
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Amount</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $subscription->currency_symbol }} {{ number_format($subscription->amount, 2) }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Campaign</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $subscription->campaign->title }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Total Payments</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $subscription->payment_count ?? 0 }}</td></tr>
-            <tr><td style="padding: 8px; color: #64748b;">Cancelled At</td><td style="padding: 8px;">{{ $subscription->cancelled_at?->format('d M Y, h:i A') ?? now()->format('d M Y, h:i A') }}</td></tr>
+            <tr><td style="padding: 8px; color: #64748b;">Cancelled At</td><td style="padding: 8px;">{{ $subscription->cancelled_at ? myrTime($subscription->cancelled_at) : myrTime(now()) }}</td></tr>
         </table>
 
         <p style="font-size: 0.875rem; color: #94a3b8;">
