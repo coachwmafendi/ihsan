@@ -52,6 +52,7 @@
 
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Supporter</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->donor->name }}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Supporter ID</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-family: monospace; font-size: 13px;">{{ $donation->donor->public_id }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Email</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->donor->email }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Donation ID</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-family: monospace; font-size: 13px;">{{ $donation->public_id }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $hasCoveredFee ? 'Donation (incl. fee)' : 'Donation' }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donation->total_charged_with_conversion }}</td></tr>
@@ -78,6 +79,7 @@
 
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Supporter</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->donor->name }}</td></tr>
+                <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Supporter ID</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-family: monospace; font-size: 13px;">{{ $donation->donor->public_id }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Email</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->donor->email }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Donation ID</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-family: monospace; font-size: 13px;">{{ $donation->public_id }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $hasCoveredFee ? 'Donation (incl. fee)' : 'Donation' }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donation->total_charged_with_conversion }}</td></tr>
