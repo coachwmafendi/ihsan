@@ -72,7 +72,7 @@ class CreateRecurringSubscription
         if ($paymentMethodId !== null) {
             $customerId ??= $this->resolveCustomerId($donation, $paymentIntent, $paymentMethodId, $stripeOptions);
 
-            [$stripeSubscriptionId, $stripePriceId] = $customerId !== null
+            [$stripeSubscriptionId, $stripePriceId, $stripeInvoiceId] = $customerId !== null
                 ? $this->createStripeSubscription(
                     donation: $donation,
                     customerId: $customerId,
@@ -80,15 +80,16 @@ class CreateRecurringSubscription
                     currentPeriodEnd: $currentPeriodEnd,
                     stripeOptions: $stripeOptions,
                 )
-                : [null, null];
+                : [null, null, null];
         } else {
-            [$stripeSubscriptionId, $stripePriceId] = [null, null];
+            [$stripeSubscriptionId, $stripePriceId, $stripeInvoiceId] = [null, null, null];
         }
 
         $subscription = DB::transaction(function () use (
             $donation,
             $stripeSubscriptionId,
             $stripePriceId,
+            $stripeInvoiceId,
             $currentPeriodStart,
             $currentPeriodEnd
         ): Subscription {
@@ -116,7 +117,13 @@ class CreateRecurringSubscription
                 'payment_count' => 1,
             ]);
 
-            $freshDonation->update(['subscription_id' => $newSubscription->getKey()]);
+            $update = ['subscription_id' => $newSubscription->getKey()];
+
+            if ($stripeInvoiceId !== null && $freshDonation->stripe_invoice_id === null) {
+                $update['stripe_invoice_id'] = $stripeInvoiceId;
+            }
+
+            $freshDonation->update($update);
 
             return $newSubscription;
         });
@@ -192,7 +199,7 @@ class CreateRecurringSubscription
 
     /**
      * @param  array<string, string>  $stripeOptions
-     * @return array{0: string, 1: string}
+     * @return array{0: string, 1: string, 2: string|null}
      */
     private function createStripeSubscription(Donation $donation, string $customerId, string $paymentMethodId, \DateTimeInterface $currentPeriodEnd, array $stripeOptions): array
     {
@@ -254,10 +261,13 @@ class CreateRecurringSubscription
                     element: $donation->element,
                 )
                 : [],
+            'expand' => ['latest_invoice'],
         ];
 
         $subscription = StripeSubscription::create($params, $stripeOptions);
 
-        return [$subscription->id, $price->id];
+        $invoiceId = $subscription->latest_invoice->id ?? $subscription->latest_invoice ?? null;
+
+        return [$subscription->id, $price->id, is_string($invoiceId) ? $invoiceId : null];
     }
 }
