@@ -21,7 +21,7 @@
             document.addEventListener('alpine:init', () => {
                 if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
                     Alpine._donationStepRegistered = true;
-                    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false) => {
+                    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0) => {
                         let stripe = null;
                         let elements = null;
                         let paymentElement = null;
@@ -45,8 +45,8 @@
                             donationPublicId: initialDonationPublicId,
                             redirectUrl: initialRedirectUrl,
                             campaignPublicId: '',
-                            raisedAmount: 0,
-                            targetAmount: 0,
+                            raisedAmount: initialRaisedAmount,
+                            targetAmount: initialTargetAmount,
                             processing: false,
                             currentStep: initialStep > 1 ? initialStep : 1,
                             stepErrors: {},

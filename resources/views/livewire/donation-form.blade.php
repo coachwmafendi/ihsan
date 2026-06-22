@@ -271,7 +271,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage))"
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount))"
                         data-campaign-public-id="{{ $campaign->public_id }}"
                         x-init="$wire.trackServerPageView()"
                         class="relative"
@@ -689,7 +689,7 @@
 @script
 {{-- donationStep Alpine component registered in layouts/donation.blade.php via alpine:init --}}
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false) => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0) => {
         let stripe = null;
         let elements = null;
         let paymentElement = null;
@@ -713,8 +713,8 @@
             donationPublicId: initialDonationPublicId,
             redirectUrl: initialRedirectUrl,
             campaignPublicId: '',
-            raisedAmount: 0,
-            targetAmount: 0,
+            raisedAmount: initialRaisedAmount,
+            targetAmount: initialTargetAmount,
             processing: false,
             currentStep: initialStep > 1 ? initialStep : 1,
             stepErrors: {},
