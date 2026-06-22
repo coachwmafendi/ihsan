@@ -521,21 +521,29 @@
 
             {{-- Email metadata --}}
             <div class="border-b border-slate-200 px-5 py-3 text-sm">
-                <div class="flex items-baseline gap-3 py-1">
-                    <span class="w-16 shrink-0 text-right text-slate-500">From:</span>
-                    <span class="text-slate-800">
-                        <span x-text="$wire.previewFromName"></span>
-                        <span class="text-slate-500" x-show="$wire.previewFromEmail">&lt;<span x-text="$wire.previewFromEmail"></span>&gt;</span>
-                    </span>
-                    <span class="ml-auto shrink-0 text-slate-400" x-text="$wire.previewSentAt"></span>
-                </div>
-                <div class="flex items-baseline gap-3 py-1">
-                    <span class="w-16 shrink-0 text-right text-slate-500">To:</span>
-                    <span class="text-slate-800">
-                        {{ \Illuminate\Support\Str::title($donor->name) }}
-                        <span class="text-slate-500">&lt;<span x-text="$wire.previewToEmail"></span>&gt;</span>
-                    </span>
-                    <div class="ml-auto flex flex-col items-end gap-2">
+                <div class="grid grid-cols-[1fr_auto] gap-x-4">
+                    <div class="flex items-baseline gap-3 py-1">
+                        <span class="w-16 shrink-0 text-right text-slate-500">From:</span>
+                        <span class="text-slate-800">
+                            <span x-text="$wire.previewFromName"></span>
+                            <span class="text-slate-500" x-show="$wire.previewFromEmail">&lt;<span x-text="$wire.previewFromEmail"></span>&gt;</span>
+                        </span>
+                    </div>
+                    <div class="flex items-baseline justify-end py-1">
+                        <span class="shrink-0 text-slate-400" x-text="$wire.previewSentAt"></span>
+                    </div>
+
+                    <div class="flex items-baseline gap-3 py-1">
+                        <span class="w-16 shrink-0 text-right text-slate-500">To:</span>
+                        <span class="text-slate-800">
+                            {{ \Illuminate\Support\Str::title($donor->name) }}
+                            <span class="text-slate-500">&lt;<span x-text="$wire.previewToEmail"></span>&gt;</span>
+                        </span>
+                    </div>
+
+                    <div
+                        class="row-span-2 flex flex-col items-end justify-end gap-2 py-1"
+                    >
                         <button
                             type="button"
                             wire:click="resendFromModal"
@@ -554,10 +562,11 @@
                             <span class="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Beta</span>
                         </button>
                     </div>
-                </div>
-                <div class="flex items-baseline gap-3 py-1">
-                    <span class="w-16 shrink-0 text-right text-slate-500">Subject:</span>
-                    <span class="font-medium text-slate-900" x-text="$wire.previewSubject"></span>
+
+                    <div class="flex items-baseline gap-3 py-1">
+                        <span class="w-16 shrink-0 text-right text-slate-500">Subject:</span>
+                        <span class="font-medium text-slate-900" x-text="$wire.previewSubject"></span>
+                    </div>
                 </div>
             </div>
 
