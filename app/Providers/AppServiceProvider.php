@@ -13,6 +13,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -56,6 +57,10 @@ class AppServiceProvider extends ServiceProvider
             MessageSent::class,
             RecordDonorEmailDelivery::class,
         );
+
+        Blade::directive('myrtime', function ($expression) {
+            return "<?php echo myrTime({$expression}); ?>";
+        });
     }
 
     protected function applyStripeConfig(): void
