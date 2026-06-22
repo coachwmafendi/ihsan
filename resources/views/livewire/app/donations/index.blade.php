@@ -364,7 +364,7 @@
                                 onclick="window.location='{{ route('app.donations.show', $donation) }}'"
                             >
                                 <td class="whitespace-nowrap min-w-[180px] px-5 py-4 text-sm text-slate-500">
-                                    {{ $donation->created_at->format('M d, Y, g:i A') }}
+                                    {{ myrTime($donation->created_at) }}
                                 </td>
                                 <td class="whitespace-nowrap min-w-[180px] px-5 py-4">
                                     <div class="flex items-center gap-2">

@@ -330,7 +330,7 @@
                                     </span>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
-                                    {{ $subscription->created_at->format('M d, Y, g:i A') }}
+                                    {{ myrTime($subscription->created_at) }}
                                 </td>
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-2">

@@ -108,7 +108,7 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Donation date</dt>
-                            <dd class="text-sm text-slate-900">{{ $donation->created_at->format('M d, Y, H:i') }}</dd>
+                            <dd class="text-sm text-slate-900">{{ myrTime($donation->created_at) }}</dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Success date</dt>
@@ -284,7 +284,7 @@
                             </div>
                             <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                                 <dt class="text-sm text-slate-500">Create date</dt>
-                                <dd class="text-sm text-slate-900">{{ $donation->subscription->created_at->format('M d, Y, H:i') }}</dd>
+                                <dd class="text-sm text-slate-900">{{ myrTime($donation->subscription->created_at) }}</dd>
                             </div>
                             <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                                 <dt class="text-sm text-slate-500">Previous installment</dt>
@@ -474,7 +474,7 @@
                                             wire:key="email-log-{{ $log->id }}"
                                         >
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->sent_at?->format('M d, Y, g:i A') ?? '—' }}
+                                                {{ $log->sent_at ? myrTime($log->sent_at) : '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-sm font-medium text-slate-900">
                                                 <span class="inline-flex items-center gap-2">
@@ -485,7 +485,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->opened_at?->format('M d, Y, g:i A') ?? '—' }}
+                                                {{ $log->opened_at ? myrTime($log->opened_at) : '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-right">
                                                 <button

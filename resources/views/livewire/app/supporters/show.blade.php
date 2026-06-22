@@ -366,7 +366,7 @@
                                             wire:key="email-log-{{ $log->id }}"
                                         >
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->sent_at?->format('M d, Y, g:i A') ?? '—' }}
+                                                {{ $log->sent_at ? myrTime($log->sent_at) : '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-sm font-medium text-slate-900">
                                                 <span class="inline-flex items-center gap-2">
@@ -377,7 +377,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->opened_at?->format('M d, Y, g:i A') ?? '—' }}
+                                                {{ $log->opened_at ? myrTime($log->opened_at) : '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-right">
                                                 <button
