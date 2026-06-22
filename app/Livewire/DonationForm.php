@@ -303,10 +303,14 @@ class DonationForm extends Component
                 SendSnapchatConversionEvent::dispatch($donation);
                 SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
             }
-
-            $this->dispatch('campaign-donation-received', campaignPublicId: $campaign->public_id);
         } catch (\Exception $e) {
             report($e);
+        }
+
+        $campaignPublicId = Campaign::query()->whereKey($donation->campaign_id)->value('public_id');
+
+        if ($campaignPublicId !== null) {
+            $this->dispatch('campaign-donation-received', campaignPublicId: $campaignPublicId);
         }
     }
 
