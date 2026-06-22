@@ -18,6 +18,14 @@ return [
 
     'throttle_seconds' => (int) env('MAIL_THROTTLE_SECONDS', 0),
 
+    'rate_limit' => [
+        'enabled' => (bool) env('MAIL_RATE_LIMIT_ENABLED', false),
+        'limiter' => env('MAIL_RATE_LIMIT_LIMITER', 'mailtrap-send'),
+        'max_attempts' => (int) env('MAIL_RATE_LIMIT_MAX_ATTEMPTS', 1),
+        'decay_seconds' => (int) env('MAIL_RATE_LIMIT_DECAY_SECONDS', 2),
+        'job_classes' => [],
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Mailer Configurations
