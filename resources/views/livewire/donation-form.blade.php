@@ -252,7 +252,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50]), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount))"
+                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates()), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount))"
                         data-campaign-public-id="{{ $campaign->public_id }}"
                         x-init="$wire.trackServerPageView()"
                         class="relative"
@@ -388,8 +388,30 @@
                                             </span>
                                             <span class="flex flex-col gap-0.5">
                                                 <span class="text-sm font-medium text-slate-700">
-                                                    I'll cover the processing fee
-                                                    <span class="text-teal-700" x-text="`(+${currencySymbol}${(parseFloat(amount) > 0 ? (parseFloat(amount) * 0.03 + fixedFee).toFixed(2) : '0.00')})`"></span>
+                                                    I'll cover the transaction fees
+                                                    <span class="text-teal-700" x-text="`(+${currencySymbol}${estimatedFeeAmount})`"></span>
+                                                    <span
+                                                        class="relative -top-0.5 ml-0.5 inline-flex cursor-help items-center align-middle"
+                                                        x-data="{ showTip: false }"
+                                                        x-on:click.stop=""
+                                                        x-on:mouseenter="showTip = true"
+                                                        x-on:mouseleave="showTip = false"
+                                                        x-on:focusin="showTip = true"
+                                                        x-on:focusout="showTip = false"
+                                                        tabindex="0"
+                                                        role="img"
+                                                        :aria-label="'By adding ' + currencySymbol + ' ' + estimatedFeeAmount + ', you help cover essential software and payment processing fees'"
+                                                    >
+                                                        <x-heroicon-o-information-circle class="size-4 text-slate-400" />
+                                                        <span
+                                                            x-show="showTip"
+                                                            x-cloak
+                                                            x-transition
+                                                            class="absolute bottom-full z-10 mb-2 w-56 rounded-md bg-slate-800 px-2.5 py-1.5 text-left text-xs font-medium text-white shadow-lg"
+                                                            style="right: -0.75rem;"
+                                                            x-text="'By adding ' + currencySymbol + ' ' + estimatedFeeAmount + ', you help cover essential software and payment processing fees'"
+                                                        ></span>
+                                                    </span>
                                                 </span>
                                                 <span class="text-xs text-slate-400">Help ensure 100% of your donation reaches us.</span>
                                             </span>
@@ -508,7 +530,7 @@
                             {{-- Summary bar --}}
                             <div class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3 text-sm">
                                 <span class="font-semibold text-slate-800"
-                                    x-text="currencySymbol + ' ' + (parseFloat(amount) + (coverFee ? parseFloat(amount) * 0.03 + fixedFee : 0)).toFixed(2)"
+                                    x-text="currencySymbol + ' ' + (parseFloat(amount) + (coverFee ? parseFloat(estimatedFeeAmount) : 0)).toFixed(2)"
                                 ></span>
                                 <span class="text-slate-500" x-text="frequency === 'monthly' ? 'Monthly' : 'One-time'"></span>
                             </div>
@@ -670,7 +692,7 @@
 @script
 {{-- donationStep Alpine component registered in layouts/donation.blade.php via alpine:init --}}
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, usd: 0.30, sgd: 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0) => {
+    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: {percent: 0.055, fixed: 1.00}, usd: {percent: 0.069, fixed: 0.30}, sgd: {percent: 0.074, fixed: 0.50}}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0) => {
         let stripe = null;
         let elements = null;
         let paymentElement = null;
@@ -701,8 +723,21 @@
             stepErrors: {},
             cardError: '',
 
+            get feeRate() {
+                return this.feeConfig[this.currency]?.percent ?? 0.055;
+            },
+
             get fixedFee() {
-                return this.feeConfig[this.currency] ?? 0.50;
+                return this.feeConfig[this.currency]?.fixed ?? 1.00;
+            },
+
+            get estimatedFeeAmount() {
+                const amount = parseFloat(this.amount) || 0;
+                if (amount <= 0) {
+                    return '0.00';
+                }
+
+                return (amount * this.feeRate + this.fixedFee).toFixed(2);
             },
 
             get currentAmounts() {

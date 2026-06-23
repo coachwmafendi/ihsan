@@ -58,12 +58,17 @@ Checkbox appears in **Step 1 (Choose Amount)**, between the amount input and the
 
 ## 3. Fee Calculation
 
-Stripe Malaysia standard card rate: **3% + RM 0.50**
+Estimated fee combines **Stripe fee + Ihsan processing fee (2.5%) + FX markup (1.5% for non-MYR)**.
+
+| Currency | Stripe fee | Ihsan fee | FX markup | **Total formula** | Example (amount = 100) |
+|----------|-----------|-----------|-----------|-------------------|------------------------|
+| **MYR**  | 3.0% + RM1.00 | 2.5% | 0% | **5.5% + RM1.00** | RM100 → fee **RM6.50** |
+| **USD**  | 2.9% + $0.30 | 2.5% | 1.5% | **6.9% + $0.30** | $100 → fee **$7.20** |
+| **SGD**  | 3.4% + S$0.50 | 2.5% | 1.5% | **7.4% + S$0.50** | S$100 → fee **S$7.90** |
+
+Implemented through `App\Services\DonationFeeEstimator::estimate()`.
 
 ```php
-private const STRIPE_PERCENT = 0.03;
-private const STRIPE_FIXED   = 0.50;
-
 #[Computed]
 public function estimatedFee(): float
 {
@@ -71,7 +76,10 @@ public function estimatedFee(): float
         return 0.0;
     }
 
-    return round((float) $this->amount * self::STRIPE_PERCENT + self::STRIPE_FIXED, 2);
+    return \App\Services\DonationFeeEstimator::estimate(
+        (float) $this->amount,
+        $this->currency
+    );
 }
 ```
 

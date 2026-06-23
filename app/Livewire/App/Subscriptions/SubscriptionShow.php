@@ -13,6 +13,7 @@ use App\Models\Donation;
 use App\Models\DonorEmailLog;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Services\DonationFeeEstimator;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -315,11 +316,10 @@ class SubscriptionShow extends Component
     #[Computed]
     public function transactionCostEstimate(): float
     {
-        $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5) / 100;
-        $fixedFees = ['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50];
-        $fixedFee = $fixedFees[strtolower($this->subscription->currency)] ?? 0.50;
-
-        return round($this->editAmount * $feePercent + $fixedFee, 2);
+        return DonationFeeEstimator::estimate(
+            (float) $this->editAmount,
+            $this->subscription->currency
+        );
     }
 
     #[Computed]

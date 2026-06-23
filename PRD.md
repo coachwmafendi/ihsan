@@ -250,11 +250,41 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 | Recurring payment | Stripe Subscriptions + Stripe Billing |
 | Webhook handling | Stripe webhooks untuk event utama: `payment_intent.succeeded`, `payment_intent.payment_failed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`, `customer.subscription.updated`, `charge.refunded`, `account.updated` |
 | Processing fee | Default 2.5% daripada jumlah kasar; boleh dikonfigurasi oleh platform owner dan override per organisasi |
+| Donor covers fee | Donor boleh pilih untuk cover estimated processing cost. Estimate menggabungkan Stripe fee + processing fee 2.5% + FX markup 1.5% untuk non-MYR. Lihat formula di bawah. |
 | Fee collection | Rekod dalam `processing_fees`; boleh dikutip sebagai application fee / monthly invoice bergantung aliran pembayaran |
 | Payout ke NGO | Stripe Connect — auto payout setiap 7 hari |
 | Refund | Manual oleh NGO Admin dalam 7 hari |
 | Fraud detection | Penilaian real-time semasa checkout berdasarkan `fraud_rules` — flag, block, atau notify |
 | Blocked donation review | Super admin boleh semak dan release blocked donations dari Fraud Prevention dashboard |
+
+#### 5.2.1 Formula Donor Covers Fee
+
+Estimated fee yang ditunjuk kepada donor dikira berdasarkan currency donation. Formula merangkumi:
+
+1. **Stripe fee** — bergantung currency
+2. **Processing fee Ihsan** — 2.5%
+3. **FX markup** — 1.5% untuk currency selain MYR, untuk menutup kos currency conversion
+
+| Currency | Stripe fee | Ihsan fee | FX markup | **Total formula** | Contoh (amount = 100) |
+|----------|-----------|-----------|-----------|-------------------|----------------------|
+| **MYR**  | 3.0% + RM1.00 | 2.5% | 0% | **5.5% + RM1.00** | RM100 → **RM106.50** (fee RM6.50) |
+| **USD**  | 2.9% + $0.30 | 2.5% | 1.5% | **6.9% + $0.30** | $100 → **$107.20** (fee $7.20) |
+| **SGD**  | 3.4% + S$0.50 | 2.5% | 1.5% | **7.4% + S$0.50** | S$100 → **$107.90** (fee $7.90) |
+
+```php
+$rates = [
+    'myr' => ['percent' => 0.055, 'fixed' => 1.00],
+    'usd' => ['percent' => 0.069, 'fixed' => 0.30],
+    'sgd' => ['percent' => 0.074, 'fixed' => 0.50],
+];
+
+$fee = round($amount * $rate['percent'] + $rate['fixed'], 2);
+```
+
+Nota:
+- Formula ini adalah **estimate**. Fee sebenar mungkin berbeza sedikit bergantung pada jenis kad (domestic/international/Amex) dan kadar FX pada masa transaksi.
+- Jumlah yang didebitkan dari donor = `amount + fee`.
+- `donor_fee_covered` disimpan pada `donations` sebagai amount tambahan yang donor bayar.
 
 ### 5.3 Email Notifications
 

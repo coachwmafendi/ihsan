@@ -320,7 +320,6 @@ class ProcessStripeWebhook implements ShouldQueue
 
         SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
 
-        SendDonationReceipt::dispatch($donation);
         SendNewDonationNotification::dispatch($donation);
         SendDonorRecurringPaymentNotification::dispatch($donation);
         SendLargeDonationNotification::dispatch($donation);

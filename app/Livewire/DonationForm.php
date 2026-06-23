@@ -26,6 +26,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
+use App\Services\DonationFeeEstimator;
 use App\Services\FraudDetectionService;
 use App\Services\TrackingScriptService;
 use App\Support\ClientInfo;
@@ -692,10 +693,10 @@ class DonationForm extends Component
             return 0.0;
         }
 
-        $fixedFees = ['myr' => 0.50, 'usd' => 0.30, 'sgd' => 0.50];
-        $fixedFee = $fixedFees[$this->currency] ?? 0.50;
-
-        return round((float) $this->amount * 0.03 + $fixedFee, 2);
+        return DonationFeeEstimator::estimate(
+            (float) $this->amount,
+            $this->currency
+        );
     }
 
     public function render()

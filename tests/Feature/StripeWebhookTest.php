@@ -819,7 +819,7 @@ it('does not duplicate recurring donation notifications when invoice paid webhoo
         ->and(WebhookLog::query()->where('stripe_event_id', 'evt_paid_invoice_retry')->first()?->status)->toBe('completed');
 
     Queue::assertPushedTimes(SendNewDonationNotification::class, 1);
-    Queue::assertPushedTimes(SendDonationReceipt::class, 1);
+    Queue::assertNotPushed(SendDonationReceipt::class);
     Queue::assertPushedTimes(SendDonorRecurringPaymentNotification::class, 1);
 });
 
@@ -1017,7 +1017,7 @@ it('splits fee cover from recurring invoice paid webhooks', function () {
         ->and($campaign->collected_amount)->toBe('50.00')
         ->and(WebhookLog::query()->where('stripe_event_id', 'evt_fee_cover_invoice_paid')->first()?->status)->toBe('completed');
 
-    Queue::assertPushedTimes(SendDonationReceipt::class, 1);
+    Queue::assertNotPushed(SendDonationReceipt::class);
     Queue::assertPushedTimes(SendNewDonationNotification::class, 1);
     Queue::assertPushedTimes(SendDonorRecurringPaymentNotification::class, 1);
 });
