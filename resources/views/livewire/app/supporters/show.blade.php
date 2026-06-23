@@ -554,7 +554,7 @@
                         </button>
                         <button
                             type="button"
-                            x-on:click="if ($wire.previewLogId) window.open('{{ route('app.email-logs.responsive-preview', ['emailLog' => 'LOG_ID_PLACEHOLDER']) }}'.replace('LOG_ID_PLACEHOLDER', $wire.previewLogId), '_blank')"
+                            x-on:click="if ($wire.previewLogPublicId) window.open('{{ route('app.supporters.emails.responsive-preview', ['donor' => $donor->public_id, 'emailLog' => 'LOG_PUBLIC_ID_PLACEHOLDER']) }}'.replace('LOG_PUBLIC_ID_PLACEHOLDER', $wire.previewLogPublicId), '_blank')"
                             class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
                         >
                             <x-heroicon-o-device-phone-mobile class="size-3.5" />

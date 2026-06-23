@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\DonorEmailLog;
 use App\Models\Element;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
@@ -28,6 +29,7 @@ class PublicIdGenerator
         Donation::class => ['prefix' => 'D', 'randomLength' => 7],
         Subscription::class => ['prefix' => 'R', 'randomLength' => 7],
         Element::class => ['prefix' => 'E', 'randomLength' => 7],
+        DonorEmailLog::class => ['prefix' => 'EL', 'randomLength' => 6],
         MonthlyInvoice::class => ['prefix' => 'I', 'randomLength' => 7],
         Organization::class => ['prefix' => 'O', 'randomLength' => 7],
     ];

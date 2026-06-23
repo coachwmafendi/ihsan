@@ -21,7 +21,7 @@ it('shows responsive preview for an authorized email log', function () {
     $log = DonorEmailLog::factory()->donation($donation)->create();
 
     $this->actingAs($user)
-        ->get(route('app.email-logs.responsive-preview', $log))
+        ->get(route('app.supporters.emails.responsive-preview', ['donor' => $donor->public_id, 'emailLog' => $log->public_id]))
         ->assertOk()
         ->assertSee($log->subject)
         ->assertSeeHtml('aria-label="Mobile preview"')
@@ -42,7 +42,22 @@ it('blocks the responsive preview for another organization', function () {
     $log = DonorEmailLog::factory()->donation($donation)->create();
 
     $this->actingAs($user)
-        ->get(route('app.email-logs.responsive-preview', $log))
+        ->get(route('app.supporters.emails.responsive-preview', ['donor' => $donor->public_id, 'emailLog' => $log->public_id]))
+        ->assertNotFound();
+});
+
+it('blocks the responsive preview when the email does not belong to the donor', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    [$donor, $otherDonor] = Donor::factory()->count(2)->create();
+    $donation = Donation::factory()->for($otherDonor)->for($campaign)->create();
+    $log = DonorEmailLog::factory()->donation($donation)->create();
+
+    $this->actingAs($user)
+        ->get(route('app.supporters.emails.responsive-preview', ['donor' => $donor->public_id, 'emailLog' => $log->public_id]))
         ->assertNotFound();
 });
 
@@ -53,6 +68,6 @@ it('redirects guests to login', function () {
     $donation = Donation::factory()->for($donor)->for($campaign)->create();
     $log = DonorEmailLog::factory()->donation($donation)->create();
 
-    $this->get(route('app.email-logs.responsive-preview', $log))
+    $this->get(route('app.supporters.emails.responsive-preview', ['donor' => $donor->public_id, 'emailLog' => $log->public_id]))
         ->assertRedirect('/login');
 });

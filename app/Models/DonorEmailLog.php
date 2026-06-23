@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\PublicIdGenerator;
 use Carbon\CarbonImmutable;
 use Database\Factories\DonorEmailLogFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -25,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonImmutable|null $opened_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
+ * @property string|null $public_id
  * @property-read Donor $donor
  * @property-read Organization|null $organization
  * @property-read Donation|null $donation
@@ -58,6 +60,15 @@ class DonorEmailLog extends Model
             'bounced_at' => 'datetime',
             'complained_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (DonorEmailLog $log) {
+            if (! $log->public_id) {
+                $log->public_id = PublicIdGenerator::generate(static::class);
+            }
+        });
     }
 
     public function donor(): BelongsTo

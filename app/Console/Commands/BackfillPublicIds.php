@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\DonorEmailLog;
 use App\Models\Element;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
@@ -32,6 +33,7 @@ class BackfillPublicIds extends Command
             ['label' => 'Donations', 'class' => Donation::class],
             ['label' => 'Subscriptions', 'class' => Subscription::class],
             ['label' => 'Elements', 'class' => Element::class],
+            ['label' => 'Email Logs', 'class' => DonorEmailLog::class],
             ['label' => 'Monthly Invoices', 'class' => MonthlyInvoice::class],
             ['label' => 'Organizations', 'class' => Organization::class],
         ];

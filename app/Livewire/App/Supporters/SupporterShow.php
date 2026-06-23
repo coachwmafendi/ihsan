@@ -43,6 +43,8 @@ class SupporterShow extends Component
 
     public ?int $previewLogId = null;
 
+    public ?string $previewLogPublicId = null;
+
     public ?string $previewSubject = null;
 
     public ?string $previewSentAt = null;
@@ -337,6 +339,7 @@ class SupporterShow extends Component
         }
 
         $this->previewLogId = $log->id;
+        $this->previewLogPublicId = $log->public_id;
         $this->previewSubject = $log->subject;
         $this->previewSentAt = $log->sent_at ? myrTime($log->sent_at) : null;
         $this->previewFromName = $org->name;
@@ -359,6 +362,7 @@ class SupporterShow extends Component
     {
         $this->showPreviewModal = false;
         $this->previewLogId = null;
+        $this->previewLogPublicId = null;
         $this->previewSubject = null;
         $this->previewSentAt = null;
         $this->previewFromName = null;

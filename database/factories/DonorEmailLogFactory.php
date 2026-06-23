@@ -30,6 +30,7 @@ class DonorEmailLogFactory extends Factory
             'metadata' => null,
             'sent_at' => now(),
             'opened_at' => null,
+            'public_id' => null,
         ];
     }
 
