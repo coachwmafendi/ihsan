@@ -555,6 +555,19 @@
                                     <span x-show="processing" x-cloak>Processing...</span>
                                 </button>
                             </form>
+
+                            <div class="mt-3 flex flex-col items-center gap-1.5">
+                                <p class="flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                                    <x-heroicon-o-lock-closed class="size-3" />
+                                    Secure payment powered by Stripe
+                                </p>
+                                <div class="flex items-center gap-1.5" aria-label="Accepted cards">
+                                    <x-icons.visa class="h-5 w-auto rounded" />
+                                    <x-icons.mastercard class="h-5 w-auto rounded" />
+                                    <x-icons.amex class="h-5 w-auto rounded" />
+                                    <x-icons.discover class="h-5 w-auto rounded" />
+                                </div>
+                            </div>
                         </div>{{-- end Step 3 --}}
 
                         {{-- Processing overlay --}}
@@ -582,7 +595,7 @@
                             <p class="mt-1 text-sm text-slate-500">Receipt sent to <span x-text="donorEmail"></span>.</p>
                             <p class="mt-1 text-sm text-slate-500">{{ ($this->campaign ?? $this->element?->campaign)?->thank_you_message ?: $this->config('success_message', 'Thank you for your donation!') }}</p>
 
-                            @if ($postDonationMode !== 'redirect' && ! empty($shareChannels))
+                            @if (! $isPopup && $postDonationMode !== 'redirect' && ! empty($shareChannels))
                                 <div class="mt-6">
                                     <p class="mb-3 text-sm font-semibold text-slate-700">Share this campaign</p>
                                     <div class="flex items-center justify-center gap-3">
