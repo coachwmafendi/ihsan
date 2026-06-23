@@ -80,7 +80,7 @@
 
     @if ($usesSecureDonationShell)
         @if ($isPopup)
-            <div class="bg-white lg:grid lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_440px] lg:items-stretch">
+            <div class="bg-white lg:grid lg:min-h-[760px] lg:grid-cols-[minmax(0,1fr)_440px] lg:items-stretch">
                 <section class="hidden lg:flex lg:min-h-0 lg:flex-col lg:border-r lg:border-slate-200">
         @else
             <div class="{{ $isPublicPage ? 'min-h-0 bg-transparent px-0 py-0' : 'min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8' }}">
@@ -266,7 +266,16 @@
                         </div>
 
                         {{-- Step 1: Amount & Frequency --}}
-                        <div x-show="currentStep === 1" class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
+                        <div
+                            x-show="currentStep === 1"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 translate-y-2"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-2"
+                            class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}"
+                        >
                             <div class="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
@@ -432,7 +441,17 @@
                          </div>{{-- end Step 1 --}}
 
                          {{-- Step 2: Donor Details --}}
-                         <div x-show="currentStep === 2" x-cloak class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
+                         <div
+                             x-show="currentStep === 2"
+                             x-cloak
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 translate-y-2"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-2"
+                             class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}"
+                         >
 
                              <button
                                  type="button"
@@ -515,7 +534,17 @@
                          </div>{{-- end Step 2 --}}
 
                          {{-- Step 3: Payment --}}
-                         <div x-show="currentStep === 3" x-cloak class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}">
+                         <div
+                             x-show="currentStep === 3"
+                             x-cloak
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 translate-y-2"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-2"
+                             class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}"
+                         >
 
                              <button
                                  type="button"
