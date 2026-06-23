@@ -13,7 +13,6 @@ use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 it('renders the supporter detail page with sections and menus', function () {
@@ -28,7 +27,7 @@ it('renders the supporter detail page with sections and menus', function () {
     $this->actingAs($user)
         ->get('/app/supporters/'.$donor->public_id)
         ->assertOk()
-        ->assertSee(Str::title($donor->name))
+        ->assertSee($donor->name)
         ->assertSee('Information')
         ->assertSee('Name')
         ->assertSee('Email')

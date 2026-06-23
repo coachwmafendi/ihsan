@@ -316,7 +316,7 @@
                                 onclick="window.location='{{ route('app.supporters.show', $donor) }}'"
                             >
                                 <td class="whitespace-nowrap min-w-[200px] px-5 py-4">
-                                    <p class="text-sm font-medium text-slate-900">{{ \Illuminate\Support\Str::title($donor->name) }}</p>
+                                    <p class="text-sm font-medium text-slate-900">{{ $donor->name }}</p>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
                                     {{ $donor->email }}

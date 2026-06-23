@@ -3,7 +3,7 @@
     {{-- Page Header --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ \Illuminate\Support\Str::title($donor->name) }}</h1>
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ $donor->name }}</h1>
             <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
                 <span class="inline-flex items-center gap-1 whitespace-nowrap">
                     ID {{ $donor->public_id }}
@@ -80,7 +80,7 @@
                     <dl class="space-y-3">
                         <div class="flex gap-4">
                             <dt class="w-36 text-sm text-slate-500">Name</dt>
-                            <dd class="flex-1 text-sm font-medium text-slate-900">{{ \Illuminate\Support\Str::title($donor->name) }}</dd>
+                            <dd class="flex-1 text-sm font-medium text-slate-900">{{ $donor->name }}</dd>
                         </div>
                         <div class="flex gap-4">
                             <dt class="w-36 text-sm text-slate-500">Email</dt>
@@ -536,7 +536,7 @@
                     <div class="flex items-baseline gap-3 py-1">
                         <span class="w-16 shrink-0 text-right text-slate-500">To:</span>
                         <span class="text-slate-800">
-                            {{ \Illuminate\Support\Str::title($donor->name) }}
+                            {{ $donor->name }}
                             <span class="text-slate-500">&lt;<span x-text="$wire.previewToEmail"></span>&gt;</span>
                         </span>
                     </div>

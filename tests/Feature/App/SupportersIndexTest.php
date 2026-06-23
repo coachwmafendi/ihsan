@@ -7,7 +7,6 @@ use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -75,13 +74,13 @@ it('shows approximate MYR lifetime amount for foreign currency donations', funct
     $response->assertSee('≈ MYR 575.00');
 });
 
-it('displays donor names in title case', function () {
+it('preserves donor name casing', function () {
     $this->donor->update(['name' => 'AHMAD BIN ABU']);
 
     $response = $this->actingAs($this->user)->get(route('app.supporters.index'));
 
-    $response->assertSee('Ahmad Bin Abu');
-    $response->assertDontSee('AHMAD BIN ABU');
+    $response->assertSee('AHMAD BIN ABU');
+    $response->assertDontSee('Ahmad Bin Abu');
 });
 
 it('renders the name column without wrapping', function () {
@@ -89,7 +88,7 @@ it('renders the name column without wrapping', function () {
 
     $response->assertOk()
         ->assertSeeHtml('class="whitespace-nowrap min-w-[200px] px-5 py-4"')
-        ->assertSee(Str::title($this->donor->name));
+        ->assertSee($this->donor->name);
 });
 
 it('shows approximate myr lifetime total for foreign donations without base amount', function () {

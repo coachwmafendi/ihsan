@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SupporterExportController extends Controller
@@ -218,7 +217,7 @@ class SupporterExportController extends Controller
     {
         $value = match ($field) {
             'public_id' => $donor->public_id,
-            'name' => Str::title($donor->name ?? ''),
+            'name' => $donor->name ?? '',
             'email' => $donor->email ?? '',
             'country' => strtoupper($donor->country ?? ''),
             'lifetime_total_myr' => 'MYR '.number_format((float) ($donor->lifetime_report_amount ?? 0), 2),

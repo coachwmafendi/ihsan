@@ -777,7 +777,7 @@
                 <div class="flex items-baseline gap-3 py-1">
                     <span class="w-16 shrink-0 text-right text-slate-500">To:</span>
                     <span class="text-slate-800">
-                        {{ $donation->donor ? \Illuminate\Support\Str::title($donation->donor->name) : 'Supporter' }}
+                        {{ $donation->donor ? $donation->donor->name : 'Supporter' }}
                         <span class="text-slate-500">&lt;<span x-text="$wire.previewToEmail"></span>&gt;</span>
                     </span>
                     <button
