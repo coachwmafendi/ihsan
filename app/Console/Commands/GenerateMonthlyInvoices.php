@@ -27,14 +27,17 @@ class GenerateMonthlyInvoices extends Command
 
         $period = $this->option('period')
             ? Carbon::parse($this->option('period'))->startOfMonth()
-            : now()->subMonth()->startOfMonth();
+            : now('Asia/Kuala_Lumpur')->subMonth()->startOfMonth();
+
+        $startUtc = $period->copy()->utc();
+        $endUtc = $period->copy()->addMonth()->startOfMonth()->utc();
 
         $this->info("Generating invoices for period: {$period->format('Y-m')}");
 
         $pendingFees = ProcessingFee::query()
             ->where('status', 'pending')
-            ->where('created_at', '>=', $period->copy()->startOfMonth())
-            ->where('created_at', '<', $period->copy()->addMonth()->startOfMonth())
+            ->where('created_at', '>=', $startUtc)
+            ->where('created_at', '<', $endUtc)
             ->whereHas('donation.campaign.organization', fn ($q) => $q->where('fee_collection_method', 'invoice'))
             ->get();
 

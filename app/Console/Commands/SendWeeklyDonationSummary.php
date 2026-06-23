@@ -21,8 +21,11 @@ class SendWeeklyDonationSummary extends Command
 
     public function handle(): void
     {
-        $startOfWeek = now()->subWeek()->startOfWeek();
-        $endOfWeek = now()->subWeek()->endOfWeek();
+        $reportNow = now('Asia/Kuala_Lumpur');
+        $startOfWeek = $reportNow->copy()->subWeek()->startOfWeek();
+        $endOfWeek = $reportNow->copy()->subWeek()->endOfWeek();
+        $startUtc = $startOfWeek->copy()->utc();
+        $endUtc = $endOfWeek->copy()->utc();
         $periodLabel = myrTime($startOfWeek, withLabel: false, format: 'd M').' – '.myrTime($endOfWeek, withLabel: false, format: 'd M Y');
 
         $organizations = Organization::query()
@@ -34,7 +37,7 @@ class SendWeeklyDonationSummary extends Command
             $donations = Donation::query()
                 ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->getKey()))
                 ->where('status', DonationStatus::Succeeded)
-                ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                ->whereBetween('created_at', [$startUtc, $endUtc])
                 ->get();
 
             $activeCampaigns = Campaign::query()

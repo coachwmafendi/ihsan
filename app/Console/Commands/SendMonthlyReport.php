@@ -20,12 +20,14 @@ class SendMonthlyReport extends Command
     public function handle(): void
     {
         $period = $this->option('period')
-            ? now()->parse($this->option('period'))
-            : now()->subMonthNoOverflow();
+            ? now('Asia/Kuala_Lumpur')->parse($this->option('period'))
+            : now('Asia/Kuala_Lumpur')->subMonthNoOverflow();
 
         $periodLabel = $period->format('F Y');
         $startOfMonth = $period->copy()->startOfMonth();
         $endOfMonth = $period->copy()->endOfMonth();
+        $startUtc = $startOfMonth->copy()->utc();
+        $endUtc = $endOfMonth->copy()->utc();
 
         $organizations = Organization::query()
             ->where('settings->monthly_report', true)
@@ -42,7 +44,7 @@ class SendMonthlyReport extends Command
             $donations = Donation::query()
                 ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->getKey()))
                 ->where('status', DonationStatus::Succeeded)
-                ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                ->whereBetween('created_at', [$startUtc, $endUtc])
                 ->get();
 
             $campaigns = $donations->groupBy('campaign_id')->map(function ($items) {

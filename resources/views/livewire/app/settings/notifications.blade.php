@@ -89,12 +89,12 @@
                 <div class="flex flex-col gap-4">
                     <label class="flex cursor-pointer items-center gap-3">
                         <input type="checkbox" wire:model.live="dailyDonationSummary" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
-                        <span class="text-sm text-slate-700">Daily donation summary (12:00 AM)</span>
+                        <span class="text-sm text-slate-700">Daily donation summary (12:00 AM MYT)</span>
                     </label>
 
                     <label class="flex cursor-pointer items-center gap-3">
                         <input type="checkbox" wire:model.live="weeklyReport" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
-                        <span class="text-sm text-slate-700">Weekly report (Mon 08:00 AM)</span>
+                        <span class="text-sm text-slate-700">Weekly report (Mon 08:00 AM MYT)</span>
                     </label>
 
                     <label class="flex cursor-pointer items-center gap-3">
@@ -104,7 +104,7 @@
 
                     <label class="flex cursor-pointer items-center gap-3">
                         <input type="checkbox" wire:model.live="monthlyReport" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
-                        <span class="text-sm text-slate-700">Monthly report (1st day 08:00 AM, previous month)</span>
+                        <span class="text-sm text-slate-700">Monthly report (1st day 08:00 AM MYT, previous month)</span>
                     </label>
                 </div>
             </div>

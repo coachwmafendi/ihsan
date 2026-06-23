@@ -27,11 +27,15 @@ class SendDailyDonationSummary extends Command
             ->whereNotNull('settings')
             ->get();
 
+        $reportDate = today('Asia/Kuala_Lumpur')->subDay();
+        $start = $reportDate->copy()->startOfDay()->utc();
+        $end = $reportDate->copy()->endOfDay()->utc();
+
         foreach ($organizations as $org) {
             $donations = Donation::query()
                 ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->getKey()))
                 ->where('status', DonationStatus::Succeeded)
-                ->whereDate('created_at', today()->subDay())
+                ->whereBetween('created_at', [$start, $end])
                 ->get();
 
             $donationsByCampaign = $donations->groupBy('campaign_id');
