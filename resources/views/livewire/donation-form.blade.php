@@ -78,12 +78,6 @@
         </style>
     @endif
 
-    @if ($campaign->has_target && (float) $campaign->collected_amount >= (float) $campaign->target_amount)
-        <div class="flex items-center gap-2 bg-emerald-600 px-4 py-2.5 text-center text-sm font-bold text-white">
-            <span>🎉</span>
-            <span>Target Tercapai! Terima kasih atas sokongan anda.</span>
-        </div>
-    @endif
     @if ($usesSecureDonationShell)
         @if ($isPopup)
             <div class="bg-white lg:grid lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_440px] lg:items-stretch">
@@ -147,23 +141,6 @@
                     </div>
                 @endif
 
-                @if ($campaign->has_target)
-                    @php
-                        $donationFormRaised = (float) $campaign->collected_amount;
-                        $donationFormTarget = (float) ($campaign->target_amount ?? 0);
-                        $donationFormProgressPercent = $donationFormTarget > 0 ? min(100, round(($donationFormRaised / $donationFormTarget) * 100)) : 0;
-                        $donationFormProgressWidth = $donationFormProgressPercent > 0 ? max(2, $donationFormProgressPercent) : 0;
-                    @endphp
-                    <div class="mt-5">
-                        <div class="mb-1.5 flex items-end justify-between gap-4 text-xs">
-                            <span class="font-semibold text-slate-950" x-text="currencySymbol + ' ' + formatCurrency(raisedAmount) + ' raised'">{{ $currencySymbol }} {{ number_format($donationFormRaised, 2) }} raised</span>
-                            <span class="text-slate-500" x-text="'Goal ' + currencySymbol + ' ' + formatCurrency(targetAmount)">Goal {{ $currencySymbol }} {{ number_format($donationFormTarget, 2) }}</span>
-                        </div>
-                        <div class="h-3 rounded-full bg-slate-200">
-                            <div class="h-3 rounded-full bg-teal-600" x-bind:style="{ width: progressWidth + '%' }" style="width: {{ $donationFormProgressWidth }}%"></div>
-                        </div>
-                    </div>
-                @endif
                 </div>
             </div>
             @endif
@@ -220,23 +197,6 @@
                     </div>
                 </div>
 
-                @if ($campaign->has_target)
-                    @php
-                        $embedFormRaised = (float) $campaign->collected_amount;
-                        $embedFormTarget = (float) ($campaign->target_amount ?? 0);
-                        $embedFormProgressPercent = $embedFormTarget > 0 ? min(100, round(($embedFormRaised / $embedFormTarget) * 100)) : 0;
-                        $embedFormProgressWidth = $embedFormProgressPercent > 0 ? max(2, $embedFormProgressPercent) : 0;
-                    @endphp
-                    <div class="mb-3">
-                        <div class="mb-1 flex items-end justify-between gap-4 text-xs">
-                            <span class="font-semibold text-slate-950" x-text="currencySymbol + ' ' + formatCurrency(raisedAmount) + ' raised'">{{ $currencySymbol }} {{ number_format($embedFormRaised, 2) }} raised</span>
-                            <span class="text-slate-500" x-text="'Goal ' + currencySymbol + ' ' + formatCurrency(targetAmount)">Goal {{ $currencySymbol }} {{ number_format($embedFormTarget, 2) }}</span>
-                        </div>
-                        <div class="h-3 rounded-full bg-slate-200">
-                            <div class="h-3 rounded-full bg-teal-700" x-bind:style="{ width: progressWidth + '%' }" style="width: {{ $embedFormProgressWidth }}%"></div>
-                        </div>
-                    </div>
-                @endif
             @endif
     @elseif (! $isCompact)
         <div class="min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8">
@@ -251,24 +211,6 @@
                         <div class="max-w-2xl text-base/7 text-slate-600 [&_p]:mb-4 [&_p:last-child]:mb-0">{!! $campaign->description !!}</div>
                     @endif
 
-                    @if ($campaign->has_target)
-                        @php
-                            $targetAmount = max((float) $campaign->target_amount, 1);
-                            $collectedAmount = (float) $campaign->collected_amount;
-                            $progressPercent = min(100, round(($collectedAmount / $targetAmount) * 100));
-                            $progressWidth = $progressPercent > 0 ? max(2, $progressPercent) : 0;
-                        @endphp
-
-                        <div class="mt-6 max-w-2xl">
-                            <div class="mb-2 flex items-end justify-between gap-4 text-sm">
-                                <span class="font-semibold text-slate-950">{{ $currencySymbol }} {{ number_format($collectedAmount, 2) }} raised</span>
-                                <span class="text-slate-500">Goal {{ $currencySymbol }} {{ number_format($targetAmount, 2) }}</span>
-                            </div>
-                            <div class="h-3 rounded-full bg-slate-200">
-                                <div class="h-3 rounded-full bg-teal-700" style="width: {{ $progressWidth }}%"></div>
-                            </div>
-                        </div>
-                    @endif
                 </section>
 
                 <section class="mx-auto w-full max-w-[440px] rounded-[32px] bg-slate-200 p-3 shadow-xl shadow-slate-300/70 ring-1 ring-slate-300">
