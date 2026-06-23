@@ -87,32 +87,59 @@
                 <main class="mx-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white {{ $isPublicPage ? 'shadow-sm' : 'shadow-2xl' }}">
         @endif
             @if ($campaignImageUrl && ! $isPublicPage)
-                <div class="p-2.5 pb-0 sm:p-3 sm:pb-0 {{ $isPopup ? 'lg:p-4 lg:pb-0' : '' }}">
+                @if ($isPopup)
                     <div
                         x-data="{ imageLoaded: false }"
                         x-init="$nextTick(() => { imageLoaded = $refs.readyImage?.complete && $refs.readyImage?.naturalWidth > 0 })"
                         data-ihsan-media-frame
-                        class="relative overflow-hidden rounded-2xl bg-slate-100"
+                        class="relative w-full bg-slate-100"
                     >
                         <div
                             x-show="! imageLoaded"
                             class="absolute inset-0 animate-pulse bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100"
                         ></div>
-                    <img
-                        x-ref="readyImage"
-                        src="{{ $campaignImageUrl }}"
-                        alt="{{ $campaign->title }}"
-                        data-ihsan-ready-media
-                        loading="eager"
-                        fetchpriority="high"
-                        decoding="async"
-                        x-on:load="imageLoaded = true"
-                        x-on:error="imageLoaded = true"
-                        x-bind:class="imageLoaded ? 'opacity-100' : 'opacity-0'"
-                        class="relative h-56 w-full rounded-2xl object-cover transition-opacity duration-200 sm:h-64 {{ $isPopup ? 'lg:h-[330px]' : '' }}"
-                    />
+                        <img
+                            x-ref="readyImage"
+                            src="{{ $campaignImageUrl }}"
+                            alt="{{ $campaign->title }}"
+                            data-ihsan-ready-media
+                            loading="eager"
+                            fetchpriority="high"
+                            decoding="async"
+                            x-on:load="imageLoaded = true"
+                            x-on:error="imageLoaded = true"
+                            x-bind:class="imageLoaded ? 'opacity-100' : 'opacity-0'"
+                            class="relative w-full max-h-[360px] object-cover transition-opacity duration-200"
+                        />
                     </div>
-                </div>
+                @else
+                    <div class="p-2.5 pb-0 sm:p-3 sm:pb-0">
+                        <div
+                            x-data="{ imageLoaded: false }"
+                            x-init="$nextTick(() => { imageLoaded = $refs.readyImage?.complete && $refs.readyImage?.naturalWidth > 0 })"
+                            data-ihsan-media-frame
+                            class="relative overflow-hidden rounded-2xl bg-slate-100"
+                        >
+                            <div
+                                x-show="! imageLoaded"
+                                class="absolute inset-0 animate-pulse bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100"
+                            ></div>
+                            <img
+                                x-ref="readyImage"
+                                src="{{ $campaignImageUrl }}"
+                                alt="{{ $campaign->title }}"
+                                data-ihsan-ready-media
+                                loading="eager"
+                                fetchpriority="high"
+                                decoding="async"
+                                x-on:load="imageLoaded = true"
+                                x-on:error="imageLoaded = true"
+                                x-bind:class="imageLoaded ? 'opacity-100' : 'opacity-0'"
+                                class="relative h-56 w-full rounded-2xl object-cover transition-opacity duration-200 sm:h-64"
+                            />
+                        </div>
+                    </div>
+                @endif
             @endif
 
             @if (! $isPublicPage)
