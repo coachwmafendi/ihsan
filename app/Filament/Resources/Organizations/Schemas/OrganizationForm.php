@@ -270,7 +270,7 @@ class OrganizationForm
                                             ->schema([
                                                 Text::make(fn ($record) => new HtmlString(
                                                     '<span class="block text-sm font-medium text-gray-950 dark:text-white">'.__('Onboarded').'</span>'.
-                                                    '<span class="block text-sm text-gray-500 dark:text-gray-400 mt-1">'.($record?->stripe_onboarded_at ? myrTime($record->stripe_onboarded_at, format: 'd/m/Y H:i') : '—').'</span>'
+                                                    '<span class="block text-sm text-gray-500 dark:text-gray-400 mt-1">'.($record?->stripe_onboarded_at ? myrTime($record->stripe_onboarded_at, withLabel: false, format: 'd/m/Y H:i') : '—').'</span>'
                                                 )),
 
                                                 Toggle::make('stripe_onboarded')

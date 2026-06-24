@@ -20,6 +20,12 @@ FROM composer:2 AS vendor
 
 WORKDIR /app
 
+# intl is required by filament/support during composer install
+RUN apt-get update && apt-get install -y libicu-dev \
+    && docker-php-ext-install intl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY composer.json composer.lock ./
 RUN composer install \
     --no-dev \

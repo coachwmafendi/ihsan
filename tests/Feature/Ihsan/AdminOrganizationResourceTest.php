@@ -85,3 +85,20 @@ it('hides the invite admin action when the organization already has an admin', f
     ])
         ->assertTableActionHidden('create');
 });
+
+it('renders static onboarding date and fee collection method on edit page', function () {
+    $organization = Organization::factory()->create([
+        'stripe_onboarded_at' => '2026-06-18 11:23:00',
+        'fee_collection_method' => 'upfront',
+    ]);
+
+    $this->actingAs(User::factory()->create([
+        'role' => UserRole::SuperAdmin,
+    ]));
+
+    Livewire::test(EditOrganization::class, ['record' => $organization->getKey()])
+        ->assertFormFieldExists('fee_collection_method')
+        ->assertSee('Upfront Payment')
+        ->assertSee('Onboarded')
+        ->assertSee('18/06/2026 19:23');
+});
