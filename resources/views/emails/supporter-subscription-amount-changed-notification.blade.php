@@ -19,11 +19,11 @@
         .chip-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.08); background-color: #f0fdfa !important; }
     </style>
 
-    <h1 style="font-size: 32px; color: #0f766e;">{{ $t('emails.supporter_subscription_amount_changed.heading') }}</h1>
+    <h1 style="font-size: 28px; line-height: 1.3; color: #0f766e; margin: 0 0 16px;">{{ $t('emails.supporter_subscription_amount_changed.heading') }}</h1>
 
-    <p style="font-size: 18px;">{{ $t('emails.common.greeting', ['name' => $donor->name]) }},</p>
+    <p style="font-size: 17px; line-height: 1.6;">{{ $t('emails.common.greeting', ['name' => $donor->name]) }},</p>
 
-    <p style="font-size: 18px;">
+    <p style="font-size: 17px; line-height: 1.6;">
         {{ $t('emails.supporter_subscription_amount_changed.intro', [
             'organization' => $subscription->campaign->organization->name,
             'campaign' => $subscription->campaign->title,
@@ -49,13 +49,13 @@
         </table>
     </div>
 
-    <p style="font-size: 18px;">{{ $t('emails.supporter_subscription_amount_changed.body') }}</p>
+    <p style="font-size: 17px; line-height: 1.6;">{{ $t('emails.supporter_subscription_amount_changed.body') }}</p>
 
-    <p style="font-size: 18px;">– {{ $t('emails.supporter_subscription_amount_changed.sign_off', ['organization' => $subscription->campaign->organization->name]) }}</p>
+    <p style="font-size: 17px; line-height: 1.6;">– {{ $t('emails.supporter_subscription_amount_changed.sign_off', ['organization' => $subscription->campaign->organization->name]) }}</p>
 
     @if ($upgradeChips)
         <div style="margin: 32px 0; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; background-color: #ffffff; text-align: center;">
-            <p style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #334155;">
+            <p style="margin: 0 0 16px; font-size: 17px; font-weight: 600; color: #334155;">
                 {{ $t('emails.donor_recurring_payment.upgrade_heading', [
                     'amount' => $currentAmountDisplay,
                     'interval' => $intervalLabel,
