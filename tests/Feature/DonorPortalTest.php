@@ -804,3 +804,23 @@ it('sends amount change notification to donor and org admins', function () {
             && str_contains($mail->render(), 'Hi '.$admin->name);
     });
 });
+
+it('shows change amount button in subscriptions list instead of standalone page link', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $subscription = Subscription::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => SubscriptionStatus::Active,
+        'amount' => 50.00,
+        'currency' => 'myr',
+        'interval' => 'monthly',
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.subscriptions', $org))
+        ->assertOk()
+        ->assertSee('Change Amount')
+        ->assertDontSee(route('donorportal.subscriptions.increase', [$org, $subscription]), false);
+});

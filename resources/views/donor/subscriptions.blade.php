@@ -14,6 +14,13 @@
     paymentLoading: false,
     paymentSuccess: false,
     paymentError: null,
+    increaseModal: null,
+    increaseSubscription: null,
+    increaseProcessing: false,
+    increaseSuccess: false,
+    increaseError: null,
+    increaseSelected: null,
+    increaseCustomAmount: '',
     async openPayment(subscriptionId) {
         this.paymentModal = subscriptionId;
         this.paymentSuccess = false;
@@ -106,6 +113,80 @@
         this.paymentSuccess = true;
         this.paymentLoading = false;
         setTimeout(() => { location.reload(); }, 1000);
+    },
+    openIncrease(subscription) {
+        this.increaseModal = subscription.public_id;
+        this.increaseSubscription = subscription;
+        this.increaseProcessing = false;
+        this.increaseSuccess = false;
+        this.increaseError = null;
+        this.increaseSelected = subscription.preset_increments[0] ?? 5;
+        this.increaseCustomAmount = '';
+    },
+    closeIncrease() {
+        this.increaseModal = null;
+        this.increaseSubscription = null;
+        this.increaseSuccess = false;
+        this.increaseError = null;
+        this.increaseProcessing = false;
+        this.increaseSelected = null;
+        this.increaseCustomAmount = '';
+    },
+    get increaseNewTotal() {
+        const current = parseFloat(this.increaseSubscription?.amount ?? 0);
+        if (this.increaseSelected === 'custom') {
+            return current + (parseFloat(this.increaseCustomAmount) || 0);
+        }
+        return current + (this.increaseSelected || 0);
+    },
+    get increaseIncrement() {
+        if (this.increaseSelected === 'custom') {
+            return parseFloat(this.increaseCustomAmount) || 0;
+        }
+        return this.increaseSelected || 0;
+    },
+    async submitIncrease() {
+        if (this.increaseProcessing || !this.increaseSubscription) {
+            return;
+        }
+
+        const total = this.increaseNewTotal;
+        const current = parseFloat(this.increaseSubscription.amount);
+        if (total <= current || total > 99999.99) {
+            return;
+        }
+
+        this.increaseProcessing = true;
+        this.increaseError = null;
+
+        const url = '{{ route('donorportal.subscriptions.change-amount', ['organization' => $organization, 'subscription' => '__id__']) }}'.replace('__id__', this.increaseSubscription.public_id);
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ new_amount: total }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                this.increaseError = data.error || 'Unable to update subscription amount. Please try again later.';
+                this.increaseProcessing = false;
+                return;
+            }
+
+            this.increaseSuccess = true;
+            this.increaseProcessing = false;
+            setTimeout(() => { location.reload(); }, 1500);
+        } catch (e) {
+            this.increaseError = 'Unable to update subscription amount. Please try again later.';
+            this.increaseProcessing = false;
+        }
     }
 }" x-init="$nextTick(() => setTimeout(() => loaded = true, 400))">
     <div class="donor-skeleton" x-show="!loaded" x-transition.opacity.duration.250ms x-cloak aria-hidden="true">
@@ -172,12 +253,24 @@
                         </span>
 
                         @if ($subscription->status === \App\Enums\SubscriptionStatus::Active)
+                            @php
+                                $subData = [
+                                    'public_id' => $subscription->public_id,
+                                    'amount' => (float) $subscription->amount,
+                                    'currency' => $subscription->currency,
+                                    'symbol' => $subscription->currency_symbol,
+                                    'interval' => $subscription->interval->value,
+                                    'cover_fee' => $subscription->cover_fee,
+                                    'preset_increments' => [5, 80, 100],
+                                ];
+                            @endphp
                             <div class="flex flex-wrap items-center gap-2">
-                                <a href="{{ route('donorportal.subscriptions.increase', ['organization' => $organization, 'subscription' => $subscription]) }}"
-                                   class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                                <button type="button"
+                                        @click="openIncrease(@js($subData))"
+                                        class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                     <x-heroicon name="plus" class="h-3.5 w-3.5" />
                                     Change Amount
-                                </a>
+                                </button>
                                 <button @click="openPayment('{{ $subscription->public_id }}')"
                                         class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                     <x-heroicon name="credit-card" class="h-3.5 w-3.5" />
@@ -339,6 +432,124 @@
                         class="rounded-lg border border-transparent bg-slate-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-700 disabled:opacity-50">
                     Save Card
                 </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Change Amount Modal --}}
+    <div x-show="increaseModal !== null"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+         @click.self="closeIncrease()"
+         x-transition.opacity>
+        <div class="relative w-full max-w-2xl mx-auto max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+             @click.stop>
+            {{-- Loading overlay --}}
+            <div x-show="increaseProcessing"
+                 x-cloak
+                 class="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/80 backdrop-blur-sm"
+                 x-transition.opacity.duration.200ms>
+                <svg class="h-10 w-10 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="mt-3 text-sm font-semibold text-slate-700">Updating your subscription...</p>
+            </div>
+
+            {{-- Success state --}}
+            <div x-show="increaseSuccess" x-cloak x-transition.opacity.duration.300ms class="py-8 text-center">
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+                    <svg class="h-7 w-7 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-black text-slate-900">Subscription Updated!</h3>
+                <p class="mt-2 text-sm text-slate-600">
+                    Your donation has been increased to<br>
+                    <span class="font-bold text-slate-900"
+                          x-text="increaseSubscription?.symbol + ' ' + increaseNewTotal.toFixed(2) + ' ' + (increaseSubscription?.currency || '').toUpperCase() + '/' + (increaseSubscription?.interval || '')"></span>
+                </p>
+            </div>
+
+            {{-- Form state --}}
+            <div x-show="!increaseSuccess">
+                <h3 class="text-lg font-black text-slate-900">Change donation amount</h3>
+                <p class="mt-1 text-sm text-slate-600">
+                    Increase your current
+                    <span class="font-semibold"
+                          x-text="increaseSubscription?.symbol + ' ' + parseFloat(increaseSubscription?.amount || 0).toFixed(2) + ' ' + (increaseSubscription?.currency || '').toUpperCase() + '/' + (increaseSubscription?.interval || '')"></span>
+                    donation by:
+                </p>
+
+                <div x-show="increaseError" x-cloak
+                     class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+                     x-text="increaseError"></div>
+
+                <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <template x-for="increment in increaseSubscription?.preset_increments || [5, 80, 100]" :key="increment">
+                        <button type="button"
+                                @click="increaseSelected = increment; increaseError = null"
+                                class="relative text-left rounded-xl border-2 p-4 transition"
+                                :class="increaseSelected === increment
+                                    ? 'border-blue-500 bg-blue-50/50 shadow-sm'
+                                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'">
+                            <p class="text-lg font-bold text-slate-900" x-text="'+ ' + increaseSubscription?.symbol + increment"></p>
+                            <p class="mt-1.5 text-sm text-slate-600">
+                                Future donations will be<br>
+                                <span class="font-semibold"
+                                      x-text="increaseSubscription?.symbol + ' ' + (parseFloat(increaseSubscription?.amount || 0) + increment).toFixed(2) + ' ' + (increaseSubscription?.currency || '').toUpperCase() + '/' + (increaseSubscription?.interval || '')"></span>
+                            </p>
+                        </button>
+                    </template>
+
+                    <button type="button"
+                            @click="increaseSelected = 'custom'; increaseError = null; $nextTick(() => $refs.increaseCustomInput?.focus())"
+                            class="relative text-left rounded-xl border-2 p-4 transition"
+                            :class="increaseSelected === 'custom'
+                                ? 'border-blue-500 bg-blue-50/50 shadow-sm'
+                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'">
+                        <p class="text-lg font-bold" :class="increaseSelected === 'custom' ? 'text-slate-900' : 'text-slate-500'">Other amount</p>
+                        <p class="mt-1.5 text-sm text-slate-500">Choose a custom<br>increase amount</p>
+                    </button>
+                </div>
+
+                <div x-show="increaseSelected === 'custom'" x-transition.opacity.duration.200ms class="mt-5">
+                    <label class="block text-sm font-bold text-slate-900 mb-2">Custom increase amount</label>
+                    <div class="relative max-w-sm">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-base font-bold text-slate-400" x-text="increaseSubscription?.symbol"></span>
+                        <input type="number"
+                               step="0.01"
+                               min="1"
+                               max="99999.99"
+                               x-ref="increaseCustomInput"
+                               x-model="increaseCustomAmount"
+                               @input="increaseCustomAmount = parseFloat($event.target.value) > 99999.99 ? '99999.99' : $event.target.value"
+                               placeholder="0.00"
+                               class="block w-full appearance-none rounded-xl border-2 border-slate-900 bg-white py-3 pl-11 pr-4 text-base font-bold text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-blue-600 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    </div>
+                    <p class="mt-2 text-sm text-slate-600">
+                        Future donations will be
+                        <span class="font-bold text-slate-900" x-text="increaseSubscription?.symbol + ' ' + increaseNewTotal.toFixed(2) + ' ' + (increaseSubscription?.currency || '').toUpperCase() + '/' + (increaseSubscription?.interval || '')"></span>
+                    </p>
+                </div>
+
+                <p x-show="increaseSubscription?.cover_fee" class="mt-5 text-sm text-slate-700">
+                    Thank you for continuing to cover transaction costs for your donations <span class="text-red-500">❤️</span>
+                </p>
+
+                <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                    <button type="button"
+                            @click="submitIncrease()"
+                            :disabled="increaseProcessing || (increaseSelected === 'custom' && (!increaseCustomAmount || parseFloat(increaseCustomAmount) <= 0 || increaseNewTotal > 99999.99))"
+                            class="flex-1 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Confirm
+                    </button>
+                    <button type="button"
+                            @click="closeIncrease()"
+                            class="flex-1 rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900">
+                        Cancel
+                    </button>
+                </div>
             </div>
         </div>
     </div>
