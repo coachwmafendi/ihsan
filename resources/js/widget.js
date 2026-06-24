@@ -1039,7 +1039,8 @@
       if (
         a.classList &&
         a.classList.contains("ihsan-button") &&
-        a.getAttribute("data-ihsan-token") === token
+        a.getAttribute("data-ihsan-token") === token &&
+        !a.__ihsanEnhanced
       ) {
         return a;
       }
