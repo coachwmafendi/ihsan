@@ -1051,6 +1051,9 @@
     var anchor = findStaticButton(el.token);
     if (!anchor) {
       anchor = script.previousElementSibling;
+      if (anchor && anchor.tagName.toLowerCase() === "div") {
+        anchor = anchor.querySelector("a.ihsan-button");
+      }
       if (
         !anchor ||
         anchor.tagName.toLowerCase() !== "a" ||
@@ -1060,6 +1063,10 @@
         return;
       }
     }
+    if (anchor.__ihsanEnhanced) {
+      return;
+    }
+    anchor.__ihsanEnhanced = true;
     anchor.addEventListener("click", function (e) {
       e.preventDefault();
       handleClick(el);
