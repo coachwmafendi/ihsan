@@ -1,8 +1,8 @@
 # Entity Relationship Diagram (ERD)
 ## Ihsan — MVP Database Design
 
-**Version:** 1.8
-**Tarikh:** 6 Jun 2026
+**Version:** 1.9
+**Tarikh:** 23 Jun 2026
 **Database:** SQLite untuk local dev, MySQL 8/PostgreSQL untuk production
 **Framework:** Laravel 13
 
@@ -26,6 +26,7 @@ ERD ini menyokong MVP yang bermula dengan app untuk NGO admin:
 - `campaigns` dan `elements` untuk fundraising setup yang boleh diurus sendiri oleh NGO admin
 - `donors`, `donations`, dan `subscriptions` untuk supporter, transaksi, dan recurring revenue
 - `processing_fees`, `monthly_invoices`, dan `webhook_logs` untuk operasi pembayaran, rekonsiliasi, invois fee, dan audit
+- `donor_email_logs` untuk sejarah email, tracking, dan responsive preview
 
 Donor Portal menggunakan magic link tanpa password. MVP kini menyokong sejarah derma, download receipt, pembatalan subscription, pause/resume, tukar amount, dan update payment method. Fungsi lanjutan seperti preferences donor atau komunikasi segmentation boleh ditambah kemudian tanpa menukar struktur data utama.
 
@@ -229,6 +230,29 @@ erDiagram
         timestamps created_at updated_at
     }
 
+    DONOR_EMAIL_LOGS {
+        bigint id PK
+        string public_id UK "EL + 6 chars - public-facing ID"
+        bigint donor_id FK
+        bigint organization_id FK "nullable"
+        bigint donation_id FK "nullable - trigger email"
+        bigint subscription_id FK "nullable - trigger email"
+        bigint resent_from_id FK "nullable - self-referential resend"
+        string mailable_class
+        string message_id UK "nullable - provider message id"
+        string provider_message_id "nullable"
+        string subject
+        string delivery_status "nullable"
+        json metadata "nullable"
+        timestamp sent_at "nullable"
+        timestamp opened_at "nullable"
+        timestamp delivered_at "nullable"
+        timestamp bounced_at "nullable"
+        string bounce_reason "nullable"
+        timestamp complained_at "nullable"
+        timestamps created_at updated_at
+    }
+
     PROCESSING_FEES {
         bigint id PK
         bigint donation_id FK
@@ -336,8 +360,13 @@ erDiagram
     CAMPAIGNS ||--o{ ELEMENTS : "has many (optional)"
     DONORS ||--o{ DONATIONS : "makes"
     DONORS ||--o{ SUBSCRIPTIONS : "holds"
+    DONORS ||--o{ DONOR_EMAIL_LOGS : "receives emails"
     SUBSCRIPTIONS ||--o{ DONATIONS : "generates recurring"
     DONATIONS ||--|| PROCESSING_FEES : "generates one"
+    DONATIONS ||--o{ DONOR_EMAIL_LOGS : "may trigger email"
+    SUBSCRIPTIONS ||--o{ DONOR_EMAIL_LOGS : "may trigger email"
+    ORGANIZATIONS ||--o{ DONOR_EMAIL_LOGS : "sends emails"
+    DONOR_EMAIL_LOGS ||--o{ DONOR_EMAIL_LOGS : "resent from"
     MONTHLY_INVOICES ||--o{ PROCESSING_FEES : "collects"
     ORGANIZATIONS ||--o{ FRAUD_RULES : "defines"
     DONORS ||--o{ FRAUD_ATTEMPTS : "triggers"
@@ -604,6 +633,32 @@ Jadual global untuk tetapan aplikasi yang tidak berkaitan dengan organisasi tert
 
 ---
 
+### 2.15 `donor_email_logs`
+Log setiap email yang dihantar kepada donor (donation receipt, notification, summary, dll). Menyokong resend, tracking delivery, dan responsive preview.
+
+| Kolum | Jenis | Keterangan |
+|-------|-------|------------|
+| `public_id` | string unique | ID public-facing 8 aksara: `EL` + 6 aksara rawak (A–Z, 1–9). Digunakan di URL responsive preview untuk sembunyikan auto-increment ID |
+| `donor_id` | FK | Donor penerima email |
+| `organization_id` | FK nullable | NGO yang menghantar email; NULL untuk Email platform/global |
+| `donation_id` | FK nullable | Link kepada donation jika email dijana oleh transaksi |
+| `subscription_id` | FK nullable | Link kepada subscription jika email berkaitan recurring |
+| `resent_from_id` | FK nullable | Self-referential — rekod asal yang di-resend |
+| `mailable_class` | string | Class Mailable yang digunakan untuk rebuild preview/resend |
+| `message_id` | string unique nullable | Message ID daripada email provider (SES/Postmark) |
+| `provider_message_id` | string nullable | Provider-specific message ID |
+| `subject` | string | Subjek email |
+| `delivery_status` | string nullable | Status delivery: `sent`, `delivered`, `bounced`, `complained`, dll |
+| `metadata` | json nullable | Data tambahan mengenai email, contohnya `resent_to_email` |
+| `sent_at` | timestamp nullable | Masa email dihantar |
+| `opened_at` | timestamp nullable | Masa email dibuka (tracking pixel) |
+| `delivered_at` | timestamp nullable | Masa email disahkan delivered oleh provider |
+| `bounced_at` | timestamp nullable | Masa email bounced |
+| `bounce_reason` | string nullable | Sebab bounce |
+| `complained_at` | timestamp nullable | Masa email complaint/spam dilaporkan |
+
+---
+
 ## 3. Hubungan Penting
 
 ### 3.1 Global Donor → Multi-NGO (melalui campaigns)
@@ -635,7 +690,7 @@ Setiap donation berjaya (`status = succeeded`) boleh menjana tepat satu rekod `p
 
 ## 4. Sistem `public_id`
 
-`public_id` ialah pengenal unik berorientasi public untuk 7 entiti utama. Ia menyembunyikan auto-increment `id` daripada pengguna akhir dan URL, meningkatkan keselamatan dan estetik.
+`public_id` ialah pengenal unik berorientasi public untuk 8 entiti utama. Ia menyembunyikan auto-increment `id` daripada pengguna akhir dan URL, meningkatkan keselamatan dan estetik.
 
 ### Format
 - **8 aksara total**, huruf besar A–Z + digit **1–9** (tiada 0).
@@ -649,6 +704,7 @@ Setiap donation berjaya (`status = succeeded`) boleh menjana tepat satu rekod `p
 | `donations` | `D` | `D4H5I6J7` |
 | `subscriptions` | `R` | `R8K9L1M2` |
 | `elements` | `E` | `E3N4O5P6` |
+| `donor_email_logs` | `EL` | `EL7A3B9C` |
 | `monthly_invoices` | `I` | `I7Q8R9S1` |
 
 ### Penjanaan
@@ -705,6 +761,7 @@ CREATE UNIQUE INDEX idx_donors_public_id ON donors(public_id);
 CREATE UNIQUE INDEX idx_donations_public_id ON donations(public_id);
 CREATE UNIQUE INDEX idx_subscriptions_public_id ON subscriptions(public_id);
 CREATE UNIQUE INDEX idx_elements_public_id ON elements(public_id);
+CREATE UNIQUE INDEX idx_donor_email_logs_public_id ON donor_email_logs(public_id);
 CREATE UNIQUE INDEX idx_monthly_invoices_public_id ON monthly_invoices(public_id);
 ```
 
