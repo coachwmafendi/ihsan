@@ -7,7 +7,6 @@ use App\Models\Campaign;
 use App\Models\Element;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 
@@ -71,13 +70,14 @@ class EmbedCheckoutController extends Controller
             : null;
 
         $action = $settings['action'];
+        $openInPopup = in_array($action, ['checkout_modal', 'open_checkout_modal'], true);
 
-        if ($action === 'checkout_modal' && $campaignFormParameter) {
-            $url = url('/checkout/'.$campaignFormParameter);
+        if ($campaignFormParameter) {
+            $url = url('/checkout/'.$campaignFormParameter.($openInPopup ? '?popup=1' : ''));
+        } elseif ($element->campaign) {
+            $url = url('/donate/'.$element->token.($openInPopup ? '?popup=1' : ''));
         } else {
-            $url = $element->campaign
-                ? url('/donate/'.$element->token)
-                : url('/');
+            $url = url('/');
         }
 
         $rawColor = Str::lower((string) $settings['button_color']);
@@ -153,7 +153,7 @@ class EmbedCheckoutController extends Controller
             $iconSvg = '';
         }
 
-        return View::make('embed.button', [
+        return response()->view('embed.button', [
             'text' => e($settings['button_text']),
             'url' => $url,
             'iconSvg' => $iconSvg,
@@ -164,6 +164,7 @@ class EmbedCheckoutController extends Controller
             'alignment' => in_array($settings['alignment'], ['left', 'center', 'right'], true)
                 ? $settings['alignment']
                 : 'center',
+            'openInPopup' => $openInPopup,
         ]);
     }
 

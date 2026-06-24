@@ -7,6 +7,7 @@ namespace App\Livewire\App\Supporters;
 use App\Http\Controllers\SupporterExportController;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\Organization;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -153,9 +154,30 @@ class SupporterIndex extends Component
         };
     }
 
+    /**
+     * @return \Closure(object): void
+     */
+    private function organizationDonationsConstraint(?Organization $org): \Closure
+    {
+        return function ($q) use ($org): void {
+            if (! $org) {
+                $q->whereRaw('1 = 0');
+
+                return;
+            }
+
+            $q->whereIn('campaign_id', function ($cq) use ($org): void {
+                $cq->select('id')
+                    ->from('campaigns')
+                    ->where('organization_id', $org->id);
+            });
+        };
+    }
+
     private function baseQuery(): Builder
     {
         $org = $this->organization;
+        $orgDonations = $this->organizationDonationsConstraint($org);
 
         $query = Donor::query()
             ->select('donors.*')
@@ -163,18 +185,20 @@ class SupporterIndex extends Component
                 $q->whereHas('donations.campaign', fn (Builder $cq) => $cq->where('organization_id', $org->id));
             })
             ->when(! $org, fn (Builder $q) => $q->whereRaw('1 = 0'))
-            ->withCount('donations')
-            ->withMin('donations', 'created_at')
-            ->withMax('donations', 'created_at')
+            ->withCount(['donations as donations_count' => $orgDonations])
+            ->withMin(['donations as donations_min_created_at' => $orgDonations], 'created_at')
+            ->withMax(['donations as donations_max_created_at' => $orgDonations], 'created_at')
             ->selectSub(
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.donor_id', 'donors.id')
+                    ->tap($orgDonations)
                     ->select(Donation::reportSumColumn()),
                 'lifetime_report_amount'
             )
             ->selectSub(
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.donor_id', 'donors.id')
+                    ->tap($orgDonations)
                     ->where('donations.currency', '!=', 'myr')
                     ->selectRaw('COUNT(*) > 0'),
                 'has_report_approximation'
@@ -191,7 +215,8 @@ class SupporterIndex extends Component
         [$start, $end] = $this->periodRange();
 
         if ($start !== null && $end !== null) {
-            $query->whereHas('donations', function (Builder $q) use ($start, $end): void {
+            $query->whereHas('donations', function (Builder $q) use ($start, $end, $orgDonations): void {
+                $orgDonations($q);
                 $q->whereBetween('created_at', [$start, $end]);
             });
         }
@@ -224,9 +249,12 @@ class SupporterIndex extends Component
     public function render()
     {
         $donors = $this->donors;
+        $org = $this->organization;
 
         $exactAmounts = DB::table('donations')
+            ->join('campaigns', 'campaigns.id', '=', 'donations.campaign_id')
             ->whereIn('donor_id', $donors->pluck('id'))
+            ->when($org, fn ($q) => $q->where('campaigns.organization_id', $org->id))
             ->select('donor_id', 'currency', DB::raw('ROUND(SUM(gross_amount), 2) as total'))
             ->groupBy('donor_id', 'currency')
             ->get()

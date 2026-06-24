@@ -45,6 +45,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
     libcurl4-openssl-dev \
+    libicu-dev \
     pkg-config \
     zip \
     unzip \

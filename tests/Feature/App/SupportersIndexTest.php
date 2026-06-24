@@ -115,6 +115,34 @@ it('shows approximate myr lifetime total for foreign donations without base amou
         ->assertSee('≈ MYR 200.00');
 });
 
+it('scopes donor aggregates to the current organization only', function () {
+    $otherOrganization = Organization::factory()->create();
+    $otherCampaign = Campaign::factory()->create([
+        'organization_id' => $otherOrganization->id,
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'gross_amount' => 100.00,
+        'created_at' => now()->subDays(10),
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $otherCampaign->id,
+        'donor_id' => $this->donor->id,
+        'gross_amount' => 999.00,
+        'created_at' => now(),
+    ]);
+
+    $component = Livewire::actingAs($this->user)->test(SupporterIndex::class);
+    $donor = $component->instance()->donors->firstWhere('id', $this->donor->id);
+
+    expect($donor->donations_count)->toBe(3)
+        ->and((float) $donor->lifetime_report_amount)->toBe(225.00)
+        ->and(substr((string) $donor->donations_max_created_at, 0, 10))->toBe($this->lastDonation->created_at->format('Y-m-d'));
+});
+
 it('redirects guests to login', function () {
     $this->get(route('app.supporters.index'))->assertRedirect('/login');
 });

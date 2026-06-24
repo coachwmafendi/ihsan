@@ -69,20 +69,43 @@ class SupporterExportController extends Controller
         };
     }
 
+    /**
+     * @return \Closure(object): void
+     */
+    private function organizationDonationsConstraint(?Organization $org): \Closure
+    {
+        return function ($q) use ($org): void {
+            if (! $org) {
+                $q->whereRaw('1 = 0');
+
+                return;
+            }
+
+            $q->whereIn('campaign_id', function ($cq) use ($org): void {
+                $cq->select('id')
+                    ->from('campaigns')
+                    ->where('organization_id', $org->id);
+            });
+        };
+    }
+
     private function buildQuery(Request $request, ?Organization $org): Builder
     {
+        $orgDonations = $this->organizationDonationsConstraint($org);
+
         $query = Donor::query()
             ->select('donors.*')
             ->when($org, function (Builder $q) use ($org): void {
                 $q->whereHas('donations.campaign', fn (Builder $cq) => $cq->where('organization_id', $org->id));
             })
             ->when(! $org, fn (Builder $q) => $q->whereRaw('1 = 0'))
-            ->withCount('donations')
-            ->withMin('donations', 'created_at')
-            ->withMax('donations', 'created_at')
+            ->withCount(['donations as donations_count' => $orgDonations])
+            ->withMin(['donations as donations_min_created_at' => $orgDonations], 'created_at')
+            ->withMax(['donations as donations_max_created_at' => $orgDonations], 'created_at')
             ->selectSub(
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.donor_id', 'donors.id')
+                    ->tap($orgDonations)
                     ->select(Donation::reportSumColumn()),
                 'lifetime_report_amount'
             );
@@ -103,7 +126,8 @@ class SupporterExportController extends Controller
         [$start, $end] = $this->periodRange($period, $dateFrom, $dateTo);
 
         if ($start !== null && $end !== null) {
-            $query->whereHas('donations', function (Builder $q) use ($start, $end): void {
+            $query->whereHas('donations', function (Builder $q) use ($start, $end, $orgDonations): void {
+                $orgDonations($q);
                 $q->whereBetween('created_at', [$start, $end]);
             });
         }
