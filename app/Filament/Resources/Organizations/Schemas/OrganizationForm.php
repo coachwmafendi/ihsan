@@ -12,7 +12,9 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 
 class OrganizationForm
 {
@@ -266,12 +268,10 @@ class OrganizationForm
 
                                         Grid::make(2)
                                             ->schema([
-                                                TextInput::make('stripe_onboarded_at_display')
-                                                    ->label('Onboarded')
-                                                    ->disabled()
-                                                    ->dehydrated(false)
-                                                    ->placeholder('—')
-                                                    ->formatStateUsing(fn ($state, $record) => $record?->stripe_onboarded_at ? myrTime($record->stripe_onboarded_at, format: 'd/m/Y H:i') : '—'),
+                                                Text::make(fn ($record) => new HtmlString(
+                                                    '<span class="block text-sm font-medium text-gray-950 dark:text-white">'.__('Onboarded').'</span>'.
+                                                    '<span class="block text-sm text-gray-500 dark:text-gray-400 mt-1">'.($record?->stripe_onboarded_at ? myrTime($record->stripe_onboarded_at, format: 'd/m/Y H:i') : '—').'</span>'
+                                                )),
 
                                                 Toggle::make('stripe_onboarded')
                                                     ->label('Status')
@@ -293,9 +293,10 @@ class OrganizationForm
                                             ->label('Fee Collection Method')
                                             ->options([
                                                 'invoice' => 'Monthly Invoice',
-                                                'upfront' => 'Upfront Deduction',
+                                                'upfront' => 'Upfront Payment',
                                             ])
                                             ->default('upfront')
+                                            ->selectablePlaceholder(false)
                                             ->helperText('How processing fees are collected from this organization.'),
                                         TextInput::make('processing_fee_override')
                                             ->label('Processing Fee Override (%)')
