@@ -5,9 +5,9 @@
   if (!script) return;
 
   var token = script.getAttribute("data-token") || "";
+  var enhance = script.getAttribute("data-enhance") === "true";
   if (!token) return;
 
-  var enhance = script.getAttribute("data-enhance") === "true";
   var apiBase = script.getAttribute("data-api-base") || "";
   var baseUrl = apiBase || (function () {
     var src = script.src || "";

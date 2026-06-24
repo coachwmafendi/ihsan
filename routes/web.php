@@ -53,7 +53,7 @@ Route::get('/register-organization', RegisterOrganization::class)->name('registe
 
 Route::get('/_test-widget', fn () => response('<!DOCTYPE html><html><body style="padding:40px"><h2>Widget Test</h2><script src="/e/widget.js" data-token="sgxqLo" data-api-base="'.config('app.url').'"></script></body></html>')->header('Content-Type', 'text/html'));
 
-Route::get('/_test-iframe-button/{element:token}', function (Element $element) {
+Route::get('/_test-iframe-button/{element:token}', function (App\Models\Element $element) {
     $token = $element->token;
     $baseUrl = config('app.url');
     $iframe = '<iframe src="'.$baseUrl.'/e/button/'.$token.'" width="100%" height="70" frameborder="0" scrolling="no" style="border:0;overflow:hidden;"></iframe>';
@@ -91,7 +91,6 @@ Route::get('/_test-iframe-button/{element:token}', function (Element $element) {
 })();
 </script>
 JS;
-
     return response('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Iframe Button Test</title></head><body style="padding:80px; font-family:sans-serif;"><h3>This is a fake WordPress page</h3>'.$iframe.'\n'.$listener.'</body></html>')->header('Content-Type', 'text/html');
 })->name('test.iframe-button');
 
@@ -209,7 +208,6 @@ use App\Mail\SubscriptionAmountChangedNotification;
 use App\Mail\SupporterSubscriptionAmountChangedNotification;
 use App\Models\Campaign;
 use App\Models\Donor;
-use App\Models\Element;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
