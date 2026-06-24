@@ -1058,7 +1058,8 @@
       if (
         !anchor ||
         anchor.tagName.toLowerCase() !== "a" ||
-        !anchor.classList.contains("ihsan-button")
+        !anchor.classList.contains("ihsan-button") ||
+        anchor.getAttribute("data-ihsan-token") !== el.token
       ) {
         renderFromData(el);
         return;
