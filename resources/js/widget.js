@@ -5,6 +5,7 @@
   if (!script) return;
 
   var token = script.getAttribute("data-token") || "";
+  var enhance = script.getAttribute("data-enhance") === "true";
   if (!token) return;
 
   var apiBase = script.getAttribute("data-api-base") || "";
@@ -1031,6 +1032,61 @@
     link: renderLink,
   };
 
+  function findStaticButton(token) {
+    var anchors = document.getElementsByTagName("a");
+    for (var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      if (
+        a.classList &&
+        a.classList.contains("ihsan-button") &&
+        a.getAttribute("data-ihsan-token") === token &&
+        !a.getAttribute("data-ihsan-enhanced")
+      ) {
+        return a;
+      }
+    }
+    return null;
+  }
+
+  function enhanceExistingButton(el) {
+    var anchor = findStaticButton(el.token);
+    if (!anchor) {
+      anchor = script.previousElementSibling;
+      if (anchor && anchor.tagName.toLowerCase() === "div") {
+        anchor = anchor.querySelector("a.ihsan-button");
+      }
+      if (
+        !anchor ||
+        anchor.tagName.toLowerCase() !== "a" ||
+        !anchor.classList.contains("ihsan-button") ||
+        anchor.getAttribute("data-ihsan-token") !== el.token
+      ) {
+        renderFromData(el);
+        return;
+      }
+    }
+    if (anchor.getAttribute("data-ihsan-enhanced") === "true") {
+      return;
+    }
+    anchor.setAttribute("data-ihsan-enhanced", "true");
+    anchor.addEventListener("click", function (e) {
+      e.preventDefault();
+      handleClick(el);
+    });
+    hideEditorLabel(anchor);
+  }
+
+  function hideEditorLabel(anchor) {
+    var wrapper = anchor.parentElement;
+    if (!wrapper) {
+      return;
+    }
+    var label = wrapper.querySelector(".ihsan-embed-label");
+    if (label) {
+      label.style.display = "none";
+    }
+  }
+
   function renderFromData(el) {
     preloadCheckoutImage(el);
 
@@ -1057,9 +1113,18 @@
     })
     .then(function (data) {
       if (!data) return;
-      ready(function () { renderFromData(data); });
+      ready(function () {
+        if (enhance) {
+          enhanceExistingButton(data);
+        } else {
+          renderFromData(data);
+        }
+      });
     })
     .catch(function () {
+      if (enhance) {
+        return;
+      }
       // Fallback: render from data-attributes (backward compat)
       var el = {
         type: script.getAttribute("data-type") || "",

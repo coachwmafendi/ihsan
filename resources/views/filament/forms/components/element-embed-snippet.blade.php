@@ -16,8 +16,14 @@
             default => $type,
         };
 
-        $embedCode = '<script src="'.$widgetSrc.'" data-token="'.$token.'" data-api-base="'.$baseUrl.'"></script>';
-        $hasIframeFallback = in_array($cleanType, ['button', 'link'], true);
+        if ($cleanType === 'button') {
+            $staticButton = \App\Support\EmbedWidget::staticButtonHtml($element);
+            $embedCode = $staticButton."\n".'<script src="'.$widgetSrc.'" data-token="'.$token.'" data-api-base="'.$baseUrl.'" data-enhance="true"></script>';
+            $hasIframeFallback = false;
+        } else {
+            $embedCode = '<script src="'.$widgetSrc.'" data-token="'.$token.'" data-api-base="'.$baseUrl.'"></script>';
+            $hasIframeFallback = in_array($cleanType, ['link'], true);
+        }
 
         $listenerScript = <<<'JS'
 <script>
