@@ -512,7 +512,7 @@
                         wire:click="openSkipModal"
                         class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                     >
-                        <x-heroicon-o-arrow-right-circle class="size-5 text-slate-400" />
+                        <x-heroicon-o-calendar-days class="size-5 text-slate-400" />
                         Skip installments
                     </button>
                     <button

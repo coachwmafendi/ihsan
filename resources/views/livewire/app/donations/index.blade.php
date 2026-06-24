@@ -377,7 +377,7 @@
                                         @if ($pmBrand === 'apple_pay' || $pmType === 'apple_pay')
                                             <span class="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600">Pay</span>
                                         @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
-                                            <span class="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600">G Pay</span>
+                                            <span class="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600">Google Pay</span>
                                         @elseif ($pmType === 'card' || filled($pmBrand))
                                             <x-ui.tooltip :text="\Illuminate\Support\Str::headline($pmBrand)">
                                                 <x-heroicon-o-credit-card class="size-4 text-slate-400" />
