@@ -1040,7 +1040,7 @@
         a.classList &&
         a.classList.contains("ihsan-button") &&
         a.getAttribute("data-ihsan-token") === token &&
-        !a.__ihsanEnhanced
+        !a.getAttribute("data-ihsan-enhanced")
       ) {
         return a;
       }
@@ -1064,10 +1064,10 @@
         return;
       }
     }
-    if (anchor.__ihsanEnhanced) {
+    if (anchor.getAttribute("data-ihsan-enhanced") === "true") {
       return;
     }
-    anchor.__ihsanEnhanced = true;
+    anchor.setAttribute("data-ihsan-enhanced", "true");
     anchor.addEventListener("click", function (e) {
       e.preventDefault();
       handleClick(el);

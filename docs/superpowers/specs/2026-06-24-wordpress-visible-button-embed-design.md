@@ -34,7 +34,8 @@ For a Button element, the admin copy panel should generate embed code approximat
 
 ```html
 <a href="https://app.test/donate/TOKEN?popup=1"
-   class="ihsan-button ihsan-button-TOKEN"
+   class="ihsan-button"
+   data-ihsan-token="TOKEN"
    target="_blank"
    rel="noopener"
    style="display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;font-weight:600;line-height:1.3;white-space:nowrap;letter-spacing:.01em;color:#fff;background:#2563eb;padding:13px 32px;font-size:16px;border-radius:8px;box-shadow:0 3px 12px rgba(0,0,0,.15);font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
@@ -51,8 +52,9 @@ The static link contains `?popup=1` so that even without JavaScript the donor la
 When a script tag includes `data-enhance="true"`:
 
 1. Fetch element configuration from `/api/public/elements/{token}` as usual.
-2. Look for an existing anchor with classes `ihsan-button` and `ihsan-button-{token}` (prefer previous sibling of the script tag).
+2. Look for an existing anchor with class `ihsan-button` and attribute `data-ihsan-token` matching the token (prefer previous sibling of the script tag).
 3. If found:
+   - Mark it with `data-ihsan-enhanced="true"` to avoid duplicate enhancement.
    - Attach a click listener.
    - On click `preventDefault()` and call `showCheckoutModal(el)` using the fetched configuration.
    - Do not replace the script with a new DOM element.
