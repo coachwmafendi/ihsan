@@ -334,13 +334,21 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-2">
-                                        <span class="text-sm font-semibold text-slate-800">
-                                            {{ $isMyr ? '' : '≈ ' }}MYR {{ number_format($myrAmount, 2) }}/{{ $subscription->interval->value }}
-                                        </span>
+                                        @php
+                                            $intervalSuffix = match ($subscription->interval->value) {
+                                                'monthly' => '/mo',
+                                                'weekly' => '/wk',
+                                                'yearly' => '/yr',
+                                                default => '/'.$subscription->interval->value,
+                                            };
+                                            $displayAmount = ($isMyr ? '' : '≈ ').'MYR '.number_format($myrAmount, 2).$intervalSuffix;
+                                        @endphp
                                         @if (! $isMyr)
-                                            <x-ui.tooltip :text="$subscription->currency_symbol.' '.number_format((float) $subscription->amount, 2).'/'.$subscription->interval->value">
-                                                <x-heroicon-o-information-circle class="size-3.5 text-slate-400" />
+                                            <x-ui.tooltip :text="$subscription->currency_symbol.' '.number_format((float) $subscription->amount, 2).$intervalSuffix">
+                                                <span class="cursor-pointer text-sm font-semibold text-slate-800">{{ $displayAmount }}</span>
                                             </x-ui.tooltip>
+                                        @else
+                                            <span class="text-sm font-semibold text-slate-800">{{ $displayAmount }}</span>
                                         @endif
                                         {{-- Payment method icon --}}
                                         @if ($pmBrand === 'apple_pay' || $pmType === 'apple_pay')
