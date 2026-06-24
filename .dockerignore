@@ -1,0 +1,51 @@
+# Dependencies
+/node_modules
+/vendor
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitattributes
+.gitignore
+
+# IDE & editor
+/.idea
+/.vscode
+/.fleet
+/.nova
+
+# Laravel runtime
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+/storage/*.key
+/storage/pail
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+!/storage/logs/.gitignore
+
+# Build artifacts
+/public/hot
+/public/storage
+/public/build
+
+# Testing
+.phpunit.result.cache
+phpunit.xml
+phpunit.xml.dist
+/tests
+
+# Misc
+Dockerfile
+.dockerignore
+render.yaml
+README.md
+CHANGELOG.md
+.editorconfig
+*.md

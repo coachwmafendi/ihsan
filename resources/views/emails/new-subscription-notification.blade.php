@@ -29,7 +29,7 @@
             <tr><td style="padding: 8px; color: #64748b;">Date</td><td style="padding: 8px;">{{ myrTime($donation->created_at) }}</td></tr>
         </table>
 
-        <p style="margin: 24px 0;">
+        <p style="margin: 24px 0; text-align: center;">
             <a href="{{ $donation->subscription ? route('app.subscriptions.show', $donation->subscription) : route('app.donations.show', $donation) }}" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
         </p>
 
