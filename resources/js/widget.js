@@ -1073,6 +1073,18 @@
       e.preventDefault();
       handleClick(el);
     });
+    hideEditorLabel(anchor);
+  }
+
+  function hideEditorLabel(anchor) {
+    var wrapper = anchor.parentElement;
+    if (!wrapper) {
+      return;
+    }
+    var label = wrapper.querySelector(".ihsan-embed-label");
+    if (label) {
+      label.style.display = "none";
+    }
   }
 
   function renderFromData(el) {

@@ -32,6 +32,7 @@ it('renders static button and enhancement script for button elements', function 
         ->toContain('class=\u0022ihsan-button\u0022')
         ->toContain('data-ihsan-token=\u0022btn-verify\u0022')
         ->toContain('data-enhance=\u0022true\u0022')
+        ->toContain('ihsan-embed-label')
         ->toContain('Donate Now');
 });
 
