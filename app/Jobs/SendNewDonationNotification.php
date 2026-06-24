@@ -50,6 +50,15 @@ class SendNewDonationNotification implements ShouldQueue
             return;
         }
 
+        $marked = Donation::query()
+            ->whereKey($donation->getKey())
+            ->whereNull('new_donation_notification_sent_at')
+            ->update(['new_donation_notification_sent_at' => now()]);
+
+        if ($marked === 0) {
+            return;
+        }
+
         $admins = User::query()
             ->where('organization_id', $org->getKey())
             ->where('role', UserRole::NgoAdmin)

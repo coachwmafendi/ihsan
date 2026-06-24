@@ -16,15 +16,20 @@ RUN npm run build
 # --------------------------------------------------
 # Stage 2: Install PHP dependencies with Composer
 # --------------------------------------------------
-FROM composer:2 AS vendor
+FROM php:8.3-cli AS vendor
 
 WORKDIR /app
 
 # intl is required by filament/support during composer install
-RUN apt-get update && apt-get install -y libicu-dev \
+RUN apt-get update && apt-get install -y \
+    libicu-dev \
+    libzip-dev \
+    unzip \
     && docker-php-ext-install intl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY composer.json composer.lock ./
 RUN composer install \

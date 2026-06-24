@@ -49,6 +49,15 @@ class SendLargeDonationNotification implements ShouldQueue
             return;
         }
 
+        $marked = Donation::query()
+            ->whereKey($donation->getKey())
+            ->whereNull('large_donation_notification_sent_at')
+            ->update(['large_donation_notification_sent_at' => now()]);
+
+        if ($marked === 0) {
+            return;
+        }
+
         $admins = User::query()
             ->where('organization_id', $org->getKey())
             ->where('role', UserRole::NgoAdmin)

@@ -2,12 +2,16 @@
 
 use App\Enums\DonationType;
 use App\Enums\SubscriptionInterval;
+use App\Enums\UserRole;
+use App\Jobs\SendNewDonationNotification;
 use App\Mail\NewDonationNotification;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 test('one-time donation notification subject and body include key details', function () {
     $organization = Organization::factory()->create(['name' => 'Masjid Al-Hidayah']);
@@ -98,4 +102,32 @@ test('recurring donation notification email body matches new layout', function (
         ->toContain('Hi <strong>')
         ->not->toContain('Payment Number')
         ->not->toContain('Frequency');
+});
+
+test('new donation notification is only sent once even when the job runs twice', function () {
+    Mail::fake();
+
+    $organization = Organization::factory()->create([
+        'settings' => ['notify_new_donation' => true],
+    ]);
+    Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $admin = User::factory()->create([
+        'organization_id' => $organization->getKey(),
+        'role' => UserRole::NgoAdmin,
+    ]);
+
+    $donation = Donation::factory()->for($organization->campaigns->first())->for($donor)->create([
+        'currency' => 'myr',
+        'gross_amount' => 100.00,
+        'donor_fee_covered' => 0,
+        'type' => DonationType::OneTime,
+    ]);
+
+    $job = new SendNewDonationNotification($donation);
+    $job->handle();
+    $job->handle();
+
+    Mail::assertQueued(NewDonationNotification::class, 1);
+    expect($donation->fresh()->new_donation_notification_sent_at)->not->toBeNull();
 });
