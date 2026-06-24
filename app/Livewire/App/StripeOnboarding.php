@@ -17,6 +17,8 @@ class StripeOnboarding extends Component
 {
     public bool $showSuccessModal = false;
 
+    public bool $alreadyConnected = false;
+
     public function mount(): void
     {
         $org = Auth::user()?->organization;
@@ -28,7 +30,7 @@ class StripeOnboarding extends Component
         }
 
         if ($org && $org->stripe_onboarded) {
-            $this->redirect(route('app.dashboard'));
+            $this->alreadyConnected = true;
         }
     }
 
@@ -65,6 +67,16 @@ class StripeOnboarding extends Component
     public function closeSuccessModal(): void
     {
         $this->redirect(route('app.campaigns.index'));
+    }
+
+    public function closeAlreadyConnectedModal(): void
+    {
+        $this->redirect(route('app.dashboard'));
+    }
+
+    public function goToStripeSettings(): void
+    {
+        $this->redirect(route('app.settings.payment'));
     }
 
     public function connect(): void

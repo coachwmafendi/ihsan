@@ -101,7 +101,8 @@ it('shows a success modal when returning from Stripe after onboarding', function
     Livewire::withQueryParams(['onboarding' => 'success'])
         ->test(StripeOnboarding::class)
         ->assertSet('showSuccessModal', true)
-        ->assertSee('Stripe Onboarding Successful');
+        ->assertSee('Stripe Onboarding Successful')
+        ->assertSee('Settings > Payment', false);
 });
 
 it('redirects to campaigns when the success modal close button is clicked', function () {
@@ -116,4 +117,44 @@ it('redirects to campaigns when the success modal close button is clicked', func
         ->test(StripeOnboarding::class)
         ->call('closeSuccessModal')
         ->assertRedirect(route('app.campaigns.index'));
+});
+
+it('shows an already connected info modal when visiting onboarding while connected', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->create([
+        'organization_id' => $organization->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(StripeOnboarding::class)
+        ->assertSet('alreadyConnected', true)
+        ->assertSee('Stripe Connect Connected')
+        ->assertSee('Settings > Payment', false);
+});
+
+it('redirects to stripe payment settings from the already connected modal', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->create([
+        'organization_id' => $organization->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(StripeOnboarding::class)
+        ->call('goToStripeSettings')
+        ->assertRedirect(route('app.settings.payment'));
+});
+
+it('redirects to dashboard when the already connected modal is closed', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->create([
+        'organization_id' => $organization->id,
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(StripeOnboarding::class)
+        ->call('closeAlreadyConnectedModal')
+        ->assertRedirect(route('app.dashboard'));
 });
