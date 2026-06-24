@@ -598,7 +598,7 @@
     <div>
         <a href="{{ route('app.subscriptions.index') }}" wire:navigate class="inline-flex items-center text-sm font-medium text-teal-600 hover:text-teal-700">
             <x-heroicon-o-arrow-left class="size-4 mr-1" />
-            Back to subscriptions
+            Back to Recurring Plans
         </a>
     </div>
 
@@ -818,6 +818,12 @@
             </div>
 
             <p class="text-sm text-slate-600">Upgrade links let supporters quickly increase their recurring donation or cover transaction fees, helping boost upgrades by 35–65% and increasing average donations by 50–110%.</p>
+
+            <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                <p class="text-sm text-amber-800">
+                    These upgrade links are unique to each recurring plan and can be used by anyone. Please make sure to send them only to the supporter registered with {{ $subscription->donor->email }} to avoid the wrong supporter making the upgrade.
+                </p>
+            </div>
 
             <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
                 <span class="flex-1 truncate text-sm text-slate-700 font-mono">{{ $this->upgradeUrl() }}</span>
