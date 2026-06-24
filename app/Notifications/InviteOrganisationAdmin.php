@@ -26,7 +26,8 @@ class InviteOrganisationAdmin extends Notification
 
         return (new MailMessage)
             ->subject('You have been invited — '.config('app.name'))
-            ->greeting('Assalamualaikum '.$notifiable->name.',')
+            ->greeting('Hi '.$notifiable->email.',')
+            ->line('Your organisation('.$this->organizationName.') registration application has been approved.')
             ->line('You have been invited as an admin for **'.$this->organizationName.'** on the '.config('app.name').' platform.')
             ->line('Please set your password using the button below to start using the panel.')
             ->action('Set Password', url(route('password.reset', ['token' => $token, 'email' => $notifiable->getEmailForPasswordReset()], false)))

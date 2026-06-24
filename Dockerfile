@@ -3,7 +3,7 @@
 # --------------------------------------------------
 # Stage 1: Build frontend assets with Node
 # --------------------------------------------------
-FROM node:22-alpine AS assets
+FROM node:22-bookworm-slim AS assets
 
 WORKDIR /app
 
