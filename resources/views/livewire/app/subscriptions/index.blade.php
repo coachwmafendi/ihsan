@@ -352,9 +352,9 @@
                                         @endif
                                         {{-- Payment method icon --}}
                                         @if ($pmBrand === 'apple_pay' || $pmType === 'apple_pay')
-                                            <span class="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600">Pay</span>
+                                            <x-icons.apple-pay class="h-4 w-auto text-slate-600" />
                                         @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
-                                            <span class="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600">Google Pay</span>
+                                            <x-icons.google-pay class="h-4 w-auto text-slate-600" />
                                         @elseif ($pmType === 'card' || filled($pmBrand))
                                             <x-ui.tooltip :text="filled($pmBrand) ? \Illuminate\Support\Str::headline($pmBrand) : 'Credit card'">
                                                 <x-icons.credit-card class="size-4 text-slate-500" />

@@ -215,17 +215,22 @@
                                 @php
                                     $pmType = strtolower($donation->payment_method_type ?? '');
                                     $pmBrand = strtolower($donation->payment_method_brand ?? '');
-
-                                    $paymentLabel = match (true) {
-                                        $pmType === 'apple_pay' || $pmBrand === 'apple_pay' => 'Apple Pay',
-                                        $pmType === 'google_pay' || $pmBrand === 'google_pay' => 'Google Pay',
-                                        $pmBrand !== '' => \Illuminate\Support\Str::headline($donation->payment_method_brand),
-                                        $pmType !== '' => \Illuminate\Support\Str::headline($donation->payment_method_type),
-                                        default => 'Card',
-                                    };
                                 @endphp
-                                <x-heroicon-o-credit-card class="size-5 text-slate-500" />
-                                {{ $paymentLabel }}
+                                @if ($pmBrand === 'apple_pay' || $pmType === 'apple_pay')
+                                    <x-icons.apple-pay class="h-5 w-auto text-slate-700" />
+                                @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
+                                    <x-icons.google-pay class="h-5 w-auto text-slate-700" />
+                                @else
+                                    @php
+                                        $paymentLabel = match (true) {
+                                            $pmBrand !== '' => \Illuminate\Support\Str::headline($donation->payment_method_brand),
+                                            $pmType !== '' => \Illuminate\Support\Str::headline($donation->payment_method_type),
+                                            default => 'Card',
+                                        };
+                                    @endphp
+                                    <x-heroicon-o-credit-card class="size-5 text-slate-500" />
+                                    {{ $paymentLabel }}
+                                @endif
                             </dd>
                         </div>
                         @if ($donation->payment_method_brand || $donation->payment_method_last4)

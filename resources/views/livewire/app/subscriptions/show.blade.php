@@ -228,8 +228,18 @@
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Payment method</dt>
                             <dd class="flex items-center gap-2 text-sm font-medium text-slate-900">
-                                <x-heroicon-o-credit-card class="size-4 text-slate-400" />
-                                {{ $this->latestDonation?->payment_method_type ? ucfirst($this->latestDonation->payment_method_type) : 'Credit Card' }}
+                                @php
+                                    $pmType = strtolower($this->latestDonation?->payment_method_type ?? '');
+                                    $pmBrand = strtolower($this->latestDonation?->payment_method_brand ?? '');
+                                @endphp
+                                @if ($pmBrand === 'apple_pay' || $pmType === 'apple_pay')
+                                    <x-icons.apple-pay class="h-4 w-auto text-slate-700" />
+                                @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
+                                    <x-icons.google-pay class="h-4 w-auto text-slate-700" />
+                                @else
+                                    <x-heroicon-o-credit-card class="size-4 text-slate-400" />
+                                    <span>{{ $this->latestDonation?->payment_method_type ? ucfirst($this->latestDonation->payment_method_type) : 'Credit Card' }}</span>
+                                @endif
                             </dd>
                         </div>
                         @if ($this->latestDonation?->payment_method_brand || $this->latestDonation?->payment_method_last4)
@@ -337,7 +347,7 @@
 
             {{-- Recent Payments --}}
             <section id="section-payments" data-section="section-payments">
-                <x-ui.card title="Installments" icon="heroicon-o-arrows-right-left">
+                <x-ui.card title="Installments" icon="heroicon-o-calendar-days">
                     @if ($this->recentPayments->isNotEmpty())
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-left text-sm">
@@ -373,7 +383,7 @@
                         </div>
                     @else
                         <x-ui.empty-state
-                            icon="heroicon-o-arrows-right-left"
+                            icon="heroicon-o-calendar-days"
                             title="No payments yet"
                             description="Payments for this subscription will appear here."
                         />
@@ -512,7 +522,7 @@
                         wire:click="openSkipModal"
                         class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                     >
-                        <x-heroicon-o-calendar-days class="size-5 text-slate-400" />
+                        <x-heroicon-o-arrow-right-circle class="size-5 text-slate-400" />
                         Skip installments
                     </button>
                     <button
@@ -567,7 +577,7 @@
                             :class="activeSection === 'section-payments' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'"
                             class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold transition"
                         >
-                            <x-heroicon-o-arrows-right-left class="size-5" />
+                            <x-heroicon-o-calendar-days class="size-5" />
                             Installments
                         </button>
                         <button
