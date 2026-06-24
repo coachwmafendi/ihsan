@@ -68,6 +68,7 @@ Route::livewire('/donate/campaign/{campaign:form_parameter}', DonationForm::clas
 Route::livewire('/campaigns/{campaign:public_id}', CampaignPublicPage::class)->name('campaigns.public');
 Route::get('/e/widget.js', [EmbedCheckoutController::class, 'widget'])->name('widget.script');
 Route::get('/e/loader.js', [EmbedCheckoutController::class, 'loader'])->name('loader.script');
+Route::get('/e/button/{token}', [EmbedCheckoutController::class, 'button'])->name('embed.button');
 Route::get('/embed.js', [EmbedCheckoutController::class, 'script'])->name('embed.script');
 Route::get('/checkout/{form}', [EmbedCheckoutController::class, 'checkout'])->name('checkout.form');
 

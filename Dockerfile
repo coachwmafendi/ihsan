@@ -3,7 +3,7 @@
 # --------------------------------------------------
 # Stage 1: Install PHP dependencies with Composer
 # --------------------------------------------------
-FROM php:8.3-cli AS vendor
+FROM php:8.5-cli AS vendor
 
 WORKDIR /app
 
@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     libzip-dev \
     unzip \
+    pkg-config \
     && docker-php-ext-install intl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -32,7 +33,7 @@ RUN composer dump-autoload --optimize
 # --------------------------------------------------
 # Stage 2: Final Apache + PHP runtime image
 # --------------------------------------------------
-FROM php:8.3-apache
+FROM php:8.5-apache
 
 # Install required system and PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -44,6 +45,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
     libcurl4-openssl-dev \
+    pkg-config \
     zip \
     unzip \
     git \
