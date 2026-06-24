@@ -72,8 +72,7 @@
                     </div>
                     <iframe :src="donationModalOpen ? donationModalUrl() : 'about:blank'"
                             title="Donation form"
-                            class="h-full w-full flex-1 border-0 min-h-[70vh]"
-                            allow="payment *"></iframe>
+                            class="h-full w-full flex-1 border-0 min-h-[70vh]"></iframe>
                 </div>
             </div>
         </div>

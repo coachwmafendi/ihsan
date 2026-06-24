@@ -67,7 +67,6 @@
 
     var iframe = d.createElement("iframe");
     iframe.src = url;
-    iframe.setAttribute("allow", "payment *");
     iframe.style.cssText = [
       "width:100%",
       "height:100%",

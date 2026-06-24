@@ -148,7 +148,6 @@
     var checkUrl = overrideUrl || checkoutUrl(el, true);
     var iframe = document.createElement("iframe");
     iframe.src = checkUrl;
-    iframe.setAttribute("allow", "payment *");
     iframe.style.cssText = [
       "width:100%",
       "height:100%",
@@ -845,9 +844,8 @@
     iframe.setAttribute("width", "100%");
     iframe.setAttribute("height", script.getAttribute("data-height") || "540");
     iframe.setAttribute("frameborder", "0");
-    iframe.setAttribute("allow", "payment *");
     iframe.setAttribute("scrolling", "no");
-    iframe.style.cssText = "border:0;border-radius:16px;display:block;overflow:hidden;width:100%;";
+    iframe.style.cssText = "border:0;border-radius:16px;display:block;overflow:hidden;width:100%";
 
     wrapper.appendChild(iframe);
 
