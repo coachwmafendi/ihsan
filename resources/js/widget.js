@@ -7,6 +7,7 @@
   var token = script.getAttribute("data-token") || "";
   if (!token) return;
 
+  var enhance = script.getAttribute("data-enhance") === "true";
   var apiBase = script.getAttribute("data-api-base") || "";
   var baseUrl = apiBase || (function () {
     var src = script.src || "";
@@ -1031,6 +1032,40 @@
     link: renderLink,
   };
 
+  function findStaticButton(token) {
+    var anchors = document.getElementsByTagName("a");
+    for (var i = 0; i < anchors.length; i++) {
+      var a = anchors[i];
+      if (
+        a.classList &&
+        a.classList.contains("ihsan-button") &&
+        a.getAttribute("data-ihsan-token") === token
+      ) {
+        return a;
+      }
+    }
+    return null;
+  }
+
+  function enhanceExistingButton(el) {
+    var anchor = findStaticButton(el.token);
+    if (!anchor) {
+      anchor = script.previousElementSibling;
+      if (
+        !anchor ||
+        anchor.tagName.toLowerCase() !== "a" ||
+        !anchor.classList.contains("ihsan-button")
+      ) {
+        renderFromData(el);
+        return;
+      }
+    }
+    anchor.addEventListener("click", function (e) {
+      e.preventDefault();
+      handleClick(el);
+    });
+  }
+
   function renderFromData(el) {
     preloadCheckoutImage(el);
 
@@ -1057,9 +1092,18 @@
     })
     .then(function (data) {
       if (!data) return;
-      ready(function () { renderFromData(data); });
+      ready(function () {
+        if (enhance) {
+          enhanceExistingButton(data);
+        } else {
+          renderFromData(data);
+        }
+      });
     })
     .catch(function () {
+      if (enhance) {
+        return;
+      }
       // Fallback: render from data-attributes (backward compat)
       var el = {
         type: script.getAttribute("data-type") || "",

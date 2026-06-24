@@ -73,3 +73,12 @@ it('falls back to campaign donation url when checkout modal is disabled', functi
         ->assertSee(config('app.url').'/donate/btn456', false)
         ->assertDontSee('/checkout/', false);
 });
+
+it('serves the parent modal handler script', function () {
+    $this->get('/e/parent.js')
+        ->assertOk()
+        ->assertHeader('content-type', 'application/javascript; charset=UTF-8')
+        ->assertSee('ihsan:open-checkout', false)
+        ->assertSee('donation-popup-close', false)
+        ->assertSee('ihsan:checkout-ack', false);
+});
