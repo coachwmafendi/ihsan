@@ -33,7 +33,6 @@
 # Build artifacts
 /public/hot
 /public/storage
-/public/build
 
 # Testing
 .phpunit.result.cache

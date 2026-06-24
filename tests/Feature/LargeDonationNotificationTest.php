@@ -1,10 +1,14 @@
 <?php
 
+use App\Enums\UserRole;
+use App\Jobs\SendLargeDonationNotification;
 use App\Mail\LargeDonationNotification;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
+use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 test('large donation notification subject includes amount donor and campaign', function () {
     $organization = Organization::factory()->create(['name' => 'Masjid Al-Munawwarah']);
@@ -42,4 +46,35 @@ test('large donation notification subject falls back when relationships are miss
 
     expect($mailable->envelope()->subject)
         ->toBe('🚨 Large Donation Received — RM 1,500.00 by a donor on a campaign — Ihsan');
+});
+
+test('large donation notification is only sent once even when the job runs twice', function () {
+    Mail::fake();
+
+    $organization = Organization::factory()->create([
+        'settings' => [
+            'notify_large_donation' => true,
+            'large_donation_threshold' => 1000,
+        ],
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    User::factory()->create([
+        'organization_id' => $organization->getKey(),
+        'role' => UserRole::NgoAdmin,
+    ]);
+
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'currency' => 'myr',
+        'gross_amount' => 1500.00,
+        'base_amount' => 1500.00,
+        'donor_fee_covered' => 0,
+    ]);
+
+    $job = new SendLargeDonationNotification($donation);
+    $job->handle();
+    $job->handle();
+
+    Mail::assertQueued(LargeDonationNotification::class, 1);
+    expect($donation->fresh()->large_donation_notification_sent_at)->not->toBeNull();
 });

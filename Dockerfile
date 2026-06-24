@@ -1,20 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # --------------------------------------------------
-# Stage 1: Build frontend assets with Node
-# --------------------------------------------------
-FROM node:22 AS assets
-
-WORKDIR /app
-
-COPY package.json package-lock.json* ./
-RUN npm ci
-
-COPY . .
-RUN npm run build
-
-# --------------------------------------------------
-# Stage 2: Install PHP dependencies with Composer
+# Stage 1: Install PHP dependencies with Composer
 # --------------------------------------------------
 FROM php:8.3-cli AS vendor
 
@@ -43,7 +30,7 @@ COPY . .
 RUN composer dump-autoload --optimize
 
 # --------------------------------------------------
-# Stage 3: Final Apache + PHP runtime image
+# Stage 2: Final Apache + PHP runtime image
 # --------------------------------------------------
 FROM php:8.3-apache
 
@@ -85,10 +72,9 @@ RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-av
 
 WORKDIR /var/www/html
 
-# Copy application code and built artifacts
+# Copy application code and pre-built assets, then vendor dependencies
 COPY . .
 COPY --from=vendor /app/vendor ./vendor
-COPY --from=assets /app/public/build ./public/build
 
 # Ensure Laravel can write to required directories
 RUN chown -R www-data:www-data storage bootstrap/cache \
