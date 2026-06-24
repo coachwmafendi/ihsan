@@ -91,4 +91,6 @@ RUN APP_KEY=$(php -r "echo 'base64:'.base64_encode(random_bytes(32));" | tr -d '
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+# Free-tier Render web services do not support pre-deploy commands, so we
+# run migrations as part of the container startup instead.
+CMD ["sh", "-c", "php artisan migrate --force && exec apache2-foreground"]

@@ -7,7 +7,6 @@ services:
     branch: main
     healthCheckPath: /up
     autoDeployTrigger: commit
-    preDeployCommand: php artisan migrate --force
     envVars:
       - key: APP_NAME
         value: IhsanStaging
