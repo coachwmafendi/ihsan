@@ -43,7 +43,6 @@ class EmbedWidget
             'button_size' => 'text-base px-6 py-3',
             'corner_radius' => 8,
             'button_icon' => 'heart',
-            'button_effect' => 'none',
             'alignment' => 'center',
             'action' => 'checkout_modal',
         ], $element->config ?? []);
@@ -154,6 +153,10 @@ class EmbedWidget
 
     private static function iconSvg(string $icon, int $size): string
     {
+        if ($icon === 'none') {
+            return '';
+        }
+
         $icons = [
             'heart' => '<svg viewBox="0 0 24 24" fill="currentColor" width="SIZE" height="SIZE"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
             'hand' => '<svg viewBox="0 0 24 24" fill="currentColor" width="SIZE" height="SIZE"><path d="M23 12.22V15c0 4.97-4.03 9-9 9H9.17c-1.59 0-3.11-.63-4.24-1.76L0 17.5l1.5-1.5c.47-.47 1.08-.73 1.77-.73.46 0 .9.12 1.28.35L7 17.34V4.5C7 3.67 7.67 3 8.5 3S10 3.67 10 4.5v4h1V3.5C11 2.67 11.67 2 12.5 2S14 2.67 14 3.5V8.5h1V4c0-.83.67-1.5 1.5-1.5S18 3.17 18 4v5.5h1V6c0-.83.67-1.5 1.5-1.5S22 5.17 22 6v6.22z"/></svg>',
