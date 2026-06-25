@@ -121,3 +121,48 @@ it('exits impersonation and returns to the configured return url', function () {
     expect(session()->has('donor_id'))->toBeFalse();
     expect(session()->has('organization_id'))->toBeFalse();
 });
+
+it('disables donor-only actions and shows tooltip when an admin is impersonating', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $donor = Donor::factory()->create();
+
+    $response = $this->actingAs($user)
+        ->withSession([
+            'donor_id' => $donor->getKey(),
+            'organization_id' => $organization->getKey(),
+            'admin_impersonating_donor_id' => $donor->getKey(),
+            'admin_impersonating_donor_public_id' => $donor->public_id,
+            'admin_impersonating_donor_name' => $donor->name,
+        ])
+        ->get(route('donorportal.dashboard', $organization))
+        ->assertOk();
+
+    $tooltip = 'This feature is available to supporters only.';
+
+    $response->assertSee($tooltip, false);
+    $response->assertSee('Make a new donation', false);
+    $response->assertSee('Report a problem', false);
+    expect($response->getContent())->toMatch('/<button[^>]*disabled[^>]*>.*?Make a new donation/s');
+    expect($response->getContent())->toMatch('/<button[^>]*disabled[^>]*>.*?Report a problem/s');
+});
+
+it('keeps donor-only actions enabled for a regular donor session', function () {
+    $organization = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    $response = $this->withSession([
+        'donor_id' => $donor->getKey(),
+        'organization_id' => $organization->getKey(),
+    ])
+        ->get(route('donorportal.dashboard', $organization))
+        ->assertOk();
+
+    $tooltip = 'This feature is available to supporters only.';
+
+    $response->assertDontSee($tooltip, false);
+    expect($response->getContent())->not->toMatch('/<button[^>]*disabled[^>]*>.*?Make a new donation/s');
+    expect($response->getContent())->not->toMatch('/<button[^>]*disabled[^>]*>.*?Report a problem/s');
+});

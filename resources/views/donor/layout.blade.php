@@ -153,11 +153,27 @@
                     &copy; 2026 {{ $organization->name }}.
                 @endif
             </p>
+
+            @php
+                $isAdminImpersonatingDonorPortal = auth()->user()?->role === App\Enums\UserRole::NgoAdmin
+                    && session()->has('admin_impersonating_donor_id');
+            @endphp
+
+            @if ($isAdminImpersonatingDonorPortal)
+                <x-ui.tooltip text="This feature is available to supporters only." position="top">
+                    <button type="button" disabled
+                            class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 opacity-60 cursor-not-allowed">
+                        <x-heroicon name="question-mark-circle" class="h-3.5 w-3.5" />
+                        Report a problem
+                    </button>
+                </x-ui.tooltip>
+            @else
                 <button type="button" @click="reportOpen = true"
                         class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400 transition hover:text-slate-700">
-                <x-heroicon name="question-mark-circle" class="h-3.5 w-3.5" />
-                Report a problem
-            </button>
+                    <x-heroicon name="question-mark-circle" class="h-3.5 w-3.5" />
+                    Report a problem
+                </button>
+            @endif
         </div>
     </footer>
 

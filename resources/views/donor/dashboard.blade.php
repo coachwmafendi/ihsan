@@ -41,12 +41,27 @@
                 <p class="mt-1 text-sm text-slate-500">{{ $organization->settings['portal_tagline'] }}</p>
             @endif
 
-            <a href="{{ $donationModalUrl }}"
-               @click.prevent="donationModalOpen = true"
-               class="mt-6 inline-flex items-center gap-2.5 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900">
-                <x-heroicon name="heart" class="h-5 w-5 text-rose-500" />
-                Make a new donation
-            </a>
+            @php
+                $isAdminImpersonating = auth()->user()?->role === App\Enums\UserRole::NgoAdmin
+                    && session()->has('admin_impersonating_donor_id');
+            @endphp
+
+            @if ($isAdminImpersonating)
+                <x-ui.tooltip text="This feature is available to supporters only." position="top">
+                    <button type="button" disabled
+                            class="mt-6 inline-flex items-center gap-2.5 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm opacity-60 cursor-not-allowed">
+                        <x-heroicon name="heart" class="h-5 w-5 text-rose-500" />
+                        Make a new donation
+                    </button>
+                </x-ui.tooltip>
+            @else
+                <a href="{{ $donationModalUrl }}"
+                   @click.prevent="donationModalOpen = true"
+                   class="mt-6 inline-flex items-center gap-2.5 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900">
+                    <x-heroicon name="heart" class="h-5 w-5 text-rose-500" />
+                    Make a new donation
+                </a>
+            @endif
 
             <div x-show="donationModalOpen"
                  x-transition:enter="transition ease-out duration-300"
