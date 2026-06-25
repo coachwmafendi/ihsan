@@ -2,6 +2,7 @@
 
 use App\Actions\Stripe\ManageStripeSubscription;
 use App\Enums\DonationStatus;
+use App\Enums\DonationType;
 use App\Enums\ElementType;
 use App\Enums\SubscriptionStatus;
 use App\Enums\UserRole;
@@ -357,6 +358,132 @@ it('hides receipt download button for pending donations in donor portal', functi
         ->get(route('donorportal.donations', $org))
         ->assertOk()
         ->assertDontSee('Receipt');
+});
+
+it('renders redesigned donations table with amount, date, payment method and action columns', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $donation = Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => DonationStatus::Succeeded,
+        'payment_method_brand' => 'visa',
+        'payment_method_last4' => '4242',
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.donations', $org))
+        ->assertOk()
+        ->assertSee('Amount')
+        ->assertSee('Date')
+        ->assertSee('Payment method')
+        ->assertSee('Action')
+        ->assertSee($donation->formatted_amount)
+        ->assertSee('Visa **** 4242')
+        ->assertSee(route('donorportal.donations.receipt.download', ['organization' => $org, 'donation' => $donation]), false);
+});
+
+it('shows donation detail slide-over content', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $donation = Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 150.00,
+        'donor_fee_covered' => 5.00,
+        'processing_fee' => 4.50,
+        'net_amount' => 150.50,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.donations.detail', ['organization' => $org, 'donation' => $donation]))
+        ->assertOk()
+        ->assertSee($donation->formatted_amount)
+        ->assertSee($campaign->title)
+        ->assertSee('Donation amount')
+        ->assertSee('Payment breakdown')
+        ->assertSee('Net received');
+});
+
+it('denies donation detail for another donors donation', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $otherDonor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+    $donation = Donation::factory()->create([
+        'donor_id' => $otherDonor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.donations.detail', ['organization' => $org, 'donation' => $donation]))
+        ->assertNotFound();
+});
+
+it('filters donations by status and amount range', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+
+    Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 50.00,
+    ]);
+    Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => DonationStatus::Failed,
+        'gross_amount' => 500.00,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.donations', [
+            'organization' => $org,
+            'status' => DonationStatus::Succeeded->value,
+            'amount_min' => 10,
+            'amount_max' => 100,
+        ]))
+        ->assertOk()
+        ->assertSee('RM 50.00')
+        ->assertDontSee('RM 500.00');
+});
+
+it('filters donations by type and date range', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $org->getKey()]);
+
+    Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'type' => DonationType::Recurring,
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now()->subDays(2),
+    ]);
+    Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'type' => DonationType::OneTime,
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now()->subDays(10),
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.donations', [
+            'organization' => $org,
+            'type' => DonationType::Recurring->value,
+            'date_from' => now()->subDays(5)->format('Y-m-d'),
+            'date_to' => now()->format('Y-m-d'),
+        ]))
+        ->assertOk()
+        ->assertSee('Recurring')
+        ->assertDontSee('One-time');
 });
 
 it('filters donations page by subscription id', function () {
