@@ -153,7 +153,7 @@ class CampaignEdit extends Component
         $this->redirect_url = $campaign->redirect_url;
         $this->postDonationMode = $campaign->config['post_donation_mode'] ?? 'default';
         $this->shareChannels = $campaign->config['share_channels'] ?? ['facebook', 'x', 'linkedin', 'email'];
-        $this->shareMessage = $campaign->config['share_message'] ?? null;
+        $this->shareMessage = $campaign->config['share_message'] ?? 'Join me in supporting this meaningful cause. Every contribution, big or small, can make a real difference. Your kindness matters.';
 
         $this->show_total_raised = $campaign->config['show_total_raised'] ?? true;
         $this->campaign_page_enabled = $campaign->campaign_page_enabled ?? true;
@@ -511,6 +511,12 @@ class CampaignEdit extends Component
 
     public function save(): void
     {
+        if ($this->postDonationMode === 'redirect' && blank($this->redirect_url)) {
+            $this->addError('redirect_url', 'Redirect URL is required when redirect mode is selected.');
+
+            return;
+        }
+
         $validated = $this->validate();
 
         if (str_word_count($this->contentMessage ?? '') > 200) {

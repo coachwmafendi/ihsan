@@ -379,7 +379,7 @@
                 </x-ui.card>
 
                 <x-ui.card title="Linked Elements" description="Embed elements using this campaign">
-                    @php $elements = $campaign->elements()->select(['id','public_id','token','name','type','created_at'])->get(); @endphp
+                    @php $elements = $campaign->elements()->where('is_active', true)->select(['id','public_id','token','name','type','created_at'])->get(); @endphp
                     @if ($elements->isNotEmpty())
                         <div class="divide-y divide-slate-100">
                             @foreach ($elements as $element)
@@ -428,8 +428,8 @@
                     @else
                         <x-ui.empty-state
                             icon="heroicon-o-code-bracket"
-                            title="No elements"
-                            description="Create an embed element linked to this campaign."
+                            title="No active elements"
+                            description="Only active embed elements are shown here."
                         />
                     @endif
                 </x-ui.card>
@@ -1026,7 +1026,7 @@
                                             wire:model="thank_you_message"
                                             rows="3"
                                             class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                            placeholder="Thank you for your generous donation!"
+                                            placeholder="With the contributions we have received, we are closer to our goal. Thank you for making a difference through your generosity."
                                         ></textarea>
                                         @error('thank_you_message') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                     </div>
@@ -1047,82 +1047,84 @@
                                 @endif
                             </div>
 
-                            <div class="border-t border-slate-100"></div>
+                            @if ($postDonationMode === 'default')
+                                <div class="border-t border-slate-100"></div>
 
-                            {{-- Sharing --}}
-                            <div class="space-y-4">
-                                <div>
-                                    <span class="block text-sm font-medium text-slate-900">Sharing channels</span>
-                                    <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                                        <label class="flex cursor-pointer items-center gap-2">
+                                {{-- Sharing --}}
+                                <div class="space-y-4">
+                                    <div>
+                                        <span class="block text-sm font-medium text-slate-900">Sharing channels</span>
+                                        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                            <label class="flex cursor-pointer items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    wire:model="shareChannels"
+                                                    value="facebook"
+                                                    class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                                />
+                                                <span class="text-sm text-slate-700">Facebook</span>
+                                            </label>
+                                            <label class="flex cursor-pointer items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    wire:model="shareChannels"
+                                                    value="x"
+                                                    class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                                />
+                                                <span class="text-sm text-slate-700">X</span>
+                                            </label>
+                                            <label class="flex cursor-pointer items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    wire:model="shareChannels"
+                                                    value="linkedin"
+                                                    class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                                />
+                                                <span class="text-sm text-slate-700">LinkedIn</span>
+                                            </label>
+                                            <label class="flex cursor-pointer items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    wire:model="shareChannels"
+                                                    value="email"
+                                                    class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                                />
+                                                <span class="text-sm text-slate-700">Email</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    @php $campaignPageUrl = route('campaigns.public', $campaign->public_id); @endphp
+                                    <div>
+                                        <label for="campaign_page_url" class="block text-sm font-medium text-slate-700">Sharing URL</label>
+                                        <div class="mt-1.5 flex items-center gap-2">
                                             <input
-                                                type="checkbox"
-                                                wire:model="shareChannels"
-                                                value="facebook"
-                                                class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                                                id="campaign_page_url"
+                                                type="text"
+                                                readonly
+                                                value="{{ $campaignPageUrl }}"
+                                                class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600"
                                             />
-                                            <span class="text-sm text-slate-700">Facebook</span>
-                                        </label>
-                                        <label class="flex cursor-pointer items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                wire:model="shareChannels"
-                                                value="x"
-                                                class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
-                                            />
-                                            <span class="text-sm text-slate-700">X</span>
-                                        </label>
-                                        <label class="flex cursor-pointer items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                wire:model="shareChannels"
-                                                value="linkedin"
-                                                class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
-                                            />
-                                            <span class="text-sm text-slate-700">LinkedIn</span>
-                                        </label>
-                                        <label class="flex cursor-pointer items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                wire:model="shareChannels"
-                                                value="email"
-                                                class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
-                                            />
-                                            <span class="text-sm text-slate-700">Email</span>
-                                        </label>
+                                            <x-ui.copy-button value="{{ $campaignPageUrl }}" title="Copy URL" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label for="share_message" class="block text-sm font-medium text-slate-700">Default sharing message</label>
+                                        <textarea
+                                            id="share_message"
+                                            wire:model="shareMessage"
+                                            rows="3"
+                                            maxlength="280"
+                                            class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                        ></textarea>
+                                        <div class="mt-1 flex items-center justify-between">
+                                            @error('shareMessage') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                                            <p class="ml-auto text-xs text-slate-500">{{ strlen($shareMessage ?? '') }}/280</p>
+                                        </div>
                                     </div>
                                 </div>
-
-                                @php $campaignPageUrl = route('campaigns.public', $campaign->public_id); @endphp
-                                <div>
-                                    <label for="campaign_page_url" class="block text-sm font-medium text-slate-700">Sharing URL</label>
-                                    <div class="mt-1.5 flex items-center gap-2">
-                                        <input
-                                            id="campaign_page_url"
-                                            type="text"
-                                            readonly
-                                            value="{{ $campaignPageUrl }}"
-                                            class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600"
-                                        />
-                                        <x-ui.copy-button value="{{ $campaignPageUrl }}" title="Copy URL" />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label for="share_message" class="block text-sm font-medium text-slate-700">Default sharing message</label>
-                                    <textarea
-                                        id="share_message"
-                                        wire:model="shareMessage"
-                                        rows="3"
-                                        maxlength="280"
-                                        class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                    ></textarea>
-                                    <div class="mt-1 flex items-center justify-between">
-                                        @error('shareMessage') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
-                                        <p class="ml-auto text-xs text-slate-500">{{ strlen($shareMessage ?? '') }}/280</p>
-                                    </div>
-                                </div>
-                            </div>
+                            @endif
 
                             <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
                                 <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
