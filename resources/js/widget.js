@@ -15,6 +15,21 @@
     return m ? m[1] : window.location.origin;
   })();
 
+  function addHint(rel, href, crossOrigin) {
+    var selector = 'link[rel="' + rel + '"][href="' + href + '"]';
+    if (document.querySelector(selector)) return;
+    var link = document.createElement('link');
+    link.rel = rel;
+    link.href = href;
+    if (crossOrigin) link.crossOrigin = 'anonymous';
+    document.head.appendChild(link);
+  }
+
+  addHint('preconnect', baseUrl, true);
+  addHint('dns-prefetch', baseUrl);
+  addHint('preconnect', 'https://js.stripe.com', true);
+  addHint('dns-prefetch', 'https://js.stripe.com');
+
   var colors = {
     campaign: "#16a34a",
     campaign_color: "#16a34a",
@@ -238,7 +253,7 @@
     }
 
     iframe.addEventListener("load", function () {
-      setTimeout(hideSkeleton, 5000);
+      setTimeout(hideSkeleton, 3000);
     });
 
     function modalMessageHandler(e) {
