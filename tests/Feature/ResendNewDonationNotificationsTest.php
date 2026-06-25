@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\DonationStatus;
 use App\Jobs\SendNewDonationNotification;
 use App\Models\Donation;
 use Illuminate\Support\Facades\Queue;
@@ -47,13 +48,13 @@ test('it queues notifications for the latest N succeeded donations', function ()
     Queue::fake();
 
     $older = Donation::factory()->count(5)->create([
-        'status' => \App\Enums\DonationStatus::Succeeded,
+        'status' => DonationStatus::Succeeded,
         'gross_amount' => 10.00,
         'created_at' => now()->subDays(7),
     ]);
 
     $newer = Donation::factory()->count(5)->create([
-        'status' => \App\Enums\DonationStatus::Succeeded,
+        'status' => DonationStatus::Succeeded,
         'gross_amount' => 20.00,
         'created_at' => now(),
     ]);
@@ -78,7 +79,7 @@ test('latest option supports dry run', function () {
     Queue::fake();
 
     Donation::factory()->count(5)->create([
-        'status' => \App\Enums\DonationStatus::Succeeded,
+        'status' => DonationStatus::Succeeded,
         'gross_amount' => 10.00,
     ]);
 
