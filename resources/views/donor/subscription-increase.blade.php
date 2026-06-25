@@ -176,18 +176,12 @@
             </p>
         </div>
 
-        @if ($subscription->cover_fee)
-            <p class="mb-8 text-sm text-slate-700">
-                Thank you for continuing to cover transaction costs for your donations <span class="text-red-500">❤️</span>
-            </p>
-        @endif
-
         <div class="flex flex-col sm:flex-row gap-3 max-w-lg">
             <button
                 type="button"
                 @click="submitIncrease()"
                 :disabled="processing || (selected === 'custom' && (!customAmount || parseFloat(customAmount) <= 0 || newTotal > 99999.99))"
-                class="flex-1 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="flex-1 rounded-lg bg-[#228B22] px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a6b1a] disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 Confirm
             </button>
