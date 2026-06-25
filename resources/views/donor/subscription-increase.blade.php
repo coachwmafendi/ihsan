@@ -178,7 +178,7 @@
 
         @if ($subscription->cover_fee && isset($changeAmountUrl))
             <p class="mb-8 text-sm text-slate-700">
-                Thank you for continuing to cover transaction costs for your donations <span class="text-red-500">❤️</span>
+                Thank you for continuing to cover processing fees for your donations <span class="text-red-500">❤️</span>
             </p>
         @endif
 
