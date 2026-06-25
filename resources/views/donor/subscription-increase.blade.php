@@ -176,6 +176,12 @@
             </p>
         </div>
 
+        @if ($subscription->cover_fee && isset($changeAmountUrl))
+            <p class="mb-8 text-sm text-slate-700">
+                Thank you for continuing to cover transaction costs for your donations <span class="text-red-500">❤️</span>
+            </p>
+        @endif
+
         <div class="flex flex-col sm:flex-row gap-3 max-w-lg">
             <button
                 type="button"
