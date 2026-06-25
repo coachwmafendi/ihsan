@@ -253,7 +253,7 @@
     }
 
     iframe.addEventListener("load", function () {
-      setTimeout(hideSkeleton, 3000);
+      setTimeout(hideSkeleton, 2000);
     });
 
     function modalMessageHandler(e) {
