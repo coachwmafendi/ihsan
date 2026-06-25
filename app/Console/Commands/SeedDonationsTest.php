@@ -44,7 +44,7 @@ class SeedDonationsTest extends Command
 
         $donor = Donor::firstOrCreate(
             ['email' => $email],
-            ['name' => 'Fatimah Zahra', 'phone' => '+60123456789']
+            ['first_name' => 'Fatimah', 'last_name' => 'Zahra', 'phone' => '+60123456789']
         );
         $this->info("Donor: {$donor->name} <{$donor->email}> (ID: {$donor->id})");
 

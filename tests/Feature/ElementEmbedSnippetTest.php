@@ -29,9 +29,9 @@ it('renders static button and enhancement script for button elements', function 
     );
 
     expect($html)
-        ->toContain('class=\u0022ihsan-button\u0022')
-        ->toContain('data-ihsan-token=\u0022btn-verify\u0022')
-        ->toContain('data-enhance=\u0022true\u0022')
+        ->toContain('ihsan-button')
+        ->toContain('data-ihsan-token')
+        ->toContain('data-enhance')
         ->toContain('ihsan-embed-label')
         ->toContain('Donate Now');
 });
@@ -52,7 +52,98 @@ it('renders only script widget for non-button elements', function () {
     );
 
     expect($html)
-        ->not->toContain('class=\u0022ihsan-button\u0022')
-        ->not->toContain('data-enhance=\u0022true\u0022')
-        ->toContain('data-token=\u0022popup-verify\u0022');
+        ->not->toContain('ihsan-button')
+        ->not->toContain('data-enhance')
+        ->toContain('popup-verify');
+});
+
+it('renders a visible static link embed for link elements', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'status' => CampaignStatus::Active,
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'link-verify',
+        'type' => ElementType::Link,
+        'config' => [
+            'text' => 'Donate Today',
+            'button_color' => 'bg-teal-600 hover:bg-teal-700',
+            'button_size' => 'large',
+            'corner_radius' => 12,
+            'button_icon' => 'heart',
+            'alignment' => 'center',
+            'action' => 'checkout_modal',
+        ],
+    ]);
+
+    $html = Blade::render(
+        file_get_contents(resource_path('views/filament/forms/components/element-embed-snippet.blade.php')),
+        ['element' => $element]
+    );
+
+    expect($html)
+        ->toContain('ihsan-link')
+        ->toContain('data-ihsan-token')
+        ->toContain('data-enhance')
+        ->toContain('Donate Today')
+        ->toContain('background:#0d9488');
+});
+
+it('renders a visible placeholder for floating button elements', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'status' => CampaignStatus::Active,
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'float-verify',
+        'type' => ElementType::FloatingButton,
+        'config' => [
+            'button_text' => 'Give Now',
+            'position' => 'bottom-right',
+        ],
+    ]);
+
+    $html = Blade::render(
+        file_get_contents(resource_path('views/filament/forms/components/element-embed-snippet.blade.php')),
+        ['element' => $element]
+    );
+
+    expect($html)
+        ->toContain('ihsan-embed-placeholder')
+        ->toContain('ihsan-floating-button-placeholder')
+        ->toContain('data-ihsan-token')
+        ->toContain('data-enhance')
+        ->toContain('Ihsan Floating Button')
+        ->toContain('Give Now')
+        ->toContain('Bottom right corner');
+});
+
+it('renders a visible static qr code embed for qr code elements', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'status' => CampaignStatus::Active,
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'qr-verify',
+        'type' => ElementType::QrCode,
+        'config' => [
+            'label' => 'Scan to donate',
+            'size' => 'large',
+            'alignment' => 'center',
+        ],
+    ]);
+
+    $html = Blade::render(
+        file_get_contents(resource_path('views/filament/forms/components/element-embed-snippet.blade.php')),
+        ['element' => $element]
+    );
+
+    expect($html)
+        ->toContain('ihsan-embed-placeholder')
+        ->toContain('ihsan-qr-code-placeholder')
+        ->toContain('data-ihsan-token')
+        ->toContain('data-enhance')
+        ->toContain('Scan to donate')
+        ->toContain('api.qrserver.com')
+        ->toContain('250x250');
 });

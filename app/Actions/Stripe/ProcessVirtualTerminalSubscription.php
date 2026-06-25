@@ -49,7 +49,8 @@ class ProcessVirtualTerminalSubscription
         try {
             if (! $donor->stripe_customer_id) {
                 $customerParams = [
-                    'name' => $donor->name,
+                    'first_name' => $donor->first_name,
+                    'last_name' => $donor->last_name,
                     'email' => $donor->email,
                     'metadata' => StripeMetadata::forDonorCustomer(
                         donor: $donor,
@@ -213,8 +214,6 @@ class ProcessVirtualTerminalSubscription
         string $email,
         Organization $organization,
     ): Donor {
-        $fullName = trim("{$firstName} {$lastName}");
-
         $donor = Donor::query()
             ->where('email', $email)
             ->whereHas('donations.campaign', fn ($q) => $q->where('organization_id', $organization->getKey()))
@@ -225,7 +224,8 @@ class ProcessVirtualTerminalSubscription
         }
 
         return Donor::create([
-            'name' => $fullName,
+            'first_name' => $firstName,
+            'last_name' => $lastName,
             'email' => $email,
         ]);
     }

@@ -6,6 +6,7 @@ use App\Services\PublicIdGenerator;
 use Carbon\CarbonImmutable;
 use Database\Factories\DonorFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +19,8 @@ use Spatie\Activitylog\Support\LogOptions;
 /**
  * @property int $id
  * @property string $name
+ * @property string|null $first_name
+ * @property string|null $last_name
  * @property string $email
  * @property string|null $phone
  * @property string|null $stripe_customer_id
@@ -66,6 +69,8 @@ use Spatie\Activitylog\Support\LogOptions;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Donor whereMagicTokenExpiresAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Donor whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Donor whereOccupation($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donor whereFirstName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Donor whereLastName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Donor wherePhone($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Donor wherePhotoPath($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Donor wherePublicId($value)
@@ -75,7 +80,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['public_id', 'name', 'email', 'phone', 'title', 'occupation', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'email_opt_out_at', 'email_bounced_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale', 'photo_path'])]
+#[Fillable(['public_id', 'name', 'first_name', 'last_name', 'email', 'phone', 'title', 'occupation', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'email_opt_out_at', 'email_bounced_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale', 'photo_path'])]
 class Donor extends Model
 {
     /** @use HasFactory<DonorFactory> */
@@ -84,7 +89,7 @@ class Donor extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'email', 'phone', 'title', 'occupation', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country'])
+            ->logOnly(['name', 'first_name', 'last_name', 'email', 'phone', 'title', 'occupation', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges()
             ->useLogName('donor');
@@ -97,6 +102,34 @@ class Donor extends Model
                 $donor->public_id = PublicIdGenerator::generate(static::class);
             }
         });
+
+        static::saving(function (Donor $donor) {
+            $firstName = $donor->first_name;
+            $lastName = $donor->last_name;
+
+            if (filled($firstName) || filled($lastName)) {
+                $donor->name = trim("{$firstName} {$lastName}");
+            }
+        });
+    }
+
+    /**
+     * Compute the full name from first/last name fields when available.
+     */
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            get: function (mixed $value): string {
+                $firstName = $this->attributes['first_name'] ?? null;
+                $lastName = $this->attributes['last_name'] ?? null;
+
+                if (filled($firstName) || filled($lastName)) {
+                    return trim("{$firstName} {$lastName}");
+                }
+
+                return $value ?? '';
+            }
+        );
     }
 
     public function getRouteKeyName(): string

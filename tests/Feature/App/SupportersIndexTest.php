@@ -59,6 +59,38 @@ it('sorts supporters by first and last donation dates', function () {
         ->assertSet('sortField', 'donations_max_created_at');
 });
 
+it('sorts by last donation datetime', function () {
+    $donorA = Donor::factory()->create();
+    $donorB = Donor::factory()->create();
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $donorA->id,
+        'gross_amount' => 10.00,
+        'created_at' => now()->subDay()->setTime(23, 59),
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $donorB->id,
+        'gross_amount' => 10.00,
+        'created_at' => now()->subDay()->setTime(1, 0),
+    ]);
+
+    $component = Livewire::actingAs($this->user)->test(SupporterIndex::class);
+    $names = $component->instance()->donors->pluck('name')->toArray();
+
+    expect($names)->toContain($donorA->name, $donorB->name, $this->donor->name)
+        ->and(array_search($donorA->name, $names))->toBeLessThan(array_search($donorB->name, $names));
+});
+
+it('defaults to sorting by last donation date', function () {
+    $component = Livewire::actingAs($this->user)->test(SupporterIndex::class);
+
+    expect($component->instance()->sortField)->toBe('donations_max_created_at')
+        ->and($component->instance()->sortDirection)->toBe('desc');
+});
+
 it('shows approximate MYR lifetime amount for foreign currency donations', function () {
     Donation::factory()->create([
         'campaign_id' => $this->campaign->id,
@@ -89,6 +121,35 @@ it('renders the name column without wrapping', function () {
     $response->assertOk()
         ->assertSeeHtml('class="whitespace-nowrap min-w-[200px] px-5 py-4"')
         ->assertSee($this->donor->name);
+});
+
+it('only shows the exact amount tooltip for non-MYR donations', function () {
+    $myrDonor = Donor::factory()->create(['name' => 'MYR Only Donor']);
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $myrDonor->id,
+        'gross_amount' => 100.00,
+        'currency' => 'myr',
+        'base_amount' => null,
+    ]);
+
+    $usdDonor = Donor::factory()->create(['name' => 'USD Donor']);
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $usdDonor->id,
+        'gross_amount' => 25.00,
+        'currency' => 'usd',
+        'base_amount' => 110.00,
+    ]);
+
+    $response = $this->actingAs($this->user)->get(route('app.supporters.index'));
+
+    $response->assertOk()
+        ->assertSee('USD 25.00')
+        ->assertSee('aria-label="USD 25.00"', false)
+        ->assertDontSee('aria-label="MYR 100.00"', false)
+        ->assertSee('MYR Only Donor')
+        ->assertSee('USD Donor');
 });
 
 it('shows approximate myr lifetime total for foreign donations without base amount', function () {

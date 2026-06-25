@@ -233,6 +233,8 @@ class ElementEdit extends Component
             'config' => $mergedConfig ?: null,
         ]);
 
+        $this->element->refresh();
+
         $this->dispatch('notify', message: 'Element saved.', variant: 'success');
     }
 

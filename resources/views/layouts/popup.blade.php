@@ -68,5 +68,7 @@
                 }
             }
         </script>
+
+        @include('partials.donation-step')
     </body>
 </html>

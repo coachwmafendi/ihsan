@@ -20,7 +20,8 @@ class StripePaymentIntentController extends Controller
     {
         $validated = $request->validate([
             'campaign_id' => ['required', 'exists:campaigns,id'],
-            'donor_name' => ['required', 'string', 'max:120'],
+            'donor_first_name' => ['required', 'string', 'max:120'],
+            'donor_last_name' => ['nullable', 'string', 'max:120'],
             'donor_email' => ['required', 'email', 'max:255'],
             'donor_phone' => ['nullable', 'string', 'max:40'],
             'amount' => ['required', 'numeric', 'min:1', 'max:100000'],
@@ -33,7 +34,8 @@ class StripePaymentIntentController extends Controller
         $donor = Donor::query()->updateOrCreate(
             ['email' => Str::lower($validated['donor_email'])],
             [
-                'name' => $validated['donor_name'],
+                'first_name' => $validated['donor_first_name'],
+                'last_name' => $validated['donor_last_name'] ?? null,
                 'phone' => $validated['donor_phone'] ?? null,
             ],
         );

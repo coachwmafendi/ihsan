@@ -15,6 +15,9 @@
     <style>
         .chip-link { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; }
         .chip-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.08); background-color: #f0fdfa !important; }
+        @media only screen and (max-width: 600px) {
+            .mobile-stack .chip-link { width: 100% !important; min-width: auto !important; box-sizing: border-box !important; }
+        }
     </style>
 
     <h1 style="font-size: 32px; color: #0f766e;">{{ $t('emails.donor_recurring_payment.heading') }}</h1>
@@ -39,23 +42,15 @@
                     'interval' => $t('emails.donor_recurring_payment.upgrade_interval_monthly'),
                 ]) }}
             </p>
-            <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width: 100%;">
                 <tr>
-                    <td style="text-align: center; padding: 0 6px;">
-                        <a href="{{ $upgradeChips[0]['url'] }}" class="chip-link" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;">
-                            {{ $upgradeChips[0]['label'] }}
-                        </a>
-                    </td>
-                    <td style="text-align: center; padding: 0 6px;">
-                        <a href="{{ $upgradeChips[1]['url'] }}" class="chip-link" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;">
-                            {{ $upgradeChips[1]['label'] }}
-                        </a>
-                    </td>
-                    <td style="text-align: center; padding: 0 6px;">
-                        <a href="{{ $upgradeChips[2]['url'] }}" class="chip-link" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;">
-                            {{ $upgradeChips[2]['label'] }}
-                        </a>
-                    </td>
+                    @foreach ($upgradeChips as $chip)
+                        <td class="mobile-stack" style="text-align: center; padding: 0 6px;">
+                            <a href="{{ $chip['url'] }}" class="chip-link" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;">
+                                {{ $chip['label'] }}
+                            </a>
+                        </td>
+                    @endforeach
                 </tr>
             </table>
         </div>

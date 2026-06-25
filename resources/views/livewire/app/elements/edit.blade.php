@@ -2,7 +2,6 @@
 @php
     $isButtonLike = in_array($element->type->value, ['button', 'floating_button', 'sticky_button', 'link'], true);
     $isQrCode = $element->type->value === 'qr_code';
-    $embedCode = '<script src="' . url('/e/widget.js') . '" data-token="' . $element->token . '" data-type="' . $element->type->value . '" async></script>';
     $typeDisplayLabel = $element->is_donor_portal_default ? 'Donor Portal Button' : $element->type->label();
 @endphp
 
@@ -30,38 +29,7 @@
             {{-- Left column: Form fields --}}
             <div class="space-y-6 lg:col-span-2">
                 {{-- Embed Code --}}
-                <div x-data="{ code: @js($embedCode), copied: false, copy() { navigator.clipboard.writeText(this.code).then(() => { this.copied = true; setTimeout(() => this.copied = false, 2000) }) } }">
-                    <x-ui.card title="Embed Code" description="Copy this code to embed on your website">
-                        <x-slot:actions>
-                            <button
-                                type="button"
-                                @click="copy()"
-                                class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-slate-700"
-                            >
-                                <x-heroicon-o-clipboard-document class="size-4" x-show="!copied" />
-                                <x-heroicon-o-check class="size-4" x-show="copied" x-cloak />
-                                <span x-show="!copied">Copy</span>
-                                <span x-show="copied" x-cloak>Copied!</span>
-                            </button>
-                        </x-slot:actions>
-
-                        <div class="space-y-3">
-                            <textarea
-                                x-ref="codeBox"
-                                readonly
-                                rows="3"
-                                @click="$refs.codeBox.select()"
-                                class="w-full resize-none rounded-lg bg-slate-900 p-4 font-mono text-xs leading-relaxed text-slate-300 focus:outline-none"
-                                style="white-space: pre-wrap; overflow-wrap: break-word"
-                            >{{ $embedCode }}</textarea>
-
-                            <div class="flex flex-col gap-1 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-                                <span>Paste this inside your page’s <code class="rounded bg-slate-100 px-1 py-0.5 font-mono text-slate-700">&lt;body&gt;</code> tag.</span>
-                                <span class="font-mono">Token: {{ $element->token }}</span>
-                            </div>
-                        </div>
-                    </x-ui.card>
-                </div>
+                @include('filament.forms.components.element-embed-snippet', ['element' => $element])
 
                 {{-- Basic Info --}}
                 <x-ui.card title="Basic Information">

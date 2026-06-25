@@ -19,6 +19,8 @@ class DonorFactory extends Factory
     {
         return [
             'public_id' => null,
+            'first_name' => null,
+            'last_name' => null,
             'name' => fake()->name(),
             'title' => fake()->optional()->randomElement(['Mr', 'Ms', 'Mrs', 'Dr']),
             'occupation' => fake()->optional()->jobTitle(),

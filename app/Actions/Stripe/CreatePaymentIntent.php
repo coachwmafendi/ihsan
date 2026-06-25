@@ -57,7 +57,8 @@ class CreatePaymentIntent
             $stripeOptions = ['stripe_account' => $organization->stripe_account_id];
             $customerParams = [
                 'email' => $donation->donor?->email,
-                'name' => $donation->donor?->name,
+                'first_name' => $donation->donor?->first_name,
+                'last_name' => $donation->donor?->last_name,
                 'metadata' => StripeMetadata::forDonorCustomer(
                     donor: $donation->donor,
                     organization: $organization,

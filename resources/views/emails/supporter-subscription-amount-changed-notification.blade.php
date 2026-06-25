@@ -17,6 +17,9 @@
     <style>
         .chip-link { transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; }
         .chip-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.08); background-color: #f0fdfa !important; }
+        @media only screen and (max-width: 600px) {
+            .mobile-stack .chip-link { width: 100% !important; min-width: auto !important; box-sizing: border-box !important; }
+        }
     </style>
 
     <h1 style="font-size: 28px; line-height: 1.3; color: #0f766e; margin: 0 0 16px;">{{ $t('emails.supporter_subscription_amount_changed.heading') }}</h1>
@@ -61,10 +64,10 @@
                     'interval' => $intervalLabel,
                 ]) }}
             </p>
-            <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width: 100%;">
                 <tr>
                     @foreach ($upgradeChips as $chip)
-                        <td style="text-align: center; padding: 0 6px;">
+                        <td class="mobile-stack" style="text-align: center; padding: 0 6px;">
                             <a href="{{ $chip['url'] }}" class="chip-link" style="display: inline-block; min-width: 90px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-decoration: none; font-size: 16px; font-weight: 600; color: #0f766e; background-color: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;">
                                 {{ $chip['label'] }}
                             </a>

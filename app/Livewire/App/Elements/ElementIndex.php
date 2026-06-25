@@ -62,6 +62,52 @@ class ElementIndex extends Component
         $this->dispatch('notify', message: 'Element restored successfully.', variant: 'success');
     }
 
+    public function edit(int $elementId): void
+    {
+        $element = Element::findOrFail($elementId);
+        $this->authorize('update', $element);
+
+        $this->redirectRoute('app.elements.edit', $element, navigate: true);
+    }
+
+    public function archive(int $elementId): void
+    {
+        $element = Element::findOrFail($elementId);
+        $this->authorize('archive', $element);
+        $element->archive();
+        $this->dispatch('notify', message: 'Element archived successfully.', variant: 'success');
+    }
+
+    public function duplicate(int $elementId): void
+    {
+        $element = Element::findOrFail($elementId);
+        $this->authorize('create', Element::class);
+
+        $org = $this->organization;
+
+        if (! $org || $element->organization_id !== $org->id) {
+            abort(403);
+        }
+
+        $copy = $element->replicate([
+            'token',
+            'public_id',
+            'form_slug',
+        ]);
+
+        $copy->name = $element->name.' (Copy)';
+        $copy->token = $this->generateUniqueToken();
+        $copy->public_id = null;
+        $copy->is_active = true;
+        $copy->archived_at = null;
+        $copy->is_donor_portal_default = false;
+        $copy->save();
+
+        $this->dispatch('notify', message: 'Element duplicated successfully.', variant: 'success');
+
+        $this->redirectRoute('app.elements.edit', $copy);
+    }
+
     public function openCreateModal(): void
     {
         $this->newType = 'button';

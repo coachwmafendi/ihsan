@@ -252,7 +252,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($name), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates()), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount))"
+                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates()), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount))"
                         data-campaign-public-id="{{ $campaign->public_id }}"
                         x-init="$wire.trackServerPageView()"
                         class="relative"
@@ -466,19 +466,34 @@
                             <div class="space-y-3">
                                 <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Your details</p>
 
-                                <label class="block">
-                                    <span class="mb-1 block text-sm font-medium text-slate-700">Name</span>
-                                    <input
-                                        wire:model="name"
-                                        x-model="donorName"
-                                        type="text"
-                                        autocomplete="name"
-                                        class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
-                                        placeholder="Your full name"
-                                    />
-                                    <div x-show="stepErrors.name" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.name"></div>
-                                    @error('name')<span class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
-                                </label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <label class="block">
+                                        <span class="mb-1 block text-sm font-medium text-slate-700">First name</span>
+                                        <input
+                                            wire:model="firstName"
+                                            x-model="donorFirstName"
+                                            type="text"
+                                            autocomplete="given-name"
+                                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
+                                            placeholder="First name"
+                                        />
+                                        <div x-show="stepErrors.firstName" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.firstName"></div>
+                                        @error('firstName')<span class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
+                                    </label>
+                                    <label class="block">
+                                        <span class="mb-1 block text-sm font-medium text-slate-700">Last name</span>
+                                        <input
+                                            wire:model="lastName"
+                                            x-model="donorLastName"
+                                            type="text"
+                                            autocomplete="family-name"
+                                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
+                                            placeholder="Last name"
+                                        />
+                                        <div x-show="stepErrors.lastName" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.lastName"></div>
+                                        @error('lastName')<span class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
+                                    </label>
+                                </div>
 
                                 <label class="block">
                                     <span class="mb-1 block text-sm font-medium text-slate-700">Email</span>
@@ -734,7 +749,13 @@
 @script
 {{-- donationStep Alpine component registered in layouts/donation.blade.php via alpine:init --}}
 <script>
-    Alpine.data('donationStep', (initialName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: {percent: 0.055, fixed: 1.00}, usd: {percent: 0.069, fixed: 0.30}, sgd: {percent: 0.074, fixed: 0.50}}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0) => {
+    if (typeof Alpine !== 'undefined' && Alpine._donationStepRegistered) {
+        // Layout already registered the up-to-date donationStep component; skip inline fallback.
+    } else {
+        if (typeof Alpine !== 'undefined') {
+            Alpine._donationStepRegistered = true;
+        }
+        Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: {percent: 0.055, fixed: 1.00}, usd: {percent: 0.069, fixed: 0.30}, sgd: {percent: 0.074, fixed: 0.50}}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0) => {
         let stripe = null;
         let elements = null;
         let paymentElement = null;
@@ -746,7 +767,8 @@
             frequency: initialFrequency,
             oneTimeAmounts: initialOneTimeAmounts,
             monthlyAmounts: initialMonthlyAmounts,
-            donorName: initialName,
+            donorFirstName: initialFirstName,
+            donorLastName: initialLastName,
             donorEmail: initialEmail,
             donorPhone: initialPhone,
             minimumAmount: initialMinimumAmount,
@@ -891,8 +913,8 @@
             validateStep2() {
                 this.stepErrors = {};
                 let valid = true;
-                if (!this.donorName.trim()) {
-                    this.stepErrors.name = 'Name is required.';
+                if (!this.donorFirstName.trim()) {
+                    this.stepErrors.firstName = 'First name is required.';
                     valid = false;
                 }
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -929,7 +951,7 @@
                     },
                     defaultValues: {
                         billingDetails: {
-                            name: this.donorName || undefined,
+                            name: `${this.donorFirstName} ${this.donorLastName}`.trim() || undefined,
                             email: this.donorEmail || undefined,
                         },
                     },
@@ -1115,7 +1137,8 @@
                 $wire.$set('frequency', this.frequency, false);
                 $wire.$set('amount', this.amount, false);
                 $wire.$set('coverFee', this.coverFee, false);
-                $wire.$set('name', this.donorName, false);
+                $wire.$set('firstName', this.donorFirstName, false);
+                $wire.$set('lastName', this.donorLastName, false);
                 $wire.$set('email', this.donorEmail, false);
                 $wire.$set('phone', this.donorPhone, false);
 
@@ -1183,5 +1206,6 @@
             },
         };
     });
+    }
 </script>
 @endscript

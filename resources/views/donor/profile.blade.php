@@ -156,10 +156,16 @@
                                     @error('title') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                 </div>
                                 <div class="flex-1">
-                                    <label class="mb-1 block text-xs font-semibold text-slate-600">Name</label>
-                                    <input type="text" name="name" value="{{ old('name', $donor->name) }}"
-                                           class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('name') border-red-300 @enderror">
-                                    @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                    <label class="mb-1 block text-xs font-semibold text-slate-600">First name</label>
+                                    <input type="text" name="first_name" value="{{ old('first_name', $donor->first_name) }}"
+                                           class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('first_name') border-red-300 @enderror">
+                                    @error('first_name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="flex-1">
+                                    <label class="mb-1 block text-xs font-semibold text-slate-600">Last name</label>
+                                    <input type="text" name="last_name" value="{{ old('last_name', $donor->last_name) }}"
+                                           class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('last_name') border-red-300 @enderror">
+                                    @error('last_name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                 </div>
                             </div>
                             <div>

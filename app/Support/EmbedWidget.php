@@ -35,6 +35,140 @@ class EmbedWidget
         });
     }
 
+    public static function staticQrCodeHtml(Element $element): string
+    {
+        $config = $element->config ?? [];
+        $label = e($config['label'] ?? $config['button_text'] ?? $config['text'] ?? 'Scan to donate');
+        $rawAlignment = $config['alignment'] ?? 'center';
+        $alignment = in_array($rawAlignment, ['left', 'center', 'right'], true)
+            ? $rawAlignment
+            : 'center';
+
+        $rawSize = $config['size'] ?? 'medium';
+        if (is_numeric($rawSize)) {
+            $size = (int) $rawSize;
+        } else {
+            $size = match (strtolower($rawSize)) {
+                'small' => 150,
+                'medium' => 200,
+                'large' => 250,
+                'extra large', 'extra_large' => 300,
+                default => 200,
+            };
+        }
+
+        $campaignUrl = $element->campaign !== null
+            ? url('/donate/'.$element->token)
+            : url('/');
+
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size='.$size.'x'.$size.'&data='.urlencode($campaignUrl).'&bgcolor=ffffff&color=0f172a&qzone=2';
+
+        return sprintf(
+            '<div class="ihsan-embed-placeholder ihsan-qr-code-placeholder" data-ihsan-token="%s" style="text-align:%s;"><img src="%s" alt="%s" width="%d" height="%d" style="display:block;margin:0 auto;border-radius:12px;border:1px solid #e2e8f0;"><p style="margin:8px 0 0;font-size:14px;font-weight:500;color:#475569;text-align:center;">%s</p></div>',
+            e($element->token),
+            $alignment,
+            e($qrUrl),
+            $label,
+            $size,
+            $size,
+            $label
+        );
+    }
+
+    public static function staticFloatingButtonPlaceholderHtml(Element $element): string
+    {
+        $config = $element->config ?? [];
+        $text = e($config['button_text'] ?? $config['text'] ?? 'Donate');
+        $position = $config['position'] ?? 'bottom-right';
+
+        $labelStyle = 'border:2px dashed #cbd5e1;border-radius:8px;padding:16px;text-align:center;color:#64748b;font-weight:600;font-family:sans-serif;font-size:14px;line-height:1.4;';
+
+        $note = match ($position) {
+            'bottom-right' => 'Bottom right corner',
+            'bottom-left' => 'Bottom left corner',
+            'top-right' => 'Top right corner',
+            'top-left' => 'Top left corner',
+            'vertical_left_center', 'vertical-left-center' => 'Middle left edge',
+            'vertical_right_center', 'vertical-right-center' => 'Middle right edge',
+            default => 'Floating on scroll',
+        };
+
+        return sprintf(
+            '<div class="ihsan-embed-placeholder ihsan-floating-button-placeholder" data-ihsan-token="%s" style="%s">Ihsan Floating Button — %s<div style="margin-top:6px;font-size:12px;font-weight:400;color:#94a3b8;">%s</div></div>',
+            e($element->token),
+            $labelStyle,
+            $text,
+            $note
+        );
+    }
+
+    public static function staticLinkHtml(Element $element): string
+    {
+        $config = array_merge([
+            'text' => 'Donate',
+            'button_text' => 'Donate',
+            'style' => 'button',
+            'color' => 'campaign',
+            'button_color' => 'bg-blue-600 hover:bg-blue-700',
+            'button_size' => 'medium',
+            'corner_radius' => 8,
+            'button_icon' => 'none',
+            'alignment' => 'center',
+            'action' => 'checkout_modal',
+        ], $element->config ?? []);
+
+        $campaignFormParameter = $element->campaign !== null && $element->campaign->checkout_modal_enabled
+            ? $element->campaign->form_parameter
+            : null;
+
+        $action = $config['action'];
+        $openInPopup = in_array($action, ['checkout_modal', 'open_checkout_modal'], true);
+
+        if ($campaignFormParameter) {
+            $url = url('/checkout/'.$campaignFormParameter.($openInPopup ? '?popup=1' : ''));
+        } elseif ($element->campaign !== null) {
+            $url = url('/donate/'.$element->token.($openInPopup ? '?popup=1' : ''));
+        } else {
+            $url = url('/');
+        }
+
+        $text = e($config['text'] ?: $config['button_text']);
+        $alignment = in_array($config['alignment'], ['left', 'center', 'right'], true)
+            ? $config['alignment']
+            : 'center';
+        $colour = self::resolveColour(($config['button_color'] ?? '') ?: ($config['color'] ?? 'campaign'));
+        [$padding, $fontSize] = self::resolveSize($config['button_size']);
+        $radius = ((int) $config['corner_radius']).'px';
+        $icon = ($config['button_icon'] ?? 'none') !== 'none'
+            ? self::iconSvg($config['button_icon'], 16)
+            : '';
+
+        $anchorStyle = ($config['style'] ?? 'button') === 'button'
+            ? sprintf(
+                'display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;font-weight:600;line-height:1.3;white-space:nowrap;letter-spacing:.01em;color:#fff;background:%s;padding:%s;font-size:%s;border-radius:%s;box-shadow:0 2px 8px rgba(0,0,0,.12);font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;',
+                $colour,
+                $padding,
+                $fontSize,
+                $radius
+            )
+            : sprintf(
+                'color:%s;font-size:%s;font-weight:500;text-decoration:underline;text-underline-offset:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;',
+                $colour,
+                $fontSize
+            );
+
+        $anchor = sprintf(
+            '<a href="%s" class="ihsan-link" data-ihsan-token="%s" target="_blank" rel="noopener" style="%s">%s<span>%s</span></a>',
+            e($url),
+            e($element->token),
+            $anchorStyle,
+            $icon,
+            $text
+        );
+
+        return sprintf('<div style="text-align:%s;">%s</div>', $alignment, $anchor);
+    }
+
     public static function staticButtonHtml(Element $element): string
     {
         $config = array_merge([

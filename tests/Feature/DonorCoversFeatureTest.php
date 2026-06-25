@@ -92,7 +92,7 @@ it('charges gross_amount plus fee to stripe when donor covers fee', function () 
         ->set('amount', 200)
         ->set('coverFee', true)
         ->set('frequency', 'one_time')
-        ->set('name', 'Ahmad Donor')
+        ->set('firstName', 'Ahmad Donor')
         ->set('email', 'ahmad@example.com')
         ->call('submit');
 
@@ -119,7 +119,7 @@ it('stores zero donor_fee_covered when donor opts out', function () {
         ->set('amount', 200)
         ->set('coverFee', false)
         ->set('frequency', 'one_time')
-        ->set('name', 'Ahmad Donor')
+        ->set('firstName', 'Ahmad Donor')
         ->set('email', 'ahmad@example.com')
         ->call('submit');
 

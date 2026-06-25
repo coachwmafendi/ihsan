@@ -35,7 +35,7 @@ class SupporterIndex extends Component
     #[Url(except: '')]
     public string $dateTo = '';
 
-    public string $sortField = 'created_at';
+    public string $sortField = 'donations_max_created_at';
 
     public string $sortDirection = 'desc';
 
@@ -230,7 +230,7 @@ class SupporterIndex extends Component
         $query = $this->baseQuery();
 
         $allowedSorts = ['name', 'email', 'donations_count', 'lifetime_report_amount', 'donations_min_created_at', 'donations_max_created_at', 'created_at'];
-        $field = in_array($this->sortField, $allowedSorts, true) ? $this->sortField : 'created_at';
+        $field = in_array($this->sortField, $allowedSorts, true) ? $this->sortField : 'donations_max_created_at';
         $direction = in_array($this->sortDirection, ['asc', 'desc'], true) ? $this->sortDirection : 'desc';
 
         $query->orderBy($field, $direction);

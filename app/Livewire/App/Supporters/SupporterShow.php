@@ -128,7 +128,7 @@ class SupporterShow extends Component
     public function recentDonations()
     {
         return $this->scopedDonations()
-            ->with('campaign')
+            ->with(['campaign', 'subscription'])
             ->latest()
             ->limit(10)
             ->get();
@@ -154,10 +154,8 @@ class SupporterShow extends Component
 
     public function openEditModal(): void
     {
-        $nameParts = explode(' ', $this->donor->name, 2);
-
-        $this->firstName = $nameParts[0] ?? '';
-        $this->lastName = $nameParts[1] ?? '';
+        $this->firstName = $this->donor->first_name ?? '';
+        $this->lastName = $this->donor->last_name ?? '';
         $this->email = $this->donor->email;
         $this->updateRecurringPlans = true;
         $this->editing = true;
@@ -182,10 +180,9 @@ class SupporterShow extends Component
             'email' => ['required', 'email', 'max:255', Rule::unique('donors', 'email')->ignore($this->donor)],
         ]);
 
-        $name = trim($validated['firstName'].' '.$validated['lastName']);
-
         $this->donor->update([
-            'name' => $name,
+            'first_name' => $validated['firstName'],
+            'last_name' => $validated['lastName'],
             'email' => $validated['email'],
         ]);
 
@@ -198,7 +195,8 @@ class SupporterShow extends Component
                     : [];
 
                 Customer::update($this->donor->stripe_customer_id, [
-                    'name' => $name,
+                    'first_name' => $this->donor->first_name,
+                    'last_name' => $this->donor->last_name,
                     'email' => $validated['email'],
                     'preferred_locales' => StripeMetadata::customerLocale($this->donor) ?? [],
                 ], $stripeOptions);

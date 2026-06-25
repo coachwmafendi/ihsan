@@ -50,7 +50,9 @@ class DonationForm extends Component
 
     public string $frequency = 'monthly';
 
-    public string $name = '';
+    public string $firstName = '';
+
+    public string $lastName = '';
 
     public string $email = '';
 
@@ -358,7 +360,8 @@ class DonationForm extends Component
         $donor = Donor::query()->updateOrCreate(
             ['email' => $email],
             [
-                'name' => $validated['name'],
+                'first_name' => $validated['firstName'],
+                'last_name' => $validated['lastName'] ?? null,
                 'phone' => $validated['phone'] ?? null,
             ],
         );
@@ -607,7 +610,8 @@ class DonationForm extends Component
                 'required',
                 Rule::in($this->config('allow_monthly', true) ? ['one_time', 'monthly'] : ['one_time']),
             ],
-            'name' => ['required', 'string', 'max:120'],
+            'firstName' => ['required', 'string', 'max:120'],
+            'lastName' => ['nullable', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:40'],
             'coverFee' => ['boolean'],

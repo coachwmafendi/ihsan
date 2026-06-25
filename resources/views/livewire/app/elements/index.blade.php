@@ -165,7 +165,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach ($this->elements as $element)
-                            <tr class="transition-colors hover:bg-slate-50">
+                            <tr class="cursor-pointer transition-colors hover:bg-slate-50" wire:click="edit({{ $element->id }})">
                                 <td class="px-5 py-4">
                                     <p class="text-sm font-medium text-slate-900">{{ $element->name }}</p>
                                     <p class="text-xs text-slate-500 font-mono">{{ $element->token }}</p>
@@ -176,8 +176,8 @@
                                     </span>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
-                                    @if ($element->campaign)
-                                        <a href="{{ route('app.campaigns.edit', $element->campaign) }}" wire:navigate.stop class="hover:text-teal-600">
+                                        @if ($element->campaign)
+                                        <a href="{{ route('app.campaigns.edit', $element->campaign) }}" wire:navigate.stop onclick="event.stopPropagation()" class="hover:text-teal-600">
                                             {{ $element->campaign->title }}
                                         </a>
                                     @else
@@ -206,7 +206,7 @@
                                             <x-ui.tooltip text="Copy embed code">
                                                 <button
                                                     type="button"
-                                                    @click="navigator.clipboard.writeText(@js($embedCode)); copied = true; setTimeout(() => copied = false, 2000)"
+                                                    @click.stop="navigator.clipboard.writeText(@js($embedCode)); copied = true; setTimeout(() => copied = false, 2000)"
                                                     class="shrink-0 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
                                                 >
                                                     <template x-if="!copied">
@@ -237,7 +237,62 @@
                                                 Restore
                                             </button>
                                         @else
-                                            <a href="{{ route('app.elements.edit', $element) }}" wire:navigate class="text-sm font-medium text-teal-600 hover:text-teal-700">Edit</a>
+                                            <div x-data="{ open: false, menuTop: 0, menuLeft: 0, toggle(el) { const r = el.getBoundingClientRect(); this.menuTop = r.bottom + window.scrollY + 4; this.menuLeft = r.right + window.scrollX - 208; this.open = ! this.open; } }">
+                                                <button
+                                                    type="button"
+                                                    @click.stop="toggle($el)"
+                                                    class="inline-flex items-center justify-center rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                                                    aria-label="Element actions"
+                                                >
+                                                    <x-heroicon-o-ellipsis-horizontal class="size-5" />
+                                                </button>
+
+                                                <template x-teleport="body">
+                                                    <div
+                                                        x-show="open"
+                                                        x-cloak
+                                                        x-transition:enter="transition ease-out duration-100"
+                                                        x-transition:enter-start="opacity-0 scale-95"
+                                                        x-transition:enter-end="opacity-100 scale-100"
+                                                        x-transition:leave="transition ease-in duration-75"
+                                                        x-transition:leave-start="opacity-100 scale-100"
+                                                        x-transition:leave-end="opacity-0 scale-95"
+                                                        @click.outside="open = false"
+                                                        @click.stop
+                                                        class="fixed z-50 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+                                                        :style="'top: ' + menuTop + 'px; left: ' + menuLeft + 'px'"
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            @click.stop="navigator.clipboard.writeText('{{ $element->public_id }}').then(() => open = false)"
+                                                            class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                                                        >
+                                                            <x-heroicon-o-clipboard-document class="size-4 text-slate-500" />
+                                                            Copy ID
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            wire:click.stop="duplicate({{ $element->id }})"
+                                                            @click="open = false"
+                                                            class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                                                        >
+                                                            <x-heroicon-o-document-duplicate class="size-4 text-slate-500" />
+                                                            Duplicate element
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            wire:click.stop="archive({{ $element->id }})"
+                                                            @click.stop="open = false"
+                                                            class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                                                        >
+                                                            <x-heroicon-o-archive-box class="size-4 text-slate-500" />
+                                                            Archive element
+                                                        </button>
+                                                    </div>
+                                                </template>
+                                            </div>
                                         @endif
                                     </div>
                                 </td>

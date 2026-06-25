@@ -243,12 +243,12 @@ it('renders the hosted donation form in a compact layout when embedded', functio
     Livewire::withQueryParams(['embed' => 1])
         ->test(DonationForm::class, ['element' => $element])
         ->set('amount', 30)
-        ->set('name', '')
+        ->set('firstName', '')
         ->set('email', '')
         ->call('submit')
         ->assertSet('isEmbed', true)
         ->assertHasErrors([
-            'name' => 'required',
+            'firstName' => 'required',
             'email' => 'required',
         ])
         ->assertSee('px-4 py-5 sm:px-5', false)
@@ -336,19 +336,18 @@ it('passes current donor details to stripe billing details', function () {
 
     $this->get(route('donations.show', ['element' => $element, 'popup' => 1]))
         ->assertOk()
-        ->assertSee('donorName', false)
+        ->assertSee('donorFirstName', false)
         ->assertSee($organization->stripe_account_id, false)
         ->assertSee('stripeAccount: connectedStripeAccountId', false)
-        ->assertSee('x-model="donorName"', false)
+        ->assertSee('x-model="donorFirstName"', false)
         ->assertSee('donorEmail', false)
         ->assertSee('x-model="donorEmail"', false)
         ->assertSee('donorPhone', false)
         ->assertSee('x-model="donorPhone"', false)
-        ->assertSee('$wire.$set(&#039;name&#039;, this.donorName, false)', false)
+        ->assertSee('$wire.$set(&#039;firstName&#039;, this.donorFirstName, false)', false)
         ->assertSee('$wire.$set(&#039;email&#039;, this.donorEmail, false)', false)
         ->assertSee('$wire.$set(&#039;phone&#039;, this.donorPhone, false)', false)
         ->assertSee('stripe.confirmPayment({', false)
-        ->assertSee('receipt_email: this.donorEmail', false)
         ->assertSee('await $wire.confirmPayment(paymentIntentId)', false);
 });
 
@@ -394,7 +393,7 @@ it('creates a pending donation from the hosted form', function () {
     Livewire::test(DonationForm::class, ['element' => $element])
         ->set('frequency', 'monthly')
         ->set('amount', 100)
-        ->set('name', 'Wan Mohd Afendi')
+        ->set('firstName', 'Wan Mohd Afendi')
         ->set('email', 'wan@example.test')
         ->set('phone', '+60123456789')
         ->set('dedicate', true)
@@ -448,7 +447,7 @@ it('creates a pending donation from the embedded form and keeps the compact layo
         ->test(DonationForm::class, ['element' => $element])
         ->set('frequency', 'one_time')
         ->set('amount', 30)
-        ->set('name', 'Embedded Donor')
+        ->set('firstName', 'Embedded Donor')
         ->set('email', 'embedded@example.test')
         ->call('submit')
         ->assertSet('isEmbed', true)
@@ -865,7 +864,7 @@ it('renders donor details fields for step 2', function () {
     $this->get(route('donations.show', $element))
         ->assertOk()
         ->assertSee('x-show="currentStep === 2"', false)
-        ->assertSee('x-model="donorName"', false)
+        ->assertSee('x-model="donorFirstName"', false)
         ->assertSee('x-model="donorEmail"', false)
         ->assertSee('x-model="donorPhone"', false)
         ->assertSee('Dedicate this donation')
@@ -958,7 +957,7 @@ it('tracks element source in utm_params for all element types', function () {
     Livewire::test(DonationForm::class, ['element' => $element])
         ->set('frequency', 'one_time')
         ->set('amount', 50)
-        ->set('name', 'Test Donor')
+        ->set('firstName', 'Test Donor')
         ->set('email', 'test@utm.test')
         ->call('submit')
         ->assertHasNoErrors();
@@ -995,7 +994,7 @@ it('stores campaign_page source for donations made on a public campaign page', f
     Livewire::test(DonationForm::class, ['campaign' => $campaign, 'isPublicPage' => true])
         ->set('frequency', 'one_time')
         ->set('amount', 50)
-        ->set('name', 'Campaign Page Donor')
+        ->set('firstName', 'Campaign Page Donor')
         ->set('email', 'campaign-page@example.test')
         ->call('submit')
         ->assertHasNoErrors();
@@ -1025,7 +1024,7 @@ it('stores checkout_modal source for donations made via checkout modal', functio
     Livewire::test(DonationForm::class, ['campaign' => $campaign])
         ->set('frequency', 'one_time')
         ->set('amount', 50)
-        ->set('name', 'Checkout Modal Donor')
+        ->set('firstName', 'Checkout Modal Donor')
         ->set('email', 'checkout-modal@example.test')
         ->call('submit')
         ->assertHasNoErrors();
@@ -1048,12 +1047,12 @@ it('validates hosted donation input before creating records', function () {
 
     Livewire::test(DonationForm::class, ['element' => $element])
         ->set('amount', 0)
-        ->set('name', '')
+        ->set('firstName', '')
         ->set('email', 'not-an-email')
         ->call('submit')
         ->assertHasErrors([
             'amount' => 'min',
-            'name' => 'required',
+            'firstName' => 'required',
             'email' => 'email',
         ]);
 

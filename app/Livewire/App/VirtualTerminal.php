@@ -80,9 +80,8 @@ class VirtualTerminal extends Component
             ->first();
 
         if ($this->preloadedSupporter) {
-            $names = explode(' ', $this->preloadedSupporter->name, 2);
-            $this->formData['first_name'] = $names[0] ?? '';
-            $this->formData['last_name'] = $names[1] ?? '';
+            $this->formData['first_name'] = $this->preloadedSupporter->first_name ?? '';
+            $this->formData['last_name'] = $this->preloadedSupporter->last_name ?? '';
             $this->formData['email'] = $this->preloadedSupporter->email;
 
             $lastDonationCurrency = $this->preloadedSupporter->donations()
@@ -196,9 +195,8 @@ class VirtualTerminal extends Component
     public function loadSearchedDonor(): void
     {
         if ($this->searchedDonor) {
-            $names = explode(' ', $this->searchedDonor->name, 2);
-            $this->formData['first_name'] = $names[0] ?? '';
-            $this->formData['last_name'] = $names[1] ?? '';
+            $this->formData['first_name'] = $this->searchedDonor->first_name ?? '';
+            $this->formData['last_name'] = $this->searchedDonor->last_name ?? '';
             $this->formData['email'] = $this->searchedDonor->email;
             $this->preloadedSupporter = $this->searchedDonor;
             $this->searchedDonor = null;

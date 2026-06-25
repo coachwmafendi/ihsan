@@ -129,7 +129,7 @@ it('saves donation with selected currency', function () {
         ->set('currency', 'usd')
         ->set('amount', 50)
         ->set('frequency', 'one_time')
-        ->set('name', 'John Doe')
+        ->set('firstName', 'John Doe')
         ->set('email', 'john@example.com')
         ->set('phone', '0123456789')
         ->call('submit')

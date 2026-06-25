@@ -607,9 +607,8 @@ class SubscriptionShow extends Component
             return;
         }
 
-        $nameParts = explode(' ', $donor->name, 2);
-        $this->editFirstName = $nameParts[0] ?? '';
-        $this->editLastName = $nameParts[1] ?? '';
+        $this->editFirstName = $donor->first_name ?? '';
+        $this->editLastName = $donor->last_name ?? '';
         $this->editEmail = $donor->email ?? '';
         $this->editPhone = $donor->phone ?? '';
         $this->editAddressLine1 = $donor->address_line1 ?? '';
@@ -650,7 +649,8 @@ class SubscriptionShow extends Component
         ]);
 
         $donor->update([
-            'name' => trim($this->editFirstName.' '.$this->editLastName),
+            'first_name' => $this->editFirstName,
+            'last_name' => $this->editLastName,
             'email' => $this->editEmail,
             'phone' => $this->editPhone ?: null,
             'address_line1' => $this->editAddressLine1 ?: null,

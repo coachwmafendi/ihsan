@@ -468,7 +468,8 @@ it('updates donor profile name', function () {
 
     $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
         ->post(route('donorportal.profile.update', $org), [
-            'name' => 'Updated Name',
+            'first_name' => 'Updated',
+            'last_name' => 'Name',
             'email' => $donor->email,
         ])
         ->assertRedirect(route('donorportal.profile', $org));
@@ -484,7 +485,8 @@ it('updates donor profile with photo', function () {
 
     $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
         ->post(route('donorportal.profile.update', $org), [
-            'name' => 'Photo Donor',
+            'first_name' => 'Photo',
+            'last_name' => 'Donor',
             'email' => $donor->email,
             'photo' => $photo,
         ])
@@ -661,10 +663,10 @@ it('validates required fields on profile update', function () {
 
     $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
         ->post(route('donorportal.profile.update', $org), [
-            'name' => '',
+            'first_name' => '',
             'email' => 'not-an-email',
         ])
-        ->assertSessionHasErrors(['name', 'email']);
+        ->assertSessionHasErrors(['first_name', 'email']);
 });
 
 it('handles subscription action error gracefully', function () {

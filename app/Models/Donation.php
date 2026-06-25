@@ -286,6 +286,46 @@ class Donation extends Model
         });
     }
 
+    public function cardIconComponent(): Attribute
+    {
+        return Attribute::get(function (): string {
+            $pmType = strtolower($this->payment_method_type ?? '');
+
+            if ($pmType === 'apple_pay') {
+                return 'icons.apple-pay';
+            }
+
+            if ($pmType === 'google_pay') {
+                return 'icons.google-pay';
+            }
+
+            return match (strtolower($this->payment_method_brand ?? '')) {
+                'visa' => 'icons.visa',
+                'mastercard' => 'icons.mastercard',
+                'amex' => 'icons.amex',
+                'discover' => 'icons.discover',
+                'diners' => 'icons.diners',
+                'jcb' => 'icons.jcb',
+                'maestro' => 'icons.maestro',
+                'unionpay' => 'icons.unionpay',
+                default => 'icons.credit-card',
+            };
+        });
+    }
+
+    public function installmentNumber(): Attribute
+    {
+        return Attribute::get(function (): ?int {
+            if (! $this->subscription_id) {
+                return null;
+            }
+
+            return static::where('subscription_id', $this->subscription_id)
+                ->where('created_at', '<=', $this->created_at)
+                ->count();
+        });
+    }
+
     public function amountWithConversion(): Attribute
     {
         return Attribute::get(function () {

@@ -112,9 +112,7 @@
                                     @endif
                                 </button>
                             </th>
-                            @if ($showArchived)
-                                <th scope="col" class="px-5 py-3 text-right text-xs font-semibold tracking-wider text-slate-500">Actions</th>
-                            @endif
+                            <th scope="col" class="px-5 py-3 text-right text-xs font-semibold tracking-wider text-slate-500">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
@@ -169,8 +167,8 @@
                                 <td class="px-5 py-4 text-sm text-slate-500">
                                     {{ myrTime($campaign->created_at, withLabel: false, format: 'M d, Y') }}
                                 </td>
-                                @if ($showArchived)
-                                    <td class="px-5 py-4 text-right" wire:click.stop>
+                                <td class="px-5 py-4 text-right" wire:click.stop>
+                                    @if ($showArchived)
                                         <button
                                             wire:click="restore('{{ $campaign->public_id }}')"
                                             wire:loading.attr="disabled"
@@ -180,8 +178,65 @@
                                             <x-heroicon-o-arrow-path class="size-3.5" />
                                             Restore
                                         </button>
-                                    </td>
-                                @endif
+                                    @else
+                                        <div x-data="{ open: false, menuTop: 0, menuLeft: 0, toggle(el) { const r = el.getBoundingClientRect(); this.menuTop = r.bottom + window.scrollY + 4; this.menuLeft = r.right + window.scrollX - 208; this.open = ! this.open; } }">
+                                            <button
+                                                type="button"
+                                                @click.stop="toggle($el)"
+                                                class="inline-flex items-center justify-center rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                                                aria-label="Campaign actions"
+                                            >
+                                                <x-heroicon-o-ellipsis-horizontal class="size-5" />
+                                            </button>
+
+                                            <template x-teleport="body">
+                                                <div
+                                                    x-show="open"
+                                                    x-cloak
+                                                    x-transition:enter="transition ease-out duration-100"
+                                                    x-transition:enter-start="opacity-0 scale-95"
+                                                    x-transition:enter-end="opacity-100 scale-100"
+                                                    x-transition:leave="transition ease-in duration-75"
+                                                    x-transition:leave-start="opacity-100 scale-100"
+                                                    x-transition:leave-end="opacity-0 scale-95"
+                                                    @click.outside="open = false"
+                                                    @click.stop
+                                                    class="fixed z-50 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+                                                    :style="'top: ' + menuTop + 'px; left: ' + menuLeft + 'px'"
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        @click.stop="navigator.clipboard.writeText('{{ $campaign->public_id }}').then(() => open = false)"
+                                                        class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                                                    >
+                                                        <x-heroicon-o-clipboard-document class="size-4 text-slate-500" />
+                                                        Copy ID
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        wire:click.stop="openRenameModal('{{ $campaign->public_id }}')"
+                                                        @click="open = false"
+                                                        class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                                                    >
+                                                        <x-heroicon-o-pencil class="size-4 text-slate-500" />
+                                                        Rename
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        wire:click.stop="clone('{{ $campaign->public_id }}')"
+                                                        @click="open = false"
+                                                        class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                                                    >
+                                                        <x-heroicon-o-document-duplicate class="size-4 text-slate-500" />
+                                                        Duplicate
+                                                    </button>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -211,4 +266,32 @@
     </x-ui.card>
 
     <livewire:app.campaigns.campaign-create-modal />
+
+    {{-- Rename Campaign Modal --}}
+    @if ($showRenameModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4" x-data>
+            <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" wire:click="$set('showRenameModal', false)"></div>
+            <div class="relative w-full max-w-md rounded-2xl bg-white shadow-xl">
+                <div class="border-b border-slate-200 px-6 py-4">
+                    <h2 class="text-lg font-semibold text-slate-900">Rename Campaign</h2>
+                </div>
+
+                <div class="space-y-4 px-6 py-5">
+                    <div>
+                        <label for="renameTitle" class="block text-sm font-medium text-slate-700">Campaign Title</label>
+                        <input type="text" id="renameTitle" wire:model="renameTitle" placeholder="Campaign title" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                        @error('renameTitle') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                    <x-ui.button wire:click="$set('showRenameModal', false)" variant="secondary">Cancel</x-ui.button>
+                    <x-ui.button wire:click="saveRename" variant="primary">
+                        <span wire:loading.remove wire:target="saveRename">Save</span>
+                        <span wire:loading wire:target="saveRename">Saving...</span>
+                    </x-ui.button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

@@ -38,6 +38,62 @@ it('loads button config defaults when editing a button element', function () {
         ->assertSet('config_button_effect', 'none');
 });
 
+it('renders a visible static button embed with enhancement script for button elements', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Button,
+        'config' => [
+            'button_text' => 'Sumbang Sekarang',
+            'button_color' => 'bg-teal-600 hover:bg-teal-700',
+            'button_size' => 'large',
+            'corner_radius' => 12,
+            'button_icon' => 'heart',
+            'alignment' => 'center',
+            'action' => 'checkout_modal',
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->assertSee('ihsan-embed-label')
+        ->assertSee('ihsan-button')
+        ->assertSee($element->token)
+        ->assertSee('data-ihsan-token')
+        ->assertSee('data-enhance');
+});
+
+it('updates the embed code after saving button config changes', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Button,
+        'config' => [
+            'button_text' => 'Donate Old',
+            'button_color' => 'bg-blue-600 hover:bg-blue-700',
+            'button_size' => 'medium',
+            'corner_radius' => 8,
+            'button_icon' => 'heart',
+            'alignment' => 'center',
+            'action' => 'checkout_modal',
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->assertSee('Donate Old')
+        ->set('config_button_text', 'Donate New')
+        ->set('config_button_color', 'bg-teal-600 hover:bg-teal-700')
+        ->set('config_button_size', 'large')
+        ->set('config_corner_radius', 16)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify')
+        ->assertSee('Donate New')
+        ->assertSee('background:#0d9488')
+        ->assertSee('padding:16px 32px')
+        ->assertSee('border-radius:16px')
+        ->assertDontSee('Donate Old');
+});
+
 it('saves button colour, size, radius and icon config', function () {
     $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
         'type' => ElementType::Button,
@@ -339,6 +395,29 @@ it('saves the icon config for a link element', function () {
         ->and($element->config['action'])->toBe('checkout_modal');
 });
 
+it('renders a visible static link embed with enhancement script for link elements', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::Link,
+        'config' => [
+            'text' => 'Support Us',
+            'button_color' => 'bg-blue-600 hover:bg-blue-700',
+            'button_size' => 'medium',
+            'corner_radius' => 8,
+            'button_icon' => 'none',
+            'alignment' => 'center',
+            'action' => 'checkout_modal',
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->assertSee('ihsan-link')
+        ->assertSee($element->token)
+        ->assertSee('data-enhance')
+        ->assertSee('Support Us');
+});
+
 it('enforces a 100 character limit on the message field when editing', function () {
     $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
         'type' => ElementType::Popup,
@@ -568,6 +647,24 @@ it('saves title and message config for qr code elements', function () {
     ]);
 });
 
+it('renders a visible static qr code embed in the qr code element edit panel', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::QrCode,
+        'config' => [
+            'label' => 'Scan here',
+            'size' => 'medium',
+            'alignment' => 'center',
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->assertSee('ihsan-embed-placeholder')
+        ->assertSee('Scan here')
+        ->assertSee('api.qrserver.com');
+});
+
 it('reflects popup title and message in the live preview', function () {
     $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
         'type' => ElementType::Popup,
@@ -609,6 +706,24 @@ it('reflects floating button size changes in the live preview', function () {
     Livewire::test(ElementEdit::class, ['element' => $element])
         ->set('config_button_size', 'small')
         ->assertSee('padding: 8px 16px');
+});
+
+it('renders a visible placeholder for floating button elements in the embed panel', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::FloatingButton,
+        'config' => [
+            'button_text' => 'Support Us',
+            'position' => 'top-left',
+        ],
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->assertSee('ihsan-embed-placeholder')
+        ->assertSee('Ihsan Floating Button')
+        ->assertSee('Support Us')
+        ->assertSee('Top left corner');
 });
 
 it('does not show title and message fields for form elements', function () {
@@ -675,4 +790,26 @@ it('shows Donor Portal Button label in the element list', function () {
 
     Livewire::test(ElementIndex::class)
         ->assertSee('Donor Portal Button');
+});
+
+it('navigates to edit page when a row is clicked', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create();
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementIndex::class)
+        ->call('edit', $element->id)
+        ->assertRedirect(route('app.elements.edit', $element));
+});
+
+it('cannot navigate to edit page for element belonging to another org', function () {
+    $otherOrg = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($otherOrg)->create();
+    $element = Element::factory()->for($otherOrg)->for($campaign)->create();
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementIndex::class)
+        ->call('edit', $element->id)
+        ->assertForbidden();
 });

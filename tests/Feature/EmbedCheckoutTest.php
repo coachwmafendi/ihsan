@@ -53,7 +53,7 @@ it('renders element embed snippets from the first-party widget route', function 
         'element' => $element,
         'liveType' => 'button',
     ])->render())
-        ->toContain('https:\/\/ihsan.test\/e\/widget.js')
+        ->toContain('https://ihsan.test/e/widget.js')
         ->toContain('?v=')
         ->not->toContain('cdn.jsdelivr');
 

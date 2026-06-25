@@ -9,6 +9,7 @@ use App\Models\Campaign;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -26,6 +27,13 @@ class CampaignIndex extends Component
     public string $sortDirection = 'asc';
 
     public bool $showArchived = false;
+
+    public bool $showRenameModal = false;
+
+    public ?string $renameCampaignId = null;
+
+    #[Validate('required|string|max:255')]
+    public string $renameTitle = '';
 
     public function updatedSearch(): void
     {
@@ -145,6 +153,96 @@ class CampaignIndex extends Component
         }
 
         $this->redirectRoute('app.campaigns.edit', $campaign);
+    }
+
+    public function openRenameModal(string $publicId): void
+    {
+        $campaign = Campaign::query()
+            ->where('public_id', $publicId)
+            ->firstOrFail();
+
+        if ($campaign->organization_id !== $this->organization?->id) {
+            abort(403);
+        }
+
+        $this->authorize('update', $campaign);
+
+        $this->renameCampaignId = $publicId;
+        $this->renameTitle = $campaign->title;
+        $this->resetValidation();
+        $this->showRenameModal = true;
+    }
+
+    public function saveRename(): void
+    {
+        $this->validate();
+
+        $campaign = Campaign::query()
+            ->where('public_id', $this->renameCampaignId)
+            ->firstOrFail();
+
+        if ($campaign->organization_id !== $this->organization?->id) {
+            abort(403);
+        }
+
+        $this->authorize('update', $campaign);
+
+        $campaign->update([
+            'title' => $this->renameTitle,
+        ]);
+
+        $this->showRenameModal = false;
+        $this->renameCampaignId = null;
+        $this->renameTitle = '';
+        $this->dispatch('notify', message: 'Campaign renamed successfully.', variant: 'success');
+    }
+
+    public function clone(string $publicId): void
+    {
+        $campaign = Campaign::query()
+            ->where('public_id', $publicId)
+            ->firstOrFail();
+
+        if ($campaign->organization_id !== $this->organization?->id) {
+            abort(403);
+        }
+
+        $this->authorize('create', Campaign::class);
+
+        $copy = $campaign->replicate([
+            'public_id',
+            'slug',
+            'form_parameter',
+        ]);
+
+        $copy->title = $campaign->title.' (Copy)';
+        $copy->status = CampaignStatus::Draft;
+        $copy->collected_amount = 0;
+        $copy->milestones_notified = null;
+        $copy->save();
+
+        $this->dispatch('notify', message: 'Campaign duplicated successfully.', variant: 'success');
+
+        $this->redirectRoute('app.campaigns.edit', $copy);
+    }
+
+    public function disable(string $publicId): void
+    {
+        $campaign = Campaign::query()
+            ->where('public_id', $publicId)
+            ->firstOrFail();
+
+        if ($campaign->organization_id !== $this->organization?->id) {
+            abort(403);
+        }
+
+        $this->authorize('update', $campaign);
+
+        $campaign->update([
+            'status' => CampaignStatus::Paused,
+        ]);
+
+        $this->dispatch('notify', message: 'Campaign disabled successfully.', variant: 'success');
     }
 
     public function render()

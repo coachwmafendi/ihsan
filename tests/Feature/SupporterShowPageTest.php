@@ -40,6 +40,54 @@ it('renders the supporter detail page with sections and menus', function () {
         ->assertSee('Information');
 });
 
+it('renders donation date with malaysian time and payment method icon', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create([
+        'created_at' => now()->timezone('Asia/Kuala_Lumpur')->setTime(14, 30),
+        'payment_method_brand' => 'visa',
+        'payment_method_type' => 'card',
+    ]);
+
+    $expectedTime = myrTime($donation->created_at);
+
+    expect($donation->card_icon_component)->toBe('icons.visa');
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee($expectedTime);
+});
+
+it('shows installment number badge for recurring donations', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $subscription = Subscription::factory()->for($donor)->for($campaign)->create();
+
+    $firstDonation = Donation::factory()->for($donor)->for($campaign)->create([
+        'subscription_id' => $subscription->id,
+        'created_at' => now()->subDays(2),
+    ]);
+    $secondDonation = Donation::factory()->for($donor)->for($campaign)->create([
+        'subscription_id' => $subscription->id,
+        'created_at' => now()->subDay(),
+    ]);
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSeeHtml('1')
+        ->assertSeeHtml('2');
+});
+
 it('shows approximate myr lifetime total when foreign donations lack base amount', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([
@@ -207,7 +255,7 @@ it('opens the edit modal and saves the supporter details', function () {
         'role' => UserRole::NgoAdmin,
     ]);
     $campaign = Campaign::factory()->for($organization)->create();
-    $donor = Donor::factory()->create(['name' => 'Ali Abu', 'email' => 'ali@example.com']);
+    $donor = Donor::factory()->create(['first_name' => 'Ali', 'last_name' => 'Abu', 'email' => 'ali@example.com']);
     Donation::factory()->for($donor)->for($campaign)->create();
 
     $component = Livewire::actingAs($user)

@@ -432,7 +432,7 @@ it('captures attribution parameters in utm_params on donation creation', functio
     ])->test(DonationForm::class, ['element' => $element])
         ->set('frequency', 'one_time')
         ->set('amount', 50)
-        ->set('name', 'Test Donor')
+        ->set('firstName', 'Test Donor')
         ->set('email', 'attr@example.com')
         ->call('submit')
         ->assertHasNoErrors();

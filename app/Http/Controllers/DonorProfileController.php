@@ -38,7 +38,8 @@ class DonorProfileController extends Controller
 
         $data = request()->validate([
             'title' => 'nullable|string|max:10',
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'nullable|string|max:255',
             'occupation' => 'nullable|string|max:255',
             'email' => 'required|email|max:255|unique:donors,email,'.$donor->getKey(),
             'phone' => 'nullable|string|max:255',
@@ -78,7 +79,8 @@ class DonorProfileController extends Controller
                     : [];
 
                 Customer::update($donor->stripe_customer_id, [
-                    'name' => $data['name'],
+                    'first_name' => $donor->first_name,
+                    'last_name' => $donor->last_name,
                     'email' => $data['email'],
                     'phone' => $data['phone'] ?? '',
                     'address' => [

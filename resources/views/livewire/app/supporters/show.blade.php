@@ -210,10 +210,23 @@
                                             onclick="window.location='{{ route('app.donations.show', $donation) }}'"
                                         >
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}
+                                                {{ myrTime($donation->created_at) }}
                                             </td>
                                             <td class="px-4 py-3">
-                                                <x-donation-report-amount :donation="$donation" />
+                                                <div class="flex items-center gap-2">
+                                                    <x-donation-report-amount :donation="$donation" />
+                                                    <x-ui.tooltip :text="$donation->payment_method_display">
+                                                        <x-dynamic-component :component="$donation->card_icon_component" class="size-6 shrink-0" />
+                                                    </x-ui.tooltip>
+                                                    @if ($donation->installment_number !== null)
+                                                        <x-ui.tooltip :text="\Illuminate\Support\Number::ordinal($donation->installment_number).' Installment'">
+                                                            <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700">
+                                                                <x-heroicon-o-arrow-path class="size-3" />
+                                                                {{ $donation->installment_number }}
+                                                            </span>
+                                                        </x-ui.tooltip>
+                                                    @endif
+                                                </div>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-600">
                                                 @if ($donation->campaign)

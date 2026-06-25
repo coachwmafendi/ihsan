@@ -1032,15 +1032,15 @@
     link: renderLink,
   };
 
-  function findStaticButton(token) {
+  function findStaticElement(token) {
     var anchors = document.getElementsByTagName("a");
     for (var i = 0; i < anchors.length; i++) {
       var a = anchors[i];
       if (
         a.classList &&
-        a.classList.contains("ihsan-button") &&
+        (a.classList.contains("ihsan-button") || a.classList.contains("ihsan-link")) &&
         a.getAttribute("data-ihsan-token") === token &&
-        !a.getAttribute("data-ihsan-enhanced")
+        a.getAttribute("data-ihsan-enhanced") !== "true"
       ) {
         return a;
       }
@@ -1048,32 +1048,60 @@
     return null;
   }
 
-  function enhanceExistingButton(el) {
-    var anchor = findStaticButton(el.token);
-    if (!anchor) {
-      anchor = script.previousElementSibling;
-      if (anchor && anchor.tagName.toLowerCase() === "div") {
-        anchor = anchor.querySelector("a.ihsan-button");
+  function findStaticPlaceholder(token) {
+    var placeholders = document.getElementsByClassName("ihsan-embed-placeholder");
+    for (var i = 0; i < placeholders.length; i++) {
+      var p = placeholders[i];
+      if (p.getAttribute("data-ihsan-token") === token) {
+        return p;
       }
+    }
+    return null;
+  }
+
+  function enhanceExistingElement(el) {
+    var anchor = findStaticElement(el.token);
+    if (anchor) {
+      if (anchor.getAttribute("data-ihsan-enhanced") === "true") {
+        return;
+      }
+      anchor.setAttribute("data-ihsan-enhanced", "true");
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        handleClick(el);
+      });
+      hideEditorLabel(anchor);
+      return;
+    }
+
+    var fallback = script.previousElementSibling;
+    if (fallback && fallback.tagName.toLowerCase() === "div") {
+      var fallbackAnchor = fallback.querySelector("a.ihsan-button, a.ihsan-link");
       if (
-        !anchor ||
-        anchor.tagName.toLowerCase() !== "a" ||
-        !anchor.classList.contains("ihsan-button") ||
-        anchor.getAttribute("data-ihsan-token") !== el.token
+        fallbackAnchor &&
+        fallbackAnchor.tagName.toLowerCase() === "a" &&
+        (fallbackAnchor.classList.contains("ihsan-button") || fallbackAnchor.classList.contains("ihsan-link")) &&
+        fallbackAnchor.getAttribute("data-ihsan-token") === el.token &&
+        fallbackAnchor.getAttribute("data-ihsan-enhanced") !== "true"
       ) {
-        renderFromData(el);
+        fallbackAnchor.setAttribute("data-ihsan-enhanced", "true");
+        fallbackAnchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          handleClick(el);
+        });
+        hideEditorLabel(fallbackAnchor);
         return;
       }
     }
-    if (anchor.getAttribute("data-ihsan-enhanced") === "true") {
+
+    var placeholder = findStaticPlaceholder(el.token);
+    if (placeholder) {
+      placeholder.style.display = "none";
+      renderFromData(el);
       return;
     }
-    anchor.setAttribute("data-ihsan-enhanced", "true");
-    anchor.addEventListener("click", function (e) {
-      e.preventDefault();
-      handleClick(el);
-    });
-    hideEditorLabel(anchor);
+
+    renderFromData(el);
   }
 
   function hideEditorLabel(anchor) {
@@ -1115,7 +1143,7 @@
       if (!data) return;
       ready(function () {
         if (enhance) {
-          enhanceExistingButton(data);
+          enhanceExistingElement(data);
         } else {
           renderFromData(data);
         }

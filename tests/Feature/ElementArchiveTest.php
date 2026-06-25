@@ -118,3 +118,35 @@ it('toggleArchived switches between active and archived views', function () {
         ->assertSee($archived->name)
         ->assertDontSee($active->name);
 });
+
+it('can archive an element from the index', function () {
+    $org = Organization::factory()->create();
+    $user = User::factory()->for($org)->create();
+    $campaign = Campaign::factory()->for($org)->create();
+    $element = Element::factory()->for($org)->for($campaign)->create(['is_active' => true]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ElementIndex::class)
+        ->call('archive', $element->id)
+        ->assertDispatched('notify');
+
+    expect($element->fresh()->isArchived())->toBeTrue();
+    expect($element->fresh()->is_active)->toBeFalse();
+});
+
+it('cannot archive an element belonging to another org', function () {
+    $org = Organization::factory()->create();
+    $otherOrg = Organization::factory()->create();
+    $user = User::factory()->for($org)->create();
+    $campaign = Campaign::factory()->for($otherOrg)->create();
+    $element = Element::factory()->for($otherOrg)->for($campaign)->create(['is_active' => true]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ElementIndex::class)
+        ->call('archive', $element->id)
+        ->assertForbidden();
+
+    expect($element->fresh()->isArchived())->toBeFalse();
+});

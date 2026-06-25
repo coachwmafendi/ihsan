@@ -327,22 +327,16 @@
                                 <td class="px-5 py-4">
                                     @php
                                         $exact = $exactAmounts->get($donor->id, collect());
-                                        $exactLabel = $exact->isNotEmpty()
-                                            ? $exact->map(fn ($amount, $currency) => strtoupper($currency).' '.number_format((float) $amount, 2))->join(', ')
+                                        $exactNonMyr = $exact->filter(fn ($amount, $currency) => strtoupper($currency) !== 'MYR');
+                                        $tooltip = $exactNonMyr->isNotEmpty()
+                                            ? $exactNonMyr->map(fn ($amount, $currency) => strtoupper($currency).' '.number_format((float) $amount, 2))->join(', ')
                                             : null;
-                                        $tooltip = $exactLabel;
-                                    @endphp
-                                    @php
                                         $showApprox = $donor->has_report_approximation;
                                         $prefix = $showApprox ? '≈ ' : '';
                                     @endphp
-                                    @if ($tooltip)
-                                        <x-ui.tooltip :text="$tooltip">
-                                    @endif
+                                    <x-ui.tooltip :disabled="filled($tooltip) === false" :text="$tooltip">
                                         <span class="text-sm font-semibold text-slate-900">{{ $prefix }}MYR {{ number_format((float) $donor->lifetime_report_amount, 2) }}</span>
-                                    @if ($tooltip)
-                                        </x-ui.tooltip>
-                                    @endif
+                                    </x-ui.tooltip>
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
                                     {{ $donor->donations_min_created_at ? myrTime(\Carbon\Carbon::parse($donor->donations_min_created_at), withLabel: false, format: 'M d, Y') : '-' }}

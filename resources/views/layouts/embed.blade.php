@@ -36,5 +36,7 @@
             var ihsanResizeObserver = new ResizeObserver(ihsanSendHeight);
             ihsanResizeObserver.observe(document.body);
         </script>
+
+        @include('partials.donation-step')
     </body>
 </html>

@@ -160,7 +160,8 @@ class CreateRecurringSubscription
 
         $customerParams = [
             'email' => $donorEmail,
-            'name' => $donation->donor?->name,
+            'first_name' => $donation->donor?->first_name,
+            'last_name' => $donation->donor?->last_name,
             'metadata' => $organization !== null
                 ? StripeMetadata::forDonorCustomer(
                     donor: $donation->donor,
