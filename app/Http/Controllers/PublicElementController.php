@@ -190,6 +190,7 @@ class PublicElementController extends Controller
                 $response['campaign_image_url'] = route('donations.campaign-image-campaign', [
                     'campaign' => $element->campaign,
                     'variant' => 'modal',
+                    'v' => hash('xxh32', $element->campaign->image_path),
                 ]);
             }
         }

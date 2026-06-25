@@ -85,7 +85,7 @@ it('returns an optimized campaign image url for widget preloading', function () 
         ->assertOk()
         ->assertJsonPath(
             'campaign_image_url',
-            url('/donate/campaign/IMAGE2026/image?variant=modal')
+            url('/donate/campaign/IMAGE2026/image?variant=modal&v=6b77d42f')
         );
 });
 

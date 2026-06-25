@@ -36,7 +36,13 @@
                     stepErrors: {},
                     cardError: '',
 
-                    get fixedFee() { return this.feeConfig[this.currency] ?? 0.50; },
+                    get feeRate() { return this.feeConfig[this.currency]?.percent ?? 0.055; },
+                    get fixedFee() { return this.feeConfig[this.currency]?.fixed ?? 1.00; },
+                    get estimatedFeeAmount() {
+                        const amount = parseFloat(this.amount) || 0;
+                        if (amount <= 0) return '0.00';
+                        return (amount * this.feeRate + this.fixedFee).toFixed(2);
+                    },
                     get currentAmounts() { return this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts; },
                     get progressWidth() {
                         if (!this.targetAmount || this.targetAmount <= 0) return 0;
@@ -194,6 +200,13 @@
                         }, { eventID: 'purchase_' + this.donationPublicId });
                     },
                     prevStep() { if (this.currentStep > 1) this.currentStep--; },
+                    waitForReadyPaint() {
+                        return new Promise((resolve) => {
+                            requestAnimationFrame(() => {
+                                requestAnimationFrame(resolve);
+                            });
+                        });
+                    },
                     async init() {
                         this.campaignPublicId = this.$el.dataset.campaignPublicId || '';
                         this.raisedAmount = parseFloat($wire.campaignCollectedAmount) || 0;
@@ -211,6 +224,14 @@
                         stripe = connectedStripeAccountId
                             ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
                             : Stripe(window.stripePublishableKey);
+
+                        if (this.isPopup || this.isEmbed) {
+                            await this.waitForReadyPaint();
+
+                            requestAnimationFrame(() => {
+                                window.parent.postMessage({ type: 'ihsan:donation-ready' }, '*');
+                            });
+                        }
                     },
                     async handleSubmit() {
                         if (this.processing) return;

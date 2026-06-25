@@ -238,7 +238,7 @@
     }
 
     iframe.addEventListener("load", function () {
-      setTimeout(hideSkeleton, 9000);
+      setTimeout(hideSkeleton, 5000);
     });
 
     function modalMessageHandler(e) {

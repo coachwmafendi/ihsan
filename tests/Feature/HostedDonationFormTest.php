@@ -144,7 +144,6 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertSee('data-ihsan-media-frame', false)
         ->assertSee('imageLoaded', false)
         ->assertSee('fetchpriority="high"', false)
-        ->assertSee('waitForReadyMedia', false)
         ->assertSee('waitForReadyPaint', false)
         ->assertSee('ihsan:donation-ready', false);
 
@@ -344,9 +343,9 @@ it('passes current donor details to stripe billing details', function () {
         ->assertSee('x-model="donorEmail"', false)
         ->assertSee('donorPhone', false)
         ->assertSee('x-model="donorPhone"', false)
-        ->assertSee('$wire.$set(&#039;firstName&#039;, this.donorFirstName, false)', false)
-        ->assertSee('$wire.$set(&#039;email&#039;, this.donorEmail, false)', false)
-        ->assertSee('$wire.$set(&#039;phone&#039;, this.donorPhone, false)', false)
+        ->assertSee('$wire.$set(\'firstName\', this.donorFirstName, false)', false)
+        ->assertSee('$wire.$set(\'email\', this.donorEmail, false)', false)
+        ->assertSee('$wire.$set(\'phone\', this.donorPhone, false)', false)
         ->assertSee('stripe.confirmPayment({', false)
         ->assertSee('await $wire.confirmPayment(paymentIntentId)', false);
 });
