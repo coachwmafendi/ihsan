@@ -6,8 +6,10 @@ namespace App\Actions\Chip;
 
 use App\Enums\DonationStatus;
 use App\Models\Donation;
+use App\Models\Organization;
 use App\Models\ProcessingFee;
 use Chip\Exception\ChipApiException;
+use InvalidArgumentException;
 use RuntimeException;
 
 final class SyncDonationDetails
@@ -20,29 +22,45 @@ final class SyncDonationDetails
 
         $donation->load('campaign.organization');
 
-        $organization = $donation->campaign->organization;
-        $chip = ChipApiFactory::make($organization);
+        $organization = $donation->campaign?->organization;
+
+        if (! $organization instanceof Organization) {
+            throw new RuntimeException('Donation is not linked to an organization.');
+        }
 
         try {
+            $chip = ChipApiFactory::make($organization);
             $purchase = $chip->purchases->get($donation->chip_purchase_id);
+        } catch (InvalidArgumentException $e) {
+            report($e);
+
+            throw new RuntimeException('Failed to initialize CHIP client: '.$e->getMessage(), previous: $e);
         } catch (ChipApiException $e) {
             report($e);
 
             throw new RuntimeException('Failed to sync CHIP donation details: '.$e->getMessage(), previous: $e);
         }
 
-        $feePercent = $organization->processing_fee_override
-            ?? config('services.chip.processing_fee_percent');
+        $status = $this->mapStatus($purchase->status ?? '');
+        $paymentMethod = $this->extractPaymentMethodBrand($purchase);
 
-        $processingFeeCents = (int) round(((float) $donation->gross_amount) * ($feePercent / 100) * 100);
-        $processingFee = $processingFeeCents / 100;
+        $processingFee = 0.0;
+        $feePercent = 0.0;
+
+        if ($status === DonationStatus::Succeeded) {
+            [$processingFee, $feePercent] = $this->calculateProcessingFee($donation, $paymentMethod, $organization);
+        }
 
         $donation->update([
-            'status' => $this->mapStatus($purchase->status ?? ''),
+            'status' => $status,
             'processing_fee' => $processingFee,
             'net_amount' => ((float) $donation->gross_amount) - $processingFee,
-            'payment_method_brand' => $this->extractPaymentMethodBrand($purchase),
+            'payment_method_brand' => $paymentMethod,
         ]);
+
+        if ($status !== DonationStatus::Succeeded) {
+            return;
+        }
 
         ProcessingFee::updateOrCreate(
             ['donation_id' => $donation->id],
@@ -79,10 +97,36 @@ final class SyncDonationDetails
             return $transactionData->payment_method;
         }
 
-        if (isset($purchase->purchase->payment_method_details) && is_object($purchase->purchase->payment_method_details)) {
-            return $purchase->purchase->payment_method_details->payment_method ?? null;
+        return null;
+    }
+
+    /**
+     * @return array{0: float, 1: float}
+     */
+    private function calculateProcessingFee(Donation $donation, ?string $paymentMethod, Organization $organization): array
+    {
+        $grossAmount = (float) $donation->gross_amount;
+
+        if ($this->isFpx($paymentMethod)) {
+            if (config('services.chip.fpx_fee_type') === 'fixed') {
+                $feeAmount = ((int) config('services.chip.fpx_fee_amount')) / 100;
+
+                return [round($feeAmount, 2), 0.0];
+            }
+
+            $feePercent = (float) config('services.chip.fpx_fee_amount');
+
+            return [round($grossAmount * ($feePercent / 100), 2), $feePercent];
         }
 
-        return null;
+        $feePercent = $organization->processing_fee_override ?? config('services.chip.processing_fee_percent');
+        $feeAmount = round($grossAmount * ($feePercent / 100), 2);
+
+        return [$feeAmount, (float) $feePercent];
+    }
+
+    private function isFpx(?string $paymentMethod): bool
+    {
+        return $paymentMethod !== null && str_contains(strtolower($paymentMethod), 'fpx');
     }
 }

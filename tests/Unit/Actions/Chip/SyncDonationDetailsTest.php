@@ -126,6 +126,9 @@ it('maps chip statuses to donation statuses correctly', function (string $chipSt
 
     expect($freshDonation->status)->toBe($expectedStatus)
         ->and($freshDonation->payment_method_brand)->toBe($chipStatus === 'created' ? 'fpx' : 'visa');
+
+    expect(ProcessingFee::where('donation_id', $donation->id)->exists())
+        ->toBe($expectedStatus === DonationStatus::Succeeded);
 })->with([
     'paid' => ['paid', DonationStatus::Succeeded],
     'cleared' => ['cleared', DonationStatus::Succeeded],
@@ -141,7 +144,63 @@ it('maps chip statuses to donation statuses correctly', function (string $chipSt
     'created' => ['created', DonationStatus::Pending],
 ]);
 
-it('falls back to purchase payment_method_details when transaction_data is absent', function () {
+it('throws runtime exception when chip api request fails', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donation = Donation::factory()->for($campaign)->create([
+        'currency' => 'MYR',
+        'gross_amount' => 100.00,
+        'chip_purchase_id' => 'PURCHASE123',
+    ]);
+
+    $mockHandler = new MockHandler([
+        new Response(400, [], json_encode(['error' => 'invalid_request'])),
+    ]);
+    $handlerStack = HandlerStack::create($mockHandler);
+
+    $chipApi = new ChipApi(
+        brandId: $organization->chip_brand_id,
+        apiKey: $organization->chip_api_key,
+        config: ['handler' => $handlerStack],
+    );
+
+    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
+    $factory->shouldReceive('make')->once()->andReturn($chipApi);
+
+    expect(fn () => app(SyncDonationDetails::class)->sync($donation))
+        ->toThrow(RuntimeException::class, 'Failed to sync CHIP donation details');
+});
+
+it('throws runtime exception when chip client cannot be initialized', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donation = Donation::factory()->for($campaign)->create([
+        'currency' => 'MYR',
+        'gross_amount' => 100.00,
+        'chip_purchase_id' => 'PURCHASE123',
+    ]);
+
+    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
+    $factory->shouldReceive('make')
+        ->once()
+        ->andThrow(new InvalidArgumentException('Organization is not CHIP onboarded.'));
+
+    expect(fn () => app(SyncDonationDetails::class)->sync($donation))
+        ->toThrow(RuntimeException::class, 'Failed to initialize CHIP client');
+});
+
+it('calculates fixed fpx processing fee', function () {
+    config([
+        'services.chip.fpx_fee_type' => 'fixed',
+        'services.chip.fpx_fee_amount' => 150,
+    ]);
+
     $organization = Organization::factory()->create([
         'chip_brand_id' => 'BRAND123',
         'chip_api_key' => 'secret',
@@ -157,10 +216,8 @@ it('falls back to purchase payment_method_details when transaction_data is absen
         new Response(200, [], json_encode([
             'id' => 'PURCHASE123',
             'status' => 'paid',
-            'purchase' => [
-                'payment_method_details' => [
-                    'payment_method' => 'mastercard',
-                ],
+            'transaction_data' => [
+                'payment_method' => 'fpx',
             ],
         ])),
     ]);
@@ -177,5 +234,16 @@ it('falls back to purchase payment_method_details when transaction_data is absen
 
     app(SyncDonationDetails::class)->sync($donation);
 
-    expect($donation->fresh()->payment_method_brand)->toBe('mastercard');
+    $donation = $donation->fresh();
+
+    expect($donation->status)->toBe(DonationStatus::Succeeded)
+        ->and($donation->processing_fee)->toBe('1.50')
+        ->and($donation->net_amount)->toBe('98.50')
+        ->and($donation->payment_method_brand)->toBe('fpx');
+
+    $fee = ProcessingFee::where('donation_id', $donation->id)->firstOrFail();
+
+    expect($fee->fee_amount)->toBe('1.50')
+        ->and($fee->fee_percentage)->toBe('0.00')
+        ->and($fee->status)->toBe('pending');
 });

@@ -27,6 +27,18 @@ it('throws exception for a non-recurring donation', function () {
     app(CreateRecurringPlan::class)->create($donation, 'token123');
 })->throws(InvalidArgumentException::class, 'Donation must be recurring to create a CHIP recurring plan.');
 
+it('throws exception for a non-succeeded donation', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::Recurring,
+    ]);
+
+    app(CreateRecurringPlan::class)->create($donation, 'token123');
+})->throws(InvalidArgumentException::class, 'Donation must be succeeded to create a CHIP recurring plan.');
+
 it('creates a subscription from a chip recurring token and links the source donation', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();
