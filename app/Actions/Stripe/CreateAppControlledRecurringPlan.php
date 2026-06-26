@@ -25,6 +25,12 @@ class CreateAppControlledRecurringPlan
     {
         $donation->loadMissing('campaign.organization', 'donor');
 
+        $donor = $donation->donor;
+
+        if ($donor === null) {
+            throw new \RuntimeException('Donation has no donor.');
+        }
+
         $paymentMethodId = is_string($paymentIntent->payment_method ?? null)
             ? $paymentIntent->payment_method
             : ($paymentIntent->payment_method->id ?? null);
@@ -37,12 +43,6 @@ class CreateAppControlledRecurringPlan
 
         $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
         $paymentMethod->attach(['customer' => $customerId], $stripeOptions);
-
-        $donor = $donation->donor;
-
-        if ($donor === null) {
-            throw new \RuntimeException('Donation has no donor.');
-        }
 
         $donorPaymentMethod = $this->syncDonorPaymentMethod($donor, $paymentMethod);
 
