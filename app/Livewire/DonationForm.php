@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Actions\Stripe\CreateAppControlledRecurringPlan;
 use App\Actions\Stripe\CreatePaymentIntent;
 use App\Actions\Stripe\CreateRecurringSubscription;
 use App\Actions\Stripe\SyncDonationStripeDetails;
@@ -26,6 +27,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
+use App\Models\Subscription;
 use App\Services\DonationFeeEstimator;
 use App\Services\FraudDetectionService;
 use App\Services\TrackingScriptService;
@@ -303,7 +305,7 @@ class DonationForm extends Component
                     && $donation->subscription_id === null;
 
                 if ($isNewSubscription) {
-                    $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
+                    $subscription = $this->createRecurringPlan($donation, $paymentIntent, $stripeOptions);
 
                     if ($subscription->wasRecentlyCreated) {
                         SendNewSubscriptionNotification::dispatch($donation);
@@ -349,6 +351,18 @@ class DonationForm extends Component
         }
 
         return ['stripe_account' => $organization->stripe_account_id];
+    }
+
+    /**
+     * @param  array<string, string>  $stripeOptions
+     */
+    private function createRecurringPlan(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions): Subscription
+    {
+        if (config('services.recurring.use_app_controlled', true)) {
+            return app(CreateAppControlledRecurringPlan::class)->create($donation, $paymentIntent, $stripeOptions);
+        }
+
+        return app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
     }
 
     #[Renderless]

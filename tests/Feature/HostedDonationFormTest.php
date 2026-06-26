@@ -465,6 +465,8 @@ it('creates a pending donation from the embedded form and keeps the compact layo
 });
 
 it('confirms a recurring payment and creates a subscription', function () {
+    config(['services.recurring.use_app_controlled' => false]);
+
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();
     $element = Element::factory()->for($organization)->for($campaign)->create([

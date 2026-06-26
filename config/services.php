@@ -46,6 +46,7 @@ return [
     ],
 
     'recurring' => [
+        'use_app_controlled' => env('RECURRING_USE_APP_CONTROLLED', true),
         'retry_intervals_days' => [1, 3, 7, 7],
         'max_failed_installments' => 6,
     ],

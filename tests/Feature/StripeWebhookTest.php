@@ -145,6 +145,7 @@ it('does not process the same completed payment intent webhook twice', function 
 it('creates recurring subscriptions in the connected account from payment intent webhooks', function () {
     Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendNewSubscriptionNotification::class, SendDonorNewSubscriptionNotification::class, SendLargeDonationNotification::class]);
     config(['services.stripe.secret' => 'sk_test_fake']);
+    config(['services.recurring.use_app_controlled' => false]);
 
     $stripeClient = new class implements ClientInterface
     {
@@ -826,6 +827,7 @@ it('does not duplicate recurring donation notifications when invoice paid webhoo
 it('stores recurring fee cover details on subscription creation', function () {
     Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendNewSubscriptionNotification::class, SendDonorNewSubscriptionNotification::class, SendLargeDonationNotification::class]);
     config(['services.stripe.secret' => 'sk_test_fake']);
+    config(['services.recurring.use_app_controlled' => false]);
 
     $organization = Organization::factory()->create([
         'stripe_account_id' => 'acct_fee_cover_test',

@@ -166,6 +166,8 @@ it('creates only one local subscription when CreateRecurringSubscription is call
 });
 
 it('does not create duplicate subscriptions when donation form and webhook both process the same recurring donation', function (): void {
+    config(['services.recurring.use_app_controlled' => false]);
+
     $donor = Donor::factory()->create();
     $stripeClient = fakeStripeClientForSubscriptionCreation($donor->email, 'pi_duplicate_race_test');
     ApiRequestor::setHttpClient($stripeClient);
