@@ -200,6 +200,10 @@
     function hideSkeleton() {
       if (skeletonHidden) return;
       skeletonHidden = true;
+      if (skeletonFallbackTimer) {
+        clearTimeout(skeletonFallbackTimer);
+        skeletonFallbackTimer = null;
+      }
       iframe.style.opacity = "1";
       skeleton.style.opacity = "0";
       setTimeout(function () {
@@ -252,8 +256,20 @@
       overlay.remove();
     }
 
+    // Hide the skeleton as soon as the donation form reports it is ready.
+    // The iframe load event gives us the rendered HTML quickly, but we wait
+    // for the child frame's "ready" signal so Stripe/Alpine are initialised.
+    // A fallback ensures the skeleton never traps the user if the message
+    // cannot be received (cross-origin blocks, script errors, etc.).
+    var skeletonFallbackTimer = setTimeout(hideSkeleton, 6000);
+
     iframe.addEventListener("load", function () {
-      setTimeout(hideSkeleton, 2000);
+      // The frame document loaded. If the child hasn't signalled readiness yet,
+      // show the real UI after a very brief grace to avoid a jarring flash of
+      // partially-initialised content.
+      if (skeletonHidden) return;
+      if (skeletonFallbackTimer) clearTimeout(skeletonFallbackTimer);
+      skeletonFallbackTimer = setTimeout(hideSkeleton, 350);
     });
 
     function modalMessageHandler(e) {
