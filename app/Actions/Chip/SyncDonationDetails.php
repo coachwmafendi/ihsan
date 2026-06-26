@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Actions\Chip;
 
+use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\ProcessingFee;
+use Chip\Model\Purchase;
 
 final class SyncDonationDetails
 {
@@ -25,10 +27,10 @@ final class SyncDonationDetails
         $processingFee = $processingFeeCents / 100;
 
         $donation->update([
-            'status' => $purchase->status === 'paid' ? 'succeeded' : $purchase->status,
+            'status' => $this->mapStatus($purchase->status ?? ''),
             'processing_fee' => $processingFee,
             'net_amount' => ((float) $donation->gross_amount) - $processingFee,
-            'payment_method_brand' => property_exists($purchase, 'payment_method') ? $purchase->payment_method : null,
+            'payment_method_brand' => $this->extractPaymentMethodBrand($purchase),
         ]);
 
         ProcessingFee::updateOrCreate(
@@ -40,5 +42,28 @@ final class SyncDonationDetails
                 'status' => 'pending',
             ]
         );
+    }
+
+    private function mapStatus(string $chipStatus): DonationStatus
+    {
+        return match ($chipStatus) {
+            'paid', 'captured' => DonationStatus::Succeeded,
+            'failed', 'expired' => DonationStatus::Failed,
+            'cancelled' => DonationStatus::Cancelled,
+            default => DonationStatus::Pending,
+        };
+    }
+
+    private function extractPaymentMethodBrand(Purchase $purchase): ?string
+    {
+        if (isset($purchase->payment) && ! empty($purchase->payment->payment_type)) {
+            return $purchase->payment->payment_type;
+        }
+
+        if (isset($purchase->purchase->payment_method_details) && is_object($purchase->purchase->payment_method_details)) {
+            return $purchase->purchase->payment_method_details->payment_type ?? null;
+        }
+
+        return null;
     }
 }

@@ -28,7 +28,7 @@ it('creates a chip purchase and stores checkout url', function () {
     $donor = Donor::factory()->create();
     $donation = Donation::factory()->for($campaign)->for($donor)->create([
         'currency' => 'MYR',
-        'gross_amount' => 100.00,
+        'gross_amount' => 19.99,
     ]);
 
     $requestHistory = [];
@@ -64,5 +64,5 @@ it('creates a chip purchase and stores checkout url', function () {
 
     expect($requestHistory)->toHaveCount(1);
     $requestBody = json_decode((string) $requestHistory[0]['request']->getBody(), true);
-    expect($requestBody['purchase']['products'][0]['price'])->toBe(10000);
+    expect($requestBody['purchase']['products'][0]['price'])->toBe(1999);
 });
