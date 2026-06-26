@@ -125,9 +125,14 @@ class SupporterSubscriptionAmountChangedNotification extends Mailable
     private function intervalShortLabel(SubscriptionInterval $interval, string $locale): string
     {
         return match ($interval) {
-            SubscriptionInterval::Monthly => trans('emails.donor_recurring_payment.upgrade_interval_short_monthly', [], $locale),
             SubscriptionInterval::Weekly => trans('emails.donor_recurring_payment.upgrade_interval_short_weekly', [], $locale),
+            SubscriptionInterval::Biweekly => trans('emails.donor_recurring_payment.upgrade_interval_short_biweekly', [], $locale),
+            SubscriptionInterval::Monthly => trans('emails.donor_recurring_payment.upgrade_interval_short_monthly', [], $locale),
+            SubscriptionInterval::Bimonthly => trans('emails.donor_recurring_payment.upgrade_interval_short_bimonthly', [], $locale),
+            SubscriptionInterval::Quarterly => trans('emails.donor_recurring_payment.upgrade_interval_short_quarterly', [], $locale),
+            SubscriptionInterval::Semiannual => trans('emails.donor_recurring_payment.upgrade_interval_short_semiannual', [], $locale),
             SubscriptionInterval::Yearly => trans('emails.donor_recurring_payment.upgrade_interval_short_yearly', [], $locale),
+            default => trans('emails.donor_recurring_payment.upgrade_interval_short_default', ['interval' => $interval->value], $locale),
         };
     }
 }

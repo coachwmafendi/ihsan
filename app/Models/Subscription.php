@@ -23,6 +23,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property int $id
  * @property int $campaign_id
  * @property int $donor_id
+ * @property int|null $donor_payment_method_id
  * @property string|null $stripe_subscription_id
  * @property string|null $stripe_price_id
  * @property numeric $amount
@@ -30,13 +31,17 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property SubscriptionInterval $interval
  * @property SubscriptionStatus $status
  * @property int $retry_count
+ * @property int $payment_count
+ * @property int $failed_installment_count
  * @property CarbonImmutable|null $current_period_start
  * @property CarbonImmutable|null $current_period_end
+ * @property CarbonImmutable|null $next_charge_at
+ * @property CarbonImmutable|null $last_charge_at
+ * @property CarbonImmutable|null $last_charge_attempt_at
  * @property CarbonImmutable|null $paused_until
  * @property CarbonImmutable|null $cancelled_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
- * @property int $payment_count
  * @property bool $cancel_at_period_end
  * @property bool $cover_fee
  * @property numeric|null $fee_cover_amount
@@ -52,6 +57,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property-read Collection<int, Donation> $donations
  * @property-read int|null $donations_count
  * @property-read Donor $donor
+ * @property-read DonorPaymentMethod|null $donorPaymentMethod
  *
  * @method static \Database\Factories\SubscriptionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription newModelQuery()
@@ -82,7 +88,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['campaign_id', 'donor_id', 'source', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'cancel_at_period_end', 'cover_fee', 'fee_cover_amount', 'cancel_at', 'max_plan_amount', 'max_plan_installments', 'current_period_start', 'current_period_end', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
+#[Fillable(['campaign_id', 'donor_id', 'donor_payment_method_id', 'source', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'failed_installment_count', 'cancel_at_period_end', 'cover_fee', 'fee_cover_amount', 'cancel_at', 'max_plan_amount', 'max_plan_installments', 'current_period_start', 'current_period_end', 'next_charge_at', 'last_charge_at', 'last_charge_attempt_at', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */
@@ -121,6 +127,11 @@ class Subscription extends Model
         return $this->belongsTo(Donor::class);
     }
 
+    public function donorPaymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(DonorPaymentMethod::class);
+    }
+
     public function donations(): HasMany
     {
         return $this->hasMany(Donation::class);
@@ -155,9 +166,14 @@ class Subscription extends Model
             'amount' => 'decimal:2',
             'retry_count' => 'integer',
             'payment_count' => 'integer',
+            'failed_installment_count' => 'integer',
+            'donor_payment_method_id' => 'integer',
             'cancel_at_period_end' => 'boolean',
             'current_period_start' => 'datetime',
             'current_period_end' => 'datetime',
+            'next_charge_at' => 'datetime',
+            'last_charge_at' => 'datetime',
+            'last_charge_attempt_at' => 'datetime',
             'paused_until' => 'datetime',
             'cancelled_at' => 'datetime',
             'cancel_at' => 'datetime',

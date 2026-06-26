@@ -72,6 +72,10 @@ return [
         'upgrade_interval_short_monthly' => 'mo',
         'upgrade_interval_short_weekly' => 'wk',
         'upgrade_interval_short_yearly' => 'yr',
+        'upgrade_interval_short_biweekly' => '2 weeks',
+        'upgrade_interval_short_bimonthly' => '2 months',
+        'upgrade_interval_short_quarterly' => '3 months',
+        'upgrade_interval_short_semiannual' => '6 months',
         'upgrade_interval_short_default' => ':interval',
     ],
 
