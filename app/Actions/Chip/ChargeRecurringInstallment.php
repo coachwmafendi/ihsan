@@ -9,6 +9,7 @@ use App\Enums\DonationType;
 use App\Models\Subscription;
 use Chip\Builder\PurchaseBuilder;
 use Chip\Exception\ChipApiException;
+use Illuminate\Support\Facades\Route;
 use RuntimeException;
 
 final class ChargeRecurringInstallment
@@ -35,15 +36,19 @@ final class ChargeRecurringInstallment
 
         $chip = ChipApiFactory::make($organization);
 
-        $purchase = PurchaseBuilder::create()
+        $builder = PurchaseBuilder::create()
             ->brandId($organization->chip_brand_id)
             ->currency($subscription->currency)
             ->language('en')
             ->clientEmail($donor->email)
             ->clientFullName($donor->name)
-            ->addProduct($subscription->campaign->title, (int) round((float) $subscription->amount * 100))
-            ->successCallback(route('chip.webhook'))
-            ->build();
+            ->addProduct($subscription->campaign->title, (int) round((float) $subscription->amount * 100));
+
+        if (Route::has('chip.webhook')) {
+            $builder = $builder->successCallback(route('chip.webhook'));
+        }
+
+        $purchase = $builder->build();
 
         try {
             $createdPurchase = $chip->purchases->create($purchase);
