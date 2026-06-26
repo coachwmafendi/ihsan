@@ -19,6 +19,25 @@ pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
 afterEach(fn () => Mockery::close());
 
+it('returns early when chip_purchase_id is blank', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donation = Donation::factory()->for($campaign)->create([
+        'chip_purchase_id' => null,
+    ]);
+
+    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
+    $factory->shouldNotReceive('make');
+
+    app(SyncDonationDetails::class)->sync($donation);
+
+    expect($donation->fresh()->status)->toBe($donation->getOriginal('status'));
+    expect(ProcessingFee::where('donation_id', $donation->id)->exists())->toBeFalse();
+});
+
 it('syncs chip donation details and creates processing fee', function () {
     $organization = Organization::factory()->create([
         'chip_brand_id' => 'BRAND123',

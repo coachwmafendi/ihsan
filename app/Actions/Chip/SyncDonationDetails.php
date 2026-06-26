@@ -7,17 +7,29 @@ namespace App\Actions\Chip;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\ProcessingFee;
+use Chip\Exception\ChipApiException;
+use RuntimeException;
 
 final class SyncDonationDetails
 {
     public function sync(Donation $donation): void
     {
+        if (blank($donation->chip_purchase_id)) {
+            return;
+        }
+
         $donation->load('campaign.organization');
 
         $organization = $donation->campaign->organization;
         $chip = ChipApiFactory::make($organization);
 
-        $purchase = $chip->purchases->get($donation->chip_purchase_id);
+        try {
+            $purchase = $chip->purchases->get($donation->chip_purchase_id);
+        } catch (ChipApiException $e) {
+            report($e);
+
+            throw new RuntimeException('Failed to sync CHIP donation details: '.$e->getMessage(), previous: $e);
+        }
 
         $feePercent = $organization->processing_fee_override
             ?? config('services.chip.processing_fee_percent');
@@ -38,6 +50,8 @@ final class SyncDonationDetails
                 'organization_id' => $organization->id,
                 'fee_amount' => $processingFee,
                 'fee_percentage' => $feePercent,
+                // CHIP does not support an upfront marketplace split like Stripe Connect,
+                // so the platform invoices the organization later and the fee stays pending.
                 'status' => 'pending',
             ]
         );

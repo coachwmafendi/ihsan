@@ -15,6 +15,18 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
+it('throws exception for a non-recurring donation', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::OneTime,
+    ]);
+
+    app(CreateRecurringPlan::class)->create($donation, 'token123');
+})->throws(InvalidArgumentException::class, 'Donation must be recurring to create a CHIP recurring plan.');
+
 it('creates a subscription from a chip recurring token and links the source donation', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();
