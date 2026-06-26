@@ -27,7 +27,7 @@ final class CreatePurchase
             ->language('en')
             ->clientEmail($donor->email)
             ->clientFullName($donor->name)
-            ->addProduct($campaign->title, (int) $donation->gross_amount)
+            ->addProduct($campaign->title, (int) (((float) $donation->gross_amount + (float) ($donation->donor_fee_covered ?? 0)) * 100))
             ->successRedirect(route('chip.callback', ['donation' => $donation->public_id, 'status' => 'success']))
             ->failureRedirect(route('chip.callback', ['donation' => $donation->public_id, 'status' => 'failure']))
             ->successCallback(route('chip.webhook'))
@@ -37,7 +37,7 @@ final class CreatePurchase
             $result = $chip->purchases->create($purchase);
         } catch (ChipApiException $e) {
             report($e);
-            throw new RuntimeException('Failed to create CHIP purchase: '.$e->getMessage());
+            throw new RuntimeException('Failed to create CHIP purchase: '.$e->getMessage(), previous: $e);
         }
 
         $donation->update([

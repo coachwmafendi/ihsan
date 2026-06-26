@@ -9,6 +9,7 @@ use App\Models\Organization;
 use Chip\ChipApi;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
@@ -27,9 +28,10 @@ it('creates a chip purchase and stores checkout url', function () {
     $donor = Donor::factory()->create();
     $donation = Donation::factory()->for($campaign)->for($donor)->create([
         'currency' => 'MYR',
-        'gross_amount' => 10000,
+        'gross_amount' => 100.00,
     ]);
 
+    $requestHistory = [];
     $mockHandler = new MockHandler([
         new Response(200, [], json_encode([
             'id' => 'PURCHASE123',
@@ -37,6 +39,7 @@ it('creates a chip purchase and stores checkout url', function () {
         ])),
     ]);
     $handlerStack = HandlerStack::create($mockHandler);
+    $handlerStack->push(Middleware::history($requestHistory));
 
     $chipApi = new ChipApi(
         brandId: $organization->chip_brand_id,
@@ -58,4 +61,8 @@ it('creates a chip purchase and stores checkout url', function () {
     expect($checkoutUrl)->toBe('https://gate.chip-in.asia/pay/PURCHASE123');
     expect($donation->fresh()->chip_purchase_id)->toBe('PURCHASE123');
     expect($donation->fresh()->chip_checkout_url)->toBe('https://gate.chip-in.asia/pay/PURCHASE123');
+
+    expect($requestHistory)->toHaveCount(1);
+    $requestBody = json_decode((string) $requestHistory[0]['request']->getBody(), true);
+    expect($requestBody['purchase']['products'][0]['price'])->toBe(10000);
 });
