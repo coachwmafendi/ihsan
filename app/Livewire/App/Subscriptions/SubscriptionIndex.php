@@ -8,6 +8,7 @@ use App\Enums\SubscriptionStatus;
 use App\Http\Controllers\SubscriptionExportController;
 use App\Models\Campaign;
 use App\Models\Subscription;
+use App\Services\SubscriptionSchedule;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -262,11 +263,7 @@ class SubscriptionIndex extends Component
         $total = 0.0;
 
         foreach ($subscriptions as $subscription) {
-            $monthlyFactor = match ($subscription->interval->value) {
-                'weekly' => 52 / 12,
-                'yearly' => 1 / 12,
-                default => 1.0,
-            };
+            $monthlyFactor = SubscriptionSchedule::monthlyFactor($subscription->interval);
 
             $latestDonation = $subscription->donations->first();
             $exchangeRate = strtolower($subscription->currency) === 'myr'

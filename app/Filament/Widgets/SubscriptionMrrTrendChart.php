@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Enums\SubscriptionStatus;
 use App\Models\Subscription;
+use App\Services\SubscriptionSchedule;
 use Filament\Widgets\ChartWidget;
 
 class SubscriptionMrrTrendChart extends ChartWidget
@@ -26,11 +27,7 @@ class SubscriptionMrrTrendChart extends ChartWidget
 
         $monthly = $subscriptions->groupBy(fn ($s) => $s->created_at->format('Y-m'))
             ->map(fn ($group) => $group->sum(function ($s) {
-                return match ($s->interval->value) {
-                    'weekly' => $s->amount * 4.33,
-                    'yearly' => $s->amount / 12,
-                    default => $s->amount,
-                };
+                return $s->amount * SubscriptionSchedule::monthlyFactor($s->interval);
             }));
 
         $labels = collect(range(11, 0))->map(fn (int $i) => now()->subMonths($i)->format('M Y'));

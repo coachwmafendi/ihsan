@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
-use App\Enums\SubscriptionInterval;
 use App\Http\Controllers\DonorNotificationController;
 use App\Mail\Concerns\SetsDonorLocale;
 use App\Models\Subscription;
@@ -97,7 +96,7 @@ class SupporterSubscriptionAmountChangedNotification extends Mailable
         }
 
         $symbol = $this->currencySymbol();
-        $shortInterval = $this->intervalShortLabel($subscription->interval, $locale);
+        $shortInterval = $subscription->interval->shortLabel($locale);
         $expires = now()->addDays(7);
 
         $increments = [15, 25, 35];
@@ -120,19 +119,5 @@ class SupporterSubscriptionAmountChangedNotification extends Mailable
                 ];
             })
             ->all();
-    }
-
-    private function intervalShortLabel(SubscriptionInterval $interval, string $locale): string
-    {
-        return match ($interval) {
-            SubscriptionInterval::Weekly => trans('emails.donor_recurring_payment.upgrade_interval_short_weekly', [], $locale),
-            SubscriptionInterval::Biweekly => trans('emails.donor_recurring_payment.upgrade_interval_short_biweekly', [], $locale),
-            SubscriptionInterval::Monthly => trans('emails.donor_recurring_payment.upgrade_interval_short_monthly', [], $locale),
-            SubscriptionInterval::Bimonthly => trans('emails.donor_recurring_payment.upgrade_interval_short_bimonthly', [], $locale),
-            SubscriptionInterval::Quarterly => trans('emails.donor_recurring_payment.upgrade_interval_short_quarterly', [], $locale),
-            SubscriptionInterval::Semiannual => trans('emails.donor_recurring_payment.upgrade_interval_short_semiannual', [], $locale),
-            SubscriptionInterval::Yearly => trans('emails.donor_recurring_payment.upgrade_interval_short_yearly', [], $locale),
-            default => trans('emails.donor_recurring_payment.upgrade_interval_short_default', ['interval' => $interval->value], $locale),
-        };
     }
 }

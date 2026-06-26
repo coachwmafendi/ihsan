@@ -4,6 +4,18 @@ use App\Enums\SubscriptionInterval;
 use App\Services\SubscriptionSchedule;
 use Carbon\CarbonImmutable;
 
+it('returns the correct monthly factor for every interval', function (SubscriptionInterval $interval, float $expected): void {
+    expect(SubscriptionSchedule::monthlyFactor($interval))->toBe($expected);
+})->with([
+    'weekly' => [SubscriptionInterval::Weekly, 52 / 12],
+    'biweekly' => [SubscriptionInterval::Biweekly, 26 / 12],
+    'monthly' => [SubscriptionInterval::Monthly, 1.0],
+    'bimonthly' => [SubscriptionInterval::Bimonthly, 0.5],
+    'quarterly' => [SubscriptionInterval::Quarterly, 1 / 3],
+    'semiannual' => [SubscriptionInterval::Semiannual, 1 / 6],
+    'yearly' => [SubscriptionInterval::Yearly, 1 / 12],
+]);
+
 it('calculates the next charge date for every interval', function (string $from, SubscriptionInterval $interval, string $expected): void {
     $next = SubscriptionSchedule::nextChargeAt(
         CarbonImmutable::parse($from),

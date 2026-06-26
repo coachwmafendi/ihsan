@@ -7,13 +7,13 @@ namespace App\Livewire\App\Subscriptions;
 use App\Actions\DonorEmailLog\PreviewDonorEmail;
 use App\Actions\DonorEmailLog\ResendDonorEmail;
 use App\Actions\Stripe\ManageStripeSubscription;
-use App\Enums\SubscriptionInterval;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Services\DonationFeeEstimator;
+use App\Services\SubscriptionSchedule;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -150,11 +150,7 @@ class SubscriptionShow extends Component
         $periodEnd = CarbonImmutable::parse($periodEnd);
 
         while ($periodEnd->isPast()) {
-            $periodEnd = match ($this->subscription->interval) {
-                SubscriptionInterval::Weekly => $periodEnd->addWeek(),
-                SubscriptionInterval::Yearly => $periodEnd->addYear(),
-                default => $periodEnd->addMonth(),
-            };
+            $periodEnd = SubscriptionSchedule::nextChargeAt($periodEnd, $this->subscription->interval);
         }
 
         return $periodEnd;

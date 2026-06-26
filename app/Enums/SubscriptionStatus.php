@@ -13,6 +13,7 @@ enum SubscriptionStatus: string implements HasLabel
     case Incomplete = 'incomplete';
     case IncompleteExpired = 'incomplete_expired';
     case Completed = 'completed';
+    case Failed = 'failed';
 
     public function getLabel(): string
     {
@@ -24,6 +25,7 @@ enum SubscriptionStatus: string implements HasLabel
             self::Incomplete => 'Incomplete',
             self::IncompleteExpired => 'Incomplete Expired',
             self::Completed => 'Completed',
+            self::Failed => 'Failed',
         };
     }
 }

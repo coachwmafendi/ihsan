@@ -82,6 +82,30 @@ it('projects the next installment date when current period end is stale', functi
         ->assertSee(myrTime($expectedDate));
 });
 
+it('projects the next installment date for non-monthly intervals', function () {
+    $staleDate = now()->subDay()->startOfDay();
+    $expectedDate = $staleDate->copy()->addMonths(3);
+
+    while ($expectedDate->isPast()) {
+        $expectedDate->addMonths(3);
+    }
+
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Quarterly,
+        'payment_count' => 2,
+        'current_period_end' => $staleDate,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('This quarterly recurring donation is active.')
+        ->assertSee('Installment #3')
+        ->assertSee(myrTime($expectedDate));
+});
+
 it('shows the scheduled cancellation status banner', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,
