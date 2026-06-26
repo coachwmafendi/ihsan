@@ -24,5 +24,9 @@ Schedule::command('ihsan:send-monthly-report')
     ->monthlyOn(1, '08:00')
     ->timezone('Asia/Kuala_Lumpur');
 
+Schedule::command('ihsan:charge-recurring-plans')
+    ->dailyAt('06:00')
+    ->timezone('Asia/Kuala_Lumpur');
+
 Schedule::command('queue:retry all')->everySixHours();
 Schedule::command('queue:prune-failed --hours=168')->weeklyOn(1, '02:00');
