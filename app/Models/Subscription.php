@@ -25,6 +25,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property int $donor_id
  * @property int|null $donor_payment_method_id
  * @property string|null $stripe_subscription_id
+ * @property string|null $chip_recurring_token
  * @property string|null $stripe_price_id
  * @property numeric $amount
  * @property string $currency
@@ -68,6 +69,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCancelAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCancelAtPeriodEnd($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCancelledAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereChipRecurringToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCoverFee($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCurrency($value)
@@ -88,7 +90,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['campaign_id', 'donor_id', 'donor_payment_method_id', 'source', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'failed_installment_count', 'cancel_at_period_end', 'cover_fee', 'fee_cover_amount', 'cancel_at', 'max_plan_amount', 'max_plan_installments', 'current_period_start', 'current_period_end', 'next_charge_at', 'last_charge_at', 'last_charge_attempt_at', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
+#[Fillable(['campaign_id', 'donor_id', 'donor_payment_method_id', 'source', 'public_id', 'stripe_subscription_id', 'chip_recurring_token', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'failed_installment_count', 'cancel_at_period_end', 'cover_fee', 'fee_cover_amount', 'cancel_at', 'max_plan_amount', 'max_plan_installments', 'current_period_start', 'current_period_end', 'next_charge_at', 'last_charge_at', 'last_charge_attempt_at', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */

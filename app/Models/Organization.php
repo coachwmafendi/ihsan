@@ -7,6 +7,7 @@ use App\Services\PublicIdGenerator;
 use Carbon\CarbonImmutable;
 use Database\Factories\OrganizationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,7 +31,10 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $contact_phone
  * @property OrganizationStatus $status
  * @property string|null $stripe_account_id
+ * @property string|null $chip_brand_id
+ * @property string|null $chip_api_key
  * @property bool $stripe_onboarded
+ * @property bool $chip_onboarded
  * @property string|null $bank_account_name
  * @property string|null $bank_account_number
  * @property string|null $bank_name
@@ -76,6 +80,8 @@ use Spatie\Activitylog\Support\LogOptions;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Organization whereApprovedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Organization whereBankAccountName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Organization whereBankAccountNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Organization whereChipApiKey($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Organization whereChipBrandId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Organization whereBankName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Organization whereCity($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Organization whereCode($value)
@@ -105,7 +111,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['public_id', 'name', 'code', 'ros_rob_number', 'registration_type', 'description', 'logo_path', 'website_url', 'facebook_url', 'contact_email', 'contact_phone', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'sector', 'tax_exempt', 'processing_fee_override', 'admin_notes', 'status', 'stripe_account_id', 'stripe_onboarded', 'stripe_onboarded_at', 'bank_account_name', 'bank_account_number', 'bank_name', 'settings', 'fee_collection_method', 'approved_at', 'approved_by'])]
+#[Fillable(['public_id', 'name', 'code', 'ros_rob_number', 'registration_type', 'description', 'logo_path', 'website_url', 'facebook_url', 'contact_email', 'contact_phone', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'sector', 'tax_exempt', 'processing_fee_override', 'admin_notes', 'status', 'stripe_account_id', 'chip_brand_id', 'chip_api_key', 'stripe_onboarded', 'stripe_onboarded_at', 'bank_account_name', 'bank_account_number', 'bank_name', 'settings', 'fee_collection_method', 'approved_at', 'approved_by'])]
 class Organization extends Model
 {
     /** @use HasFactory<OrganizationFactory> */
@@ -186,6 +192,18 @@ class Organization extends Model
     public function processingFees(): HasMany
     {
         return $this->hasMany(ProcessingFee::class);
+    }
+
+    protected function chipOnboarded(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => filled($this->chip_brand_id) && filled($this->chip_api_key),
+        );
+    }
+
+    public function chipPaymentMethods(): array
+    {
+        return $this->settings['chip_payment_methods'] ?? ['card'];
     }
 
     public function trackingConfigurations(): HasMany
