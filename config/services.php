@@ -45,6 +45,12 @@ return [
         'processing_fee_percent' => (float) env('PAYMENT_PROCESSING_FEE_PERCENT', 2.5),
     ],
 
+    'chip' => [
+        'processing_fee_percent' => (float) env('CHIP_PROCESSING_FEE_PERCENT', 2.5),
+        'fpx_fee_type' => env('CHIP_FPX_FEE_TYPE', 'fixed'),
+        'fpx_fee_amount' => (int) env('CHIP_FPX_FEE_AMOUNT', 150),
+    ],
+
     'recurring' => [
         'use_app_controlled' => filter_var(env('RECURRING_USE_APP_CONTROLLED', true), FILTER_VALIDATE_BOOLEAN),
         'retry_intervals_days' => [1, 3, 7, 7],

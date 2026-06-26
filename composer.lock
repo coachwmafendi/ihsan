@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a6f89d5217056dc7acea243a10c78b47",
+    "content-hash": "d4dc711bb030382986cdeed576bfe83c",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -729,6 +729,60 @@
                 }
             ],
             "time": "2026-03-20T21:10:52+00:00"
+        },
+        {
+            "name": "chip/chip-sdk-php",
+            "version": "v2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/CHIPAsia/chip-php-sdk.git",
+                "reference": "ebc23eda03b967ebbdc857db022f5be45094a8cd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/CHIPAsia/chip-php-sdk/zipball/ebc23eda03b967ebbdc857db022f5be45094a8cd",
+                "reference": "ebc23eda03b967ebbdc857db022f5be45094a8cd",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.9",
+                "php": "^8.1",
+                "psr/log": "^3.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.95",
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^10.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Chip\\": "lib"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "phpunit tests"
+                ],
+                "phpstan": [
+                    "phpstan analyse"
+                ],
+                "cs-fix": [
+                    "php-cs-fixer fix"
+                ],
+                "cs-check": [
+                    "php-cs-fixer fix --dry-run --diff"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "PHP SDK for CHIP Payments API",
+            "support": {
+                "source": "https://github.com/CHIPAsia/chip-php-sdk/tree/v2.0.2",
+                "issues": "https://github.com/CHIPAsia/chip-php-sdk/issues"
+            },
+            "time": "2026-05-18T05:06:41+00:00"
         },
         {
             "name": "danharrin/date-format-converter",
