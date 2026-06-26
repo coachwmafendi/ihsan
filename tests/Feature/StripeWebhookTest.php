@@ -142,6 +142,145 @@ it('does not process the same completed payment intent webhook twice', function 
     Queue::assertPushedTimes(SyncDonationStripeDetailsJob::class, 1);
 });
 
+it('creates app-controlled recurring subscriptions from payment intent webhooks', function () {
+    Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendNewSubscriptionNotification::class, SendDonorNewSubscriptionNotification::class, SendLargeDonationNotification::class]);
+    config(['services.stripe.secret' => 'sk_test_fake']);
+    config(['services.recurring.use_app_controlled' => true]);
+
+    $stripeClient = new class implements ClientInterface
+    {
+        /** @var array<int, array{method: string, url: string, headers: array<int, string>, params: array<string, mixed>}> */
+        public array $requests = [];
+
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $this->requests[] = [
+                'method' => $method,
+                'url' => $absUrl,
+                'headers' => $headers,
+                'params' => $params,
+            ];
+
+            $response = match (true) {
+                str_contains($absUrl, '/v1/payment_methods/pm_app_controlled_card') => [
+                    'id' => 'pm_app_controlled_card',
+                    'object' => 'payment_method',
+                    'type' => 'card',
+                    'card' => [
+                        'brand' => 'visa',
+                        'last4' => '4242',
+                        'country' => 'MY',
+                        'exp_month' => 12,
+                        'exp_year' => 2030,
+                    ],
+                ],
+                str_contains($absUrl, '/v1/charges/ch_app_controlled_123') => [
+                    'id' => 'ch_app_controlled_123',
+                    'object' => 'charge',
+                    'balance_transaction' => [
+                        'id' => 'txn_app_controlled_123',
+                        'object' => 'balance_transaction',
+                        'fee' => 275,
+                        'fee_details' => [
+                            [
+                                'amount' => 150,
+                                'currency' => 'myr',
+                                'type' => 'stripe_fee',
+                            ],
+                            [
+                                'amount' => 125,
+                                'currency' => 'myr',
+                                'type' => 'application_fee',
+                            ],
+                        ],
+                    ],
+                ],
+                str_contains($absUrl, '/v1/payment_intents/pi_app_controlled_webhook_123') => [
+                    'id' => 'pi_app_controlled_webhook_123',
+                    'object' => 'payment_intent',
+                    'customer' => 'cus_app_controlled_donor',
+                    'payment_method' => 'pm_app_controlled_card',
+                ],
+                str_ends_with($absUrl, '/v1/customers') => [
+                    'id' => 'cus_app_controlled_donor',
+                    'object' => 'customer',
+                ],
+                default => throw new RuntimeException('Unexpected Stripe request: '.$absUrl),
+            };
+
+            return [json_encode($response), 200, []];
+        }
+    };
+
+    ApiRequestor::setHttpClient($stripeClient);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'collected_amount' => 0,
+    ]);
+    $donor = Donor::factory()->create([
+        'email' => 'app-controlled-webhook@example.test',
+    ]);
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 50,
+        'net_amount' => 50,
+        'processing_fee' => 0,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::Recurring,
+        'stripe_payment_intent_id' => 'pi_app_controlled_webhook_123',
+    ]);
+
+    $payload = json_encode([
+        'id' => 'evt_app_controlled_webhook_123',
+        'object' => 'event',
+        'type' => 'payment_intent.succeeded',
+        'data' => [
+            'object' => [
+                'id' => 'pi_app_controlled_webhook_123',
+                'object' => 'payment_intent',
+                'customer' => null,
+                'metadata' => [
+                    'donation_id' => (string) $donation->getKey(),
+                    'donor_email' => $donation->donor?->email ?? '',
+                    'campaign_id' => (string) $donation->campaign_id,
+                    'organization_id' => (string) $donation->campaign?->organization_id,
+                ],
+                'payment_method' => 'pm_app_controlled_card',
+                'charges' => [
+                    'object' => 'list',
+                    'data' => [
+                        [
+                            'id' => 'ch_app_controlled_123',
+                            'object' => 'charge',
+                            'balance_transaction' => null,
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+
+    try {
+        (new ProcessStripeWebhook($payload))->handle();
+    } finally {
+        ApiRequestor::setHttpClient(CurlClient::instance());
+    }
+
+    $donation->refresh();
+    $subscription = $donation->subscription;
+
+    expect($donation->status)->toBe(DonationStatus::Succeeded)
+        ->and($subscription)->not->toBeNull()
+        ->and($subscription->stripe_subscription_id)->toBeNull()
+        ->and($subscription->next_charge_at)->not->toBeNull()
+        ->and($subscription->status->value)->toBe('active')
+        ->and((float) $subscription->amount)->toBe(50.00);
+
+    Queue::assertPushed(SendDonorNewSubscriptionNotification::class);
+    Queue::assertNotPushed(SendDonationReceipt::class);
+});
+
 it('creates recurring subscriptions in the connected account from payment intent webhooks', function () {
     Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendNewSubscriptionNotification::class, SendDonorNewSubscriptionNotification::class, SendLargeDonationNotification::class]);
     config(['services.stripe.secret' => 'sk_test_fake']);

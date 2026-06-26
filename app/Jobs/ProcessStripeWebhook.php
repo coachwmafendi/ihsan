@@ -3,8 +3,6 @@
 namespace App\Jobs;
 
 use App\Actions\DonorEmailLog\LogDonorEmail;
-use App\Actions\Stripe\CreateAppControlledRecurringPlan;
-use App\Actions\Stripe\CreateRecurringSubscription;
 use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
@@ -20,6 +18,7 @@ use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\WebhookLog;
 use App\Services\FraudDetectionService;
+use App\Services\RecurringPlanResolver;
 use App\Services\StripeMetadata;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -126,11 +125,7 @@ class ProcessStripeWebhook implements ShouldQueue
         }
 
         if ($isNewSubscription) {
-            if (config('services.recurring.use_app_controlled', true)) {
-                $subscription = app(CreateAppControlledRecurringPlan::class)->create($donation, $paymentIntent, $stripeOptions);
-            } else {
-                $subscription = app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
-            }
+            $subscription = app(RecurringPlanResolver::class)->create($donation, $paymentIntent, $stripeOptions);
 
             if ($subscription->wasRecentlyCreated) {
                 SendNewSubscriptionNotification::dispatch($donation);

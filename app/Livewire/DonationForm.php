@@ -2,9 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Actions\Stripe\CreateAppControlledRecurringPlan;
 use App\Actions\Stripe\CreatePaymentIntent;
-use App\Actions\Stripe\CreateRecurringSubscription;
 use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
@@ -30,6 +28,7 @@ use App\Models\Element;
 use App\Models\Subscription;
 use App\Services\DonationFeeEstimator;
 use App\Services\FraudDetectionService;
+use App\Services\RecurringPlanResolver;
 use App\Services\TrackingScriptService;
 use App\Support\ClientInfo;
 use App\Support\Currency;
@@ -358,11 +357,7 @@ class DonationForm extends Component
      */
     private function createRecurringPlan(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions): Subscription
     {
-        if (config('services.recurring.use_app_controlled', true)) {
-            return app(CreateAppControlledRecurringPlan::class)->create($donation, $paymentIntent, $stripeOptions);
-        }
-
-        return app(CreateRecurringSubscription::class)->create($donation, $paymentIntent, $stripeOptions);
+        return app(RecurringPlanResolver::class)->create($donation, $paymentIntent, $stripeOptions);
     }
 
     #[Renderless]

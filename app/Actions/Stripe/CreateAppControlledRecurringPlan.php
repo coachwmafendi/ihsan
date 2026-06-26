@@ -11,6 +11,8 @@ use App\Models\Subscription;
 use App\Services\StripeMetadata;
 use App\Services\SubscriptionSchedule;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Stripe\Customer as StripeCustomer;
 use Stripe\PaymentIntent as StripePaymentIntent;
@@ -22,6 +24,32 @@ class CreateAppControlledRecurringPlan
      * @param  array<string, string>  $stripeOptions
      */
     public function create(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions = []): Subscription
+    {
+        $lock = Cache::lock('create-recurring-subscription.'.$donation->getKey(), 60);
+
+        try {
+            $lock->block(30);
+        } catch (LockTimeoutException) {
+            $existingSubscription = $donation->fresh()?->subscription;
+
+            if ($existingSubscription instanceof Subscription) {
+                return $existingSubscription;
+            }
+
+            throw new \RuntimeException('Unable to acquire subscription creation lock for donation '.$donation->getKey());
+        }
+
+        try {
+            return $this->createLocked($donation, $paymentIntent, $stripeOptions);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    /**
+     * @param  array<string, string>  $stripeOptions
+     */
+    private function createLocked(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions = []): Subscription
     {
         $donation->loadMissing('campaign.organization', 'donor');
 

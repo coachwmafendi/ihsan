@@ -791,6 +791,127 @@ it('stores connected stripe fees and card details when confirming a payment', fu
     ))->toBeTrue();
 });
 
+it('creates an app-controlled subscription when confirming a recurring payment', function () {
+    config(['services.stripe.secret' => 'sk_test_fake']);
+    config(['services.recurring.use_app_controlled' => true]);
+
+    $stripeClient = new class implements ClientInterface
+    {
+        /** @var array<int, array{method: string, url: string, headers: array<int, string>, params: array<string, mixed>}> */
+        public array $requests = [];
+
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $this->requests[] = [
+                'method' => $method,
+                'url' => $absUrl,
+                'headers' => $headers,
+                'params' => $params,
+            ];
+
+            $response = match (true) {
+                str_contains($absUrl, '/v1/payment_methods/pm_app_controlled_') => [
+                    'id' => 'pm_app_controlled_card',
+                    'object' => 'payment_method',
+                    'type' => 'card',
+                    'card' => [
+                        'brand' => 'visa',
+                        'last4' => '4242',
+                        'country' => 'MY',
+                        'exp_month' => 12,
+                        'exp_year' => 2030,
+                    ],
+                ],
+                str_contains($absUrl, '/v1/payment_intents/pi_app_controlled_confirm_123') => [
+                    'id' => 'pi_app_controlled_confirm_123',
+                    'object' => 'payment_intent',
+                    'customer' => 'cus_app_controlled_donor',
+                    'payment_method' => 'pm_app_controlled_card',
+                ],
+                str_ends_with($absUrl, '/v1/customers') => [
+                    'id' => 'cus_app_controlled_donor',
+                    'object' => 'customer',
+                ],
+                default => throw new RuntimeException('Unexpected Stripe request: '.$absUrl),
+            };
+
+            return [json_encode($response), 200, []];
+        }
+    };
+
+    ApiRequestor::setHttpClient($stripeClient);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => ['default_amount' => 5],
+    ]);
+
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'stripe_payment_intent_id' => 'pi_app_controlled_confirm_123',
+        'gross_amount' => 100.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::Recurring,
+    ]);
+
+    $paymentIntent = PaymentIntent::constructFrom([
+        'id' => 'pi_app_controlled_confirm_123',
+        'object' => 'payment_intent',
+        'customer' => null,
+        'payment_method' => 'pm_app_controlled_card',
+        'latest_charge' => [
+            'id' => 'ch_app_controlled_123',
+            'object' => 'charge',
+            'balance_transaction' => [
+                'id' => 'txn_app_controlled_123',
+                'object' => 'balance_transaction',
+                'fee' => 275,
+                'fee_details' => [
+                    [
+                        'amount' => 150,
+                        'currency' => 'myr',
+                        'type' => 'stripe_fee',
+                    ],
+                    [
+                        'amount' => 125,
+                        'currency' => 'myr',
+                        'type' => 'application_fee',
+                    ],
+                ],
+            ],
+        ],
+        'charges' => [
+            'object' => 'list',
+            'data' => [],
+        ],
+    ]);
+
+    try {
+        Livewire::test(DonationForm::class, ['element' => $element])
+            ->call('confirmPayment', 'pi_app_controlled_confirm_123', $paymentIntent);
+    } finally {
+        ApiRequestor::setHttpClient(CurlClient::instance());
+    }
+
+    $donation->refresh();
+    $subscription = $donation->subscription;
+
+    expect($donation->status)->toBe(DonationStatus::Succeeded)
+        ->and($subscription)->not->toBeNull()
+        ->and($subscription->stripe_subscription_id)->toBeNull()
+        ->and($subscription->next_charge_at)->not->toBeNull()
+        ->and($subscription->status->value)->toBe('active')
+        ->and((float) $subscription->amount)->toBe(100.00);
+
+    $customerRequest = collect($stripeClient->requests)
+        ->first(fn (array $request): bool => str_ends_with($request['url'], '/v1/customers'));
+
+    expect($customerRequest)->not->toBeNull();
+});
+
 it('does not create a subscription for one-time donations', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();

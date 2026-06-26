@@ -46,7 +46,7 @@ return [
     ],
 
     'recurring' => [
-        'use_app_controlled' => env('RECURRING_USE_APP_CONTROLLED', true),
+        'use_app_controlled' => filter_var(env('RECURRING_USE_APP_CONTROLLED', true), FILTER_VALIDATE_BOOLEAN),
         'retry_intervals_days' => [1, 3, 7, 7],
         'max_failed_installments' => 6,
     ],
