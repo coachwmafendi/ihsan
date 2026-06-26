@@ -1,8 +1,8 @@
 # Entity Relationship Diagram (ERD)
 ## Ihsan — MVP Database Design
 
-**Version:** 1.9
-**Tarikh:** 23 Jun 2026
+**Version:** 2.0
+**Tarikh:** 26 Jun 2026
 **Database:** SQLite untuk local dev, MySQL 8/PostgreSQL untuk production
 **Framework:** Laravel 13
 
@@ -58,6 +58,7 @@ erDiagram
 
     ORGANIZATIONS {
         bigint id PK
+        string public_id UK "O + 7 chars - public-facing ID"
         string code UK
         string name
         string ros_rob_number UK "nullable"
@@ -65,6 +66,7 @@ erDiagram
         text description
         string logo_path
         string website_url
+        string facebook_url "nullable"
         string contact_email
         string contact_phone
         string address_line_1 "nullable"
@@ -105,6 +107,7 @@ erDiagram
         string public_id UK "IH + 6 chars - public-facing ID"
         bigint organization_id FK
         string title
+        string slug UK
         text description
         string image_path
         string headline "nullable"
@@ -127,6 +130,7 @@ erDiagram
         string redirect_url "nullable"
         string form_parameter UK "nullable"
         boolean checkout_modal_enabled
+        boolean campaign_page_enabled
         json checkout_allowed_domains "nullable"
         json milestones_notified "nullable"
         json config "nullable"
@@ -139,12 +143,16 @@ erDiagram
         string public_id UK "DR + 6 chars - public-facing ID"
         string title "nullable - Mr|Mrs|Ms|etc"
         string name
+        string first_name "nullable"
+        string last_name "nullable"
         string occupation "nullable"
         string email UK "global - merentasi semua NGO"
         string phone "nullable"
         string stripe_customer_id UK "nullable"
         string magic_token "nullable"
         timestamp magic_token_expires_at "nullable"
+        timestamp email_opt_out_at "nullable"
+        timestamp email_bounced_at "nullable"
         string photo_path "nullable"
         string address_line1 "nullable"
         string address_line2 "nullable"
@@ -162,8 +170,10 @@ erDiagram
         bigint campaign_id FK
         bigint donor_id FK
         bigint subscription_id FK "nullable - null if one-time"
+        string source "nullable - element|campaign_page|checkout_modal|virtual_terminal"
         string stripe_payment_intent_id UK "nullable"
         string stripe_charge_id "nullable"
+        string stripe_invoice_id "nullable"
         decimal gross_amount
         decimal stripe_fee
         decimal processing_fee
@@ -184,6 +194,8 @@ erDiagram
         decimal donor_fee_covered "nullable"
         string invoice_number "nullable"
         timestamp receipt_sent_at "nullable"
+        timestamp new_donation_notification_sent_at "nullable"
+        timestamp large_donation_notification_sent_at "nullable"
         timestamp refunded_at "nullable"
         string device_type "nullable"
         string ip_address "nullable"
@@ -212,6 +224,7 @@ erDiagram
         string public_id UK "R + 7 chars - public-facing ID"
         bigint campaign_id FK
         bigint donor_id FK
+        string source "nullable - element|campaign_page|checkout_modal|virtual_terminal"
         string stripe_subscription_id UK
         string stripe_price_id "nullable"
         decimal amount
@@ -227,6 +240,10 @@ erDiagram
         boolean cancel_at_period_end
         timestamp cancel_at "nullable"
         boolean cover_fee
+        decimal fee_cover_amount "nullable"
+        decimal max_plan_amount "nullable"
+        integer max_plan_installments "nullable"
+        string cancellation_reason "nullable"
         timestamps created_at updated_at
     }
 
@@ -287,11 +304,54 @@ erDiagram
         bigint campaign_id FK "nullable"
         string name
         string token UK "untuk embed widget"
-        enum type "button|floating_button|form|popup|qr_code|link"
+        enum type "button|floating_button|sticky_button|form|popup|qr_code|link"
         json config "warna, copy, amounts, behavior, dll"
         string form_slug UK "nullable"
         boolean is_donor_portal_default
         boolean is_active
+        timestamp archived_at "nullable"
+        timestamps created_at updated_at
+    }
+
+    DONOR_PAYMENT_METHODS {
+        bigint id PK
+        bigint donor_id FK
+        string stripe_payment_method_id UK
+        string brand
+        string last4
+        tinyint exp_month
+        smallint exp_year
+        string country "nullable - ISO alpha-2"
+        boolean is_default
+        timestamps created_at updated_at
+    }
+
+    TRACKING_CONFIGURATIONS {
+        bigint id PK
+        bigint organization_id FK
+        string provider
+        boolean is_enabled
+        text credentials "nullable"
+        json options "nullable"
+        string status
+        text error_message "nullable"
+        timestamp last_tested_at "nullable"
+        timestamp last_event_at "nullable"
+        timestamps created_at updated_at
+    }
+
+    TRACKING_EVENTS {
+        bigint id PK
+        bigint organization_id FK
+        bigint donation_id FK "nullable"
+        string provider
+        string event_name
+        string status
+        decimal amount "nullable"
+        char currency "nullable"
+        string campaign_name "nullable"
+        json payload "nullable"
+        json response "nullable"
         timestamps created_at updated_at
     }
 
@@ -308,10 +368,10 @@ erDiagram
 
     FRAUD_RULES {
         bigint id PK
-        bigint organization_id FK "nullable - null = global rule"
-        string rule_type "velocity|amount|pattern|country|card"
+        bigint organization_id FK
+        string rule_type "velocity|amount|pattern|country|card|risk_score"
         json config "threshold, window, countries, patterns, dll"
-        string action "flag|block|notify"
+        string action "block|flag|3ds"
         boolean is_active
         timestamps created_at updated_at
     }
@@ -334,7 +394,7 @@ erDiagram
         bigint id PK
         bigint donation_id FK
         string reason
-        enum review_status "pending|reviewed|released"
+        enum review_status "pending|approved|rejected"
         bigint reviewed_by FK "nullable - FK to users"
         timestamp reviewed_at "nullable"
         text review_notes "nullable"
@@ -360,6 +420,7 @@ erDiagram
     CAMPAIGNS ||--o{ ELEMENTS : "has many (optional)"
     DONORS ||--o{ DONATIONS : "makes"
     DONORS ||--o{ SUBSCRIPTIONS : "holds"
+    DONORS ||--o{ DONOR_PAYMENT_METHODS : "has saved payment methods"
     DONORS ||--o{ DONOR_EMAIL_LOGS : "receives emails"
     SUBSCRIPTIONS ||--o{ DONATIONS : "generates recurring"
     DONATIONS ||--|| PROCESSING_FEES : "generates one"
@@ -368,6 +429,8 @@ erDiagram
     ORGANIZATIONS ||--o{ DONOR_EMAIL_LOGS : "sends emails"
     DONOR_EMAIL_LOGS ||--o{ DONOR_EMAIL_LOGS : "resent from"
     MONTHLY_INVOICES ||--o{ PROCESSING_FEES : "collects"
+    ORGANIZATIONS ||--o{ TRACKING_CONFIGURATIONS : "configures"
+    ORGANIZATIONS ||--o{ TRACKING_EVENTS : "generates"
     ORGANIZATIONS ||--o{ FRAUD_RULES : "defines"
     DONORS ||--o{ FRAUD_ATTEMPTS : "triggers"
     DONATIONS ||--|| BLOCKED_DONATIONS : "may be blocked"
@@ -397,6 +460,7 @@ Entiti utama yang mewakili NGO, masjid, atau badan amal yang berdaftar di Ihsan.
 
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
+| `public_id` | string unique | ID public-facing 8 aksara: `O` + 7 aksara rawak (A–Z, 1–9). Digunakan di UI dan URL untuk menyembunyikan auto-increment ID |
 | `code` | string unique | Kod organisasi untuk route donor portal, contoh: `/donorportal/MSJ001` |
 | `ros_rob_number` | string unique nullable | Nombor pendaftaran ROS/ROB — wajib untuk KYC |
 | `stripe_account_id` | string | ID Stripe Connect Express account NGO |
@@ -408,6 +472,8 @@ Entiti utama yang mewakili NGO, masjid, atau badan amal yang berdaftar di Ihsan.
 | `fee_collection_method` | string nullable | Cara kutipan fee, contohnya application fee atau monthly invoice |
 | `admin_notes` | text nullable | Nota dalaman platform owner |
 | `tax_exempt` | boolean | Flag untuk organisasi yang layak receipt tax-exempt |
+| `facebook_url` | string nullable | URL Facebook rasmi organisasi |
+| `address_line_1/2`, `city`, `state`, `postcode`, `country`, `sector` | string nullable | Alamat dan sektor organisasi |
 
 ---
 
@@ -417,6 +483,7 @@ Kempen fundraising yang dibuat oleh NGO. Satu NGO boleh ada berbilang kempen akt
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
 | `public_id` | string unique | ID public-facing 8 aksara: `IH` + 6 aksara rawak (A–Z, 1–9). Digunakan di URL kempen dan share link |
+| `slug` | string unique | Slug SEO-friendly untuk halaman kempen awam |
 | `has_target` | boolean | FALSE = general fund tanpa target |
 | `collected_amount` | decimal | Dikemas kini setiap kali `donations.status = succeeded` |
 | `suggested_amounts` | json | Legacy/default suggested amount set |
@@ -426,6 +493,7 @@ Kempen fundraising yang dibuat oleh NGO. Satu NGO boleh ada berbilang kempen akt
 | `allow_custom_amount` | boolean | FALSE = donor hanya boleh pilih amount cadangan |
 | `form_parameter` | string unique nullable | Slug/token URL untuk campaign checkout modal |
 | `checkout_modal_enabled` | boolean | TRUE bila campaign boleh dibuka dalam modal embed |
+| `campaign_page_enabled` | boolean | TRUE bila campaign mempunyai halaman donation khas |
 | `checkout_allowed_domains` | json nullable | Senarai domain yang dibenarkan membuka checkout modal |
 | `milestones_notified` | json nullable | Senarai milestone kempen yang sudah dihantar notification |
 | `config` | json nullable | Konfigurasi tambahan campaign yang tidak memerlukan kolum khusus |
@@ -441,13 +509,17 @@ Kempen fundraising yang dibuat oleh NGO. Satu NGO boleh ada berbilang kempen akt
 |-------|-------|------------|
 | `public_id` | string unique | ID public-facing 8 aksara: `DR` + 6 aksara rawak (A–Z, 1–9). Digunakan di donor portal dan receipt |
 | `title` | string nullable | Panggilan hormat: `Mr`, `Mrs`, `Ms`, `Miss`, `Dr`, dll |
-| `name` | string | Nama penuh donor |
+| `name` | string | Nama penuh donor (auto-generated dari first_name + last_name) |
+| `first_name` | string nullable | Nama pertama donor |
+| `last_name` | string nullable | Nama akhir donor |
 | `occupation` | string nullable | Pekerjaan: `Employed`, `Self-employed`, `Business owner`, `Student`, `Retired`, `Unemployed`, `Other` |
 | `email` | string unique globally | Satu donor = satu email, walaupun derma kepada berbilang NGO |
 | `phone` | string nullable | Nombor telefon |
 | `stripe_customer_id` | string unique | Satu Stripe Customer ID untuk semua transaksi donor ini |
 | `magic_token` | string | Token sementara untuk akses donor portal (tanpa password) |
-| `magic_token_expires_at` | timestamp | Token expired selepas 30 minit |
+| `magic_token_expires_at` | timestamp | Token expired selepas 24 jam |
+| `email_opt_out_at` | timestamp nullable | Masa donor memilih opt-out daripada email |
+| `email_bounced_at` | timestamp nullable | Masa email donor ditandakan bounced |
 | `photo_path` | string nullable | Path foto profil di storage private |
 | `address_line1` | string nullable | Alamat baris 1 |
 | `address_line2` | string nullable | Alamat baris 2 |
@@ -468,6 +540,8 @@ Rekod setiap transaksi tunggal — sama ada one-time atau satu bayaran daripada 
 |-------|-------|------------|
 | `public_id` | string unique | ID public-facing 8 aksara: `D` + 7 aksara rawak (A–Z, 1–9). Digunakan di receipt, URL, dan komunikasi dengan donor |
 | `subscription_id` | FK nullable | NULL = one-time; ada nilai = dijana oleh subscription |
+| `source` | string nullable | Sumber transaksi: `element`, `campaign_page`, `checkout_modal`, `virtual_terminal` |
+| `stripe_invoice_id` | string nullable | ID invois Stripe untuk subscription payment |
 | `type` | enum | `one_time` atau `recurring` |
 | `gross_amount` | decimal | Jumlah yang donor bayar |
 | `stripe_fee` | decimal | Fee Stripe yang sebenar dari BalanceTransaction |
@@ -479,6 +553,8 @@ Rekod setiap transaksi tunggal — sama ada one-time atau satu bayaran daripada 
 | `donor_fee_covered` | decimal nullable | Tambahan amount yang donor cover untuk estimated processing fee |
 | `base_currency` / `base_amount` / `exchange_rate` | mixed nullable | Snapshot conversion jika donation bukan dalam currency asas organisasi |
 | `receipt_sent_at` | timestamp nullable | Masa receipt email dihantar |
+| `new_donation_notification_sent_at` | timestamp nullable | Masa notifikasi derma baru dihantar kepada NGO admin |
+| `large_donation_notification_sent_at` | timestamp nullable | Masa notifikasi derma besar dihantar kepada NGO admin |
 | `refunded_at` | timestamp nullable | Masa donation ditanda refunded |
 | `stripe_fee_details` | json nullable | Pecahan fee daripada Stripe BalanceTransaction |
 | `utm_params` | json | Track sumber traffic: `{source, medium, campaign}` |
@@ -497,6 +573,7 @@ Rekod recurring subscription. Satu subscription = satu donor → satu campaign d
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
 | `public_id` | string unique | ID public-facing 8 aksara: `R` + 7 aksara rawak (A–Z, 1–9). Digunakan di donor portal untuk manage subscription |
+| `source` | string nullable | Sumber subscription: `element`, `campaign_page`, `checkout_modal`, `virtual_terminal` |
 | `stripe_subscription_id` | string unique | ID dari Stripe untuk sync status |
 | `status` | enum | Sync dengan Stripe Subscription status |
 | `retry_count` | tinyint | Bilangan kali bayaran gagal dicuba (max 3, dunning logic) |
@@ -506,6 +583,10 @@ Rekod recurring subscription. Satu subscription = satu donor → satu campaign d
 | `cancel_at_period_end` | boolean | TRUE bila subscription dijadualkan batal hujung period |
 | `cancel_at` | timestamp nullable | Masa pembatalan berjadual dari Stripe |
 | `cover_fee` | boolean | TRUE bila recurring donation cover estimated processing fee |
+| `fee_cover_amount` | decimal nullable | Jumlah tambahan yang donor bayar untuk cover fee |
+| `max_plan_amount` | decimal nullable | Jumlah maksimum untuk subscription dengan plan limit |
+| `max_plan_installments` | integer nullable | Bilangan maksimum bayaran untuk plan limit |
+| `cancellation_reason` | string nullable | Sebab pembatalan subscription |
 
 ---
 
@@ -543,11 +624,12 @@ Donation element instances yang dibuat oleh NGO untuk embed di website mereka. S
 |-------|-------|------------|
 | `public_id` | string unique | ID public-facing 8 aksara: `E` + 7 aksara rawak (A–Z, 1–9). Digunakan di URL element dan share link |
 | `token` | string unique | Public token untuk widget script: `data-token="TOKEN"` |
-| `type` | enum | `button`, `floating_button`, `form`, `popup`, `qr_code`, `link` |
+| `type` | enum | `button`, `floating_button`, `sticky_button`, `form`, `popup`, `qr_code`, `link` |
 | `config` | json | Warna, copy, action, trigger, layout, image, behavior, dll |
 | `campaign_id` | FK nullable | NULL = donor pilih campaign sendiri; ada nilai = locked ke campaign tertentu |
 | `form_slug` | string unique nullable | Slug tambahan untuk hosted form/embed legacy |
 | `is_donor_portal_default` | boolean | TRUE jika element digunakan sebagai default donor portal entry |
+| `archived_at` | timestamp nullable | Masa element diarkibkan; jika tidak NULL element tidak aktif |
 
 Untuk MVP pertama, `elements.config` boleh menyimpan struktur minimum seperti:
 
@@ -581,15 +663,15 @@ Log semua Stripe webhook events yang diterima. Kritikal untuk debugging dan mema
 ---
 
 ### 2.11 `fraud_rules`
-Peraturan deteksi penipuan (fraud detection) yang boleh ditakrif oleh super admin atau per organisasi. Mengandungi logik threshold, velocity check, dan pattern matching.
+Peraturan deteksi penipuan (fraud detection) yang ditakrif oleh super admin untuk setiap organisasi. Mengandungi logik threshold, velocity check, pattern matching, dan risk score.
 
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
-| `rule_type` | string | Jenis peraturan: `velocity` (terlalu banyak cubaan), `amount` (jumlah luar biasa), `pattern` (corak mencurigakan), `country` (negara berisiko), `card` (kad berulang) |
+| `rule_type` | string | Jenis peraturan: `velocity`, `amount`, `pattern`, `country`, `card`, `risk_score` |
 | `config` | json | Konfigurasi spesifik peraturan: threshold amount, time window, senarai negara/card yang diblok, dll |
-| `action` | string | `flag` = tandakan untuk semakan; `block` = halang terus; `notify` = hantar alert sahaja |
+| `action` | string | `block` = halang terus; `flag` = tandakan untuk semakan; `3ds` = paksakan 3D Secure |
 | `is_active` | boolean | TRUE = peraturan aktif dan digunakan semasa penilaian transaksi |
-| `organization_id` | FK nullable | NULL = peraturan global untuk semua NGO; ada nilai = khusus untuk NGO tersebut |
+| `organization_id` | FK | Setiap peraturan dimiliki oleh satu organisasi |
 
 ---
 
@@ -616,7 +698,7 @@ Rekod donation yang dihalang (blocked) oleh sistem fraud. Donation tetap wujud d
 |-------|-------|------------|
 | `donation_id` | FK | Link kepada donation yang dihalang |
 | `reason` | string | Sebab blockage — sama dengan `fraud_attempts.reason` |
-| `review_status` | enum | `pending` = belum disemak; `reviewed` = disemak dan kekal blocked; `released` = dilepaskan oleh super admin |
+| `review_status` | enum | `pending` = belum disemak; `approved` = disemak dan kekal blocked; `rejected` = dilepaskan/dibenarkan oleh super admin |
 | `reviewed_by` | FK nullable | Super admin yang menyemak |
 | `reviewed_at` | timestamp nullable | Masa semakan dibuat |
 | `review_notes` | text nullable | Nota semakan |
@@ -659,6 +741,55 @@ Log setiap email yang dihantar kepada donor (donation receipt, notification, sum
 
 ---
 
+### 2.16 `donor_payment_methods`
+Rekod payment method yang disimpan oleh donor untuk update payment method atau prefill dalam pembayaran seterusnya. Data sensitif (nombor penuh kad, CVC) tidak disimpan — hanya metadata stripe yang tidak sensitif.
+
+| Kolum | Jenis | Keterangan |
+|-------|-------|------------|
+| `donor_id` | FK | Donor yang memiliki payment method |
+| `stripe_payment_method_id` | string unique | ID payment method di Stripe |
+| `brand` | string | Jenama kad, contoh `visa`, `mastercard` |
+| `last4` | string | 4 digit terakhir kad |
+| `exp_month` / `exp_year` | integer | Tarikh luput kad |
+| `country` | string nullable | Kod negara ISO alpha-2 payment method |
+| `is_default` | boolean | TRUE = payment method utama untuk donor |
+
+---
+
+### 2.17 `tracking_configurations`
+Konfigurasi integrasi analytics/pixel (contohnya Meta Pixel, Google Tag) per organisasi. Setiap organisasi boleh mempunyai satu konfigurasi untuk setiap provider.
+
+| Kolum | Jenis | Keterangan |
+|-------|-------|------------|
+| `organization_id` | FK | Organisasi yang memiliki konfigurasi |
+| `provider` | string | Nama provider tracking, contoh `meta_pixel`, `google_tag` |
+| `is_enabled` | boolean | TRUE = tracking aktif |
+| `credentials` | text nullable | Token/API key (disimpan dengan selamat jika mungkin) |
+| `options` | json nullable | Tetapan tambahan provider |
+| `status` | string | `not_configured`, `active`, `error`, dll |
+| `error_message` | text nullable | Mesej ralat terakhir |
+| `last_tested_at` | timestamp nullable | Masa konfigurasi diuji |
+| `last_event_at` | timestamp nullable | Masa event terakhir dihantar |
+
+---
+
+### 2.18 `tracking_events`
+Log event tracking yang dihantar ke provider analytics/pixel — contohnya `PageView`, `InitiateCheckout`, `DonationCompleted`. Membolehkan audit dan troubleshooting integrasi.
+
+| Kolum | Jenis | Keterangan |
+|-------|-------|------------|
+| `organization_id` | FK | Organisasi yang menghantar event |
+| `donation_id` | FK nullable | Link kepada donation jika event berkaitan transaksi |
+| `provider` | string | Provider penerima event |
+| `event_name` | string | Nama event |
+| `status` | string | `pending`, `sent`, `failed`, dll |
+| `amount` / `currency` | decimal/char nullable | Nilai dan mata wang jika berkaitan donation |
+| `campaign_name` | string nullable | Nama kempen yang berkaitan |
+| `payload` | json nullable | Data yang dihantar kepada provider |
+| `response` | json nullable | Response daripada provider |
+
+---
+
 ## 3. Hubungan Penting
 
 ### 3.1 Global Donor → Multi-NGO (melalui campaigns)
@@ -690,7 +821,7 @@ Setiap donation berjaya (`status = succeeded`) boleh menjana tepat satu rekod `p
 
 ## 4. Sistem `public_id`
 
-`public_id` ialah pengenal unik berorientasi public untuk 8 entiti utama. Ia menyembunyikan auto-increment `id` daripada pengguna akhir dan URL, meningkatkan keselamatan dan estetik.
+`public_id` ialah pengenal unik berorientasi public untuk 9 entiti utama. Ia menyembunyikan auto-increment `id` daripada pengguna akhir dan URL, meningkatkan keselamatan dan estetik.
 
 ### Format
 - **8 aksara total**, huruf besar A–Z + digit **1–9** (tiada 0).
@@ -699,6 +830,7 @@ Setiap donation berjaya (`status = succeeded`) boleh menjana tepat satu rekod `p
 | Table | Prefix | Contoh |
 |-------|--------|--------|
 | `users` | `U` | `UAB3C9D2` |
+| `organizations` | `O` | `O2A4B6C8` |
 | `campaigns` | `IH` | `IH7A3B9C` |
 | `donors` | `DR` | `DR2E8F1G` |
 | `donations` | `D` | `D4H5I6J7` |
@@ -756,6 +888,7 @@ Setiap table dengan `public_id` mempunyai unique index:
 
 ```sql
 CREATE UNIQUE INDEX idx_users_public_id ON users(public_id);
+CREATE UNIQUE INDEX idx_organizations_public_id ON organizations(public_id);
 CREATE UNIQUE INDEX idx_campaigns_public_id ON campaigns(public_id);
 CREATE UNIQUE INDEX idx_donors_public_id ON donors(public_id);
 CREATE UNIQUE INDEX idx_donations_public_id ON donations(public_id);
@@ -832,6 +965,18 @@ CREATE INDEX idx_fraud_attempt_created ON fraud_attempts(created_at);
 -- blocked_donations
 CREATE INDEX idx_blocked_donation ON blocked_donations(donation_id);
 CREATE INDEX idx_blocked_review_status ON blocked_donations(review_status);
+
+-- donor_payment_methods
+CREATE INDEX idx_donor_payment_method_donor ON donor_payment_methods(donor_id);
+CREATE INDEX idx_donor_payment_method_default ON donor_payment_methods(donor_id, is_default);
+
+-- tracking_configurations
+CREATE INDEX idx_tracking_config_org_provider ON tracking_configurations(organization_id, provider);
+CREATE INDEX idx_tracking_config_org_status ON tracking_configurations(organization_id, status);
+
+-- tracking_events
+CREATE INDEX idx_tracking_event_org_provider_created ON tracking_events(organization_id, provider, created_at);
+CREATE INDEX idx_tracking_event_org_status ON tracking_events(organization_id, status);
 ```
 
 ---
