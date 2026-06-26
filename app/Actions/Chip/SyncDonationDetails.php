@@ -7,7 +7,6 @@ namespace App\Actions\Chip;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\ProcessingFee;
-use Chip\Model\Purchase;
 
 final class SyncDonationDetails
 {
@@ -47,21 +46,27 @@ final class SyncDonationDetails
     private function mapStatus(string $chipStatus): DonationStatus
     {
         return match ($chipStatus) {
-            'paid', 'captured' => DonationStatus::Succeeded,
-            'failed', 'expired' => DonationStatus::Failed,
+            'paid', 'cleared', 'settled' => DonationStatus::Succeeded,
+            'error', 'blocked', 'expired', 'chargeback' => DonationStatus::Failed,
             'cancelled' => DonationStatus::Cancelled,
+            'refunded' => DonationStatus::Refunded,
+            'created', 'sent', 'viewed', 'overdue', 'hold', 'released',
+            'pending_release', 'pending_capture', 'preauthorized',
+            'pending_execute', 'pending_charge', 'pending_refund' => DonationStatus::Pending,
             default => DonationStatus::Pending,
         };
     }
 
-    private function extractPaymentMethodBrand(Purchase $purchase): ?string
+    private function extractPaymentMethodBrand(mixed $purchase): ?string
     {
-        if (isset($purchase->payment) && ! empty($purchase->payment->payment_type)) {
-            return $purchase->payment->payment_type;
+        $transactionData = $purchase->transaction_data ?? null;
+
+        if (isset($transactionData->payment_method) && $transactionData->payment_method !== '') {
+            return $transactionData->payment_method;
         }
 
         if (isset($purchase->purchase->payment_method_details) && is_object($purchase->purchase->payment_method_details)) {
-            return $purchase->purchase->payment_method_details->payment_type ?? null;
+            return $purchase->purchase->payment_method_details->payment_method ?? null;
         }
 
         return null;

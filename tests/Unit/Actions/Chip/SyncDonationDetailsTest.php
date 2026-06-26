@@ -36,10 +36,8 @@ it('syncs chip donation details and creates processing fee', function () {
         new Response(200, [], json_encode([
             'id' => 'PURCHASE123',
             'status' => 'paid',
-            'payment' => [
-                'payment_type' => 'visa',
-                'currency' => 'MYR',
-                'amount' => 10000,
+            'transaction_data' => [
+                'payment_method' => 'visa',
             ],
         ])),
     ]);
@@ -87,6 +85,9 @@ it('maps chip statuses to donation statuses correctly', function (string $chipSt
         new Response(200, [], json_encode([
             'id' => 'PURCHASE123',
             'status' => $chipStatus,
+            'transaction_data' => [
+                'payment_method' => $chipStatus === 'created' ? 'fpx' : 'visa',
+            ],
         ])),
     ]);
     $handlerStack = HandlerStack::create($mockHandler);
@@ -102,18 +103,26 @@ it('maps chip statuses to donation statuses correctly', function (string $chipSt
 
     app(SyncDonationDetails::class)->sync($donation);
 
-    expect($donation->fresh()->status)->toBe($expectedStatus);
+    $freshDonation = $donation->fresh();
+
+    expect($freshDonation->status)->toBe($expectedStatus)
+        ->and($freshDonation->payment_method_brand)->toBe($chipStatus === 'created' ? 'fpx' : 'visa');
 })->with([
-    ['paid', DonationStatus::Succeeded],
-    ['captured', DonationStatus::Succeeded],
-    ['failed', DonationStatus::Failed],
-    ['expired', DonationStatus::Failed],
-    ['cancelled', DonationStatus::Cancelled],
-    ['preauthorized', DonationStatus::Pending],
-    ['unknown', DonationStatus::Pending],
+    'paid' => ['paid', DonationStatus::Succeeded],
+    'cleared' => ['cleared', DonationStatus::Succeeded],
+    'settled' => ['settled', DonationStatus::Succeeded],
+    'error' => ['error', DonationStatus::Failed],
+    'blocked' => ['blocked', DonationStatus::Failed],
+    'expired' => ['expired', DonationStatus::Failed],
+    'chargeback' => ['chargeback', DonationStatus::Failed],
+    'cancelled' => ['cancelled', DonationStatus::Cancelled],
+    'refunded' => ['refunded', DonationStatus::Refunded],
+    'preauthorized' => ['preauthorized', DonationStatus::Pending],
+    'pending_refund' => ['pending_refund', DonationStatus::Pending],
+    'created' => ['created', DonationStatus::Pending],
 ]);
 
-it('falls back to payment_method_details when payment object is absent', function () {
+it('falls back to purchase payment_method_details when transaction_data is absent', function () {
     $organization = Organization::factory()->create([
         'chip_brand_id' => 'BRAND123',
         'chip_api_key' => 'secret',
@@ -131,7 +140,7 @@ it('falls back to payment_method_details when payment object is absent', functio
             'status' => 'paid',
             'purchase' => [
                 'payment_method_details' => [
-                    'payment_type' => 'mastercard',
+                    'payment_method' => 'mastercard',
                 ],
             ],
         ])),
