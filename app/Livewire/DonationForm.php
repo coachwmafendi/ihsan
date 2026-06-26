@@ -32,6 +32,7 @@ use App\Services\RecurringPlanResolver;
 use App\Services\TrackingScriptService;
 use App\Support\ClientInfo;
 use App\Support\Currency;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -267,54 +268,77 @@ class DonationForm extends Component
             return;
         }
 
+        $campaignPublicId = Campaign::query()->whereKey($donation->campaign_id)->value('public_id');
+
+        if ($campaignPublicId !== null) {
+            $this->dispatch('campaign-donation-received', campaignPublicId: $campaignPublicId);
+        }
+
+        if ($donation->status === DonationStatus::Succeeded) {
+            return;
+        }
+
         try {
-            $wasAlreadySucceeded = $donation->status === DonationStatus::Succeeded;
-            $stripeOptions = [];
+            Stripe::setApiKey(config('services.stripe.secret'));
+            $donation->loadMissing('campaign.organization');
+            $stripeOptions = $this->stripeOptionsFor($donation);
+            $synced = app(SyncDonationStripeDetails::class)->sync($donation, $paymentIntent, $stripeOptions);
+            $paymentIntent = $synced['payment_intent'];
 
-            if (! $wasAlreadySucceeded) {
-                Stripe::setApiKey(config('services.stripe.secret'));
-                $donation->loadMissing('campaign.organization');
-                $stripeOptions = $this->stripeOptionsFor($donation);
-                $synced = app(SyncDonationStripeDetails::class)->sync($donation, $paymentIntent, $stripeOptions);
-                $paymentIntent = $synced['payment_intent'];
+            $finalizeResult = DB::transaction(function () use ($donation): array {
+                $lockedDonation = Donation::query()->whereKey($donation->getKey())->lockForUpdate()->firstOrFail();
 
-                $donation->update([
+                if ($lockedDonation->status === DonationStatus::Succeeded) {
+                    return ['wasAlreadySucceeded' => true];
+                }
+
+                $lockedDonation->update([
                     'status' => DonationStatus::Succeeded,
                 ]);
+
+                $campaign = Campaign::query()->whereKey($lockedDonation->campaign_id)->lockForUpdate()->first();
+
+                if ($campaign === null) {
+                    return ['wasAlreadySucceeded' => false, 'campaign' => null, 'previousCollected' => 0];
+                }
+
+                $previousCollected = (float) $campaign->collected_amount;
+                $campaign->increment('collected_amount', (float) ($lockedDonation->base_amount ?? $lockedDonation->gross_amount));
+
+                return ['wasAlreadySucceeded' => false, 'campaign' => $campaign, 'previousCollected' => $previousCollected];
+            });
+
+            if ($finalizeResult['wasAlreadySucceeded']) {
+                return;
             }
 
-            $donation->refresh();
-            $campaign = $donation->campaign;
+            $campaign = $finalizeResult['campaign'];
 
             if ($campaign === null) {
                 return;
             }
 
-            if (! $wasAlreadySucceeded) {
-                $previousCollected = (float) $campaign->collected_amount;
-                $campaign->increment('collected_amount', (float) ($donation->base_amount ?? $donation->gross_amount));
-                $campaign->refresh();
+            $previousCollected = $finalizeResult['previousCollected'];
+            $campaign->refresh();
+            $this->campaignCollectedAmount = (float) $campaign->collected_amount;
+            $this->campaignTargetAmount = (float) ($campaign->target_amount ?? 0);
 
-                $this->campaignCollectedAmount = (float) $campaign->collected_amount;
-                $this->campaignTargetAmount = (float) ($campaign->target_amount ?? 0);
+            SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
 
-                SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
+            $isNewSubscription = $donation->type === DonationType::Recurring
+                && $donation->fresh()?->subscription_id === null;
 
-                $isNewSubscription = $donation->type === DonationType::Recurring
-                    && $donation->subscription_id === null;
+            if ($isNewSubscription) {
+                $subscription = $this->createRecurringPlan($donation, $paymentIntent, $stripeOptions);
 
-                if ($isNewSubscription) {
-                    $subscription = $this->createRecurringPlan($donation, $paymentIntent, $stripeOptions);
-
-                    if ($subscription->wasRecentlyCreated) {
-                        SendNewSubscriptionNotification::dispatch($donation);
-                        SendDonorNewSubscriptionNotification::dispatch($donation);
-                    }
+                if ($subscription->wasRecentlyCreated) {
+                    SendNewSubscriptionNotification::dispatch($donation);
+                    SendDonorNewSubscriptionNotification::dispatch($donation);
                 }
+            }
 
-                if (! $isNewSubscription) {
-                    SendDonationReceipt::dispatch($donation);
-                }
+            if (! $isNewSubscription) {
+                SendDonationReceipt::dispatch($donation);
 
                 if ($donation->type !== DonationType::Recurring) {
                     SendNewDonationNotification::dispatch($donation);
@@ -325,16 +349,11 @@ class DonationForm extends Component
                 SendLinkedInConversionEvent::dispatch($donation);
                 SendXAdsConversionEvent::dispatch($donation);
                 SendSnapchatConversionEvent::dispatch($donation);
-                SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
             }
+
+            SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
         } catch (\Exception $e) {
             report($e);
-        }
-
-        $campaignPublicId = Campaign::query()->whereKey($donation->campaign_id)->value('public_id');
-
-        if ($campaignPublicId !== null) {
-            $this->dispatch('campaign-donation-received', campaignPublicId: $campaignPublicId);
         }
     }
 

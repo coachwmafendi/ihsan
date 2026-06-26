@@ -107,8 +107,7 @@ it('creates connected account customers for connected organization payments', fu
                     'id' => 'cus_connected_donor',
                     'object' => 'customer',
                     'email' => $params['email'] ?? null,
-                    'first_name' => $params['first_name'] ?? null,
-                    'last_name' => $params['last_name'] ?? null,
+                    'name' => $params['name'] ?? null,
                     'phone' => $params['phone'] ?? null,
                 ],
                 str_ends_with($absUrl, '/v1/payment_intents') => [
@@ -159,8 +158,7 @@ it('creates connected account customers for connected organization payments', fu
         ->and($customerRequest['headers'])->toContain('Stripe-Account: acct_connected_test')
         ->and($customerRequest['params'])->toMatchArray([
             'email' => 'connected@example.test',
-            'first_name' => 'Connected',
-            'last_name' => 'Donor',
+            'name' => 'Connected Donor',
             'phone' => '+60129876543',
         ])
         ->and($paymentIntentRequest)->not->toBeNull()

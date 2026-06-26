@@ -55,16 +55,20 @@ class CreatePaymentIntent
 
         if ($organization->stripe_account_id && $organization->stripe_onboarded) {
             $stripeOptions = ['stripe_account' => $organization->stripe_account_id];
+            $customerName = trim(($donation->donor?->first_name ?? '').' '.($donation->donor?->last_name ?? ''));
+
             $customerParams = [
                 'email' => $donation->donor?->email,
-                'first_name' => $donation->donor?->first_name,
-                'last_name' => $donation->donor?->last_name,
                 'metadata' => StripeMetadata::forDonorCustomer(
                     donor: $donation->donor,
                     organization: $organization,
                     source: 'donation_checkout',
                 ),
             ];
+
+            if ($customerName !== '') {
+                $customerParams['name'] = $customerName;
+            }
 
             if (filled($donation->donor?->phone)) {
                 $customerParams['phone'] = $donation->donor->phone;

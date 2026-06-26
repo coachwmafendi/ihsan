@@ -277,7 +277,7 @@ it('includes track purchase logic in the donation form javascript', function () 
     $response->assertSee('trackPurchase()', false);
     $response->assertSee("eventID: 'purchase_' + this.donationPublicId", false);
     $response->assertSee("window.IhsanTrack('Purchase'", false);
-    $response->assertSee('this.donationPublicId = $wire.donationPublicId', false);
+    $response->assertSee('this.donationPublicId = this.$wire.donationPublicId', false);
 });
 
 it('uses the same event id format in browser and server purchase events', function () {

@@ -270,6 +270,35 @@ it('updates retry schedule and sends dunning notification after a failed charge'
     });
 });
 
+it('marks subscription as failed and dispatches final dunning on terminal failure', function (): void {
+    Queue::fake();
+
+    $subscription = createDueSubscription();
+    $subscription->update([
+        'retry_count' => 3,
+        'failed_installment_count' => 5,
+    ]);
+    $paymentIntentId = 'pi_recurring_terminal_failure';
+    $paymentMethodId = $subscription->donorPaymentMethod->stripe_payment_method_id;
+
+    ApiRequestor::setHttpClient(makeStripeClient('failure', $paymentIntentId, $paymentMethodId));
+
+    $result = app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    expect($result->status)->toBe('failed')
+        ->and($result->errorCode)->toBe('card_declined');
+
+    $subscription->refresh();
+    expect($subscription)
+        ->status->toBe(SubscriptionStatus::Failed)
+        ->next_charge_at->toBeNull();
+
+    Queue::assertPushed(SendFailedPaymentNotification::class);
+    Queue::assertPushed(SendDonorDunningNotification::class, function ($job) use ($subscription) {
+        return $job->subscription->is($subscription) && $job->retryCount === 4 && $job->isFinalAttempt === true;
+    });
+});
+
 it('pauses schedule for authentication when a charge requires action', function (): void {
     Queue::fake();
 

@@ -46,7 +46,8 @@ it('marks the subscription as failed after max failed installments', function ()
 
     expect($result['retry_count'])->toBe(0)
         ->and($result['failed_installment_count'])->toBe(6)
-        ->and($result['status'])->toBe('failed');
+        ->and($result['status'])->toBe('failed')
+        ->and($result['next_charge_at'])->toBeNull();
 });
 
 it('resets retry counters and advances the schedule after a successful charge', function (): void {

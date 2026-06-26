@@ -9,6 +9,7 @@ use App\Enums\DonationType;
 use App\Enums\SubscriptionStatus;
 use App\Mail\DonorDunningNotification;
 use App\Mail\PlatformInvoicePaid;
+use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Fraud\BlockedDonation;
 use App\Models\Fraud\FraudAttempt;
@@ -22,6 +23,7 @@ use App\Services\RecurringPlanResolver;
 use App\Services\StripeMetadata;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Stripe\Event as StripeEvent;
@@ -95,7 +97,6 @@ class ProcessStripeWebhook implements ShouldQueue
             return;
         }
 
-        $wasPending = $donation->status === DonationStatus::Pending;
         $stripeOptions = filled($event->account ?? null) ? ['stripe_account' => $event->account] : [];
 
         $synced = app(SyncDonationStripeDetails::class)->sync(
@@ -105,23 +106,41 @@ class ProcessStripeWebhook implements ShouldQueue
         );
         $paymentIntent = $synced['payment_intent'];
 
-        $donation->update([
-            'status' => DonationStatus::Succeeded,
-        ]);
+        $finalizeResult = DB::transaction(function () use ($donation): array {
+            $lockedDonation = Donation::query()->whereKey($donation->getKey())->lockForUpdate()->firstOrFail();
 
-        $donation->refresh();
+            $wasPending = $lockedDonation->status === DonationStatus::Pending;
 
+            if ($wasPending) {
+                $lockedDonation->update([
+                    'status' => DonationStatus::Succeeded,
+                ]);
+
+                $campaign = Campaign::query()->whereKey($lockedDonation->campaign_id)->lockForUpdate()->first();
+
+                if ($campaign !== null) {
+                    $previousCollected = (float) $campaign->collected_amount;
+                    $incrementAmount = (float) ($lockedDonation->base_amount ?? $lockedDonation->gross_amount);
+                    $campaign->increment('collected_amount', $incrementAmount);
+
+                    return ['wasPending' => true, 'campaign' => $campaign, 'previousCollected' => $previousCollected];
+                }
+            }
+
+            return ['wasPending' => false, 'campaign' => null, 'previousCollected' => 0];
+        });
+
+        $wasPending = $finalizeResult['wasPending'];
         $isNewSubscription = $donation->type === DonationType::Recurring
-            && ($wasPending || $donation->subscription_id === null);
+            && ($wasPending || $donation->fresh()?->subscription_id === null);
 
         if ($wasPending) {
-            $campaign = $donation->campaign;
-            $previousCollected = (float) $campaign->collected_amount;
-            $incrementAmount = (float) ($donation->base_amount ?? $donation->gross_amount);
-            $campaign->increment('collected_amount', $incrementAmount);
-            $campaign->refresh();
+            $campaign = $finalizeResult['campaign'];
 
-            SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
+            if ($campaign !== null) {
+                $campaign->refresh();
+                SendCampaignMilestoneNotification::dispatch($campaign, $finalizeResult['previousCollected']);
+            }
         }
 
         if ($isNewSubscription) {

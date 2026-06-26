@@ -308,7 +308,7 @@ class ChargeRecurringInstallment
         SendFailedPaymentNotification::dispatch($subscription, $errorMessage);
 
         if ($sendDunning && $subscription->donor?->canReceiveEmails()) {
-            $isFinalAttempt = $subscription->status === 'failed';
+            $isFinalAttempt = $subscription->status === SubscriptionStatus::Failed;
             SendDonorDunningNotification::dispatch($subscription, $oldRetryCount + 1, $isFinalAttempt);
         }
     }

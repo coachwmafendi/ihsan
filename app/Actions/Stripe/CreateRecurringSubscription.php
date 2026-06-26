@@ -158,10 +158,10 @@ class CreateRecurringSubscription
         $donation->loadMissing('campaign.organization');
         $organization = $donation->campaign?->organization;
 
+        $customerName = trim(($donation->donor?->first_name ?? '').' '.($donation->donor?->last_name ?? ''));
+
         $customerParams = [
             'email' => $donorEmail,
-            'first_name' => $donation->donor?->first_name,
-            'last_name' => $donation->donor?->last_name,
             'metadata' => $organization !== null
                 ? StripeMetadata::forDonorCustomer(
                     donor: $donation->donor,
@@ -170,6 +170,10 @@ class CreateRecurringSubscription
                 )
                 : [],
         ];
+
+        if ($customerName !== '') {
+            $customerParams['name'] = $customerName;
+        }
 
         if (filled($donation->donor?->phone)) {
             $customerParams['phone'] = $donation->donor->phone;

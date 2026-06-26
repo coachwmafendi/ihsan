@@ -49,6 +49,9 @@
                         const percent = Math.round((this.raisedAmount / this.targetAmount) * 100);
                         return percent > 0 ? Math.max(2, Math.min(100, percent)) : 0;
                     },
+                    get donorName() {
+                        return `${this.donorFirstName || ''} ${this.donorLastName || ''}`.trim() || 'Friend';
+                    },
                     formatCurrency(value) { return Number(value || 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
 
                     amountNumber(value = this.amount) {
@@ -209,11 +212,11 @@
                     },
                     async init() {
                         this.campaignPublicId = this.$el.dataset.campaignPublicId || '';
-                        this.raisedAmount = parseFloat($wire.campaignCollectedAmount) || 0;
-                        this.targetAmount = parseFloat($wire.campaignTargetAmount) || 0;
+                        this.raisedAmount = parseFloat(this.$wire.campaignCollectedAmount) || 0;
+                        this.targetAmount = parseFloat(this.$wire.campaignTargetAmount) || 0;
 
-                        $wire.on('amount-updated', ({ amount }) => { this.setAmount(amount); });
-                        $wire.on('currency-updated', ({ currency, symbol, amount, oneTimeAmounts, monthlyAmounts }) => {
+                        this.$wire.on('amount-updated', ({ amount }) => { this.setAmount(amount); });
+                        this.$wire.on('currency-updated', ({ currency, symbol, amount, oneTimeAmounts, monthlyAmounts }) => {
                             if (currency) this.currency = currency;
                             this.currencySymbol = symbol;
                             if (oneTimeAmounts) this.oneTimeAmounts = oneTimeAmounts;
@@ -239,15 +242,15 @@
                         this.cardError = '';
                         const { error: submitError } = await elements.submit();
                         if (submitError) { this.processing = false; this.currentStep = 'error'; this.cardError = submitError.message; return; }
-                        $wire.$set('frequency', this.frequency, false);
-                        $wire.$set('amount', this.amount, false);
-                        $wire.$set('coverFee', this.coverFee, false);
-                        $wire.$set('firstName', this.donorFirstName, false);
-                        $wire.$set('lastName', this.donorLastName, false);
-                        $wire.$set('email', this.donorEmail, false);
-                        $wire.$set('phone', this.donorPhone, false);
+                        this.$wire.$set('frequency', this.frequency, false);
+                        this.$wire.$set('amount', this.amount, false);
+                        this.$wire.$set('coverFee', this.coverFee, false);
+                        this.$wire.$set('firstName', this.donorFirstName, false);
+                        this.$wire.$set('lastName', this.donorLastName, false);
+                        this.$wire.$set('email', this.donorEmail, false);
+                        this.$wire.$set('phone', this.donorPhone, false);
                         let clientSecret;
-                        try { clientSecret = await $wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
+                        try { clientSecret = await this.$wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
                         if (!clientSecret) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
                         const paymentIntentId = clientSecret.split('_secret_')[0] ?? null;
                         const { error: confirmError } = await stripe.confirmPayment({
@@ -262,17 +265,17 @@
                         if (confirmError) { this.processing = false; this.currentStep = 'error'; this.cardError = confirmError.message; return; }
                         if (paymentIntentId) {
                             try {
-                                await $wire.confirmPayment(paymentIntentId);
+                                await this.$wire.confirmPayment(paymentIntentId);
                             } catch (e) {
                                 // Server finalization failure should not block the success UX.
                             }
                         }
-                        this.donationPublicId = $wire.donationPublicId;
+                        this.donationPublicId = this.$wire.donationPublicId;
                         this.processing = false;
                         this.trackPurchase();
 
-                        if ($wire.campaignCollectedAmount !== undefined) {
-                            this.raisedAmount = parseFloat($wire.campaignCollectedAmount) || 0;
+                        if (this.$wire.campaignCollectedAmount !== undefined) {
+                            this.raisedAmount = parseFloat(this.$wire.campaignCollectedAmount) || 0;
                         }
 
                         this.currentStep = 'success';
