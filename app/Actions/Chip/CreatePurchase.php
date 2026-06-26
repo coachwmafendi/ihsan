@@ -8,6 +8,7 @@ use App\Models\Donation;
 use Chip\Builder\PurchaseBuilder;
 use Chip\Exception\ChipApiException;
 use Illuminate\Support\Facades\Route;
+use InvalidArgumentException;
 use RuntimeException;
 
 final class CreatePurchase
@@ -20,7 +21,13 @@ final class CreatePurchase
         $campaign = $donation->campaign;
         $donor = $donation->donor;
 
-        $chip = ChipApiFactory::make($organization);
+        try {
+            $chip = ChipApiFactory::make($organization);
+        } catch (InvalidArgumentException $e) {
+            report($e);
+
+            throw new RuntimeException('Failed to initialize CHIP client: '.$e->getMessage(), previous: $e);
+        }
 
         $builder = PurchaseBuilder::create()
             ->brandId($organization->chip_brand_id)

@@ -113,3 +113,21 @@ it('creates a chip purchase without success callback when webhook route is missi
     $requestBody = json_decode((string) $requestHistory[0]['request']->getBody(), true);
     expect($requestBody)->not->toHaveKey('success_callback');
 });
+
+it('throws runtime exception when organization is not chip onboarded', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create(['payment_gateway' => 'chip']);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create();
+
+    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
+    $factory->shouldReceive('make')
+        ->once()
+        ->andThrow(new InvalidArgumentException('Organization is not CHIP onboarded.'));
+
+    expect(fn () => app(CreatePurchase::class)->create($donation))
+        ->toThrow(RuntimeException::class, 'Failed to initialize CHIP client: Organization is not CHIP onboarded.');
+});
