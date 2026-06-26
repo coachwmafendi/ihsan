@@ -111,6 +111,67 @@ it('creates a donation by charging the recurring token', function () {
         ->and($donation->source)->toBe('campaign_page');
 });
 
+it('works without the chip webhook route registered', function () {
+    Route::partialMock()->shouldReceive('has')->with('chip.webhook')->andReturn(false);
+
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create([
+        'stripe_subscription_id' => null,
+        'chip_recurring_token' => 'RECURRING_TOKEN',
+        'amount' => 50.00,
+        'currency' => 'MYR',
+        'status' => SubscriptionStatus::Active,
+        'source' => 'campaign_page',
+    ]);
+
+    $requestHistory = [];
+    $mockHandler = new MockHandler([
+        new Response(200, [], json_encode([
+            'id' => 'INSTALL123',
+            'status' => 'created',
+        ])),
+        new Response(200, [], json_encode([
+            'id' => 'INSTALL123',
+            'status' => 'paid',
+        ])),
+        new Response(200, [], json_encode([
+            'id' => 'INSTALL123',
+            'status' => 'paid',
+            'transaction_data' => [
+                'payment_method' => 'visa',
+            ],
+        ])),
+    ]);
+    $handlerStack = HandlerStack::create($mockHandler);
+    $handlerStack->push(Middleware::history($requestHistory));
+
+    $chipApi = new ChipApi(
+        brandId: $organization->chip_brand_id,
+        apiKey: $organization->chip_api_key,
+        config: ['handler' => $handlerStack],
+    );
+
+    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
+    $factory->shouldReceive('make')->twice()->andReturn($chipApi);
+
+    app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    $createBody = json_decode((string) $requestHistory[0]['request']->getBody(), true);
+
+    expect($createBody)->not->toHaveKey('success_callback');
+
+    $donation = Donation::query()
+        ->where('subscription_id', $subscription->id)
+        ->firstOrFail();
+
+    expect($donation->status)->toBe(DonationStatus::Succeeded);
+});
+
 it('creates a pending donation when the charge is not immediately paid', function () {
     $organization = Organization::factory()->create([
         'chip_brand_id' => 'BRAND123',
@@ -162,6 +223,30 @@ it('creates a pending donation when the charge is not immediately paid', functio
 
     expect($donation->status)->toBe(DonationStatus::Pending)
         ->and($donation->chip_purchase_id)->toBe('INSTALL456');
+});
+
+it('throws runtime exception when organization is not chip onboarded', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create([
+        'stripe_subscription_id' => null,
+        'chip_recurring_token' => 'RECURRING_TOKEN',
+        'amount' => 25.00,
+        'currency' => 'MYR',
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
+    $factory->shouldReceive('make')
+        ->once()
+        ->andThrow(new InvalidArgumentException('Organization is not CHIP onboarded.'));
+
+    expect(fn () => app(ChargeRecurringInstallment::class)->handle($subscription))
+        ->toThrow(RuntimeException::class, 'Failed to initialize CHIP client');
 });
 
 it('throws runtime exception when chip api request fails', function () {

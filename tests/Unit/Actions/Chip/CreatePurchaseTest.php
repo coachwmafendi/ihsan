@@ -64,5 +64,52 @@ it('creates a chip purchase and stores checkout url', function () {
 
     expect($requestHistory)->toHaveCount(1);
     $requestBody = json_decode((string) $requestHistory[0]['request']->getBody(), true);
-    expect($requestBody['purchase']['products'][0]['price'])->toBe(1999);
+    expect($requestBody['purchase']['products'][0]['price'])->toBe(1999)
+        ->and($requestBody['success_callback'])->toBe(route('chip.webhook'));
+});
+
+it('creates a chip purchase without success callback when webhook route is missing', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create(['payment_gateway' => 'chip']);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'currency' => 'MYR',
+        'gross_amount' => 19.99,
+    ]);
+
+    $requestHistory = [];
+    $mockHandler = new MockHandler([
+        new Response(200, [], json_encode([
+            'id' => 'PURCHASE123',
+            'checkout_url' => 'https://gate.chip-in.asia/pay/PURCHASE123',
+        ])),
+    ]);
+    $handlerStack = HandlerStack::create($mockHandler);
+    $handlerStack->push(Middleware::history($requestHistory));
+
+    $chipApi = new ChipApi(
+        brandId: $organization->chip_brand_id,
+        apiKey: $organization->chip_api_key,
+        config: ['handler' => $handlerStack],
+    );
+
+    Route::get('/chip/callback/{donation}/{status}', fn () => '')->name('chip.callback');
+    Route::getRoutes()->refreshNameLookups();
+    Route::partialMock()->shouldReceive('has')->with('chip.webhook')->andReturn(false);
+
+    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
+    $factory->shouldReceive('make')
+        ->once()
+        ->andReturn($chipApi);
+
+    $checkoutUrl = app(CreatePurchase::class)->create($donation);
+
+    expect($checkoutUrl)->toBe('https://gate.chip-in.asia/pay/PURCHASE123');
+    expect($donation->fresh()->chip_purchase_id)->toBe('PURCHASE123');
+
+    $requestBody = json_decode((string) $requestHistory[0]['request']->getBody(), true);
+    expect($requestBody)->not->toHaveKey('success_callback');
 });

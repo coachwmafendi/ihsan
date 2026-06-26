@@ -7,6 +7,7 @@ namespace App\Actions\Chip;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use Chip\Exception\ChipApiException;
+use InvalidArgumentException;
 use RuntimeException;
 
 final class RefundDonation
@@ -15,9 +16,8 @@ final class RefundDonation
      * Refund a CHIP donation.
      *
      * @param  Donation  $donation  The donation to refund.
-     * @param  int|null  $amount  The amount to refund in the smallest currency unit (cents). Leave null for a full refund.
      */
-    public function handle(Donation $donation, ?int $amount = null): void
+    public function handle(Donation $donation): void
     {
         $donation->loadMissing('campaign.organization');
 
@@ -31,10 +31,13 @@ final class RefundDonation
             throw new RuntimeException('Donation is not linked to an organization.');
         }
 
-        $chip = ChipApiFactory::make($organization);
-
         try {
-            $chip->purchases->refund($donation->chip_purchase_id, $amount);
+            $chip = ChipApiFactory::make($organization);
+            $chip->purchases->refund($donation->chip_purchase_id);
+        } catch (InvalidArgumentException $e) {
+            report($e);
+
+            throw new RuntimeException('Failed to initialize CHIP client: '.$e->getMessage(), previous: $e);
         } catch (ChipApiException $e) {
             report($e);
 

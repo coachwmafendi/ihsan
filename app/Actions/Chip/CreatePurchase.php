@@ -7,6 +7,7 @@ namespace App\Actions\Chip;
 use App\Models\Donation;
 use Chip\Builder\PurchaseBuilder;
 use Chip\Exception\ChipApiException;
+use Illuminate\Support\Facades\Route;
 use RuntimeException;
 
 final class CreatePurchase
@@ -21,7 +22,7 @@ final class CreatePurchase
 
         $chip = ChipApiFactory::make($organization);
 
-        $purchase = PurchaseBuilder::create()
+        $builder = PurchaseBuilder::create()
             ->brandId($organization->chip_brand_id)
             ->currency($donation->currency)
             ->language('en')
@@ -29,9 +30,13 @@ final class CreatePurchase
             ->clientFullName($donor->name)
             ->addProduct($campaign->title, (int) round(((float) $donation->gross_amount + (float) ($donation->donor_fee_covered ?? 0)) * 100))
             ->successRedirect(route('chip.callback', ['donation' => $donation->public_id, 'status' => 'success']))
-            ->failureRedirect(route('chip.callback', ['donation' => $donation->public_id, 'status' => 'failure']))
-            ->successCallback(route('chip.webhook'))
-            ->build();
+            ->failureRedirect(route('chip.callback', ['donation' => $donation->public_id, 'status' => 'failure']));
+
+        if (Route::has('chip.webhook')) {
+            $builder = $builder->successCallback(route('chip.webhook'));
+        }
+
+        $purchase = $builder->build();
 
         try {
             $result = $chip->purchases->create($purchase);

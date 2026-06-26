@@ -63,46 +63,6 @@ it('refunds a chip donation and updates status', function () {
     expect((string) $requestHistory[0]['request']->getBody())->toBe('');
 });
 
-it('refunds a partial amount when an amount is provided', function () {
-    $organization = Organization::factory()->create([
-        'chip_brand_id' => 'BRAND123',
-        'chip_api_key' => 'secret',
-    ]);
-    $campaign = Campaign::factory()->for($organization)->create();
-    $donor = Donor::factory()->create();
-    $donation = Donation::factory()->for($campaign)->for($donor)->create([
-        'chip_purchase_id' => 'PURCHASE123',
-        'status' => DonationStatus::Succeeded,
-    ]);
-
-    $requestHistory = [];
-    $mockHandler = new MockHandler([
-        new Response(200, [], json_encode([
-            'id' => 'PURCHASE123',
-            'status' => 'refunded',
-        ])),
-    ]);
-    $handlerStack = HandlerStack::create($mockHandler);
-    $handlerStack->push(Middleware::history($requestHistory));
-
-    $chipApi = new ChipApi(
-        brandId: $organization->chip_brand_id,
-        apiKey: $organization->chip_api_key,
-        config: ['handler' => $handlerStack],
-    );
-
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')->once()->andReturn($chipApi);
-
-    app(RefundDonation::class)->handle($donation, 2500);
-
-    expect($donation->fresh()->status)->toBe(DonationStatus::Refunded);
-
-    expect($requestHistory)->toHaveCount(1);
-    $requestBody = json_decode((string) $requestHistory[0]['request']->getBody(), true);
-    expect($requestBody['amount'])->toBe(2500);
-});
-
 it('throws runtime exception when chip api request fails', function () {
     $organization = Organization::factory()->create([
         'chip_brand_id' => 'BRAND123',
@@ -150,4 +110,25 @@ it('throws runtime exception when donation has no chip purchase id', function ()
 
     expect(fn () => app(RefundDonation::class)->handle($donation))
         ->toThrow(RuntimeException::class, 'No CHIP purchase ID found');
+});
+
+it('throws runtime exception when organization is not chip onboarded', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'chip_purchase_id' => 'PURCHASE123',
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
+    $factory->shouldReceive('make')
+        ->once()
+        ->andThrow(new InvalidArgumentException('Organization is not CHIP onboarded.'));
+
+    expect(fn () => app(RefundDonation::class)->handle($donation))
+        ->toThrow(RuntimeException::class, 'Failed to initialize CHIP client');
 });
