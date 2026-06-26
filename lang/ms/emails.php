@@ -76,7 +76,6 @@ return [
         'upgrade_interval_short_bimonthly' => '2 bulan',
         'upgrade_interval_short_quarterly' => '3 bulan',
         'upgrade_interval_short_semiannual' => '6 bulan',
-        'upgrade_interval_short_default' => ':interval',
     ],
 
     'subscription_amount_changed' => [

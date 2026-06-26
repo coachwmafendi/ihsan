@@ -101,6 +101,12 @@
                     </x-ui.alert>
                     @break
 
+                @case('failed')
+                    <x-ui.alert :compact="true" variant="danger" icon="heroicon-o-x-circle">
+                        This recurring plan has failed after repeated payment attempts. No further charges will be attempted.
+                    </x-ui.alert>
+                    @break
+
                 @case('incomplete')
                     <x-ui.alert :compact="true" variant="warning" icon="heroicon-o-exclamation-triangle">
                         This recurring donation is incomplete. Please complete the payment setup.

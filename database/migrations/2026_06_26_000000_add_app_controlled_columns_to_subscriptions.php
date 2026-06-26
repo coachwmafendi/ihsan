@@ -18,12 +18,15 @@ return new class extends Migration
             $table->timestamp('last_charge_at')->nullable()->after('next_charge_at');
             $table->timestamp('last_charge_attempt_at')->nullable()->after('last_charge_at');
             $table->unsignedInteger('failed_installment_count')->default(0)->after('retry_count');
+
+            $table->index(['stripe_subscription_id', 'status', 'next_charge_at'], 'subscriptions_charge_due_index');
         });
     }
 
     public function down(): void
     {
         Schema::table('subscriptions', function (Blueprint $table): void {
+            $table->dropIndex('subscriptions_charge_due_index');
             $table->dropForeign(['donor_payment_method_id']);
             $table->dropColumn([
                 'donor_payment_method_id',
