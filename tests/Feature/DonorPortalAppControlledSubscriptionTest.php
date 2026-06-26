@@ -10,37 +10,38 @@ use App\Models\Organization;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Queue;
 
-function authenticateAsDonor(Organization $organization, Donor $donor): void
-{
-    test()->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $organization->getKey()]);
-}
+beforeEach(function () {
+    $this->organization = Organization::factory()->create();
+    $this->donor = Donor::factory()->create();
 
-function createDonorPortalAppControlledSubscription(Organization $organization, Donor $donor, array $overrides = []): Subscription
-{
-    $campaign = Campaign::factory()->for($organization)->create();
+    $this->authenticateAsDonor = function (Donor $donor): void {
+        test()->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $this->organization->getKey()]);
+    };
 
-    return Subscription::factory()->for($campaign)->for($donor)->create(array_merge([
-        'stripe_subscription_id' => null,
-        'stripe_price_id' => null,
-        'status' => SubscriptionStatus::Active,
-        'interval' => SubscriptionInterval::Monthly,
-        'amount' => 30.00,
-        'currency' => 'myr',
-        'next_charge_at' => now()->addDay(),
-    ], $overrides));
-}
+    $this->createSubscription = function (Donor $donor, array $overrides = []): Subscription {
+        $campaign = Campaign::factory()->for($this->organization)->create();
+
+        return Subscription::factory()->for($campaign)->for($donor)->create(array_merge([
+            'stripe_subscription_id' => null,
+            'stripe_price_id' => null,
+            'status' => SubscriptionStatus::Active,
+            'interval' => SubscriptionInterval::Monthly,
+            'amount' => 30.00,
+            'currency' => 'myr',
+            'next_charge_at' => now()->addDay(),
+        ], $overrides));
+    };
+});
 
 it('cancels an app-controlled recurring plan', function () {
     Queue::fake();
 
-    $organization = Organization::factory()->create();
-    $donor = Donor::factory()->create();
-    $subscription = createDonorPortalAppControlledSubscription($organization, $donor);
+    $subscription = ($this->createSubscription)($this->donor);
 
-    authenticateAsDonor($organization, $donor);
+    ($this->authenticateAsDonor)($this->donor);
 
-    $this->post(route('donorportal.subscriptions.cancel', ['organization' => $organization, 'subscription' => $subscription]))
-        ->assertRedirect(route('donorportal.subscriptions', $organization))
+    $this->post(route('donorportal.subscriptions.cancel', ['organization' => $this->organization, 'subscription' => $subscription]))
+        ->assertRedirect(route('donorportal.subscriptions', $this->organization))
         ->assertSessionHas('success');
 
     $subscription->refresh();
@@ -54,17 +55,15 @@ it('cancels an app-controlled recurring plan', function () {
 it('pauses an app-controlled recurring plan', function () {
     Queue::fake();
 
-    $organization = Organization::factory()->create();
-    $donor = Donor::factory()->create();
     $nextChargeAt = now()->addDay()->startOfSecond();
-    $subscription = createDonorPortalAppControlledSubscription($organization, $donor, [
+    $subscription = ($this->createSubscription)($this->donor, [
         'next_charge_at' => $nextChargeAt,
     ]);
 
-    authenticateAsDonor($organization, $donor);
+    ($this->authenticateAsDonor)($this->donor);
 
-    $this->post(route('donorportal.subscriptions.pause', ['organization' => $organization, 'subscription' => $subscription]))
-        ->assertRedirect(route('donorportal.subscriptions', $organization))
+    $this->post(route('donorportal.subscriptions.pause', ['organization' => $this->organization, 'subscription' => $subscription]))
+        ->assertRedirect(route('donorportal.subscriptions', $this->organization))
         ->assertSessionHas('success');
 
     $subscription->refresh();
@@ -79,18 +78,16 @@ it('pauses an app-controlled recurring plan', function () {
 it('resumes an app-controlled recurring plan', function () {
     Queue::fake();
 
-    $organization = Organization::factory()->create();
-    $donor = Donor::factory()->create();
-    $subscription = createDonorPortalAppControlledSubscription($organization, $donor, [
+    $subscription = ($this->createSubscription)($this->donor, [
         'status' => SubscriptionStatus::Paused,
         'paused_until' => now()->addWeek(),
         'next_charge_at' => now()->addWeek(),
     ]);
 
-    authenticateAsDonor($organization, $donor);
+    ($this->authenticateAsDonor)($this->donor);
 
-    $this->post(route('donorportal.subscriptions.resume', ['organization' => $organization, 'subscription' => $subscription]))
-        ->assertRedirect(route('donorportal.subscriptions', $organization))
+    $this->post(route('donorportal.subscriptions.resume', ['organization' => $this->organization, 'subscription' => $subscription]))
+        ->assertRedirect(route('donorportal.subscriptions', $this->organization))
         ->assertSessionHas('success');
 
     $subscription->refresh();
@@ -104,15 +101,13 @@ it('resumes an app-controlled recurring plan', function () {
 it('changes the amount of an app-controlled recurring plan', function () {
     Queue::fake();
 
-    $organization = Organization::factory()->create();
-    $donor = Donor::factory()->create();
-    $subscription = createDonorPortalAppControlledSubscription($organization, $donor, [
+    $subscription = ($this->createSubscription)($this->donor, [
         'amount' => 30.00,
     ]);
 
-    authenticateAsDonor($organization, $donor);
+    ($this->authenticateAsDonor)($this->donor);
 
-    $this->postJson(route('donorportal.subscriptions.change-amount', ['organization' => $organization, 'subscription' => $subscription]), [
+    $this->postJson(route('donorportal.subscriptions.change-amount', ['organization' => $this->organization, 'subscription' => $subscription]), [
         'new_amount' => 50.00,
     ])
         ->assertOk()
@@ -124,22 +119,18 @@ it('changes the amount of an app-controlled recurring plan', function () {
 });
 
 it('requires authentication to cancel an app-controlled recurring plan', function () {
-    $organization = Organization::factory()->create();
-    $donor = Donor::factory()->create();
-    $subscription = createDonorPortalAppControlledSubscription($organization, $donor);
+    $subscription = ($this->createSubscription)($this->donor);
 
-    $this->post(route('donorportal.subscriptions.cancel', ['organization' => $organization, 'subscription' => $subscription]))
-        ->assertRedirect(route('donorportal.login', $organization));
+    $this->post(route('donorportal.subscriptions.cancel', ['organization' => $this->organization, 'subscription' => $subscription]))
+        ->assertRedirect(route('donorportal.login', $this->organization));
 });
 
 it('prevents one donor from cancelling another donors app-controlled plan', function () {
-    $organization = Organization::factory()->create();
-    $donor = Donor::factory()->create();
     $otherDonor = Donor::factory()->create();
-    $subscription = createDonorPortalAppControlledSubscription($organization, $otherDonor);
+    $subscription = ($this->createSubscription)($otherDonor);
 
-    authenticateAsDonor($organization, $donor);
+    ($this->authenticateAsDonor)($this->donor);
 
-    $this->post(route('donorportal.subscriptions.cancel', ['organization' => $organization, 'subscription' => $subscription]))
+    $this->post(route('donorportal.subscriptions.cancel', ['organization' => $this->organization, 'subscription' => $subscription]))
         ->assertForbidden();
 });

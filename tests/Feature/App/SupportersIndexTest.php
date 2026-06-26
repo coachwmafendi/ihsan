@@ -6,6 +6,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -25,14 +26,14 @@ beforeEach(function () {
         'donor_id' => $this->donor->id,
         'gross_amount' => 50.00,
         'base_amount' => null,
-        'created_at' => now()->subMonths(3),
+        'created_at' => Carbon::create(2026, 3, 15, 12, 0, 0),
     ]);
     $this->lastDonation = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,
         'donor_id' => $this->donor->id,
         'gross_amount' => 75.00,
         'base_amount' => null,
-        'created_at' => now()->subDays(5),
+        'created_at' => Carbon::create(2026, 6, 22, 12, 0, 0),
     ]);
 });
 

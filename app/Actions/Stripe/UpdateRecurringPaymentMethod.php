@@ -32,9 +32,11 @@ class UpdateRecurringPaymentMethod
         DonorPaymentMethod::query()->where('donor_id', $donor->getKey())->update(['is_default' => false]);
 
         $donorPaymentMethod = DonorPaymentMethod::updateOrCreate(
-            ['stripe_payment_method_id' => $paymentMethodId],
             [
                 'donor_id' => $donor->getKey(),
+                'stripe_payment_method_id' => $paymentMethodId,
+            ],
+            [
                 'brand' => ucfirst((string) $paymentMethod->card->brand),
                 'last4' => $paymentMethod->card->last4,
                 'exp_month' => $paymentMethod->card->exp_month,

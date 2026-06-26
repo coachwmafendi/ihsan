@@ -30,6 +30,11 @@ class DonorSubscriptionController extends Controller
         );
     }
 
+    private function isStripeBacked(Subscription $subscription): bool
+    {
+        return filled($subscription->stripe_subscription_id);
+    }
+
     private function handleSubscriptionAction(
         Organization $organization,
         Subscription $subscription,
@@ -67,13 +72,17 @@ class DonorSubscriptionController extends Controller
         $subscription->loadMissing('campaign');
         $this->authorizeSubscriptionAction($organization, $subscription, request()->donor);
 
+        $successMessage = $this->isStripeBacked($subscription)
+            ? 'Subscription will cancel at the end of the billing period.'
+            : 'Subscription cancelled.';
+
         return $this->handleSubscriptionAction(
             $organization,
             $subscription,
-            fn () => $subscription->stripe_subscription_id
+            fn () => $this->isStripeBacked($subscription)
                 ? app(ManageStripeSubscription::class)->cancel($subscription, false)
                 : app(CancelLocalRecurringPlan::class)->cancel($subscription),
-            'Subscription will cancel at the end of the billing period.',
+            $successMessage,
             'Unable to cancel subscription. Please try again later.',
         );
     }
@@ -86,7 +95,7 @@ class DonorSubscriptionController extends Controller
         return $this->handleSubscriptionAction(
             $organization,
             $subscription,
-            fn () => $subscription->stripe_subscription_id
+            fn () => $this->isStripeBacked($subscription)
                 ? app(ManageStripeSubscription::class)->pause($subscription)
                 : app(PauseLocalRecurringPlan::class)->pause($subscription),
             'Subscription paused.',
@@ -102,7 +111,7 @@ class DonorSubscriptionController extends Controller
         return $this->handleSubscriptionAction(
             $organization,
             $subscription,
-            fn () => $subscription->stripe_subscription_id
+            fn () => $this->isStripeBacked($subscription)
                 ? app(ManageStripeSubscription::class)->resume($subscription)
                 : app(ResumeLocalRecurringPlan::class)->resume($subscription),
             'Subscription resumed.',
@@ -126,7 +135,7 @@ class DonorSubscriptionController extends Controller
         $previousAmount = (float) $subscription->amount;
 
         try {
-            if ($subscription->stripe_subscription_id) {
+            if ($this->isStripeBacked($subscription)) {
                 app(ManageStripeSubscription::class)->changeAmount($subscription, (float) $data['new_amount']);
             } else {
                 app(ChangeRecurringAmount::class)->change($subscription, (float) $data['new_amount']);
@@ -270,7 +279,7 @@ class DonorSubscriptionController extends Controller
         $previousAmount = (float) $subscription->amount;
 
         try {
-            if ($subscription->stripe_subscription_id) {
+            if ($this->isStripeBacked($subscription)) {
                 app(ManageStripeSubscription::class)->changeAmount($subscription, (float) $data['new_amount']);
             } else {
                 app(ChangeRecurringAmount::class)->change($subscription, (float) $data['new_amount']);
@@ -293,7 +302,7 @@ class DonorSubscriptionController extends Controller
         $this->authorizeSubscriptionAction($organization, $subscription, request()->donor);
 
         try {
-            if ($subscription->stripe_subscription_id) {
+            if ($this->isStripeBacked($subscription)) {
                 $clientSecret = app(ManageStripeSubscription::class)->createSetupIntent($subscription);
             } else {
                 $setupIntent = SetupIntent::create([
@@ -325,7 +334,7 @@ class DonorSubscriptionController extends Controller
         ]);
 
         try {
-            if ($subscription->stripe_subscription_id) {
+            if ($this->isStripeBacked($subscription)) {
                 app(ManageStripeSubscription::class)->updatePaymentMethod($subscription, $data['payment_method_id']);
             } else {
                 app(UpdateRecurringPaymentMethod::class)->update($subscription, $data['payment_method_id']);

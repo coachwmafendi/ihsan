@@ -16,7 +16,7 @@ class ScheduleRetry
     ) {}
 
     /**
-     * @return array{next_charge_at: CarbonImmutable, status: string, retry_count: int, failed_installment_count: int}
+     * @return array{next_charge_at: CarbonImmutable|null, status: string, retry_count: int, failed_installment_count: int}
      */
     public function afterFailure(Subscription $subscription): array
     {
