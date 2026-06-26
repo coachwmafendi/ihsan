@@ -42,7 +42,7 @@ class ScheduleRetry
         }
 
         return [
-            'next_charge_at' => $nextChargeAt,
+            'next_charge_at' => $status === 'failed' ? null : $nextChargeAt,
             'status' => $status,
             'retry_count' => $retryCount,
             'failed_installment_count' => $failedInstallmentCount,

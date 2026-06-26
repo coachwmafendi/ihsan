@@ -7,6 +7,7 @@ namespace App\Actions\Stripe;
 use App\Data\ChargeResult;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
+use App\Enums\SubscriptionStatus;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonorDunningNotification;
 use App\Jobs\SendDonorRecurringPaymentNotification;
@@ -17,6 +18,7 @@ use App\Jobs\SendMetaConversionEvent;
 use App\Jobs\SendNewDonationNotification;
 use App\Jobs\SendSnapchatConversionEvent;
 use App\Jobs\SendXAdsConversionEvent;
+use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -26,41 +28,59 @@ use App\Services\ScheduleRetry;
 use App\Services\StripeMetadata;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Stripe\Exception\CardException;
 use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\Stripe;
 use Throwable;
 
 class ChargeRecurringInstallment
 {
+    public function __construct(
+        private ScheduleRetry $scheduleRetry,
+        private SyncDonationStripeDetails $syncDonationStripeDetails,
+    ) {}
+
     public function handle(Subscription $subscription): ChargeResult
     {
         Stripe::setApiKey(config('services.stripe.secret'));
 
         $subscription->loadMissing(['campaign.organization', 'donor', 'donorPaymentMethod']);
 
+        $guardResult = $this->guardSubscriptionState($subscription);
+
+        if ($guardResult !== null) {
+            return $guardResult;
+        }
+
         $campaign = $subscription->campaign;
         $organization = $campaign?->organization;
 
         if ($campaign === null || $organization === null || ! $this->organizationIsOnboarded($organization)) {
+            $subscription->update(['status' => SubscriptionStatus::Failed, 'next_charge_at' => null]);
+
             return new ChargeResult('failed', errorCode: 'organization_not_onboarded');
         }
 
         $donor = $subscription->donor;
 
         if ($donor === null || blank($donor->stripe_customer_id)) {
+            $subscription->update(['status' => SubscriptionStatus::Failed, 'next_charge_at' => null]);
+
             return new ChargeResult('failed', errorCode: 'missing_customer');
         }
 
         $paymentMethod = $subscription->donorPaymentMethod;
 
         if ($paymentMethod === null || blank($paymentMethod->stripe_payment_method_id)) {
+            $subscription->update(['status' => SubscriptionStatus::Failed, 'next_charge_at' => null]);
+
             return new ChargeResult('failed', errorCode: 'missing_payment_method');
         }
 
         $stripeOptions = ['stripe_account' => $organization->stripe_account_id];
 
         $grossAmount = (float) $subscription->amount;
-        $feeCoverAmount = (float) ($subscription->fee_cover_amount ?? 0);
+        $feeCoverAmount = $subscription->cover_fee ? (float) ($subscription->fee_cover_amount ?? 0) : 0.0;
         $totalCents = (int) round(($grossAmount + $feeCoverAmount) * 100);
 
         $params = [
@@ -86,11 +106,16 @@ class ChargeRecurringInstallment
 
         try {
             $paymentIntent = StripePaymentIntent::create($params, $stripeOptions);
+        } catch (CardException $e) {
+            $oldRetryCount = $this->recordAttemptFailure($subscription);
+            $this->dispatchFailureNotifications($subscription, $e->getMessage(), $oldRetryCount, true);
+
+            return new ChargeResult('failed', errorCode: $e->getDeclineCode() ?? 'card_declined');
         } catch (Throwable $e) {
             report($e);
 
-            $this->recordAttemptFailure($subscription);
-            SendFailedPaymentNotification::dispatch($subscription, $e->getMessage());
+            $oldRetryCount = $this->recordAttemptFailure($subscription);
+            $this->dispatchFailureNotifications($subscription, $e->getMessage(), $oldRetryCount, false);
 
             return new ChargeResult('failed', errorCode: 'stripe_exception');
         }
@@ -105,6 +130,27 @@ class ChargeRecurringInstallment
     private function organizationIsOnboarded(Organization $organization): bool
     {
         return filled($organization->stripe_account_id) && $organization->stripe_onboarded;
+    }
+
+    private function guardSubscriptionState(Subscription $subscription): ?ChargeResult
+    {
+        if ($subscription->stripe_subscription_id !== null) {
+            return new ChargeResult('failed', errorCode: 'not_app_controlled');
+        }
+
+        if ($subscription->status !== SubscriptionStatus::Active) {
+            return new ChargeResult('failed', errorCode: 'subscription_not_active');
+        }
+
+        if ($subscription->next_charge_at !== null && $subscription->next_charge_at->isFuture()) {
+            return new ChargeResult('failed', errorCode: 'next_charge_in_future');
+        }
+
+        if ($subscription->paused_until !== null && $subscription->paused_until->isFuture()) {
+            return new ChargeResult('failed', errorCode: 'subscription_paused');
+        }
+
+        return null;
     }
 
     /**
@@ -148,7 +194,7 @@ class ChargeRecurringInstallment
         }
 
         $grossAmount = (float) $subscription->amount;
-        $feeCoverAmount = (float) ($subscription->fee_cover_amount ?? 0);
+        $feeCoverAmount = $subscription->cover_fee ? (float) ($subscription->fee_cover_amount ?? 0) : 0.0;
         $now = now();
 
         [$donation, $previousCollected] = DB::transaction(function () use (
@@ -156,7 +202,6 @@ class ChargeRecurringInstallment
             $campaign,
             $donor,
             $paymentIntent,
-            $stripeOptions,
             $grossAmount,
             $feeCoverAmount,
             $now,
@@ -177,14 +222,10 @@ class ChargeRecurringInstallment
                 'source' => $subscription->source ?? 'checkout_modal',
             ]);
 
-            app(SyncDonationStripeDetails::class)->sync($donation, $paymentIntent, $stripeOptions);
-
-            $donation->refresh();
-
-            $incrementAmount = (float) ($donation->base_amount ?? $donation->gross_amount);
+            $incrementAmount = $grossAmount;
             $campaign->increment('collected_amount', $incrementAmount);
 
-            $schedule = app(ScheduleRetry::class)->afterSuccess(
+            $schedule = $this->scheduleRetry->afterSuccess(
                 $subscription,
                 CarbonImmutable::instance($now),
             );
@@ -203,6 +244,14 @@ class ChargeRecurringInstallment
 
             return [$donation, $previousCollected];
         });
+
+        try {
+            $this->syncDonationStripeDetails->sync($donation, $paymentIntent, $stripeOptions);
+            $donation->refresh();
+        } catch (Throwable $syncException) {
+            report($syncException);
+            SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
+        }
 
         SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
         SendNewDonationNotification::dispatch($donation);
@@ -229,40 +278,38 @@ class ChargeRecurringInstallment
 
     private function handleFailure(Subscription $subscription, StripePaymentIntent $paymentIntent): ChargeResult
     {
-        $oldRetryCount = $subscription->retry_count;
-        $schedule = app(ScheduleRetry::class)->afterFailure($subscription);
-
-        $subscription->update([
-            'status' => $schedule['status'],
-            'retry_count' => $schedule['retry_count'],
-            'failed_installment_count' => $schedule['failed_installment_count'],
-            'last_charge_attempt_at' => now(),
-            'next_charge_at' => $schedule['next_charge_at'],
-        ]);
-
         $errorCode = $paymentIntent->last_payment_error?->code ?? $paymentIntent->status;
         $errorMessage = $paymentIntent->last_payment_error?->message ?? null;
 
-        SendFailedPaymentNotification::dispatch($subscription, $errorMessage);
-
-        if ($subscription->donor?->canReceiveEmails()) {
-            $isFinalAttempt = $schedule['status'] === 'failed';
-            SendDonorDunningNotification::dispatch($subscription, $oldRetryCount + 1, $isFinalAttempt);
-        }
+        $oldRetryCount = $this->recordAttemptFailure($subscription);
+        $this->dispatchFailureNotifications($subscription, $errorMessage, $oldRetryCount, true);
 
         return new ChargeResult('failed', errorCode: (string) $errorCode);
     }
 
-    private function recordAttemptFailure(Subscription $subscription): void
+    private function recordAttemptFailure(Subscription $subscription): int
     {
-        $schedule = app(ScheduleRetry::class)->afterFailure($subscription);
+        $oldRetryCount = $subscription->retry_count;
+        $schedule = $this->scheduleRetry->afterFailure($subscription);
 
         $subscription->update([
             'status' => $schedule['status'],
             'retry_count' => $schedule['retry_count'],
             'failed_installment_count' => $schedule['failed_installment_count'],
             'last_charge_attempt_at' => now(),
-            'next_charge_at' => $schedule['next_charge_at'],
+            'next_charge_at' => $schedule['status'] === 'failed' ? null : $schedule['next_charge_at'],
         ]);
+
+        return $oldRetryCount;
+    }
+
+    private function dispatchFailureNotifications(Subscription $subscription, ?string $errorMessage, int $oldRetryCount, bool $sendDunning): void
+    {
+        SendFailedPaymentNotification::dispatch($subscription, $errorMessage);
+
+        if ($sendDunning && $subscription->donor?->canReceiveEmails()) {
+            $isFinalAttempt = $subscription->status === 'failed';
+            SendDonorDunningNotification::dispatch($subscription, $oldRetryCount + 1, $isFinalAttempt);
+        }
     }
 }

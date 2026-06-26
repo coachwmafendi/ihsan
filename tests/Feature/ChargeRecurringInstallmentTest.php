@@ -21,6 +21,7 @@ use App\Models\Donor;
 use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Services\SubscriptionSchedule;
 use Illuminate\Support\Facades\Queue;
 use Stripe\ApiRequestor;
 use Stripe\HttpClient\ClientInterface;
@@ -199,7 +200,7 @@ it('creates a new donation and advances the subscription after a successful char
         ->next_charge_at->not->toBeNull();
 
     expect($subscription->next_charge_at->format('Y-m-d'))
-        ->toBe(now()->addMonth()->format('Y-m-d'));
+        ->toBe(SubscriptionSchedule::nextChargeAt(now()->toImmutable(), $subscription->interval)->format('Y-m-d'));
 
     Queue::assertPushed(SendCampaignMilestoneNotification::class);
     Queue::assertPushed(SendNewDonationNotification::class);
