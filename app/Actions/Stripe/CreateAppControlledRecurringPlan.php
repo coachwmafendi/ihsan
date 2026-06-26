@@ -107,14 +107,18 @@ class CreateAppControlledRecurringPlan
             throw new \RuntimeException('Cannot create Stripe customer without email.');
         }
 
+        $name = trim(($donor?->first_name ?? '').' '.($donor?->last_name ?? ''));
+
         $customerParams = [
             'email' => $donorEmail,
-            'first_name' => $donor?->first_name,
-            'last_name' => $donor?->last_name,
             'metadata' => $organization !== null
                 ? StripeMetadata::forDonorCustomer($donor, $organization, 'app_controlled_recurring')
                 : [],
         ];
+
+        if ($name !== '') {
+            $customerParams['name'] = $name;
+        }
 
         if (filled($donor?->phone)) {
             $customerParams['phone'] = $donor->phone;
