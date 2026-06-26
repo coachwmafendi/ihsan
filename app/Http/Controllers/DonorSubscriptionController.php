@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Stripe\CancelLocalRecurringPlan;
+use App\Actions\Stripe\ChangeRecurringAmount;
 use App\Actions\Stripe\ManageStripeSubscription;
+use App\Actions\Stripe\PauseLocalRecurringPlan;
+use App\Actions\Stripe\ResumeLocalRecurringPlan;
+use App\Actions\Stripe\UpdateRecurringPaymentMethod;
 use App\Jobs\SendSubscriptionAmountChangedNotification;
 use App\Models\Donor;
 use App\Models\Organization;
@@ -10,6 +15,7 @@ use App\Models\Subscription;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\URL;
+use Stripe\SetupIntent;
 
 class DonorSubscriptionController extends Controller
 {
@@ -64,7 +70,9 @@ class DonorSubscriptionController extends Controller
         return $this->handleSubscriptionAction(
             $organization,
             $subscription,
-            fn () => app(ManageStripeSubscription::class)->cancel($subscription, false),
+            fn () => $subscription->stripe_subscription_id
+                ? app(ManageStripeSubscription::class)->cancel($subscription, false)
+                : app(CancelLocalRecurringPlan::class)->cancel($subscription),
             'Subscription will cancel at the end of the billing period.',
             'Unable to cancel subscription. Please try again later.',
         );
@@ -78,7 +86,9 @@ class DonorSubscriptionController extends Controller
         return $this->handleSubscriptionAction(
             $organization,
             $subscription,
-            fn () => app(ManageStripeSubscription::class)->pause($subscription),
+            fn () => $subscription->stripe_subscription_id
+                ? app(ManageStripeSubscription::class)->pause($subscription)
+                : app(PauseLocalRecurringPlan::class)->pause($subscription),
             'Subscription paused.',
             'Unable to pause subscription. Please try again later.',
         );
@@ -92,7 +102,9 @@ class DonorSubscriptionController extends Controller
         return $this->handleSubscriptionAction(
             $organization,
             $subscription,
-            fn () => app(ManageStripeSubscription::class)->resume($subscription),
+            fn () => $subscription->stripe_subscription_id
+                ? app(ManageStripeSubscription::class)->resume($subscription)
+                : app(ResumeLocalRecurringPlan::class)->resume($subscription),
             'Subscription resumed.',
             'Unable to resume subscription. Please try again later.',
         );
@@ -114,10 +126,11 @@ class DonorSubscriptionController extends Controller
         $previousAmount = (float) $subscription->amount;
 
         try {
-            app(ManageStripeSubscription::class)->changeAmount(
-                $subscription,
-                (float) $data['new_amount'],
-            );
+            if ($subscription->stripe_subscription_id) {
+                app(ManageStripeSubscription::class)->changeAmount($subscription, (float) $data['new_amount']);
+            } else {
+                app(ChangeRecurringAmount::class)->change($subscription, (float) $data['new_amount']);
+            }
         } catch (\Exception $e) {
             if ($isJson) {
                 return response()->json([
@@ -257,7 +270,11 @@ class DonorSubscriptionController extends Controller
         $previousAmount = (float) $subscription->amount;
 
         try {
-            app(ManageStripeSubscription::class)->changeAmount($subscription, (float) $data['new_amount']);
+            if ($subscription->stripe_subscription_id) {
+                app(ManageStripeSubscription::class)->changeAmount($subscription, (float) $data['new_amount']);
+            } else {
+                app(ChangeRecurringAmount::class)->change($subscription, (float) $data['new_amount']);
+            }
         } catch (\Exception $e) {
             return response()->json(['error' => 'Unable to update subscription amount. Please try again later.'], 500);
         }
@@ -276,7 +293,16 @@ class DonorSubscriptionController extends Controller
         $this->authorizeSubscriptionAction($organization, $subscription, request()->donor);
 
         try {
-            $clientSecret = app(ManageStripeSubscription::class)->createSetupIntent($subscription);
+            if ($subscription->stripe_subscription_id) {
+                $clientSecret = app(ManageStripeSubscription::class)->createSetupIntent($subscription);
+            } else {
+                $setupIntent = SetupIntent::create([
+                    'customer' => $subscription->donor->stripe_customer_id,
+                    'usage' => 'off_session',
+                    'payment_method_types' => ['card'],
+                ], ['stripe_account' => $subscription->campaign->organization->stripe_account_id]);
+                $clientSecret = $setupIntent->client_secret;
+            }
 
             $org = $subscription->campaign?->organization;
 
@@ -299,10 +325,11 @@ class DonorSubscriptionController extends Controller
         ]);
 
         try {
-            app(ManageStripeSubscription::class)->updatePaymentMethod(
-                $subscription,
-                $data['payment_method_id'],
-            );
+            if ($subscription->stripe_subscription_id) {
+                app(ManageStripeSubscription::class)->updatePaymentMethod($subscription, $data['payment_method_id']);
+            } else {
+                app(UpdateRecurringPaymentMethod::class)->update($subscription, $data['payment_method_id']);
+            }
 
             return response()->json(['status' => 'ok']);
         } catch (\Exception $e) {

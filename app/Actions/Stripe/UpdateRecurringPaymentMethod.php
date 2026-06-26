@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Actions\Stripe;
+
+use App\Models\DonorPaymentMethod;
+use App\Models\Subscription;
+use Stripe\PaymentMethod;
+use Stripe\Stripe;
+
+class UpdateRecurringPaymentMethod
+{
+    public function update(Subscription $subscription, string $paymentMethodId): void
+    {
+        $subscription->loadMissing('campaign.organization', 'donor');
+        $organization = $subscription->campaign?->organization;
+        $donor = $subscription->donor;
+
+        if ($organization === null || $donor === null || blank($donor->stripe_customer_id)) {
+            throw new \RuntimeException('Missing Stripe customer.');
+        }
+
+        Stripe::setApiKey(config('services.stripe.secret'));
+        $stripeOptions = ['stripe_account' => $organization->stripe_account_id];
+
+        $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
+        $paymentMethod->attach(['customer' => $donor->stripe_customer_id], $stripeOptions);
+
+        if ($paymentMethod->type !== 'card' || $paymentMethod->card === null) {
+            throw new \RuntimeException('Only card payment methods supported.');
+        }
+
+        DonorPaymentMethod::query()->where('donor_id', $donor->getKey())->update(['is_default' => false]);
+
+        $donorPaymentMethod = DonorPaymentMethod::updateOrCreate(
+            ['stripe_payment_method_id' => $paymentMethodId],
+            [
+                'donor_id' => $donor->getKey(),
+                'brand' => ucfirst((string) $paymentMethod->card->brand),
+                'last4' => $paymentMethod->card->last4,
+                'exp_month' => $paymentMethod->card->exp_month,
+                'exp_year' => $paymentMethod->card->exp_year,
+                'country' => $paymentMethod->card->country ?? null,
+                'is_default' => true,
+            ],
+        );
+
+        $subscription->update(['donor_payment_method_id' => $donorPaymentMethod->getKey()]);
+    }
+}
