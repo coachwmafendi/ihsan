@@ -45,4 +45,9 @@ return [
         'processing_fee_percent' => (float) env('PAYMENT_PROCESSING_FEE_PERCENT', 2.5),
     ],
 
+    'recurring' => [
+        'retry_intervals_days' => [1, 3, 7, 7],
+        'max_failed_installments' => 6,
+    ],
+
 ];
