@@ -517,6 +517,7 @@ it('confirms a recurring payment and creates a subscription', function () {
 
 it('creates a connected stripe billing subscription after a monthly payment succeeds', function () {
     config(['services.stripe.secret' => 'sk_test_fake']);
+    config(['services.recurring.use_app_controlled' => false]);
 
     $stripeClient = new class implements ClientInterface
     {

@@ -332,6 +332,7 @@ it('links the first subscription invoice to the signup donation and ignores dupl
         SyncDonationStripeDetailsJob::class,
     ]);
     config(['services.stripe.secret' => 'sk_test_fake']);
+    config(['services.recurring.use_app_controlled' => false]);
 
     $stripeClient = new class implements ClientInterface
     {
