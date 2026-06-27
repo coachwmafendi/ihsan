@@ -8,6 +8,7 @@ use App\Models\Donor;
 use App\Models\DonorEmailLog;
 use App\Models\Element;
 use App\Models\Organization;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -297,4 +298,57 @@ it('shows a resent badge next to the subject for resend log entries', function (
         ->test(DonationShow::class, ['donation' => $this->donation])
         ->assertSee($resentLog->subject)
         ->assertSee('Resent');
+});
+
+it('displays refunded state on the donation show page', function () {
+    $this->donation->update([
+        'status' => 'refunded',
+        'refunded_at' => now(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Refunded')
+        ->assertSee('Refund date')
+        ->assertSee(myrTime($this->donation->refunded_at))
+        ->assertDontSeeHTML('wire:click="openRefundModal"')
+        ->assertDontSeeHTML('href="'.e(route('donations.receipt.download', $this->donation)).'"')
+        ->assertSee('Receipts')
+        ->assertSee('Amounts below reflect the original transaction before the refund.');
+});
+
+it('warns when a refunded donation belongs to an active recurring plan', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => 'active',
+    ]);
+
+    $this->donation->update([
+        'subscription_id' => $subscription->id,
+        'status' => 'refunded',
+        'refunded_at' => now(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Recurring plan')
+        ->assertSee('This installment was refunded, but the recurring plan is still active.');
+});
+
+it('detects stripe as the default payment processor', function () {
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Payment processor')
+        ->assertSee('Stripe');
+});
+
+it('detects chip as the payment processor from chip identifiers', function () {
+    $this->donation->update(['chip_purchase_id' => 'chip_test_123']);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Payment processor')
+        ->assertSee('CHIP')
+        ->assertSeeHtml('src="'.e(asset('images/payment-processors/chip.svg')).'"');
 });

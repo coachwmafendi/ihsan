@@ -2,12 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Actions\Chip\ConfirmPurchase;
+use App\Actions\Chip\CreatePurchase as CreateChipPurchase;
 use App\Actions\Stripe\CreatePaymentIntent;
 use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
+use App\Enums\PaymentGateway;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendDonorNewSubscriptionNotification;
@@ -382,6 +385,70 @@ class DonationForm extends Component
     #[Renderless]
     public function submit(): string
     {
+        $donation = $this->buildPendingDonation();
+
+        try {
+            $paymentIntent = app(CreatePaymentIntent::class)->create($donation);
+            $donation->update(['stripe_payment_intent_id' => $paymentIntent->id]);
+
+            return $paymentIntent->client_secret;
+        } catch (\Exception $e) {
+            $donation->update(['status' => DonationStatus::Failed]);
+
+            throw $e;
+        }
+    }
+
+    #[Renderless]
+    public function submitChip(): string
+    {
+        $donation = $this->buildPendingDonation();
+
+        try {
+            $checkoutUrl = app(CreateChipPurchase::class)->create($donation);
+
+            return $checkoutUrl;
+        } catch (\Exception $e) {
+            $donation->update(['status' => DonationStatus::Failed]);
+
+            throw $e;
+        }
+    }
+
+    #[Renderless]
+    public function confirmChipPayment(?string $donationPublicId = null): void
+    {
+        $this->skipRender();
+
+        $donation = Donation::query()
+            ->where('public_id', $donationPublicId ?: $this->donationPublicId)
+            ->first();
+
+        if ($donation === null) {
+            return;
+        }
+
+        $campaignPublicId = Campaign::query()->whereKey($donation->campaign_id)->value('public_id');
+
+        if ($campaignPublicId !== null) {
+            $this->dispatch('campaign-donation-received', campaignPublicId: $campaignPublicId);
+        }
+
+        try {
+            $succeeded = app(ConfirmPurchase::class)->handle($donation);
+
+            if ($succeeded && $donation->campaign !== null) {
+                $donation->campaign->refresh();
+                $this->campaignCollectedAmount = (float) $donation->campaign->collected_amount;
+                $this->campaignTargetAmount = (float) ($donation->campaign->target_amount ?? 0);
+            }
+        } catch (\Exception $e) {
+            report($e);
+        }
+    }
+
+    private function buildPendingDonation(): Donation
+    {
         $validated = $this->validate();
         $email = str($validated['email'])->lower()->toString();
 
@@ -434,7 +501,7 @@ class DonationForm extends Component
         $fraudService = new FraudDetectionService($donor);
         $fraudResult = $fraudService->assess([
             'amount' => $validated['amount'],
-            'billing_country' => null, // captured after Stripe
+            'billing_country' => null,
         ]);
 
         if ($fraudResult['action'] === 'block') {
@@ -477,7 +544,6 @@ class DonationForm extends Component
 
         $this->donationPublicId = $donation->public_id;
 
-        // Send fraud notifications for flagged donations (blocked donations throw before this)
         if ($fraudStatus === 'flagged') {
             FraudDetectionService::notifyAdmins(
                 $donation,
@@ -486,16 +552,7 @@ class DonationForm extends Component
             );
         }
 
-        try {
-            $paymentIntent = app(CreatePaymentIntent::class)->create($donation);
-            $donation->update(['stripe_payment_intent_id' => $paymentIntent->id]);
-
-            return $paymentIntent->client_secret;
-        } catch (\Exception $e) {
-            $donation->update(['status' => DonationStatus::Failed]);
-
-            throw $e;
-        }
+        return $donation;
     }
 
     /**
@@ -729,6 +786,20 @@ class DonationForm extends Component
             (float) $this->amount,
             $this->currency
         );
+    }
+
+    #[Computed]
+    public function paymentGateway(): PaymentGateway
+    {
+        $campaign = $this->element?->campaign ?? $this->campaign;
+
+        return $campaign?->payment_gateway ?? PaymentGateway::Stripe;
+    }
+
+    #[Computed]
+    public function isChipGateway(): bool
+    {
+        return $this->paymentGateway === PaymentGateway::Chip;
     }
 
     public function render()

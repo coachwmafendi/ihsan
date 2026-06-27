@@ -183,6 +183,34 @@ class DonationShow extends Component
         return $this->donation->updated_at ? myrTime($this->donation->updated_at) : myrTime($this->donation->created_at);
     }
 
+    #[Computed]
+    public function isRefunded(): bool
+    {
+        return $this->donation->status === DonationStatus::Refunded;
+    }
+
+    public function refundDate(): ?string
+    {
+        return $this->donation->refunded_at ? myrTime($this->donation->refunded_at) : null;
+    }
+
+    public function statusBadgeClass(): string
+    {
+        return match ($this->donation->status) {
+            DonationStatus::Succeeded => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+            DonationStatus::Pending => 'bg-amber-50 text-amber-700 ring-amber-600/20',
+            DonationStatus::Failed => 'bg-red-50 text-red-700 ring-red-600/10',
+            DonationStatus::Refunded => 'bg-slate-50 text-slate-600 ring-slate-500/20',
+        };
+    }
+
+    public function statusLabel(): string
+    {
+        return $this->donation->status === DonationStatus::Succeeded
+            ? 'Succeeded'
+            : (string) str($this->donation->status->value)->headline();
+    }
+
     public function frequencyLabel(): string
     {
         if ($this->donation->subscription) {
@@ -190,6 +218,24 @@ class DonationShow extends Component
         }
 
         return 'One-time';
+    }
+
+    public function paymentProcessorLabel(): string
+    {
+        if (filled($this->donation->chip_purchase_id) || filled($this->donation->chip_recurring_token)) {
+            return 'CHIP';
+        }
+
+        return 'Stripe';
+    }
+
+    public function paymentProcessorIcon(): string
+    {
+        if (filled($this->donation->chip_purchase_id) || filled($this->donation->chip_recurring_token)) {
+            return 'icons.chip';
+        }
+
+        return 'icons.stripe';
     }
 
     public function subscriptionTotal(): string

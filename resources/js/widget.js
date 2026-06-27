@@ -6,6 +6,7 @@
 
   var token = script.getAttribute("data-token") || "";
   var enhance = script.getAttribute("data-enhance") === "true";
+  var isDemo = script.getAttribute("data-demo") === "true";
   if (!token) return;
 
   var apiBase = script.getAttribute("data-api-base") || "";
@@ -76,6 +77,10 @@
   }
 
   function handleClick(el) {
+    if (isDemo && typeof window.__ihsanOpenDemoCheckout === "function") {
+      window.__ihsanOpenDemoCheckout(el);
+      return;
+    }
     var action = el.settings.action || "open_campaign_page";
     if (action === "checkout_modal" || action === "open_checkout_modal") {
       showCheckoutModal(el);
@@ -279,6 +284,19 @@
 
       if (e.data && e.data.type === "ihsan:donation-ready") {
         hideSkeleton();
+      }
+
+      if (e.data && e.data.type === "ihsan:open-checkout" && e.data.url) {
+        if (skeletonHidden) {
+          skeleton = createCheckoutSkeleton(isMobileView);
+          modalWrap.insertBefore(skeleton, iframe);
+          skeletonHidden = false;
+        }
+        iframe.src = e.data.url;
+      }
+
+      if (e.data && e.data.type === "ihsan:chip-success") {
+        closeOverlay();
       }
     }
 
@@ -895,19 +913,26 @@
 
     // Listen for embed step-continue: open full modal at step 2 with donor's selections
     window.addEventListener("message", function (e) {
-      if (!e.data || e.data.type !== "ihsan:step-continue") return;
-      if (e.source !== iframe.contentWindow) return;
+      if (!e.data || e.source !== iframe.contentWindow) return;
       if (e.data.token && e.data.token !== el.token) return;
-      var d = e.data;
-      var qs = [
-        "popup=1",
-        "step=2",
-        "amount=" + encodeURIComponent(d.amount || ""),
-        "frequency=" + encodeURIComponent(d.frequency || "one_time"),
-        "currency=" + encodeURIComponent(d.currency || ""),
-        "cover_fee=" + (d.coverFee ? "1" : "0"),
-      ].join("&");
-      showCheckoutModal(el, baseUrl + "/donate/" + el.token + "?" + qs);
+
+      if (e.data.type === "ihsan:step-continue") {
+        var d = e.data;
+        var qs = [
+          "popup=1",
+          "step=2",
+          "amount=" + encodeURIComponent(d.amount || ""),
+          "frequency=" + encodeURIComponent(d.frequency || "one_time"),
+          "currency=" + encodeURIComponent(d.currency || ""),
+          "cover_fee=" + (d.coverFee ? "1" : "0"),
+        ].join("&");
+        showCheckoutModal(el, baseUrl + "/donate/" + el.token + "?" + qs);
+        return;
+      }
+
+      if (e.data.type === "ihsan:open-checkout" && e.data.url) {
+        showCheckoutModal(el, e.data.url);
+      }
     });
   }
 

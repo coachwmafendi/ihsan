@@ -4,7 +4,7 @@
     document.addEventListener('alpine:init', () => {
         if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
             Alpine._donationStepRegistered = true;
-            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0) => {
+            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialIsChipGateway = false) => {
                 let stripe = null;
                 let elements = null;
                 let paymentElement = null;
@@ -26,6 +26,7 @@
                     isEmbed: initialIsEmbed,
                     isPopup: initialIsPopup,
                     isPublicPage: initialIsPublicPage,
+                    isChipGateway: initialIsChipGateway,
                     donationPublicId: initialDonationPublicId,
                     redirectUrl: initialRedirectUrl,
                     campaignPublicId: '',
@@ -117,6 +118,7 @@
                         return valid;
                     },
                     mountPaymentElement() {
+                        if (this.isChipGateway) return;
                         const container = document.getElementById('payment-element');
                         if (!container) return;
 
@@ -240,8 +242,6 @@
                         if (this.processing) return;
                         this.processing = true;
                         this.cardError = '';
-                        const { error: submitError } = await elements.submit();
-                        if (submitError) { this.processing = false; this.currentStep = 'error'; this.cardError = submitError.message; return; }
                         this.$wire.$set('frequency', this.frequency, false);
                         this.$wire.$set('amount', this.amount, false);
                         this.$wire.$set('coverFee', this.coverFee, false);
@@ -249,6 +249,24 @@
                         this.$wire.$set('lastName', this.donorLastName, false);
                         this.$wire.$set('email', this.donorEmail, false);
                         this.$wire.$set('phone', this.donorPhone, false);
+
+                        if (this.isChipGateway) {
+                            let checkoutUrl;
+                            try { checkoutUrl = await this.$wire.submitChip(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = e.message || 'Unable to start payment. Please try again.'; return; }
+                            if (!checkoutUrl) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
+                            this.donationPublicId = this.$wire.donationPublicId;
+
+                            if (window.parent !== window) {
+                                window.parent.postMessage({ type: 'ihsan:open-checkout', url: checkoutUrl, donationPublicId: this.donationPublicId }, '*');
+                                return;
+                            }
+
+                            window.top.location.href = checkoutUrl;
+                            return;
+                        }
+
+                        const { error: submitError } = await elements.submit();
+                        if (submitError) { this.processing = false; this.currentStep = 'error'; this.cardError = submitError.message; return; }
                         let clientSecret;
                         try { clientSecret = await this.$wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
                         if (!clientSecret) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }

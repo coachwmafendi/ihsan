@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ChipCheckoutController;
+use App\Http\Controllers\DemoLandingController;
 use App\Http\Controllers\DonationCampaignImageController;
 use App\Http\Controllers\DonationExportController;
 use App\Http\Controllers\DonorImpersonationController;
@@ -50,6 +52,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 Route::view('/', 'welcome')->name('home');
 Route::get('/register-organization', RegisterOrganization::class)->name('register.org');
+
+Route::get('/demo/msk', DemoLandingController::class)->name('demo.msk');
 
 Route::get('/_test-widget', fn () => response('<!DOCTYPE html><html><body style="padding:40px"><h2>Widget Test</h2><script src="/e/widget.js" data-token="sgxqLo" data-api-base="'.config('app.url').'"></script></body></html>')->header('Content-Type', 'text/html'));
 
@@ -126,6 +130,10 @@ Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
     ->name('stripe.payment-intent');
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
+
+Route::get('/chip/callback', [ChipCheckoutController::class, 'callback'])->name('chip.callback');
+Route::post('/chip/confirm/{donation:public_id}', [ChipCheckoutController::class, 'confirm'])->name('chip.confirm');
+
 Route::post('/webhooks/mailgun', [EmailWebhookController::class, 'mailgun'])->name('webhooks.mailgun');
 Route::post('/webhooks/postmark', [EmailWebhookController::class, 'postmark'])->name('webhooks.postmark');
 Route::post('/webhooks/ses/{token}', [EmailWebhookController::class, 'ses'])->name('webhooks.ses');

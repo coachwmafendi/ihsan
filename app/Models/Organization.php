@@ -163,6 +163,26 @@ class Organization extends Model
         return route('organization.logo', $this);
     }
 
+    public function chipBrandId(): ?string
+    {
+        return $this->settings['chip_brand_id'] ?? null;
+    }
+
+    public function chipApiKey(): ?string
+    {
+        return $this->settings['chip_api_key'] ?? null;
+    }
+
+    public function chipPaymentMethods(): array
+    {
+        return $this->settings['chip_payment_methods'] ?? ['card'];
+    }
+
+    public function chipOnboarded(): bool
+    {
+        return filled($this->chipBrandId()) && filled($this->chipApiKey());
+    }
+
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
