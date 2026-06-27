@@ -392,3 +392,63 @@ it('previews a subscription email with rendered html', function () {
         ->assertSet('previewSubject', 'Thank you for joining as a recurring supporter')
         ->assertSet('previewHtml', fn ($html) => is_string($html) && str_contains($html, 'Thank you for your donation!'));
 });
+
+it('shows scheduled to cancel ui adjustments', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'cancel_at_period_end' => true,
+        'current_period_end' => now()->addWeek(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Scheduled to cancel')
+        ->assertSee('Final installment date')
+        ->assertSee('Cancellation scheduled')
+        ->assertSee('Final installment on '.myrTime($subscription->current_period_end))
+        ->assertDontSee('Offer an increase');
+});
+
+it('blocks manage actions when subscription is scheduled to cancel', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'cancel_at_period_end' => true,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->call('openEditPaymentDetailsModal')
+        ->assertDispatched('notify', type: 'error')
+        ->call('openSkipModal')
+        ->assertDispatched('notify', type: 'error')
+        ->call('openUpgradeModal')
+        ->assertDispatched('notify', type: 'error')
+        ->call('openCancelModal')
+        ->assertDispatched('notify', type: 'error')
+        ->call('pauseSubscription')
+        ->assertDispatched('notify', type: 'error');
+});
+
+it('shows ended state and blocks manage actions for cancelled subscriptions', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Cancelled,
+        'interval' => SubscriptionInterval::Monthly,
+        'cancelled_at' => now()->subDay(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Ended')
+        ->assertSee('This recurring plan has ended')
+        ->assertSee('This recurring donation was cancelled on')
+        ->call('openEditPaymentDetailsModal')
+        ->assertDispatched('notify', type: 'error');
+});

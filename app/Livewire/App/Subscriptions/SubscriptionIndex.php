@@ -255,6 +255,7 @@ class SubscriptionIndex extends Component
         $subscriptions = Subscription::query()
             ->whereHas('campaign', fn (Builder $q) => $q->where('organization_id', $org->id))
             ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::PastDue])
+            ->where('cancel_at_period_end', false)
             ->with([
                 'donations' => fn ($q) => $q->select('id', 'subscription_id', 'exchange_rate')->orderByDesc('created_at'),
             ])

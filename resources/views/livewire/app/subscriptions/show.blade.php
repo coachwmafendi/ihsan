@@ -152,7 +152,12 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Status</dt>
-                            <dd class="text-sm font-medium text-slate-900">{{ $subscription->status->getLabel() }}</dd>
+                            <dd class="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-900">
+                                <span>{{ $subscription->status_label }}</span>
+                                @if ($this->isTerminalStatus)
+                                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Ended</span>
+                                @endif
+                            </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Supporter</dt>
@@ -190,13 +195,15 @@
                                 @elseif(strtolower($subscription->currency) !== 'myr')
                                     <span class="text-slate-400">≈ MYR —</span>
                                 @endif
-                                <button
-                                    type="button"
-                                    wire:click="openUpgradeModal"
-                                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
-                                >
-                                    Offer an increase
-                                </button>
+                                @if ($this->canManageRecurringPlan)
+                                    <button
+                                        type="button"
+                                        wire:click="openUpgradeModal"
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
+                                    >
+                                        Offer an increase
+                                    </button>
+                                @endif
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -226,7 +233,9 @@
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
-                            <dt class="text-sm text-slate-500">Next installment date</dt>
+                            <dt class="text-sm text-slate-500">
+                                {{ $this->isScheduledToCancel ? 'Final installment date' : 'Next installment date' }}
+                            </dt>
                             <dd class="w-fit border-b border-dashed border-slate-300 pb-0.5 text-sm text-slate-900">
                                 {{ myrTime($this->nextInstallmentDate) }}
                             </dd>
@@ -517,34 +526,45 @@
             <div class="lg:sticky lg:top-6 lg:self-start space-y-4">
                 {{-- Floating Action Menu --}}
                 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                    <button
-                        wire:click="openEditPaymentDetailsModal"
-                        class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
-                    >
-                        <x-heroicon-o-pencil class="size-5 text-slate-400" />
-                        Edit payment details
-                    </button>
-                    <button
-                        wire:click="openSkipModal"
-                        class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
-                    >
-                        <x-heroicon-o-arrow-right-circle class="size-5 text-slate-400" />
-                        Skip installments
-                    </button>
-                    <button
-                        wire:click="openUpgradeModal()"
-                        class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
-                    >
-                        <x-heroicon-o-arrow-up-circle class="size-5 text-slate-400" />
-                        Offer plan upgrade
-                    </button>
-                    <button
-                        wire:click="openCancelModal"
-                        class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 transition hover:bg-red-50"
-                    >
-                        <x-heroicon-o-trash class="size-5 text-red-400" />
-                        Cancel recurring
-                    </button>
+                    @if ($this->canManageRecurringPlan)
+                        <button
+                            wire:click="openEditPaymentDetailsModal"
+                            class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                            <x-heroicon-o-pencil class="size-5 text-slate-400" />
+                            Edit payment details
+                        </button>
+                        <button
+                            wire:click="openSkipModal"
+                            class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                            <x-heroicon-o-arrow-right-circle class="size-5 text-slate-400" />
+                            Skip installments
+                        </button>
+                        <button
+                            wire:click="openUpgradeModal()"
+                            class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                            <x-heroicon-o-arrow-up-circle class="size-5 text-slate-400" />
+                            Offer plan upgrade
+                        </button>
+                        <button
+                            wire:click="openCancelModal"
+                            class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 transition hover:bg-red-50"
+                        >
+                            <x-heroicon-o-trash class="size-5 text-red-400" />
+                            Cancel recurring
+                        </button>
+                    @elseif ($this->isScheduledToCancel)
+                        <div class="bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            <p class="font-medium">Cancellation scheduled</p>
+                            <p class="mt-1 text-amber-700">Final installment on {{ myrTime($this->nextInstallmentDate) }}.</p>
+                        </div>
+                    @else
+                        <div class="px-4 py-3 text-sm text-slate-600">
+                            This recurring plan has ended. No further charges will be made.
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Navigation --}}

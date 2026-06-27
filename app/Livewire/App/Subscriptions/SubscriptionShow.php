@@ -7,6 +7,7 @@ namespace App\Livewire\App\Subscriptions;
 use App\Actions\DonorEmailLog\PreviewDonorEmail;
 use App\Actions\DonorEmailLog\ResendDonorEmail;
 use App\Actions\Stripe\ManageStripeSubscription;
+use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
@@ -141,6 +142,10 @@ class SubscriptionShow extends Component
     #[Computed]
     public function nextInstallmentDate(): ?CarbonImmutable
     {
+        if ($this->isTerminalStatus) {
+            return null;
+        }
+
         $periodEnd = $this->subscription->current_period_end;
 
         if ($periodEnd === null) {
@@ -162,6 +167,29 @@ class SubscriptionShow extends Component
         return $this->latestDonation?->created_at ? myrTime($this->latestDonation->created_at) : null;
     }
 
+    #[Computed]
+    public function isTerminalStatus(): bool
+    {
+        return in_array($this->subscription->status, [
+            SubscriptionStatus::Cancelled,
+            SubscriptionStatus::Failed,
+            SubscriptionStatus::Completed,
+        ], true);
+    }
+
+    #[Computed]
+    public function isScheduledToCancel(): bool
+    {
+        return (bool) $this->subscription->is_scheduled_to_cancel;
+    }
+
+    #[Computed]
+    public function canManageRecurringPlan(): bool
+    {
+        return $this->subscription->status === SubscriptionStatus::Active
+            && ! $this->subscription->is_scheduled_to_cancel;
+    }
+
     public function formattedAmount(): string
     {
         return $this->subscription->currency_symbol.' '.number_format((float) $this->subscription->amount, 2).' '.strtoupper($this->subscription->currency);
@@ -179,6 +207,10 @@ class SubscriptionShow extends Component
 
     public function openUpgradeModal(): void
     {
+        if (! $this->ensureCanManageRecurringPlan()) {
+            return;
+        }
+
         $this->showUpgradeModal = true;
     }
 
@@ -210,6 +242,10 @@ class SubscriptionShow extends Component
 
     public function openCancelModal(): void
     {
+        if (! $this->ensureCanManageRecurringPlan()) {
+            return;
+        }
+
         $this->cancelReason = '';
         $this->cancelDetails = '';
         $this->showCancelModal = true;
@@ -222,6 +258,10 @@ class SubscriptionShow extends Component
 
     public function cancelSubscription(): void
     {
+        if (! $this->ensureCanManageRecurringPlan()) {
+            return;
+        }
+
         $this->validate([
             'cancelReason' => 'nullable|string|max:255',
             'cancelDetails' => 'nullable|string|max:1000',
@@ -279,6 +319,10 @@ class SubscriptionShow extends Component
 
     public function openEditPaymentDetailsModal(): void
     {
+        if (! $this->ensureCanManageRecurringPlan()) {
+            return;
+        }
+
         $this->editAmount = (float) $this->subscription->amount;
         $this->editInterval = $this->subscription->interval->value;
 
@@ -382,6 +426,10 @@ class SubscriptionShow extends Component
 
     public function savePaymentDetails(): void
     {
+        if (! $this->ensureCanManageRecurringPlan()) {
+            return;
+        }
+
         $this->validate([
             'editAmount' => 'required|numeric|min:1|max:99999.99',
             'editInterval' => 'required|in:monthly,weekly,yearly',
@@ -471,6 +519,10 @@ class SubscriptionShow extends Component
 
     public function pauseSubscription(): void
     {
+        if (! $this->ensureCanManageRecurringPlan()) {
+            return;
+        }
+
         try {
             app(ManageStripeSubscription::class)->pause($this->subscription);
         } catch (\Exception $e) {
@@ -491,6 +543,10 @@ class SubscriptionShow extends Component
 
     public function openSkipModal(): void
     {
+        if (! $this->ensureCanManageRecurringPlan()) {
+            return;
+        }
+
         $this->skipDuration = '1';
         $this->customSkipMonths = 1;
         $this->showSkipModal = true;
@@ -511,6 +567,10 @@ class SubscriptionShow extends Component
 
     public function confirmSkip(): void
     {
+        if (! $this->ensureCanManageRecurringPlan()) {
+            return;
+        }
+
         $months = $this->resolveSkipMonths();
 
         try {
@@ -688,6 +748,17 @@ class SubscriptionShow extends Component
         $this->showResendModal = false;
         $this->resendLogId = null;
         $this->resendRecipientEmail = null;
+    }
+
+    private function ensureCanManageRecurringPlan(): bool
+    {
+        if (! $this->canManageRecurringPlan) {
+            $this->dispatch('notify', type: 'error', message: 'This recurring plan cannot be modified.');
+
+            return false;
+        }
+
+        return true;
     }
 
     public function resendConfirmed(): void

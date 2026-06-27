@@ -144,3 +144,44 @@ it('displays status icon and label for each status variant', function () {
         $response->assertSee($status->getLabel());
     }
 });
+
+it('shows scheduled to cancel label in the status column', function () {
+    Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'cancel_at_period_end' => true,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->assertStatus(200)
+        ->assertSee('Active · Scheduled to cancel');
+});
+
+it('excludes scheduled to cancel plans from expected monthly total', function () {
+    Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'amount' => 200.00,
+        'currency' => 'myr',
+        'interval' => SubscriptionInterval::Monthly,
+        'status' => SubscriptionStatus::Active,
+        'cancel_at_period_end' => false,
+    ]);
+
+    Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'amount' => 100.00,
+        'currency' => 'myr',
+        'interval' => SubscriptionInterval::Monthly,
+        'status' => SubscriptionStatus::Active,
+        'cancel_at_period_end' => true,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->assertSee('MYR 200.00')
+        ->assertDontSee('MYR 300.00');
+});

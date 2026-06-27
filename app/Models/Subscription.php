@@ -50,6 +50,8 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property int|null $max_plan_installments
  * @property string|null $public_id
  * @property string|null $source
+ * @property-read bool $is_scheduled_to_cancel
+ * @property-read string $status_label
  * @property-read Collection<int, Activity> $activitiesAsSubject
  * @property-read int|null $activities_as_subject_count
  * @property-read Campaign $campaign
@@ -157,6 +159,22 @@ class Subscription extends Model
                 'virtual_terminal' => 'Virtual Terminal',
                 default => 'Checkout Modal',
             };
+        });
+    }
+
+    public function isScheduledToCancel(): Attribute
+    {
+        return Attribute::get(fn () => $this->status === SubscriptionStatus::Active && $this->cancel_at_period_end);
+    }
+
+    public function statusLabel(): Attribute
+    {
+        return Attribute::get(function (): string {
+            if ($this->is_scheduled_to_cancel) {
+                return 'Active · Scheduled to cancel';
+            }
+
+            return $this->status->getLabel();
         });
     }
 

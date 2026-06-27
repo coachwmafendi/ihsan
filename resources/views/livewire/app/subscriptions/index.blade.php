@@ -322,11 +322,16 @@
                                         'completed' => 'text-emerald-600',
                                         default => 'text-slate-500',
                                     };
+
+                                    if ($subscription->is_scheduled_to_cancel) {
+                                        $statusIcon = 'heroicon-o-clock';
+                                        $statusColor = 'text-amber-600';
+                                    }
                                 @endphp
                                 <td class="px-5 py-4">
                                     <span class="inline-flex items-center gap-1.5 text-sm font-medium {{ $statusColor }}">
                                         <x-dynamic-component :component="$statusIcon" class="size-5" />
-                                        {{ $subscription->status->getLabel() }}
+                                        {{ $subscription->status_label }}
                                     </span>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
