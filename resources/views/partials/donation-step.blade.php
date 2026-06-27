@@ -4,7 +4,7 @@
     document.addEventListener('alpine:init', () => {
         if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
             Alpine._donationStepRegistered = true;
-            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0) => {
+            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe') => {
                 let stripe = null;
                 let elements = null;
                 let paymentElement = null;
@@ -31,6 +31,7 @@
                     campaignPublicId: '',
                     raisedAmount: initialRaisedAmount,
                     targetAmount: initialTargetAmount,
+                    paymentGateway: initialPaymentGateway,
                     processing: false,
                     currentStep: initialStep > 1 ? initialStep : 1,
                     stepErrors: {},
@@ -172,7 +173,7 @@
                         }
                         this.currentStep++;
                         if (this.currentStep === 2) this.trackInitiateCheckout();
-                        if (this.currentStep === 3) this.$nextTick(() => this.mountPaymentElement());
+                        if (this.currentStep === 3 && this.paymentGateway === 'stripe') this.$nextTick(() => this.mountPaymentElement());
                     },
                     trackInitiateCheckout() {
                         if (this._initiateSent) return;
@@ -224,6 +225,9 @@
                             const amounts = this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
                             this.setAmount(amount ?? (amounts.length > 0 ? amounts[0] : this.amount));
                         });
+
+                        window.addEventListener('message', (event) => this.handleChipMessage(event));
+
                         stripe = connectedStripeAccountId
                             ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
                             : Stripe(window.stripePublishableKey);
@@ -236,12 +240,73 @@
                             });
                         }
                     },
+                    finishSuccess() {
+                        this.processing = false;
+                        this.trackPurchase();
+
+                        if (this.$wire.campaignCollectedAmount !== undefined) {
+                            this.raisedAmount = parseFloat(this.$wire.campaignCollectedAmount) || 0;
+                        }
+
+                        this.currentStep = 'success';
+
+                        if (this.campaignPublicId && window.parent !== window) {
+                            window.parent.postMessage({ type: 'ihsan:donation-success', campaignPublicId: this.campaignPublicId }, '*');
+                        }
+
+                        if (this.redirectUrl && ! this.isEmbed) {
+                            setTimeout(() => { window.location.href = this.redirectUrl; }, 1500);
+                        }
+                    },
+                    openChipCheckout(url) {
+                        // CHIP redirect checkout URLs set X-Frame-Options / CSP that prevents
+                        // embedding in an iframe, so we must use a popup or a full-page redirect.
+                        const width = Math.min(520, window.screen.availWidth);
+                        const height = Math.min(820, window.screen.availHeight);
+                        const left = Math.round((window.screen.availWidth - width) / 2);
+                        const top = Math.round((window.screen.availHeight - height) / 2);
+                        const features = 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes,status=yes';
+
+                        const popup = window.open(url, 'chipCheckout', features);
+
+                        if (popup) {
+                            popup.focus();
+                            return;
+                        }
+
+                        // Fallback if the popup was blocked.
+                        window.location.href = url;
+                    },
+                    async finalizeChip() {
+                        this.processing = true;
+                        try { await this.$wire.confirmChipPayment(this.donationPublicId); } catch (e) {
+                            // Server finalization failure should not block the success UX.
+                        }
+                        this.donationPublicId = this.$wire.donationPublicId;
+                        this.finishSuccess();
+                    },
+                    handleChipMessage(event) {
+                        if (! event.data || typeof event.data !== 'object') return;
+
+                        if (event.data.type === 'chip:payment:success') {
+                            if (event.data.donationId) {
+                                this.donationPublicId = event.data.donationId;
+                            }
+                            this.finalizeChip();
+                            return;
+                        }
+
+                        if (event.data.type === 'chip:payment:failure' || event.data.type === 'chip:payment:cancel') {
+                            this.processing = false;
+                            this.currentStep = 'error';
+                            this.cardError = 'Payment was not completed. Please try again.';
+                        }
+                    },
                     async handleSubmit() {
                         if (this.processing) return;
                         this.processing = true;
                         this.cardError = '';
-                        const { error: submitError } = await elements.submit();
-                        if (submitError) { this.processing = false; this.currentStep = 'error'; this.cardError = submitError.message; return; }
+
                         this.$wire.$set('frequency', this.frequency, false);
                         this.$wire.$set('amount', this.amount, false);
                         this.$wire.$set('coverFee', this.coverFee, false);
@@ -249,9 +314,21 @@
                         this.$wire.$set('lastName', this.donorLastName, false);
                         this.$wire.$set('email', this.donorEmail, false);
                         this.$wire.$set('phone', this.donorPhone, false);
-                        let clientSecret;
-                        try { clientSecret = await this.$wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
-                        if (!clientSecret) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
+
+                        let submitResponse;
+                        try { submitResponse = await this.$wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
+                        if (! submitResponse) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
+
+                        if (String(submitResponse).startsWith('http')) {
+                            this.donationPublicId = this.$wire.donationPublicId;
+                            this.openChipCheckout(submitResponse);
+                            return;
+                        }
+
+                        const clientSecret = submitResponse;
+                        const { error: submitError } = await elements.submit();
+                        if (submitError) { this.processing = false; this.currentStep = 'error'; this.cardError = submitError.message; return; }
+
                         const paymentIntentId = clientSecret.split('_secret_')[0] ?? null;
                         const { error: confirmError } = await stripe.confirmPayment({
                             elements,
@@ -271,22 +348,7 @@
                             }
                         }
                         this.donationPublicId = this.$wire.donationPublicId;
-                        this.processing = false;
-                        this.trackPurchase();
-
-                        if (this.$wire.campaignCollectedAmount !== undefined) {
-                            this.raisedAmount = parseFloat(this.$wire.campaignCollectedAmount) || 0;
-                        }
-
-                        this.currentStep = 'success';
-
-                        if (this.campaignPublicId && window.parent !== window) {
-                            window.parent.postMessage({ type: 'ihsan:donation-success', campaignPublicId: this.campaignPublicId }, '*');
-                        }
-
-                        if (this.redirectUrl && ! this.isEmbed) {
-                            setTimeout(() => { window.location.href = this.redirectUrl; }, 1500);
-                        }
+                        this.finishSuccess();
                     },
                 };
             });
