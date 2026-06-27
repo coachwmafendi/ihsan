@@ -33,7 +33,12 @@
 >
     {{-- Page Header --}}
     <div>
-        <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ $this->formattedOriginalAmount() }} donation</h1>
+        <div class="flex flex-wrap items-center gap-3">
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ $this->formattedOriginalAmount() }} donation</h1>
+            <span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset {{ $this->statusBadgeClass() }}">
+                {{ $this->statusLabel() }}
+            </span>
+        </div>
         <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
             <span>ID {{ $donation->public_id }}</span>
             <x-ui.tooltip text="Copy donation ID">
@@ -114,6 +119,12 @@
                             <dt class="text-sm text-slate-500">Success date</dt>
                             <dd class="text-sm text-slate-900">{{ $this->successDate() ?? '—' }}</dd>
                         </div>
+                        @if ($this->isRefunded)
+                            <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
+                                <dt class="text-sm text-slate-500">Refund date</dt>
+                                <dd class="text-sm font-medium text-slate-900">{{ $this->refundDate() ?? '—' }}</dd>
+                            </div>
+                        @endif
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Frequency</dt>
                             <dd class="text-sm text-slate-900">{{ $this->frequencyLabel() }}</dd>
@@ -125,6 +136,11 @@
             {{-- Payment & Fees --}}
             <section id="section-payment" data-section="section-payment">
                 <x-ui.card title="Payment & fees" icon="heroicon-o-credit-card">
+                    @if ($this->isRefunded)
+                        <div class="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            This donation was refunded. Amounts below reflect the original transaction before the refund.
+                        </div>
+                    @endif
                     <dl class="space-y-5">
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Payment amount</dt>
@@ -158,7 +174,7 @@
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
-                            <dt class="text-sm text-slate-500">Stripe fee</dt>
+                            <dt class="text-sm text-slate-500">Payment processor fee</dt>
                             <dd class="text-sm font-medium text-slate-900">{{ $this->paymentProcessingFee() }}</dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
@@ -207,7 +223,10 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Payment processor</dt>
-                            <dd class="text-sm font-medium text-slate-900">Stripe</dd>
+                            <dd class="flex items-center gap-2 text-sm font-medium text-slate-900">
+                                <x-dynamic-component :component="$this->paymentProcessorIcon()" class="h-5 w-auto" />
+                                {{ $this->paymentProcessorLabel() }}
+                            </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Payment method</dt>
@@ -266,6 +285,11 @@
             @if ($donation->subscription)
                 <section id="section-recurring" data-section="section-recurring">
                     <x-ui.card title="Recurring plan" icon="heroicon-o-arrow-path">
+                        @if ($this->isRefunded && $donation->subscription->status->value === 'active')
+                            <div class="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                                This installment was refunded, but the recurring plan is still active. Future installments may still be charged unless the plan is cancelled.
+                            </div>
+                        @endif
                         <dl class="space-y-5">
                             <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                                 <dt class="text-sm text-slate-500">Recurring plan ID</dt>
@@ -423,7 +447,11 @@
                                 <tr class="border-b border-slate-50 last:border-0">
                                     <td class="py-3 pr-4">
                                         <div class="flex items-center gap-2">
-                                            <x-heroicon-o-check-circle class="size-5 text-emerald-500" />
+                                            @if ($donation->status->value === 'refunded')
+                                                <x-heroicon-o-arrow-uturn-left class="size-5 text-slate-400" />
+                                            @else
+                                                <x-heroicon-o-check-circle class="size-5 text-emerald-500" />
+                                            @endif
                                             @if ($donation->status->value === 'succeeded')
                                                     <a href="{{ route('donations.receipt.download', $donation) }}" class="font-medium text-slate-900 hover:text-blue-600">
                                                     {{ $donation->invoice_number ?? $donation->public_id }}
@@ -448,6 +476,11 @@
                                                 <x-heroicon-o-arrow-down-tray class="size-4" />
                                                 Download
                                             </a>
+                                        @elseif ($donation->status->value === 'refunded')
+                                            <span class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-400">
+                                                <x-heroicon-o-arrow-uturn-left class="size-4" />
+                                                Refunded
+                                            </span>
                                         @endif
                                     </td>
                                 </tr>

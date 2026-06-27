@@ -58,7 +58,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                     <x-sidebar-item href="/app/settings/payment" icon="stripe" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
                     <x-sidebar-item href="/app/settings/account" icon="user-circle" label="Account" :active="$isActive('/app/settings/account')" />
                     <x-sidebar-item href="/app/settings/allow-domains" icon="globe-alt" label="Allowed Domains" :active="$isActive('/app/settings/allow-domains')" />
-                    <x-sidebar-item href="/app/settings/donor-portal" icon="window" label="Donor Portal" :active="$isActive('/app/settings/donor-portal')" />
+                    <x-sidebar-item href="/app/settings/donor-portal" icon="icon.donor-portal" label="Donor Portal" :active="$isActive('/app/settings/donor-portal')" />
                     <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
                     <x-sidebar-item href="/app/settings/installation" icon="code-bracket" label="Installation" :active="$isActive('/app/settings/installation')" />
                     <x-sidebar-item href="/app/settings/tracking" icon="presentation-chart-line" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
@@ -99,7 +99,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                     <x-sidebar-item href="/app/settings/payment" icon="stripe" label="Stripe Connect" :active="$isActive('/app/settings/payment')" />
                     <x-sidebar-item href="/app/settings/account" icon="user-circle" label="Account" :active="$isActive('/app/settings/account')" />
                     <x-sidebar-item href="/app/settings/allow-domains" icon="globe-alt" label="Allowed Domains" :active="$isActive('/app/settings/allow-domains')" />
-                    <x-sidebar-item href="/app/settings/donor-portal" icon="window" label="Donor Portal" :active="$isActive('/app/settings/donor-portal')" />
+                    <x-sidebar-item href="/app/settings/donor-portal" icon="icon.donor-portal" label="Donor Portal" :active="$isActive('/app/settings/donor-portal')" />
                     <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
                     <x-sidebar-item href="/app/settings/installation" icon="code-bracket" label="Installation" :active="$isActive('/app/settings/installation')" />
                     <x-sidebar-item href="/app/settings/tracking" icon="presentation-chart-line" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />

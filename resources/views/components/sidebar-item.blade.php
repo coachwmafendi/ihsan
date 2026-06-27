@@ -8,7 +8,7 @@
 ])
 
 @php
-$iconName = 'heroicon-o-' . $icon;
+$iconName = str_contains($icon, '.') ? $icon : 'heroicon-o-' . $icon;
 @endphp
 
 <a
