@@ -2,12 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Actions\Chip\CreatePurchase;
+use App\Actions\Chip\FinalizeDonation;
 use App\Actions\Stripe\CreatePaymentIntent;
 use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
+use App\Enums\PaymentGateway;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendDonorNewSubscriptionNotification;
@@ -87,6 +90,10 @@ class DonationForm extends Component
      */
     public function getAcceptedCurrencies(): array
     {
+        if ($this->isChipGateway()) {
+            return ['myr'];
+        }
+
         $organization = $this->element?->campaign?->organization ?? $this->campaign?->organization;
 
         if ($organization === null) {
@@ -96,8 +103,21 @@ class DonationForm extends Component
         return $organization->settings['accepted_currencies'] ?? ['myr'];
     }
 
+    private function isChipGateway(): bool
+    {
+        $campaign = $this->element?->campaign ?? $this->campaign;
+
+        return $campaign?->payment_gateway?->value === 'chip';
+    }
+
     public function selectCurrency(string $currency, bool $resetAmount = true): void
     {
+        if ($this->isChipGateway()) {
+            $this->currency = 'myr';
+
+            return;
+        }
+
         $accepted = $this->getAcceptedCurrencies();
         if (! in_array($currency, $accepted, true)) {
             return;
@@ -187,6 +207,25 @@ class DonationForm extends Component
 
         $this->syncCampaignTotals();
         $this->overrideFromQueryParams();
+        $this->handleChipReturnQueryParams();
+
+        if ($this->isChipGateway()) {
+            $this->currency = 'myr';
+        }
+    }
+
+    private function handleChipReturnQueryParams(): void
+    {
+        $chipStatus = request()->query('chip_status');
+        $chipDonationId = request()->query('donation_id');
+
+        if (! in_array($chipStatus, ['success', 'failure', 'cancelled', 'cancel'], true) || blank($chipDonationId)) {
+            return;
+        }
+
+        $this->donationPublicId = is_string($chipDonationId) ? $chipDonationId : null;
+
+        $this->dispatch('chip-return', status: $chipStatus, donationId: $this->donationPublicId);
     }
 
     private function syncCampaignTotals(): void
@@ -357,6 +396,31 @@ class DonationForm extends Component
         }
     }
 
+    #[Renderless]
+    public function confirmChipPayment(string $donationPublicId): void
+    {
+        $this->skipRender();
+
+        $donation = Donation::query()->where('public_id', $donationPublicId)->first();
+
+        if ($donation === null) {
+            return;
+        }
+
+        $campaignId = $this->element?->campaign_id ?? $this->campaign?->getKey();
+
+        if ($donation->campaign_id !== $campaignId) {
+            return;
+        }
+
+        try {
+            app(FinalizeDonation::class)->finalize($donation);
+            $this->syncCampaignTotals();
+        } catch (\Exception $e) {
+            report($e);
+        }
+    }
+
     /**
      * @return array<string, string>
      */
@@ -484,6 +548,27 @@ class DonationForm extends Component
                 $fraudResult['matches'][0]['reason'] ?? 'Flagged by fraud rules',
                 'flagged'
             );
+        }
+
+        $campaign = $this->element?->campaign ?? $this->campaign;
+        $isChip = $campaign !== null && $campaign->payment_gateway === PaymentGateway::Chip;
+
+        if ($isChip) {
+            if (! $campaign->organization?->chip_onboarded) {
+                $donation->update(['status' => DonationStatus::Failed]);
+
+                throw new \RuntimeException('The organization is not set up to receive CHIP payments.');
+            }
+
+            try {
+                $checkoutUrl = app(CreatePurchase::class)->create($donation, $this->pageUrl);
+
+                return $checkoutUrl;
+            } catch (\Exception $e) {
+                $donation->update(['status' => DonationStatus::Failed]);
+
+                throw $e;
+            }
         }
 
         try {

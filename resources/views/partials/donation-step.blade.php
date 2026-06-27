@@ -216,6 +216,23 @@
                         this.raisedAmount = parseFloat(this.$wire.campaignCollectedAmount) || 0;
                         this.targetAmount = parseFloat(this.$wire.campaignTargetAmount) || 0;
 
+                        this.handleChipReturnFromQueryParams();
+
+                        this.$wire.on('chip-return', ({ status, donationId }) => {
+                            if (! donationId) {
+                                return;
+                            }
+
+                            if (status === 'success') {
+                                this.donationPublicId = donationId;
+                                this.finalizeChip();
+                            } else {
+                                this.processing = false;
+                                this.currentStep = 'error';
+                                this.cardError = 'Payment was not completed. Please try again.';
+                            }
+                        });
+
                         this.$wire.on('amount-updated', ({ amount }) => { this.setAmount(amount); });
                         this.$wire.on('currency-updated', ({ currency, symbol, amount, oneTimeAmounts, monthlyAmounts }) => {
                             if (currency) this.currency = currency;
@@ -277,11 +294,49 @@
                         // Fallback if the popup was blocked.
                         window.location.href = url;
                     },
+                    handleChipReturnFromQueryParams() {
+                        if (typeof URLSearchParams === 'undefined') {
+                            return;
+                        }
+
+                        const params = new URLSearchParams(window.location.search);
+                        const status = params.get('chip_status');
+                        const donationId = params.get('donation_id');
+
+                        if (! status || ! donationId) {
+                            return;
+                        }
+
+                        // Strip the query params so a refresh does not re-trigger the flow.
+                        const cleanUrl = new URL(window.location.href);
+                        cleanUrl.searchParams.delete('chip_status');
+                        cleanUrl.searchParams.delete('donation_id');
+                        window.history.replaceState({}, '', cleanUrl.toString());
+
+                        this.donationPublicId = donationId;
+
+                        if (status === 'success') {
+                            this.finalizeChip();
+                        } else if (status === 'failure' || status === 'cancelled' || status === 'cancel') {
+                            this.processing = false;
+                            this.currentStep = 'error';
+                            this.cardError = 'Payment was not completed. Please try again.';
+                        }
+                    },
+
                     async finalizeChip() {
+                        if (! this.donationPublicId) {
+                            return;
+                        }
+
                         this.processing = true;
-                        try { await this.$wire.confirmChipPayment(this.donationPublicId); } catch (e) {
+
+                        try {
+                            await this.$wire.confirmChipPayment(this.donationPublicId);
+                        } catch (e) {
                             // Server finalization failure should not block the success UX.
                         }
+
                         this.donationPublicId = this.$wire.donationPublicId;
                         this.finishSuccess();
                     },
