@@ -4,6 +4,7 @@ namespace App\Actions\Stripe;
 
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
+use App\Jobs\SendDonorSubscriptionCancelledNotification;
 use App\Models\Subscription;
 use App\Services\StripeMetadata;
 use Carbon\Carbon;
@@ -30,6 +31,8 @@ class ManageStripeSubscription
                 'status' => SubscriptionStatus::Cancelled,
                 'cancelled_at' => now(),
             ]);
+
+            SendDonorSubscriptionCancelledNotification::dispatch($subscription);
         } else {
             StripeSubscription::update($subscription->stripe_subscription_id, [
                 'cancel_at_period_end' => true,

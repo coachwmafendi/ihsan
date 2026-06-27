@@ -460,6 +460,7 @@ class ProcessStripeWebhook implements ShouldQueue
         ]);
 
         SendSubscriptionCancelledNotification::dispatch($subscription);
+        SendDonorSubscriptionCancelledNotification::dispatch($subscription);
     }
 
     private function handleChargeRefunded(StripeEvent $event): void
@@ -494,6 +495,7 @@ class ProcessStripeWebhook implements ShouldQueue
         }
 
         SendRefundNotification::dispatch($donation);
+        SendDonorRefundNotification::dispatch($donation);
     }
 
     private function handleSubscriptionUpdated(StripeEvent $event): void

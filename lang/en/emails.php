@@ -116,6 +116,36 @@ return [
         'interval_yearly' => 'year',
     ],
 
+    'donor_refund' => [
+        'subject' => 'Your donation has been refunded — :organization',
+        'title' => 'Donation Refunded',
+        'preheader' => 'Your donation of :amount to :campaign has been refunded.',
+        'intro' => 'We are writing to let you know that your donation of :amount to :campaign has been refunded. The refunded amount should appear in your account within 5–10 business days, depending on your bank or card issuer.',
+        'body' => 'If you have any questions about this refund, please feel free to reach out to us.',
+        'sign_off' => 'Your friends at :organization',
+        'amount_label' => 'Amount Refunded',
+        'campaign_label' => 'Campaign',
+        'donation_id_label' => 'Donation ID',
+        'date_label' => 'Date',
+        'reason' => 'You are receiving this because you made a donation to this campaign.',
+    ],
+
+    'donor_subscription_cancelled' => [
+        'subject' => 'Your recurring donation has been cancelled — :organization',
+        'title' => 'Recurring Donation Cancelled',
+        'preheader' => 'Your recurring donation for :campaign has been cancelled.',
+        'intro' => 'We are writing to confirm that your recurring donation for :campaign has been cancelled.',
+        'body' => 'Your support has made a meaningful difference, and we are truly grateful. If you ever wish to support this campaign again in the future, you are always welcome to sign up for a new recurring donation.',
+        'sign_off' => 'Your friends at :organization',
+        'campaign_label' => 'Campaign',
+        'amount_label' => 'Amount',
+        'frequency_label' => 'Frequency',
+        'total_payments_label' => 'Total Payments',
+        'subscription_id_label' => 'Subscription ID',
+        'cancelled_at_label' => 'Cancelled At',
+        'reason' => 'You are receiving this because you have an active or past recurring donation with this campaign.',
+    ],
+
     'campaign_completed' => [
         'subject' => 'Target Reached — :campaign',
         'title' => 'Target Reached!',

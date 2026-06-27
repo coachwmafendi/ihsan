@@ -3,6 +3,7 @@
 namespace App\Actions\Stripe;
 
 use App\Enums\SubscriptionStatus;
+use App\Jobs\SendDonorSubscriptionCancelledNotification;
 use App\Models\Subscription;
 
 class CancelLocalRecurringPlan
@@ -15,5 +16,9 @@ class CancelLocalRecurringPlan
             'cancel_at_period_end' => ! $immediately,
             'next_charge_at' => null,
         ]);
+
+        if ($immediately) {
+            SendDonorSubscriptionCancelledNotification::dispatch($subscription);
+        }
     }
 }

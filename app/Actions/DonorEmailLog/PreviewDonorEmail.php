@@ -9,10 +9,14 @@ use App\Mail\DonationReceipt;
 use App\Mail\DonorDunningNotification;
 use App\Mail\DonorNewSubscriptionNotification;
 use App\Mail\DonorRecurringPaymentNotification;
+use App\Mail\DonorRefundNotification;
+use App\Mail\DonorSubscriptionCancelledNotification;
 use App\Mail\SubscriptionAmountChangedNotification;
 use App\Mail\SupporterSubscriptionAmountChangedNotification;
 use App\Models\Campaign;
+use App\Models\Donation;
 use App\Models\DonorEmailLog;
+use App\Support\Currency;
 use Illuminate\Mail\Mailable;
 
 class PreviewDonorEmail
@@ -44,6 +48,8 @@ class PreviewDonorEmail
             DonorDunningNotification::class => $this->recreateDonorDunning($log),
             DonorNewSubscriptionNotification::class => $this->recreateDonorNewSubscription($log),
             DonorRecurringPaymentNotification::class => $this->recreateDonorRecurringPayment($log),
+            DonorRefundNotification::class => $this->recreateDonorRefund($log),
+            DonorSubscriptionCancelledNotification::class => $this->recreateDonorSubscriptionCancelled($log),
             default => null,
         };
     }
@@ -129,5 +135,37 @@ class PreviewDonorEmail
         }
 
         return new DonorRecurringPaymentNotification($log->donation);
+    }
+
+    private function recreateDonorRefund(DonorEmailLog $log): ?Mailable
+    {
+        if ($log->donation === null) {
+            return null;
+        }
+
+        return new DonorRefundNotification($log->donation, $this->formatAmount($log->donation));
+    }
+
+    private function recreateDonorSubscriptionCancelled(DonorEmailLog $log): ?Mailable
+    {
+        if ($log->subscription === null) {
+            return null;
+        }
+
+        return new DonorSubscriptionCancelledNotification($log->subscription);
+    }
+
+    private function formatAmount(Donation $donation): string
+    {
+        $symbol = Currency::symbol($donation->currency);
+        $amount = number_format((float) $donation->gross_amount, 2);
+
+        if (strtolower($donation->currency) !== 'myr' && $donation->base_amount !== null) {
+            $base = number_format((float) $donation->base_amount, 2);
+
+            return "≈ MYR {$base} ({$symbol} {$amount})";
+        }
+
+        return "{$symbol} {$amount}";
     }
 }

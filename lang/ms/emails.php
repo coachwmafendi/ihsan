@@ -116,6 +116,36 @@ return [
         'interval_yearly' => 'tahunan',
     ],
 
+    'donor_refund' => [
+        'subject' => 'Derma anda telah dipulangkan — :organization',
+        'title' => 'Derma Dipulangkan',
+        'preheader' => 'Derma anda berjumlah :amount kepada :campaign telah dipulangkan.',
+        'intro' => 'Kami ingin memaklumkan bahawa derma anda berjumlah :amount kepada :campaign telah dipulangkan. Jumlah yang dipulangkan akan dipaparkan dalam akaun anda dalam tempoh 5–10 hari bekerja, bergantung kepada bank atau penerbit kad anda.',
+        'body' => 'Sekiranya anda mempunyai sebarang pertanyaan mengenai pemulangan ini, sila hubungi kami.',
+        'sign_off' => 'Rakan-rakan anda di :organization',
+        'amount_label' => 'Jumlah Dipulangkan',
+        'campaign_label' => 'Kempen',
+        'donation_id_label' => 'ID Derma',
+        'date_label' => 'Tarikh',
+        'reason' => 'Anda menerima email ini kerana telah menderma kepada kempen ini.',
+    ],
+
+    'donor_subscription_cancelled' => [
+        'subject' => 'Derma berulang anda telah dibatalkan — :organization',
+        'title' => 'Derma Berulang Dibatalkan',
+        'preheader' => 'Derma berulang anda bagi :campaign telah dibatalkan.',
+        'intro' => 'Kami ingin mengesahkan bahawa derma berulang anda bagi :campaign telah dibatalkan.',
+        'body' => 'Sokongan anda telah memberi kesan yang besar, dan kami amat menghargainya. Sekiranya anda ingin menyokong kempen ini semula pada masa hadapan, anda dialu-alukan untuk mendaftar derma berulang baharu.',
+        'sign_off' => 'Rakan-rakan anda di :organization',
+        'campaign_label' => 'Kempen',
+        'amount_label' => 'Jumlah',
+        'frequency_label' => 'Kekerapan',
+        'total_payments_label' => 'Jumlah Pembayaran',
+        'subscription_id_label' => 'ID Langganan',
+        'cancelled_at_label' => 'Dibatalkan Pada',
+        'reason' => 'Anda menerima email ini kerana mempunyai derma berulang aktif atau lalu dengan kempen ini.',
+    ],
+
     'campaign_completed' => [
         'subject' => 'Sasaran Tercapai — :campaign',
         'title' => 'Sasaran Tercapai!',
