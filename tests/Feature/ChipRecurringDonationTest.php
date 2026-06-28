@@ -3,6 +3,7 @@
 use App\Actions\Chip\CancelRecurringToken;
 use App\Actions\Chip\ChargeRecurringInstallment;
 use App\Actions\Chip\ConfirmPurchase;
+use App\Actions\Chip\RefundDonation;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\PaymentGateway;
@@ -160,4 +161,47 @@ it('cancels a chip subscription by deleting the recurring token', function () {
 
     Http::assertSentCount(1);
     Http::assertSent(fn ($request) => $request->method() === 'POST' && str_contains($request->url(), '/purchases/token-123/delete_recurring_token/'));
+});
+
+it('refunds a chip donation and decrements campaign collected amount', function () {
+    $baseUrl = config('services.chip.api_base_url');
+
+    Http::fake([
+        "{$baseUrl}/purchases/chip-purchase-001/refund/" => Http::response([
+            'id' => 'refund-payment-001',
+            'payment' => [
+                'amount' => 5000,
+                'currency' => 'MYR',
+                'payment_type' => 'refund',
+            ],
+        ]),
+    ]);
+
+    $donation = Donation::factory()->state([
+        'status' => DonationStatus::Succeeded->value,
+        'type' => DonationType::OneTime->value,
+    ])->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'chip_purchase_id' => 'chip-purchase-001',
+        'gross_amount' => 50.00,
+        'base_amount' => 50.00,
+        'net_amount' => 50.00,
+        'stripe_fee' => 0,
+        'currency' => 'myr',
+    ]);
+
+    $this->campaign->update(['collected_amount' => 50.00]);
+
+    app(RefundDonation::class)->handle($donation);
+
+    $donation->refresh();
+    $this->campaign->refresh();
+
+    expect($donation->status)->toBe(DonationStatus::Refunded)
+        ->and($donation->refunded_at)->not->toBeNull()
+        ->and((float) $this->campaign->collected_amount)->toEqual(0.00);
+
+    Http::assertSentCount(1);
+    Http::assertSent(fn ($request) => $request->method() === 'POST' && str_contains($request->url(), '/purchases/chip-purchase-001/refund/'));
 });

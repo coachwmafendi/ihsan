@@ -293,7 +293,7 @@ class DonationShow extends Component
     public function canRefund(): bool
     {
         return $this->donation->status === DonationStatus::Succeeded
-            && filled($this->donation->stripe_charge_id);
+            && (filled($this->donation->stripe_charge_id) || filled($this->donation->chip_purchase_id));
     }
 
     public function openRefundModal(): void
@@ -328,7 +328,12 @@ class DonationShow extends Component
         ]);
 
         try {
-            app(RefundDonation::class)->handle($this->donation);
+            if (filled($this->donation->chip_purchase_id)) {
+                app(\App\Actions\Chip\RefundDonation::class)->handle($this->donation);
+            } else {
+                app(RefundDonation::class)->handle($this->donation);
+            }
+
             $this->showRefundModal = false;
             $this->refundReason = null;
             $this->dispatch('notify', message: 'Donation refunded successfully.', variant: 'success');

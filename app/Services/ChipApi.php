@@ -144,6 +144,28 @@ class ChipApi
         }
     }
 
+    /**
+     * Refund a paid CHIP purchase. Omit amount for a full refund.
+     *
+     * @return array<string, mixed>
+     */
+    public function refundPurchase(string $purchaseId, Organization $organization, ?int $amountCents = null): array
+    {
+        $payload = [];
+
+        if ($amountCents !== null) {
+            $payload['amount'] = $amountCents;
+        }
+
+        $response = $this->client($organization)->post("/purchases/{$purchaseId}/refund/", $payload);
+
+        if ($response->failed()) {
+            throw new \RuntimeException('CHIP refund failed: '.($response->json('detail') ?? $response->body()));
+        }
+
+        return $response->json();
+    }
+
     private function requireOrganization(object $donation): Organization
     {
         $organization = $donation->campaign?->organization;
