@@ -17,7 +17,12 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-afterEach(fn () => Mockery::close());
+beforeEach(fn () => ChipApiFactory::resetFake());
+
+afterEach(function () {
+    ChipApiFactory::resetFake();
+    Mockery::close();
+});
 
 it('refunds a chip donation and updates status', function () {
     $organization = Organization::factory()->create([
@@ -47,8 +52,7 @@ it('refunds a chip donation and updates status', function () {
         config: ['handler' => $handlerStack],
     );
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')->once()->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     app(RefundDonation::class)->handle($donation);
 
@@ -86,8 +90,7 @@ it('throws runtime exception when chip api request fails', function () {
         config: ['handler' => $handlerStack],
     );
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')->once()->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     expect(fn () => app(RefundDonation::class)->handle($donation))
         ->toThrow(RuntimeException::class, 'Failed to refund CHIP donation');
@@ -105,8 +108,7 @@ it('throws runtime exception when donation has no chip purchase id', function ()
         'status' => DonationStatus::Succeeded,
     ]);
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldNotReceive('make');
+    ChipApiFactory::fake(make: fn () => throw new RuntimeException('CHIP client should not be created'));
 
     expect(fn () => app(RefundDonation::class)->handle($donation))
         ->toThrow(RuntimeException::class, 'No CHIP purchase ID found');
@@ -124,10 +126,7 @@ it('throws runtime exception when organization is not chip onboarded', function 
         'status' => DonationStatus::Succeeded,
     ]);
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')
-        ->once()
-        ->andThrow(new InvalidArgumentException('Organization is not CHIP onboarded.'));
+    ChipApiFactory::fake(make: fn () => throw new InvalidArgumentException('Organization is not CHIP onboarded.'));
 
     expect(fn () => app(RefundDonation::class)->handle($donation))
         ->toThrow(RuntimeException::class, 'Failed to initialize CHIP client');

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\App\Campaigns;
 
 use App\Enums\CampaignStatus;
+use App\Enums\PaymentGateway;
 use App\Models\Campaign;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -107,6 +108,9 @@ class CampaignEdit extends Component
 
     public bool $show_total_raised = true;
 
+    #[Validate('nullable|string|in:stripe,chip')]
+    public string $payment_gateway = 'stripe';
+
     public bool $campaign_page_enabled = true;
 
     public string $postDonationMode = 'default';
@@ -157,6 +161,7 @@ class CampaignEdit extends Component
 
         $this->show_total_raised = $campaign->config['show_total_raised'] ?? true;
         $this->campaign_page_enabled = $campaign->campaign_page_enabled ?? true;
+        $this->payment_gateway = $campaign->payment_gateway?->value ?? PaymentGateway::Stripe->value;
 
         $this->existingContentLogo = $campaign->config['content_logo'] ?? null;
         $this->existingContentImage = $campaign->config['content_image'] ?? null;
@@ -519,6 +524,14 @@ class CampaignEdit extends Component
 
         $validated = $this->validate();
 
+        $org = Auth::user()?->organization;
+
+        if ($this->payment_gateway === PaymentGateway::Chip->value && ! ($org?->chip_onboarded)) {
+            $this->addError('payment_gateway', 'CHIP is not configured for this organization.');
+
+            return;
+        }
+
         if (str_word_count($this->contentMessage ?? '') > 200) {
             $this->addError('contentMessage', 'Message must not exceed 200 words.');
 
@@ -581,6 +594,7 @@ class CampaignEdit extends Component
             'allow_recurring' => $this->allow_recurring,
             'allow_custom_amount' => $this->allow_custom_amount,
             'campaign_page_enabled' => $this->campaign_page_enabled,
+            'payment_gateway' => $this->payment_gateway,
             'minimum_amount' => $validated['minimum_amount'] ?? null,
             'suggested_amounts' => null,
             'suggested_amounts_one_time' => $oneTime ?: null,

@@ -143,6 +143,17 @@
         {{-- Donation Settings --}}
         <x-ui.card title="Donation Settings">
             <div class="space-y-6">
+                <div>
+                    <label for="payment_gateway" class="block text-sm font-medium text-slate-700">Payment Gateway</label>
+                    <x-ui.select id="payment_gateway" wire:model="payment_gateway" class="mt-1 block w-full">
+                        <flux:select.option value="stripe">Stripe</flux:select.option>
+                        <flux:select.option value="chip">CHIP</flux:select.option>
+                    </x-ui.select>
+                    @error('payment_gateway') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="border-t border-slate-100"></div>
+
                 <div class="flex items-start justify-between gap-4">
                     <div>
                         <h3 class="text-sm font-medium text-slate-900">Allow Recurring Donations</h3>

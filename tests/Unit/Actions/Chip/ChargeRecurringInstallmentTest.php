@@ -21,11 +21,15 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-afterEach(fn () => Mockery::close());
-
 beforeEach(function () {
+    ChipApiFactory::resetFake();
     Route::post('/chip/webhook', fn () => '')->name('chip.webhook');
     Route::getRoutes()->refreshNameLookups();
+});
+
+afterEach(function () {
+    ChipApiFactory::resetFake();
+    Mockery::close();
 });
 
 it('creates a donation by charging the recurring token', function () {
@@ -71,8 +75,7 @@ it('creates a donation by charging the recurring token', function () {
         config: ['handler' => $handlerStack],
     );
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')->twice()->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     app(ChargeRecurringInstallment::class)->handle($subscription);
 
@@ -156,8 +159,7 @@ it('works without the chip webhook route registered', function () {
         config: ['handler' => $handlerStack],
     );
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')->twice()->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     app(ChargeRecurringInstallment::class)->handle($subscription);
 
@@ -212,8 +214,7 @@ it('creates a pending donation when the charge is not immediately paid', functio
         config: ['handler' => $handlerStack],
     );
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')->twice()->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     app(ChargeRecurringInstallment::class)->handle($subscription);
 
@@ -240,10 +241,7 @@ it('throws runtime exception when organization is not chip onboarded', function 
         'status' => SubscriptionStatus::Active,
     ]);
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')
-        ->once()
-        ->andThrow(new InvalidArgumentException('Organization is not CHIP onboarded.'));
+    ChipApiFactory::fake(make: fn () => throw new InvalidArgumentException('Organization is not CHIP onboarded.'));
 
     expect(fn () => app(ChargeRecurringInstallment::class)->handle($subscription))
         ->toThrow(RuntimeException::class, 'Failed to initialize CHIP client');
@@ -275,8 +273,7 @@ it('throws runtime exception when chip api request fails', function () {
         config: ['handler' => $handlerStack],
     );
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')->once()->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     expect(fn () => app(ChargeRecurringInstallment::class)->handle($subscription))
         ->toThrow(RuntimeException::class, 'Failed to charge CHIP recurring installment');
@@ -297,8 +294,7 @@ it('throws runtime exception when subscription has no recurring token', function
         'status' => SubscriptionStatus::Active,
     ]);
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldNotReceive('make');
+    ChipApiFactory::fake(make: fn () => throw new RuntimeException('CHIP client should not be created'));
 
     expect(fn () => app(ChargeRecurringInstallment::class)->handle($subscription))
         ->toThrow(RuntimeException::class, 'Subscription does not have a CHIP recurring token');

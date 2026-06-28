@@ -17,7 +17,12 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-afterEach(fn () => Mockery::close());
+beforeEach(fn () => ChipApiFactory::resetFake());
+
+afterEach(function () {
+    ChipApiFactory::resetFake();
+    Mockery::close();
+});
 
 it('creates a chip purchase and stores checkout url', function () {
     $organization = Organization::factory()->create([
@@ -51,10 +56,7 @@ it('creates a chip purchase and stores checkout url', function () {
     Route::post('/chip/webhook', fn () => '')->name('chip.webhook');
     Route::getRoutes()->refreshNameLookups();
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')
-        ->once()
-        ->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     $checkoutUrl = app(CreatePurchase::class)->create($donation);
 
@@ -100,10 +102,7 @@ it('creates a chip purchase without success callback when webhook route is missi
     Route::getRoutes()->refreshNameLookups();
     Route::partialMock()->shouldReceive('has')->with('chip.webhook')->andReturn(false);
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')
-        ->once()
-        ->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     $checkoutUrl = app(CreatePurchase::class)->create($donation);
 
@@ -123,10 +122,7 @@ it('throws runtime exception when organization is not chip onboarded', function 
     $donor = Donor::factory()->create();
     $donation = Donation::factory()->for($campaign)->for($donor)->create();
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')
-        ->once()
-        ->andThrow(new InvalidArgumentException('Organization is not CHIP onboarded.'));
+    ChipApiFactory::fake(make: fn () => throw new InvalidArgumentException('Organization is not CHIP onboarded.'));
 
     expect(fn () => app(CreatePurchase::class)->create($donation))
         ->toThrow(RuntimeException::class, 'Failed to initialize CHIP client: Organization is not CHIP onboarded.');

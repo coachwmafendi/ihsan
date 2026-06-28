@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Settings;
 
+use App\Actions\Chip\CreateWebhook;
 use App\Models\User;
 use App\Services\AuditLogLogger;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Stripe\Account as StripeAccount;
 use Stripe\Stripe;
+use Throwable;
 
 #[Layout('layouts.app')]
 class Payment extends Component
@@ -20,6 +22,20 @@ class Payment extends Component
     public string $feeCollectionMethod = 'invoice';
 
     public bool $showReconnectConfirm = false;
+
+    public string $activeTab = 'stripe';
+
+    public string $chipBrandId = '';
+
+    public string $chipApiKey = '';
+
+    public string $chipWebhookId = '';
+
+    public string $chipWebhookPublicKey = '';
+
+    public array $chipPaymentMethods = ['card'];
+
+    public bool $showChipApiKey = false;
 
     public function mount(): void
     {
@@ -34,6 +50,11 @@ class Payment extends Component
         ];
 
         $this->feeCollectionMethod = $org?->fee_collection_method ?? 'invoice';
+        $this->chipBrandId = $org?->chip_brand_id ?? '';
+        $this->chipApiKey = $org?->chip_api_key ?? '';
+        $this->chipWebhookId = $org?->chip_webhook_id ?? '';
+        $this->chipWebhookPublicKey = $org?->chip_webhook_public_key ?? '';
+        $this->chipPaymentMethods = $org?->chipPaymentMethods() ?? ['card'];
     }
 
     public function updatedCurrencies(): void
@@ -81,6 +102,54 @@ class Payment extends Component
         $this->redirect('/app/stripe-onboarding');
     }
 
+    public function saveChipSettings(): void
+    {
+        $org = Auth::user()?->organization;
+        if (! $org) {
+            return;
+        }
+
+        $this->validate([
+            'chipBrandId' => ['nullable', 'string', 'max:255'],
+            'chipApiKey' => ['nullable', 'string', 'max:255'],
+            'chipWebhookId' => ['nullable', 'string', 'max:255'],
+            'chipWebhookPublicKey' => ['nullable', 'string', 'max:2000'],
+            'chipPaymentMethods' => ['required', 'array', 'min:1'],
+            'chipPaymentMethods.*' => ['in:card,fpx'],
+        ], [
+            'chipPaymentMethods.required' => 'Select at least one payment method.',
+        ]);
+
+        $settings = array_merge($org->settings ?? [], [
+            'chip_payment_methods' => $this->chipPaymentMethods,
+        ]);
+
+        $org->update([
+            'chip_brand_id' => $this->chipBrandId ?: null,
+            'chip_api_key' => $this->chipApiKey ?: null,
+            'chip_webhook_id' => $this->chipWebhookId ?: null,
+            'chip_webhook_public_key' => $this->chipWebhookPublicKey ?: null,
+            'settings' => $settings,
+        ]);
+
+        if ($org->chip_onboarded && blank($org->chip_webhook_id) && blank($org->chip_webhook_public_key)) {
+            try {
+                app(CreateWebhook::class)->create($org);
+            } catch (Throwable $e) {
+                $this->dispatch('notify', message: 'CHIP settings saved, but webhook registration failed: '.$e->getMessage(), variant: 'warning');
+
+                return;
+            }
+        }
+
+        $this->dispatch('notify', message: 'CHIP settings saved.', variant: 'success');
+    }
+
+    public function toggleChipApiKey(): void
+    {
+        $this->showChipApiKey = ! $this->showChipApiKey;
+    }
+
     public function getProcessingFeePercent(): string
     {
         return number_format((float) config('services.stripe.processing_fee_percent', 2.5), 1);
@@ -97,14 +166,14 @@ class Payment extends Component
 
         try {
             return StripeAccount::retrieve($org->stripe_account_id);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
 
     public function render()
     {
-        return view('livewire.app.settings.payment', ['title' => 'Settings — Payment']);
+        return view('livewire.app.settings.payment', ['title' => 'Settings — Payment Processors']);
     }
 
     private function getUser(): ?User

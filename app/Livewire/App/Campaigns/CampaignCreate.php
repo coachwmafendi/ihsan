@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\App\Campaigns;
 
 use App\Enums\ElementType;
+use App\Enums\PaymentGateway;
 use App\Models\Campaign;
 use App\Models\Element;
 use Illuminate\Support\Facades\Auth;
@@ -55,6 +56,9 @@ class CampaignCreate extends Component
     #[Validate('nullable|numeric|min:0|max:999999999.99')]
     public ?string $default_amount = null;
 
+    #[Validate('nullable|string|in:stripe,chip')]
+    public string $payment_gateway = 'stripe';
+
     public function addSuggestedAmount(): void
     {
         $this->suggested_amounts[] = ['value' => '', 'label' => ''];
@@ -96,6 +100,12 @@ class CampaignCreate extends Component
             return;
         }
 
+        if ($this->payment_gateway === PaymentGateway::Chip->value && ! $org->chip_onboarded) {
+            $this->addError('payment_gateway', 'CHIP is not configured for this organization.');
+
+            return;
+        }
+
         // Word count validation for description
         $wordCount = str_word_count(strip_tags((string) ($this->description ?? '')));
         if ($wordCount > 100) {
@@ -133,6 +143,7 @@ class CampaignCreate extends Component
             'allow_recurring' => $this->allow_recurring,
             'allow_custom_amount' => $this->allow_custom_amount,
             'campaign_page_enabled' => true,
+            'payment_gateway' => $this->payment_gateway,
             'minimum_amount' => $validated['minimum_amount'] ?? null,
             'suggested_amounts' => $suggested ?: null,
             'config' => $config,

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Donations;
 
+use App\Actions\Chip\RefundDonation as ChipRefundDonation;
 use App\Actions\DonorEmailLog\PreviewDonorEmail;
 use App\Actions\DonorEmailLog\ResendDonorEmail;
-use App\Actions\Stripe\RefundDonation;
+use App\Actions\Stripe\RefundDonation as StripeRefundDonation;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
@@ -247,7 +248,7 @@ class DonationShow extends Component
     public function canRefund(): bool
     {
         return $this->donation->status === DonationStatus::Succeeded
-            && filled($this->donation->stripe_charge_id);
+            && (filled($this->donation->stripe_charge_id) || filled($this->donation->chip_purchase_id));
     }
 
     public function openRefundModal(): void
@@ -282,7 +283,13 @@ class DonationShow extends Component
         ]);
 
         try {
-            app(RefundDonation::class)->handle($this->donation);
+            if (filled($this->donation->chip_purchase_id)) {
+                app(ChipRefundDonation::class)->handle($this->donation);
+            } else {
+                app(StripeRefundDonation::class)->handle($this->donation);
+            }
+
+            $this->donation->refresh();
             $this->showRefundModal = false;
             $this->refundReason = null;
             $this->dispatch('notify', message: 'Donation refunded successfully.', variant: 'success');

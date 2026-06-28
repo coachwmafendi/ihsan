@@ -5,6 +5,7 @@ use App\Livewire\Auth\RegisterOrganization;
 use App\Models\Campaign;
 use App\Models\Element;
 use App\Models\Organization;
+use Illuminate\Support\Facades\URL;
 
 it('serves the embed script as javascript', function () {
     $this->get(route('embed.script'))
@@ -41,6 +42,7 @@ it('does not render inactive elements from the widget fallback', function () {
 
 it('renders element embed snippets from the first-party widget route', function () {
     config(['app.url' => 'https://ihsan.test']);
+    URL::forceRootUrl('https://ihsan.test');
 
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();

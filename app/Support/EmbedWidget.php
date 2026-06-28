@@ -9,7 +9,7 @@ class EmbedWidget
 {
     public static function scriptUrl(): string
     {
-        return url('/e/widget.js').'?v='.self::version();
+        return rtrim(config('app.url'), '/').'/e/widget.js?v='.self::version();
     }
 
     public static function version(): string

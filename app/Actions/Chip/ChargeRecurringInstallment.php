@@ -45,11 +45,12 @@ final class ChargeRecurringInstallment
 
         $builder = PurchaseBuilder::create()
             ->brandId($organization->chip_brand_id)
-            ->currency($subscription->currency)
+            ->currency(strtoupper($subscription->currency))
             ->language('en')
             ->clientEmail($donor->email)
             ->clientFullName($donor->name)
-            ->addProduct($subscription->campaign->title, (int) round((float) $subscription->amount * 100));
+            ->addProduct($subscription->campaign->title, (int) round((float) $subscription->amount * 100))
+            ->paymentMethodWhitelist(PaymentMethodWhitelistMapper::cardOnly());
 
         if (Route::has('chip.webhook')) {
             $builder = $builder->successCallback(route('chip.webhook'));

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Chip;
 
 use App\Enums\DonationStatus;
+use App\Enums\DonationType;
 use App\Models\Donation;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
@@ -51,12 +52,21 @@ final class SyncDonationDetails
             [$processingFee, $feePercent] = $this->calculateProcessingFee($donation, $paymentMethod, $organization);
         }
 
-        $donation->update([
+        $updateAttributes = [
             'status' => $status,
             'processing_fee' => $processingFee,
             'net_amount' => ((float) $donation->gross_amount) - $processingFee,
             'payment_method_brand' => $paymentMethod,
-        ]);
+        ];
+
+        if ($status === DonationStatus::Succeeded
+            && $donation->type === DonationType::Recurring
+            && filled($purchase->recurring_token ?? null)
+        ) {
+            $updateAttributes['chip_recurring_token'] = $purchase->recurring_token;
+        }
+
+        $donation->update($updateAttributes);
 
         if ($status !== DonationStatus::Succeeded) {
             return;

@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\ChipCallbackController;
+use App\Http\Controllers\ChipFinalizeController;
+use App\Http\Controllers\ChipWebhookController;
 use App\Http\Controllers\DonationCampaignImageController;
 use App\Http\Controllers\DonationExportController;
 use App\Http\Controllers\DonorImpersonationController;
@@ -126,6 +129,13 @@ Route::post('/stripe/payment-intent', StripePaymentIntentController::class)
     ->name('stripe.payment-intent');
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
+Route::post('/chip/webhook/{organization:public_id?}', ChipWebhookController::class)
+    ->name('chip.webhook');
+Route::get('/chip/callback/{donation:public_id}/{status}', ChipCallbackController::class)
+    ->whereIn('status', ['success', 'failure', 'cancelled'])
+    ->name('chip.callback');
+Route::post('/chip/finalize/{donation:public_id}', [ChipFinalizeController::class, 'store'])
+    ->name('chip.finalize');
 Route::post('/webhooks/mailgun', [EmailWebhookController::class, 'mailgun'])->name('webhooks.mailgun');
 Route::post('/webhooks/postmark', [EmailWebhookController::class, 'postmark'])->name('webhooks.postmark');
 Route::post('/webhooks/ses/{token}', [EmailWebhookController::class, 'ses'])->name('webhooks.ses');

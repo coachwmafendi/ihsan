@@ -17,7 +17,12 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-afterEach(fn () => Mockery::close());
+beforeEach(fn () => ChipApiFactory::resetFake());
+
+afterEach(function () {
+    ChipApiFactory::resetFake();
+    Mockery::close();
+});
 
 it('returns early when chip_purchase_id is blank', function () {
     $organization = Organization::factory()->create([
@@ -29,8 +34,7 @@ it('returns early when chip_purchase_id is blank', function () {
         'chip_purchase_id' => null,
     ]);
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldNotReceive('make');
+    ChipApiFactory::fake(make: fn () => throw new RuntimeException('CHIP client should not be created'));
 
     app(SyncDonationDetails::class)->sync($donation);
 
@@ -69,8 +73,7 @@ it('syncs chip donation details and creates processing fee', function () {
         config: ['handler' => $handlerStack],
     );
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')->once()->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     app(SyncDonationDetails::class)->sync($donation);
 
@@ -117,8 +120,7 @@ it('maps chip statuses to donation statuses correctly', function (string $chipSt
         config: ['handler' => $handlerStack],
     );
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')->once()->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     app(SyncDonationDetails::class)->sync($donation);
 
@@ -167,8 +169,7 @@ it('throws runtime exception when chip api request fails', function () {
         config: ['handler' => $handlerStack],
     );
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')->once()->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     expect(fn () => app(SyncDonationDetails::class)->sync($donation))
         ->toThrow(RuntimeException::class, 'Failed to sync CHIP donation details');
@@ -186,10 +187,7 @@ it('throws runtime exception when chip client cannot be initialized', function (
         'chip_purchase_id' => 'PURCHASE123',
     ]);
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')
-        ->once()
-        ->andThrow(new InvalidArgumentException('Organization is not CHIP onboarded.'));
+    ChipApiFactory::fake(make: fn () => throw new InvalidArgumentException('Organization is not CHIP onboarded.'));
 
     expect(fn () => app(SyncDonationDetails::class)->sync($donation))
         ->toThrow(RuntimeException::class, 'Failed to initialize CHIP client');
@@ -229,8 +227,7 @@ it('calculates fixed fpx processing fee', function () {
         config: ['handler' => $handlerStack],
     );
 
-    $factory = Mockery::mock('alias:'.ChipApiFactory::class);
-    $factory->shouldReceive('make')->once()->andReturn($chipApi);
+    ChipApiFactory::fake(make: fn () => $chipApi);
 
     app(SyncDonationDetails::class)->sync($donation);
 
