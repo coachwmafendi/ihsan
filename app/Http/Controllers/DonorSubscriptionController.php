@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Chip\CancelRecurringToken;
 use App\Actions\Stripe\CancelLocalRecurringPlan;
 use App\Actions\Stripe\ChangeRecurringAmount;
 use App\Actions\Stripe\ManageStripeSubscription;
@@ -72,16 +73,24 @@ class DonorSubscriptionController extends Controller
         $subscription->loadMissing('campaign');
         $this->authorizeSubscriptionAction($organization, $subscription, request()->donor);
 
-        $successMessage = $this->isStripeBacked($subscription)
-            ? 'Subscription will cancel at the end of the billing period.'
-            : 'Subscription cancelled.';
+        $successMessage = match (true) {
+            $this->isStripeBacked($subscription) => 'Subscription will cancel at the end of the billing period.',
+            filled($subscription->chip_recurring_token) => 'Subscription cancelled.',
+            default => 'Subscription cancelled.',
+        };
 
         return $this->handleSubscriptionAction(
             $organization,
             $subscription,
-            fn () => $this->isStripeBacked($subscription)
-                ? app(ManageStripeSubscription::class)->cancel($subscription, false)
-                : app(CancelLocalRecurringPlan::class)->cancel($subscription),
+            function () use ($subscription) {
+                if ($this->isStripeBacked($subscription)) {
+                    app(ManageStripeSubscription::class)->cancel($subscription, false);
+                } elseif (filled($subscription->chip_recurring_token)) {
+                    app(CancelRecurringToken::class)->cancel($subscription);
+                } else {
+                    app(CancelLocalRecurringPlan::class)->cancel($subscription);
+                }
+            },
             $successMessage,
             'Unable to cancel subscription. Please try again later.',
         );

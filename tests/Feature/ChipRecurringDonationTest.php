@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Chip\CancelRecurringToken;
 use App\Actions\Chip\ChargeRecurringInstallment;
 use App\Actions\Chip\ConfirmPurchase;
 use App\Enums\DonationStatus;
@@ -129,4 +130,34 @@ it('charges an active chip subscription and creates a renewal donation', functio
         ->and($subscription->payment_count)->toBe(2)
         ->and($subscription->next_charge_at)->not->toEqual($previousNextCharge)
         ->and($subscription->next_charge_at->isFuture())->toBeTrue();
+});
+
+it('cancels a chip subscription by deleting the recurring token', function () {
+    $baseUrl = config('services.chip.api_base_url');
+
+    Http::fake([
+        "{$baseUrl}/purchases/token-123/delete_recurring_token/" => Http::response([], 200),
+    ]);
+
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'chip_recurring_token' => 'token-123',
+        'amount' => 50.00,
+        'currency' => 'myr',
+        'interval' => SubscriptionInterval::Monthly,
+        'status' => SubscriptionStatus::Active,
+        'next_charge_at' => now()->addMonth(),
+    ]);
+
+    app(CancelRecurringToken::class)->cancel($subscription);
+
+    $subscription->refresh();
+
+    expect($subscription->status)->toBe(SubscriptionStatus::Cancelled)
+        ->and($subscription->cancel_at_period_end)->toBeFalse()
+        ->and($subscription->next_charge_at)->toBeNull();
+
+    Http::assertSentCount(1);
+    Http::assertSent(fn ($request) => $request->method() === 'POST' && str_contains($request->url(), '/purchases/token-123/delete_recurring_token/'));
 });
