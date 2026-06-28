@@ -260,7 +260,7 @@
                         if (this.isChipGateway) {
                             let checkoutUrl;
                             try { checkoutUrl = await this.$wire.submitChip(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = e.message || 'Unable to start payment. Please try again.'; return; }
-                            if (!checkoutUrl) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
+                            if (!checkoutUrl) { this.processing = false; this.currentStep = 'error'; this.cardError = this.$wire.chipErrorMessage || 'Unable to start payment. Please try again.'; return; }
                             this.donationPublicId = this.$wire.donationPublicId;
 
                             if (window.parent !== window) {
