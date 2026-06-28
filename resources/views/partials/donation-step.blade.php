@@ -451,7 +451,7 @@
 
                         let submitResponse;
                         try { submitResponse = await this.$wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
-                        if (! submitResponse) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
+                        if (! submitResponse) { this.processing = false; this.currentStep = 'error'; this.cardError = this.$wire.chipErrorMessage || 'Unable to start payment. Please try again.'; return; }
 
                         if (String(submitResponse).startsWith('http')) {
                             this.donationPublicId = this.$wire.donationPublicId;

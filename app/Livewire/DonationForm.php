@@ -81,6 +81,8 @@ class DonationForm extends Component
 
     public ?string $donationPublicId = null;
 
+    public ?string $chipErrorMessage = null;
+
     public float $campaignCollectedAmount = 0.0;
 
     public float $campaignTargetAmount = 0.0;
@@ -571,8 +573,9 @@ class DonationForm extends Component
         if ($isChip) {
             if (! $campaign->organization?->chip_onboarded) {
                 $donation->update(['status' => DonationStatus::Failed]);
+                $this->chipErrorMessage = 'CHIP is not configured for this organization. Please choose another payment method or contact support.';
 
-                throw new \RuntimeException('The organization is not set up to receive CHIP payments.');
+                return '';
             }
 
             $returnTo = $this->isPublicPage && $this->campaign !== null
@@ -585,8 +588,11 @@ class DonationForm extends Component
                 return $checkoutUrl;
             } catch (\Exception $e) {
                 $donation->update(['status' => DonationStatus::Failed]);
+                $this->chipErrorMessage = 'Unable to start CHIP payment. Please try again.';
 
-                throw $e;
+                report($e);
+
+                return '';
             }
         }
 

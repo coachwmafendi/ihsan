@@ -146,8 +146,9 @@ it('fails the donation when the organization is not chip onboarded', function ()
         ->set('frequency', 'one_time')
         ->set('coverFee', false);
 
-    expect(fn () => $component->call('submit'))
-        ->toThrow(RuntimeException::class, 'The organization is not set up to receive CHIP payments.');
+    $component->call('submit');
+
+    expect($component->get('chipErrorMessage'))->toContain('CHIP is not configured');
 
     $donation = Donation::query()->latest()->first();
 
