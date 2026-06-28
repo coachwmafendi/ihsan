@@ -77,7 +77,9 @@ class ChipApi
         ];
 
         $paymentMethods = $organization->chipPaymentMethods();
-        if ($paymentMethods !== [] && $paymentMethods !== ['card']) {
+        if ($forceRecurring) {
+            $payload['payment_method_whitelist'] = ['visa', 'mastercard', 'maestro'];
+        } elseif ($paymentMethods !== [] && $paymentMethods !== ['card']) {
             $payload['payment_method_whitelist'] = $paymentMethods;
         }
 

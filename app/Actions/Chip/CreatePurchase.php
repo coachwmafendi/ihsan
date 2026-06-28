@@ -29,7 +29,8 @@ class CreatePurchase
         $successRedirect = $this->callbackUrl($donation, 'success');
         $failureRedirect = $this->callbackUrl($donation, 'failure');
 
-        $purchase = $this->chipApi->createPurchase($donation, $successRedirect, $failureRedirect);
+        $forceRecurring = $donation->type === \App\Enums\DonationType::Recurring;
+        $purchase = $this->chipApi->createPurchase($donation, $successRedirect, $failureRedirect, null, $forceRecurring);
 
         $purchaseId = $purchase['id'] ?? null;
         $checkoutUrl = $purchase['checkout_url'] ?? null;
