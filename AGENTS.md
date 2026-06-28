@@ -35,10 +35,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
 
-## Database Safety
-
-- Never run `migrate:fresh`, `db:seed`, or any command that resets or modifies database data without explicit user approval. Always ask the user first.
-
 ## Verification Scripts
 
 - Do not create verification scripts or tinker when tests cover that functionality and prove they work. Unit and feature tests are more important.
