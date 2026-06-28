@@ -33,7 +33,7 @@ class ChargeDueRecurringPlans extends Command
         $count = $query->count();
 
         if ($count === 0) {
-            $this->info('No due app-controlled recurring plans found.');
+            $this->info('No due recurring plans found.');
 
             return Command::SUCCESS;
         }

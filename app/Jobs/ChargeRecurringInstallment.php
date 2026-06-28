@@ -2,7 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Actions\Stripe\ChargeRecurringInstallment as ChargeAction;
+use App\Actions\Chip\ChargeRecurringInstallment as ChargeChipInstallment;
+use App\Actions\Stripe\ChargeRecurringInstallment as ChargeStripeInstallment;
 use App\Models\Subscription;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -15,8 +16,15 @@ class ChargeRecurringInstallment implements ShouldQueue
 
     public function __construct(public Subscription $subscription) {}
 
-    public function handle(ChargeAction $action): void
+    public function handle(ChargeStripeInstallment $stripeAction, ChargeChipInstallment $chipAction): void
     {
-        $action->handle($this->subscription);
+        $this->subscription->loadMissing('campaign.organization');
+
+        if (filled($this->subscription->chip_recurring_token)) {
+            $chipAction->handle($this->subscription);
+            return;
+        }
+
+        $stripeAction->handle($this->subscription);
     }
 }
