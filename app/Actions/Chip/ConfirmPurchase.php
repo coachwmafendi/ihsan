@@ -6,17 +6,24 @@ namespace App\Actions\Chip;
 
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
+use App\Enums\SubscriptionInterval;
+use App\Enums\SubscriptionStatus;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
+use App\Jobs\SendDonorNewSubscriptionNotification;
 use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendLinkedInConversionEvent;
 use App\Jobs\SendMetaConversionEvent;
 use App\Jobs\SendNewDonationNotification;
+use App\Jobs\SendNewSubscriptionNotification;
 use App\Jobs\SendSnapchatConversionEvent;
 use App\Jobs\SendXAdsConversionEvent;
 use App\Models\Campaign;
 use App\Models\Donation;
+use App\Models\Subscription;
 use App\Services\ChipApi;
+use App\Services\SubscriptionSchedule;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 class ConfirmPurchase
@@ -95,7 +102,54 @@ class ConfirmPurchase
         SendXAdsConversionEvent::dispatch($donation);
         SendSnapchatConversionEvent::dispatch($donation);
 
+        $isNewSubscription = $donation->type === DonationType::Recurring
+            && $donation->fresh()?->subscription_id === null;
+
+        if ($isNewSubscription) {
+            $subscription = $this->createRecurringPlan($donation, $purchase);
+
+            if ($subscription->wasRecentlyCreated) {
+                SendNewSubscriptionNotification::dispatch($donation);
+                SendDonorNewSubscriptionNotification::dispatch($donation);
+            }
+        }
+
         return true;
+    }
+
+    /**
+     * @param  array<string, mixed>  $purchase
+     */
+    private function createRecurringPlan(Donation $donation, array $purchase): Subscription
+    {
+        $token = $purchase['id'] ?? $donation->chip_purchase_id;
+
+        $subscription = DB::transaction(function () use ($donation, $token): Subscription {
+            $nextChargeAt = SubscriptionSchedule::nextChargeAt(CarbonImmutable::now(), SubscriptionInterval::Monthly);
+
+            $subscription = Subscription::query()->create([
+                'campaign_id' => $donation->campaign_id,
+                'donor_id' => $donation->donor_id,
+                'amount' => $donation->gross_amount,
+                'currency' => (string) $donation->currency,
+                'interval' => SubscriptionInterval::Monthly,
+                'status' => SubscriptionStatus::Active,
+                'payment_count' => 1,
+                'current_period_start' => now(),
+                'current_period_end' => $nextChargeAt,
+                'next_charge_at' => $nextChargeAt,
+                'last_charge_at' => now(),
+                'cover_fee' => false,
+                'source' => $donation->source ?? 'checkout_modal',
+                'chip_recurring_token' => $token,
+            ]);
+
+            $donation->update(['subscription_id' => $subscription->getKey()]);
+
+            return $subscription;
+        });
+
+        return $subscription;
     }
 
     /**
