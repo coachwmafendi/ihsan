@@ -32,6 +32,10 @@
                     campaignPublicId: '',
                     raisedAmount: initialRaisedAmount,
                     targetAmount: initialTargetAmount,
+                    chipPopup: null,
+                    _chipBc: null,
+                    _chipStorageHandler: null,
+                    _chipMessageHandled: false,
                     processing: false,
                     currentStep: initialStep > 1 ? initialStep : 1,
                     stepErrors: {},
@@ -217,6 +221,9 @@
                         this.raisedAmount = parseFloat(this.$wire.campaignCollectedAmount) || 0;
                         this.targetAmount = parseFloat(this.$wire.campaignTargetAmount) || 0;
 
+                        this.handleChipReturnFromQueryParams();
+                        window.addEventListener('message', (event) => this.handleChipMessage(event));
+
                         this.$wire.on('amount-updated', ({ amount }) => { this.setAmount(amount); });
                         this.$wire.on('currency-updated', ({ currency, symbol, amount, oneTimeAmounts, monthlyAmounts }) => {
                             if (currency) this.currency = currency;
@@ -257,11 +264,14 @@
                             this.donationPublicId = this.$wire.donationPublicId;
 
                             if (window.parent !== window) {
+                                // Embedded widget flow: ask the parent page to open the checkout in its modal.
                                 window.parent.postMessage({ type: 'ihsan:open-checkout', url: checkoutUrl, donationPublicId: this.donationPublicId }, '*');
                                 return;
                             }
 
-                            window.top.location.href = checkoutUrl;
+                            // Standard campaign-page flow: open CHIP in a popup and listen for the result.
+                            this.listenForChipReturn();
+                            this.openChipCheckout(checkoutUrl);
                             return;
                         }
 
@@ -289,6 +299,10 @@
                             }
                         }
                         this.donationPublicId = this.$wire.donationPublicId;
+                        this.finishSuccess();
+                    },
+
+                    finishSuccess() {
                         this.processing = false;
                         this.trackPurchase();
 
@@ -304,6 +318,160 @@
 
                         if (this.redirectUrl && ! this.isEmbed) {
                             setTimeout(() => { window.location.href = this.redirectUrl; }, 1500);
+                        }
+                    },
+
+                    openChipCheckout(url) {
+                        // CHIP redirect checkout URLs set X-Frame-Options / CSP that prevents
+                        // embedding in an iframe, so we must use a popup or a full-page redirect.
+                        const width = Math.min(520, window.screen.availWidth);
+                        const height = Math.min(820, window.screen.availHeight);
+                        const left = Math.round((window.screen.availWidth - width) / 2);
+                        const top = Math.round((window.screen.availHeight - height) / 2);
+                        const features = 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes,status=yes';
+
+                        const popup = window.open(url, 'chipCheckout', features);
+
+                        if (popup) {
+                            this.chipPopup = popup;
+                            popup.focus();
+                            return;
+                        }
+
+                        // Fallback if the popup was blocked.
+                        window.location.href = url;
+                    },
+
+                    closeChipPopup() {
+                        if (this.chipPopup && !this.chipPopup.closed) {
+                            try {
+                                this.chipPopup.close();
+                            } catch (e) {
+                                // Ignore cross-origin restrictions.
+                            }
+                        }
+                        this.chipPopup = null;
+                    },
+
+                    listenForChipReturn() {
+                        if (! this.donationPublicId) {
+                            return;
+                        }
+
+                        if (this._chipBc) {
+                            try { this._chipBc.close(); } catch (e) {}
+                            this._chipBc = null;
+                        }
+
+                        const donationId = this.donationPublicId;
+
+                        if (typeof BroadcastChannel !== 'undefined') {
+                            try {
+                                this._chipBc = new BroadcastChannel('ihsan:chip:' + donationId);
+                                this._chipBc.onmessage = (event) => {
+                                    if (! event.data) return;
+                                    this.handleChipMessage({ data: event.data });
+                                };
+                            } catch (e) {
+                                this._chipBc = null;
+                            }
+                        }
+
+                        const storageKey = 'ihsan:chip:' + donationId;
+                        const storageHandler = (event) => {
+                            if (event.key !== storageKey || ! event.newValue) return;
+                            try {
+                                const data = JSON.parse(event.newValue);
+                                this.handleChipMessage({ data: data });
+                            } catch (e) {}
+                        };
+
+                        if (this._chipStorageHandler) {
+                            window.removeEventListener('storage', this._chipStorageHandler);
+                        }
+                        this._chipStorageHandler = storageHandler;
+                        window.addEventListener('storage', storageHandler);
+                    },
+
+                    handleChipReturnFromQueryParams() {
+                        if (typeof URLSearchParams === 'undefined') {
+                            return;
+                        }
+
+                        const params = new URLSearchParams(window.location.search);
+                        const status = params.get('chip_status');
+                        const donationId = params.get('donation_id');
+
+                        if (! status || ! donationId) {
+                            return;
+                        }
+
+                        // Strip the query params so a refresh does not re-trigger the flow.
+                        const cleanUrl = new URL(window.location.href);
+                        cleanUrl.searchParams.delete('chip_status');
+                        cleanUrl.searchParams.delete('donation_id');
+                        window.history.replaceState({}, '', cleanUrl.toString());
+
+                        this.donationPublicId = donationId;
+
+                        if (status === 'success') {
+                            this.finalizeChip();
+                        } else if (status === 'failure' || status === 'cancelled' || status === 'cancel') {
+                            this.processing = false;
+                            this.currentStep = 'error';
+                            this.cardError = 'Payment was not completed. Please try again.';
+                        }
+                    },
+
+                    async finalizeChip() {
+                        if (! this.donationPublicId) {
+                            return;
+                        }
+
+                        this.processing = true;
+
+                        try {
+                            await this.$wire.confirmChipPayment(this.donationPublicId);
+                        } catch (e) {
+                            // Server finalization failure should not block the success UX.
+                        }
+
+                        this.donationPublicId = this.$wire.donationPublicId;
+                        this.donorFirstName = this.$wire.firstName || this.donorFirstName;
+                        this.donorLastName = this.$wire.lastName || this.donorLastName;
+                        this.donorEmail = this.$wire.email || this.donorEmail;
+                        this.donorPhone = this.$wire.phone || this.donorPhone;
+                        this.finishSuccess();
+                    },
+
+                    handleChipMessage(event) {
+                        if (! event.data || typeof event.data !== 'object') return;
+
+                        // Guard against duplicate notifications from window.opener,
+                        // BroadcastChannel and storage events.
+                        if (this._chipMessageHandled) return;
+                        if (event.data.donationId && event.data.donationId !== this.donationPublicId) return;
+                        this._chipMessageHandled = true;
+
+                        if (this._chipBc) {
+                            try { this._chipBc.close(); } catch (e) {}
+                            this._chipBc = null;
+                        }
+
+                        if (event.data.type === 'chip:payment:success') {
+                            if (event.data.donationId) {
+                                this.donationPublicId = event.data.donationId;
+                            }
+                            this.closeChipPopup();
+                            this.finalizeChip();
+                            return;
+                        }
+
+                        if (event.data.type === 'chip:payment:failure' || event.data.type === 'chip:payment:cancel') {
+                            this.closeChipPopup();
+                            this.processing = false;
+                            this.currentStep = 'error';
+                            this.cardError = 'Payment was not completed. Please try again.';
                         }
                     },
                 };

@@ -442,9 +442,25 @@ class DonationForm extends Component
                 $this->campaignCollectedAmount = (float) $donation->campaign->collected_amount;
                 $this->campaignTargetAmount = (float) ($donation->campaign->target_amount ?? 0);
             }
+
+            $this->syncDonorDetails($donation);
         } catch (\Exception $e) {
             report($e);
         }
+    }
+
+    private function syncDonorDetails(Donation $donation): void
+    {
+        $donor = $donation->donor;
+
+        if ($donor === null) {
+            return;
+        }
+
+        $this->firstName = $donor->first_name ?? '';
+        $this->lastName = $donor->last_name ?? '';
+        $this->email = $donor->email ?? '';
+        $this->phone = $donor->phone ?? '';
     }
 
     private function buildPendingDonation(): Donation

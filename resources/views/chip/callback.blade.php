@@ -27,7 +27,27 @@
             var status = @json($status);
             var returnTo = @json($returnTo);
 
+            function broadcastResult(success) {
+                var messageType = success ? 'chip:payment:success' : 'chip:payment:failure';
+                var payload = { type: messageType, donationId: donationId, _ts: Date.now() };
+
+                if (typeof BroadcastChannel !== 'undefined') {
+                    try {
+                        var channel = new BroadcastChannel('ihsan:chip:' + donationId);
+                        channel.postMessage(payload);
+                        channel.close();
+                    } catch (e) {}
+                }
+
+                try {
+                    localStorage.setItem('ihsan:chip:' + donationId, JSON.stringify(payload));
+                    localStorage.removeItem('ihsan:chip:' + donationId);
+                } catch (e) {}
+            }
+
             function finish(success) {
+                broadcastResult(success);
+
                 if (inIframe) {
                     window.parent.postMessage({
                         type: 'ihsan:chip-success',
@@ -39,7 +59,7 @@
 
                 if (returnTo) {
                     var separator = returnTo.indexOf('?') !== -1 ? '&' : '?';
-                    window.top.location.href = returnTo + separator + 'chip_' + (success ? 'success' : 'failure') + '=1&donation=' + encodeURIComponent(donationId);
+                    window.top.location.href = returnTo + separator + 'chip_status=' + (success ? 'success' : 'failure') + '&donation_id=' + encodeURIComponent(donationId);
                 }
             }
 
