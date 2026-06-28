@@ -30,8 +30,10 @@ class ChipApi
      *
      * @return array<string, mixed>
      */
-    public function createPurchase(Donation $donation, string $successRedirect, string $failureRedirect, ?string $successCallback = null): array
+    public function createPurchase(Donation|array $donation, string $successRedirect, string $failureRedirect, ?string $successCallback = null, bool $forceRecurring = false): array
     {
+        $donation = is_array($donation) ? (object) $donation : $donation;
+
         $organization = $this->requireOrganization($donation);
         $brandId = $organization->chipBrandId();
 
@@ -66,6 +68,7 @@ class ChipApi
             'success_callback' => $successCallback,
             'send_receipt' => false,
             'platform' => 'web',
+            'force_recurring' => $forceRecurring,
             'reference' => $donation->public_id,
             'metadata' => [
                 'donation_id' => $donation->public_id,
@@ -109,7 +112,37 @@ class ChipApi
         return $response->json();
     }
 
-    private function requireOrganization(Donation $donation): Organization
+    /**
+     * Charge a CHIP purchase using a recurring token.
+     *
+     * @return array<string, mixed>
+     */
+    public function chargePurchase(string $purchaseId, string $recurringToken, Organization $organization): array
+    {
+        $response = $this->client($organization)->post("/purchases/{$purchaseId}/charge/", [
+            'recurring_token' => $recurringToken,
+        ]);
+
+        if ($response->failed()) {
+            throw new \RuntimeException('CHIP recurring charge failed: '.($response->json('detail') ?? $response->body()));
+        }
+
+        return $response->json();
+    }
+
+    /**
+     * Delete a CHIP recurring token.
+     */
+    public function deleteRecurringToken(string $tokenPurchaseId, Organization $organization): void
+    {
+        $response = $this->client($organization)->post("/purchases/{$tokenPurchaseId}/delete_recurring_token/");
+
+        if ($response->failed() && $response->status() !== 404) {
+            throw new \RuntimeException('CHIP recurring token deletion failed: '.($response->json('detail') ?? $response->body()));
+        }
+    }
+
+    private function requireOrganization(object $donation): Organization
     {
         $organization = $donation->campaign?->organization;
 
