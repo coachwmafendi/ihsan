@@ -1,9 +1,11 @@
 <?php
 
+use App\Actions\Chip\ChargeRecurringInstallment;
 use App\Actions\Chip\ConfirmPurchase;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\PaymentGateway;
+use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
 use App\Models\Donation;
@@ -75,4 +77,56 @@ it('creates a subscription on the first successful chip recurring payment', func
         ->and($donation->subscription->status)->toBe(SubscriptionStatus::Active)
         ->and((float) $donation->gross_amount)->toEqual(50.00)
         ->and((float) $donation->subscription->amount)->toEqual(50.00);
+});
+
+it('charges an active chip subscription and creates a renewal donation', function () {
+    $baseUrl = config('services.chip.api_base_url');
+
+    Http::fake([
+        "{$baseUrl}/purchases/" => Http::response([
+            'id' => 'renewal-purchase-001',
+            'status' => 'preauthorized',
+        ]),
+        "{$baseUrl}/purchases/renewal-purchase-001/charge/" => Http::response([
+            'id' => 'renewal-purchase-001',
+            'status' => 'paid',
+            'payment' => [
+                'fee_amount' => 100,
+                'net_amount' => 4900,
+            ],
+        ]),
+    ]);
+
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'chip_recurring_token' => 'token-purchase-001',
+        'amount' => 50.00,
+        'currency' => 'myr',
+        'interval' => SubscriptionInterval::Monthly,
+        'status' => SubscriptionStatus::Active,
+        'payment_count' => 1,
+        'next_charge_at' => now()->subDay(),
+    ]);
+
+    $previousNextCharge = $subscription->next_charge_at;
+
+    $result = app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    $subscription->refresh();
+
+    expect($result->succeeded())->toBeTrue()
+        ->and($result->donation)->toBeInstanceOf(Donation::class)
+        ->and($subscription->donations()->count())->toBe(1);
+
+    $donation = $subscription->donations()->first();
+
+    expect($donation->chip_purchase_id)->toBe('renewal-purchase-001')
+        ->and($donation->status)->toBe(DonationStatus::Succeeded)
+        ->and((float) $donation->gross_amount)->toEqual(50.00)
+        ->and((float) $donation->stripe_fee)->toEqual(1.00)
+        ->and((float) $donation->net_amount)->toEqual(49.00)
+        ->and($subscription->payment_count)->toBe(2)
+        ->and($subscription->next_charge_at)->not->toEqual($previousNextCharge)
+        ->and($subscription->next_charge_at->isFuture())->toBeTrue();
 });
