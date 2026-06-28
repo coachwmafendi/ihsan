@@ -32,6 +32,9 @@
                     raisedAmount: initialRaisedAmount,
                     targetAmount: initialTargetAmount,
                     paymentGateway: initialPaymentGateway,
+                    chipPopup: null,
+                    _chipBc: null,
+                    _chipMessageHandled: false,
                     processing: false,
                     currentStep: initialStep > 1 ? initialStep : 1,
                     stepErrors: {},
@@ -287,12 +290,70 @@
                         const popup = window.open(url, 'chipCheckout', features);
 
                         if (popup) {
+                            this.chipPopup = popup;
                             popup.focus();
                             return;
                         }
 
                         // Fallback if the popup was blocked.
                         window.location.href = url;
+                    },
+                    closeChipPopup() {
+                        if (this.chipPopup && !this.chipPopup.closed) {
+                            try {
+                                this.chipPopup.close();
+                            } catch (e) {
+                                // Ignore cross-origin restrictions.
+                            }
+                        }
+                        this.chipPopup = null;
+                    },
+                    listenForChipReturn() {
+                        if (! this.donationPublicId) {
+                            return;
+                        }
+
+                        // Clean up any previous listener first.
+                        if (this._chipBc) {
+                            try {
+                                this._chipBc.close();
+                            } catch (e) {}
+                            this._chipBc = null;
+                        }
+
+                        const donationId = this.donationPublicId;
+
+                        if (typeof BroadcastChannel !== 'undefined') {
+                            try {
+                                this._chipBc = new BroadcastChannel('ihsan:chip:' + donationId);
+                                this._chipBc.onmessage = (event) => {
+                                    if (! event.data) {
+                                        return;
+                                    }
+                                    this.handleChipMessage({ data: event.data });
+                                };
+                            } catch (e) {
+                                this._chipBc = null;
+                            }
+                        }
+
+                        const storageKey = 'ihsan:chip:' + donationId;
+                        const storageHandler = (event) => {
+                            if (event.key !== storageKey || ! event.newValue) {
+                                return;
+                            }
+
+                            try {
+                                const data = JSON.parse(event.newValue);
+                                this.handleChipMessage({ data: data });
+                            } catch (e) {}
+                        };
+
+                        if (this._chipStorageHandler) {
+                            window.removeEventListener('storage', this._chipStorageHandler);
+                        }
+                        this._chipStorageHandler = storageHandler;
+                        window.addEventListener('storage', storageHandler);
                     },
                     handleChipReturnFromQueryParams() {
                         if (typeof URLSearchParams === 'undefined') {
@@ -338,20 +399,38 @@
                         }
 
                         this.donationPublicId = this.$wire.donationPublicId;
+                        this.donorFirstName = this.$wire.firstName || this.donorFirstName;
+                        this.donorLastName = this.$wire.lastName || this.donorLastName;
+                        this.donorEmail = this.$wire.email || this.donorEmail;
+                        this.donorPhone = this.$wire.phone || this.donorPhone;
                         this.finishSuccess();
                     },
                     handleChipMessage(event) {
                         if (! event.data || typeof event.data !== 'object') return;
 
+                        // Guard against multiple notifications delivered through
+                        // window.opener postMessage, BroadcastChannel and storage events.
+                        if (this._chipMessageHandled) return;
+                        if (event.data.donationId && event.data.donationId !== this.donationPublicId) return;
+                        this._chipMessageHandled = true;
+
+                        // Clean up the cross-tab listener once a result is received.
+                        if (this._chipBc) {
+                            try { this._chipBc.close(); } catch (e) {}
+                            this._chipBc = null;
+                        }
+
                         if (event.data.type === 'chip:payment:success') {
                             if (event.data.donationId) {
                                 this.donationPublicId = event.data.donationId;
                             }
+                            this.closeChipPopup();
                             this.finalizeChip();
                             return;
                         }
 
                         if (event.data.type === 'chip:payment:failure' || event.data.type === 'chip:payment:cancel') {
+                            this.closeChipPopup();
                             this.processing = false;
                             this.currentStep = 'error';
                             this.cardError = 'Payment was not completed. Please try again.';
@@ -376,6 +455,7 @@
 
                         if (String(submitResponse).startsWith('http')) {
                             this.donationPublicId = this.$wire.donationPublicId;
+                            this.listenForChipReturn();
                             this.openChipCheckout(submitResponse);
                             return;
                         }

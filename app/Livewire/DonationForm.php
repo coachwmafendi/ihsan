@@ -416,9 +416,24 @@ class DonationForm extends Component
         try {
             app(FinalizeDonation::class)->finalize($donation);
             $this->syncCampaignTotals();
+            $this->syncDonorDetails($donation);
         } catch (\Exception $e) {
             report($e);
         }
+    }
+
+    private function syncDonorDetails(Donation $donation): void
+    {
+        $donor = $donation->donor;
+
+        if ($donor === null) {
+            return;
+        }
+
+        $this->firstName = $donor->first_name ?? '';
+        $this->lastName = $donor->last_name ?? '';
+        $this->email = $donor->email ?? '';
+        $this->phone = $donor->phone ?? '';
     }
 
     /**
@@ -560,8 +575,12 @@ class DonationForm extends Component
                 throw new \RuntimeException('The organization is not set up to receive CHIP payments.');
             }
 
+            $returnTo = $this->isPublicPage && $this->campaign !== null
+                ? route('campaigns.public', $this->campaign)
+                : $this->pageUrl;
+
             try {
-                $checkoutUrl = app(CreatePurchase::class)->create($donation, $this->pageUrl);
+                $checkoutUrl = app(CreatePurchase::class)->create($donation, $returnTo);
 
                 return $checkoutUrl;
             } catch (\Exception $e) {

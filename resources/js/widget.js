@@ -280,6 +280,20 @@
       if (e.data && e.data.type === "ihsan:donation-ready") {
         hideSkeleton();
       }
+
+      if (e.data && (e.data.type === "chip:payment:success" || e.data.type === "chip:payment:failure" || e.data.type === "chip:payment:cancel")) {
+        closeOverlay();
+
+        if (e.data.type === "chip:payment:success") {
+          setTimeout(function () { window.location.reload(); }, 1200);
+        }
+      }
+
+      if (e.data && e.data.type === "ihsan:donation-success") {
+        // The iframe donation form has reached the success state; give the
+        // donor a moment to see it before closing the modal.
+        setTimeout(closeOverlay, 2500);
+      }
     }
 
     window.addEventListener("message", modalMessageHandler);

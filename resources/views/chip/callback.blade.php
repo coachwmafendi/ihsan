@@ -34,6 +34,35 @@
                 return true;
             }
 
+            function broadcastResult() {
+                const messageType = status === 'success'
+                    ? 'chip:payment:success'
+                    : (status === 'failure' ? 'chip:payment:failure' : 'chip:payment:cancel');
+
+                const payload = {
+                    type: messageType,
+                    donationId: donationId,
+                    _ts: Date.now(),
+                };
+
+                if (typeof BroadcastChannel !== 'undefined') {
+                    try {
+                        const channel = new BroadcastChannel('ihsan:chip:' + donationId);
+                        channel.postMessage(payload);
+                        channel.close();
+                    } catch (e) {
+                        // Some environments block BroadcastChannel; fall through to localStorage.
+                    }
+                }
+
+                try {
+                    localStorage.setItem('ihsan:chip:' + donationId, JSON.stringify(payload));
+                    localStorage.removeItem('ihsan:chip:' + donationId);
+                } catch (e) {
+                    // localStorage may be unavailable in private/third-party contexts.
+                }
+            }
+
             function buildReturnUrl(baseUrl) {
                 if (! baseUrl || typeof baseUrl !== 'string') {
                     return null;
@@ -45,8 +74,26 @@
             }
 
             function finish() {
+                // Always broadcast the result through BroadcastChannel / localStorage
+                // so the originating page can react even if window.opener was lost.
+                broadcastResult();
+
                 if (notifyOpener()) {
                     window.close();
+
+                    // Some browsers block window.close() even for script-opened
+                    // popups. If the popup is still here, redirect to the originating
+                    // donation form so the user always lands on a useful screen.
+                    setTimeout(function () {
+                        if (! window.closed) {
+                            const redirectUrl = buildReturnUrl(returnTo);
+
+                            if (redirectUrl) {
+                                window.location.href = redirectUrl;
+                            }
+                        }
+                    }, 800);
+
                     return;
                 }
 
