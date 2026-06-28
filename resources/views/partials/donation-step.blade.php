@@ -264,8 +264,10 @@
                             this.donationPublicId = this.$wire.donationPublicId;
 
                             if (window.parent !== window) {
-                                // Embedded widget flow: ask the parent page to open the checkout in its modal.
-                                window.parent.postMessage({ type: 'ihsan:open-checkout', url: checkoutUrl, donationPublicId: this.donationPublicId }, '*');
+                                // Embedded/widget flow: open CHIP in a popup so the donation form
+                                // iframe stays loaded and can display the success state.
+                                this.listenForChipReturn();
+                                this.openChipCheckout(checkoutUrl);
                                 return;
                             }
 

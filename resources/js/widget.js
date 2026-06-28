@@ -298,6 +298,12 @@
       if (e.data && e.data.type === "ihsan:chip-success") {
         closeOverlay();
       }
+
+      if (e.data && e.data.type === "ihsan:donation-success") {
+        // Let the donor see the success state inside the checkout frame
+        // before closing the modal.
+        setTimeout(closeOverlay, 2500);
+      }
     }
 
     window.addEventListener("message", modalMessageHandler);
