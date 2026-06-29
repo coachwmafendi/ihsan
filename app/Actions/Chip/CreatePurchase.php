@@ -7,7 +7,9 @@ namespace App\Actions\Chip;
 use App\Enums\DonationType;
 use App\Models\Donation;
 use Chip\Builder\PurchaseBuilder;
+use Chip\ChipApi;
 use Chip\Exception\ChipApiException;
+use Chip\Model\Purchase;
 use Illuminate\Support\Facades\Route;
 use InvalidArgumentException;
 use RuntimeException;
@@ -18,17 +20,59 @@ final class CreatePurchase
     {
         $donation->load(['campaign.organization', 'donor']);
 
-        $organization = $donation->campaign->organization;
-        $campaign = $donation->campaign;
-        $donor = $donation->donor;
+        $chip = $this->chipClient($donation);
+        $builder = $this->purchaseBuilder($donation, $returnTo);
 
+        $paymentMethods = $donation->campaign->organization->chipPaymentMethodWhitelist();
+
+        if ($paymentMethods !== []) {
+            $builder = $builder->paymentMethodWhitelist($paymentMethods);
+        }
+
+        $result = $this->createPurchase($chip, $builder->build());
+
+        $donation->update([
+            'chip_purchase_id' => $result->id,
+            'chip_checkout_url' => $result->checkout_url,
+        ]);
+
+        return $result->checkout_url;
+    }
+
+    public function createDirectPost(Donation $donation, ?string $returnTo = null): string
+    {
+        $donation->load(['campaign.organization', 'donor']);
+
+        $chip = $this->chipClient($donation);
+        $builder = $this->purchaseBuilder($donation, $returnTo)
+            ->paymentMethodWhitelist(PaymentMethodWhitelistMapper::cardOnly());
+
+        $result = $this->createPurchase($chip, $builder->build());
+
+        $donation->update([
+            'chip_purchase_id' => $result->id,
+            'chip_checkout_url' => $result->checkout_url,
+        ]);
+
+        return $result->direct_post_url;
+    }
+
+    private function chipClient(Donation $donation): ChipApi
+    {
         try {
-            $chip = ChipApiFactory::make($organization);
+            return ChipApiFactory::make($donation->campaign->organization);
         } catch (InvalidArgumentException $e) {
             report($e);
 
             throw new RuntimeException('Failed to initialize CHIP client: '.$e->getMessage(), previous: $e);
         }
+    }
+
+    private function purchaseBuilder(Donation $donation, ?string $returnTo): PurchaseBuilder
+    {
+        $organization = $donation->campaign->organization;
+        $campaign = $donation->campaign;
+        $donor = $donation->donor;
 
         $successParams = ['donation' => $donation->public_id, 'status' => 'success'];
         $failureParams = ['donation' => $donation->public_id, 'status' => 'failure'];
@@ -59,26 +103,16 @@ final class CreatePurchase
             $builder = $builder->forceRecurring(true);
         }
 
-        $paymentMethods = $organization->chipPaymentMethodWhitelist();
+        return $builder;
+    }
 
-        if ($paymentMethods !== []) {
-            $builder = $builder->paymentMethodWhitelist($paymentMethods);
-        }
-
-        $purchase = $builder->build();
-
+    private function createPurchase(ChipApi $chip, Purchase $purchase): Purchase
+    {
         try {
-            $result = $chip->purchases->create($purchase);
+            return $chip->purchases->create($purchase);
         } catch (ChipApiException $e) {
             report($e);
             throw new RuntimeException('Failed to create CHIP purchase: '.$e->getMessage(), previous: $e);
         }
-
-        $donation->update([
-            'chip_purchase_id' => $result->id,
-            'chip_checkout_url' => $result->checkout_url,
-        ]);
-
-        return $result->checkout_url;
     }
 }

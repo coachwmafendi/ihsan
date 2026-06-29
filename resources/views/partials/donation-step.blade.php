@@ -35,6 +35,7 @@
                     chipPopup: null,
                     _chipBc: null,
                     _chipMessageHandled: false,
+                    chipDirectPostSubmitted: false,
                     processing: false,
                     currentStep: initialStep > 1 ? initialStep : 1,
                     stepErrors: {},
@@ -206,7 +207,12 @@
                             contents: [{ id: 'donation', quantity: 1, item_price: amountNumber }],
                         }, { eventID: 'purchase_' + this.donationPublicId });
                     },
-                    prevStep() { if (this.currentStep > 1) this.currentStep--; },
+                    prevStep() {
+                        if (this.currentStep === 3) {
+                            this.chipDirectPostSubmitted = false;
+                        }
+                        if (this.currentStep > 1) this.currentStep--;
+                    },
                     waitForReadyPaint() {
                         return new Promise((resolve) => {
                             requestAnimationFrame(() => {
@@ -451,7 +457,23 @@
 
                         let submitResponse;
                         try { submitResponse = await this.$wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
-                        if (! submitResponse) { this.processing = false; this.currentStep = 'error'; this.cardError = this.$wire.chipErrorMessage || 'Unable to start payment. Please try again.'; return; }
+                        if (! submitResponse && ! this.$wire.chipDirectPostUrl) { this.processing = false; this.currentStep = 'error'; this.cardError = this.$wire.chipErrorMessage || 'Unable to start payment. Please try again.'; return; }
+
+                        if (this.$wire.chipDirectPostUrl) {
+                            const form = document.getElementById('chip-direct-post-form');
+                            if (form) {
+                                this.donationPublicId = this.$wire.donationPublicId;
+                                form.action = this.$wire.chipDirectPostUrl;
+                                this.chipDirectPostSubmitted = true;
+                                this.processing = false;
+                                form.submit();
+                            } else {
+                                this.processing = false;
+                                this.currentStep = 'error';
+                                this.cardError = 'Unable to prepare card payment. Please try again.';
+                            }
+                            return;
+                        }
 
                         if (String(submitResponse).startsWith('http')) {
                             this.donationPublicId = this.$wire.donationPublicId;

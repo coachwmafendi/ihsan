@@ -64,6 +64,8 @@
     $totalAmount = (float) $this->amount + $this->estimatedFee;
     $paymentGateway = $campaign->payment_gateway?->value ?? 'stripe';
     $isStripeGateway = $paymentGateway === 'stripe';
+    $isChipDirectPost = ! $isStripeGateway && $this->useChipDirectPost();
+    $isChipRedirect = ! $isStripeGateway && ! $isChipDirectPost;
 @endphp
 
 <div>
@@ -585,36 +587,95 @@
                             </div>
 
                             @if ($isStripeGateway)
-                                <div wire:ignore>
-                                    <label class="mb-0.5 block text-sm font-medium text-slate-700">Payment details</label>
-                                    <div id="payment-element" class="min-h-10 rounded-lg border border-slate-200 px-3 py-2.5 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/10"></div>
-                                    <div x-show="cardError" x-cloak class="mt-1 text-sm text-red-600" x-text="cardError"></div>
-                                </div>
-                            @else
-                                <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-center text-sm text-slate-600">
-                                    <p class="font-medium text-slate-800">Secure checkout with CHIP</p>
-                                    <p class="mt-1">Click below to complete your payment on CHIP's secure page.</p>
-                                </div>
-                            @endif
+                                <form @submit.prevent="handleSubmit" class="space-y-4">
+                                    <div wire:ignore>
+                                        <label class="mb-0.5 block text-sm font-medium text-slate-700">Payment details</label>
+                                        <div id="payment-element" class="min-h-10 rounded-lg border border-slate-200 px-3 py-2.5 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/10"></div>
+                                        <div x-show="cardError" x-cloak class="mt-1 text-sm text-red-600" x-text="cardError"></div>
+                                    </div>
 
-                            <form @submit.prevent="handleSubmit">
-                                <button
-                                    type="submit"
-                                    class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
-                                    x-bind:disabled="processing"
-                                >
-                                    @if ($isStripeGateway)
+                                    <button
+                                        type="submit"
+                                        class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
+                                        x-bind:disabled="processing"
+                                    >
                                         @if ($usesSecureDonationShell && in_array($submitText, ['Donate and Support', 'Donate Now'], true))
                                             <span x-show="!processing" x-text="frequency === 'monthly' ? 'Donate monthly' : 'Donate once'"></span>
                                         @else
                                             <span x-show="!processing">{{ $submitText }}</span>
                                         @endif
-                                    @else
-                                        <span x-show="!processing">Proceed to secure checkout</span>
-                                    @endif
+                                        <span x-show="processing" x-cloak>Processing...</span>
+                                    </button>
+                                </form>
+                            @elseif ($isChipDirectPost)
+                                <form id="chip-direct-post-form" method="POST" x-bind:action="$wire.chipDirectPostUrl" @submit.prevent="handleSubmit" target="chip-direct-post-frame" class="space-y-4">
+                                    <div x-show="!chipDirectPostSubmitted" class="space-y-3">
+                                        <p class="text-sm font-medium text-slate-800">Card details</p>
+
+                                        <label class="block">
+                                            <span class="mb-0.5 block text-sm font-medium text-slate-700">Name on card</span>
+                                            <input type="text" name="cardholder_name" autocomplete="cc-name" required
+                                                class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-0.5 block text-sm font-medium text-slate-700">Card number</span>
+                                            <input type="text" name="card_number" inputmode="numeric" autocomplete="cc-number" required
+                                                class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
+                                        </label>
+
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <label class="block">
+                                                <span class="mb-0.5 block text-sm font-medium text-slate-700">Expiry (MM/YY)</span>
+                                                <input type="text" name="expires" placeholder="MM/YY" autocomplete="cc-exp" maxlength="5" required
+                                                    class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
+                                            </label>
+
+                                            <label class="block">
+                                                <span class="mb-0.5 block text-sm font-medium text-slate-700">CVC</span>
+                                                <input type="text" name="cvc" inputmode="numeric" autocomplete="cc-csc" maxlength="4" required
+                                                    class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <iframe
+                                        name="chip-direct-post-frame"
+                                        id="chip-direct-post-frame"
+                                        x-show="chipDirectPostSubmitted"
+                                        x-cloak
+                                        class="w-full rounded-xl border border-slate-200 bg-white"
+                                        style="min-height: 520px;"
+                                        loading="eager"
+                                        title="CHIP secure payment"
+                                    ></iframe>
+
+                                    <button
+                                        x-show="!chipDirectPostSubmitted"
+                                        type="submit"
+                                        class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
+                                        x-bind:disabled="processing"
+                                    >
+                                        <span x-show="!processing">Pay securely</span>
+                                        <span x-show="processing" x-cloak>Processing...</span>
+                                    </button>
+                                </form>
+                            @else
+                                <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-center text-sm text-slate-600">
+                                    <p class="font-medium text-slate-800">Secure checkout with CHIP</p>
+                                    <p class="mt-1">Click below to complete your payment on CHIP's secure page.</p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    x-on:click="handleSubmit"
+                                    class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
+                                    x-bind:disabled="processing"
+                                >
+                                    <span x-show="!processing">Proceed to secure checkout</span>
                                     <span x-show="processing" x-cloak>Processing...</span>
                                 </button>
-                            </form>
+                            @endif
 
                             <div class="mt-3 flex flex-col items-center gap-1.5">
                                 @if ($isStripeGateway)
@@ -627,6 +688,16 @@
                                         <x-icons.mastercard class="h-5 w-auto rounded" />
                                         <x-icons.amex class="h-5 w-auto rounded" />
                                         <x-icons.discover class="h-5 w-auto rounded" />
+                                    </div>
+                                @elseif ($isChipDirectPost)
+                                    <p class="flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                                        <x-heroicon-o-lock-closed class="size-3" />
+                                        Secure card payment powered by CHIP
+                                    </p>
+                                    <div class="flex items-center gap-1.5" aria-label="Accepted cards">
+                                        <x-icons.visa class="h-5 w-auto rounded" />
+                                        <x-icons.mastercard class="h-5 w-auto rounded" />
+                                        <x-icons.amex class="h-5 w-auto rounded" />
                                     </div>
                                 @else
                                     <p class="flex items-center gap-1 text-[11px] font-medium text-slate-500">

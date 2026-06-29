@@ -113,6 +113,53 @@ it('creates a chip purchase without success callback when webhook route is missi
     expect($requestBody)->not->toHaveKey('success_callback');
 });
 
+it('creates a chip direct post purchase and stores checkout url', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create(['payment_gateway' => 'chip']);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'currency' => 'MYR',
+        'gross_amount' => 19.99,
+    ]);
+
+    $requestHistory = [];
+    $mockHandler = new MockHandler([
+        new Response(200, [], json_encode([
+            'id' => 'PURCHASE123',
+            'checkout_url' => 'https://gate.chip-in.asia/pay/PURCHASE123',
+            'direct_post_url' => 'https://payments.chip-in.asia/p/PURCHASE123',
+        ])),
+    ]);
+    $handlerStack = HandlerStack::create($mockHandler);
+    $handlerStack->push(Middleware::history($requestHistory));
+
+    $chipApi = new ChipApi(
+        brandId: $organization->chip_brand_id,
+        apiKey: $organization->chip_api_key,
+        config: ['handler' => $handlerStack],
+    );
+
+    Route::get('/chip/callback/{donation}/{status}', fn () => '')->name('chip.callback');
+    Route::post('/chip/webhook', fn () => '')->name('chip.webhook');
+    Route::getRoutes()->refreshNameLookups();
+
+    ChipApiFactory::fake(make: fn () => $chipApi);
+
+    $directPostUrl = app(CreatePurchase::class)->createDirectPost($donation);
+
+    expect($directPostUrl)->toBe('https://payments.chip-in.asia/p/PURCHASE123');
+    expect($donation->fresh()->chip_purchase_id)->toBe('PURCHASE123');
+    expect($donation->fresh()->chip_checkout_url)->toBe('https://gate.chip-in.asia/pay/PURCHASE123');
+
+    expect($requestHistory)->toHaveCount(1);
+    $requestBody = json_decode((string) $requestHistory[0]['request']->getBody(), true);
+    expect($requestBody['purchase']['products'][0]['price'])->toBe(1999)
+        ->and($requestBody['payment_method_whitelist'])->toBe(['visa', 'mastercard', 'maestro', 'mpgs_apple_pay', 'mpgs_google_pay']);
+});
+
 it('throws runtime exception when organization is not chip onboarded', function () {
     $organization = Organization::factory()->create([
         'chip_brand_id' => 'BRAND123',

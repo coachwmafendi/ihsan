@@ -36,6 +36,7 @@ it('creates a chip purchase and stores checkout details for a chip campaign', fu
         new Response(200, [], json_encode([
             'id' => 'PURCHASE123',
             'checkout_url' => 'https://gate.chip-in.asia/pay/PURCHASE123',
+            'direct_post_url' => 'https://payments.chip-in.asia/p/PURCHASE123',
         ])),
     ]);
     $handlerStack = HandlerStack::create($mockHandler);
@@ -49,7 +50,7 @@ it('creates a chip purchase and stores checkout details for a chip campaign', fu
 
     ChipApiFactory::fake(make: fn () => $chipApi);
 
-    Livewire::test(DonationForm::class, ['campaign' => $campaign])
+    $component = Livewire::test(DonationForm::class, ['campaign' => $campaign])
         ->set('amount', 50)
         ->set('firstName', 'Ali')
         ->set('lastName', 'Bakar')
@@ -67,6 +68,8 @@ it('creates a chip purchase and stores checkout details for a chip campaign', fu
         ->and($donation->type)->toBe(DonationType::OneTime)
         ->and($donation->chip_purchase_id)->toBe('PURCHASE123')
         ->and($donation->chip_checkout_url)->toBe('https://gate.chip-in.asia/pay/PURCHASE123');
+
+    expect($component->get('chipDirectPostUrl'))->toBe('https://payments.chip-in.asia/p/PURCHASE123');
 
     expect($requestHistory)->toHaveCount(1);
     $requestBody = json_decode((string) $requestHistory[0]['request']->getBody(), true);
@@ -94,6 +97,7 @@ it('creates a recurring chip purchase with force recurring enabled', function ()
         new Response(200, [], json_encode([
             'id' => 'PURCHASE_RECURRING',
             'checkout_url' => 'https://gate.chip-in.asia/pay/PURCHASE_RECURRING',
+            'direct_post_url' => 'https://payments.chip-in.asia/p/PURCHASE_RECURRING',
         ])),
     ]);
     $handlerStack = HandlerStack::create($mockHandler);
@@ -124,6 +128,56 @@ it('creates a recurring chip purchase with force recurring enabled', function ()
     $requestBody = json_decode((string) $requestHistory[0]['request']->getBody(), true);
     expect($requestBody['force_recurring'] ?? false)->toBeTrue()
         ->and($requestBody['payment_method_whitelist'])->toBe(['visa', 'mastercard', 'maestro', 'mpgs_apple_pay', 'mpgs_google_pay']);
+});
+
+it('uses checkout url redirect when chip payment methods include fpx', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+        'settings' => ['chip_payment_methods' => ['card', 'fpx']],
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'status' => CampaignStatus::Active,
+        'payment_gateway' => PaymentGateway::Chip,
+        'checkout_modal_enabled' => true,
+    ]);
+
+    $requestHistory = [];
+    $mockHandler = new MockHandler([
+        new Response(200, [], json_encode([
+            'id' => 'PURCHASE_REDIRECT',
+            'checkout_url' => 'https://gate.chip-in.asia/pay/PURCHASE_REDIRECT',
+        ])),
+    ]);
+    $handlerStack = HandlerStack::create($mockHandler);
+    $handlerStack->push(Middleware::history($requestHistory));
+
+    $chipApi = new ChipApi(
+        brandId: $organization->chip_brand_id,
+        apiKey: $organization->chip_api_key,
+        config: ['handler' => $handlerStack],
+    );
+
+    ChipApiFactory::fake(make: fn () => $chipApi);
+
+    $component = Livewire::test(DonationForm::class, ['campaign' => $campaign])
+        ->set('amount', 25)
+        ->set('firstName', 'Aiman')
+        ->set('lastName', 'Rashid')
+        ->set('email', 'aiman@example.com')
+        ->set('currency', 'myr')
+        ->set('frequency', 'one_time')
+        ->set('coverFee', false)
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    expect($component->get('chipDirectPostUrl'))->toBeNull();
+
+    $donation = Donation::query()->latest()->first();
+    expect($donation->chip_purchase_id)->toBe('PURCHASE_REDIRECT');
+
+    $requestBody = json_decode((string) $requestHistory[0]['request']->getBody(), true);
+    expect($requestBody['payment_method_whitelist'])->toBe(['visa', 'mastercard', 'maestro', 'mpgs_apple_pay', 'mpgs_google_pay', 'fpx']);
 });
 
 it('fails the donation when the organization is not chip onboarded', function () {

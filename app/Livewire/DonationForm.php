@@ -83,6 +83,8 @@ class DonationForm extends Component
 
     public ?string $chipErrorMessage = null;
 
+    public ?string $chipDirectPostUrl = null;
+
     public float $campaignCollectedAmount = 0.0;
 
     public float $campaignTargetAmount = 0.0;
@@ -110,6 +112,19 @@ class DonationForm extends Component
         $campaign = $this->element?->campaign ?? $this->campaign;
 
         return $campaign?->payment_gateway?->value === 'chip';
+    }
+
+    public function useChipDirectPost(): bool
+    {
+        $campaign = $this->element?->campaign ?? $this->campaign;
+
+        if ($campaign?->payment_gateway !== PaymentGateway::Chip) {
+            return false;
+        }
+
+        $methods = $campaign->organization->chipPaymentMethods();
+
+        return count($methods) === 1 && in_array('card', $methods, true);
     }
 
     public function selectCurrency(string $currency, bool $resetAmount = true): void
@@ -583,9 +598,13 @@ class DonationForm extends Component
                 : $this->pageUrl;
 
             try {
-                $checkoutUrl = app(CreatePurchase::class)->create($donation, $returnTo);
+                if ($this->useChipDirectPost()) {
+                    $this->chipDirectPostUrl = app(CreatePurchase::class)->createDirectPost($donation, $returnTo);
 
-                return $checkoutUrl;
+                    return '';
+                }
+
+                return app(CreatePurchase::class)->create($donation, $returnTo);
             } catch (\Exception $e) {
                 $donation->update(['status' => DonationStatus::Failed]);
                 $this->chipErrorMessage = 'Unable to start CHIP payment. Please try again.';
