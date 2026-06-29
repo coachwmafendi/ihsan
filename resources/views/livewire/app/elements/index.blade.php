@@ -176,10 +176,17 @@
                                     </span>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
-                                        @if ($element->campaign)
-                                        <a href="{{ route('app.campaigns.edit', $element->campaign) }}" wire:navigate.stop onclick="event.stopPropagation()" class="hover:text-teal-600">
-                                            {{ $element->campaign->title }}
-                                        </a>
+                                    @if ($element->campaign)
+                                        <div class="flex flex-col gap-1">
+                                            <a href="{{ route('app.campaigns.edit', $element->campaign) }}" wire:navigate.stop onclick="event.stopPropagation()" class="hover:text-teal-600">
+                                                {{ $element->campaign->title }}
+                                            </a>
+                                            @if ($element->campaign->payment_gateway)
+                                                <span class="inline-flex w-fit items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                                                    {{ $element->campaign->payment_gateway->getLabel() }}
+                                                </span>
+                                            @endif
+                                        </div>
                                     @else
                                         <span class="text-slate-400">—</span>
                                     @endif
