@@ -41,7 +41,6 @@
 
                 try {
                     localStorage.setItem('ihsan:chip:' + donationId, JSON.stringify(payload));
-                    localStorage.removeItem('ihsan:chip:' + donationId);
                 } catch (e) {}
             }
 
@@ -54,6 +53,20 @@
                         donationPublicId: donationId,
                         success: success,
                     }, '*');
+                    return;
+                }
+
+                if (window.opener && window.opener !== window) {
+                    window.opener.postMessage({
+                        type: success ? 'chip:payment:success' : 'chip:payment:failure',
+                        donationId: donationId,
+                        success: success,
+                    }, window.location.origin);
+
+                    setTimeout(function () {
+                        window.close();
+                    }, 300);
+
                     return;
                 }
 
