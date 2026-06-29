@@ -36,6 +36,8 @@
                     _chipBc: null,
                     _chipMessageHandled: false,
                     chipDirectPostSubmitted: false,
+                    _chipDirectPostPollInterval: null,
+                    _chipDirectPostPollTimeout: null,
                     processing: false,
                     currentStep: initialStep > 1 ? initialStep : 1,
                     stepErrors: {},
@@ -210,6 +212,7 @@
                     prevStep() {
                         if (this.currentStep === 3) {
                             this.chipDirectPostSubmitted = false;
+                            this.stopChipDirectPostPoll();
                         }
                         if (this.currentStep > 1) this.currentStep--;
                     },
@@ -267,6 +270,7 @@
                         }
                     },
                     finishSuccess() {
+                        this.stopChipDirectPostPoll();
                         this.processing = false;
                         this.trackPurchase();
 
@@ -282,6 +286,41 @@
 
                         if (this.redirectUrl && ! this.isEmbed) {
                             setTimeout(() => { window.location.href = this.redirectUrl; }, 1500);
+                        }
+                    },
+                    startChipDirectPostPoll() {
+                        this.stopChipDirectPostPoll();
+
+                        if (! this.donationPublicId) {
+                            return;
+                        }
+
+                        this._chipDirectPostPollInterval = setInterval(async () => {
+                            try {
+                                const finalized = await this.$wire.pollChipPaymentStatus(this.donationPublicId);
+
+                                if (finalized) {
+                                    this.stopChipDirectPostPoll();
+                                    this.finishSuccess();
+                                }
+                            } catch (e) {
+                                // Network/livewire errors are expected while the purchase is pending.
+                            }
+                        }, 3000);
+
+                        this._chipDirectPostPollTimeout = setTimeout(() => {
+                            this.stopChipDirectPostPoll();
+                        }, 90000);
+                    },
+                    stopChipDirectPostPoll() {
+                        if (this._chipDirectPostPollInterval) {
+                            clearInterval(this._chipDirectPostPollInterval);
+                            this._chipDirectPostPollInterval = null;
+                        }
+
+                        if (this._chipDirectPostPollTimeout) {
+                            clearTimeout(this._chipDirectPostPollTimeout);
+                            this._chipDirectPostPollTimeout = null;
                         }
                     },
                     openChipCheckout(url) {
@@ -466,6 +505,7 @@
                                 form.action = this.$wire.chipDirectPostUrl;
                                 this.chipDirectPostSubmitted = true;
                                 this.processing = false;
+                                this.startChipDirectPostPoll();
                                 form.submit();
                             } else {
                                 this.processing = false;

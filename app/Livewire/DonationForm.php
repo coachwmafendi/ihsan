@@ -439,6 +439,40 @@ class DonationForm extends Component
         }
     }
 
+    /**
+     * Poll-driven finalizer used by the direct-post iframe flow. Returns true
+     * only when the donation has actually been finalized successfully.
+     */
+    #[Renderless]
+    public function pollChipPaymentStatus(string $donationPublicId): bool
+    {
+        $this->skipRender();
+
+        $donation = Donation::query()->where('public_id', $donationPublicId)->first();
+
+        if ($donation === null) {
+            return false;
+        }
+
+        $campaignId = $this->element?->campaign_id ?? $this->campaign?->getKey();
+
+        if ($donation->campaign_id !== $campaignId) {
+            return false;
+        }
+
+        try {
+            app(FinalizeDonation::class)->finalize($donation);
+            $this->syncCampaignTotals();
+            $this->syncDonorDetails($donation);
+
+            return true;
+        } catch (\Exception $e) {
+            report($e);
+
+            return false;
+        }
+    }
+
     private function syncDonorDetails(Donation $donation): void
     {
         $donor = $donation->donor;

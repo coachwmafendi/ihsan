@@ -14,6 +14,9 @@
             const campaignUrl = @js($campaignUrl);
             const returnTo = @js($returnTo ?? null);
             const normalizedStatus = status === 'success' ? 'success' : (status === 'failure' ? 'failure' : 'cancelled');
+            const inIframe = window.self !== window.top;
+            const hasOpener = window.opener && window.opener !== window;
+            const hasParentContext = inIframe || hasOpener;
 
             function notifyOpener() {
                 const target = window.opener || window.parent;
@@ -73,33 +76,64 @@
                 return baseUrl + separator + 'chip_status=' + encodeURIComponent(normalizedStatus) + '&donation_id=' + encodeURIComponent(donationId);
             }
 
+            function tryClosePopup() {
+                window.close();
+
+                // Some browsers block window.close() even for script-opened popups.
+                // If the popup is still here, redirect to the originating donation form
+                // so the user always lands on a useful screen.
+                setTimeout(function () {
+                    if (! window.closed) {
+                        const redirectUrl = buildReturnUrl(returnTo);
+
+                        if (redirectUrl) {
+                            window.location.href = redirectUrl;
+                        }
+                    }
+                }, 800);
+            }
+
+            function showIframeResult() {
+                // The parent window controls the main donation UI. Just show a short
+                // confirmation in the iframe and then clear it so it does not keep
+                // rendering the CHIP page or a duplicate donation form.
+                const message = status === 'success'
+                    ? 'Completing your donation...'
+                    : ('Payment ' + normalizedStatus + '. Returning...');
+
+                document.body.innerHTML = '<p style="font-family:sans-serif;text-align:center;padding:40px;margin:0;">' + message + '</p>';
+
+                setTimeout(function () {
+                    try {
+                        window.location.replace('about:blank');
+                    } catch (e) {
+                        // Fallback if replacing the iframe location is not allowed.
+                    }
+                }, 1200);
+            }
+
             function finish() {
                 // Always broadcast the result through BroadcastChannel / localStorage
                 // so the originating page can react even if window.opener was lost.
                 broadcastResult();
 
-                if (notifyOpener()) {
-                    window.close();
-
-                    // Some browsers block window.close() even for script-opened
-                    // popups. If the popup is still here, redirect to the originating
-                    // donation form so the user always lands on a useful screen.
-                    setTimeout(function () {
-                        if (! window.closed) {
-                            const redirectUrl = buildReturnUrl(returnTo);
-
-                            if (redirectUrl) {
-                                window.location.href = redirectUrl;
-                            }
-                        }
-                    }, 800);
-
+                // If we are embedded in an iframe, never take over the whole window or
+                // call the finalize endpoint. The parent is listening for the result.
+                if (inIframe) {
+                    notifyOpener();
+                    showIframeResult();
                     return;
                 }
 
-                // When there is no script opener (e.g. mobile browser tab or popup
-                // blocker redirected the top-level window), redirect back to the
-                // originating donation form so it can display the result state.
+                // If this is a script-opened popup, notify the opener and close.
+                if (hasOpener) {
+                    notifyOpener();
+                    tryClosePopup();
+                    return;
+                }
+
+                // Top-level tab with no opener (e.g. popup blocker). Redirect back to
+                // the originating donation form so it can display the result state.
                 const redirectUrl = buildReturnUrl(returnTo);
 
                 if (redirectUrl) {
@@ -116,7 +150,10 @@
                 document.body.innerHTML = '<p style="font-family:sans-serif;text-align:center;padding:40px;">Payment ' + status + '. <a href="' + campaignUrl + '">Return to campaign</a></p>';
             }
 
-            if (status === 'success' && finalizeUrl) {
+            // Only call the finalize endpoint when there is no parent/opener context
+            // to finalize on our behalf. In those cases the originating page already
+            // listens for postMessage/BroadcastChannel/localStorage events.
+            if (status === 'success' && finalizeUrl && ! hasParentContext) {
                 fetch(finalizeUrl, {
                     method: 'POST',
                     headers: {

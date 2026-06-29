@@ -609,7 +609,7 @@
                                 </form>
                             @elseif ($isChipDirectPost)
                                 <form id="chip-direct-post-form" method="POST" x-bind:action="$wire.chipDirectPostUrl" @submit.prevent="handleSubmit" target="chip-direct-post-frame" class="space-y-4">
-                                    <div x-show="!chipDirectPostSubmitted" class="space-y-3">
+                                    <div x-show="typeof chipDirectPostSubmitted === 'undefined' || !chipDirectPostSubmitted" class="space-y-3">
                                         <p class="text-sm font-medium text-slate-800">Card details</p>
 
                                         <label class="block">
@@ -642,7 +642,7 @@
                                     <iframe
                                         name="chip-direct-post-frame"
                                         id="chip-direct-post-frame"
-                                        x-show="chipDirectPostSubmitted"
+                                        x-show="typeof chipDirectPostSubmitted !== 'undefined' && chipDirectPostSubmitted"
                                         x-cloak
                                         class="w-full rounded-xl border border-slate-200 bg-white"
                                         style="min-height: 520px;"
@@ -651,7 +651,7 @@
                                     ></iframe>
 
                                     <button
-                                        x-show="!chipDirectPostSubmitted"
+                                        x-show="typeof chipDirectPostSubmitted === 'undefined' || !chipDirectPostSubmitted"
                                         type="submit"
                                         class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
                                         x-bind:disabled="processing"
