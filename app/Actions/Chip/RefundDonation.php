@@ -5,54 +5,48 @@ declare(strict_types=1);
 namespace App\Actions\Chip;
 
 use App\Enums\DonationStatus;
-use App\Jobs\SendDonorRefundNotification;
-use App\Jobs\SendRefundNotification;
-use App\Models\Campaign;
 use App\Models\Donation;
-use App\Services\ChipApi;
-use Illuminate\Support\Facades\DB;
+use Chip\Exception\ChipApiException;
+use InvalidArgumentException;
+use RuntimeException;
 
-class RefundDonation
+final class RefundDonation
 {
-    public function __construct(private ChipApi $chipApi) {}
-
+    /**
+     * Refund a CHIP donation.
+     *
+     * @param  Donation  $donation  The donation to refund.
+     */
     public function handle(Donation $donation): void
     {
-        if (! filled($donation->chip_purchase_id)) {
-            throw new \RuntimeException('No CHIP purchase ID found for this donation.');
-        }
-
         $donation->loadMissing('campaign.organization');
+
+        if (blank($donation->chip_purchase_id)) {
+            throw new RuntimeException('No CHIP purchase ID found for this donation.');
+        }
 
         $organization = $donation->campaign?->organization;
 
-        if ($organization === null || ! $organization->chipOnboarded()) {
-            throw new \RuntimeException('CHIP is not configured for this organization.');
+        if ($organization === null) {
+            throw new RuntimeException('Donation is not linked to an organization.');
         }
 
-        $this->chipApi->refundPurchase((string) $donation->chip_purchase_id, $organization);
+        try {
+            $chip = ChipApiFactory::make($organization);
+            $chip->purchases->refund($donation->chip_purchase_id);
+        } catch (InvalidArgumentException $e) {
+            report($e);
 
-        $refundAmount = (float) ($donation->base_amount ?? $donation->gross_amount);
+            throw new RuntimeException('Failed to initialize CHIP client: '.$e->getMessage(), previous: $e);
+        } catch (ChipApiException $e) {
+            report($e);
 
-        DB::transaction(function () use ($donation, $refundAmount): void {
-            $lockedDonation = Donation::query()->whereKey($donation->getKey())->lockForUpdate()->firstOrFail();
+            throw new RuntimeException('Failed to refund CHIP donation: '.$e->getMessage(), previous: $e);
+        }
 
-            if ($lockedDonation->status !== DonationStatus::Refunded) {
-                $lockedDonation->update([
-                    'status' => DonationStatus::Refunded,
-                    'refunded_at' => now(),
-                ]);
-            }
-
-            $campaign = Campaign::query()->whereKey($lockedDonation->campaign_id)->lockForUpdate()->first();
-
-            if ($campaign !== null) {
-                $newCollected = max(0, (float) $campaign->collected_amount - $refundAmount);
-                $campaign->update(['collected_amount' => $newCollected]);
-            }
-        });
-
-        SendRefundNotification::dispatch($donation);
-        SendDonorRefundNotification::dispatch($donation);
+        $donation->update([
+            'status' => DonationStatus::Refunded,
+            'refunded_at' => now(),
+        ]);
     }
 }

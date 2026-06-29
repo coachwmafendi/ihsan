@@ -4,80 +4,81 @@ declare(strict_types=1);
 
 namespace App\Actions\Chip;
 
+use App\Enums\DonationType;
 use App\Models\Donation;
-use App\Services\ChipApi;
-use Illuminate\Routing\UrlGenerator;
+use Chip\Builder\PurchaseBuilder;
+use Chip\Exception\ChipApiException;
+use Illuminate\Support\Facades\Route;
+use InvalidArgumentException;
+use RuntimeException;
 
-class CreatePurchase
+final class CreatePurchase
 {
-    public function __construct(
-        private ChipApi $chipApi,
-        private UrlGenerator $url,
-    ) {}
-
-    /**
-     * Create a CHIP purchase for the donation and return the checkout URL.
-     */
-    public function create(Donation $donation): string
+    public function create(Donation $donation, ?string $returnTo = null): string
     {
-        $campaign = $donation->campaign;
+        $donation->load(['campaign.organization', 'donor']);
 
-        if ($campaign === null) {
-            throw new \RuntimeException('CHIP donations require a campaign.');
+        $organization = $donation->campaign->organization;
+        $campaign = $donation->campaign;
+        $donor = $donation->donor;
+
+        try {
+            $chip = ChipApiFactory::make($organization);
+        } catch (InvalidArgumentException $e) {
+            report($e);
+
+            throw new RuntimeException('Failed to initialize CHIP client: '.$e->getMessage(), previous: $e);
         }
 
-        $successRedirect = $this->callbackUrl($donation, 'success');
-        $failureRedirect = $this->callbackUrl($donation, 'failure');
+        $successParams = ['donation' => $donation->public_id, 'status' => 'success'];
+        $failureParams = ['donation' => $donation->public_id, 'status' => 'failure'];
+        $cancelParams = ['donation' => $donation->public_id, 'status' => 'cancelled'];
 
-        $forceRecurring = $donation->type === \App\Enums\DonationType::Recurring;
-        $purchase = $this->chipApi->createPurchase($donation, $successRedirect, $failureRedirect, null, $forceRecurring);
+        if (filled($returnTo)) {
+            $successParams['return_to'] = $returnTo;
+            $failureParams['return_to'] = $returnTo;
+            $cancelParams['return_to'] = $returnTo;
+        }
 
-        $purchaseId = $purchase['id'] ?? null;
-        $checkoutUrl = $purchase['checkout_url'] ?? null;
+        $builder = PurchaseBuilder::create()
+            ->brandId($organization->chip_brand_id)
+            ->currency(strtoupper($donation->currency))
+            ->language('en')
+            ->clientEmail($donor->email)
+            ->clientFullName($donor->name)
+            ->addProduct($campaign->title, (int) round(((float) $donation->gross_amount + (float) ($donation->donor_fee_covered ?? 0)) * 100))
+            ->successRedirect(route('chip.callback', $successParams))
+            ->failureRedirect(route('chip.callback', $failureParams))
+            ->cancelRedirect(route('chip.callback', $cancelParams));
 
-        if (! filled($purchaseId) || ! filled($checkoutUrl)) {
-            throw new \RuntimeException('CHIP purchase response missing required fields.');
+        if (Route::has('chip.webhook')) {
+            $builder = $builder->successCallback(route('chip.webhook'));
+        }
+
+        if ($donation->type === DonationType::Recurring) {
+            $builder = $builder->forceRecurring(true);
+        }
+
+        $paymentMethods = $organization->chipPaymentMethodWhitelist();
+
+        if ($paymentMethods !== []) {
+            $builder = $builder->paymentMethodWhitelist($paymentMethods);
+        }
+
+        $purchase = $builder->build();
+
+        try {
+            $result = $chip->purchases->create($purchase);
+        } catch (ChipApiException $e) {
+            report($e);
+            throw new RuntimeException('Failed to create CHIP purchase: '.$e->getMessage(), previous: $e);
         }
 
         $donation->update([
-            'chip_purchase_id' => $purchaseId,
-            'chip_checkout_url' => $checkoutUrl,
+            'chip_purchase_id' => $result->id,
+            'chip_checkout_url' => $result->checkout_url,
         ]);
 
-        return $checkoutUrl;
-    }
-
-    private function callbackUrl(Donation $donation, string $status): string
-    {
-        $returnTo = $this->returnUrl($donation);
-
-        return $this->url->route('chip.callback', [
-            'donation' => $donation->public_id,
-            'status' => $status,
-            'return_to' => $returnTo,
-        ]);
-    }
-
-    private function returnUrl(Donation $donation): string
-    {
-        $campaign = $donation->campaign;
-
-        if ($campaign !== null && $campaign->campaign_page_enabled) {
-            return route('campaigns.public', $campaign);
-        }
-
-        $source = $donation->source;
-
-        if ($source === 'element' && filled($donation->utm_params['element_token'] ?? null)) {
-            return url('/donate/'.$donation->utm_params['element_token']);
-        }
-
-        $pageUrl = $donation->page_url;
-
-        if (filled($pageUrl)) {
-            return $pageUrl;
-        }
-
-        return route('home');
+        return $result->checkout_url;
     }
 }

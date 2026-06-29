@@ -25,8 +25,8 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property int $donor_id
  * @property int|null $donor_payment_method_id
  * @property string|null $stripe_subscription_id
- * @property string|null $stripe_price_id
  * @property string|null $chip_recurring_token
+ * @property string|null $stripe_price_id
  * @property numeric $amount
  * @property string $currency
  * @property SubscriptionInterval $interval
@@ -51,8 +51,6 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property int|null $max_plan_installments
  * @property string|null $public_id
  * @property string|null $source
- * @property-read bool $is_scheduled_to_cancel
- * @property-read string $status_label
  * @property-read Collection<int, Activity> $activitiesAsSubject
  * @property-read int|null $activities_as_subject_count
  * @property-read Campaign $campaign
@@ -71,6 +69,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCancelAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCancelAtPeriodEnd($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCancelledAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereChipRecurringToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCoverFee($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Subscription whereCurrency($value)
@@ -91,8 +90,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['campaign_id', 'donor_id', 'donor_payment_method_id', 'source', 'public_id', 'stripe_subscription_id', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'failed_installment_count', 'cancel_at_period_end', 'cover_fee', 'fee_cover_amount', 'cancel_at', 'max_plan_amount', 'max_plan_installments', 'current_period_start', 'current_period_end', 'next_charge_at', 'last_charge_at', 'last_charge_attempt_at', 'paused_until', 'cancelled_at', 'cancellation_reason',
-    'chip_recurring_token'])]
+#[Fillable(['campaign_id', 'donor_id', 'donor_payment_method_id', 'source', 'public_id', 'stripe_subscription_id', 'chip_recurring_token', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'retry_count', 'payment_count', 'failed_installment_count', 'cancel_at_period_end', 'cover_fee', 'fee_cover_amount', 'cancel_at', 'max_plan_amount', 'max_plan_installments', 'current_period_start', 'current_period_end', 'next_charge_at', 'last_charge_at', 'last_charge_attempt_at', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */
@@ -166,14 +164,14 @@ class Subscription extends Model
 
     public function isScheduledToCancel(): Attribute
     {
-        return Attribute::get(fn () => $this->status === SubscriptionStatus::Active && $this->cancel_at_period_end);
+        return Attribute::get(fn () => $this->cancel_at_period_end);
     }
 
     public function statusLabel(): Attribute
     {
         return Attribute::get(function (): string {
-            if ($this->is_scheduled_to_cancel) {
-                return 'Active · Scheduled to cancel';
+            if ($this->status === SubscriptionStatus::Active && $this->cancel_at_period_end) {
+                return 'Scheduled to cancel';
             }
 
             return $this->status->getLabel();

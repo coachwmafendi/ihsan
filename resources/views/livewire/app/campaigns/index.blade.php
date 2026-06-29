@@ -134,6 +134,11 @@
                                             <span class="text-sm font-semibold text-slate-900">
                                                 {{ $campaign->title }}
                                             </span>
+                                            @if ($campaign->payment_gateway)
+                                                <span class="mt-1 inline-flex w-fit items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                                                    {{ $campaign->payment_gateway->getLabel() }}
+                                                </span>
+                                            @endif
                                             @if ($campaign->has_target && $campaign->target_amount)
                                                 @php
                                                         $pct = $campaign->target_amount > 0

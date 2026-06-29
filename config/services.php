@@ -46,7 +46,6 @@ return [
     ],
 
     'chip' => [
-        'api_base_url' => env('CHIP_API_BASE_URL', 'https://gate.chip-in.asia/api/v1'),
         'processing_fee_percent' => (float) env('CHIP_PROCESSING_FEE_PERCENT', 2.5),
         'fpx_fee_type' => env('CHIP_FPX_FEE_TYPE', 'fixed'),
         'fpx_fee_amount' => (int) env('CHIP_FPX_FEE_AMOUNT', 150),

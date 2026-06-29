@@ -26,15 +26,17 @@ class AllowDomains extends Component
         }
 
         $settings = $org->settings ?? [];
-        $this->allowed_domains = $settings['allowed_domains'] ?? [];
+        $allowedDomains = $settings['allowed_domains'] ?? null;
 
-        if ($this->allowed_domains === [] && $org->website_url) {
+        if ($allowedDomains === null && $org->website_url) {
             $domain = $this->normalizeDomain($org->website_url);
 
             if ($domain !== '') {
-                $this->allowed_domains[] = $domain;
+                $allowedDomains = [$domain];
             }
         }
+
+        $this->allowed_domains = $allowedDomains ?? [];
     }
 
     public function addDomain(string $domain): void

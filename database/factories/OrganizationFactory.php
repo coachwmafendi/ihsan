@@ -32,6 +32,7 @@ class OrganizationFactory extends Factory
             'code' => fake()->unique()->regexify('[A-Z]{8}'),
             'registration_type' => 'others',
             'description' => fake()->paragraph(),
+            'website_url' => fake()->url(),
             'contact_email' => fake()->safeEmail(),
             'contact_phone' => fake()->phoneNumber(),
             'status' => OrganizationStatus::Active,

@@ -466,6 +466,7 @@
                             </x-ui.select>
                             @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                         </div>
+
                     </div>
 
                     <div>
@@ -540,15 +541,15 @@
             <x-ui.card title="Payment Processor" description="Choose the payment processor donors will use for this campaign.">
                 <div class="space-y-4">
                     <div class="max-w-md">
-                        <label for="paymentGateway" class="block text-sm font-medium text-slate-700">Processor</label>
-                        <x-ui.select id="paymentGateway" wire:model="paymentGateway" class="mt-1.5 block w-full">
+                        <label for="payment_gateway" class="block text-sm font-medium text-slate-700">Processor</label>
+                        <x-ui.select id="payment_gateway" wire:model="payment_gateway" class="mt-1.5 block w-full">
                             <flux:select.option value="stripe">Stripe Connect</flux:select.option>
                             <flux:select.option value="chip">CHIP</flux:select.option>
                         </x-ui.select>
-                        @error('paymentGateway') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        @error('payment_gateway') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
-                    @if ($paymentGateway === 'chip' && ! $campaign->organization?->chipOnboarded())
+                    @if ($payment_gateway === 'chip' && ! $campaign->organization?->chip_onboarded)
                         <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                             Your organization has not completed CHIP setup. Go to Settings > Payment Processors to add your CHIP credentials.
                         </div>

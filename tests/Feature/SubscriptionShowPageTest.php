@@ -118,8 +118,8 @@ it('shows the scheduled cancellation status banner', function () {
 
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
-        ->assertSee('This monthly recurring donation is scheduled to cancel.')
-        ->assertSee('The final installment will be charged on')
+        ->assertSee('Scheduled to cancel.')
+        ->assertSee('final installment will be charged on')
         ->assertSee(myrTime($subscription->current_period_end));
 });
 

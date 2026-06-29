@@ -4,7 +4,7 @@
     document.addEventListener('alpine:init', () => {
         if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
             Alpine._donationStepRegistered = true;
-            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialIsChipGateway = false) => {
+            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe') => {
                 let stripe = null;
                 let elements = null;
                 let paymentElement = null;
@@ -26,15 +26,14 @@
                     isEmbed: initialIsEmbed,
                     isPopup: initialIsPopup,
                     isPublicPage: initialIsPublicPage,
-                    isChipGateway: initialIsChipGateway,
                     donationPublicId: initialDonationPublicId,
                     redirectUrl: initialRedirectUrl,
                     campaignPublicId: '',
                     raisedAmount: initialRaisedAmount,
                     targetAmount: initialTargetAmount,
+                    paymentGateway: initialPaymentGateway,
                     chipPopup: null,
                     _chipBc: null,
-                    _chipStorageHandler: null,
                     _chipMessageHandled: false,
                     processing: false,
                     currentStep: initialStep > 1 ? initialStep : 1,
@@ -122,7 +121,6 @@
                         return valid;
                     },
                     mountPaymentElement() {
-                        if (this.isChipGateway) return;
                         const container = document.getElementById('payment-element');
                         if (!container) return;
 
@@ -178,7 +176,7 @@
                         }
                         this.currentStep++;
                         if (this.currentStep === 2) this.trackInitiateCheckout();
-                        if (this.currentStep === 3) this.$nextTick(() => this.mountPaymentElement());
+                        if (this.currentStep === 3 && this.paymentGateway === 'stripe') this.$nextTick(() => this.mountPaymentElement());
                     },
                     trackInitiateCheckout() {
                         if (this._initiateSent) return;
@@ -222,7 +220,21 @@
                         this.targetAmount = parseFloat(this.$wire.campaignTargetAmount) || 0;
 
                         this.handleChipReturnFromQueryParams();
-                        window.addEventListener('message', (event) => this.handleChipMessage(event));
+
+                        this.$wire.on('chip-return', ({ status, donationId }) => {
+                            if (! donationId) {
+                                return;
+                            }
+
+                            if (status === 'success') {
+                                this.donationPublicId = donationId;
+                                this.finalizeChip();
+                            } else {
+                                this.processing = false;
+                                this.currentStep = 'error';
+                                this.cardError = 'Payment was not completed. Please try again.';
+                            }
+                        });
 
                         this.$wire.on('amount-updated', ({ amount }) => { this.setAmount(amount); });
                         this.$wire.on('currency-updated', ({ currency, symbol, amount, oneTimeAmounts, monthlyAmounts }) => {
@@ -233,6 +245,9 @@
                             const amounts = this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
                             this.setAmount(amount ?? (amounts.length > 0 ? amounts[0] : this.amount));
                         });
+
+                        window.addEventListener('message', (event) => this.handleChipMessage(event));
+
                         stripe = connectedStripeAccountId
                             ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
                             : Stripe(window.stripePublishableKey);
@@ -245,65 +260,6 @@
                             });
                         }
                     },
-                    async handleSubmit() {
-                        if (this.processing) return;
-                        this.processing = true;
-                        this.cardError = '';
-                        this.$wire.$set('frequency', this.frequency, false);
-                        this.$wire.$set('amount', this.amount, false);
-                        this.$wire.$set('coverFee', this.coverFee, false);
-                        this.$wire.$set('firstName', this.donorFirstName, false);
-                        this.$wire.$set('lastName', this.donorLastName, false);
-                        this.$wire.$set('email', this.donorEmail, false);
-                        this.$wire.$set('phone', this.donorPhone, false);
-
-                        if (this.isChipGateway) {
-                            let checkoutUrl;
-                            try { checkoutUrl = await this.$wire.submitChip(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = e.message || 'Unable to start payment. Please try again.'; return; }
-                            if (!checkoutUrl) { this.processing = false; this.currentStep = 'error'; this.cardError = this.$wire.chipErrorMessage || 'Unable to start payment. Please try again.'; return; }
-                            this.donationPublicId = this.$wire.donationPublicId;
-
-                            if (window.parent !== window) {
-                                // Embedded/widget flow: open CHIP in a popup so the donation form
-                                // iframe stays loaded and can display the success state.
-                                this.listenForChipReturn();
-                                this.openChipCheckout(checkoutUrl);
-                                return;
-                            }
-
-                            // Standard campaign-page flow: open CHIP in a popup and listen for the result.
-                            this.listenForChipReturn();
-                            this.openChipCheckout(checkoutUrl);
-                            return;
-                        }
-
-                        const { error: submitError } = await elements.submit();
-                        if (submitError) { this.processing = false; this.currentStep = 'error'; this.cardError = submitError.message; return; }
-                        let clientSecret;
-                        try { clientSecret = await this.$wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
-                        if (!clientSecret) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
-                        const paymentIntentId = clientSecret.split('_secret_')[0] ?? null;
-                        const { error: confirmError } = await stripe.confirmPayment({
-                            elements,
-                            clientSecret,
-                            confirmParams: {
-                                receipt_email: this.donorEmail,
-                                return_url: window.location.href,
-                            },
-                            redirect: 'if_required',
-                        });
-                        if (confirmError) { this.processing = false; this.currentStep = 'error'; this.cardError = confirmError.message; return; }
-                        if (paymentIntentId) {
-                            try {
-                                await this.$wire.confirmPayment(paymentIntentId);
-                            } catch (e) {
-                                // Server finalization failure should not block the success UX.
-                            }
-                        }
-                        this.donationPublicId = this.$wire.donationPublicId;
-                        this.finishSuccess();
-                    },
-
                     finishSuccess() {
                         this.processing = false;
                         this.trackPurchase();
@@ -322,7 +278,6 @@
                             setTimeout(() => { window.location.href = this.redirectUrl; }, 1500);
                         }
                     },
-
                     openChipCheckout(url) {
                         // CHIP redirect checkout URLs set X-Frame-Options / CSP that prevents
                         // embedding in an iframe, so we must use a popup or a full-page redirect.
@@ -343,7 +298,6 @@
                         // Fallback if the popup was blocked.
                         window.location.href = url;
                     },
-
                     closeChipPopup() {
                         if (this.chipPopup && !this.chipPopup.closed) {
                             try {
@@ -354,14 +308,16 @@
                         }
                         this.chipPopup = null;
                     },
-
                     listenForChipReturn() {
                         if (! this.donationPublicId) {
                             return;
                         }
 
+                        // Clean up any previous listener first.
                         if (this._chipBc) {
-                            try { this._chipBc.close(); } catch (e) {}
+                            try {
+                                this._chipBc.close();
+                            } catch (e) {}
                             this._chipBc = null;
                         }
 
@@ -371,7 +327,9 @@
                             try {
                                 this._chipBc = new BroadcastChannel('ihsan:chip:' + donationId);
                                 this._chipBc.onmessage = (event) => {
-                                    if (! event.data) return;
+                                    if (! event.data) {
+                                        return;
+                                    }
                                     this.handleChipMessage({ data: event.data });
                                 };
                             } catch (e) {
@@ -381,7 +339,10 @@
 
                         const storageKey = 'ihsan:chip:' + donationId;
                         const storageHandler = (event) => {
-                            if (event.key !== storageKey || ! event.newValue) return;
+                            if (event.key !== storageKey || ! event.newValue) {
+                                return;
+                            }
+
                             try {
                                 const data = JSON.parse(event.newValue);
                                 this.handleChipMessage({ data: data });
@@ -394,7 +355,6 @@
                         this._chipStorageHandler = storageHandler;
                         window.addEventListener('storage', storageHandler);
                     },
-
                     handleChipReturnFromQueryParams() {
                         if (typeof URLSearchParams === 'undefined') {
                             return;
@@ -445,16 +405,16 @@
                         this.donorPhone = this.$wire.phone || this.donorPhone;
                         this.finishSuccess();
                     },
-
                     handleChipMessage(event) {
                         if (! event.data || typeof event.data !== 'object') return;
 
-                        // Guard against duplicate notifications from window.opener,
-                        // BroadcastChannel and storage events.
+                        // Guard against multiple notifications delivered through
+                        // window.opener postMessage, BroadcastChannel and storage events.
                         if (this._chipMessageHandled) return;
                         if (event.data.donationId && event.data.donationId !== this.donationPublicId) return;
                         this._chipMessageHandled = true;
 
+                        // Clean up the cross-tab listener once a result is received.
                         if (this._chipBc) {
                             try { this._chipBc.close(); } catch (e) {}
                             this._chipBc = null;
@@ -475,6 +435,55 @@
                             this.currentStep = 'error';
                             this.cardError = 'Payment was not completed. Please try again.';
                         }
+                    },
+                    async handleSubmit() {
+                        if (this.processing) return;
+                        this.processing = true;
+                        this.cardError = '';
+
+                        this.$wire.$set('frequency', this.frequency, false);
+                        this.$wire.$set('amount', this.amount, false);
+                        this.$wire.$set('coverFee', this.coverFee, false);
+                        this.$wire.$set('firstName', this.donorFirstName, false);
+                        this.$wire.$set('lastName', this.donorLastName, false);
+                        this.$wire.$set('email', this.donorEmail, false);
+                        this.$wire.$set('phone', this.donorPhone, false);
+
+                        let submitResponse;
+                        try { submitResponse = await this.$wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
+                        if (! submitResponse) { this.processing = false; this.currentStep = 'error'; this.cardError = this.$wire.chipErrorMessage || 'Unable to start payment. Please try again.'; return; }
+
+                        if (String(submitResponse).startsWith('http')) {
+                            this.donationPublicId = this.$wire.donationPublicId;
+                            this.listenForChipReturn();
+                            this.openChipCheckout(submitResponse);
+                            return;
+                        }
+
+                        const clientSecret = submitResponse;
+                        const { error: submitError } = await elements.submit();
+                        if (submitError) { this.processing = false; this.currentStep = 'error'; this.cardError = submitError.message; return; }
+
+                        const paymentIntentId = clientSecret.split('_secret_')[0] ?? null;
+                        const { error: confirmError } = await stripe.confirmPayment({
+                            elements,
+                            clientSecret,
+                            confirmParams: {
+                                receipt_email: this.donorEmail,
+                                return_url: window.location.href,
+                            },
+                            redirect: 'if_required',
+                        });
+                        if (confirmError) { this.processing = false; this.currentStep = 'error'; this.cardError = confirmError.message; return; }
+                        if (paymentIntentId) {
+                            try {
+                                await this.$wire.confirmPayment(paymentIntentId);
+                            } catch (e) {
+                                // Server finalization failure should not block the success UX.
+                            }
+                        }
+                        this.donationPublicId = this.$wire.donationPublicId;
+                        this.finishSuccess();
                     },
                 };
             });

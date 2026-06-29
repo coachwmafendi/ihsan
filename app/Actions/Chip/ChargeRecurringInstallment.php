@@ -4,230 +4,80 @@ declare(strict_types=1);
 
 namespace App\Actions\Chip;
 
-use App\Data\ChargeResult;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
-use App\Enums\SubscriptionStatus;
-use App\Jobs\SendCampaignMilestoneNotification;
-use App\Jobs\SendDonorDunningNotification;
-use App\Jobs\SendDonorRecurringPaymentNotification;
-use App\Jobs\SendFailedPaymentNotification;
-use App\Jobs\SendLargeDonationNotification;
-use App\Jobs\SendLinkedInConversionEvent;
-use App\Jobs\SendMetaConversionEvent;
-use App\Jobs\SendNewDonationNotification;
-use App\Jobs\SendSnapchatConversionEvent;
-use App\Jobs\SendXAdsConversionEvent;
-use App\Models\Campaign;
-use App\Models\Donation;
-use App\Models\Donor;
 use App\Models\Subscription;
-use App\Services\ChipApi;
-use App\Services\ScheduleRetry;
-use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\DB;
-use Throwable;
+use Chip\Builder\PurchaseBuilder;
+use Chip\Exception\ChipApiException;
+use Illuminate\Support\Facades\Route;
+use InvalidArgumentException;
+use RuntimeException;
 
-class ChargeRecurringInstallment
+final class ChargeRecurringInstallment
 {
-    public function __construct(
-        private ChipApi $chipApi,
-        private ScheduleRetry $scheduleRetry,
-    ) {}
-
-    public function handle(Subscription $subscription): ChargeResult
+    public function handle(Subscription $subscription): void
     {
         $subscription->loadMissing(['campaign.organization', 'donor']);
 
-        $guardResult = $this->guardSubscriptionState($subscription);
-        if ($guardResult !== null) {
-            return $guardResult;
-        }
+        $organization = $subscription->campaign?->organization;
 
-        $campaign = $subscription->campaign;
-        $organization = $campaign?->organization;
-
-        if ($campaign === null || $organization === null || ! $organization->chipOnboarded()) {
-            $subscription->update(['status' => SubscriptionStatus::Failed, 'next_charge_at' => null]);
-
-            return new ChargeResult('failed', errorCode: 'organization_not_onboarded');
+        if ($organization === null) {
+            throw new RuntimeException('Subscription is not linked to an organization.');
         }
 
         $donor = $subscription->donor;
-        if ($donor === null || blank($subscription->chip_recurring_token)) {
-            $subscription->update(['status' => SubscriptionStatus::Failed, 'next_charge_at' => null]);
 
-            return new ChargeResult('failed', errorCode: 'missing_recurring_token');
+        if ($donor === null) {
+            throw new RuntimeException('Subscription is not linked to a donor.');
         }
 
-        $grossAmount = (float) $subscription->amount;
-        $feeCoverAmount = $subscription->cover_fee ? (float) ($subscription->fee_cover_amount ?? 0) : 0.0;
-        $totalCents = (int) round(($grossAmount + $feeCoverAmount) * 100);
-        $now = now();
+        if (blank($subscription->chip_recurring_token)) {
+            throw new RuntimeException('Subscription does not have a CHIP recurring token.');
+        }
 
         try {
-            $purchase = $this->chipApi->createPurchase(
-                $this->buildPseudoDonation($subscription, $totalCents),
-                $this->returnUrl($subscription),
-                $this->returnUrl($subscription),
-            );
-
-            $purchaseId = $purchase['id'] ?? null;
-
-            if (blank($purchaseId)) {
-                throw new \RuntimeException('CHIP renewal purchase creation did not return a purchase ID.');
-            }
-
-            $charged = $this->chipApi->chargePurchase($purchaseId, (string) $subscription->chip_recurring_token, $organization);
-        } catch (Throwable $e) {
+            $chip = ChipApiFactory::make($organization);
+        } catch (InvalidArgumentException $e) {
             report($e);
-            $oldRetryCount = $this->recordAttemptFailure($subscription);
-            $this->dispatchFailureNotifications($subscription, $e->getMessage(), $oldRetryCount);
 
-            return new ChargeResult('failed', errorCode: 'chip_exception');
+            throw new RuntimeException('Failed to initialize CHIP client: '.$e->getMessage(), previous: $e);
         }
 
-        if (($charged['status'] ?? '') !== 'paid') {
-            $oldRetryCount = $this->recordAttemptFailure($subscription);
-            $this->dispatchFailureNotifications($subscription, null, $oldRetryCount);
+        $builder = PurchaseBuilder::create()
+            ->brandId($organization->chip_brand_id)
+            ->currency(strtoupper($subscription->currency))
+            ->language('en')
+            ->clientEmail($donor->email)
+            ->clientFullName($donor->name)
+            ->addProduct($subscription->campaign->title, (int) round((float) $subscription->amount * 100))
+            ->paymentMethodWhitelist(PaymentMethodWhitelistMapper::cardOnly());
 
-            return new ChargeResult('failed', errorCode: 'payment_not_paid');
+        if (Route::has('chip.webhook')) {
+            $builder = $builder->successCallback(route('chip.webhook'));
         }
 
-        return $this->handleSuccess($subscription, $campaign, $donor, $charged, $grossAmount, $feeCoverAmount, CarbonImmutable::instance($now));
-    }
+        $purchase = $builder->build();
 
-    private function guardSubscriptionState(Subscription $subscription): ?ChargeResult
-    {
-        if (blank($subscription->chip_recurring_token)) {
-            return new ChargeResult('failed', errorCode: 'not_chip_subscription');
+        try {
+            $createdPurchase = $chip->purchases->create($purchase);
+            $result = $chip->purchases->charge($createdPurchase->id, $subscription->chip_recurring_token);
+        } catch (ChipApiException $e) {
+            report($e);
+
+            throw new RuntimeException('Failed to charge CHIP recurring installment: '.$e->getMessage(), previous: $e);
         }
 
-        if ($subscription->status !== SubscriptionStatus::Active) {
-            return new ChargeResult('failed', errorCode: 'subscription_not_active');
-        }
-
-        if ($subscription->next_charge_at !== null && $subscription->next_charge_at->isFuture()) {
-            return new ChargeResult('failed', errorCode: 'next_charge_in_future');
-        }
-
-        if ($subscription->paused_until !== null && $subscription->paused_until->isFuture()) {
-            return new ChargeResult('failed', errorCode: 'subscription_paused');
-        }
-
-        return null;
-    }
-
-    private function returnUrl(Subscription $subscription): string
-    {
-        return route('home');
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function buildPseudoDonation(Subscription $subscription, int $totalCents): array
-    {
-        return [
-            'donor' => $subscription->donor,
-            'campaign' => $subscription->campaign,
-            'gross_amount' => $totalCents / 100,
-            'donor_fee_covered' => 0,
+        $donation = $subscription->donations()->create([
+            'campaign_id' => $subscription->campaign_id,
+            'donor_id' => $subscription->donor_id,
             'currency' => $subscription->currency,
-            'public_id' => $subscription->public_id,
-        ];
-    }
-
-    private function handleSuccess(
-        Subscription $subscription,
-        Campaign $campaign,
-        Donor $donor,
-        array $charged,
-        float $grossAmount,
-        float $feeCoverAmount,
-        CarbonImmutable $now,
-    ): ChargeResult {
-        [$donation, $previousCollected] = DB::transaction(function () use (
-            $subscription,
-            $campaign,
-            $donor,
-            $charged,
-            $grossAmount,
-            $feeCoverAmount,
-            $now,
-        ): array {
-            $campaign->refresh();
-            $previousCollected = (float) $campaign->collected_amount;
-
-            $donation = Donation::query()->create([
-                'campaign_id' => $campaign->getKey(),
-                'donor_id' => $donor->getKey(),
-                'subscription_id' => $subscription->getKey(),
-                'chip_purchase_id' => $charged['id'] ?? null,
-                'gross_amount' => $grossAmount,
-                'donor_fee_covered' => $feeCoverAmount,
-                'currency' => $subscription->currency,
-                'status' => DonationStatus::Succeeded,
-                'type' => DonationType::Recurring,
-                'source' => $subscription->source ?? 'checkout_modal',
-                'stripe_fee' => ((float) ($charged['payment']['fee_amount'] ?? 0)) / 100,
-                'net_amount' => ((float) ($charged['payment']['net_amount'] ?? 0)) / 100,
-            ]);
-
-            $campaign->increment('collected_amount', $grossAmount);
-
-            $schedule = $this->scheduleRetry->afterSuccess($subscription, CarbonImmutable::instance($now));
-
-            $subscription->update([
-                'status' => $schedule['status'],
-                'retry_count' => $schedule['retry_count'],
-                'failed_installment_count' => $schedule['failed_installment_count'],
-                'payment_count' => $subscription->payment_count + 1,
-                'last_charge_at' => $now,
-                'last_charge_attempt_at' => $now,
-                'next_charge_at' => $schedule['next_charge_at'],
-                'current_period_start' => $now,
-                'current_period_end' => $schedule['next_charge_at'],
-            ]);
-
-            return [$donation, $previousCollected];
-        });
-
-        SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
-        SendNewDonationNotification::dispatch($donation);
-        SendDonorRecurringPaymentNotification::dispatch($donation);
-        SendLargeDonationNotification::dispatch($donation);
-        SendMetaConversionEvent::dispatch($donation);
-        SendLinkedInConversionEvent::dispatch($donation);
-        SendXAdsConversionEvent::dispatch($donation);
-        SendSnapchatConversionEvent::dispatch($donation);
-
-        return new ChargeResult('succeeded', $donation);
-    }
-
-    private function recordAttemptFailure(Subscription $subscription): int
-    {
-        $oldRetryCount = $subscription->retry_count;
-        $schedule = $this->scheduleRetry->afterFailure($subscription);
-
-        $subscription->update([
-            'status' => $schedule['status'],
-            'retry_count' => $schedule['retry_count'],
-            'failed_installment_count' => $schedule['failed_installment_count'],
-            'last_charge_attempt_at' => now(),
-            'next_charge_at' => $schedule['status'] === 'failed' ? null : $schedule['next_charge_at'],
+            'gross_amount' => $subscription->amount,
+            'status' => $result->status === 'paid' ? DonationStatus::Succeeded : DonationStatus::Pending,
+            'type' => DonationType::Recurring,
+            'source' => $subscription->source ?? 'checkout_modal',
+            'chip_purchase_id' => $result->id,
         ]);
 
-        return $oldRetryCount;
-    }
-
-    private function dispatchFailureNotifications(Subscription $subscription, ?string $errorMessage, int $oldRetryCount): void
-    {
-        SendFailedPaymentNotification::dispatch($subscription, $errorMessage);
-
-        if ($subscription->donor?->canReceiveEmails()) {
-            $isFinalAttempt = $subscription->status === SubscriptionStatus::Failed;
-            SendDonorDunningNotification::dispatch($subscription, $oldRetryCount + 1, $isFinalAttempt);
-        }
+        app(SyncDonationDetails::class)->sync($donation);
     }
 }

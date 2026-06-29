@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property int $id
+ * @property string $gateway
  * @property string $stripe_event_id
  * @property string $event_type
  * @property array<array-key, mixed> $payload
@@ -26,6 +27,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|WebhookLog whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|WebhookLog whereErrorMessage($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|WebhookLog whereEventType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|WebhookLog whereGateway($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|WebhookLog whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|WebhookLog wherePayload($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|WebhookLog whereProcessedAt($value)
@@ -35,7 +37,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['stripe_event_id', 'event_type', 'payload', 'status', 'error_message', 'processed_at'])]
+#[Fillable(['gateway', 'stripe_event_id', 'event_type', 'payload', 'status', 'error_message', 'processed_at'])]
 class WebhookLog extends Model
 {
     /** @use HasFactory<WebhookLogFactory> */

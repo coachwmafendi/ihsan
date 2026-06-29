@@ -2,8 +2,8 @@
 
 namespace App\Livewire;
 
-use App\Actions\Chip\ConfirmPurchase;
-use App\Actions\Chip\CreatePurchase as CreateChipPurchase;
+use App\Actions\Chip\CreatePurchase;
+use App\Actions\Chip\FinalizeDonation;
 use App\Actions\Stripe\CreatePaymentIntent;
 use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\CampaignStatus;
@@ -92,6 +92,10 @@ class DonationForm extends Component
      */
     public function getAcceptedCurrencies(): array
     {
+        if ($this->isChipGateway()) {
+            return ['myr'];
+        }
+
         $organization = $this->element?->campaign?->organization ?? $this->campaign?->organization;
 
         if ($organization === null) {
@@ -101,8 +105,21 @@ class DonationForm extends Component
         return $organization->settings['accepted_currencies'] ?? ['myr'];
     }
 
+    private function isChipGateway(): bool
+    {
+        $campaign = $this->element?->campaign ?? $this->campaign;
+
+        return $campaign?->payment_gateway?->value === 'chip';
+    }
+
     public function selectCurrency(string $currency, bool $resetAmount = true): void
     {
+        if ($this->isChipGateway()) {
+            $this->currency = 'myr';
+
+            return;
+        }
+
         $accepted = $this->getAcceptedCurrencies();
         if (! in_array($currency, $accepted, true)) {
             return;
@@ -192,6 +209,25 @@ class DonationForm extends Component
 
         $this->syncCampaignTotals();
         $this->overrideFromQueryParams();
+        $this->handleChipReturnQueryParams();
+
+        if ($this->isChipGateway()) {
+            $this->currency = 'myr';
+        }
+    }
+
+    private function handleChipReturnQueryParams(): void
+    {
+        $chipStatus = request()->query('chip_status');
+        $chipDonationId = request()->query('donation_id');
+
+        if (! in_array($chipStatus, ['success', 'failure', 'cancelled', 'cancel'], true) || blank($chipDonationId)) {
+            return;
+        }
+
+        $this->donationPublicId = is_string($chipDonationId) ? $chipDonationId : null;
+
+        $this->dispatch('chip-return', status: $chipStatus, donationId: $this->donationPublicId);
     }
 
     private function syncCampaignTotals(): void
@@ -362,6 +398,46 @@ class DonationForm extends Component
         }
     }
 
+    #[Renderless]
+    public function confirmChipPayment(string $donationPublicId): void
+    {
+        $this->skipRender();
+
+        $donation = Donation::query()->where('public_id', $donationPublicId)->first();
+
+        if ($donation === null) {
+            return;
+        }
+
+        $campaignId = $this->element?->campaign_id ?? $this->campaign?->getKey();
+
+        if ($donation->campaign_id !== $campaignId) {
+            return;
+        }
+
+        try {
+            app(FinalizeDonation::class)->finalize($donation);
+            $this->syncCampaignTotals();
+            $this->syncDonorDetails($donation);
+        } catch (\Exception $e) {
+            report($e);
+        }
+    }
+
+    private function syncDonorDetails(Donation $donation): void
+    {
+        $donor = $donation->donor;
+
+        if ($donor === null) {
+            return;
+        }
+
+        $this->firstName = $donor->first_name ?? '';
+        $this->lastName = $donor->last_name ?? '';
+        $this->email = $donor->email ?? '';
+        $this->phone = $donor->phone ?? '';
+    }
+
     /**
      * @return array<string, string>
      */
@@ -386,98 +462,6 @@ class DonationForm extends Component
 
     #[Renderless]
     public function submit(): string
-    {
-        $donation = $this->buildPendingDonation();
-
-        try {
-            $paymentIntent = app(CreatePaymentIntent::class)->create($donation);
-            $donation->update(['stripe_payment_intent_id' => $paymentIntent->id]);
-
-            return $paymentIntent->client_secret;
-        } catch (\Exception $e) {
-            $donation->update(['status' => DonationStatus::Failed]);
-
-            throw $e;
-        }
-    }
-
-    #[Renderless]
-    public function submitChip(): string
-    {
-        $this->chipErrorMessage = null;
-        $donation = $this->buildPendingDonation();
-        $organization = $this->element?->campaign?->organization ?? $this->campaign?->organization;
-
-        if (! $organization?->chipOnboarded()) {
-            $donation->update(['status' => DonationStatus::Failed]);
-            $this->chipErrorMessage = 'CHIP is not configured for this organization. Please choose another payment method or contact support.';
-
-            return '';
-        }
-
-        try {
-            $checkoutUrl = app(CreateChipPurchase::class)->create($donation);
-
-            return $checkoutUrl;
-        } catch (\Exception $e) {
-            $donation->update(['status' => DonationStatus::Failed]);
-            $this->chipErrorMessage = 'Unable to start CHIP payment. Please try again.';
-
-            report($e);
-
-            return '';
-        }
-    }
-
-    #[Renderless]
-    public function confirmChipPayment(?string $donationPublicId = null): void
-    {
-        $this->skipRender();
-
-        $donation = Donation::query()
-            ->where('public_id', $donationPublicId ?: $this->donationPublicId)
-            ->first();
-
-        if ($donation === null) {
-            return;
-        }
-
-        $campaignPublicId = Campaign::query()->whereKey($donation->campaign_id)->value('public_id');
-
-        if ($campaignPublicId !== null) {
-            $this->dispatch('campaign-donation-received', campaignPublicId: $campaignPublicId);
-        }
-
-        try {
-            $succeeded = app(ConfirmPurchase::class)->handle($donation);
-
-            if ($succeeded && $donation->campaign !== null) {
-                $donation->campaign->refresh();
-                $this->campaignCollectedAmount = (float) $donation->campaign->collected_amount;
-                $this->campaignTargetAmount = (float) ($donation->campaign->target_amount ?? 0);
-            }
-
-            $this->syncDonorDetails($donation);
-        } catch (\Exception $e) {
-            report($e);
-        }
-    }
-
-    private function syncDonorDetails(Donation $donation): void
-    {
-        $donor = $donation->donor;
-
-        if ($donor === null) {
-            return;
-        }
-
-        $this->firstName = $donor->first_name ?? '';
-        $this->lastName = $donor->last_name ?? '';
-        $this->email = $donor->email ?? '';
-        $this->phone = $donor->phone ?? '';
-    }
-
-    private function buildPendingDonation(): Donation
     {
         $validated = $this->validate();
         $email = str($validated['email'])->lower()->toString();
@@ -531,7 +515,7 @@ class DonationForm extends Component
         $fraudService = new FraudDetectionService($donor);
         $fraudResult = $fraudService->assess([
             'amount' => $validated['amount'],
-            'billing_country' => null,
+            'billing_country' => null, // captured after Stripe
         ]);
 
         if ($fraudResult['action'] === 'block') {
@@ -574,6 +558,7 @@ class DonationForm extends Component
 
         $this->donationPublicId = $donation->public_id;
 
+        // Send fraud notifications for flagged donations (blocked donations throw before this)
         if ($fraudStatus === 'flagged') {
             FraudDetectionService::notifyAdmins(
                 $donation,
@@ -582,7 +567,45 @@ class DonationForm extends Component
             );
         }
 
-        return $donation;
+        $campaign = $this->element?->campaign ?? $this->campaign;
+        $isChip = $campaign !== null && $campaign->payment_gateway === PaymentGateway::Chip;
+
+        if ($isChip) {
+            if (! $campaign->organization?->chip_onboarded) {
+                $donation->update(['status' => DonationStatus::Failed]);
+                $this->chipErrorMessage = 'CHIP is not configured for this organization. Please choose another payment method or contact support.';
+
+                return '';
+            }
+
+            $returnTo = $this->isPublicPage && $this->campaign !== null
+                ? route('campaigns.public', $this->campaign)
+                : $this->pageUrl;
+
+            try {
+                $checkoutUrl = app(CreatePurchase::class)->create($donation, $returnTo);
+
+                return $checkoutUrl;
+            } catch (\Exception $e) {
+                $donation->update(['status' => DonationStatus::Failed]);
+                $this->chipErrorMessage = 'Unable to start CHIP payment. Please try again.';
+
+                report($e);
+
+                return '';
+            }
+        }
+
+        try {
+            $paymentIntent = app(CreatePaymentIntent::class)->create($donation);
+            $donation->update(['stripe_payment_intent_id' => $paymentIntent->id]);
+
+            return $paymentIntent->client_secret;
+        } catch (\Exception $e) {
+            $donation->update(['status' => DonationStatus::Failed]);
+
+            throw $e;
+        }
     }
 
     /**
@@ -816,20 +839,6 @@ class DonationForm extends Component
             (float) $this->amount,
             $this->currency
         );
-    }
-
-    #[Computed]
-    public function paymentGateway(): PaymentGateway
-    {
-        $campaign = $this->element?->campaign ?? $this->campaign;
-
-        return $campaign?->payment_gateway ?? PaymentGateway::Stripe;
-    }
-
-    #[Computed]
-    public function isChipGateway(): bool
-    {
-        return $this->paymentGateway === PaymentGateway::Chip;
     }
 
     public function render()

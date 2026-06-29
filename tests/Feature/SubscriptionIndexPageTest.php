@@ -156,7 +156,7 @@ it('shows scheduled to cancel label in the status column', function () {
     Livewire::actingAs($this->user)
         ->test(SubscriptionIndex::class)
         ->assertStatus(200)
-        ->assertSee('Active · Scheduled to cancel');
+        ->assertSee('Scheduled to cancel');
 });
 
 it('excludes scheduled to cancel plans from expected monthly total', function () {

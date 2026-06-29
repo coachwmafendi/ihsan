@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Organizations\Schemas;
 
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -282,6 +283,59 @@ class OrganizationForm
                                                     ->onIcon('heroicon-o-check')
                                                     ->offIcon('heroicon-o-x-mark')
                                                     ->inline(false),
+                                            ]),
+                                    ]),
+
+                                Section::make('CHIP')
+                                    ->icon('heroicon-o-credit-card')
+                                    ->visible(fn ($record) => $record !== null)
+                                    ->collapsible()
+                                    ->collapsed(false)
+                                    ->schema([
+                                        TextInput::make('chip_brand_id')
+                                            ->label('CHIP Brand ID')
+                                            ->nullable()
+                                            ->maxLength(255)
+                                            ->placeholder('e.g. BRAND123'),
+
+                                        TextInput::make('chip_api_key')
+                                            ->label('CHIP API Key')
+                                            ->nullable()
+                                            ->maxLength(255)
+                                            ->password()
+                                            ->revealable()
+                                            ->placeholder('e.g. secret-api-key'),
+
+                                        TextInput::make('chip_webhook_id')
+                                            ->label('CHIP Webhook ID')
+                                            ->nullable()
+                                            ->maxLength(255)
+                                            ->placeholder('e.g. 00000000-0000-0000-0000-000000000000')
+                                            ->helperText('From CHIP dashboard → Developers → Webhooks.'),
+
+                                        Textarea::make('chip_webhook_public_key')
+                                            ->label('CHIP Webhook Public Key')
+                                            ->nullable()
+                                            ->rows(4)
+                                            ->placeholder('-----BEGIN PUBLIC KEY----- ...')
+                                            ->helperText('Used to verify webhook signatures.'),
+
+                                        CheckboxList::make('settings.chip_payment_methods')
+                                            ->label('Enabled Payment Methods')
+                                            ->options([
+                                                'card' => 'Card',
+                                                'fpx' => 'FPX',
+                                            ])
+                                            ->default(['card'])
+                                            ->dehydrateStateUsing(fn (?array $state): array => $state ?: ['card'])
+                                            ->columns(2),
+
+                                        Grid::make(2)
+                                            ->schema([
+                                                Text::make(fn ($record) => new HtmlString(
+                                                    '<span class="block text-sm font-medium text-gray-950 dark:text-white">'.__('Onboarded').'</span>'.
+                                                    '<span class="block text-sm text-gray-500 dark:text-gray-400 mt-1">'.($record?->chip_onboarded ? 'Yes' : 'No').'</span>'
+                                                )),
                                             ]),
                                     ]),
 

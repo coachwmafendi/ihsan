@@ -116,12 +116,30 @@
     }
 
     function msgHandler(e) {
+      if (!e.data) return;
       if (
-        e.data &&
-        (e.data.type === "ihsan:close-modal" ||
-          e.data.type === "donation-popup-close")
+        e.data.type === "ihsan:close-modal" ||
+        e.data.type === "donation-popup-close"
       ) {
         close();
+      }
+      if (e.data.type === "ihsan:donation-success") {
+        close();
+        setTimeout(function () {
+          w.location.reload();
+        }, 1200);
+      }
+      if (
+        e.data.type === "chip:payment:success" ||
+        e.data.type === "chip:payment:failure" ||
+        e.data.type === "chip:payment:cancel"
+      ) {
+        close();
+        if (e.data.type === "chip:payment:success") {
+          setTimeout(function () {
+            w.location.reload();
+          }, 1200);
+        }
       }
     }
 

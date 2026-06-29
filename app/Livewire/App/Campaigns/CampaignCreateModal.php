@@ -6,6 +6,7 @@ namespace App\Livewire\App\Campaigns;
 
 use App\Enums\CampaignStatus;
 use App\Enums\ElementType;
+use App\Enums\PaymentGateway;
 use App\Models\Campaign;
 use App\Models\Element;
 use App\Models\Organization;
@@ -127,6 +128,7 @@ class CampaignCreateModal extends Component
             'status' => CampaignStatus::Draft,
             'allow_recurring' => true,
             'allow_custom_amount' => true,
+            'payment_gateway' => PaymentGateway::Stripe->value,
             'config' => [
                 'allow_cover_fee' => true,
                 'show_comment' => true,

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Donations;
 
+use App\Actions\Chip\RefundDonation as ChipRefundDonation;
 use App\Actions\DonorEmailLog\PreviewDonorEmail;
 use App\Actions\DonorEmailLog\ResendDonorEmail;
-use App\Actions\Stripe\RefundDonation;
+use App\Actions\Stripe\RefundDonation as StripeRefundDonation;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
@@ -183,12 +184,6 @@ class DonationShow extends Component
         return $this->donation->updated_at ? myrTime($this->donation->updated_at) : myrTime($this->donation->created_at);
     }
 
-    #[Computed]
-    public function isRefunded(): bool
-    {
-        return $this->donation->status === DonationStatus::Refunded;
-    }
-
     public function refundDate(): ?string
     {
         return $this->donation->refunded_at ? myrTime($this->donation->refunded_at) : null;
@@ -211,13 +206,16 @@ class DonationShow extends Component
             : (string) str($this->donation->status->value)->headline();
     }
 
-    public function frequencyLabel(): string
+    #[Computed]
+    public function isRefunded(): bool
     {
-        if ($this->donation->subscription) {
-            return ucfirst($this->donation->subscription->interval->value);
-        }
+        return $this->donation->status === DonationStatus::Refunded;
+    }
 
-        return 'One-time';
+    #[Computed]
+    public function isRecurring(): bool
+    {
+        return $this->donation->subscription !== null;
     }
 
     public function paymentProcessorLabel(): string
@@ -236,6 +234,15 @@ class DonationShow extends Component
         }
 
         return 'icons.stripe';
+    }
+
+    public function frequencyLabel(): string
+    {
+        if ($this->donation->subscription) {
+            return ucfirst($this->donation->subscription->interval->value);
+        }
+
+        return 'One-time';
     }
 
     public function subscriptionTotal(): string
@@ -329,11 +336,12 @@ class DonationShow extends Component
 
         try {
             if (filled($this->donation->chip_purchase_id)) {
-                app(\App\Actions\Chip\RefundDonation::class)->handle($this->donation);
+                app(ChipRefundDonation::class)->handle($this->donation);
             } else {
-                app(RefundDonation::class)->handle($this->donation);
+                app(StripeRefundDonation::class)->handle($this->donation);
             }
 
+            $this->donation->refresh();
             $this->showRefundModal = false;
             $this->refundReason = null;
             $this->dispatch('notify', message: 'Donation refunded successfully.', variant: 'success');

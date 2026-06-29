@@ -66,7 +66,7 @@
                 @case('active')
                     @if ($subscription->cancel_at_period_end)
                         <x-ui.alert :compact="true" variant="warning" icon="heroicon-o-exclamation-triangle">
-                            This {{ $intervalLabel }} recurring donation is scheduled to cancel. The final installment will be charged on <span class="{{ $dateClass }}">{{ myrTime($this->nextInstallmentDate) }}</span>.
+                            Scheduled to cancel. This {{ $intervalLabel }} recurring donation's final installment will be charged on <span class="{{ $dateClass }}">{{ myrTime($this->nextInstallmentDate) }}</span>.
                         </x-ui.alert>
                     @else
                         <x-ui.alert :compact="true" variant="info" icon="heroicon-o-information-circle">
