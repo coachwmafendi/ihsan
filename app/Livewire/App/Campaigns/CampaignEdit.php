@@ -57,6 +57,9 @@ class CampaignEdit extends Component
     #[Validate('required|string|in:active,draft,paused,ended,archived')]
     public string $status = 'draft';
 
+    #[Validate('required|string|in:stripe,chip')]
+    public string $paymentGateway = 'stripe';
+
     #[Validate('nullable|string|max:5000')]
     public ?string $description = null;
 
@@ -207,6 +210,7 @@ class CampaignEdit extends Component
         $this->default_frequency = $campaign->config['default_frequency'] ?? 'one_time';
         $this->default_amount = $this->sanitizeOptionalAmount($campaign->config['default_amount'] ?? 50);
         $this->default_currency = $campaign->config['default_currency'] ?? $this->acceptedCurrencies[0];
+        $this->paymentGateway = $campaign->payment_gateway?->value ?? 'stripe';
         $this->currency_autodetect = $campaign->config['currency_autodetect'] ?? false;
         $this->show_comment = $campaign->config['show_comment'] ?? true;
         $this->show_phone = $campaign->config['show_phone'] ?? true;
@@ -582,6 +586,7 @@ class CampaignEdit extends Component
             'allow_custom_amount' => $this->allow_custom_amount,
             'campaign_page_enabled' => $this->campaign_page_enabled,
             'minimum_amount' => $validated['minimum_amount'] ?? null,
+            'payment_gateway' => $validated['paymentGateway'],
             'suggested_amounts' => null,
             'suggested_amounts_one_time' => $oneTime ?: null,
             'suggested_amounts_monthly' => $monthly ?: null,

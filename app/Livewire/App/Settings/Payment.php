@@ -29,8 +29,6 @@ class Payment extends Component
 
     public array $chipPaymentMethods = ['card'];
 
-    public bool $showChipApiKey = false;
-
     public function mount(): void
     {
         $org = Auth::user()?->organization;
@@ -119,11 +117,6 @@ class Payment extends Component
         $org->update(['settings' => $settings]);
 
         $this->dispatch('notify', message: 'CHIP settings saved.', variant: 'success');
-    }
-
-    public function toggleChipApiKey(): void
-    {
-        $this->showChipApiKey = ! $this->showChipApiKey;
     }
 
     public function getProcessingFeePercent(): string

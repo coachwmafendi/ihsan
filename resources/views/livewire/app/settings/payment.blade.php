@@ -97,7 +97,7 @@
                             Disconnect the current Stripe Connect account and reconnect with a different one.
                         </p>
                     </div>
-                    <x-ui.button variant="danger" size="sm" wireClick="$set('showReconnectConfirm', true)">
+                    <x-ui.button variant="danger" size="lg" wireClick="$set('showReconnectConfirm', true)">
                         Reconnect
                     </x-ui.button>
                 </div>
@@ -121,7 +121,7 @@
     @if ($activeTab === 'chip')
     {{-- CHIP --}}
     <x-ui.card title="CHIP" description="Configure your CHIP payment gateway credentials and accepted payment methods.">
-        <div class="space-y-5">
+        <div class="space-y-6">
             <div class="flex items-center gap-2">
                 @if ($org && $org->chipOnboarded())
                     <x-ui.status-badge status="success" size="sm">Configured</x-ui.status-badge>
@@ -130,65 +130,28 @@
                 @endif
             </div>
 
-            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                    <label for="chipBrandId" class="block text-sm font-medium text-slate-700">Brand ID</label>
-                    <input
-                        type="text"
-                        id="chipBrandId"
-                        wire:model.blur.live="chipBrandId"
-                        class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-                        placeholder="CHIP Brand ID"
-                    />
-                </div>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <flux:input wire:model.live="chipBrandId" label="Brand ID" placeholder="CHIP Brand ID" />
 
-                <div>
-                    <label for="chipApiKey" class="block text-sm font-medium text-slate-700">API Key</label>
-                    <div class="relative mt-1">
-                        <input
-                            type="{{ $showChipApiKey ? 'text' : 'password' }}"
-                            id="chipApiKey"
-                            wire:model.blur.live="chipApiKey"
-                            class="block w-full rounded-lg border-slate-300 pr-20 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-                            placeholder="CHIP API Key"
-                        />
-                        <button
-                            type="button"
-                            wire:click="toggleChipApiKey"
-                            class="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-500 hover:text-slate-700"
-                        >
-                            {{ $showChipApiKey ? 'Hide' : 'Show' }}
-                        </button>
-                    </div>
-                </div>
+                <flux:input
+                    wire:model.live="chipApiKey"
+                    type="password"
+                    label="API Key"
+                    placeholder="CHIP API Key"
+                    viewable
+                />
             </div>
 
             <div>
                 <span class="block text-sm font-medium text-slate-700">Accepted payment methods</span>
-                <div class="mt-2 flex gap-4">
-                    <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2">
-                        <input
-                            type="checkbox"
-                            wire:model.live="chipPaymentMethods"
-                            value="card"
-                            class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
-                        />
-                        <span class="text-sm text-slate-700">Card</span>
-                    </label>
-                    <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2">
-                        <input
-                            type="checkbox"
-                            wire:model.live="chipPaymentMethods"
-                            value="fpx"
-                            class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
-                        />
-                        <span class="text-sm text-slate-700">FPX</span>
-                    </label>
+                <div class="mt-3 flex flex-wrap gap-6">
+                    <flux:checkbox wire:model.live="chipPaymentMethods" value="card" label="Card" />
+                    <flux:checkbox wire:model.live="chipPaymentMethods" value="fpx" label="FPX" />
                 </div>
             </div>
 
-            <div class="flex items-center justify-end border-t border-slate-100 pt-4">
-                <x-ui.button variant="primary" size="sm" wireClick="saveChipSettings">
+            <div class="flex items-center justify-end border-t border-slate-100 pt-5">
+                <x-ui.button variant="primary" size="lg" wireClick="saveChipSettings">
                     Save CHIP settings
                 </x-ui.button>
             </div>
