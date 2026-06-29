@@ -22,6 +22,26 @@
         $account = $this->stripeAccount();
     @endphp
 
+    <div class="border-b border-slate-200">
+        <nav class="-mb-px flex gap-6" aria-label="Payment processors">
+            <button
+                type="button"
+                wire:click="$set('activeTab', 'stripe')"
+                class="inline-flex items-center border-b-2 px-1 pb-3 text-sm font-medium transition-colors {{ $activeTab === 'stripe' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' }}"
+            >
+                Stripe Connect
+            </button>
+            <button
+                type="button"
+                wire:click="$set('activeTab', 'chip')"
+                class="inline-flex items-center border-b-2 px-1 pb-3 text-sm font-medium transition-colors {{ $activeTab === 'chip' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' }}"
+            >
+                CHIP
+            </button>
+        </nav>
+    </div>
+
+    @if ($activeTab === 'stripe')
     {{-- Stripe Connect --}}
     <x-ui.card title="Stripe Connect" description="Manage your payment processing settings and Stripe connection.">
         <div class="space-y-4">
@@ -96,6 +116,85 @@
             @endif
         </div>
     </x-ui.card>
+    @endif
+
+    @if ($activeTab === 'chip')
+    {{-- CHIP --}}
+    <x-ui.card title="CHIP" description="Configure your CHIP payment gateway credentials and accepted payment methods.">
+        <div class="space-y-5">
+            <div class="flex items-center gap-2">
+                @if ($org && $org->chipOnboarded())
+                    <x-ui.status-badge status="success" size="sm">Configured</x-ui.status-badge>
+                @else
+                    <x-ui.status-badge status="warning" size="sm">Incomplete</x-ui.status-badge>
+                @endif
+            </div>
+
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                    <label for="chipBrandId" class="block text-sm font-medium text-slate-700">Brand ID</label>
+                    <input
+                        type="text"
+                        id="chipBrandId"
+                        wire:model.blur.live="chipBrandId"
+                        class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                        placeholder="CHIP Brand ID"
+                    />
+                </div>
+
+                <div>
+                    <label for="chipApiKey" class="block text-sm font-medium text-slate-700">API Key</label>
+                    <div class="relative mt-1">
+                        <input
+                            type="{{ $showChipApiKey ? 'text' : 'password' }}"
+                            id="chipApiKey"
+                            wire:model.blur.live="chipApiKey"
+                            class="block w-full rounded-lg border-slate-300 pr-20 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                            placeholder="CHIP API Key"
+                        />
+                        <button
+                            type="button"
+                            wire:click="toggleChipApiKey"
+                            class="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-500 hover:text-slate-700"
+                        >
+                            {{ $showChipApiKey ? 'Hide' : 'Show' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <span class="block text-sm font-medium text-slate-700">Accepted payment methods</span>
+                <div class="mt-2 flex gap-4">
+                    <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2">
+                        <input
+                            type="checkbox"
+                            wire:model.live="chipPaymentMethods"
+                            value="card"
+                            class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                        />
+                        <span class="text-sm text-slate-700">Card</span>
+                    </label>
+                    <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2">
+                        <input
+                            type="checkbox"
+                            wire:model.live="chipPaymentMethods"
+                            value="fpx"
+                            class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                        />
+                        <span class="text-sm text-slate-700">FPX</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end border-t border-slate-100 pt-4">
+                <x-ui.button variant="primary" size="sm" wireClick="saveChipSettings">
+                    Save CHIP settings
+                </x-ui.button>
+            </div>
+        </div>
+    </x-ui.card>
+    @endif
 
     {{-- Accepted Currencies --}}
     <x-ui.card title="Accepted Currencies" description="Select the currencies donors can use to make donations. Malaysian Ringgit (MYR) is always enabled.">

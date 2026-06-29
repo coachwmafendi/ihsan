@@ -21,6 +21,16 @@ class Payment extends Component
 
     public bool $showReconnectConfirm = false;
 
+    public string $activeTab = 'stripe';
+
+    public string $chipBrandId = '';
+
+    public string $chipApiKey = '';
+
+    public array $chipPaymentMethods = ['card'];
+
+    public bool $showChipApiKey = false;
+
     public function mount(): void
     {
         $org = Auth::user()?->organization;
@@ -34,6 +44,9 @@ class Payment extends Component
         ];
 
         $this->feeCollectionMethod = $org?->fee_collection_method ?? 'invoice';
+        $this->chipBrandId = $org?->chipBrandId() ?? '';
+        $this->chipApiKey = $org?->chipApiKey() ?? '';
+        $this->chipPaymentMethods = $org?->chipPaymentMethods() ?? ['card'];
     }
 
     public function updatedCurrencies(): void
@@ -79,6 +92,38 @@ class Payment extends Component
         AuditLogLogger::stripeDisconnected($org, $this->getUser());
 
         $this->redirect('/app/stripe-onboarding');
+    }
+
+    public function saveChipSettings(): void
+    {
+        $org = Auth::user()?->organization;
+        if (! $org) {
+            return;
+        }
+
+        $this->validate([
+            'chipBrandId' => ['nullable', 'string', 'max:255'],
+            'chipApiKey' => ['nullable', 'string', 'max:255'],
+            'chipPaymentMethods' => ['required', 'array', 'min:1'],
+            'chipPaymentMethods.*' => ['in:card,fpx'],
+        ], [
+            'chipPaymentMethods.required' => 'Select at least one payment method.',
+        ]);
+
+        $settings = array_merge($org->settings ?? [], [
+            'chip_brand_id' => $this->chipBrandId ?: null,
+            'chip_api_key' => $this->chipApiKey ?: null,
+            'chip_payment_methods' => $this->chipPaymentMethods,
+        ]);
+
+        $org->update(['settings' => $settings]);
+
+        $this->dispatch('notify', message: 'CHIP settings saved.', variant: 'success');
+    }
+
+    public function toggleChipApiKey(): void
+    {
+        $this->showChipApiKey = ! $this->showChipApiKey;
     }
 
     public function getProcessingFeePercent(): string
