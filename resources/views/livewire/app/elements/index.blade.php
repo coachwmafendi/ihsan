@@ -195,9 +195,24 @@
                                     {{ myrTime($element->created_at, withLabel: false, format: 'M d, Y') }}
                                 </td>
                                 @if (! $showArchived)
-                                    @php
-                                        $embedCode = '<script src="' . url('/e/widget.js') . '" data-token="' . $element->token . '" data-type="' . $element->type->value . '" async></script>';
-                                    @endphp
+                                @php
+                                    $baseUrl = url('/');
+                                    $widgetSrc = \App\Support\EmbedWidget::scriptUrl();
+                                    $type = $element->type->value;
+                                    $cleanType = match ($type) {
+                                        'floating_button' => 'floating_button',
+                                        'qr_code' => 'qr_code',
+                                        'link' => 'link',
+                                        default => $type,
+                                    };
+                                    $embedCode = match ($cleanType) {
+                                        'button' => \App\Support\EmbedWidget::staticButtonHtml($element)."\n".'<script src="'.$widgetSrc.'" data-token="'.$element->token.'" data-api-base="'.$baseUrl.'" data-enhance="true"></script>',
+                                        'link' => \App\Support\EmbedWidget::staticLinkHtml($element)."\n".'<script src="'.$widgetSrc.'" data-token="'.$element->token.'" data-api-base="'.$baseUrl.'" data-enhance="true"></script>',
+                                        'floating_button' => \App\Support\EmbedWidget::staticFloatingButtonPlaceholderHtml($element)."\n".'<script src="'.$widgetSrc.'" data-token="'.$element->token.'" data-api-base="'.$baseUrl.'" data-enhance="true"></script>',
+                                        'qr_code' => \App\Support\EmbedWidget::staticQrCodeHtml($element)."\n".'<script src="'.$widgetSrc.'" data-token="'.$element->token.'" data-api-base="'.$baseUrl.'" data-enhance="true"></script>',
+                                        default => '<script src="'.$widgetSrc.'" data-token="'.$element->token.'" data-api-base="'.$baseUrl.'"></script>',
+                                    };
+                                @endphp
                                     <td class="px-5 py-4">
                                         <div x-data="{ copied: false }" class="flex items-center gap-2">
                                             <code class="max-w-xs truncate rounded bg-slate-100 px-2 py-1 text-xs font-mono text-slate-600">
