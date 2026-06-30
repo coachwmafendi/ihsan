@@ -44,6 +44,8 @@ final class SyncDonationDetails
 
         $status = $this->mapStatus($purchase->status ?? '');
         $paymentMethod = $this->extractPaymentMethodBrand($purchase);
+        $cardDetails = $this->extractCardDetails($purchase);
+        $chipFee = $status === DonationStatus::Succeeded ? $this->extractChipFee($purchase) : 0.0;
 
         $processingFee = 0.0;
         $feePercent = 0.0;
@@ -54,9 +56,12 @@ final class SyncDonationDetails
 
         $updateAttributes = [
             'status' => $status,
+            'chip_fee' => $chipFee,
             'processing_fee' => $processingFee,
-            'net_amount' => ((float) $donation->gross_amount) - $processingFee,
+            'net_amount' => ((float) $donation->gross_amount) - $chipFee - $processingFee,
             'payment_method_brand' => $paymentMethod,
+            'payment_method_last4' => $cardDetails['last4'] ?? $donation->payment_method_last4,
+            'donor_country' => $cardDetails['country'] ?? $donation->donor_country,
         ];
 
         if ($status === DonationStatus::Succeeded
@@ -108,6 +113,48 @@ final class SyncDonationDetails
         }
 
         return null;
+    }
+
+    private function extractChipFee(mixed $purchase): float
+    {
+        $feeAmount = $purchase->payment->fee_amount ?? null;
+
+        if ($feeAmount !== null && is_numeric($feeAmount)) {
+            return round((float) $feeAmount / 100, 2);
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * @return array{last4: ?string, country: ?string}
+     */
+    private function extractCardDetails(mixed $purchase): array
+    {
+        $transactionData = $purchase->transaction_data ?? null;
+        $extra = is_array($transactionData) ? ($transactionData['extra'] ?? null) : ($transactionData->extra ?? null);
+
+        if (! is_array($extra) && ! is_object($extra)) {
+            return ['last4' => null, 'country' => null];
+        }
+
+        $maskedPan = is_array($extra) ? ($extra['masked_pan'] ?? null) : ($extra->masked_pan ?? null);
+        $last4 = null;
+
+        if (is_string($maskedPan) && $maskedPan !== '') {
+            // Masked PAN format from CHIP: 444433******1111
+            preg_match('/(\d{4})$/', $maskedPan, $matches);
+            $last4 = $matches[1] ?? null;
+        }
+
+        $country = is_array($extra)
+            ? ($extra['card_issuer_country'] ?? ($transactionData['country'] ?? null))
+            : ($extra->card_issuer_country ?? ($transactionData->country ?? null));
+
+        return [
+            'last4' => $last4,
+            'country' => is_string($country) && $country !== '' ? $country : null,
+        ];
     }
 
     /**

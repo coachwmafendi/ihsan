@@ -139,7 +139,11 @@ class DonationShow extends Component
 
     public function paymentProcessingFee(): string
     {
-        return $this->donation->currency_symbol.' '.number_format($this->feeInDisplayCurrency((float) $this->donation->stripe_fee), 2).' '.strtoupper($this->donation->currency);
+        $fee = $this->paymentProcessorLabel() === 'CHIP'
+            ? (float) $this->donation->chip_fee
+            : (float) $this->donation->stripe_fee;
+
+        return $this->donation->currency_symbol.' '.number_format($this->feeInDisplayCurrency($fee), 2).' '.strtoupper($this->donation->currency);
     }
 
     public function payoutAmount(): string
@@ -164,7 +168,11 @@ class DonationShow extends Component
             ? (float) $this->donation->donor_fee_covered
             : ((float) $this->donation->donor_fee_covered * (float) ($this->donation->exchange_rate ?? 1));
 
-        $fees = (float) $this->donation->stripe_fee + (float) $this->donation->processing_fee - $donorFeeCovered;
+        $processorFee = $this->paymentProcessorLabel() === 'CHIP'
+            ? (float) $this->donation->chip_fee
+            : (float) $this->donation->stripe_fee;
+
+        $fees = $processorFee + (float) $this->donation->processing_fee - $donorFeeCovered;
         $rate = max(0, ($fees / $base) * 100);
 
         return number_format($rate, 2).'%';

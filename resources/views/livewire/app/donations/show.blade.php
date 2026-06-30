@@ -216,6 +216,16 @@
                                         {{ $donation->stripe_charge_id }}
                                         <x-heroicon-o-arrow-top-right-on-square class="size-4" />
                                     </a>
+                                @elseif ($donation->chip_purchase_id)
+                                    <a
+                                        href="{{ $donation->chip_checkout_url }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                                    >
+                                        {{ $donation->chip_purchase_id }}
+                                        <x-heroicon-o-arrow-top-right-on-square class="size-4" />
+                                    </a>
                                 @else
                                     <span class="text-slate-500">—</span>
                                 @endif
