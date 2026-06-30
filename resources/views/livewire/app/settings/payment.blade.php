@@ -213,31 +213,7 @@
                     <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
                         <p class="text-sm font-medium text-slate-700">CHIP webhook URL</p>
                         <p class="mt-1 break-all font-mono text-xs text-slate-600">{{ route('chip.webhook') }}</p>
-                        <p class="mt-2 text-xs text-slate-500">Paste this URL in your CHIP dashboard under Developers → Webhooks, then save the Webhook ID and public key below.</p>
-                    </div>
-
-                    <div>
-                        <label for="chipWebhookId" class="block text-sm font-medium text-slate-700">Webhook ID</label>
-                        <input
-                            type="text"
-                            id="chipWebhookId"
-                            wire:model="chipWebhookId"
-                            placeholder="e.g. 00000000-0000-0000-0000-000000000000"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                        />
-                        @error('chipWebhookId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div>
-                        <label for="chipWebhookPublicKey" class="block text-sm font-medium text-slate-700">Webhook Public Key</label>
-                        <textarea
-                            id="chipWebhookPublicKey"
-                            wire:model="chipWebhookPublicKey"
-                            rows="4"
-                            placeholder="-----BEGIN PUBLIC KEY----- ..."
-                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                        ></textarea>
-                        @error('chipWebhookPublicKey') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        <p class="mt-2 text-xs text-slate-500">Webhook is registered automatically when you save your Brand ID and API key.</p>
                     </div>
                 @endif
 
