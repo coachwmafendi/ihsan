@@ -1,5 +1,5 @@
 {{-- resources/views/livewire/app/campaigns/index.blade.php --}}
-<div class="space-y-6">
+<div class="space-y-6" x-data="{ openMenuId: null, menuTop: 0, menuLeft: 0, openMenu(id, el) { const r = el.getBoundingClientRect(); this.menuTop = r.bottom + 4; this.menuLeft = r.right - 208; this.openMenuId = (this.openMenuId === id ? null : id); } }">
     {{-- Page Header --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -118,6 +118,7 @@
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach ($this->campaigns as $campaign)
                             <tr
+                                wire:key="campaign-row-{{ $campaign->public_id }}"
                                 wire:click="redirectToEdit('{{ $campaign->public_id }}')"
                                 class="cursor-pointer transition-colors hover:bg-slate-50"
                             >
@@ -184,10 +185,10 @@
                                             Restore
                                         </button>
                                     @else
-                                        <div x-data="{ open: false, menuTop: 0, menuLeft: 0, toggle(el) { const r = el.getBoundingClientRect(); this.menuTop = r.bottom + window.scrollY + 4; this.menuLeft = r.right + window.scrollX - 208; this.open = ! this.open; } }">
+                                        <div wire:key="campaign-actions-{{ $campaign->public_id }}">
                                             <button
                                                 type="button"
-                                                @click.stop="toggle($el)"
+                                                @click.stop="openMenu('{{ $campaign->public_id }}', $el)"
                                                 class="inline-flex items-center justify-center rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
                                                 aria-label="Campaign actions"
                                             >
@@ -196,7 +197,7 @@
 
                                             <template x-teleport="body">
                                                 <div
-                                                    x-show="open"
+                                                    x-show="openMenuId === '{{ $campaign->public_id }}'"
                                                     x-cloak
                                                     x-transition:enter="transition ease-out duration-100"
                                                     x-transition:enter-start="opacity-0 scale-95"
@@ -204,14 +205,14 @@
                                                     x-transition:leave="transition ease-in duration-75"
                                                     x-transition:leave-start="opacity-100 scale-100"
                                                     x-transition:leave-end="opacity-0 scale-95"
-                                                    @click.outside="open = false"
+                                                    @click.outside="openMenuId = null"
                                                     @click.stop
                                                     class="fixed z-50 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
                                                     :style="'top: ' + menuTop + 'px; left: ' + menuLeft + 'px'"
                                                 >
                                                     <button
                                                         type="button"
-                                                        @click.stop="navigator.clipboard.writeText('{{ $campaign->public_id }}').then(() => open = false)"
+                                                        @click.stop="navigator.clipboard.writeText('{{ $campaign->public_id }}').then(() => openMenuId = null)"
                                                         class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
                                                     >
                                                         <x-heroicon-o-clipboard-document class="size-4 text-slate-500" />
@@ -221,7 +222,7 @@
                                                     <button
                                                         type="button"
                                                         wire:click.stop="openRenameModal('{{ $campaign->public_id }}')"
-                                                        @click="open = false"
+                                                        @click="openMenuId = null"
                                                         class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
                                                     >
                                                         <x-heroicon-o-pencil class="size-4 text-slate-500" />
@@ -231,7 +232,7 @@
                                                     <button
                                                         type="button"
                                                         wire:click.stop="clone('{{ $campaign->public_id }}')"
-                                                        @click="open = false"
+                                                        @click="openMenuId = null"
                                                         class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
                                                     >
                                                         <x-heroicon-o-document-duplicate class="size-4 text-slate-500" />

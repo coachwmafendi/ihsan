@@ -8,7 +8,6 @@ use App\Actions\Stripe\ChangeRecurringAmount;
 use App\Actions\Stripe\ManageStripeSubscription;
 use App\Actions\Stripe\PauseLocalRecurringPlan;
 use App\Actions\Stripe\ResumeLocalRecurringPlan;
-use App\Actions\Stripe\UpdateRecurringPaymentMethod;
 use App\Jobs\SendSubscriptionAmountChangedNotification;
 use App\Models\Donor;
 use App\Models\Organization;
@@ -16,7 +15,6 @@ use App\Models\Subscription;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\URL;
-use Stripe\SetupIntent;
 
 class DonorSubscriptionController extends Controller
 {
@@ -34,6 +32,11 @@ class DonorSubscriptionController extends Controller
     private function isStripeBacked(Subscription $subscription): bool
     {
         return filled($subscription->stripe_subscription_id);
+    }
+
+    private function isChipBacked(Subscription $subscription): bool
+    {
+        return filled($subscription->chip_recurring_token);
     }
 
     private function handleSubscriptionAction(
@@ -310,17 +313,20 @@ class DonorSubscriptionController extends Controller
         $subscription->loadMissing('campaign');
         $this->authorizeSubscriptionAction($organization, $subscription, request()->donor);
 
+        if ($this->isChipBacked($subscription)) {
+            return response()->json([
+                'error' => 'Updating payment method is not supported for CHIP recurring subscriptions.',
+            ], 422);
+        }
+
+        if (! $this->isStripeBacked($subscription)) {
+            return response()->json([
+                'error' => 'Updating payment method is not supported for this subscription.',
+            ], 422);
+        }
+
         try {
-            if ($this->isStripeBacked($subscription)) {
-                $clientSecret = app(ManageStripeSubscription::class)->createSetupIntent($subscription);
-            } else {
-                $setupIntent = SetupIntent::create([
-                    'customer' => $subscription->donor->stripe_customer_id,
-                    'usage' => 'off_session',
-                    'payment_method_types' => ['card'],
-                ], ['stripe_account' => $subscription->campaign->organization->stripe_account_id]);
-                $clientSecret = $setupIntent->client_secret;
-            }
+            $clientSecret = app(ManageStripeSubscription::class)->createSetupIntent($subscription);
 
             $org = $subscription->campaign?->organization;
 
@@ -338,16 +344,24 @@ class DonorSubscriptionController extends Controller
         $subscription->loadMissing('campaign');
         $this->authorizeSubscriptionAction($organization, $subscription, request()->donor);
 
+        if ($this->isChipBacked($subscription)) {
+            return response()->json([
+                'error' => 'Updating payment method is not supported for CHIP recurring subscriptions.',
+            ], 422);
+        }
+
+        if (! $this->isStripeBacked($subscription)) {
+            return response()->json([
+                'error' => 'Updating payment method is not supported for this subscription.',
+            ], 422);
+        }
+
         $data = request()->validate([
             'payment_method_id' => 'required|string',
         ]);
 
         try {
-            if ($this->isStripeBacked($subscription)) {
-                app(ManageStripeSubscription::class)->updatePaymentMethod($subscription, $data['payment_method_id']);
-            } else {
-                app(UpdateRecurringPaymentMethod::class)->update($subscription, $data['payment_method_id']);
-            }
+            app(ManageStripeSubscription::class)->updatePaymentMethod($subscription, $data['payment_method_id']);
 
             return response()->json(['status' => 'ok']);
         } catch (\Exception $e) {
