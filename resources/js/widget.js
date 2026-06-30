@@ -282,17 +282,13 @@
       }
 
       if (e.data && (e.data.type === "chip:payment:success" || e.data.type === "chip:payment:failure" || e.data.type === "chip:payment:cancel")) {
-        closeOverlay();
-
-        if (e.data.type === "chip:payment:success") {
-          setTimeout(function () { window.location.reload(); }, 1200);
-        }
+        // The iframe donation form handles its own success/error UI and the
+        // donor closes the modal with the visible Close button. Do not auto-close.
       }
 
       if (e.data && e.data.type === "ihsan:donation-success") {
-        // The iframe donation form has reached the success state; give the
-        // donor a moment to see it before closing the modal.
-        setTimeout(closeOverlay, 2500);
+        // The donation form already shows a success screen with a Close button.
+        // Keep the modal open so the donor can read it and close manually.
       }
     }
 

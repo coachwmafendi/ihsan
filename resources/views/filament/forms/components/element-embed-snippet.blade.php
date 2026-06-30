@@ -66,7 +66,10 @@
     if (!event.data || typeof event.data !== 'object') return;
     if (event.data.type === 'ihsan:open-checkout') { openModal(event.data.url); if (event.source) { event.source.postMessage({ type: 'ihsan:checkout-ack' }, '*'); } }
     if (event.data.type === 'donation-popup-close') closeModal();
-    if (event.data.type === 'ihsan:donation-success') { closeModal(); setTimeout(function () { window.location.reload(); }, 1200); }
+    if (event.data.type === 'ihsan:donation-success') {
+      // The donation form already shows a success screen with a Close button.
+      // Leave the modal open so the donor can close it manually.
+    }
   });
 })();
 </script>
