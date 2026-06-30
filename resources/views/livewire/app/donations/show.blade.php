@@ -223,9 +223,15 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Payment processor</dt>
+                            @php
+                                $processorLabel = $this->paymentProcessorLabel();
+                                $isChip = $processorLabel === 'CHIP';
+                            @endphp
                             <dd class="flex items-center gap-2 text-sm font-medium text-slate-900">
-                                <x-dynamic-component :component="$this->paymentProcessorIcon()" class="h-5 w-auto" />
-                                {{ $this->paymentProcessorLabel() }}
+                                <x-dynamic-component :component="$this->paymentProcessorIcon()" @class(['h-4 w-auto' => $isChip, 'h-5 w-auto' => ! $isChip]) />
+                                @if (! $isChip)
+                                    {{ $processorLabel }}
+                                @endif
                             </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">

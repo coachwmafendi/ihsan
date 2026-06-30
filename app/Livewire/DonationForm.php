@@ -888,9 +888,13 @@ class DonationForm extends Component
             return 0.0;
         }
 
+        $campaign = $this->element?->campaign ?? $this->campaign;
+        $gateway = $campaign?->payment_gateway?->value ?? 'stripe';
+
         return DonationFeeEstimator::estimate(
             (float) $this->amount,
-            $this->currency
+            $this->currency,
+            $gateway
         );
     }
 

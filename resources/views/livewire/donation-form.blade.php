@@ -259,7 +259,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates()), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'))"
+                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates($campaign->payment_gateway?->value ?? 'stripe')), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'))"
                         data-campaign-public-id="{{ $campaign->public_id }}"
                         x-init="$wire.trackServerPageView()"
                         class="relative"

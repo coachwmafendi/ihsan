@@ -356,9 +356,12 @@ class SubscriptionShow extends Component
     #[Computed]
     public function transactionCostEstimate(): float
     {
+        $gateway = $this->subscription->campaign?->payment_gateway?->value ?? 'stripe';
+
         return DonationFeeEstimator::estimate(
             (float) $this->editAmount,
-            $this->subscription->currency
+            $this->subscription->currency,
+            $gateway
         );
     }
 
