@@ -228,7 +228,7 @@
                                 $isChip = $processorLabel === 'CHIP';
                             @endphp
                             <dd class="flex items-center gap-2 text-sm font-medium text-slate-900">
-                                <x-dynamic-component :component="$this->paymentProcessorIcon()" @class(['h-4 w-auto' => $isChip, 'h-5 w-auto' => ! $isChip]) />
+                                <x-dynamic-component :component="$this->paymentProcessorIcon()" @class(['h-3.5 w-auto' => $isChip, 'h-5 w-auto' => ! $isChip]) />
                                 @if (! $isChip)
                                     {{ $processorLabel }}
                                 @endif
