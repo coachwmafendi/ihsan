@@ -27,7 +27,7 @@
                 @click="tab = 'stripe'"
                 :class="tab === 'stripe' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
-                Stripe Connect
+                Stripe
             </button>
             <button type="button"
                 @click="tab = 'chip'"
@@ -38,9 +38,9 @@
         </nav>
     </div>
 
-    {{-- Stripe Connect tab --}}
+    {{-- Stripe tab --}}
     <div x-show="tab === 'stripe'" x-cloak class="space-y-6">
-        <x-ui.card title="Stripe Connect" description="Manage your Stripe Connect account for card, wallet and international donations.">
+        <x-ui.card title="Stripe" description="Manage your Stripe account for card, wallet and international donations.">
             <div class="space-y-4">
                 <div class="flex items-center gap-2">
                     @if ($org && $org->stripe_onboarded)
@@ -91,7 +91,7 @@
                         <div>
                             <p class="text-sm font-medium text-slate-700">Reconnect</p>
                             <p class="mt-0.5 text-xs text-slate-500">
-                                Disconnect the current Stripe Connect account and reconnect with a different one.
+                                Disconnect the current Stripe account and reconnect with a different one.
                             </p>
                         </div>
                         <x-ui.button variant="danger" wireClick="$set('showReconnectConfirm', true)">
@@ -286,9 +286,9 @@
     @if ($showReconnectConfirm)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" wire:click.self="$set('showReconnectConfirm', false)">
             <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
-                <h3 class="text-lg font-semibold text-slate-900">Reconnect Stripe Connect?</h3>
+                <h3 class="text-lg font-semibold text-slate-900">Reconnect Stripe?</h3>
                 <p class="mt-2 text-sm text-slate-500">
-                    This will disconnect your current Stripe Connect account. You will need to reconnect a Stripe account to continue using the panel.
+                    This will disconnect your current Stripe account. You will need to reconnect a Stripe account to continue using the panel.
                 </p>
                 <div class="mt-6 flex justify-end gap-3">
                     <x-ui.button variant="ghost" size="sm" wireClick="$set('showReconnectConfirm', false)">
