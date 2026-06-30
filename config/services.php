@@ -47,6 +47,7 @@ return [
 
     'chip' => [
         'processing_fee_percent' => (float) env('CHIP_PROCESSING_FEE_PERCENT', 2.5),
+        'fpx_processing_fee_percent' => (float) env('CHIP_FPX_PLATFORM_FEE_PERCENT', 1.5),
         'fpx_fee_type' => env('CHIP_FPX_FEE_TYPE', 'fixed'),
         'fpx_fee_amount' => (int) env('CHIP_FPX_FEE_AMOUNT', 150),
     ],

@@ -174,3 +174,106 @@ it('throws runtime exception when organization is not chip onboarded', function 
     expect(fn () => app(CreatePurchase::class)->create($donation))
         ->toThrow(RuntimeException::class, 'Failed to initialize CHIP client: Organization is not CHIP onboarded.');
 });
+
+it('appends fpx preselect params to checkout url when method and bank code provided', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create(['payment_gateway' => 'chip']);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'currency' => 'MYR',
+        'gross_amount' => 50.00,
+    ]);
+
+    $mockHandler = new MockHandler([
+        new Response(200, [], json_encode([
+            'id' => 'PURCHASE123',
+            'checkout_url' => 'https://gate.chip-in.asia/pay/PURCHASE123',
+        ])),
+    ]);
+
+    $chipApi = new ChipApi(
+        brandId: $organization->chip_brand_id,
+        apiKey: $organization->chip_api_key,
+        config: ['handler' => HandlerStack::create($mockHandler)],
+    );
+
+    Route::get('/chip/callback/{donation}/{status}', fn () => '')->name('chip.callback');
+
+    ChipApiFactory::fake(make: fn () => $chipApi);
+
+    $checkoutUrl = app(CreatePurchase::class)->create($donation, null, 'fpx', 'MB2U0227');
+
+    expect($checkoutUrl)->toBe('https://gate.chip-in.asia/pay/PURCHASE123?preferred=fpx&fpx_bank_code=MB2U0227')
+        ->and($donation->fresh()->chip_checkout_url)->toBe($checkoutUrl);
+});
+
+it('does not append params for card payment method', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create(['payment_gateway' => 'chip']);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'currency' => 'MYR',
+        'gross_amount' => 50.00,
+    ]);
+
+    $mockHandler = new MockHandler([
+        new Response(200, [], json_encode([
+            'id' => 'PURCHASE123',
+            'checkout_url' => 'https://gate.chip-in.asia/pay/PURCHASE123',
+        ])),
+    ]);
+
+    $chipApi = new ChipApi(
+        brandId: $organization->chip_brand_id,
+        apiKey: $organization->chip_api_key,
+        config: ['handler' => HandlerStack::create($mockHandler)],
+    );
+
+    Route::get('/chip/callback/{donation}/{status}', fn () => '')->name('chip.callback');
+
+    ChipApiFactory::fake(make: fn () => $chipApi);
+
+    $checkoutUrl = app(CreatePurchase::class)->create($donation, null, 'card');
+
+    expect($checkoutUrl)->toBe('https://gate.chip-in.asia/pay/PURCHASE123');
+});
+
+it('ignores invalid fpx bank code', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create(['payment_gateway' => 'chip']);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'currency' => 'MYR',
+        'gross_amount' => 50.00,
+    ]);
+
+    $mockHandler = new MockHandler([
+        new Response(200, [], json_encode([
+            'id' => 'PURCHASE123',
+            'checkout_url' => 'https://gate.chip-in.asia/pay/PURCHASE123',
+        ])),
+    ]);
+
+    $chipApi = new ChipApi(
+        brandId: $organization->chip_brand_id,
+        apiKey: $organization->chip_api_key,
+        config: ['handler' => HandlerStack::create($mockHandler)],
+    );
+
+    Route::get('/chip/callback/{donation}/{status}', fn () => '')->name('chip.callback');
+
+    ChipApiFactory::fake(make: fn () => $chipApi);
+
+    $checkoutUrl = app(CreatePurchase::class)->create($donation, null, 'fpx', 'INVALID');
+
+    expect($checkoutUrl)->toBe('https://gate.chip-in.asia/pay/PURCHASE123');
+});

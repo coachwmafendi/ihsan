@@ -225,3 +225,122 @@ it('renders a chip public donation page', function () {
         ->assertOk()
         ->assertSee($campaign->title);
 });
+
+it('appends fpx preselect params when donor chooses fpx and a bank', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+        'settings' => ['chip_payment_methods' => ['card', 'fpx']],
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'status' => CampaignStatus::Active,
+        'payment_gateway' => PaymentGateway::Chip,
+        'checkout_modal_enabled' => true,
+    ]);
+
+    $mockHandler = new MockHandler([
+        new Response(200, [], json_encode([
+            'id' => 'PURCHASE_FPX',
+            'checkout_url' => 'https://gate.chip-in.asia/pay/PURCHASE_FPX',
+        ])),
+    ]);
+
+    $chipApi = new ChipApi(
+        brandId: $organization->chip_brand_id,
+        apiKey: $organization->chip_api_key,
+        config: ['handler' => HandlerStack::create($mockHandler)],
+    );
+
+    ChipApiFactory::fake(make: fn () => $chipApi);
+
+    Livewire::test(DonationForm::class, ['campaign' => $campaign])
+        ->set('amount', 25)
+        ->set('firstName', 'Aiman')
+        ->set('lastName', 'Rashid')
+        ->set('email', 'aiman@example.com')
+        ->set('currency', 'myr')
+        ->set('frequency', 'one_time')
+        ->set('coverFee', false)
+        ->set('chipPaymentMethod', 'fpx')
+        ->set('chipFpxBankCode', 'MB2U0227')
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    $donation = Donation::query()->latest()->first();
+
+    expect($donation->chip_checkout_url)
+        ->toBe('https://gate.chip-in.asia/pay/PURCHASE_FPX?preferred=fpx&fpx_bank_code=MB2U0227');
+});
+
+it('rejects invalid fpx bank code', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+        'settings' => ['chip_payment_methods' => ['card', 'fpx']],
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'status' => CampaignStatus::Active,
+        'payment_gateway' => PaymentGateway::Chip,
+        'checkout_modal_enabled' => true,
+    ]);
+
+    Livewire::test(DonationForm::class, ['campaign' => $campaign])
+        ->set('amount', 25)
+        ->set('firstName', 'Aiman')
+        ->set('lastName', 'Rashid')
+        ->set('email', 'aiman@example.com')
+        ->set('currency', 'myr')
+        ->set('frequency', 'one_time')
+        ->set('coverFee', false)
+        ->set('chipPaymentMethod', 'fpx')
+        ->set('chipFpxBankCode', 'INVALID')
+        ->call('submit')
+        ->assertHasErrors(['chipFpxBankCode']);
+});
+
+it('forces card payment method for chip recurring donations', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+        'settings' => ['chip_payment_methods' => ['card', 'fpx']],
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'status' => CampaignStatus::Active,
+        'payment_gateway' => PaymentGateway::Chip,
+        'allow_recurring' => true,
+        'checkout_modal_enabled' => true,
+    ]);
+
+    $mockHandler = new MockHandler([
+        new Response(200, [], json_encode([
+            'id' => 'PURCHASE_RECURRING',
+            'checkout_url' => 'https://gate.chip-in.asia/pay/PURCHASE_RECURRING',
+        ])),
+    ]);
+
+    $chipApi = new ChipApi(
+        brandId: $organization->chip_brand_id,
+        apiKey: $organization->chip_api_key,
+        config: ['handler' => HandlerStack::create($mockHandler)],
+    );
+
+    ChipApiFactory::fake(make: fn () => $chipApi);
+
+    Livewire::test(DonationForm::class, ['campaign' => $campaign])
+        ->set('amount', 30)
+        ->set('firstName', 'Siti')
+        ->set('lastName', 'Aminah')
+        ->set('email', 'siti@example.com')
+        ->set('currency', 'myr')
+        ->set('frequency', 'monthly')
+        ->set('coverFee', false)
+        ->set('chipPaymentMethod', 'fpx')
+        ->set('chipFpxBankCode', 'MB2U0227')
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    $donation = Donation::query()->latest()->first();
+
+    expect($donation->type)->toBe(DonationType::Recurring)
+        ->and($donation->chip_checkout_url)->toBe('https://gate.chip-in.asia/pay/PURCHASE_RECURRING');
+});

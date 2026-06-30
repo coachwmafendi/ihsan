@@ -193,10 +193,9 @@ it('throws runtime exception when chip client cannot be initialized', function (
         ->toThrow(RuntimeException::class, 'Failed to initialize CHIP client');
 });
 
-it('calculates fixed fpx processing fee', function () {
+it('calculates method-specific platform processing fee for fpx', function () {
     config([
-        'services.chip.fpx_fee_type' => 'fixed',
-        'services.chip.fpx_fee_amount' => 150,
+        'services.chip.fpx_processing_fee_percent' => 1.5,
     ]);
 
     $organization = Organization::factory()->create([
@@ -214,6 +213,9 @@ it('calculates fixed fpx processing fee', function () {
         new Response(200, [], json_encode([
             'id' => 'PURCHASE123',
             'status' => 'paid',
+            'payment' => [
+                'fee_amount' => 100,
+            ],
             'transaction_data' => [
                 'payment_method' => 'fpx',
             ],
@@ -234,13 +236,14 @@ it('calculates fixed fpx processing fee', function () {
     $donation = $donation->fresh();
 
     expect($donation->status)->toBe(DonationStatus::Succeeded)
+        ->and($donation->chip_fee)->toBe('1.00')
         ->and($donation->processing_fee)->toBe('1.50')
-        ->and($donation->net_amount)->toBe('98.50')
+        ->and($donation->net_amount)->toBe('97.50')
         ->and($donation->payment_method_brand)->toBe('fpx');
 
     $fee = ProcessingFee::where('donation_id', $donation->id)->firstOrFail();
 
     expect($fee->fee_amount)->toBe('1.50')
-        ->and($fee->fee_percentage)->toBe('0.00')
+        ->and($fee->fee_percentage)->toBe('1.50')
         ->and($fee->status)->toBe('pending');
 });

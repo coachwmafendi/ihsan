@@ -66,6 +66,10 @@
     $isStripeGateway = $paymentGateway === 'stripe';
     $isChipDirectPost = ! $isStripeGateway && $this->useChipDirectPost();
     $isChipRedirect = ! $isStripeGateway && ! $isChipDirectPost;
+    $chipPaymentMethods = $this->chipPaymentMethods();
+    $fpxBanks = \App\Support\ChipFpxBanks::b2c();
+    $showChipPaymentMethodSelector = $isChipRedirect && count($chipPaymentMethods) > 1;
+    $showChipFpxSelector = $isChipRedirect && in_array('fpx', $chipPaymentMethods, true) && $this->chipPaymentMethod === 'fpx';
 @endphp
 
 <div>
@@ -259,7 +263,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates($campaign->payment_gateway?->value ?? 'stripe')), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'))"
+                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates($campaign->payment_gateway?->value ?? 'stripe')), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'), @js($this->chipPaymentMethods()), @js($this->chipPaymentMethod), @js(\App\Support\ChipFpxBanks::b2c()))"
                         data-campaign-public-id="{{ $campaign->public_id }}"
                         x-init="$wire.trackServerPageView()"
                         class="relative"
@@ -661,20 +665,61 @@
                                     </button>
                                 </form>
                             @else
-                                <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-center text-sm text-slate-600">
-                                    <p class="font-medium text-slate-800">Secure checkout with CHIP</p>
-                                    <p class="mt-1">Click below to complete your payment on CHIP's secure page.</p>
-                                </div>
+                                <div class="space-y-4">
+                                    <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-center text-sm text-slate-600">
+                                        <p class="font-medium text-slate-800">Secure checkout with CHIP</p>
+                                        <p class="mt-1">Click below to complete your payment on CHIP's secure page.</p>
+                                    </div>
 
-                                <button
-                                    type="button"
-                                    x-on:click="handleSubmit"
-                                    class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
-                                    x-bind:disabled="processing"
-                                >
-                                    <span x-show="!processing">Proceed to secure checkout</span>
-                                    <span x-show="processing" x-cloak>Processing...</span>
-                                </button>
+                                    @if ($showChipPaymentMethodSelector)
+                                        <div>
+                                            <label class="mb-1.5 block text-sm font-medium text-slate-700">Payment method</label>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                @if (in_array('card', $chipPaymentMethods, true))
+                                                    <label class="cursor-pointer">
+                                                        <input type="radio" wire:model.live="chipPaymentMethod" x-model="chipPaymentMethod" value="card" class="peer sr-only">
+                                                        <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm font-medium text-slate-600 transition peer-checked:border-teal-600 peer-checked:bg-teal-50 peer-checked:text-teal-700">
+                                                            Card
+                                                        </div>
+                                                    </label>
+                                                @endif
+                                                @if (in_array('fpx', $chipPaymentMethods, true))
+                                                    <label class="cursor-pointer">
+                                                        <input type="radio" wire:model.live="chipPaymentMethod" x-model="chipPaymentMethod" value="fpx" class="peer sr-only">
+                                                        <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm font-medium text-slate-600 transition peer-checked:border-teal-600 peer-checked:bg-teal-50 peer-checked:text-teal-700">
+                                                            FPX
+                                                        </div>
+                                                    </label>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if ($showChipFpxSelector)
+                                        <div>
+                                            <label for="chip-fpx-bank" class="mb-1.5 block text-sm font-medium text-slate-700">Select bank</label>
+                                            <select id="chip-fpx-bank" wire:model.live="chipFpxBankCode" x-model="chipFpxBankCode" class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20">
+                                                <option value="">Choose your bank</option>
+                                                @foreach ($fpxBanks as $bank)
+                                                    <option value="{{ $bank['code'] }}">{{ $bank['name'] }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('chipFpxBankCode')
+                                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    @endif
+
+                                    <button
+                                        type="button"
+                                        x-on:click="handleSubmit"
+                                        class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
+                                        x-bind:disabled="processing || (paymentGateway === 'chip' && chipPaymentMethod === 'fpx' && ! chipFpxBankCode)"
+                                    >
+                                        <span x-show="!processing">Proceed to secure checkout</span>
+                                        <span x-show="processing" x-cloak>Processing...</span>
+                                    </button>
+                                </div>
                             @endif
 
                             <div class="mt-3 flex flex-col items-center gap-1.5">

@@ -6,6 +6,7 @@ namespace App\Actions\Chip;
 
 use App\Enums\DonationType;
 use App\Models\Donation;
+use App\Support\ChipFpxBanks;
 use Chip\Builder\PurchaseBuilder;
 use Chip\ChipApi;
 use Chip\Exception\ChipApiException;
@@ -16,7 +17,7 @@ use RuntimeException;
 
 final class CreatePurchase
 {
-    public function create(Donation $donation, ?string $returnTo = null): string
+    public function create(Donation $donation, ?string $returnTo = null, ?string $preferredMethod = null, ?string $fpxBankCode = null): string
     {
         $donation->load(['campaign.organization', 'donor']);
 
@@ -31,12 +32,18 @@ final class CreatePurchase
 
         $result = $this->createPurchase($chip, $builder->build());
 
+        $checkoutUrl = $this->appendPreferredParams(
+            (string) $result->checkout_url,
+            $preferredMethod,
+            $fpxBankCode,
+        );
+
         $donation->update([
             'chip_purchase_id' => $result->id,
-            'chip_checkout_url' => $result->checkout_url,
+            'chip_checkout_url' => $checkoutUrl,
         ]);
 
-        return $result->checkout_url;
+        return $checkoutUrl;
     }
 
     public function createDirectPost(Donation $donation, ?string $returnTo = null): string
@@ -114,5 +121,16 @@ final class CreatePurchase
             report($e);
             throw new RuntimeException('Failed to create CHIP purchase: '.$e->getMessage(), previous: $e);
         }
+    }
+
+    private function appendPreferredParams(string $checkoutUrl, ?string $preferredMethod, ?string $fpxBankCode): string
+    {
+        if ($preferredMethod !== 'fpx' || blank($fpxBankCode) || ! ChipFpxBanks::isValidB2cCode($fpxBankCode)) {
+            return $checkoutUrl;
+        }
+
+        $separator = str_contains($checkoutUrl, '?') ? '&' : '?';
+
+        return $checkoutUrl.$separator.'preferred=fpx&fpx_bank_code='.urlencode($fpxBankCode);
     }
 }

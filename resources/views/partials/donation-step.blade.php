@@ -4,7 +4,7 @@
     document.addEventListener('alpine:init', () => {
         if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
             Alpine._donationStepRegistered = true;
-            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe') => {
+            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe', initialChipPaymentMethods = [], initialChipPaymentMethod = 'card', initialFpxBanks = []) => {
                 let stripe = null;
                 let elements = null;
                 let paymentElement = null;
@@ -32,6 +32,10 @@
                     raisedAmount: initialRaisedAmount,
                     targetAmount: initialTargetAmount,
                     paymentGateway: initialPaymentGateway,
+                    chipPaymentMethods: initialChipPaymentMethods,
+                    chipPaymentMethod: initialChipPaymentMethod,
+                    chipFpxBankCode: '',
+                    fpxBanks: initialFpxBanks,
                     chipPopup: null,
                     _chipBc: null,
                     _chipMessageHandled: false,
@@ -82,6 +86,13 @@
                     selectAmount(amt) { this.setAmount(amt); },
                     selectFrequency(freq) {
                         this.frequency = freq;
+
+                        // CHIP recurring donations can only be charged to cards.
+                        if (freq === 'monthly' && this.paymentGateway === 'chip' && this.chipPaymentMethod === 'fpx') {
+                            this.chipPaymentMethod = 'card';
+                            this.chipFpxBankCode = '';
+                        }
+
                         const amounts = freq === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;
                         this.setAmount(amounts.length > 0 ? amounts[0] : this.amount);
                     },
@@ -493,6 +504,8 @@
                         this.$wire.$set('lastName', this.donorLastName, false);
                         this.$wire.$set('email', this.donorEmail, false);
                         this.$wire.$set('phone', this.donorPhone, false);
+                        this.$wire.$set('chipPaymentMethod', this.chipPaymentMethod, false);
+                        this.$wire.$set('chipFpxBankCode', this.chipFpxBankCode || null, false);
 
                         let submitResponse;
                         try { submitResponse = await this.$wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }

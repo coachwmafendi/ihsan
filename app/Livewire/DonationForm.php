@@ -33,6 +33,7 @@ use App\Services\DonationFeeEstimator;
 use App\Services\FraudDetectionService;
 use App\Services\RecurringPlanResolver;
 use App\Services\TrackingScriptService;
+use App\Support\ChipFpxBanks;
 use App\Support\ClientInfo;
 use App\Support\Currency;
 use Illuminate\Support\Facades\DB;
@@ -85,6 +86,10 @@ class DonationForm extends Component
 
     public ?string $chipDirectPostUrl = null;
 
+    public string $chipPaymentMethod = 'card';
+
+    public ?string $chipFpxBankCode = null;
+
     public float $campaignCollectedAmount = 0.0;
 
     public float $campaignTargetAmount = 0.0;
@@ -125,6 +130,27 @@ class DonationForm extends Component
         $methods = $campaign->organization->chipPaymentMethods();
 
         return count($methods) === 1 && in_array('card', $methods, true);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function chipPaymentMethods(): array
+    {
+        $campaign = $this->element?->campaign ?? $this->campaign;
+
+        if ($campaign?->payment_gateway !== PaymentGateway::Chip) {
+            return [];
+        }
+
+        $methods = $campaign->organization->chipPaymentMethods();
+
+        // Recurring CHIP donations can only be charged to cards.
+        if ($this->frequency === 'monthly') {
+            return array_values(array_filter($methods, fn (string $method): bool => $method === 'card'));
+        }
+
+        return $methods;
     }
 
     public function selectCurrency(string $currency, bool $resetAmount = true): void
@@ -512,6 +538,12 @@ class DonationForm extends Component
     #[Renderless]
     public function submit(): string
     {
+        // CHIP recurring donations can only be charged to cards.
+        if ($this->frequency === 'monthly' && $this->chipPaymentMethod === 'fpx') {
+            $this->chipPaymentMethod = 'card';
+            $this->chipFpxBankCode = null;
+        }
+
         $validated = $this->validate();
         $email = str($validated['email'])->lower()->toString();
 
@@ -638,7 +670,12 @@ class DonationForm extends Component
                     return '';
                 }
 
-                return app(CreatePurchase::class)->create($donation, $returnTo);
+                return app(CreatePurchase::class)->create(
+                    $donation,
+                    $returnTo,
+                    $this->chipPaymentMethod,
+                    $this->chipFpxBankCode,
+                );
             } catch (\Exception $e) {
                 $donation->update(['status' => DonationStatus::Failed]);
                 $this->chipErrorMessage = 'Unable to start CHIP payment. Please try again.';
@@ -794,7 +831,7 @@ class DonationForm extends Component
      */
     protected function rules(): array
     {
-        return [
+        $rules = [
             'amount' => ['required', 'numeric', 'min:'.($this->campaign?->minimum_amount ?? $this->element?->campaign?->minimum_amount ?? 1), 'max:100000'],
             'currency' => ['required', 'string', 'in:myr,usd,sgd'],
             'frequency' => [
@@ -809,6 +846,23 @@ class DonationForm extends Component
             'dedicate' => ['boolean'],
             'comment' => ['nullable', 'string', 'max:500'],
         ];
+
+        $chipMethods = $this->chipPaymentMethods();
+
+        if ($chipMethods !== []) {
+            $rules['chipPaymentMethod'] = ['required', Rule::in($chipMethods)];
+
+            if (in_array('fpx', $chipMethods, true)) {
+                $rules['chipFpxBankCode'] = [
+                    'required_if:chipPaymentMethod,fpx',
+                    'nullable',
+                    'string',
+                    Rule::in(array_keys(ChipFpxBanks::b2cMap())),
+                ];
+            }
+        }
+
+        return $rules;
     }
 
     /**

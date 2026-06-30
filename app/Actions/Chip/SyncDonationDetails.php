@@ -158,26 +158,24 @@ final class SyncDonationDetails
     }
 
     /**
+     * Calculate the Ihsan platform processing fee. The actual CHIP processor fee
+     * (card fee / FPX fee) is recorded separately in {@see extractChipFee()} and
+     * stored in the `chip_fee` column.
+     *
      * @return array{0: float, 1: float}
      */
     private function calculateProcessingFee(Donation $donation, ?string $paymentMethod, Organization $organization): array
     {
         $grossAmount = (float) $donation->gross_amount;
+        $feePercent = $organization->processing_fee_override;
 
-        if ($this->isFpx($paymentMethod)) {
-            if (config('services.chip.fpx_fee_type') === 'fixed') {
-                $feeAmount = ((int) config('services.chip.fpx_fee_amount')) / 100;
-
-                return [round($feeAmount, 2), 0.0];
-            }
-
-            $feePercent = (float) config('services.chip.fpx_fee_amount');
-
-            return [round($grossAmount * ($feePercent / 100), 2), $feePercent];
+        if ($feePercent === null) {
+            $feePercent = $this->isFpx($paymentMethod)
+                ? config('services.chip.fpx_processing_fee_percent')
+                : config('services.chip.processing_fee_percent');
         }
 
-        $feePercent = $organization->processing_fee_override ?? config('services.chip.processing_fee_percent');
-        $feeAmount = round($grossAmount * ($feePercent / 100), 2);
+        $feeAmount = round($grossAmount * ((float) $feePercent / 100), 2);
 
         return [$feeAmount, (float) $feePercent];
     }
