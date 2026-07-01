@@ -165,7 +165,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach ($this->elements as $element)
-                            <tr wire:key="element-row-{{ $element->id }}" class="cursor-pointer transition-colors hover:bg-slate-50" wire:click="edit({{ $element->id }})">
+                            <tr wire:key="element-row-{{ $element->id }}" class="cursor-pointer transition-colors hover:bg-slate-50" onclick="window.location='{{ route('app.elements.edit', $element) }}'">
                                 <td class="px-5 py-4">
                                     <p class="text-sm font-medium text-slate-900">{{ $element->name }}</p>
                                     <p class="text-xs text-slate-500 font-mono">{{ $element->token }}</p>
@@ -220,7 +220,7 @@
                                         default => '<script src="'.$widgetSrc.'" data-token="'.$element->token.'" data-api-base="'.$baseUrl.'"></script>',
                                     };
                                 @endphp
-                                    <td class="px-5 py-4">
+                                    <td class="px-5 py-4" onclick="event.stopPropagation()">
                                         <div x-data="{ copied: false }" class="flex items-center gap-2">
                                             <code class="max-w-xs truncate rounded bg-slate-100 px-2 py-1 text-xs font-mono text-slate-600">
                                                 data-token="{{ $element->token }}"
@@ -246,7 +246,7 @@
                                         </div>
                                     </td>
                                 @endif
-                                <td class="px-5 py-4 text-right" wire:click.stop>
+                                <td class="px-5 py-4 text-right" wire:click.stop onclick="event.stopPropagation()">
                                     <div class="flex items-center justify-end gap-2">
                                         @if ($showArchived)
                                             <button

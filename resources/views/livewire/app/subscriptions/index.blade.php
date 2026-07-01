@@ -221,10 +221,6 @@
     {{-- Subscriptions Table --}}
     <x-ui.card>
         <div class="relative">
-            <div wire:loading.delay class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-sm">
-                <x-heroicon-o-arrow-path class="size-6 animate-spin text-teal-600" />
-            </div>
-
             @if ($this->subscriptions->isNotEmpty())
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-slate-200">

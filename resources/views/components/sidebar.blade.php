@@ -68,15 +68,36 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
     </div>
 
     {{-- Desktop sidebar --}}
-    <div class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white border-r border-slate-200">
-        <div class="h-16 flex items-center px-6 border-b border-slate-200 shrink-0">
-            <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded bg-teal-600 flex items-center justify-center text-white font-bold text-sm">i</div>
-                <span class="font-bold text-lg text-slate-900 tracking-tight">ihsan</span>
+    <div
+        class="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 bg-white border-r border-slate-200"
+        :class="$store.sidebar.collapsed ? 'lg:w-16' : 'lg:w-64'"
+    >
+        <div
+            class="h-16 flex items-center justify-between border-b border-slate-200 shrink-0"
+            :class="$store.sidebar.collapsed ? 'px-3' : 'px-6'"
+        >
+            <div
+                class="flex items-center overflow-hidden"
+                :class="$store.sidebar.collapsed ? '' : 'gap-2.5'"
+            >
+                <div class="w-7 h-7 rounded bg-teal-600 flex items-center justify-center text-white font-bold text-sm shrink-0">i</div>
+                <span
+                    class="font-bold text-lg text-slate-900 tracking-tight whitespace-nowrap"
+                    x-show="! $store.sidebar.collapsed"
+                    x-cloak
+                >ihsan</span>
             </div>
+            <button
+                type="button"
+                @click="$store.sidebar.toggle()"
+                class="hidden lg:flex p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none focus-visible:ring-0"
+                :title="$store.sidebar.collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+            >
+                <x-icon.sidebar-panel class="size-5" />
+            </button>
         </div>
 
-        <nav class="flex-1 overflow-y-auto py-4">
+        <nav class="flex-1 overflow-x-hidden overflow-y-auto py-4">
             <x-sidebar-group label="Fundraise">
                 <x-sidebar-item href="/app/dashboard" icon="home" label="Dashboard" :active="$isActive('/app/dashboard')" />
                 <x-sidebar-item href="/app/campaigns" icon="megaphone" label="Campaigns" :active="$isActive('/app/campaigns')" />
