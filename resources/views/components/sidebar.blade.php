@@ -45,7 +45,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
 
             <x-sidebar-group label="Finance">
                 <x-sidebar-item href="/app/donations" icon="banknotes" label="Donations" :active="$isActive('/app/donations')" />
-                <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans')" />
+                <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans') || $isActive('/app/subscriptions')" />
                 <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
                 <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
             </x-sidebar-group>
@@ -69,6 +69,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
 
     {{-- Desktop sidebar --}}
     <div
+        id="app-sidebar-desktop"
         class="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 bg-white border-r border-slate-200"
         :class="$store.sidebar.collapsed ? 'lg:w-16' : 'lg:w-64'"
     >
@@ -107,7 +108,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
 
             <x-sidebar-group label="Finance">
                 <x-sidebar-item href="/app/donations" icon="banknotes" label="Donations" :active="$isActive('/app/donations')" />
-                <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans')" />
+                <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans') || $isActive('/app/subscriptions')" />
                 <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
                 <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
             </x-sidebar-group>

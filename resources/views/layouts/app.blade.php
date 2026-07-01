@@ -7,6 +7,18 @@
 
     <title>{{ $title ?? config('app.name', 'Laravel') }}</title>
 
+    <script>
+        (function () {
+            const collapsed = JSON.parse(localStorage.getItem('sidebarCollapsed') ?? 'false');
+            const style = document.createElement('style');
+            style.id = 'sidebar-prehydrate';
+            style.textContent = collapsed
+                ? '#app-sidebar-desktop{width:4rem!important}#app-content{padding-left:4rem!important}'
+                : '#app-sidebar-desktop{width:16rem!important}#app-content{padding-left:16rem!important}';
+            document.head.appendChild(style);
+        })();
+    </script>
+
     @fonts
     @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
