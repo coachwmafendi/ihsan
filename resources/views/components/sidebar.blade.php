@@ -74,19 +74,17 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
         :class="$store.sidebar.collapsed ? 'lg:w-16' : 'lg:w-64'"
     >
         <div
-            class="h-16 flex items-center justify-between border-b border-slate-200 shrink-0"
-            :class="$store.sidebar.collapsed ? 'px-3' : 'px-6'"
+            class="h-16 flex items-center border-b border-slate-200 shrink-0"
+            :class="$store.sidebar.collapsed ? 'px-3 justify-center' : 'px-6 justify-between'"
         >
             <div
                 class="flex items-center overflow-hidden"
                 :class="$store.sidebar.collapsed ? '' : 'gap-2.5'"
+                x-show="! $store.sidebar.collapsed"
+                x-cloak
             >
                 <div class="w-7 h-7 rounded bg-teal-600 flex items-center justify-center text-white font-bold text-sm shrink-0">i</div>
-                <span
-                    class="font-bold text-lg text-slate-900 tracking-tight whitespace-nowrap"
-                    x-show="! $store.sidebar.collapsed"
-                    x-cloak
-                >ihsan</span>
+                <span class="font-bold text-lg text-slate-900 tracking-tight whitespace-nowrap">ihsan</span>
             </div>
             <button
                 type="button"
