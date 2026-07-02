@@ -53,7 +53,7 @@ class CreatePaymentIntent
             $params['setup_future_usage'] = 'off_session';
         }
 
-        if ($organization->stripe_account_id && $organization->stripe_onboarded) {
+        if ($organization->stripe_account_id && $organization->stripe_active) {
             $stripeOptions = ['stripe_account' => $organization->stripe_account_id];
             $customerName = trim(($donation->donor?->first_name ?? '').' '.($donation->donor?->last_name ?? ''));
 

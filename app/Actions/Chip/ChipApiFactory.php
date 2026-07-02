@@ -44,7 +44,7 @@ final class ChipApiFactory
             return (self::$fakeMake)($organization);
         }
 
-        if (! $organization->chip_onboarded) {
+        if (! $organization->chip_active) {
             throw new InvalidArgumentException('Organization is not CHIP onboarded.');
         }
 
@@ -60,7 +60,7 @@ final class ChipApiFactory
             return self::$fakePublicKey;
         }
 
-        if (! $organization->chip_onboarded) {
+        if (! $organization->chip_active) {
             throw new InvalidArgumentException('Organization is not CHIP onboarded.');
         }
 

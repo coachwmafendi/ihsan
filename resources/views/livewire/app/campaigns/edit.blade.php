@@ -543,7 +543,7 @@
                     <div class="max-w-md">
                         <label for="payment_gateway" class="block text-sm font-medium text-slate-700">Processor</label>
                         <x-ui.select id="payment_gateway" wire:model="payment_gateway" class="mt-1.5 block w-full">
-                            <flux:select.option value="stripe">Stripe Connect</flux:select.option>
+                            <flux:select.option value="stripe">Stripe</flux:select.option>
                             <flux:select.option value="chip">CHIP</flux:select.option>
                         </x-ui.select>
                         @error('payment_gateway') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror

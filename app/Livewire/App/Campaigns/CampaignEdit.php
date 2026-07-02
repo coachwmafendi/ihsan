@@ -526,7 +526,7 @@ class CampaignEdit extends Component
 
         $org = Auth::user()?->organization;
 
-        if ($this->payment_gateway === PaymentGateway::Chip->value && ! ($org?->chip_onboarded)) {
+        if ($this->payment_gateway === PaymentGateway::Chip->value && ! ($org?->chip_active)) {
             $this->addError('payment_gateway', 'CHIP is not configured for this organization.');
 
             return;

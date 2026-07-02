@@ -129,7 +129,7 @@ class ChargeRecurringInstallment
 
     private function organizationIsOnboarded(Organization $organization): bool
     {
-        return filled($organization->stripe_account_id) && $organization->stripe_onboarded;
+        return filled($organization->stripe_account_id) && $organization->stripe_active;
     }
 
     private function guardSubscriptionState(Subscription $subscription): ?ChargeResult

@@ -59,6 +59,23 @@
                     </div>
                 @endif
 
+                @if ($org && $org->stripe_onboarded)
+                    <label class="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 bg-white p-4">
+                        <div>
+                            <p class="text-sm font-medium text-slate-700">Use Stripe for checkout</p>
+                            <p class="mt-0.5 text-xs text-slate-500">
+                                Turn off to stop accepting new donations via Stripe without disconnecting your account.
+                            </p>
+                        </div>
+                        <input
+                            type="checkbox"
+                            wire:model="stripeEnabled"
+                            wire:change="toggleStripeEnabled"
+                            class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                        />
+                    </label>
+                @endif
+
                 @if ($account)
                     <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
                         <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -210,6 +227,21 @@
                 </div>
 
                 @if ($chipOnboarded)
+                    <label class="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 bg-white p-4">
+                        <div>
+                            <p class="text-sm font-medium text-slate-700">Use CHIP for checkout</p>
+                            <p class="mt-0.5 text-xs text-slate-500">
+                                Turn off to stop accepting new donations via CHIP without clearing your API credentials.
+                            </p>
+                        </div>
+                        <input
+                            type="checkbox"
+                            wire:model="chipEnabled"
+                            wire:change="toggleChipEnabled"
+                            class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                        />
+                    </label>
+
                     <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
                         <p class="text-sm font-medium text-slate-700">CHIP webhook URL</p>
                         <p class="mt-1 break-all font-mono text-xs text-slate-600">{{ route('chip.webhook') }}</p>

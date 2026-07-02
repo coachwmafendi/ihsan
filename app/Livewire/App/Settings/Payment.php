@@ -37,6 +37,10 @@ class Payment extends Component
 
     public bool $showChipApiKey = false;
 
+    public bool $stripeEnabled = true;
+
+    public bool $chipEnabled = true;
+
     public function mount(): void
     {
         $org = Auth::user()?->organization;
@@ -55,6 +59,30 @@ class Payment extends Component
         $this->chipWebhookId = $org?->chip_webhook_id ?? '';
         $this->chipWebhookPublicKey = $org?->chip_webhook_public_key ?? '';
         $this->chipPaymentMethods = $org?->chipPaymentMethods() ?? ['card'];
+        $this->stripeEnabled = $org?->stripe_enabled ?? true;
+        $this->chipEnabled = $org?->chip_enabled ?? true;
+    }
+
+    public function toggleStripeEnabled(): void
+    {
+        $org = Auth::user()?->organization;
+        if (! $org) {
+            return;
+        }
+
+        $org->update(['stripe_enabled' => $this->stripeEnabled]);
+        $this->dispatch('notify', message: $this->stripeEnabled ? 'Stripe enabled for checkout.' : 'Stripe disabled for checkout.', variant: 'success');
+    }
+
+    public function toggleChipEnabled(): void
+    {
+        $org = Auth::user()?->organization;
+        if (! $org) {
+            return;
+        }
+
+        $org->update(['chip_enabled' => $this->chipEnabled]);
+        $this->dispatch('notify', message: $this->chipEnabled ? 'CHIP enabled for checkout.' : 'CHIP disabled for checkout.', variant: 'success');
     }
 
     public function updatedCurrencies(): void

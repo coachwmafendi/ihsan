@@ -520,7 +520,7 @@ class DonationForm extends Component
     {
         $organization = $donation->campaign?->organization;
 
-        if (! $organization?->stripe_account_id || ! $organization->stripe_onboarded) {
+        if (! $organization?->stripe_account_id || ! $organization->stripe_active) {
             return [];
         }
 
@@ -652,7 +652,7 @@ class DonationForm extends Component
         $isChip = $campaign !== null && $campaign->payment_gateway === PaymentGateway::Chip;
 
         if ($isChip) {
-            if (! $campaign->organization?->chip_onboarded) {
+            if (! $campaign->organization?->chip_active) {
                 $donation->update(['status' => DonationStatus::Failed]);
                 $this->chipErrorMessage = 'CHIP is not configured for this organization. Please choose another payment method or contact support.';
 

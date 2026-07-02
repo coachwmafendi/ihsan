@@ -210,6 +210,37 @@ it('fails the donation when the organization is not chip onboarded', function ()
         ->and($donation->status)->toBe(DonationStatus::Failed);
 });
 
+it('fails the donation when chip is onboarded but disabled', function () {
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+        'chip_enabled' => false,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'status' => CampaignStatus::Active,
+        'payment_gateway' => PaymentGateway::Chip,
+        'checkout_modal_enabled' => true,
+    ]);
+
+    $component = Livewire::test(DonationForm::class, ['campaign' => $campaign])
+        ->set('amount', 20)
+        ->set('firstName', 'Ahmad')
+        ->set('lastName', 'Ismail')
+        ->set('email', 'ahmad@example.com')
+        ->set('currency', 'myr')
+        ->set('frequency', 'one_time')
+        ->set('coverFee', false);
+
+    $component->call('submit');
+
+    expect($component->get('chipErrorMessage'))->toContain('CHIP is not configured');
+
+    $donation = Donation::query()->latest()->first();
+
+    expect($donation)->not->toBeNull()
+        ->and($donation->status)->toBe(DonationStatus::Failed);
+});
+
 it('renders a chip public donation page', function () {
     $organization = Organization::factory()->create([
         'chip_brand_id' => 'BRAND123',
