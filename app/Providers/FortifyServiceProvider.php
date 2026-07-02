@@ -36,7 +36,7 @@ class FortifyServiceProvider extends ServiceProvider
                         return redirect()->intended(route('app.stripe-onboarding'));
                     }
 
-                    return redirect()->intended(route('app.insights'));
+                    return redirect()->intended(route('app.dashboard'));
                 }
             };
         });

@@ -40,7 +40,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-item href="/app/dashboard" icon="home" label="Dashboard" :active="$isActive('/app/dashboard')" />
                 <x-sidebar-item href="/app/campaigns" icon="megaphone" label="Campaigns" :active="$isActive('/app/campaigns')" />
                 <x-sidebar-item href="/app/elements" icon="cursor-arrow-rays" label="Elements" :active="$isActive('/app/elements')" />
-                <x-sidebar-item href="/app/insights" icon="chart-bar" label="Insights" :active="$isActive('/app/insights')" />
+
             </x-sidebar-group>
 
             <x-sidebar-group label="Finance">
@@ -101,7 +101,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-item href="/app/dashboard" icon="home" label="Dashboard" :active="$isActive('/app/dashboard')" />
                 <x-sidebar-item href="/app/campaigns" icon="megaphone" label="Campaigns" :active="$isActive('/app/campaigns')" />
                 <x-sidebar-item href="/app/elements" icon="cursor-arrow-rays" label="Elements" :active="$isActive('/app/elements')" />
-                <x-sidebar-item href="/app/insights" icon="chart-bar" label="Insights" :active="$isActive('/app/insights')" />
+
             </x-sidebar-group>
 
             <x-sidebar-group label="Finance">

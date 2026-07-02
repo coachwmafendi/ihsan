@@ -15,7 +15,7 @@
                 <a href="#faq" class="text-slate-400 hover:text-white transition-colors">@lang('nav.faq')</a>
 
                 @auth
-                    <a href="{{ route('app.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">Dashboard</a>
+                    <a href="{{ route('app.dashboard') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">Dashboard</a>
                 @else
                     <a href="{{ route('register.org') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">@lang('nav.register_organization')</a>
                     @if (Route::has('register'))
@@ -49,7 +49,7 @@
                 <a href="#faq" @click="open = false" class="text-slate-300 hover:text-white hover:bg-white/5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors">@lang('nav.faq')</a>
                 <div class="border-t border-white/5 my-1"></div>
                 @auth
-                    <a href="{{ route('app.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-center">Dashboard</a>
+                    <a href="{{ route('app.dashboard') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-center">Dashboard</a>
                 @else
                     <a href="{{ route('register.org') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-center">@lang('nav.register_organization')</a>
                     @if (Route::has('register'))
@@ -82,7 +82,7 @@
 
             <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                 @auth
-                    <a href="{{ route('app.insights') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
+                    <a href="{{ route('app.dashboard') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
                         Dashboard
                     </a>
                 @else
@@ -516,7 +516,7 @@
 
             <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
                 @auth
-                    <a href="{{ route('app.insights') }}" class="inline-block bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
+                    <a href="{{ route('app.dashboard') }}" class="inline-block bg-teal-600 hover:bg-teal-500 text-white px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:shadow-teal-500/25">
                         Dashboard
                     </a>
                 @else

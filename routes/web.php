@@ -31,7 +31,6 @@ use App\Livewire\App\Donations\DonationShow;
 use App\Livewire\App\Elements\ElementCreate;
 use App\Livewire\App\Elements\ElementEdit;
 use App\Livewire\App\Elements\ElementIndex;
-use App\Livewire\App\Insights;
 use App\Livewire\App\Notifications\Index as NotificationsIndex;
 use App\Livewire\App\Settings\Account;
 use App\Livewire\App\Settings\AllowDomains;
@@ -150,9 +149,9 @@ Route::middleware(['auth', EnsureNgoAdmin::class])->group(function () {
 });
 
 Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::class])->group(function () {
-    Route::get('/app', fn () => redirect()->route('app.insights'))->name('app');
+    Route::get('/app', fn () => redirect()->route('app.dashboard'))->name('app');
     Route::get('/app/dashboard', Dashboard::class)->name('app.dashboard');
-    Route::get('/app/insights', Insights::class)->name('app.insights');
+    Route::get('/app/insights', fn () => redirect()->route('app.dashboard', [], 301))->name('app.insights');
 
     Route::get('/app/campaigns', CampaignIndex::class)->name('app.campaigns.index');
     Route::get('/app/campaigns/create', CampaignCreate::class)->name('app.campaigns.create');

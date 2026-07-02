@@ -132,13 +132,13 @@ final class SyncDonationDetails
     private function extractCardDetails(mixed $purchase): array
     {
         $transactionData = $purchase->transaction_data ?? null;
-        $extra = is_array($transactionData) ? ($transactionData['extra'] ?? null) : ($transactionData->extra ?? null);
+        $extra = data_get($transactionData, 'extra');
 
         if (! is_array($extra) && ! is_object($extra)) {
             return ['last4' => null, 'country' => null];
         }
 
-        $maskedPan = is_array($extra) ? ($extra['masked_pan'] ?? null) : ($extra->masked_pan ?? null);
+        $maskedPan = data_get($extra, 'masked_pan');
         $last4 = null;
 
         if (is_string($maskedPan) && $maskedPan !== '') {
@@ -147,9 +147,7 @@ final class SyncDonationDetails
             $last4 = $matches[1] ?? null;
         }
 
-        $country = is_array($extra)
-            ? ($extra['card_issuer_country'] ?? ($transactionData['country'] ?? null))
-            : ($extra->card_issuer_country ?? ($transactionData->country ?? null));
+        $country = data_get($extra, 'card_issuer_country') ?? data_get($transactionData, 'country');
 
         return [
             'last4' => $last4,

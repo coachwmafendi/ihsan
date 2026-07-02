@@ -4,7 +4,7 @@ use App\Enums\UserRole;
 use App\Models\Organization;
 use App\Models\User;
 
-it('redirects app panel dashboard to insights', function () {
+it('redirects app panel root to dashboard', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([
         'role' => UserRole::NgoAdmin,
@@ -12,7 +12,7 @@ it('redirects app panel dashboard to insights', function () {
 
     $this->actingAs($user)
         ->get('/app')
-        ->assertRedirect(route('app.insights'));
+        ->assertRedirect(route('app.dashboard'));
 });
 
 it('allows super admins into the admin panel', function () {
@@ -56,7 +56,7 @@ it('shows app panel resource pages to ngo admins', function () {
     $this->actingAs($user);
 
     foreach ([
-        '/app/insights',
+        '/app/dashboard',
         '/app/campaigns',
         '/app/elements',
         '/app/donations',

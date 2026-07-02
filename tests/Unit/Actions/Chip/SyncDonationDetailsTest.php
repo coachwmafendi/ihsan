@@ -193,6 +193,48 @@ it('throws runtime exception when chip client cannot be initialized', function (
         ->toThrow(RuntimeException::class, 'Failed to initialize CHIP client');
 });
 
+it('extracts card details from mixed array and object transaction data', function () {
+    $sync = app(SyncDonationDetails::class);
+    $reflection = new ReflectionMethod($sync, 'extractCardDetails');
+    $reflection->setAccessible(true);
+
+    $purchase = (object) [
+        'transaction_data' => (object) [
+            'country' => 'MY',
+            'extra' => [
+                'card_issuer_country' => 'SG',
+                'masked_pan' => '424242******4242',
+            ],
+        ],
+    ];
+
+    expect($reflection->invoke($sync, $purchase))->toBe([
+        'last4' => '4242',
+        'country' => 'SG',
+    ]);
+});
+
+it('extracts card details from stdClass transaction data', function () {
+    $sync = app(SyncDonationDetails::class);
+    $reflection = new ReflectionMethod($sync, 'extractCardDetails');
+    $reflection->setAccessible(true);
+
+    $purchase = (object) [
+        'transaction_data' => (object) [
+            'country' => 'MY',
+            'extra' => (object) [
+                'card_issuer_country' => 'SG',
+                'masked_pan' => '424242******4242',
+            ],
+        ],
+    ];
+
+    expect($reflection->invoke($sync, $purchase))->toBe([
+        'last4' => '4242',
+        'country' => 'SG',
+    ]);
+});
+
 it('calculates method-specific platform processing fee for fpx', function () {
     config([
         'services.chip.fpx_processing_fee_percent' => 1.5,

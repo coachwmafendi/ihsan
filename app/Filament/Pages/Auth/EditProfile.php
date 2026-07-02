@@ -125,7 +125,7 @@ class EditProfile extends BaseEditProfile
 
         return match ($panel) {
             'admin' => route('filament.admin.pages.dashboard'),
-            'app' => route('app.insights'),
+            'app' => route('app.dashboard'),
             default => url('/'),
         };
     }
@@ -136,7 +136,7 @@ class EditProfile extends BaseEditProfile
 
         $url = match ($panel) {
             'admin' => route('filament.admin.pages.dashboard'),
-            'app' => route('app.insights'),
+            'app' => route('app.dashboard'),
             default => url('/'),
         };
 

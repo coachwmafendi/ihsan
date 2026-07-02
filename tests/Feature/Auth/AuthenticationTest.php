@@ -20,7 +20,7 @@ test('users can authenticate using the login screen', function () {
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('app.insights'));
+        ->assertRedirect(route('app.dashboard'));
 
     $this->assertAuthenticated();
 });
@@ -36,7 +36,7 @@ test('org admins with a connected organisation are redirected to insights after 
         'password' => 'password',
     ]);
 
-    $response->assertRedirect(route('app.insights'));
+    $response->assertRedirect(route('app.dashboard'));
     $this->assertAuthenticated();
 });
 

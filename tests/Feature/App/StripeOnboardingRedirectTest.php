@@ -33,7 +33,7 @@ it('redirects org admins to stripe onboarding when accessing app pages before co
     ]);
 
     actingAs($user)
-        ->get(route('app.insights'))
+        ->get(route('app.dashboard'))
         ->assertRedirect(route('app.stripe-onboarding'));
 });
 
@@ -57,10 +57,10 @@ it('allows org admins with a connected account to access the app normally', func
 
     actingAs($user)
         ->get(route('app'))
-        ->assertRedirect(route('app.insights'));
+        ->assertRedirect(route('app.dashboard'));
 
     actingAs($user)
-        ->get(route('app.insights'))
+        ->get(route('app.dashboard'))
         ->assertOk();
 });
 
