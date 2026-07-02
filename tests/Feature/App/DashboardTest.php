@@ -162,7 +162,7 @@ it('switches period filter and exposes computed data arrays', function () {
     $component = Livewire::actingAs($user)
         ->test('app.dashboard');
 
-    $component->assertSet('period', '30_days');
+    $component->assertSet('period', 'today');
 
     $component->set('period', '7_days')->assertSet('period', '7_days');
 

@@ -20,7 +20,7 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Dashboard extends Component
 {
-    public string $period = '30_days';
+    public string $period = 'today';
 
     public ?string $customFrom = null;
 
