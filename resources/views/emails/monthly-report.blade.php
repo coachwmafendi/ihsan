@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"></head>
+<head><meta charset="utf-8">@include('emails.partials.admin-styles')</head>
 <body style="font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; color: #1a1a2e;">
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #0f766e;">Monthly Donation Report</h1>
@@ -32,7 +32,7 @@
             </table>
         @endif
 
-        <p style="font-size: 0.875rem; color: #94a3b8;">
+        <p class="email-small" style="font-size: 0.875rem; color: #94a3b8;">
             You are receiving this because your organisation has monthly report enabled.
         </p>
         @include('emails.partials.admin-footer', ['organization' => $organization])

@@ -14,6 +14,19 @@
 @section('title', $t('emails.subscription_amount_changed.title'))
 
 @section('content')
+    @if (! $isDonor)
+        @push('styles')
+            <style type="text/css">
+                @media only screen and (min-width: 600px) {
+                    .email-content { font-size: 17px !important; line-height: 1.65 !important; }
+                    .email-content h1 { font-size: 30px !important; }
+                    .email-content p, .email-content td, .email-content th { font-size: 17px !important; }
+                    .email-content .email-small { font-size: 15px !important; }
+                }
+            </style>
+        @endpush
+    @endif
+
     <h1 style="color: #2563eb;">{{ $t('emails.subscription_amount_changed.title') }}</h1>
 
     <p>
@@ -72,7 +85,7 @@
         </tr>
     </table>
 
-    <p style="font-size: 0.875rem; color: #94a3b8;">
+    <p class="email-small" style="font-size: 0.875rem; color: #94a3b8;">
         {{ $t('emails.subscription_amount_changed.reason') }}
     </p>
 

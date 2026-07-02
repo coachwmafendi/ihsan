@@ -12,6 +12,7 @@
             .email-content .mobile-stack { display: block !important; width: 100% !important; padding: 6px 0 !important; text-align: center !important; }
         }
     </style>
+    @stack('styles')
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; color: #1a1a2e; background-color: #f8fafc;">
     @hasSection('preheader')
