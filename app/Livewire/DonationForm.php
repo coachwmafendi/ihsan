@@ -404,6 +404,8 @@ class DonationForm extends Component
             $campaign->refresh();
             $this->campaignCollectedAmount = (float) $campaign->collected_amount;
             $this->campaignTargetAmount = (float) ($campaign->target_amount ?? 0);
+            $this->donationPublicId = $donation->public_id;
+            $this->syncDonorDetails($donation);
 
             SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
 

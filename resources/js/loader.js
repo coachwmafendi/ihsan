@@ -67,6 +67,11 @@
 
     var iframe = d.createElement("iframe");
     iframe.src = url;
+    iframe.setAttribute(
+      "allow",
+      "payment *; clipboard-write; autoplay"
+    );
+    iframe.setAttribute("loading", "eager");
     iframe.style.cssText = [
       "width:100%",
       "height:100%",
@@ -182,7 +187,7 @@
     if (el._ihsanBound) return;
     el._ihsanBound = true;
 
-    var token = el.getAttribute("data-ihsan");
+    var token = el.getAttribute("data-ihsan") || el.getAttribute("data-ihsan-token");
     if (!token) return;
 
     el.style.cursor = "pointer";
@@ -194,7 +199,7 @@
   }
 
   function scanTriggers() {
-    d.querySelectorAll("[data-ihsan]").forEach(bindTrigger);
+    d.querySelectorAll("[data-ihsan], [data-ihsan-token]").forEach(bindTrigger);
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────
@@ -217,11 +222,16 @@
         mutations.forEach(function (m) {
           m.addedNodes.forEach(function (node) {
             if (node.nodeType !== 1) return;
-            if (node.hasAttribute && node.hasAttribute("data-ihsan")) {
+            if (
+              node.hasAttribute &&
+              (node.hasAttribute("data-ihsan") || node.hasAttribute("data-ihsan-token"))
+            ) {
               bindTrigger(node);
             }
             if (node.querySelectorAll) {
-              node.querySelectorAll("[data-ihsan]").forEach(bindTrigger);
+              node
+                .querySelectorAll("[data-ihsan], [data-ihsan-token]")
+                .forEach(bindTrigger);
             }
           });
         });

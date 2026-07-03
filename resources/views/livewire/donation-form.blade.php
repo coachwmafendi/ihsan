@@ -596,6 +596,7 @@
                                         <label class="mb-0.5 block text-sm font-medium text-slate-700">Payment details</label>
                                         <div id="payment-element" class="min-h-10 rounded-lg border border-slate-200 px-3 py-2.5 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/10"></div>
                                         <div x-show="cardError" x-cloak class="mt-1 text-sm text-red-600" x-text="cardError"></div>
+                                        <div x-show="stripeInitError" x-cloak class="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" x-text="stripeInitError"></div>
                                     </div>
 
                                     <button

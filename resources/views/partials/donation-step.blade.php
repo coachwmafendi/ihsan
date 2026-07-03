@@ -46,6 +46,7 @@
                     currentStep: initialStep > 1 ? initialStep : 1,
                     stepErrors: {},
                     cardError: '',
+                    stripeInitError: '',
 
                     get feeRate() { return this.feeConfig[this.currency]?.percent ?? 0.055; },
                     get fixedFee() { return this.feeConfig[this.currency]?.fixed ?? 1.00; },
@@ -138,47 +139,59 @@
                         const container = document.getElementById('payment-element');
                         if (!container) return;
 
-                        if (paymentElement) {
-                            paymentElement.unmount();
-                            paymentElement = null;
+                        this.stripeInitError = '';
+
+                        if (!stripe) {
+                            this.stripeInitError = 'Payment system is not initialized. Please refresh the page or use a different browser.';
+                            return;
                         }
 
-                        if (elements) {
-                            elements = null;
+                        try {
+                            if (paymentElement) {
+                                paymentElement.unmount();
+                                paymentElement = null;
+                            }
+
+                            if (elements) {
+                                elements = null;
+                            }
+
+                            container.innerHTML = '';
+
+                            const amount = Math.round(parseFloat(this.amount || 0) * 100);
+                            const isRecurring = this.frequency === 'monthly';
+                            elements = stripe.elements({
+                                mode: isRecurring ? 'subscription' : 'payment',
+                                amount: amount,
+                                currency: this.currency,
+                                setupFutureUsage: isRecurring ? 'off_session' : undefined,
+                                locale: 'ms',
+                                appearance: {
+                                    theme: 'stripe',
+                                    variables: {
+                                        colorPrimary: '#0d9488',
+                                        fontSizeBase: '15px',
+                                    },
+                                },
+                            });
+                            paymentElement = elements.create('payment', {
+                                layout: 'tabs',
+                                wallets: {
+                                    link: 'never',
+                                },
+                                defaultValues: {
+                                    billingDetails: {
+                                        name: `${this.donorFirstName} ${this.donorLastName}`.trim() || undefined,
+                                        email: this.donorEmail || undefined,
+                                    },
+                                },
+                            });
+                            paymentElement.mount('#payment-element');
+                            paymentElement.on('change', (e) => { this.cardError = e.error ? e.error.message : ''; });
+                        } catch (e) {
+                            this.stripeInitError = 'Unable to load the payment form. Please refresh the page or disable content blockers.';
+                            report?.(e);
                         }
-
-                        container.innerHTML = '';
-
-                        const amount = Math.round(parseFloat(this.amount || 0) * 100);
-                        const isRecurring = this.frequency === 'monthly';
-                        elements = stripe.elements({
-                            mode: isRecurring ? 'subscription' : 'payment',
-                            amount: amount,
-                            currency: this.currency,
-                            setupFutureUsage: isRecurring ? 'off_session' : undefined,
-                            locale: 'ms',
-                            appearance: {
-                                theme: 'stripe',
-                                variables: {
-                                    colorPrimary: '#0d9488',
-                                    fontSizeBase: '15px',
-                                },
-                            },
-                        });
-                        paymentElement = elements.create('payment', {
-                            layout: 'tabs',
-                            wallets: {
-                                link: 'never',
-                            },
-                            defaultValues: {
-                                billingDetails: {
-                                    name: `${this.donorFirstName} ${this.donorLastName}`.trim() || undefined,
-                                    email: this.donorEmail || undefined,
-                                },
-                            },
-                        });
-                        paymentElement.mount('#payment-element');
-                        paymentElement.on('change', (e) => { this.cardError = e.error ? e.error.message : ''; });
                     },
                     nextStep() {
                         if (this.currentStep === 1 && !this.validateStep1()) return;
@@ -241,6 +254,12 @@
 
                         this.handleChipReturnFromQueryParams();
 
+                        const handledStripeReturn = await this.handleStripeReturnFromQueryParams();
+                        if (handledStripeReturn) {
+                            // Stripe finalized the donation from a redirect; skip normal init.
+                            return;
+                        }
+
                         this.$wire.on('chip-return', ({ status, donationId }) => {
                             if (! donationId) {
                                 return;
@@ -268,9 +287,23 @@
 
                         window.addEventListener('message', (event) => this.handleChipMessage(event));
 
-                        stripe = connectedStripeAccountId
-                            ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
-                            : Stripe(window.stripePublishableKey);
+                        try {
+                            stripe = connectedStripeAccountId
+                                ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
+                                : Stripe(window.stripePublishableKey);
+                        } catch (e) {
+                            this.stripeInitError = 'Payment system failed to initialize. Please check that Stripe is configured or try a different browser.';
+
+                            if (this.isPopup || this.isEmbed) {
+                                await this.waitForReadyPaint();
+                            }
+
+                            return;
+                        }
+
+                        if (this.currentStep === 3 && this.paymentGateway === 'stripe') {
+                            this.$nextTick(() => this.mountPaymentElement());
+                        }
 
                         if (this.isPopup || this.isEmbed) {
                             await this.waitForReadyPaint();
@@ -439,6 +472,52 @@
                             this.currentStep = 'error';
                             this.cardError = 'Payment was not completed. Please try again.';
                         }
+                    },
+                    async handleStripeReturnFromQueryParams() {
+                        if (typeof URLSearchParams === 'undefined') {
+                            return false;
+                        }
+
+                        const params = new URLSearchParams(window.location.search);
+                        const paymentIntentId = params.get('payment_intent');
+                        const redirectStatus = params.get('redirect_status');
+
+                        if (! paymentIntentId || ! redirectStatus) {
+                            return false;
+                        }
+
+                        // Strip Stripe query params so a refresh does not re-trigger the flow.
+                        const cleanUrl = new URL(window.location.href);
+                        cleanUrl.searchParams.delete('payment_intent');
+                        cleanUrl.searchParams.delete('payment_intent_client_secret');
+                        cleanUrl.searchParams.delete('redirect_status');
+                        window.history.replaceState({}, '', cleanUrl.toString());
+
+                        if (redirectStatus !== 'succeeded') {
+                            this.processing = false;
+                            this.currentStep = 'error';
+                            this.cardError = 'Payment was not completed. Please try again.';
+                            return true;
+                        }
+
+                        this.processing = true;
+
+                        try {
+                            await this.$wire.confirmPayment(paymentIntentId);
+                            this.donationPublicId = this.$wire.donationPublicId;
+                            this.donorFirstName = this.$wire.firstName || this.donorFirstName;
+                            this.donorLastName = this.$wire.lastName || this.donorLastName;
+                            this.donorEmail = this.$wire.email || this.donorEmail;
+                            this.donorPhone = this.$wire.phone || this.donorPhone;
+                            this.finishSuccess();
+                        } catch (e) {
+                            this.processing = false;
+                            this.currentStep = 'error';
+                            this.cardError = 'We could not finalize your payment. Please contact support.';
+                            report?.(e);
+                        }
+
+                        return true;
                     },
 
                     async finalizeChip() {
