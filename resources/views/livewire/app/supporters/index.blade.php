@@ -312,8 +312,9 @@
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach ($this->donors as $donor)
                             <tr
+                                wire:key="donor-row-{{ $donor->public_id }}"
+                                wire:click="redirectToShow('{{ $donor->public_id }}')"
                                 class="cursor-pointer transition-colors hover:bg-slate-50"
-                                onclick="window.location='{{ route('app.supporters.show', $donor) }}'"
                             >
                                 <td class="whitespace-nowrap min-w-[200px] px-5 py-4">
                                     <p class="text-sm font-medium text-slate-900">{{ $donor->name }}</p>
