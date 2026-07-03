@@ -117,7 +117,7 @@ class CampaignCreateModal extends Component
 
         $this->closeCreateModal();
         $this->dispatch('notify', message: 'Campaign created successfully.', variant: 'success');
-        $this->redirectRoute('app.campaigns.edit', $campaign);
+        $this->redirectRoute('app.campaigns.edit', $campaign, navigate: true);
     }
 
     private function createNewCampaign(array $validated): Campaign
