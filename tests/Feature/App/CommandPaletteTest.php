@@ -71,6 +71,24 @@ it('filters pages and actions by query', function () {
     expect($items['actions'][0]['label'])->toBe('Create campaign');
 });
 
+it('searches supporters by name regardless of case', function () {
+    $donor = Donor::factory()->create([
+        'name' => 'WAN MOHD AFENDI ISMAIL',
+        'email' => 'wmafendi@gmail.com',
+    ]);
+    $campaign = Campaign::factory()->for($this->organization)->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    $component = Livewire::actingAs($this->user)
+        ->test(CommandPalette::class)
+        ->set('query', 'wan mohd afendi');
+
+    $supporters = $component->instance()->supporters();
+
+    expect($supporters)->toHaveCount(1);
+    expect($supporters[0]['label'])->toBe('WAN MOHD AFENDI ISMAIL');
+});
+
 it('searches supporters by email', function () {
     $donor = Donor::factory()->create([
         'name' => 'Wan Afendi',

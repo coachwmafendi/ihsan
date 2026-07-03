@@ -200,10 +200,10 @@ class DonationIndex extends Component
             ->with(['campaign', 'donor', 'subscription']);
 
         if (filled($this->search)) {
-            $search = '%'.$this->search.'%';
+            $search = '%'.strtolower($this->search).'%';
             $query->whereHas('donor', function (Builder $q) use ($search): void {
-                $q->where('name', 'like', $search)
-                    ->orWhere('email', 'like', $search);
+                $q->whereRaw('LOWER(name) LIKE ?', [$search])
+                    ->orWhereRaw('LOWER(email) LIKE ?', [$search]);
             });
         }
 

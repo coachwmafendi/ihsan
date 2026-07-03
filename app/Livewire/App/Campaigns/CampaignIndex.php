@@ -87,7 +87,7 @@ class CampaignIndex extends Component
             ->withCount('donations');
 
         if (filled($this->search)) {
-            $query->where('title', 'like', '%'.$this->search.'%');
+            $query->whereRaw('LOWER(title) LIKE ?', ['%'.strtolower($this->search).'%']);
         }
 
         if (! $this->showArchived && filled($this->statusFilter)) {

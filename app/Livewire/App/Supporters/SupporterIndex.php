@@ -210,10 +210,10 @@ class SupporterIndex extends Component
             );
 
         if (filled($this->search)) {
-            $search = '%'.$this->search.'%';
+            $search = '%'.strtolower($this->search).'%';
             $query->where(function (Builder $q) use ($search): void {
-                $q->where('name', 'like', $search)
-                    ->orWhere('email', 'like', $search);
+                $q->whereRaw('LOWER(name) LIKE ?', [$search])
+                    ->orWhereRaw('LOWER(email) LIKE ?', [$search]);
             });
         }
 

@@ -289,7 +289,7 @@ class ElementIndex extends Component
             ->with('campaign');
 
         if (filled($this->search)) {
-            $query->where('name', 'like', '%'.$this->search.'%');
+            $query->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($this->search).'%']);
         }
 
         if (filled($this->typeFilter)) {

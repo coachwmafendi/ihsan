@@ -91,7 +91,7 @@ class CommandPalette extends Component
         }
 
         $org = $this->organization;
-        $search = '%'.$this->query.'%';
+        $search = '%'.strtolower($this->query).'%';
 
         return Donor::query()
             ->select('donors.public_id', 'donors.name', 'donors.email')
@@ -101,8 +101,8 @@ class CommandPalette extends Component
                 fn (Builder $q) => $q->whereRaw('1 = 0')
             )
             ->where(function (Builder $q) use ($search): void {
-                $q->where('name', 'like', $search)
-                    ->orWhere('email', 'like', $search);
+                $q->whereRaw('LOWER(name) LIKE ?', [$search])
+                    ->orWhereRaw('LOWER(email) LIKE ?', [$search]);
             })
             ->limit(10)
             ->get()

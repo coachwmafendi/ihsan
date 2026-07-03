@@ -334,7 +334,7 @@ class Tracking extends Component
         }
 
         return $org->trackingEvents()
-            ->when($this->eventSearch, fn ($q) => $q->where('event_name', 'like', "%{$this->eventSearch}%"))
+            ->when($this->eventSearch, fn ($q) => $q->whereRaw('LOWER(event_name) LIKE ?', ['%'.strtolower($this->eventSearch).'%']))
             ->when($this->eventFilter, fn ($q) => $q->where('provider', $this->eventFilter))
             ->latest()
             ->limit(50)
