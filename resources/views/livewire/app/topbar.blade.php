@@ -1,5 +1,5 @@
 {{-- resources/views/livewire/app/topbar.blade.php --}}
-<header class="flex items-center justify-between h-16 px-4 md:px-8 bg-white border-b border-slate-200">
+<header class="sticky top-0 z-40 flex items-center justify-between h-16 px-4 md:px-8 bg-white border-b border-slate-200">
     {{-- Left: Mobile menu toggle + page title context --}}
     <div class="flex items-center gap-3">
         <button
@@ -15,6 +15,17 @@
             </div>
         @endif
     </div>
+
+    {{-- Center: Search trigger --}}
+    <button
+        type="button"
+        x-on:click="$dispatch('open-command-palette')"
+        class="hidden sm:flex items-center gap-2 w-64 px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-400 hover:border-slate-300 transition-colors"
+    >
+        <x-heroicon-o-magnifying-glass class="size-4" />
+        <span class="flex-1 text-left">Search...</span>
+        <kbd class="text-xs border border-slate-200 rounded px-1.5 py-0.5">⌘K</kbd>
+    </button>
 
     {{-- Right: Notifications + User dropdown --}}
     <div class="flex items-center gap-2">
