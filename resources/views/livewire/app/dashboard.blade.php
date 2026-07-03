@@ -93,7 +93,7 @@
     </x-ui.card>
 
     {{-- Stats Grid --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <x-ui.stat-card
             label="Total Donations"
             value="{{ ($this->stats['has_approximation'] ? '≈ ' : '').'MYR '.number_format($this->stats['total_amount'] ?? 0, 2) }}"
@@ -114,6 +114,21 @@
         <x-ui.stat-card
             label="Avg Donation"
             value="MYR {{ number_format(($this->stats['total_count'] ?? 0) > 0 ? ($this->stats['total_amount'] ?? 0) / ($this->stats['total_count'] ?? 1) : 0, 2) }}"
+        />
+        <x-ui.stat-card
+            label="MRR"
+            value="{{ ($this->recurringHealth['mrr_has_approximation'] ? '≈ ' : '').'MYR '.number_format($this->recurringHealth['mrr'] ?? 0, 2) }}"
+            subtext="Monthly recurring revenue"
+        />
+        <x-ui.stat-card
+            label="At-risk Subscriptions"
+            value="{{ number_format($this->recurringHealth['at_risk_count'] ?? 0) }}"
+            subtext="Past due or failed"
+        />
+        <x-ui.stat-card
+            label="Expected (30 days)"
+            value="{{ ($this->recurringHealth['expected_30_days_has_approximation'] ? '≈ ' : '').'MYR '.number_format($this->recurringHealth['expected_30_days'] ?? 0, 2) }}"
+            subtext="Scheduled recurring charges"
         />
     </div>
 

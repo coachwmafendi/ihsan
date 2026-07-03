@@ -271,3 +271,12 @@ it('flags approximation when a contributing subscription is not in MYR', functio
     expect($health['mrr_has_approximation'])->toBeTrue();
     expect($health['expected_30_days_has_approximation'])->toBeTrue();
 });
+
+it('displays recurring revenue health stat cards', function () {
+    actingAs($this->user)
+        ->get('/app/dashboard')
+        ->assertOk()
+        ->assertSee('MRR')
+        ->assertSee('At-risk Subscriptions')
+        ->assertSee('Expected (30 days)');
+});
