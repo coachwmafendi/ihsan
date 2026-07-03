@@ -24,6 +24,21 @@ beforeEach(function () {
     ]);
 });
 
+it('dispatches the create-campaign modal event when visited with ?create=1', function () {
+    $this->actingAs($this->user);
+
+    Livewire::withQueryParams(['create' => '1'])
+        ->test(CampaignIndex::class)
+        ->assertDispatched('open-create-campaign-modal');
+});
+
+it('does not dispatch the create-campaign modal event without the query param', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignIndex::class)
+        ->assertNotDispatched('open-create-campaign-modal');
+});
+
 it('can rename a campaign from the index', function () {
     $this->actingAs($this->user);
 

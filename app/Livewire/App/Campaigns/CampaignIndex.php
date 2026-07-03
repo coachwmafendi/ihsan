@@ -35,6 +35,13 @@ class CampaignIndex extends Component
     #[Validate('required|string|max:255')]
     public string $renameTitle = '';
 
+    public function mount(): void
+    {
+        if (request()->boolean('create')) {
+            $this->dispatch('open-create-campaign-modal');
+        }
+    }
+
     public function updatedSearch(): void
     {
         $this->resetPage();
