@@ -360,8 +360,9 @@
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach ($this->donations as $donation)
                             <tr
+                                wire:key="donation-row-{{ $donation->public_id }}"
+                                wire:click="redirectToShow('{{ $donation->public_id }}')"
                                 class="cursor-pointer transition-colors hover:bg-slate-50"
-                                onclick="window.location='{{ route('app.donations.show', $donation) }}'"
                             >
                                 <td class="whitespace-nowrap min-w-[180px] px-5 py-4 text-sm text-slate-500">
                                     {{ myrTime($donation->created_at) }}
