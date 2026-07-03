@@ -16,6 +16,17 @@
         @endif
     </div>
 
+    {{-- Center: Search trigger --}}
+    <button
+        type="button"
+        x-on:click="$dispatch('open-command-palette')"
+        class="hidden sm:flex items-center gap-2 w-64 px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-400 hover:border-slate-300 transition-colors"
+    >
+        <x-heroicon-o-magnifying-glass class="size-4" />
+        <span class="flex-1 text-left">Search...</span>
+        <kbd class="text-xs border border-slate-200 rounded px-1.5 py-0.5">⌘K</kbd>
+    </button>
+
     {{-- Right: Notifications + User dropdown --}}
     <div class="flex items-center gap-2">
         {{-- Notification bell --}}

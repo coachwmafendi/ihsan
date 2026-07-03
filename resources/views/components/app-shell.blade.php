@@ -17,6 +17,12 @@
 <div
     x-data
     x-init="document.getElementById('sidebar-prehydrate')?.remove()"
+    x-on:keydown.window="(e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            $dispatch('open-command-palette');
+        }
+    }"
     class="min-h-screen bg-[#f7f7fb] text-slate-900 flex"
 >
     {{-- Safelist dynamic Tailwind width/padding classes for the collapsible sidebar --}}
@@ -33,4 +39,6 @@
             {{ $slot }}
         </main>
     </div>
+
+    <livewire:app.command-palette />
 </div>

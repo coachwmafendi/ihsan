@@ -47,8 +47,9 @@
                 <input
                     type="text"
                     x-model="query"
+                    x-ref="searchInput"
                     x-on:keydown="handleKeydown($event)"
-                    x-init="$nextTick(() => $el.focus())"
+                    x-effect="if ($wire.open) $nextTick(() => $refs.searchInput.focus())"
                     placeholder="Search pages, donors, campaigns..."
                     class="flex-1 border-0 focus:ring-0 text-sm placeholder:text-slate-400"
                     autocomplete="off"
