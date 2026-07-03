@@ -44,7 +44,7 @@
 >
     <flux:modal wire:model="open" name="command-palette" class="w-full max-w-2xl min-w-xl" @close="$wire.closePalette()">
         <div class="-m-4">
-            <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+            <div class="flex items-center gap-3 pl-5 pr-16 py-4 border-b border-slate-100">
                 <x-heroicon-o-magnifying-glass class="size-6 text-slate-400 shrink-0" />
                 <flux:input
                     wire:model.live.debounce.300ms="query"
@@ -56,7 +56,7 @@
                     class:input="border-0 shadow-none bg-transparent focus:ring-0 text-base placeholder:text-slate-400"
                     autocomplete="off"
                 />
-                <kbd class="text-xs text-slate-400 border border-slate-200 rounded px-1.5 py-0.5">Esc</kbd>
+                <kbd class="text-xs text-slate-400 border border-slate-200 rounded px-1.5 py-0.5 mr-2">Esc</kbd>
             </div>
 
             <div class="max-h-96 overflow-y-auto py-2">
