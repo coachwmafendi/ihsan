@@ -6,6 +6,7 @@ namespace App\Livewire\App;
 
 use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
+use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
 use App\Models\Donation;
@@ -103,6 +104,78 @@ class Dashboard extends Component
             'active_subscriptions' => Subscription::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
                 ->where('status', SubscriptionStatus::Active->value)
                 ->count(),
+        ];
+    }
+
+    #[Computed]
+    public function recurringHealth(): array
+    {
+        $org = $this->organization;
+
+        if (! $org) {
+            return [
+                'mrr' => 0.0,
+                'mrr_has_approximation' => false,
+                'at_risk_count' => 0,
+                'expected_30_days' => 0.0,
+                'expected_30_days_has_approximation' => false,
+            ];
+        }
+
+        $monthlyMultiplier = [
+            SubscriptionInterval::Weekly->value => 52 / 12,
+            SubscriptionInterval::Biweekly->value => 26 / 12,
+            SubscriptionInterval::Monthly->value => 1,
+            SubscriptionInterval::Bimonthly->value => 6 / 12,
+            SubscriptionInterval::Quarterly->value => 4 / 12,
+            SubscriptionInterval::Semiannual->value => 2 / 12,
+            SubscriptionInterval::Yearly->value => 1 / 12,
+        ];
+
+        $activeSubscriptions = Subscription::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
+            ->where('status', SubscriptionStatus::Active->value)
+            ->get(['amount', 'currency', 'interval', 'next_charge_at']);
+
+        $mrr = 0.0;
+        $mrrHasApproximation = false;
+
+        foreach ($activeSubscriptions as $subscription) {
+            $multiplier = $monthlyMultiplier[$subscription->interval->value] ?? 1;
+            $mrr += (float) $subscription->amount * $multiplier;
+
+            if (strtolower($subscription->currency) !== 'myr') {
+                $mrrHasApproximation = true;
+            }
+        }
+
+        $expected30Days = 0.0;
+        $expected30DaysHasApproximation = false;
+        $windowEnd = now()->addDays(30);
+
+        foreach ($activeSubscriptions as $subscription) {
+            if ($subscription->next_charge_at === null) {
+                continue;
+            }
+
+            if ($subscription->next_charge_at->between(now(), $windowEnd)) {
+                $expected30Days += (float) $subscription->amount;
+
+                if (strtolower($subscription->currency) !== 'myr') {
+                    $expected30DaysHasApproximation = true;
+                }
+            }
+        }
+
+        $atRiskCount = Subscription::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
+            ->whereIn('status', [SubscriptionStatus::PastDue->value, SubscriptionStatus::Failed->value])
+            ->count();
+
+        return [
+            'mrr' => $mrr,
+            'mrr_has_approximation' => $mrrHasApproximation,
+            'at_risk_count' => $atRiskCount,
+            'expected_30_days' => $expected30Days,
+            'expected_30_days_has_approximation' => $expected30DaysHasApproximation,
         ];
     }
 
