@@ -159,7 +159,7 @@ class CampaignIndex extends Component
             return;
         }
 
-        $this->redirectRoute('app.campaigns.edit', $campaign);
+        $this->redirectRoute('app.campaigns.edit', $campaign, navigate: true);
     }
 
     public function openRenameModal(string $publicId): void
@@ -230,7 +230,7 @@ class CampaignIndex extends Component
 
         $this->dispatch('notify', message: 'Campaign duplicated successfully.', variant: 'success');
 
-        $this->redirectRoute('app.campaigns.edit', $copy);
+        $this->redirectRoute('app.campaigns.edit', $copy, navigate: true);
     }
 
     public function disable(string $publicId): void

@@ -92,6 +92,11 @@ class DonationIndex extends Component
         $this->resetPage();
     }
 
+    public function redirectToShow(string $publicId): void
+    {
+        $this->redirectRoute('app.donations.show', $publicId, navigate: true);
+    }
+
     public function sortBy(string $field): void
     {
         if ($this->sortField === $field) {

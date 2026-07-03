@@ -69,6 +69,11 @@ class SupporterIndex extends Component
         $this->resetPage();
     }
 
+    public function redirectToShow(string $publicId): void
+    {
+        $this->redirectRoute('app.supporters.show', $publicId, navigate: true);
+    }
+
     public function clearDate(): void
     {
         $this->period = 'all_time';

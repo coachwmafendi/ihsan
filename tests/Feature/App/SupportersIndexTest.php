@@ -37,6 +37,13 @@ beforeEach(function () {
     ]);
 });
 
+it('redirects to the supporter show page via navigate when a row is clicked', function () {
+    Livewire::actingAs($this->user)
+        ->test(SupporterIndex::class)
+        ->call('redirectToShow', $this->donor->public_id)
+        ->assertRedirect(route('app.supporters.show', $this->donor));
+});
+
 it('renders supporters index with lifetime donated and first and last donation columns', function () {
     $response = $this->actingAs($this->user)->get(route('app.supporters.index'));
 

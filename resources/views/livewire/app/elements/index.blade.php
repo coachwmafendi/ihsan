@@ -165,7 +165,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach ($this->elements as $element)
-                            <tr wire:key="element-row-{{ $element->id }}" class="cursor-pointer transition-colors hover:bg-slate-50" onclick="window.location='{{ route('app.elements.edit', $element) }}'">
+                            <tr wire:key="element-row-{{ $element->id }}" class="cursor-pointer transition-colors hover:bg-slate-50" wire:click="edit({{ $element->id }})">
                                 <td class="px-5 py-4">
                                     <p class="text-sm font-medium text-slate-900">{{ $element->name }}</p>
                                     <p class="text-xs text-slate-500 font-mono">{{ $element->token }}</p>
