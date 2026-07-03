@@ -13,6 +13,7 @@ Static list only. No live DB search of donors/campaigns. Client-side substring f
 - Cmd+K / Ctrl+K opens palette from anywhere inside the authenticated app shell.
 - Topbar gets a "Search..." button styled like the mockup's search bar with a ⌘K badge; clicking it opens the palette too.
 - Esc closes the palette.
+- Topbar becomes `sticky top-0` so the search trigger (and notifications/account dropdown) stay reachable while scrolling long tables (donations, supporters, subscriptions all paginate to long lists).
 
 ## Component
 
@@ -53,9 +54,9 @@ Minimal scoped addition: in `CampaignIndex::mount()`, check `request()->boolean(
 
 ## Navigation
 
-- Selecting a Page item navigates via `wire:navigate` to its route.
-- Selecting the "Create campaign" action redirects to `app.campaigns.index` with `?create=1`.
-- Selecting "New donation record" redirects to `app.donations.index` (plain link, no param).
+- Selecting any Page or Action item navigates via Livewire's SPA navigation (`Livewire.navigate(url)` from the Alpine click handler, or an `<a wire:navigate>` per item) — **never** `window.location.href`. A raw full-page redirect re-mounts the app shell and re-hydrates the sidebar's Alpine store from scratch, which is the exact root cause of the sidebar-flicker bug fixed across donations/supporters/subscriptions/campaigns/elements on 2026-07-03. The palette must not reintroduce it.
+- Selecting the "Create campaign" action navigates to `app.campaigns.index` with `?create=1`.
+- Selecting "New donation record" navigates to `app.donations.index` (plain link, no param).
 
 ## Out of scope (v1)
 
@@ -65,5 +66,5 @@ Minimal scoped addition: in `CampaignIndex::mount()`, check `request()->boolean(
 
 ## Testing
 
-- New feature test for `CommandPalette` Livewire component: renders, filters list by search term (case-insensitive substring), palette open/close toggling.
-- Addition to existing `CampaignIndexTest` (or equivalent): `?create=1` query param causes `open-create-campaign-modal` event dispatch / modal to be shown on mount.
+- New feature test for `CommandPalette` Livewire component: palette open/close toggling (via the `open-command-palette` event and a close method), and the static `items()` data (PAGES/ACTIONS labels, routes, hotkeys) is exactly what's expected. Client-side substring filtering is Alpine-only and isn't exercised by a Livewire PHP test — that behavior is verified manually in-browser, not via an automated feature test.
+- Addition to existing `CampaignIndexActionsTest`: `?create=1` query param causes `open-create-campaign-modal` event dispatch on mount, and the same without the param does not dispatch it.
