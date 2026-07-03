@@ -85,6 +85,11 @@ class SubscriptionIndex extends Component
         $this->resetPage();
     }
 
+    public function redirectToShow(string $publicId): void
+    {
+        $this->redirectRoute('app.subscriptions.show', $publicId, navigate: true);
+    }
+
     public function sortBy(string $field): void
     {
         if ($this->sortField === $field) {

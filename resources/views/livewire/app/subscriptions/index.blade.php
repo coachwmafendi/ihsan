@@ -294,8 +294,9 @@
                                 $isApprox     = ! $isMyr || $totalMyr !== round((float) $subscription->amount * $subscription->payment_count, 2);
                             @endphp
                             <tr
+                                wire:key="subscription-row-{{ $subscription->public_id }}"
+                                wire:click="redirectToShow('{{ $subscription->public_id }}')"
                                 class="cursor-pointer transition-colors hover:bg-slate-50"
-                                onclick="window.location='{{ route('app.subscriptions.show', $subscription) }}'"
                             >
                                 @php
                                     $statusIcon = match ($subscription->status->value) {

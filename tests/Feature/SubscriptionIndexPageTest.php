@@ -38,6 +38,18 @@ it('renders the recurring plans index with a status column', function () {
         ->assertSee('Active');
 });
 
+it('redirects to the subscription show page via navigate when a row is clicked', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->call('redirectToShow', $subscription->public_id)
+        ->assertRedirect(route('app.subscriptions.show', $subscription));
+});
+
 it('displays expected monthly total from active and past due subscriptions', function () {
     Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,
