@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
+use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Enums\UserRole;
+use App\Livewire\App\Dashboard;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -171,4 +173,110 @@ it('switches period filter and exposes computed data arrays', function () {
     expect($component->donationSizes)->toBeArray();
     expect($component->paymentMethods)->toBeArray();
     expect($component->recentDonations)->toBeCollection();
+});
+
+it('calculates MRR by normalizing subscription amounts to a monthly equivalent', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+
+    Subscription::factory()->create([
+        'campaign_id' => $campaign->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'amount' => 100,
+        'currency' => 'myr',
+    ]);
+
+    Subscription::factory()->create([
+        'campaign_id' => $campaign->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Weekly,
+        'amount' => 10,
+        'currency' => 'myr',
+    ]);
+
+    $health = Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->instance()
+        ->recurringHealth();
+
+    // 100 (monthly) + 10 * 52/12 (weekly normalized) = 100 + 43.333... = 143.33
+    expect($health['mrr'])->toEqualWithDelta(143.33, 0.01);
+    expect($health['mrr_has_approximation'])->toBeFalse();
+});
+
+it('counts only past_due and failed subscriptions as at-risk', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+
+    Subscription::factory()->create(['campaign_id' => $campaign->id, 'status' => SubscriptionStatus::PastDue]);
+    Subscription::factory()->create(['campaign_id' => $campaign->id, 'status' => SubscriptionStatus::Failed]);
+    Subscription::factory()->create([
+        'campaign_id' => $campaign->id,
+        'status' => SubscriptionStatus::Active,
+        'failed_installment_count' => 2,
+    ]);
+    Subscription::factory()->create(['campaign_id' => $campaign->id, 'status' => SubscriptionStatus::Cancelled]);
+
+    $health = Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->instance()
+        ->recurringHealth();
+
+    expect($health['at_risk_count'])->toBe(2);
+});
+
+it('sums expected charges only for active subscriptions charging within the next 30 days', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+
+    Subscription::factory()->create([
+        'campaign_id' => $campaign->id,
+        'status' => SubscriptionStatus::Active,
+        'amount' => 50,
+        'currency' => 'myr',
+        'next_charge_at' => now()->addDays(10),
+    ]);
+
+    Subscription::factory()->create([
+        'campaign_id' => $campaign->id,
+        'status' => SubscriptionStatus::Active,
+        'amount' => 999,
+        'currency' => 'myr',
+        'next_charge_at' => now()->addDays(45),
+    ]);
+
+    $health = Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->instance()
+        ->recurringHealth();
+
+    expect($health['expected_30_days'])->toEqualWithDelta(50.0, 0.01);
+    expect($health['expected_30_days_has_approximation'])->toBeFalse();
+});
+
+it('flags approximation when a contributing subscription is not in MYR', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+
+    Subscription::factory()->create([
+        'campaign_id' => $campaign->id,
+        'status' => SubscriptionStatus::Active,
+        'amount' => 100,
+        'currency' => 'usd',
+        'next_charge_at' => now()->addDays(5),
+    ]);
+
+    $health = Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->instance()
+        ->recurringHealth();
+
+    expect($health['mrr_has_approximation'])->toBeTrue();
+    expect($health['expected_30_days_has_approximation'])->toBeTrue();
+});
+
+it('displays recurring revenue health stat cards', function () {
+    actingAs($this->user)
+        ->get('/app/dashboard')
+        ->assertOk()
+        ->assertSee('MRR')
+        ->assertSee('At-risk Subscriptions')
+        ->assertSee('Expected (30 days)');
 });
