@@ -18,11 +18,13 @@
             window.location.href = url;
         },
         handleKeydown(e) {
-            if (this.query === '' && (e.key.toLowerCase() === 'd' || e.key.toLowerCase() === 'k')) {
-                e.preventDefault();
+            if (this.query === '') {
                 const action = this.actions.find(a => a.hotkey.toLowerCase() === e.key.toLowerCase());
-                if (action) { this.go(action.url); }
-                return;
+                if (action) {
+                    e.preventDefault();
+                    this.go(action.url);
+                    return;
+                }
             }
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
@@ -40,10 +42,10 @@
     }"
     x-init="$watch('query', () => highlighted = 0)"
 >
-    <flux:modal wire:model="open" name="command-palette" class="max-w-xl" @close="$wire.closePalette()">
+    <flux:modal wire:model="open" name="command-palette" class="max-w-2xl" @close="$wire.closePalette()">
         <div class="-m-4">
-            <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
-                <x-heroicon-o-magnifying-glass class="size-5 text-slate-400 shrink-0" />
+            <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+                <x-heroicon-o-magnifying-glass class="size-6 text-slate-400 shrink-0" />
                 <input
                     type="text"
                     x-model="query"
@@ -51,7 +53,7 @@
                     x-on:keydown="handleKeydown($event)"
                     x-effect="if ($wire.open) $nextTick(() => $refs.searchInput.focus())"
                     placeholder="Search pages, donors, campaigns..."
-                    class="flex-1 border-0 focus:ring-0 text-sm placeholder:text-slate-400"
+                    class="flex-1 border-0 focus:ring-0 text-base placeholder:text-slate-400"
                     autocomplete="off"
                 >
                 <kbd class="text-xs text-slate-400 border border-slate-200 rounded px-1.5 py-0.5">Esc</kbd>

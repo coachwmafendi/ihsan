@@ -33,12 +33,12 @@ class CommandPalette extends Component
         return [
             'pages' => [
                 ['label' => 'Dashboard', 'route' => 'app.dashboard'],
-                ['label' => 'UI Registry', 'route' => 'app.elements.index'],
+                ['label' => 'Supporters', 'route' => 'app.supporters.index'],
                 ['label' => 'Donations', 'route' => 'app.donations.index'],
                 ['label' => 'Campaigns', 'route' => 'app.campaigns.index'],
             ],
             'actions' => [
-                ['label' => 'New donation record', 'hotkey' => 'D', 'url' => route('app.donations.index')],
+                ['label' => 'New element', 'hotkey' => 'E', 'url' => route('app.elements.create')],
                 ['label' => 'Create campaign', 'hotkey' => 'K', 'url' => route('app.campaigns.index', ['create' => 1])],
             ],
         ];

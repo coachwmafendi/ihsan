@@ -43,11 +43,11 @@ it('exposes the expected pages and actions', function () {
 
     expect($items['pages'])->toHaveCount(4);
     expect(collect($items['pages'])->pluck('label')->all())
-        ->toBe(['Dashboard', 'UI Registry', 'Donations', 'Campaigns']);
+        ->toBe(['Dashboard', 'Supporters', 'Donations', 'Campaigns']);
 
     expect(collect($items['actions'])->pluck('label')->all())
-        ->toBe(['New donation record', 'Create campaign']);
+        ->toBe(['New element', 'Create campaign']);
 
     expect(collect($items['actions'])->pluck('hotkey')->all())
-        ->toBe(['D', 'K']);
+        ->toBe(['E', 'K']);
 });
