@@ -1,5 +1,5 @@
 {{-- resources/views/livewire/app/topbar.blade.php --}}
-<header class="flex items-center justify-between h-16 px-4 md:px-8 bg-white border-b border-slate-200">
+<header class="sticky top-0 z-40 flex items-center justify-between h-16 px-4 md:px-8 bg-white border-b border-slate-200">
     {{-- Left: Mobile menu toggle + page title context --}}
     <div class="flex items-center gap-3">
         <button

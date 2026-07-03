@@ -4,7 +4,7 @@
         highlighted: 0,
         lastQuery: $wire.query,
         go(url) {
-            window.location.href = url;
+            Livewire.navigate(url);
         },
         applyHighlight() {
             const items = this.$el.querySelectorAll('[data-palette-item]');
