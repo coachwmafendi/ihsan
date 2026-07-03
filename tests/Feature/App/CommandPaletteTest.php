@@ -116,3 +116,17 @@ it('requires at least two characters to search supporters', function () {
 
     expect($component->instance()->supporters())->toBeEmpty();
 });
+
+it('limits supporter results to ten', function () {
+    $campaign = Campaign::factory()->for($this->organization)->create();
+
+    Donor::factory()->count(15)->sequence(
+        fn ($sequence) => ['email' => 'donor-'.$sequence->index.'@gmail.com']
+    )->create()->each(fn (Donor $donor) => Donation::factory()->for($donor)->for($campaign)->create());
+
+    $component = Livewire::actingAs($this->user)
+        ->test(CommandPalette::class)
+        ->set('query', 'gmail');
+
+    expect($component->instance()->supporters())->toHaveCount(10);
+});

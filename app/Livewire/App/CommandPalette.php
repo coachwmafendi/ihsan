@@ -104,7 +104,7 @@ class CommandPalette extends Component
                 $q->where('name', 'like', $search)
                     ->orWhere('email', 'like', $search);
             })
-            ->limit(5)
+            ->limit(10)
             ->get()
             ->map(fn (Donor $donor) => [
                 'label' => $donor->name,
