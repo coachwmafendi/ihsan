@@ -190,7 +190,7 @@ it('scopes donor aggregates to the current organization only', function () {
         'organization_id' => $otherOrganization->id,
     ]);
 
-    Donation::factory()->create([
+    $newCurrentDonation = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,
         'donor_id' => $this->donor->id,
         'gross_amount' => 100.00,
@@ -209,7 +209,7 @@ it('scopes donor aggregates to the current organization only', function () {
 
     expect($donor->donations_count)->toBe(3)
         ->and((float) $donor->lifetime_report_amount)->toBe(225.00)
-        ->and(substr((string) $donor->donations_max_created_at, 0, 10))->toBe($this->lastDonation->created_at->format('Y-m-d'));
+        ->and(substr((string) $donor->donations_max_created_at, 0, 10))->toBe($newCurrentDonation->created_at->format('Y-m-d'));
 });
 
 it('redirects guests to login', function () {
