@@ -75,7 +75,8 @@
             <x-ui.stat-card
                 label="Amount Raised"
                 value="{{ $this->getCurrencySymbol() }} {{ number_format((float) $campaign->collected_amount, 2) }}"
-                subtext="{{ $campaign->has_target && $campaign->target_amount ? 'Goal: '.$this->getCurrencySymbol().' '.number_format((float) $campaign->target_amount, 2) : 'No target set' }}"
+                subtext="{{ $campaign->has_target && $campaign->target_amount ? 'Goal: '.$this->getCurrencySymbol().' '.number_format((float) $campaign->target_amount, 2).' ('.number_format(min(100, ((float) $campaign->collected_amount / (float) $campaign->target_amount) * 100), 1).'%)' : 'No target set' }}"
+                :progress="$campaign->has_target && $campaign->target_amount ? ((float) $campaign->collected_amount / (float) $campaign->target_amount) * 100 : null"
             />
             <x-ui.stat-card
                 label="Donations"

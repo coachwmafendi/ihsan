@@ -153,7 +153,7 @@
                                                             <div class="h-full rounded-full bg-teal-500 transition-all" style="width: {{ $pct }}%"></div>
                                                         </div>
                                                     </x-ui.tooltip>
-                                                    <span>{{ number_format($pct, 0) }}%</span>
+                                                    <span>{{ number_format($pct, 1) }}%</span>
                                                 </div>
                                             @endif
                                         </div>
