@@ -31,7 +31,7 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
             return;
         }
 
-        $subscription->loadMissing(['donor', 'campaign.organization']);
+        $subscription->loadMissing(['donor', 'campaign.organization', 'donorPaymentMethod']);
 
         $org = $subscription->campaign?->organization;
 
@@ -76,12 +76,9 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
 
         foreach ($admins as $index => $admin) {
             $adminMail = new SubscriptionAmountChangedNotification(
-                $subscription,
-                $this->previousAmount,
-                $amountDisplay,
-                false,
-                null,
-                $admin,
+                subscription: $subscription,
+                previousAmount: $this->previousAmount,
+                admin: $admin,
             );
 
             Mail::to($admin->email)

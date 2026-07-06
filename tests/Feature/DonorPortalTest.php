@@ -929,9 +929,21 @@ it('sends amount change notification to donor and org admins', function () {
         return $mail->hasTo($donor->email);
     });
     Mail::assertQueued(SubscriptionAmountChangedNotification::class, function ($mail) use ($admin) {
-        return $mail->hasTo($admin->email)
-            && str_contains($mail->render(), 'Hi '.$admin->name);
+        return $mail->hasTo($admin->email);
     });
+
+    $adminMail = Mail::queued(SubscriptionAmountChangedNotification::class)->first();
+    $html = $adminMail->render();
+
+    expect($html)
+        ->toContain('Hi '.$admin->name)
+        ->toContain('Recurring plan has been changed')
+        ->toContain($subscription->public_id)
+        ->toContain($campaign->title)
+        ->toContain($donor->name)
+        ->toContain($donor->email)
+        ->toContain('RM 50.00')
+        ->toContain('Total amount');
 });
 
 it('shows change amount button in subscriptions list instead of standalone page link', function () {

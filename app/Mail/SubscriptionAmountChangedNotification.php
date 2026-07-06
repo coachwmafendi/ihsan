@@ -2,8 +2,10 @@
 
 namespace App\Mail;
 
+use App\Enums\SubscriptionStatus;
 use App\Http\Controllers\DonorNotificationController;
 use App\Mail\Concerns\SetsDonorLocale;
+use App\Models\DonorPaymentMethod;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -22,8 +24,10 @@ class SubscriptionAmountChangedNotification extends Mailable
 
     public function __construct(
         public Subscription $subscription,
-        public float $previousAmount,
-        public string $amountDisplay,
+        public ?float $previousAmount = null,
+        public ?DonorPaymentMethod $previousPaymentMethod = null,
+        public ?SubscriptionStatus $previousStatus = null,
+        public string $changeType = 'amount',
         public bool $isDonor = false,
         public ?string $messageId = null,
         public ?User $admin = null,
@@ -61,17 +65,43 @@ class SubscriptionAmountChangedNotification extends Mailable
     public function content(): Content
     {
         $donor = $this->subscription->donor;
+        $org = $this->subscription->campaign?->organization;
+
+        $currentPaymentMethod = $this->subscription->donorPaymentMethod;
+        $firstDonation = $this->subscription->donations()->oldest()->first();
+
+        $amountChanged = $this->previousAmount !== null
+            && (float) $this->previousAmount !== (float) $this->subscription->amount;
+
+        $paymentMethodChanged = $this->previousPaymentMethod !== null
+            && $this->previousPaymentMethod->getKey() !== $currentPaymentMethod?->getKey();
+
+        $statusChanged = $this->previousStatus !== null
+            && $this->previousStatus !== $this->subscription->status;
+
+        $totalAmount = (float) $this->subscription->amount * (int) $this->subscription->payment_count;
 
         return new Content(
             view: 'emails.subscription-amount-changed-notification',
             with: [
-                'donor' => $donor,
                 'admin' => $this->admin,
+                'amountChanged' => $amountChanged,
+                'changeType' => $this->changeType,
+                'currentPaymentMethod' => $currentPaymentMethod,
+                'donor' => $donor,
                 'emailReference' => $this->emailReference,
+                'firstDonation' => $firstDonation,
                 'locale' => $this->isDonor
                     ? $this->donorLocale($donor)
                     : config('app.locale'),
+                'organization' => $org,
+                'paymentMethodChanged' => $paymentMethodChanged,
+                'previousPaymentMethod' => $this->previousPaymentMethod,
+                'previousStatus' => $this->previousStatus,
+                'statusChanged' => $statusChanged,
+                'totalAmount' => $totalAmount,
                 'unsubscribeUrl' => $donor ? DonorNotificationController::unsubscribeUrl($donor) : null,
+                'viewUrl' => route('app.subscriptions.show', $this->subscription),
             ],
         );
     }

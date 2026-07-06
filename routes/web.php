@@ -358,7 +358,11 @@ if (app()->environment('local')) {
         $amountDisplay = $subscription->currency_symbol.' '.number_format($subscription->amount, 2);
 
         $supporterHtml = (new SupporterSubscriptionAmountChangedNotification($subscription, 50.00))->render();
-        $adminHtml = (new SubscriptionAmountChangedNotification($subscription, 50.00, $amountDisplay, false, null, $admin))->render();
+        $adminHtml = (new SubscriptionAmountChangedNotification(
+            subscription: $subscription,
+            previousAmount: 50.00,
+            admin: $admin,
+        ))->render();
 
         $combined = <<<HTML
 <!DOCTYPE html>

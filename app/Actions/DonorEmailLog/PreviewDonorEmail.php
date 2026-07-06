@@ -84,13 +84,11 @@ class PreviewDonorEmail
 
         $metadata = $log->metadata ?? [];
         $previousAmount = (float) ($metadata['previous_amount'] ?? $log->subscription->amount);
-        $amountDisplay = $metadata['amount_display'] ?? $log->subscription->currency_symbol.' '.number_format($log->subscription->amount, 2);
 
         return new SubscriptionAmountChangedNotification(
-            $log->subscription,
-            $previousAmount,
-            $amountDisplay,
-            true,
+            subscription: $log->subscription,
+            previousAmount: $previousAmount,
+            isDonor: true,
         );
     }
 
