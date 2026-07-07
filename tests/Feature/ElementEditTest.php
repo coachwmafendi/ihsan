@@ -55,11 +55,11 @@ it('renders a visible static button embed with enhancement script for button ele
     $this->actingAs($this->user);
 
     Livewire::test(ElementEdit::class, ['element' => $element])
-        ->assertSee('ihsan-embed-label')
         ->assertSee('ihsan-button')
         ->assertSee($element->token)
         ->assertSee('data-ihsan-token')
-        ->assertSee('data-enhance');
+        ->assertSee('data-enhance')
+        ->assertDontSee('ihsan-embed-label');
 });
 
 it('updates the embed code after saving button config changes', function () {

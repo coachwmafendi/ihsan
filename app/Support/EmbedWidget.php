@@ -223,10 +223,7 @@ class EmbedWidget
             $text
         );
 
-        $labelStyle = 'border:2px dashed #cbd5e1;border-radius:8px;padding:12px 16px;text-align:center;color:#64748b;font-weight:600;font-family:sans-serif;font-size:14px;line-height:1.4;margin-bottom:8px;';
-        $label = sprintf('<div class="ihsan-embed-label" style="%s">Ihsan Button — %s</div>', $labelStyle, $text);
-
-        return sprintf('<div style="text-align:%s;">%s%s</div>', $alignment, $label, $anchor);
+        return sprintf('<div style="text-align:%s;">%s</div>', $alignment, $anchor);
     }
 
     private static function resolveColour(string $raw): string

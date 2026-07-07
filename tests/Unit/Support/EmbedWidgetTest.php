@@ -42,8 +42,8 @@ it('renders a static button with campaign checkout url', function () {
         ->toContain('/checkout/RAMADAN2026?popup=1')
         ->toContain('background:#16a34a')
         ->toContain('border-radius:12px')
-        ->toContain('ihsan-embed-label')
-        ->toContain('Ihsan Button — Donate Now');
+        ->not->toContain('ihsan-embed-label')
+        ->not->toContain('Ihsan Button —');
 });
 
 it('renders fallback donation url when checkout modal is disabled', function () {

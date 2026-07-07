@@ -32,8 +32,8 @@ it('renders static button and enhancement script for button elements', function 
         ->toContain('ihsan-button')
         ->toContain('data-ihsan-token')
         ->toContain('data-enhance')
-        ->toContain('ihsan-embed-label')
-        ->toContain('Donate Now');
+        ->toContain('Donate Now')
+        ->not->toContain('ihsan-embed-label');
 });
 
 it('renders only script widget for non-button elements', function () {
