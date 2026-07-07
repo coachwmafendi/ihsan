@@ -17,6 +17,15 @@ class DonorDonationController extends Controller
     {
         $donor = $request->donor;
 
+        $request->validate([
+            'status' => 'nullable|string',
+            'type' => 'nullable|string',
+            'date_from' => 'nullable|date_format:Y-m-d',
+            'date_to' => 'nullable|date_format:Y-m-d',
+            'amount_min' => 'nullable|numeric|min:0',
+            'amount_max' => 'nullable|numeric|min:0',
+        ]);
+
         $subscriptionFilter = $request->query('subscription');
         $subscription = null;
 

@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserRole;
+use App\Jobs\SendDonorProblemReport;
 use App\Models\Organization;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 
 class DonorPortalController extends Controller
 {
@@ -18,17 +17,18 @@ class DonorPortalController extends Controller
             'message' => 'required|string|max:5000',
         ]);
 
-        $admins = User::query()
-            ->where('organization_id', $organization->getKey())
-            ->where('role', UserRole::NgoAdmin)
-            ->get();
+        $executed = RateLimiter::attempt(
+            'donor-report:'.$donor->getKey(),
+            5,
+            function () use ($donor, $organization, $data): void {
+                dispatch(new SendDonorProblemReport($donor, $organization, $data['message']));
+            },
+            3600
+        );
 
-        foreach ($admins as $admin) {
-            Mail::raw("A donor has reported a problem:\n\n".$data['message']."\n\n---\nDonor: {$donor->name} ({$donor->email})\nOrganization: {$organization->name}", function ($message) use ($admin, $organization) {
-                $message->to($admin->email)
-                    ->subject('Report a Problem — '.$organization->name)
-                    ->replyTo($admin->email);
-            });
+        if (! $executed) {
+            return redirect()->route('donorportal.dashboard', $organization)
+                ->with('error', 'You have sent too many messages. Please try again later.');
         }
 
         return redirect()->route('donorportal.dashboard', $organization)

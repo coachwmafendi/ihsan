@@ -965,3 +965,60 @@ it('shows change amount button in subscriptions list instead of standalone page 
         ->assertSee('Change Amount')
         ->assertDontSee(route('donorportal.subscriptions.increase', [$org, $subscription]), false);
 });
+
+it('redirects to a local path after magic login but blocks open redirects', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create([
+        'magic_token' => hash('sha256', 'valid-token-123'),
+        'magic_token_expires_at' => now()->addHours(24),
+    ]);
+
+    $this->get(route('donorportal.magic-login', [
+        'organization' => $org,
+        'token' => 'valid-token-123',
+        'redirect' => '/donorportal/dashboard',
+    ]))
+        ->assertRedirect('/donorportal/dashboard');
+
+    $donor->fresh();
+
+    $this->get(route('donorportal.magic-login', [
+        'organization' => $org,
+        'token' => 'valid-token-123',
+        'redirect' => '//evil.com',
+    ]))
+        ->assertRedirect(route('donorportal.dashboard', $org));
+});
+
+it('validates donation list filters', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.donations', [
+            'organization' => $org,
+            'date_from' => 'not-a-date',
+            'amount_min' => 'abc',
+        ]))
+        ->assertSessionHasErrors(['date_from', 'amount_min']);
+});
+
+it('throttles report problem submissions', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    for ($i = 0; $i < 5; $i++) {
+        $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+            ->post(route('donorportal.report-problem', $org), [
+                'message' => 'Problem '.$i,
+            ])
+            ->assertRedirect(route('donorportal.dashboard', $org));
+    }
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.report-problem', $org), [
+            'message' => 'Problem 6',
+        ])
+        ->assertRedirect(route('donorportal.dashboard', $org))
+        ->assertSessionHas('error');
+});

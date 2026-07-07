@@ -32,7 +32,11 @@ class DonorImpersonationController extends Controller
             ->whereHas('campaign', fn (Builder $query) => $query->where('organization_id', $organization->getKey()))
             ->exists();
 
-        if (! $hasOrgDonation) {
+        $hasOrgSubscription = $donor->subscriptions()
+            ->whereHas('campaign', fn (Builder $query) => $query->where('organization_id', $organization->getKey()))
+            ->exists();
+
+        if (! $hasOrgDonation && ! $hasOrgSubscription) {
             abort(403);
         }
 
@@ -71,6 +75,21 @@ class DonorImpersonationController extends Controller
             'organization_id',
         ]);
 
-        return redirect()->away($returnUrl);
+        return redirect()->away($this->safeInternalUrl($returnUrl));
+    }
+
+    private function safeInternalUrl(string $url): string
+    {
+        if (str_starts_with($url, '/') && ! str_starts_with($url, '//')) {
+            return $url;
+        }
+
+        $host = parse_url($url, PHP_URL_HOST);
+
+        if ($host !== null && $host === request()->getHost()) {
+            return $url;
+        }
+
+        return route('app.supporters.index');
     }
 }

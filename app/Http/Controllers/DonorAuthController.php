@@ -61,9 +61,10 @@ class DonorAuthController extends Controller
 
         session()->put('donor_id', $donor->getKey());
         session()->put('organization_id', $organization->getKey());
+        session()->regenerate();
 
         $redirect = request()->query('redirect');
-        if ($redirect && str_starts_with($redirect, '/')) {
+        if ($redirect && str_starts_with($redirect, '/') && ! str_starts_with($redirect, '//')) {
             return redirect($redirect);
         }
 

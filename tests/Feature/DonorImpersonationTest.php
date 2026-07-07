@@ -7,6 +7,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
+use App\Models\Subscription;
 use App\Models\User;
 
 it('allows an ngo admin to start impersonating a donor', function () {
@@ -165,4 +166,40 @@ it('keeps donor-only actions enabled for a regular donor session', function () {
     $response->assertDontSee($tooltip, false);
     expect($response->getContent())->not->toMatch('/<button[^>]*disabled[^>]*>.*?Make a new donation/s');
     expect($response->getContent())->not->toMatch('/<button[^>]*disabled[^>]*>.*?Report a problem/s');
+});
+
+it('allows impersonating a donor who only has a subscription to the organization', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Subscription::factory()->for($donor)->for($campaign)->create();
+
+    $this->actingAs($user)
+        ->post(route('admin.donor-portal.impersonate', $donor))
+        ->assertRedirect();
+
+    expect(session('admin_impersonating_donor_id'))->toBe($donor->getKey());
+});
+
+it('sanitizes an external return url when exiting impersonation', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $donor = Donor::factory()->create();
+
+    $this->actingAs($user)
+        ->withSession([
+            'admin_impersonating_donor_id' => $donor->getKey(),
+            'admin_impersonating_donor_public_id' => $donor->public_id,
+            'admin_impersonating_donor_name' => $donor->name,
+            'admin_impersonate_return_url' => 'https://evil.com/phish',
+            'donor_id' => $donor->getKey(),
+            'organization_id' => $organization->getKey(),
+        ])
+        ->post(route('admin.donor-portal.exit'))
+        ->assertRedirect(route('app.supporters.index'));
 });

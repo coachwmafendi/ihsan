@@ -79,8 +79,7 @@ class DonorProfileController extends Controller
                     : [];
 
                 Customer::update($donor->stripe_customer_id, [
-                    'first_name' => $donor->first_name,
-                    'last_name' => $donor->last_name,
+                    'name' => $donor->name,
                     'email' => $data['email'],
                     'phone' => $data['phone'] ?? '',
                     'address' => [
