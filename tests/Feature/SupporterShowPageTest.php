@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\DonationStatus;
 use App\Enums\UserRole;
 use App\Livewire\App\Supporters\SupporterShow;
 use App\Mail\DonationReceipt;
@@ -578,5 +579,49 @@ it('does not show a resent badge for original email log entries', function () {
 
     Livewire::actingAs($user)
         ->test(SupporterShow::class, ['donor' => $donor])
+        ->assertSee($donation->invoice_number)
         ->assertDontSee('Resent');
 });
+
+it('shows a receipt download link for succeeded donations', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create([
+        'status' => DonationStatus::Succeeded,
+        'invoice_number' => 'INV-SUC-001',
+    ]);
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSeeHtml('href="'.e(route('donations.receipt.download', ['donation' => $donation->public_id])).'"')
+        ->assertSee('INV-SUC-001');
+});
+
+it('does not show a receipt download link for non-succeeded donations', function (DonationStatus $status) {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create([
+        'status' => $status,
+        'invoice_number' => 'INV-'.$status->value.'-001',
+    ]);
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertDontSeeHtml('href="'.e(route('donations.receipt.download', ['donation' => $donation->public_id])).'"')
+        ->assertSee('INV-'.$status->value.'-001');
+})->with([
+    DonationStatus::Pending,
+    DonationStatus::Failed,
+    DonationStatus::Refunded,
+    DonationStatus::Cancelled,
+]);

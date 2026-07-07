@@ -330,11 +330,19 @@
                                                 {{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}
                                             </td>
                                             <td class="px-4 py-3 text-sm font-medium text-slate-900">
-                                                <a href="{{ route('donations.receipt.download', ['donation' => $donation->public_id]) }}" target="_blank" class="inline-flex items-center gap-1.5 text-teal-600 hover:text-teal-700">
-                                                    <x-heroicon-o-receipt-percent class="size-4" />
-                                                    {{ $donation->invoice_number ?? 'Receipt' }}
-                                                    <x-heroicon-o-arrow-down-tray class="size-4" />
-                                                </a>
+                                                @if ($donation->status->value === 'succeeded')
+                                                    <a href="{{ route('donations.receipt.download', ['donation' => $donation->public_id]) }}" target="_blank" class="inline-flex items-center gap-1.5 text-teal-600 hover:text-teal-700">
+                                                        <x-heroicon-o-receipt-percent class="size-4" />
+                                                        {{ $donation->invoice_number ?? 'Receipt' }}
+                                                        <x-heroicon-o-arrow-down-tray class="size-4" />
+                                                    </a>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1.5 text-slate-500">
+                                                        <x-heroicon-o-receipt-percent class="size-4" />
+                                                        {{ $donation->invoice_number ?? 'Receipt' }}
+                                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{{ str($donation->status->value)->headline() }}</span>
+                                                    </span>
+                                                @endif
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-900">
                                                 {{ $donation->currency_symbol }} {{ number_format((float) $donation->gross_amount, 2) }}
