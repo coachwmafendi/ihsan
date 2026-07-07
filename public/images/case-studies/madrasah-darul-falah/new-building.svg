@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" role="img" aria-label="New main building under construction">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffbeb"/>
+      <stop offset="1" stop-color="#fef3c7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="560" fill="url(#bg)"/>
+  <circle cx="870" cy="100" r="160" fill="#fde68a" opacity="0.55"/>
+  <circle cx="110" cy="470" r="190" fill="#fbbf24" opacity="0.18"/>
+
+  <!-- building under construction -->
+  <g stroke="#b45309" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.75">
+    <rect x="330" y="180" width="340" height="180" rx="6"/>
+    <path d="M330 240 h340 M330 300 h340 M415 180 v180 M500 180 v180 M585 180 v180"/>
+    <path d="M300 360 h400"/>
+    <!-- crane -->
+    <path d="M710 360 v-260 h-160 M710 150 v30 M630 100 v50" opacity="0.55"/>
+    <path d="M630 150 l80 -50" opacity="0.55"/>
+  </g>
+
+  <!-- progress bar -->
+  <rect x="300" y="420" width="400" height="22" rx="11" fill="#fde68a"/>
+  <rect x="300" y="420" width="200" height="22" rx="11" fill="#d97706"/>
+  <text x="500" y="478" text-anchor="middle" font-family="'Instrument Sans', system-ui, sans-serif" font-size="30" font-weight="700" fill="#92400e">Fasa 1 — 50% siap</text>
+  <text x="500" y="512" text-anchor="middle" font-family="'Instrument Sans', system-ui, sans-serif" font-size="20" fill="#b45309">Sasaran tabung pembangunan: RM 1.7 juta</text>
+</svg>

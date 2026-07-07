@@ -10,6 +10,15 @@ test('madrasah darul falah case study page loads', function () {
         ->assertSee('madrasahdarulfalah.org');
 });
 
+test('case study page uses a light background and shows story images', function () {
+    $response = $this->get(route('case-studies.madrasah-darul-falah'));
+
+    $response->assertOk()
+        ->assertSee('bg-white text-slate-600 font-sans antialiased', false)
+        ->assertSee('<figure', false)
+        ->assertSee('Madrasah Darul Falah, Kg. Pengkalan Maras, Kuala Nerus, Terengganu');
+});
+
 test('case study page shows key results and story sections', function () {
     $this->get(route('case-studies.madrasah-darul-falah'))
         ->assertOk()
