@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\CaseStudyController;
 use App\Http\Controllers\ChipCallbackController;
 use App\Http\Controllers\ChipFinalizeController;
 use App\Http\Controllers\ChipWebhookController;
@@ -55,7 +54,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 Route::view('/', 'welcome')->name('home');
 Route::get('/register-organization', RegisterOrganization::class)->name('register.org');
 Route::get('/demo/msk', DemoLandingController::class)->name('demo.msk');
-Route::get('/case-studies/{slug}', [CaseStudyController::class, 'show'])->name('case-studies.show');
+Route::view('/case-studies/madrasah-darul-falah', 'case-studies.madrasah-darul-falah')->name('case-studies.madrasah-darul-falah');
 
 Route::get('/_test-widget', fn () => response('<!DOCTYPE html><html><body style="padding:40px"><h2>Widget Test</h2><script src="/e/widget.js" data-token="sgxqLo" data-api-base="'.config('app.url').'"></script></body></html>')->header('Content-Type', 'text/html'));
 

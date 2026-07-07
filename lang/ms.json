@@ -83,5 +83,70 @@
     "footer.email": "hello@getihsan.my",
 
     "preview.title": "Lihat platform dalam tindakan",
-    "preview.subtitle": "Dashboard yang bersih dan berkuasa, dibina untuk operasi NGO — tanpa latihan diperlukan."
+    "preview.subtitle": "Dashboard yang bersih dan berkuasa, dibina untuk operasi NGO — tanpa latihan diperlukan.",
+
+    "nav.case_study": "Kajian Kes",
+
+    "case.meta_title": "Madrasah Darul Falah × Ihsan — Kajian Kes",
+    "case.label": "Kajian Kes",
+    "case.title": "Madrasah Darul Falah gandakan derma online dengan Ihsan",
+    "case.subtitle": "Bagaimana sebuah sekolah rendah agama di Kuala Nerus, Terengganu mengubah kutipan bermusim melalui pindahan bank kepada sokongan bulanan yang stabil untuk 185 pelajar — dan tabung pembangunan RM1.7 juta.",
+
+    "case.stat1.value": "2.1x",
+    "case.stat1.label": "kadar penukaran derma online",
+    "case.stat2.value": "38%",
+    "case.stat2.label": "donor online kini menderma bulanan",
+    "case.stat3.value": "92%",
+    "case.stat3.label": "donor menanggung processing fee",
+    "case.stat4.value": "10+ jam",
+    "case.stat4.label": "kerja admin dijimatkan setiap bulan",
+
+    "case.facts.title": "Sekilas pandang",
+    "case.facts.org_label": "Organisasi",
+    "case.facts.org": "Madrasah Darul Falah",
+    "case.facts.location_label": "Lokasi",
+    "case.facts.location": "Kg. Pengkalan Maras, Kuala Nerus, Terengganu",
+    "case.facts.sector_label": "Sektor",
+    "case.facts.sector": "Pendidikan rendah Islam",
+    "case.facts.founded_label": "Ditubuhkan",
+    "case.facts.founded": "2015",
+    "case.facts.size_label": "Komuniti",
+    "case.facts.size": "185 pelajar · 16 guru · 6 staf",
+    "case.facts.website_label": "Laman Web",
+    "case.facts.since_label": "Guna Ihsan sejak",
+    "case.facts.since": "2025",
+    "case.facts.visit_website": "Lawati laman web",
+
+    "case.about.title": "Tentang Madrasah Darul Falah",
+    "case.about.p1": "Madrasah Darul Falah ialah sekolah rendah agama di Kg. Pengkalan Maras, Mengabang Telipot, Kuala Nerus, Terengganu. Ditubuhkan pada 2015 dan mula beroperasi pada Januari 2016 di atas tanah yang disumbangkan, madrasah ini menyediakan pendidikan al-Quran dan ilmu fardu ain kepada 185 pelajar, dibantu oleh 16 guru dan 6 staf sokongan.",
+    "case.about.p2": "Ramai pelajarnya anak yatim dan asnaf daripada latar keluarga yang sukar — tidak mampu menanggung persekolahan, makanan, buku, dan asrama. Untuk terus berkhidmat, madrasah melancarkan tabung pembangunan dengan sasaran Fasa 1 sebanyak RM1.7 juta — bangunan utama kini lebih 50% siap.",
+
+    "case.challenge.title": "Cabaran",
+    "case.challenge.p1": "Seperti kebanyakan madrasah, Darul Falah mengumpul dana melalui nombor akaun pada poster, hebahan WhatsApp, dan kempen bermusim. Donor terpaksa menyalin nombor akaun, membuat pindahan secara manual, dan menghantar bukti pembayaran — dan setiap resit rasmi ditaip dengan tangan.",
+    "case.challenge.p2": "Derma memuncak pada bulan Ramadan, kemudian sunyi sepanjang tahun. Tiada cara untuk penyokong menderma bulanan, tiada rekod donor, dan tiada butang derma di laman web madrasah sendiri.",
+    "case.challenge.quote": "Penyokong sering memberitahu mereka mahu membantu selepas Ramadan. Kami percaya — cuma kami tidak pernah memudahkannya.",
+    "case.challenge.quote_by": "Pasukan Fundraising & Pembangunan, Madrasah Darul Falah",
+
+    "case.solution.title": "Penyelesaian",
+    "case.solution.intro": "Dengan Ihsan, madrasah menambah borang derma dan butang derma terapung pada laman web sedia ada dengan satu script tag sahaja — tanpa developer. Tabung Pembangunan menjadi halaman kempen dengan progress bar secara langsung, dan derma bulanan menjadi pilihan utama.",
+    "case.solution.point1": "Borang derma & butang terapung dipasang dalam satu petang",
+    "case.solution.point2": "Halaman kempen Tabung Pembangunan dengan sasaran & progress langsung",
+    "case.solution.point3": "Pelan auto-debit bulanan yang diurus sendiri oleh donor melalui Donor Portal",
+    "case.solution.point4": "Resit PDF automatik, sedia untuk LHDN, bagi setiap derma",
+    "case.solution.point5": "Virtual Terminal untuk derma walk-in dan telefon di pejabat",
+    "case.solution.point6": "Smart retry yang memulihkan bayaran berulang gagal secara automatik",
+
+    "case.results.title": "Hasilnya",
+    "case.results.p1": "Dalam beberapa bulan, penukaran derma online meningkat lebih dua kali ganda berbanding kaedah lama pindahan-dan-WhatsApp. 38% donor online memilih pelan bulanan, memberikan madrasah pendapatan yang boleh dijangka buat pertama kalinya.",
+    "case.results.p2": "Oleh kerana 92% donor memilih untuk menanggung processing fee, hampir setiap ringgit yang diderma sampai kepada pelajar. Dengan resit, peringatan, dan cubaan semula bayaran gagal diautomasikan sepenuhnya, pejabat menjimatkan lebih sepuluh jam kerja manual setiap bulan.",
+    "case.results.quote": "Pada bulan pertama, derma berulang sahaja sudah menampung program makanan pelajar kami. Kini kami merancang ke hadapan, bukan menunggu kempen seterusnya.",
+    "case.results.quote_by": "Pentadbiran Madrasah, Madrasah Darul Falah",
+
+    "case.cta.title": "Organisasi anda mungkin seterusnya",
+    "case.cta.subtitle": "Sediakan kempen, borang derma, dan derma bulanan dalam masa kurang 30 minit — percuma semasa MVP.",
+
+    "case.img.hero_caption": "Madrasah Darul Falah, Kg. Pengkalan Maras, Kuala Nerus, Terengganu",
+    "case.img.students_caption": "Ramai pelajar ialah anak yatim dan asnaf yang menerima persekolahan, makanan, dan asrama secara percuma.",
+    "case.img.form_caption": "Borang derma Ihsan yang dipasang pada laman web madrasah.",
+    "case.img.building_caption": "Bangunan utama baharu dalam pembinaan — kini lebih 50% siap."
 }
