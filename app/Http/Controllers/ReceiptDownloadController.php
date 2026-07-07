@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Donation;
 use App\Models\Organization;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ReceiptDownloadController extends Controller
@@ -16,8 +18,16 @@ class ReceiptDownloadController extends Controller
         return $this->download($donation);
     }
 
-    public function signed(Request $request, Donation $donation): Response
+    public function signed(Request $request, Donation $donation): Response|RedirectResponse
     {
+        if (! URL::hasValidSignature($request)) {
+            $organization = $donation->campaign?->organization;
+
+            return $organization !== null
+                ? redirect()->route('donorportal.login', ['organization' => $organization])
+                : redirect()->route('login');
+        }
+
         return $this->downloadReceipt($donation);
     }
 

@@ -43,17 +43,17 @@ it('downloads receipt for one-time donations', function () {
         ->assertHeader('content-type', 'application/pdf');
 });
 
-it('rejects an invalid signed url', function () {
+it('redirects an invalid signed url to the donor portal login', function () {
     $donation = Donation::factory()->create([
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::Recurring,
     ]);
 
     $this->get('/receipts/'.$donation->public_id.'?signature=invalid')
-        ->assertForbidden();
+        ->assertRedirect(route('donorportal.login', $donation->campaign->organization));
 });
 
-it('rejects an expired signed url', function () {
+it('redirects an expired signed url to the donor portal login', function () {
     $donation = Donation::factory()->create([
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::Recurring,
@@ -62,7 +62,7 @@ it('rejects an expired signed url', function () {
     $url = URL::signedRoute('receipts.signed', ['donation' => $donation], now()->subMinute());
 
     $this->get($url)
-        ->assertForbidden();
+        ->assertRedirect(route('donorportal.login', $donation->campaign->organization));
 });
 
 it('returns 404 for non-succeeded donations via signed url', function () {
@@ -107,12 +107,12 @@ it('rejects an invalid token', function () {
         ->assertNotFound();
 });
 
-it('rejects a request when token is missing', function () {
+it('redirects to the donor portal login when the token is missing', function () {
     $donation = Donation::factory()->create([
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::Recurring,
     ]);
 
     $this->get('/receipts/'.$donation->public_id)
-        ->assertForbidden();
+        ->assertRedirect(route('donorportal.login', $donation->campaign->organization));
 });

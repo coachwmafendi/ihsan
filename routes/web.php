@@ -122,8 +122,7 @@ Route::get('/receipts/{donation:public_id}/{token}', [ReceiptDownloadController:
     ->name('receipts.token');
 
 Route::get('/receipts/{donation:public_id}', [ReceiptDownloadController::class, 'signed'])
-    ->name('receipts.signed')
-    ->middleware('signed');
+    ->name('receipts.signed');
 
 Route::get('/api/public/elements/{token}', [PublicElementController::class, 'show'])
     ->name('api.public.elements.show');
