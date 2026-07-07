@@ -118,6 +118,9 @@ Route::get('/e/button/{token}', [EmbedCheckoutController::class, 'button'])->nam
 Route::get('/embed.js', [EmbedCheckoutController::class, 'script'])->name('embed.script');
 Route::get('/checkout/{form}', [EmbedCheckoutController::class, 'checkout'])->name('checkout.form');
 
+Route::get('/receipts/{donation:public_id}/{token}', [ReceiptDownloadController::class, 'token'])
+    ->name('receipts.token');
+
 Route::get('/receipts/{donation:public_id}', [ReceiptDownloadController::class, 'signed'])
     ->name('receipts.signed')
     ->middleware('signed');

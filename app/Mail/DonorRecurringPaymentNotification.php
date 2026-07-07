@@ -128,6 +128,6 @@ class DonorRecurringPaymentNotification extends Mailable
             return null;
         }
 
-        return URL::signedRoute('receipts.signed', ['donation' => $this->donation], now()->addDays(30));
+        return $this->donation->receiptUrl();
     }
 }

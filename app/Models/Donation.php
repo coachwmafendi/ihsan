@@ -81,6 +81,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $cvc_result
  * @property string $fraud_status
  * @property string|null $public_id
+ * @property string|null $receipt_token
  * @property string|null $source
  * @property-read Collection<int, Activity> $activitiesAsSubject
  * @property-read int|null $activities_as_subject_count
@@ -156,7 +157,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['campaign_id', 'donor_id', 'subscription_id', 'source', 'public_id', 'stripe_payment_intent_id', 'chip_purchase_id', 'chip_recurring_token', 'chip_checkout_url', 'stripe_charge_id', 'stripe_invoice_id', 'payment_method_brand', 'payment_method_type', 'donor_country', 'gross_amount', 'stripe_fee', 'chip_fee', 'donor_fee_covered', 'processing_fee', 'stripe_fee_details', 'net_amount', 'currency', 'base_currency', 'base_amount', 'exchange_rate', 'status', 'type', 'donor_message', 'is_anonymous', 'utm_params', 'invoice_number', 'device_type', 'ip_address', 'browser', 'os', 'page_url', 'geo_city', 'geo_region', 'payment_method_last4', 'billing_address_line1', 'billing_address_line2', 'billing_address_city', 'billing_address_state', 'billing_address_postal_code', 'billing_country', 'receipt_sent_at', 'new_donation_notification_sent_at', 'large_donation_notification_sent_at', 'refunded_at', 'finalized_at', 'risk_score', 'risk_level', 'avs_result', 'cvc_result', 'fraud_status'])]
+#[Fillable(['campaign_id', 'donor_id', 'subscription_id', 'source', 'public_id', 'receipt_token', 'stripe_payment_intent_id', 'chip_purchase_id', 'chip_recurring_token', 'chip_checkout_url', 'stripe_charge_id', 'stripe_invoice_id', 'payment_method_brand', 'payment_method_type', 'donor_country', 'gross_amount', 'stripe_fee', 'chip_fee', 'donor_fee_covered', 'processing_fee', 'stripe_fee_details', 'net_amount', 'currency', 'base_currency', 'base_amount', 'exchange_rate', 'status', 'type', 'donor_message', 'is_anonymous', 'utm_params', 'invoice_number', 'device_type', 'ip_address', 'browser', 'os', 'page_url', 'geo_city', 'geo_region', 'payment_method_last4', 'billing_address_line1', 'billing_address_line2', 'billing_address_city', 'billing_address_state', 'billing_address_postal_code', 'billing_country', 'receipt_sent_at', 'new_donation_notification_sent_at', 'large_donation_notification_sent_at', 'refunded_at', 'finalized_at', 'risk_score', 'risk_level', 'avs_result', 'cvc_result', 'fraud_status'])]
 class Donation extends Model
 {
     /** @use HasFactory<DonationFactory> */
@@ -182,6 +183,10 @@ class Donation extends Model
             if (! $donation->public_id) {
                 $donation->public_id = PublicIdGenerator::generate(static::class);
             }
+
+            if (! $donation->receipt_token) {
+                $donation->receipt_token = static::generateReceiptToken();
+            }
         });
 
         static::created(function (Donation $donation) {
@@ -190,6 +195,20 @@ class Donation extends Model
                 $donation->saveQuietly();
             }
         });
+    }
+
+    public static function generateReceiptToken(): string
+    {
+        do {
+            $token = Str::random(32);
+        } while (static::query()->where('receipt_token', $token)->exists());
+
+        return $token;
+    }
+
+    public function receiptUrl(): string
+    {
+        return route('receipts.token', ['donation' => $this, 'token' => $this->receipt_token]);
     }
 
     public function campaign(): BelongsTo

@@ -76,3 +76,43 @@ it('returns 404 for non-succeeded donations via signed url', function () {
     $this->get($url)
         ->assertNotFound();
 });
+
+it('downloads receipt with a valid token', function () {
+    $donation = Donation::factory()->create([
+        'type' => DonationType::Recurring,
+        'status' => DonationStatus::Succeeded,
+        'invoice_number' => 'INV-TOK-001',
+    ]);
+
+    $url = route('receipts.token', ['donation' => $donation, 'token' => $donation->receipt_token]);
+
+    $response = $this->get($url);
+
+    $response
+        ->assertSuccessful()
+        ->assertHeader('content-type', 'application/pdf');
+
+    expect($response->headers->get('content-disposition'))->toContain('INV-TOK-001');
+});
+
+it('rejects an invalid token', function () {
+    $donation = Donation::factory()->create([
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::Recurring,
+    ]);
+
+    $url = route('receipts.token', ['donation' => $donation, 'token' => 'invalid-token']);
+
+    $this->get($url)
+        ->assertNotFound();
+});
+
+it('rejects a request when token is missing', function () {
+    $donation = Donation::factory()->create([
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::Recurring,
+    ]);
+
+    $this->get('/receipts/'.$donation->public_id)
+        ->assertForbidden();
+});

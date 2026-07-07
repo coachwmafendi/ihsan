@@ -18,6 +18,25 @@ class ReceiptDownloadController extends Controller
 
     public function signed(Request $request, Donation $donation): Response
     {
+        return $this->downloadReceipt($donation);
+    }
+
+    public function token(Request $request, Donation $donation, string $token): Response
+    {
+        if ($token !== $donation->receipt_token) {
+            throw new NotFoundHttpException('Receipt not available for this donation.');
+        }
+
+        return $this->downloadReceipt($donation);
+    }
+
+    public function downloadForOrganization(Organization $organization, Donation $donation): Response
+    {
+        return $this->download($donation, $organization);
+    }
+
+    private function downloadReceipt(Donation $donation): Response
+    {
         if ($donation->status->value !== 'succeeded') {
             throw new NotFoundHttpException('Receipt not available for this donation.');
         }
@@ -31,11 +50,6 @@ class ReceiptDownloadController extends Controller
         ]);
 
         return $pdf->download($filename);
-    }
-
-    public function downloadForOrganization(Organization $organization, Donation $donation): Response
-    {
-        return $this->download($donation, $organization);
     }
 
     private function download(Donation $donation, ?Organization $organization = null): Response
