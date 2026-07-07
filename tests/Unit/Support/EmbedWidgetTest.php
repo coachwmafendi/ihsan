@@ -42,6 +42,7 @@ it('renders a static button with campaign checkout url', function () {
         ->toContain('/checkout/RAMADAN2026?popup=1')
         ->toContain('background:#16a34a')
         ->toContain('border-radius:12px')
+        ->toContain('cursor:pointer !important')
         ->not->toContain('ihsan-embed-label')
         ->not->toContain('Ihsan Button —');
 });

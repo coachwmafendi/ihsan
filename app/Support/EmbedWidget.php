@@ -145,14 +145,14 @@ class EmbedWidget
 
         $anchorStyle = ($config['style'] ?? 'button') === 'button'
             ? sprintf(
-                'display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;font-weight:600;line-height:1.3;white-space:nowrap;letter-spacing:.01em;color:#fff;background:%s;padding:%s;font-size:%s;border-radius:%s;box-shadow:0 2px 8px rgba(0,0,0,.12);font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;',
+                'display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer !important;text-decoration:none;font-weight:600;line-height:1.3;white-space:nowrap;letter-spacing:.01em;color:#fff;background:%s;padding:%s;font-size:%s;border-radius:%s;box-shadow:0 2px 8px rgba(0,0,0,.12);font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;',
                 $colour,
                 $padding,
                 $fontSize,
                 $radius
             )
             : sprintf(
-                'color:%s;font-size:%s;font-weight:500;text-decoration:underline;text-underline-offset:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;',
+                'color:%s;font-size:%s;font-weight:500;text-decoration:underline;text-underline-offset:2px;cursor:pointer !important;font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;',
                 $colour,
                 $fontSize
             );
@@ -207,7 +207,7 @@ class EmbedWidget
             : 'center';
 
         $buttonStyle = sprintf(
-            'display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;font-weight:600;line-height:1.3;white-space:nowrap;letter-spacing:.01em;color:#fff;background:%s;padding:%s;font-size:%s;border-radius:%s;box-shadow:0 3px 12px rgba(0,0,0,.15);font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;',
+            'display:inline-flex;align-items:center;justify-content:center;gap:7px;cursor:pointer !important;text-decoration:none;font-weight:600;line-height:1.3;white-space:nowrap;letter-spacing:.01em;color:#fff;background:%s;padding:%s;font-size:%s;border-radius:%s;box-shadow:0 3px 12px rgba(0,0,0,.15);font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;',
             $colour,
             $padding,
             $fontSize,

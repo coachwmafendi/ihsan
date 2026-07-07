@@ -155,8 +155,8 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                                     @php
                                         $isCurrent = $index === $currentCheckpointIndex;
                                         $label = match ($index) {
-                                            0 => 'RM '.number_format($raised, 2),
-                                            default => 'RM'.number_format($amount / 1000, 0).'k',
+                                            0 => 'RM0',
+                                            default => 'RM'.number_format($amount / 1000, 0).'K',
                                         };
                                         $baseClasses = $index === 0
                                             ? 'shrink-0 text-left'

@@ -20,7 +20,7 @@
             justify-content: {{ $alignment }};
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        a {
+        a, button.cta {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -35,27 +35,30 @@
             padding: {{ $padding }};
             font-size: {{ $fontSize }};
             border-radius: {{ $radius }};
+            border: 0;
             box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
             transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer !important;
+            font-family: inherit;
         }
-        a:hover {
+        a:hover, button.cta:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 18px rgba(0, 0, 0, 0.22);
         }
-        a:active {
+        a:active, button.cta:active {
             transform: scale(0.97);
         }
-        a svg {
+        a svg, button.cta svg {
             flex-shrink: 0;
         }
     </style>
 </head>
 <body>
     @if ($openInPopup)
-        <a href="{{ $url }}" target="_blank" rel="noopener" onclick="openCheckout(event, '{{ $url }}')">
+        <button type="button" class="cta" onclick="openCheckout(event, '{{ $url }}')">
             {!! $iconSvg !!}
             <span>{{ $text }}</span>
-        </a>
+        </button>
         <script>
             function openCheckout(event, url) {
                 event.preventDefault();

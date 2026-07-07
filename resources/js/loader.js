@@ -190,7 +190,15 @@
     var token = el.getAttribute("data-ihsan") || el.getAttribute("data-ihsan-token");
     if (!token) return;
 
-    el.style.cursor = "pointer";
+    // Strip href from anchor triggers so browsers don't show the URL in the
+    // status bar on hover — the modal is opened via JavaScript instead.
+    if (el.tagName.toLowerCase() === "a") {
+      el.removeAttribute("href");
+      el.removeAttribute("target");
+      el.removeAttribute("rel");
+    }
+
+    el.style.setProperty("cursor", "pointer", "important");
 
     el.addEventListener("click", function (e) {
       e.preventDefault();

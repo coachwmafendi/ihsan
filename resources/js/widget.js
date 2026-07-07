@@ -226,7 +226,7 @@
       "color:#1e293b",
       "font-size:22px",
       "line-height:1",
-      "cursor:pointer",
+      "cursor:pointer !important",
       "display:flex",
       "align-items:center",
       "justify-content:center",
@@ -437,7 +437,7 @@
       "align-items:center",
       "justify-content:center",
       "gap:" + gap,
-      "cursor:pointer",
+      "cursor:pointer !important",
       "border:0",
       "outline:none",
       "box-shadow:0 4px 16px rgba(0,0,0,.18)",
@@ -559,7 +559,7 @@
       "display:flex",
       "align-items:center",
       "justify-content:center",
-      "cursor:pointer",
+      "cursor:pointer !important",
       "border:0",
       "outline:none",
       "box-shadow:0 4px 16px rgba(0,0,0,.18)",
@@ -679,7 +679,7 @@
       "align-items:center",
       "justify-content:center",
       "gap:" + gap,
-      "cursor:pointer",
+      "cursor:pointer !important",
       "border:0",
       "outline:none",
       "box-shadow:" + shadowColour,
@@ -821,11 +821,11 @@
       var btnText = esc(s.button_text || s.text || "Derma Sekarang");
       var hasImage = !!s.image_url;
       var isFull = s.layout === "full";
-      var closeBtn = '<button data-close style="position:absolute;top:-8px;right:-8px;width:36px;height:36px;border:2px solid rgba(0,0,0,.15);border-radius:50%;background:#fff;color:#64748b;font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.14);box-sizing:border-box;transition:background .15s,color .15s;z-index:2;" onmouseenter="this.style.background=\'#f1f5f9\';this.style.color=\'#0f172a\';" onmouseleave="this.style.background=\'#fff\';this.style.color=\'#64748b\';">&times;</button>';
+      var closeBtn = '<button data-close style="position:absolute;top:-8px;right:-8px;width:36px;height:36px;border:2px solid rgba(0,0,0,.15);border-radius:50%;background:#fff;color:#64748b;font-size:22px;line-height:1;cursor:pointer !important;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.14);box-sizing:border-box;transition:background .15s,color .15s;z-index:2;" onmouseenter="this.style.background=\'#f1f5f9\';this.style.color=\'#0f172a\';" onmouseleave="this.style.background=\'#fff\';this.style.color=\'#64748b\';">&times;</button>';
       var ctaBg = popupHasEffect
         ? popupEffectGradients[popupEffect] + ";background-size:300% 300%;animation:ihsan-grad-" + popupEffect + " 4s ease infinite"
         : color;
-      var ctaBtn = '<button data-cta style="display:inline-block;background:' + ctaBg + ";color:#fff;padding:12px 32px;border:0;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.14);" + '">' + btnText + "</button>";
+      var ctaBtn = '<button data-cta style="display:inline-block;background:' + ctaBg + ";color:#fff;padding:12px 32px;border:0;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer !important;transition:transform .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.14);" + '">' + btnText + "</button>";
 
       var cardHtml = '<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;box-shadow:0 24px 80px rgba(15,23,42,.28);text-align:center;position:relative;">';
       cardHtml += closeBtn;
@@ -980,13 +980,19 @@
       document.head.appendChild(lStyleEl);
     }
 
-    var link = document.createElement("a");
-    link.href = href;
-    link.target = "_blank";
-    link.rel = "noopener";
-    link.style.display = "inline-block";
-    link.style.textDecoration = "none";
-    link.style.textAlign = "center";
+    var action = s.action || "open_campaign_page";
+    var isCheckoutModal = action === "checkout_modal" || action === "open_checkout_modal";
+
+    var link;
+    if (isCheckoutModal) {
+      link = document.createElement("button");
+      link.type = "button";
+    } else {
+      link = document.createElement("a");
+      link.href = href;
+      link.target = "_blank";
+      link.rel = "noopener";
+    }
 
     if (style === "button") {
       link.style.cssText = [
@@ -994,7 +1000,7 @@
         "align-items:center",
         "justify-content:center",
         "gap:6px",
-        "cursor:pointer",
+        "cursor:pointer !important",
         "border:0",
         "outline:none",
         "box-shadow:0 2px 8px rgba(0,0,0,.12)",
@@ -1017,20 +1023,24 @@
       link.innerHTML = iconHtml + "<span>" + text + "</span>";
     } else {
       link.style.cssText = [
+        "display:inline-block",
+        "text-decoration:none",
+        "text-align:center",
         "color:" + color,
         "font-size:" + fontSize,
         "font-weight:500",
         "text-decoration:underline",
         "text-underline-offset:2px",
+        "background:none",
+        "border:0",
+        "padding:0",
+        "font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif",
+        "cursor:pointer !important",
       ].join(";");
       link.textContent = text;
     }
 
-    var action = s.action || "open_campaign_page";
-    if (action === "checkout_modal" || action === "open_checkout_modal") {
-      link.href = "#";
-      link.removeAttribute("target");
-      link.removeAttribute("rel");
+    if (isCheckoutModal) {
       link.addEventListener("click", function (e) {
         e.preventDefault();
         showCheckoutModal(el);
@@ -1100,6 +1110,15 @@
     return null;
   }
 
+  function stripAnchorHrefForCheckoutModal(anchor, settings) {
+    var action = (settings || {}).action || "open_campaign_page";
+    if (action === "checkout_modal" || action === "open_checkout_modal") {
+      anchor.removeAttribute("href");
+      anchor.removeAttribute("target");
+      anchor.removeAttribute("rel");
+    }
+  }
+
   function enhanceExistingElement(el) {
     var anchor = findStaticElement(el.token);
     if (anchor) {
@@ -1107,6 +1126,12 @@
         return;
       }
       anchor.setAttribute("data-ihsan-enhanced", "true");
+      stripAnchorHrefForCheckoutModal(anchor, el.settings);
+      anchor.style.setProperty("cursor", "pointer", "important");
+      anchor.setAttribute("role", "button");
+      if (!anchor.hasAttribute("tabindex")) {
+        anchor.setAttribute("tabindex", "0");
+      }
       anchor.addEventListener("click", function (e) {
         e.preventDefault();
         handleClick(el);
@@ -1126,6 +1151,12 @@
         fallbackAnchor.getAttribute("data-ihsan-enhanced") !== "true"
       ) {
         fallbackAnchor.setAttribute("data-ihsan-enhanced", "true");
+        stripAnchorHrefForCheckoutModal(fallbackAnchor, el.settings);
+        fallbackAnchor.style.setProperty("cursor", "pointer", "important");
+        fallbackAnchor.setAttribute("role", "button");
+        if (!fallbackAnchor.hasAttribute("tabindex")) {
+          fallbackAnchor.setAttribute("tabindex", "0");
+        }
         fallbackAnchor.addEventListener("click", function (e) {
           e.preventDefault();
           handleClick(el);

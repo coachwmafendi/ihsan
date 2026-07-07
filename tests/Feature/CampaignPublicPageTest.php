@@ -172,3 +172,25 @@ it('passes the campaign public id to the donation form root', function () {
         ->assertSuccessful()
         ->assertSee('data-campaign-public-id="'.$campaign->public_id.'"', false);
 });
+
+it('renders milestone labels with uppercase K and RM0 at the start', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => Organization::factory()->create(),
+        'status' => CampaignStatus::Active,
+        'target_amount' => 100000.00,
+        'collected_amount' => 13752.31,
+    ]);
+
+    $response = $this->get('/campaigns/'.$campaign->public_id);
+
+    $response
+        ->assertSuccessful()
+        ->assertSee('RM0')
+        ->assertSee('RM10K')
+        ->assertSee('RM25K')
+        ->assertSee('RM50K')
+        ->assertSee('RM100K')
+        ->assertSee('13.8%')
+        ->assertDontSee('RM10k')
+        ->assertDontSee('RM25k');
+});
