@@ -38,6 +38,19 @@ it('renders the recurring plans index with a status column', function () {
         ->assertSee('Active');
 });
 
+it('shows next installment tooltip on the status label', function () {
+    Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'current_period_end' => now()->addMonth(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->assertStatus(200)
+        ->assertSee('Next installment:');
+});
+
 it('redirects to the subscription show page via navigate when a row is clicked', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,

@@ -324,12 +324,18 @@
                                         $statusIcon = 'heroicon-o-clock';
                                         $statusColor = 'text-amber-600';
                                     }
+
+                                    $statusTooltip = $subscription->current_period_end
+                                        ? 'Next installment: '.myrTime($subscription->current_period_end)
+                                        : 'No upcoming installment';
                                 @endphp
                                 <td class="px-5 py-4">
-                                    <span class="inline-flex items-center gap-1.5 text-sm font-medium {{ $statusColor }}">
-                                        <x-dynamic-component :component="$statusIcon" class="size-5" />
-                                        {{ $subscription->status_label }}
-                                    </span>
+                                    <x-ui.tooltip :text="$statusTooltip">
+                                        <span class="inline-flex items-center gap-1.5 text-sm font-medium {{ $statusColor }}">
+                                            <x-dynamic-component :component="$statusIcon" class="size-5" />
+                                            {{ $subscription->status_label }}
+                                        </span>
+                                    </x-ui.tooltip>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
                                     {{ myrTime($subscription->created_at) }}
