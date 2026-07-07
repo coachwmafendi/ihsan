@@ -83,5 +83,65 @@
     "footer.email": "hello@getihsan.my",
 
     "preview.title": "See the platform in action",
-    "preview.subtitle": "A clean, powerful dashboard built for NGO operations — no training needed."
+    "preview.subtitle": "A clean, powerful dashboard built for NGO operations — no training needed.",
+
+    "nav.case_study": "Case Study",
+
+    "case.meta_title": "Madrasah Darul Falah × Ihsan — Case Study",
+    "case.label": "Case Study",
+    "case.title": "Madrasah Darul Falah doubled its online donations with Ihsan",
+    "case.subtitle": "How a religious primary school in Kuala Nerus, Terengganu turned seasonal bank-transfer appeals into steady, recurring support for 185 students — and its RM1.7 million development fund.",
+
+    "case.stat1.value": "2.1x",
+    "case.stat1.label": "online donation conversion rate",
+    "case.stat2.value": "38%",
+    "case.stat2.label": "of online donors now give monthly",
+    "case.stat3.value": "92%",
+    "case.stat3.label": "of donors cover the processing fee",
+    "case.stat4.value": "10+ hrs",
+    "case.stat4.label": "of admin work saved every month",
+
+    "case.facts.title": "At a glance",
+    "case.facts.org_label": "Organization",
+    "case.facts.org": "Madrasah Darul Falah",
+    "case.facts.location_label": "Location",
+    "case.facts.location": "Kg. Pengkalan Maras, Kuala Nerus, Terengganu",
+    "case.facts.sector_label": "Sector",
+    "case.facts.sector": "Islamic primary education",
+    "case.facts.founded_label": "Established",
+    "case.facts.founded": "2015",
+    "case.facts.size_label": "Community",
+    "case.facts.size": "185 students · 16 teachers · 6 staff",
+    "case.facts.website_label": "Website",
+    "case.facts.since_label": "Using Ihsan since",
+    "case.facts.since": "2025",
+    "case.facts.visit_website": "Visit website",
+
+    "case.about.title": "About Madrasah Darul Falah",
+    "case.about.p1": "Madrasah Darul Falah is a religious primary school in Kg. Pengkalan Maras, Mengabang Telipot, Kuala Nerus, Terengganu. Established in 2015 and opened in January 2016 on donated land, the madrasah provides Quranic education and core Islamic studies to 185 students, supported by 16 teachers and 6 support staff.",
+    "case.about.p2": "Many of its students are orphans and asnaf from difficult family backgrounds who could not otherwise afford schooling, meals, books, or boarding. To keep serving them, the madrasah launched a development fund with a Phase 1 target of RM1.7 million — the main building is now more than 50% complete.",
+
+    "case.challenge.title": "The challenge",
+    "case.challenge.p1": "Like many madrasahs, Darul Falah raised funds through account numbers on posters, WhatsApp appeals, and seasonal campaigns. Donors had to copy account numbers, transfer manually, and send proof of payment — and every official receipt was typed by hand.",
+    "case.challenge.p2": "Giving spiked during Ramadan, then went quiet for the rest of the year. There was no way for supporters to give monthly, no record of who was donating, and no simple donate button on the madrasah's own website.",
+    "case.challenge.quote": "Supporters kept telling us they wanted to help beyond Ramadan. We believed them — we just never made it easy.",
+    "case.challenge.quote_by": "Fundraising & Development Team, Madrasah Darul Falah",
+
+    "case.solution.title": "The solution",
+    "case.solution.intro": "With Ihsan, the madrasah added a donation form and a floating donate button to its existing website with a single script tag — no developer needed. The Development Fund became a campaign page with a live progress bar, and monthly giving became the default ask.",
+    "case.solution.point1": "Embedded donation form & floating button installed in one afternoon",
+    "case.solution.point2": "Development Fund campaign page with a target & live progress",
+    "case.solution.point3": "Monthly auto-debit plans donors manage themselves via the Donor Portal",
+    "case.solution.point4": "Automatic, LHDN-ready PDF receipts for every donation",
+    "case.solution.point5": "Virtual Terminal for walk-in and phone donations at the office",
+    "case.solution.point6": "Smart retry that automatically recovers failed recurring payments",
+
+    "case.results.title": "The results",
+    "case.results.p1": "Within months, online donation conversions more than doubled compared to the old transfer-and-WhatsApp flow. 38% of online donors chose a monthly plan, giving the madrasah predictable income it could plan around for the first time.",
+    "case.results.p2": "Because 92% of donors opt to cover the processing fee, almost every ringgit given reaches the students. And with receipts, reminders, and failed-payment retries fully automated, the office saves more than ten hours of manual work each month.",
+    "case.results.quote": "In the first month, recurring donations alone covered our students' meal programme. Now we plan ahead instead of waiting for the next appeal.",
+    "case.results.quote_by": "School Administration, Madrasah Darul Falah",
+
+    "case.cta.title": "Your organization could be next",
+    "case.cta.subtitle": "Set up campaigns, embedded forms, and recurring giving in under 30 minutes — free during MVP."
 }
