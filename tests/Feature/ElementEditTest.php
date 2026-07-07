@@ -768,6 +768,19 @@ it('reflects sticky button size and radius in the live preview', function () {
         ]);
 });
 
+it('reflects button effect in the sticky button live preview', function () {
+    $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
+        'type' => ElementType::StickyButton,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(ElementEdit::class, ['element' => $element])
+        ->set('config_button_effect', 'gradient_gold_amber')
+        ->assertSee('preview-effect-sticky-')
+        ->assertSee('linear-gradient(120deg,#eab308,#f59e0b,#fcd34d,#eab308)');
+});
+
 it('displays Donor Portal Button label for the default donor portal element', function () {
     $element = Element::factory()->for($this->organization)->for($this->campaign)->create([
         'type' => ElementType::Button,

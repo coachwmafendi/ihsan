@@ -406,11 +406,27 @@
                                     $prInt = (int) ($config_corner_radius ?? 8);
                                     $sbBorderRadius = $sbIsLeft ? "0 {$prInt}px {$prInt}px 0" : "{$prInt}px 0 0 {$prInt}px";
                                     $sbRotation = $sbIsLeft ? 'rotate(90deg)' : 'rotate(-90deg)';
+                                    $sbEffectClass = $hasEffect ? 'preview-effect-sticky-' . $effectId : '';
                                 @endphp
+                                @if ($hasEffect)
+                                    <style>
+                                        @keyframes preview-gradient-{{ $effectId }} {
+                                            0%   { background-position: 0% 50%; }
+                                            50%  { background-position: 100% 50%; }
+                                            100% { background-position: 0% 50%; }
+                                        }
+                                        .preview-effect-sticky-{{ $effectId }} {
+                                            background: {{ $effectGradients[$pEffect] }};
+                                            background-size: 300% 300%;
+                                            animation: preview-gradient-{{ $effectId }} 4s ease infinite;
+                                            box-shadow: {{ $effectShadows[$pEffect] }};
+                                        }
+                                    </style>
+                                @endif
                                 <div class="relative flex min-h-[300px] w-full items-center justify-center rounded-lg border-2 border-dashed border-zinc-200 bg-white/60 p-6">
                                     <div
-                                        class="relative inline-flex items-center justify-center text-white shadow-2xl transition-transform hover:scale-105"
-                                        style="background-color: {{ $pc }}; padding: 14px 0; border-radius: {{ $sbBorderRadius }}; width: {{ $ss['width'] }}; min-height: {{ $sbMinHeight }}px;"
+                                        class="relative inline-flex items-center justify-center text-white shadow-2xl transition-transform hover:scale-105 {{ $sbEffectClass }}"
+                                        style="{{ $hasEffect ? '' : 'background-color: ' . $pc . '; ' }}padding: 14px 0; border-radius: {{ $sbBorderRadius }}; width: {{ $ss['width'] }}; min-height: {{ $sbMinHeight }}px;"
                                     >
                                         <div class="absolute left-1/2 top-1/2 inline-flex items-center justify-center gap-1.5" style="transform: translate(-50%, -50%) {{ $sbRotation }}; white-space: nowrap; font-size: {{ $ss['font'] }}; font-weight: 700; letter-spacing: .08em;">
                                             <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">{!! $pIcon !!}</svg>
