@@ -35,37 +35,17 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
         <div class="space-y-6">
             @if ($showTotalRaised)
                 @php
-                    $raised = (float) $campaign->collected_amount;
-                    $target = (float) ($campaign->target_amount ?? 0);
-                    $progressPercent = $target > 0 ? min(100, ($raised / $target) * 100) : 0;
-                    $checkpoints = [0, $target * 0.1, $target * 0.25, $target * 0.5, $target];
-                    $segments = [];
-                    for ($i = 1; $i < count($checkpoints); $i++) {
-                        $start = $checkpoints[$i - 1];
-                        $end = $checkpoints[$i];
-                        $range = $end - $start;
-                        if ($range <= 0) {
-                            $fill = 0;
-                        } elseif ($raised >= $end) {
-                            $fill = 100;
-                        } elseif ($raised <= $start) {
-                            $fill = 0;
-                        } else {
-                            $fill = (($raised - $start) / $range) * 100;
-                        }
-                        $segments[] = ['start' => $start, 'end' => $end, 'range' => $range, 'fill' => $fill];
-                    }
-
-                    $currentCheckpointIndex = null;
-                    foreach ($checkpoints as $index => $amount) {
-                        if ($amount > $raised) {
-                            $currentCheckpointIndex = $index;
-                            break;
-                        }
-                    }
-                    $goalReached = $currentCheckpointIndex === null && $raised >= $target && $target > 0;
-                    $currentCheckpointAmount = $checkpoints[$currentCheckpointIndex] ?? $target;
-                    $leftToNext = max(0, $currentCheckpointAmount - $raised);
+                    [
+                        'raised' => $raised,
+                        'target' => $target,
+                        'progressPercent' => $progressPercent,
+                        'checkpoints' => $checkpoints,
+                        'segments' => $segments,
+                        'currentCheckpointIndex' => $currentCheckpointIndex,
+                        'currentCheckpointAmount' => $currentCheckpointAmount,
+                        'leftToNext' => $leftToNext,
+                        'goalReached' => $goalReached,
+                    ] = $this->progress;
                 @endphp
 
                 <div wire:poll.10s="pollCampaign" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -162,7 +142,7 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
                                             ? 'shrink-0 text-left'
                                             : ($index === count($checkpoints) - 1 ? 'shrink-0 text-right' : 'flex-1 text-center');
                                     @endphp
-                                    <span class="block {{ $baseClasses }} {{ $isCurrent ? 'text-emerald-500' : 'text-slate-400' }}">
+                                    <span class="block {{ $baseClasses }} {{ $isCurrent ? 'rounded-full bg-emerald-100 px-2 py-1 text-emerald-700 ring-1 ring-emerald-200' : 'text-slate-400' }}">
                                         {{ $label }}
                                     </span>
                                 @endforeach

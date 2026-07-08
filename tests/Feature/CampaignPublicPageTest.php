@@ -194,3 +194,24 @@ it('renders milestone labels with uppercase K and RM0 at the start', function ()
         ->assertDontSee('RM10k')
         ->assertDontSee('RM25k');
 });
+
+it('places the current milestone checkpoint at the next unachieved milestone', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => Organization::factory()->create(),
+        'status' => CampaignStatus::Active,
+        'target_amount' => 100000.00,
+        'collected_amount' => 13752.31,
+    ]);
+
+    $progress = Livewire::test(CampaignPublicPage::class, ['campaign' => $campaign])
+        ->instance()
+        ->progress();
+
+    expect($progress['progressPercent'])
+        ->toBeGreaterThan(13.75)
+        ->toBeLessThan(13.76);
+    expect($progress['currentCheckpointIndex'])->toBe(2);
+    expect($progress['currentCheckpointAmount'])->toBe(25000.0);
+    expect($progress['leftToNext'])->toBe(11247.69);
+    expect($progress['goalReached'])->toBeFalse();
+});
