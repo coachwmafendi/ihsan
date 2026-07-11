@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -35,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureUrlGeneration();
 
         $this->applyMailConfig();
         $this->applyStripeConfig();
@@ -151,5 +153,16 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('donor-magic-link-email', function (Request $request) {
             return Limit::perMinute(3)->by($request->input('email', $request->ip()));
         });
+    }
+
+    /**
+     * Ensure queued/console URL generation uses the configured APP_URL
+     * so email links don't fall back to http://localhost.
+     */
+    protected function configureUrlGeneration(): void
+    {
+        if (app()->runningInConsole()) {
+            URL::forceRootUrl(config('app.url'));
+        }
     }
 }
