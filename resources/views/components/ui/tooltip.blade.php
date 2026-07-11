@@ -57,7 +57,7 @@
                 @if ($tipHtml)
                     {!! $tipHtml !!}
                 @else
-                    {{ $text }}
+                    {{ $tooltipText }}
                 @endif
             </div>
         </template>
