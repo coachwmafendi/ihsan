@@ -36,6 +36,12 @@ it('renders the teal wordmark in the sidebar variant', function () {
         ->toContain('[&amp;&gt;div:last-child]:text-teal-700');
 });
 
+it('shows the brand wordmark next to the mark on the login page', function () {
+    $this->get('/login')
+        ->assertOk()
+        ->assertSee('>ihsan</span>', false);
+});
+
 it('does not force fill-current on the auth layout logos', function (string $layout) {
     $blade = file_get_contents(resource_path("views/layouts/auth/{$layout}.blade.php"));
 
