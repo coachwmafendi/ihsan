@@ -3,7 +3,7 @@
 # --------------------------------------------------
 # Stage 1: Install PHP dependencies with Composer
 # --------------------------------------------------
-FROM php:8.5-cli AS vendor
+FROM php:8.4-cli AS vendor
 
 WORKDIR /app
 
@@ -33,7 +33,7 @@ RUN composer dump-autoload --optimize
 # --------------------------------------------------
 # Stage 2: Final Apache + PHP runtime image
 # --------------------------------------------------
-FROM php:8.5-apache
+FROM php:8.4-apache
 
 # Install required system and PHP extensions
 RUN apt-get update && apt-get install -y \
