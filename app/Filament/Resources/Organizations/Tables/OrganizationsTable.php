@@ -43,10 +43,10 @@ class OrganizationsTable
                     ->sortable()
                     ->placeholder('—'),
                 TextColumn::make('created_at')
+                    ->label('Application Date')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
                     ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
             ])
             ->filters([
                 SelectFilter::make('status')
