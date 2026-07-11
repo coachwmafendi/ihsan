@@ -8,7 +8,7 @@
             {{-- Left: Form --}}
             <div class="flex flex-col px-12 py-16 sm:px-20">
                 <a href="{{ route('home') }}" wire:navigate class="mb-10 inline-flex">
-                    <x-app-logo-icon class="h-9 w-9 fill-current text-neutral-900" />
+                    <x-app-logo-icon class="h-9 w-9" />
                 </a>
 
                 <div class="flex flex-col gap-8 flex-1 max-w-[400px]">
