@@ -205,7 +205,7 @@ class ProcessStripeWebhook implements ShouldQueue
         $donation->loadMissing('subscription.donor', 'subscription.campaign.organization');
 
         if ($donation->subscription !== null) {
-            SendFailedPaymentNotification::dispatch($donation->subscription);
+            SendFailedPaymentNotification::dispatch($donation->subscription, null, true);
         }
     }
 
@@ -437,9 +437,9 @@ class ProcessStripeWebhook implements ShouldQueue
                 ->queue($mailable);
         }
 
-        if ($invoice->next_payment_attempt === null) {
-            SendFailedPaymentNotification::dispatch($subscription);
-        }
+        $invoiceData = $invoice->toArray();
+        $failureMessage = $invoiceData['last_payment_error']['message'] ?? null;
+        SendFailedPaymentNotification::dispatch($subscription, $failureMessage, $isFinalAttempt);
     }
 
     private function handleSubscriptionDeleted(StripeEvent $event): void

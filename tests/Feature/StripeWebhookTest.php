@@ -1408,7 +1408,7 @@ function feeCoverRecurringPayload(Donation $donation): string
     ], JSON_THROW_ON_ERROR);
 }
 
-it('does not send failed payment notification when smart retries are still scheduled', function () {
+it('sends failed payment notification to org admins on every retry', function () {
     Queue::fake([SendFailedPaymentNotification::class]);
 
     $organization = Organization::factory()->create();
@@ -1429,7 +1429,7 @@ it('does not send failed payment notification when smart retries are still sched
     expect($subscription->status->value)->toBe('past_due')
         ->and($subscription->retry_count)->toBe(3);
 
-    Queue::assertNotPushed(SendFailedPaymentNotification::class);
+    Queue::assertPushed(SendFailedPaymentNotification::class, 1);
 });
 
 it('sends failed payment notification when no more retries are scheduled', function () {

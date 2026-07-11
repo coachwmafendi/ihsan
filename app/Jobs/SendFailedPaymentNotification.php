@@ -18,6 +18,7 @@ class SendFailedPaymentNotification implements ShouldQueue
     public function __construct(
         public Subscription $subscription,
         public ?string $failureMessage = null,
+        public bool $isFinalAttempt = false,
     ) {}
 
     public function handle(): void
@@ -47,7 +48,7 @@ class SendFailedPaymentNotification implements ShouldQueue
             Mail::to($admin->email)
                 ->later(
                     now()->addSeconds($index * $delay),
-                    new FailedPaymentNotification($this->subscription, $this->failureMessage)
+                    new FailedPaymentNotification($this->subscription, $this->failureMessage, $this->isFinalAttempt)
                 );
         }
     }

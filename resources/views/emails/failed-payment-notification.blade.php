@@ -20,7 +20,11 @@
             @endif
         </table>
 
-        <p>Stripe will automatically retry this payment. Please monitor the situation.</p>
+        @if ($isFinalAttempt)
+            <p>This was the final retry attempt. The subscription is now past due and no further automatic retries are scheduled.</p>
+        @else
+            <p>Stripe will automatically retry this payment. This is retry {{ $subscription->retry_count ?? 0 }}. Please monitor the situation.</p>
+        @endif
 
         <p style="margin: 24px 0;">
             <a class="email-button" href="{{ route('app.subscriptions.show', $subscription) }}" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>

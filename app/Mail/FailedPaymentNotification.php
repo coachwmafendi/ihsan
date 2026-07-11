@@ -15,6 +15,7 @@ class FailedPaymentNotification extends Mailable
     public function __construct(
         public Subscription $subscription,
         public ?string $failureMessage = null,
+        public bool $isFinalAttempt = false,
     ) {}
 
     public function envelope(): Envelope
