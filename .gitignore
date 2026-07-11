@@ -31,6 +31,7 @@ tests/Feature/TmpWebhookTest.php
 docs/superpowers/plans/*.md
 *.png
 !storage/app/public/**/*.png
+!/public/logo-ihsan*.png
 opencode.json
 
 # Graphify
