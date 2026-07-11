@@ -7,8 +7,9 @@
         <div class="grid min-h-screen lg:grid-cols-2">
             {{-- Left: Form --}}
             <div class="flex flex-col px-12 py-16 sm:px-20">
-                <a href="{{ route('home') }}" wire:navigate class="mb-10 inline-flex">
+                <a href="{{ route('home') }}" wire:navigate class="mb-10 inline-flex items-center gap-2.5">
                     <x-app-logo-icon class="h-9 w-9" />
+                    <span class="text-2xl font-semibold tracking-tight text-teal-700 dark:text-teal-400">ihsan</span>
                 </a>
 
                 <div class="flex flex-col gap-8 flex-1 max-w-[400px]">
