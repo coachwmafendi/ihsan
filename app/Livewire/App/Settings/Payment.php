@@ -61,6 +61,10 @@ class Payment extends Component
         $this->chipPaymentMethods = $org?->chipPaymentMethods() ?? ['card'];
         $this->stripeEnabled = $org?->stripe_enabled ?? true;
         $this->chipEnabled = $org?->chip_enabled ?? true;
+
+        if (session()->has('stripe_connect_success')) {
+            $this->dispatch('notify', message: session('stripe_connect_success'), variant: 'success');
+        }
     }
 
     public function toggleStripeEnabled(): void
