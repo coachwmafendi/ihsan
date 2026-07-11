@@ -24,6 +24,7 @@ class OrganizationsTable
         return $table
             ->reorderableColumns()
             ->deferColumnManager(false)
+            ->defaultSort('approved_at', 'desc')
             ->columns([
                 TextColumn::make('code')
                     ->label('Code')
