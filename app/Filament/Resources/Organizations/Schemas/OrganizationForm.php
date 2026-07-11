@@ -59,12 +59,15 @@ class OrganizationForm
                                                 'education' => 'Education',
                                                 'healthcare' => 'Healthcare',
                                                 'humanitarian' => 'Humanitarian',
+                                                'social_welfare' => 'Social Welfare',
+                                                'religion' => 'Religion',
                                                 'dakwah' => 'Dakwah',
                                                 'community_development' => 'Community Development',
                                                 'environment' => 'Environment',
                                                 'animal_welfare' => 'Animal Welfare',
                                                 'orphan_care' => 'Orphan Care',
                                                 'masjid' => 'Masjid / Surau',
+                                                'sports_recreation' => 'Sports & Recreation',
                                                 'others' => 'Others',
                                             ])
                                             ->nullable()

@@ -196,7 +196,7 @@ it('auto-populates allowed_domains from website_url when org is registered', fun
         ->set('name', 'Test NGO')
         ->set('registration_type', 'ROS')
         ->set('ros_rob_number', 'ROS-TEST-001')
-        ->set('sector', 'Education')
+        ->set('sector', 'education')
         ->set('contact_email', 'admin@testngo.org')
         ->set('website_url', 'https://www.testngo.org')
         ->call('submit');

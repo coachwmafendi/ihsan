@@ -142,13 +142,13 @@
                             <label for="sector" class="block text-sm font-semibold text-slate-700 mb-1.5">Sector</label>
                             <x-ui.select variant="auth" id="sector" wire:model="sector" required class="w-full">
                                 <flux:select.option value="" disabled>-- Select sector --</flux:select.option>
-                                <flux:select.option value="Agama">Religion</flux:select.option>
-                                <flux:select.option value="Pendidikan">Education</flux:select.option>
-                                <flux:select.option value="Kebajikan Sosial">Social Welfare</flux:select.option>
-                                <flux:select.option value="Kesihatan">Health</flux:select.option>
-                                <flux:select.option value="Alam Sekitar">Environment</flux:select.option>
-                                <flux:select.option value="Sukan & Rekreasi">Sports & Recreation</flux:select.option>
-                                <flux:select.option value="Lain-lain">Others</flux:select.option>
+                                <flux:select.option value="religion">Religion</flux:select.option>
+                                <flux:select.option value="education">Education</flux:select.option>
+                                <flux:select.option value="social_welfare">Social Welfare</flux:select.option>
+                                <flux:select.option value="healthcare">Health</flux:select.option>
+                                <flux:select.option value="environment">Environment</flux:select.option>
+                                <flux:select.option value="sports_recreation">Sports & Recreation</flux:select.option>
+                                <flux:select.option value="others">Others</flux:select.option>
                             </x-ui.select>
                             @error('sector')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
