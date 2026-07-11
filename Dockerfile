@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
     pkg-config \
-    && docker-php-ext-install intl \
+    && docker-php-ext-install intl zip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -63,7 +63,7 @@ RUN apt-get update && apt-get install -y \
         gd \
         zip \
         intl \
-        opcache \
+    && docker-php-ext-install opcache \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
