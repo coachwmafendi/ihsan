@@ -184,6 +184,30 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    @if (count($revenueByOrganization) > 0)
+                        <tfoot>
+                            <tr class="border-t-2 border-stone-200 bg-stone-50 font-semibold dark:border-stone-700 dark:bg-stone-800/50">
+                                <td class="py-3 text-ihsan-ink dark:text-white">Total</td>
+                                <td class="py-3 text-right tabular-nums text-ihsan-ink dark:text-white">
+                                    {{ number_format($totalTransactions) }}
+                                </td>
+                                <td class="py-3 text-right tabular-nums text-ihsan-ink dark:text-white">
+                                    MYR {{ $totalDonationVolume }}
+                                </td>
+                                <td class="py-3 text-right tabular-nums text-ihsan-ink dark:text-white">
+                                    MYR {{ $averageDonationSize }}
+                                </td>
+                                <td class="py-3 text-right tabular-nums text-ihsan-ink dark:text-white">
+                                    MYR {{ $totalProcessingFees }}
+                                </td>
+                                <td class="py-3 text-right">
+                                    <span class="inline-flex items-center rounded-md bg-success-100 px-2 py-0.5 text-xs font-semibold text-success-700 dark:bg-success-900/30 dark:text-success-400">
+                                        {{ $effectiveFeeRate }}%
+                                    </span>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    @endif
                 </table>
             </div>
         </x-filament::section>

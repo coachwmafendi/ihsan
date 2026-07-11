@@ -152,3 +152,40 @@ it('shows avg donation and effective rate per organization', function () {
         ->assertSee('MYR 200.00')
         ->assertSee('2.50%'); // 5 / 200 = 2.5%
 });
+
+it('shows a total summary row across all organizations', function () {
+    $org = Organization::factory()->create(['status' => 'active']);
+    $campaign = Campaign::factory()->for($org)->create();
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->count(2)->for($campaign)->for($donor)->sequence(
+        ['gross_amount' => 100.00, 'base_amount' => 100.00],
+        ['gross_amount' => 200.00, 'base_amount' => 200.00]
+    )->create(['status' => DonationStatus::Succeeded]);
+
+    $donations = Donation::all();
+
+    ProcessingFee::factory()->create([
+        'donation_id' => $donations->first()->id,
+        'organization_id' => $org->id,
+        'fee_amount' => 3.00,
+        'status' => 'paid',
+    ]);
+    ProcessingFee::factory()->create([
+        'donation_id' => $donations->last()->id,
+        'organization_id' => $org->id,
+        'fee_amount' => 6.00,
+        'status' => 'paid',
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+    Livewire::actingAs($user)
+        ->test(Revenue::class)
+        ->assertSee('Total')
+        ->assertSee('2') // total donations count
+        ->assertSee('MYR 300.00') // total volume
+        ->assertSee('MYR 150.00') // average donation
+        ->assertSee('MYR 9.00') // total processing fees
+        ->assertSee('3.00%'); // effective rate = 9 / 300
+});
