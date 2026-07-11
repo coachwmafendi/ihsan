@@ -29,6 +29,9 @@ it('ships raster favicons at the correct dimensions', function (string $file, in
     ['apple-touch-icon.png', 180],
 ]);
 
-it('ships a non-empty favicon ico', function () {
-    expect(filesize(public_path('favicon.ico')))->toBeGreaterThan(500);
+it('ships a two-frame favicon ico', function () {
+    $bytes = file_get_contents(public_path('favicon.ico'));
+
+    expect(substr($bytes, 0, 4))->toBe("\x00\x00\x01\x00")
+        ->and(unpack('v', substr($bytes, 4, 2))[1])->toBe(2);
 });

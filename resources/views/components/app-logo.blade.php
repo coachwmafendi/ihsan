@@ -3,6 +3,9 @@
 ])
 
 @php
+    // Targets the brand-name div rendered as the anchor's last child inside
+    // flux:brand / flux:sidebar.brand; their own color classes are
+    // zero-specificity :where() so these variants win.
     $wordmarkClasses = '[&>div:last-child]:text-teal-700 dark:[&>div:last-child]:text-teal-400 [&>div:last-child]:font-semibold [&>div:last-child]:tracking-tight';
 @endphp
 

@@ -36,7 +36,7 @@ it('renders the teal wordmark in the sidebar variant', function () {
         ->toContain('[&amp;&gt;div:last-child]:text-teal-700');
 });
 
-it('does not force fill or text color overrides on the auth layout logos', function (string $layout) {
+it('does not force fill-current on the auth layout logos', function (string $layout) {
     $blade = file_get_contents(resource_path("views/layouts/auth/{$layout}.blade.php"));
 
     expect($blade)

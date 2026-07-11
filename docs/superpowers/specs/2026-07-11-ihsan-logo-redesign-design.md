@@ -70,8 +70,12 @@ admin login page, email layouts, and `partials/head.blade.php`. No PHP/config ch
 | 8 | `public/apple-touch-icon.png` | 180px render on white background (iOS masks corners; no transparency) |
 | 9 | `public/favicon.ico` | 16px (small variant) + 32px (standard) slices |
 
-PNG/ICO generation: render from SVG with whatever is available locally
-(`rsvg-convert`, `sharp` via npx, or ImageMagick). One-off generation, not a build step.
+PNG/ICO generation: one-off, not a build step. Note for future regeneration: PHP
+Imagick's built-in MSVG renderer silently drops `<rect fill="none" stroke=...>` and
+mishandles `transform="rotate(...)"` — either bake strokes into filled evenodd paths
+with rotation applied to coordinates, or use a real SVG renderer (rsvg-convert,
+Inkscape, browser). `favicon.ico` carries two frames: 16px (small variant) + 32px
+(standard mark).
 
 ## Out of Scope
 
