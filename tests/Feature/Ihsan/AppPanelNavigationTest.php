@@ -47,6 +47,18 @@ it('keeps panel roles separated', function () {
         ->assertForbidden();
 });
 
+it('does not leak escaped Livewire block markers in admin sidebar tooltips', function () {
+    $user = User::factory()->create([
+        'role' => UserRole::SuperAdmin,
+    ]);
+
+    $this->actingAs($user)
+        ->get('/admin/platform-overview')
+        ->assertOk()
+        ->assertDontSee('&lt;!--[if BLOCK]', false)
+        ->assertDontSee('&lt;!--[if ENDBLOCK]', false);
+});
+
 it('shows app panel resource pages to ngo admins', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([
