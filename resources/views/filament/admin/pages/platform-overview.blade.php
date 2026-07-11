@@ -2,10 +2,10 @@
     <div class="ihsan-admin-page">
         {{-- Row 1: All-time platform totals --}}
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <x-admin.metric-card icon="heroicon-o-banknotes" label="Total donations" :value="'MYR '.$totalDonationsVolume" :note="$totalDonationsCount.' transactions'" />
-            <x-admin.metric-card icon="heroicon-o-receipt-percent" label="Processing fees" :value="'MYR '.$totalProcessingFees" note="Transferred to platform" />
-            <x-admin.metric-card icon="heroicon-o-arrow-path" label="Active subscriptions" :value="$activeSubscriptions" note="Across all organizations" />
-            <x-admin.metric-card icon="heroicon-o-users" label="Total donors" :value="$totalDonors" note="Registered on platform" />
+            <x-admin.metric-card icon="heroicon-o-banknotes" label="Total donations" :value="'MYR '.$totalDonationsVolume" :note="'All time · '.$totalDonationsCount.' transactions'" />
+            <x-admin.metric-card icon="heroicon-o-receipt-percent" label="Processing fees" :value="'MYR '.$totalProcessingFees" note="All time · transferred to platform" />
+            <x-admin.metric-card icon="heroicon-o-arrow-path" label="Active subscriptions" :value="$activeSubscriptions" note="Currently active" />
+            <x-admin.metric-card icon="heroicon-o-users" label="Total donors" :value="$totalDonors" note="All time registered" />
         </div>
 
         {{-- Row 2: Monthly pulse --}}
@@ -20,13 +20,13 @@
                 icon="heroicon-o-banknotes"
                 label="Donations this month"
                 :value="'MYR '.$donationsThisMonth"
-                :note="($donationsMomChange >= 0 ? '▲ ' : '▼ ').abs($donationsMomChange).'% vs last month'"
+                :note="'This month · '.($donationsMomChange >= 0 ? '▲ ' : '▼ ').abs($donationsMomChange).'% vs last month'"
             />
             <x-admin.metric-card
                 icon="heroicon-o-receipt-percent"
                 label="Processing fees this month"
                 :value="'MYR '.$processingFeesThisMonth"
-                :note="($processingFeesMomChange >= 0 ? '▲ ' : '▼ ').abs($processingFeesMomChange).'% vs last month'"
+                :note="'This month · '.($processingFeesMomChange >= 0 ? '▲ ' : '▼ ').abs($processingFeesMomChange).'% vs last month'"
             />
         </div>
 
@@ -98,7 +98,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <div class="mb-2 text-xs font-semibold uppercase tracking-wider text-ihsan-muted dark:text-stone-400">Top 5 by donations</div>
+                    <div class="mb-2 text-xs font-semibold uppercase tracking-wider text-ihsan-muted dark:text-stone-400">Top 5 by donations · All time</div>
                     <div class="ihsan-admin-list">
                         @forelse ($topOrganizations as $org)
                             <div class="ihsan-admin-list-row">
@@ -187,7 +187,7 @@
                 </div>
                 <div class="mt-3 ihsan-admin-stat-tile">
                     <div class="text-lg font-semibold text-violet-700 dark:text-violet-300">{{ $repeatDonorRate }}%</div>
-                    <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">Repeat donor rate (2+ donations)</div>
+                    <div class="mt-1 text-xs text-ihsan-muted dark:text-stone-400">Repeat donor rate · All time (2+ donations)</div>
                 </div>
             </x-filament::section>
 

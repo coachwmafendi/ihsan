@@ -241,6 +241,18 @@ it('counts operational alert metrics', function () {
         ->assertSet('awaitingStripeOnboarding', 1); // org with status=active, stripe_onboarded=false
 });
 
+it('displays time period labels for metrics', function () {
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+    $this->actingAs($user);
+
+    Livewire::test(PlatformOverview::class)
+        ->assertSee('All time')
+        ->assertSee('Currently active')
+        ->assertSee('This month')
+        ->assertSee('Top 5 by donations · All time')
+        ->assertSee('Repeat donor rate · All time (2+ donations)');
+});
+
 it('calculates donor and subscription health metrics', function () {
     $org = Organization::factory()->create(['status' => 'active']);
     $campaign = Campaign::factory()->for($org)->create();

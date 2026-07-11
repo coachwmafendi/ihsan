@@ -76,6 +76,9 @@ class SendNotificationToOrgs extends Page
                     ->label('Notification Message')
                     ->columnSpanFull()
                     ->required()
+                    ->maxLength(1000)
+                    ->live()
+                    ->helperText(fn (?string $state): string => sprintf('%d / 1000 characters', strlen($state ?? '')))
                     ->disabled(fn (): bool => ! self::canAccess())
                     ->rows(5),
 

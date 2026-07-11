@@ -36,6 +36,25 @@ it('denies access to non super admins', function () {
         ->assertForbidden();
 });
 
+it('shows live character count for notification message', function () {
+    actingAs($this->superAdmin);
+
+    Livewire::test(SendNotificationToOrgs::class)
+        ->assertSee('0 / 1000 characters')
+        ->set('data.message', 'Hello')
+        ->assertSee('5 / 1000 characters');
+});
+
+it('prevents sending notification message over 1000 characters', function () {
+    actingAs($this->superAdmin);
+
+    Livewire::test(SendNotificationToOrgs::class)
+        ->set('data.send_to_all', true)
+        ->set('data.message', str_repeat('a', 1001))
+        ->call('sendNotification')
+        ->assertHasErrors(['data.message']);
+});
+
 it('deletes all admin to organization notifications', function () {
     $this->ngoAdmin->notify(new AdminToOrgAdminNotification(
         message: 'First message',
