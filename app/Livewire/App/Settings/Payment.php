@@ -23,6 +23,8 @@ class Payment extends Component
 
     public bool $showReconnectConfirm = false;
 
+    public bool $showStripeConnectedModal = false;
+
     public string $activeTab = 'stripe';
 
     public string $chipBrandId = '';
@@ -63,7 +65,7 @@ class Payment extends Component
         $this->chipEnabled = $org?->chip_enabled ?? true;
 
         if (session()->has('stripe_connect_success')) {
-            $this->dispatch('notify', message: session('stripe_connect_success'), variant: 'success');
+            $this->showStripeConnectedModal = true;
         }
     }
 

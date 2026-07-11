@@ -309,4 +309,23 @@
             </div>
         </div>
     @endif
+
+    @if ($showStripeConnectedModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" wire:click.self="$set('showStripeConnectedModal', false)">
+            <div class="w-full max-w-md rounded-xl bg-white p-6 text-center shadow-lg">
+                <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-teal-50">
+                    <x-heroicon-o-check-circle class="size-7 text-teal-600" />
+                </div>
+                <h3 class="mt-4 text-lg font-semibold text-slate-900">Stripe connected</h3>
+                <p class="mt-2 text-sm text-slate-500">
+                    Your Stripe account was connected successfully. You can now accept donations through Stripe.
+                </p>
+                <div class="mt-6 flex justify-center">
+                    <x-ui.button variant="primary" size="sm" wireClick="$set('showStripeConnectedModal', false)">
+                        Done
+                    </x-ui.button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
