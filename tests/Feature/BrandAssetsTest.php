@@ -17,3 +17,18 @@ it('omits the center dot in the small favicon svg', function () {
     expect(file_get_contents(public_path('favicon.svg')))
         ->not->toContain('<circle');
 });
+
+it('ships raster favicons at the correct dimensions', function (string $file, int $size) {
+    [$width, $height] = getimagesize(public_path($file));
+
+    expect($width)->toBe($size)
+        ->and($height)->toBe($size);
+})->with([
+    ['favicon-32x32.png', 32],
+    ['favicon-180x180.png', 180],
+    ['apple-touch-icon.png', 180],
+]);
+
+it('ships a non-empty favicon ico', function () {
+    expect(filesize(public_path('favicon.ico')))->toBeGreaterThan(500);
+});
