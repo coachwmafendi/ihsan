@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Activity;
@@ -122,7 +123,7 @@ use Spatie\Activitylog\Support\LogOptions;
 class Organization extends Model
 {
     /** @use HasFactory<OrganizationFactory> */
-    use HasFactory, LogsActivity;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -145,7 +146,7 @@ class Organization extends Model
             }
         });
 
-        static::deleting(function (Organization $organization) {
+        static::forceDeleting(function (Organization $organization) {
             if (filled($organization->logo_path)) {
                 Storage::disk('public')->delete($organization->logo_path);
             }
@@ -168,7 +169,7 @@ class Organization extends Model
     {
         do {
             $code = strtoupper(Str::random(8));
-        } while (static::where('code', $code)->exists());
+        } while (static::withTrashed()->where('code', $code)->exists());
 
         return $code;
     }

@@ -96,7 +96,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     {
         return match ($panel->getId()) {
             'admin' => $this->role === UserRole::SuperAdmin,
-            'app' => $this->role === UserRole::NgoAdmin && $this->organization_id !== null,
+            'app' => $this->role === UserRole::NgoAdmin && $this->organization !== null,
             default => false,
         };
     }
