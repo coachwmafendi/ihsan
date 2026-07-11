@@ -121,8 +121,7 @@ class StripeConnectController extends Controller
             // not critical
         }
 
-        session()->flash('success', 'Stripe account connected successfully.');
-
-        return redirect()->route('app.dashboard');
+        return redirect()->route('app.settings.payment')
+            ->with('stripe_connect_success', 'Stripe account connected successfully.');
     }
 }
