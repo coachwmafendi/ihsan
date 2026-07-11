@@ -155,7 +155,7 @@ it('sends purchase event via meta conversion api', function () {
         'currency' => 'myr',
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::OneTime,
-        'page_url' => 'https://ihsan.test/donate/test',
+        'page_url' => config('app.url').'/donate/test',
         'utm_params' => [
             'fbclid' => 'abc123',
             'utm_source' => 'facebook',
@@ -191,7 +191,7 @@ it('sends purchase event via meta conversion api', function () {
         ->and($payload['custom_data']['value'])->toEqual(100.0)
         ->and($payload['custom_data']['currency'])->toBe('MYR')
         ->and($payload['user_data']['em'])->toBe(hash('sha256', 'donor@example.com'))
-        ->and($payload['event_source_url'])->toBe('https://ihsan.test/donate/test');
+        ->and($payload['event_source_url'])->toBe(config('app.url').'/donate/test');
 
     expect($payload['user_data']['fbc'] ?? '')->toContain('abc123');
 });

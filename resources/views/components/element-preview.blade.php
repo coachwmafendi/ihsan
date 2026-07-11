@@ -153,7 +153,7 @@
                 };
                 $qrTitle = $config['title'] ?? '';
                 $qrMessage = $config['message'] ?? '';
-                $qrDataUrl = $config['qr_url'] ?? config('app.url') . '/donate/demo';
+                $qrDataUrl = $config['qr_url'] ?? url('/donate/demo');
             @endphp
             <div class="flex min-h-[180px] flex-col items-center justify-center w-full">
                 <div class="{{ $alignClass }} space-y-3">

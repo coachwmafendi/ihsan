@@ -87,10 +87,8 @@ it('records a meta pageview tracking event', function () {
     (new SendMetaTrackingEvent(
         $organization->id,
         'PageView',
-        'https://ihsan.test/donate/test',
+        config('app.url').'/donate/test',
         ['client_ip_address' => '127.0.0.1', 'client_user_agent' => 'test'],
-        [],
-        'Test Campaign',
     ))->handle();
 
     $event = TrackingEvent::query()
@@ -113,8 +111,8 @@ it('records a ga4 pageview tracking event', function () {
         $organization->id,
         'page_view',
         'client-id-123',
-        'https://ihsan.test/donate/test',
-        ['page_location' => 'https://ihsan.test/donate/test'],
+        config('app.url').'/donate/test',
+        ['page_location' => config('app.url').'/donate/test'],
         'Test Campaign',
     ))->handle();
 

@@ -60,7 +60,7 @@ class DemoLandingController extends Controller
             ],
             'widget' => [
                 'token' => 'msk-demo',
-                'base_url' => config('app.url'),
+                'base_url' => url('/'),
                 'button_text' => 'Derma Sekarang',
                 'floating_text' => 'Sumbang',
                 'color' => 'emerald',

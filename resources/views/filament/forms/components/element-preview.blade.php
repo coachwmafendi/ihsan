@@ -142,7 +142,7 @@
                         <h4 class="text-base font-semibold text-zinc-800">{{ $qrTitle }}</h4>
                     @endif
                     <img 
-                        src="https://api.qrserver.com/v1/create-qr-code/?size={{ $qrSize }}x{{ $qrSize }}&data={{ urlencode(config('app.url').'/donate/demo') }}&bgcolor=ffffff&color=0f172a&qzone=2" 
+                        src="https://api.qrserver.com/v1/create-qr-code/?size={{ $qrSize }}x{{ $qrSize }}&data={{ urlencode(url('/donate/demo')) }}&bgcolor=ffffff&color=0f172a&qzone=2" 
                         alt="QR Code" 
                         width="{{ $qrSize }}" 
                         height="{{ $qrSize }}"

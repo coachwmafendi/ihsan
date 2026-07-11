@@ -56,11 +56,11 @@ Route::get('/register-organization', RegisterOrganization::class)->name('registe
 Route::get('/demo/msk', DemoLandingController::class)->name('demo.msk');
 Route::view('/case-studies/madrasah-darul-falah', 'case-studies.madrasah-darul-falah')->name('case-studies.madrasah-darul-falah');
 
-Route::get('/_test-widget', fn () => response('<!DOCTYPE html><html><body style="padding:40px"><h2>Widget Test</h2><script src="/e/widget.js" data-token="sgxqLo" data-api-base="'.config('app.url').'"></script></body></html>')->header('Content-Type', 'text/html'));
+Route::get('/_test-widget', fn () => response('<!DOCTYPE html><html><body style="padding:40px"><h2>Widget Test</h2><script src="/e/widget.js" data-token="sgxqLo" data-api-base="'.url('/').'"></script></body></html>')->header('Content-Type', 'text/html'));
 
 Route::get('/_test-iframe-button/{element:token}', function (Element $element) {
     $token = $element->token;
-    $baseUrl = config('app.url');
+    $baseUrl = url('/');
     $iframe = '<iframe src="'.$baseUrl.'/e/button/'.$token.'" width="100%" height="70" frameborder="0" scrolling="no" style="border:0;overflow:hidden;"></iframe>';
     $listener = <<<'JS'
 <script>

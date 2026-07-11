@@ -3,7 +3,7 @@
 
     $type = $record?->type?->value;
     $token = $record?->token;
-    $baseUrl = config('app.url');
+    $baseUrl = url('/');
     $widgetSrc = EmbedWidget::scriptUrl();
 
     if (! $record || ! $type || ! $token) return;
