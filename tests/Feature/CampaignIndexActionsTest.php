@@ -128,3 +128,9 @@ it('uses a valid alpine lifecycle for the action menu outside-click handler', fu
         ->toContain('destroy() { document.removeEventListener')
         ->not->toContain('$cleanup');
 })->with(['campaigns', 'elements']);
+
+it('renders a single shared teleported action menu', function (string $view) {
+    $blade = file_get_contents(resource_path("views/livewire/app/{$view}/index.blade.php"));
+
+    expect(substr_count($blade, 'x-teleport'))->toBe(1);
+})->with(['campaigns', 'elements']);

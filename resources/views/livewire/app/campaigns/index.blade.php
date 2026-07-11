@@ -195,51 +195,6 @@
                                                 <x-heroicon-o-ellipsis-horizontal class="size-5" />
                                             </button>
 
-                                            <template x-teleport="body">
-                                                <div
-                                                     x-show="openMenuId === '{{ $campaign->public_id }}'"
-                                                     x-cloak
-                                                     x-transition:enter="transition ease-out duration-100"
-                                                     x-transition:enter-start="opacity-0 scale-95"
-                                                     x-transition:enter-end="opacity-100 scale-100"
-                                                     x-transition:leave="transition ease-in duration-75"
-                                                     x-transition:leave-start="opacity-100 scale-100"
-                                                    x-transition:leave-end="opacity-0 scale-95"
-                                                    @click.stop
-                                                    data-action-menu
-                                                    class="fixed z-50 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
-                                                    :style="'top: ' + menuTop + 'px; left: ' + menuLeft + 'px'"
-                                                >
-                                                    <button
-                                                        type="button"
-                                                        @click.stop="navigator.clipboard.writeText('{{ $campaign->public_id }}').then(() => openMenuId = null)"
-                                                        class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
-                                                    >
-                                                        <x-heroicon-o-clipboard-document class="size-4 text-slate-500" />
-                                                        Copy ID
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        wire:click.stop="openRenameModal('{{ $campaign->public_id }}')"
-                                                        @click="openMenuId = null"
-                                                        class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
-                                                    >
-                                                        <x-heroicon-o-pencil class="size-4 text-slate-500" />
-                                                        Rename
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        wire:click.stop="clone('{{ $campaign->public_id }}')"
-                                                        @click="openMenuId = null"
-                                                        class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
-                                                    >
-                                                        <x-heroicon-o-document-duplicate class="size-4 text-slate-500" />
-                                                        Duplicate
-                                                    </button>
-                                                </div>
-                                            </template>
                                         </div>
                                     @endif
                                 </td>
@@ -300,4 +255,51 @@
             </div>
         </div>
     @endif
+
+    {{-- Shared row-actions menu: one static teleported instance for all rows.
+         Per-row teleports leak stale clones when Livewire morphs re-create the
+         row templates, leaving orphaned menus stuck open in <body>. --}}
+    <template x-teleport="body">
+        <div
+            x-show="openMenuId"
+            x-cloak
+            x-transition:enter="transition ease-out duration-100"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-75"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            @click.stop
+            data-action-menu
+            class="fixed z-50 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+            :style="'top: ' + menuTop + 'px; left: ' + menuLeft + 'px'"
+        >
+            <button
+                type="button"
+                @click.stop="navigator.clipboard.writeText(openMenuId).then(() => openMenuId = null)"
+                class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+            >
+                <x-heroicon-o-clipboard-document class="size-4 text-slate-500" />
+                Copy ID
+            </button>
+
+            <button
+                type="button"
+                @click.stop="$wire.openRenameModal(openMenuId); openMenuId = null"
+                class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+            >
+                <x-heroicon-o-pencil class="size-4 text-slate-500" />
+                Rename
+            </button>
+
+            <button
+                type="button"
+                @click.stop="$wire.clone(openMenuId); openMenuId = null"
+                class="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+            >
+                <x-heroicon-o-document-duplicate class="size-4 text-slate-500" />
+                Duplicate
+            </button>
+        </div>
+    </template>
 </div>
