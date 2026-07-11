@@ -120,3 +120,11 @@ it('cannot disable a campaign from another organization', function () {
 
     expect($otherCampaign->fresh()->status->value)->toBe('active');
 });
+
+it('uses a valid alpine lifecycle for the action menu outside-click handler', function (string $view) {
+    $blade = file_get_contents(resource_path("views/livewire/app/{$view}/index.blade.php"));
+
+    expect($blade)
+        ->toContain('destroy() { document.removeEventListener')
+        ->not->toContain('$cleanup');
+})->with(['campaigns', 'elements']);

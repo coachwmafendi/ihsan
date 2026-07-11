@@ -1,5 +1,5 @@
 {{-- resources/views/livewire/app/elements/index.blade.php --}}
-<div class="space-y-6" x-data="{ openMenuId: null, menuTop: 0, menuLeft: 0, openMenu(id, el) { const r = el.getBoundingClientRect(); this.menuTop = r.bottom + 4; this.menuLeft = r.right - 208; this.openMenuId = (this.openMenuId === id ? null : id); } }">
+<div class="space-y-6" x-data="{ openMenuId: null, menuTop: 0, menuLeft: 0, closeIfOutside: null, init() { this.closeIfOutside = (e) => { if (! e.target.closest('[data-action-menu]')) { this.openMenuId = null; } }; document.addEventListener('click', this.closeIfOutside); }, destroy() { document.removeEventListener('click', this.closeIfOutside); }, openMenu(id, el) { const r = el.getBoundingClientRect(); this.menuTop = r.bottom + 4; this.menuLeft = r.right - 208; this.openMenuId = (this.openMenuId === id ? null : id); } }">
     {{-- Page Header --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -259,10 +259,10 @@
                                                 Restore
                                             </button>
                                         @else
-                                            <div wire:key="element-actions-{{ $element->public_id }}">
-                                                <button
-                                                    type="button"
-                                                    @click.stop="openMenu('{{ $element->public_id }}', $el)"
+                                                <div wire:key="element-actions-{{ $element->public_id }}" data-action-menu>
+                                                    <button
+                                                        type="button"
+                                                        @click.stop="openMenu('{{ $element->public_id }}', $el)"
                                                     class="inline-flex items-center justify-center rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
                                                     aria-label="Element actions"
                                                 >
@@ -271,16 +271,16 @@
 
                                                 <template x-teleport="body">
                                                     <div
-                                                        x-show="openMenuId === '{{ $element->public_id }}'"
-                                                        x-cloak
-                                                        x-transition:enter="transition ease-out duration-100"
-                                                        x-transition:enter-start="opacity-0 scale-95"
-                                                        x-transition:enter-end="opacity-100 scale-100"
-                                                        x-transition:leave="transition ease-in duration-75"
-                                                        x-transition:leave-start="opacity-100 scale-100"
+                                                         x-show="openMenuId === '{{ $element->public_id }}'"
+                                                         x-cloak
+                                                         x-transition:enter="transition ease-out duration-100"
+                                                         x-transition:enter-start="opacity-0 scale-95"
+                                                         x-transition:enter-end="opacity-100 scale-100"
+                                                         x-transition:leave="transition ease-in duration-75"
+                                                         x-transition:leave-start="opacity-100 scale-100"
                                                         x-transition:leave-end="opacity-0 scale-95"
-                                                        @click.outside="openMenuId = null"
                                                         @click.stop
+                                                        data-action-menu
                                                         class="fixed z-50 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
                                                         :style="'top: ' + menuTop + 'px; left: ' + menuLeft + 'px'"
                                                     >
