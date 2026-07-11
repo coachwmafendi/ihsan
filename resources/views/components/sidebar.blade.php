@@ -30,8 +30,8 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
     >
         <div class="h-16 flex items-center px-6 border-b border-slate-200 shrink-0">
             <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded bg-teal-600 flex items-center justify-center text-white font-bold text-sm">i</div>
-                <span class="font-bold text-lg text-slate-900 tracking-tight">ihsan</span>
+                <x-app-logo-icon class="h-7 w-7 shrink-0" />
+                <span class="text-lg font-semibold tracking-tight text-teal-700 dark:text-teal-400">ihsan</span>
             </div>
         </div>
 
@@ -83,8 +83,8 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 x-show="! $store.sidebar.collapsed"
                 x-cloak
             >
-                <div class="w-7 h-7 rounded bg-teal-600 flex items-center justify-center text-white font-bold text-sm shrink-0">i</div>
-                <span class="font-bold text-lg text-slate-900 tracking-tight whitespace-nowrap">ihsan</span>
+                <x-app-logo-icon class="h-7 w-7 shrink-0" />
+                <span class="text-lg font-semibold tracking-tight text-teal-700 dark:text-teal-400 whitespace-nowrap">ihsan</span>
             </div>
             <button
                 type="button"
