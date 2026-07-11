@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\UserRole;
+use App\Models\Organization;
+use App\Models\User;
 use Illuminate\Support\Facades\Blade;
 
 it('renders the eight-point star mark in app-logo-icon', function () {
@@ -40,6 +43,21 @@ it('shows the brand wordmark next to the mark on the login page', function () {
     $this->get('/login')
         ->assertOk()
         ->assertSee('>ihsan</span>', false);
+});
+
+it('shows the star mark and wordmark in the app sidebar', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get('/app/dashboard')
+        ->assertOk()
+        ->assertSee('>ihsan</span>', false)
+        ->assertSee('rotate(45 32 32)', false);
+
+    expect($response->getContent())->not->toContain('font-bold text-sm">i<');
 });
 
 it('does not force fill-current on the auth layout logos', function (string $layout) {
