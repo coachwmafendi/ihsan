@@ -55,7 +55,7 @@
 </head>
 <body>
     @if ($openInPopup)
-        <button type="button" class="cta" onclick="openCheckout(event, '{{ $url }}')">
+        <button type="button" class="cta" data-url="{{ $url }}" onclick='openCheckout(event, @js($url))'>
             {!! $iconSvg !!}
             <span>{{ $text }}</span>
         </button>

@@ -146,6 +146,16 @@ class Organization extends Model
         });
 
         static::deleting(function (Organization $organization) {
+            if (filled($organization->logo_path)) {
+                Storage::disk('public')->delete($organization->logo_path);
+            }
+
+            foreach ($organization->documents as $document) {
+                if (filled($document->file_path)) {
+                    Storage::disk('public')->delete($document->file_path);
+                }
+            }
+
             $organization->users()->delete();
             $organization->campaigns()->delete();
             $organization->elements()->delete();
@@ -178,12 +188,12 @@ class Organization extends Model
 
     public function chipBrandId(): ?string
     {
-        return $this->settings['chip_brand_id'] ?? null;
+        return $this->chip_brand_id;
     }
 
     public function chipApiKey(): ?string
     {
-        return $this->settings['chip_api_key'] ?? null;
+        return $this->chip_api_key;
     }
 
     public function chipPaymentMethods(): array
@@ -266,6 +276,8 @@ class Organization extends Model
             'tax_exempt' => 'boolean',
             'approved_at' => 'datetime',
             'status' => OrganizationStatus::class,
+            'chip_api_key' => 'encrypted',
+            'chip_webhook_public_key' => 'encrypted',
         ];
     }
 }

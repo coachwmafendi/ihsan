@@ -89,7 +89,7 @@ class FraudPrevention extends Page implements HasTable
                     ->tooltip(fn ($record) => $record->donation?->campaign?->title ?? ''),
                 TextColumn::make('donation.gross_amount')
                     ->label('Amount')
-                    ->formatStateUsing(function ($record) {
+                    ->formatStateUsing(function (string $state, BlockedDonation $record): string {
                         $donation = $record->donation;
                         if (! $donation) {
                             return '—';
@@ -144,7 +144,9 @@ class FraudPrevention extends Page implements HasTable
                 'organization' => $rule->organization?->name ?? 'Global',
                 'type' => str($rule->rule_type)->headline()->toString(),
                 'config' => collect($rule->config ?? [])
-                    ->map(fn ($value, $key) => "{$key}: {$value}")
+                    ->map(fn ($value, $key) => is_array($value)
+                        ? "{$key}: ".json_encode($value)
+                        : "{$key}: {$value}")
                     ->join(', '),
                 'action' => $rule->action,
                 'is_active' => $rule->is_active,

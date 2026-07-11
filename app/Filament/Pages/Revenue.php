@@ -115,7 +115,16 @@ class Revenue extends Page
             ->get()
             ->keyBy('organization_id');
 
-        $organizations = Organization::query()->get();
+        $organizationIds = $succeededDonations
+            ->keys()
+            ->merge($feesByOrg->keys())
+            ->unique()
+            ->values()
+            ->all();
+
+        $organizations = $organizationIds === []
+            ? collect()
+            : Organization::query()->whereIn('id', $organizationIds)->get();
 
         $this->revenueByOrganization = $organizations
             ->map(function (Organization $org) use ($succeededDonations, $feesByOrg) {

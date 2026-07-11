@@ -24,9 +24,17 @@ class DonorAuthController extends Controller
             'email' => ['required', 'email', 'max:255'],
         ]);
 
-        $donor = Donor::query()->where('email', $validated['email'])->first();
+        $rateLimitKey = 'donor-magic-link-email:'.$validated['email'];
 
-        RateLimiter::hit('donor-magic-link-email:'.$validated['email']);
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
+            return redirect()->route('donorportal.login', $organization)
+                ->withInput()
+                ->with('error', 'Too many login attempts. Please try again later.');
+        }
+
+        RateLimiter::hit($rateLimitKey);
+
+        $donor = Donor::query()->where('email', $validated['email'])->first();
 
         if ($donor !== null && $donor->canReceiveEmails()) {
             $token = $donor->generateMagicToken();

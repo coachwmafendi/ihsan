@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Jobs\GenerateMonthlyInvoices;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
 use Filament\Actions\Action;
@@ -15,7 +16,6 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Artisan;
 
 class MonthlyInvoices extends Page implements HasTable
 {
@@ -134,11 +134,12 @@ class MonthlyInvoices extends Page implements HasTable
                     ->label('Generate Invoice')
                     ->icon('heroicon-o-sparkles')
                     ->action(function () {
-                        $exitCode = Artisan::call('ihsan:generate-monthly-invoices');
+                        GenerateMonthlyInvoices::dispatch();
 
                         Notification::make()
-                            ->title($exitCode === 0 ? 'Invoices generated successfully.' : 'Invoice generation failed. Check logs.')
-                            ->success($exitCode === 0)
+                            ->title('Invoice generation started')
+                            ->body('Invoices for the previous month are being created in the background. Refresh the table in a moment to see updates.')
+                            ->success()
                             ->send();
                     })
                     ->requiresConfirmation()

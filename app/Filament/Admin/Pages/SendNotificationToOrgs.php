@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Pages;
 
 use App\Enums\UserRole;
+use App\Jobs\SendAdminNotificationToOrgs;
 use App\Models\Organization;
 use App\Models\User;
 use App\Notifications\AdminToOrgAdminNotification;
@@ -140,30 +141,22 @@ class SendNotificationToOrgs extends Page
         $sender = $this->getAuthUser();
         $senderName = $sender ? $sender->name : 'Platform Admin';
 
-        $usersNotified = 0;
+        $adminCount = User::query()
+            ->whereIn('organization_id', $organizationIds)
+            ->where('role', UserRole::NgoAdmin)
+            ->count();
 
-        foreach ($organizationIds as $organizationId) {
-            $orgAdmins = User::query()
-                ->where('organization_id', $organizationId)
-                ->where('role', UserRole::NgoAdmin)
-                ->get();
-
-            foreach ($orgAdmins as $admin) {
-                $admin->notify(new AdminToOrgAdminNotification(
-                    message: $data['message'],
-                    senderName: $senderName,
-                    organizationId: $organizationId,
-                    type: $data['type'],
-                    image: $data['image'] ?? null
-                ));
-
-                $usersNotified++;
-            }
-        }
+        SendAdminNotificationToOrgs::dispatch(
+            message: $data['message'],
+            senderName: $senderName,
+            organizationIds: $organizationIds,
+            type: $data['type'],
+            image: $data['image'] ?? null,
+        );
 
         Notification::make()
-            ->title('Notifications Sent')
-            ->body("Successfully sent notification to {$usersNotified} organization admin(s).")
+            ->title('Notifications Queued')
+            ->body("Queued notification for {$adminCount} organization admin(s). It will be sent in the background.")
             ->success()
             ->send();
 

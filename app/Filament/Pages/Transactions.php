@@ -108,9 +108,21 @@ class Transactions extends Page implements HasTable
             'COALESCE(SUM(COALESCE(base_amount, gross_amount)), 0) as total'
         )->value('total');
 
-        $fee = (float) (clone $base)->sum('processing_fee');
+        $fee = (float) (clone $base)->selectRaw(
+            "COALESCE(SUM(CASE
+                WHEN currency <> 'myr' AND COALESCE(base_amount, 0) > 0 AND COALESCE(gross_amount, 0) > 0
+                    THEN processing_fee * (base_amount * 1.0 / gross_amount)
+                ELSE processing_fee
+            END), 0) as total"
+        )->value('total');
 
-        $orgReceives = (float) (clone $base)->sum('net_amount');
+        $orgReceives = (float) (clone $base)->selectRaw(
+            "COALESCE(SUM(CASE
+                WHEN currency <> 'myr' AND COALESCE(base_amount, 0) > 0 AND COALESCE(gross_amount, 0) > 0
+                    THEN net_amount * (base_amount * 1.0 / gross_amount)
+                ELSE net_amount
+            END), 0) as total"
+        )->value('total');
 
         return [
             'amount' => $amount,

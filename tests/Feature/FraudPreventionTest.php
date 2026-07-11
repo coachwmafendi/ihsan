@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\UserRole;
+use App\Filament\Pages\FraudPrevention;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -7,7 +9,9 @@ use App\Models\Fraud\BlockedDonation;
 use App\Models\Fraud\FraudAttempt;
 use App\Models\Fraud\FraudRule;
 use App\Models\Organization;
+use App\Models\User;
 use App\Services\FraudDetectionService;
+use Livewire\Livewire;
 
 uses()->group('fraud');
 
@@ -104,6 +108,30 @@ it('creates blocked donation record', function () {
 
     expect(BlockedDonation::count())->toBe(1);
     expect(BlockedDonation::first()->review_status)->toBe('pending');
+});
+
+it('renders the fraud prevention page with blocked donation rows', function () {
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'gross_amount' => 250,
+        'currency' => 'myr',
+        'fraud_status' => 'blocked',
+    ]);
+
+    BlockedDonation::create([
+        'donation_id' => $donation->id,
+        'reason' => 'Stripe Radar high risk score',
+        'review_status' => 'pending',
+    ]);
+
+    $admin = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+    Livewire::actingAs($admin)
+        ->test(FraudPrevention::class)
+        ->assertOk()
+        ->assertSee('Stripe Radar high risk score')
+        ->assertSee('MYR 250.00');
 });
 
 it('seeds default fraud rules for organization', function () {

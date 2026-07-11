@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\UserRole;
 use App\Filament\Pages\EmailSettings;
 use App\Models\Setting;
 use App\Models\User;
@@ -17,7 +18,7 @@ it('logs email settings changes to activity log', function () {
     Setting::set('mail_from_name', 'Ihsan');
     Setting::set('mail_throttle_seconds', 0);
 
-    $admin = User::factory()->create();
+    $admin = User::factory()->create(['role' => UserRole::SuperAdmin]);
 
     Livewire::actingAs($admin)
         ->test(EmailSettings::class)

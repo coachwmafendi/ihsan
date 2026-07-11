@@ -3,12 +3,14 @@
 namespace App\Filament\Pages;
 
 use App\Models\Setting;
+use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 class EmailSettings extends Page
@@ -25,6 +27,13 @@ class EmailSettings extends Page
 
     public ?array $data = [];
 
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+
+        return $user instanceof User && $user->isSuperAdmin();
+    }
+
     public function mount(): void
     {
         $this->form->fill([
@@ -33,7 +42,7 @@ class EmailSettings extends Page
             'mail_port' => Setting::get('mail_port', config('mail.mailers.smtp.port')),
             'mail_username' => Setting::get('mail_username', config('mail.mailers.smtp.username')),
             'mail_password' => Setting::get('mail_password', config('mail.mailers.smtp.password')),
-            'mail_encryption' => Setting::get('mail_encryption', env('MAIL_ENCRYPTION')),
+            'mail_encryption' => Setting::get('mail_encryption', config('mail.mailers.smtp.encryption', '')),
             'mail_from_address' => Setting::get('mail_from_address', config('mail.from.address')),
             'mail_from_name' => Setting::get('mail_from_name', config('mail.from.name', config('app.name'))),
             'mail_throttle_seconds' => Setting::get('mail_throttle_seconds', config('mail.throttle_seconds', 0)),
