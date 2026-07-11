@@ -48,8 +48,9 @@ static SVGs (matches current convention in `public/logo-ihsan.svg`).
 ### Small-size rule
 
 At 16px (favicon.ico 16px slice, small SVG favicon rendering) the center dot turns to
-mud. Small variant: **drop the center dot, thicken stroke to 8, expand squares**
-(`x=12 y=12 w=40 h=40 rx=8`). 32px and above keep the standard mark.
+mud. Small variant: **drop the center dot, thicken stroke to 8** (`x=16 y=16 w=32
+h=32 rx=7 stroke-width=8` — rotated corners stay inside the 64 viewBox; wider squares
+would clip). 32px and above keep the standard mark.
 
 ## Asset Inventory
 
