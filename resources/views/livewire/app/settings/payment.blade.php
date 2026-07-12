@@ -191,26 +191,40 @@
                     @endif
                 </div>
 
+                {{-- Hidden decoy inputs to absorb browser password-manager autofill --}}
+                <input type="text" name="decoy_username" autocomplete="username" class="hidden" />
+                <input type="password" name="decoy_password" autocomplete="current-password" class="hidden" />
+
                 <div class="grid gap-4 md:grid-cols-2">
                     <div>
-                        <label for="chipBrandId" class="block text-sm font-medium text-slate-700">Brand ID</label>
+                        <label for="chipBrandId" class="block text-sm font-medium text-slate-700">CHIP Brand ID</label>
                         <input
                             type="text"
                             id="chipBrandId"
+                            name="chip_brand_id"
                             wire:model="chipBrandId"
-                            placeholder="e.g. BRAND123"
+                            placeholder="e.g. YOUR_BRAND_ID"
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="off"
+                            spellcheck="false"
                             class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                         />
                         @error('chipBrandId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
-                        <label for="chipApiKey" class="block text-sm font-medium text-slate-700">API Key</label>
+                        <label for="chipApiKey" class="block text-sm font-medium text-slate-700">CHIP API Key</label>
                         <div class="relative mt-1">
                             <input
                                 id="chipApiKey"
+                                name="chip_api_key"
                                 wire:model="chipApiKey"
-                                placeholder="sk_..."
+                                placeholder="e.g. YOUR_CHIP_API_KEY"
+                                autocomplete="new-password"
+                                autocorrect="off"
+                                autocapitalize="off"
+                                spellcheck="false"
                                 class="block w-full rounded-lg border border-slate-300 bg-white py-2 pl-3 pr-24 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                 :type="$wire.showChipApiKey ? 'text' : 'password'"
                             />
