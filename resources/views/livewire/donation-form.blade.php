@@ -163,7 +163,7 @@
                 <h1 class="text-2xl font-bold tracking-normal text-slate-950">{{ $introTitle }}</h1>
 
                 @if (filled($introText))
-                    <div x-data="{ expanded: false }" class="mt-3 text-base/7 text-slate-600 text-justify">
+                    <div x-data="{ expanded: false }" class="mt-3 whitespace-pre-line text-justify text-base/7 text-slate-600">
                         <div x-show="! expanded" class="[&amp;>*]:inline [&amp;>p]:inline">
                             {{ $introTruncated }}{{ $isLongIntro ? '...' : '' }}
                         </div>
@@ -246,7 +246,7 @@
                     </div>
 
                     @if ($campaign->description)
-                        <div class="max-w-2xl text-base/7 text-slate-600 [&_p]:mb-4 [&_p:last-child]:mb-0">{!! $campaign->description !!}</div>
+                        <div class="max-w-2xl whitespace-pre-line text-base/7 text-slate-600 [&_p]:mb-4 [&_p:last-child]:mb-0">{!! $campaign->description !!}</div>
                     @endif
 
                 </section>

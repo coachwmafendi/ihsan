@@ -20,3 +20,35 @@ it('renders campaign description as html instead of escaped text', function () {
     $response->assertSee('<p>First paragraph</p>', false);
     $response->assertDontSee('&lt;p&gt;First paragraph&lt;/p&gt;');
 });
+
+it('preserves line breaks in the campaign description on the public page', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'title' => 'Ramadan Fund',
+        'description' => "First line\nSecond line\nThird line",
+        'status' => CampaignStatus::Active,
+        'checkout_modal_enabled' => true,
+        'form_parameter' => 'RAMADAN2026',
+    ]);
+
+    $response = $this->get(route('donations.campaign-show', ['campaign' => $campaign->form_parameter]));
+
+    $response->assertOk();
+    $response->assertSee('whitespace-pre-line');
+});
+
+it('preserves line breaks in the campaign description on the checkout modal', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'title' => 'Ramadan Fund',
+        'description' => "First line\nSecond line\nThird line",
+        'status' => CampaignStatus::Active,
+        'checkout_modal_enabled' => true,
+        'form_parameter' => 'RAMADAN2026',
+    ]);
+
+    $response = $this->get(route('donations.campaign-show', ['campaign' => $campaign->form_parameter, 'popup' => '1']));
+
+    $response->assertOk();
+    $response->assertSee('whitespace-pre-line');
+});

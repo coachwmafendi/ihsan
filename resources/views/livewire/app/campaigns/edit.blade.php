@@ -1,4 +1,5 @@
 {{-- resources/views/livewire/app/campaigns/edit.blade.php --}}
+<?php use App\Enums\DonationStatus; ?>
 <div x-data="{ tab: @entangle('activeTab') }" class="space-y-6">
     {{-- Page Header --}}
     <div class="mb-4">
@@ -80,7 +81,7 @@
             />
             <x-ui.stat-card
                 label="Donations"
-                value="{{ number_format($campaign->donations()->count()) }}"
+                value="{{ number_format($campaign->donations()->where('status', DonationStatus::Succeeded->value)->count()) }}"
             />
             <x-ui.stat-card
                 label="Active Recurring"
