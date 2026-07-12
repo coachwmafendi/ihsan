@@ -105,8 +105,8 @@ class OrganizationForm
                                             ->label('Contact Phone')
                                             ->nullable()
                                             ->maxLength(255)
-                                            ->prefix('+60')
-                                            ->placeholder('123456789'),
+                                            ->default('+60')
+                                            ->placeholder('+60123456789'),
                                         FileUpload::make('logo_path')
                                             ->label('Logo')
                                             ->image()
