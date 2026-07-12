@@ -66,6 +66,11 @@ class Organization extends Component
 
     public ?string $social_youtube = null;
 
+    public function updatedCountry(): void
+    {
+        $this->state = null;
+    }
+
     public function mount(): void
     {
         /** @var OrganizationModel|null $org */

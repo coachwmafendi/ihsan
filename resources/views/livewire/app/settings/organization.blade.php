@@ -146,25 +146,32 @@
 
                     <div>
                         <label for="state" class="block text-sm font-medium text-slate-700">State</label>
-                        <x-ui.select id="state" wire:model="state" class="mt-1 block w-full">
-                            <flux:select.option value="">Select state</flux:select.option>
-                            <flux:select.option value="Johor">Johor</flux:select.option>
-                            <flux:select.option value="Kedah">Kedah</flux:select.option>
-                            <flux:select.option value="Kelantan">Kelantan</flux:select.option>
-                            <flux:select.option value="Melaka">Melaka</flux:select.option>
-                            <flux:select.option value="Negeri Sembilan">Negeri Sembilan</flux:select.option>
-                            <flux:select.option value="Pahang">Pahang</flux:select.option>
-                            <flux:select.option value="Perak">Perak</flux:select.option>
-                            <flux:select.option value="Perlis">Perlis</flux:select.option>
-                            <flux:select.option value="Pulau Pinang">Pulau Pinang</flux:select.option>
-                            <flux:select.option value="Sabah">Sabah</flux:select.option>
-                            <flux:select.option value="Sarawak">Sarawak</flux:select.option>
-                            <flux:select.option value="Selangor">Selangor</flux:select.option>
-                            <flux:select.option value="Terengganu">Terengganu</flux:select.option>
-                            <flux:select.option value="Wilayah Persekutuan (Kuala Lumpur)">Wilayah Persekutuan (Kuala Lumpur)</flux:select.option>
-                            <flux:select.option value="Wilayah Persekutuan (Labuan)">Wilayah Persekutuan (Labuan)</flux:select.option>
-                            <flux:select.option value="Wilayah Persekutuan (Putrajaya)">Wilayah Persekutuan (Putrajaya)</flux:select.option>
-                        </x-ui.select>
+
+                        <div x-show="$wire.country === 'Malaysia'" x-cloak>
+                            <x-ui.select id="state" wire:model="state" class="mt-1 block w-full">
+                                <flux:select.option value="">Select state</flux:select.option>
+                                <flux:select.option value="Johor">Johor</flux:select.option>
+                                <flux:select.option value="Kedah">Kedah</flux:select.option>
+                                <flux:select.option value="Kelantan">Kelantan</flux:select.option>
+                                <flux:select.option value="Melaka">Melaka</flux:select.option>
+                                <flux:select.option value="Negeri Sembilan">Negeri Sembilan</flux:select.option>
+                                <flux:select.option value="Pahang">Pahang</flux:select.option>
+                                <flux:select.option value="Perak">Perak</flux:select.option>
+                                <flux:select.option value="Perlis">Perlis</flux:select.option>
+                                <flux:select.option value="Pulau Pinang">Pulau Pinang</flux:select.option>
+                                <flux:select.option value="Sabah">Sabah</flux:select.option>
+                                <flux:select.option value="Sarawak">Sarawak</flux:select.option>
+                                <flux:select.option value="Selangor">Selangor</flux:select.option>
+                                <flux:select.option value="Terengganu">Terengganu</flux:select.option>
+                                <flux:select.option value="Wilayah Persekutuan (Kuala Lumpur)">Wilayah Persekutuan (Kuala Lumpur)</flux:select.option>
+                                <flux:select.option value="Wilayah Persekutuan (Labuan)">Wilayah Persekutuan (Labuan)</flux:select.option>
+                                <flux:select.option value="Wilayah Persekutuan (Putrajaya)">Wilayah Persekutuan (Putrajaya)</flux:select.option>
+                            </x-ui.select>
+                        </div>
+
+                        <div x-show="$wire.country !== 'Malaysia'" x-cloak>
+                            <input type="text" id="state_free" wire:model="state" placeholder="State / Province / Region" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                        </div>
                     </div>
 
                     <div>
