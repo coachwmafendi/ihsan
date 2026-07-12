@@ -294,7 +294,8 @@ class OrganizationForm
                                             ->label('CHIP Brand ID')
                                             ->nullable()
                                             ->maxLength(255)
-                                            ->placeholder('e.g. BRAND123'),
+                                            ->placeholder('e.g. ORGANIZATION_BRAND_ID')
+                                            ->extraInputAttributes(['autocomplete' => 'off']),
 
                                         TextInput::make('chip_api_key')
                                             ->label('CHIP API Key')
@@ -302,7 +303,8 @@ class OrganizationForm
                                             ->maxLength(255)
                                             ->password()
                                             ->revealable()
-                                            ->placeholder('e.g. secret-api-key'),
+                                            ->placeholder('e.g. ORGANIZATION_API_KEY')
+                                            ->extraInputAttributes(['autocomplete' => 'new-password']),
 
                                         TextInput::make('chip_webhook_id')
                                             ->label('CHIP Webhook ID')
