@@ -1,5 +1,89 @@
 {{-- resources/views/livewire/app/dashboard.blade.php --}}
-<div class="space-y-8">
+<div
+    x-data="{ loaded: false }"
+    x-init="$nextTick(() => setTimeout(() => loaded = true, 350))"
+    class="relative"
+>
+    {{-- Initial loading skeleton --}}
+    <div
+        x-show="! loaded"
+        x-transition.opacity.duration.250ms
+        x-cloak
+        aria-hidden="true"
+        class="absolute inset-0 z-10 bg-[#f7f7fb]"
+    >
+        <div class="space-y-8">
+            {{-- Header skeleton --}}
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <div class="h-8 w-48 animate-pulse rounded bg-slate-200"></div>
+                    <div class="mt-1 h-4 w-36 animate-pulse rounded bg-slate-200"></div>
+                </div>
+                <div class="h-9 w-80 animate-pulse rounded-lg bg-slate-200"></div>
+            </div>
+
+            {{-- Quick actions skeleton --}}
+            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div class="h-10 animate-pulse rounded-lg bg-slate-200"></div>
+                    <div class="h-10 animate-pulse rounded-lg bg-slate-200"></div>
+                    <div class="h-10 animate-pulse rounded-lg bg-slate-200"></div>
+                </div>
+            </div>
+
+            {{-- Stats grid skeleton --}}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                @for ($i = 0; $i < 8; $i++)
+                    <div class="h-28 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="h-3 w-24 animate-pulse rounded bg-slate-200"></div>
+                        <div class="mt-3 h-7 w-32 animate-pulse rounded bg-slate-200"></div>
+                    </div>
+                @endfor
+            </div>
+
+            {{-- Charts grid skeleton --}}
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                @for ($i = 0; $i < 4; $i++)
+                    <div class="h-80 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="mb-1 h-5 w-40 animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-4 w-56 animate-pulse rounded bg-slate-200"></div>
+                        <div class="mt-8 space-y-4">
+                            <div class="h-3 w-full animate-pulse rounded bg-slate-200"></div>
+                            <div class="h-3 w-5/6 animate-pulse rounded bg-slate-200"></div>
+                            <div class="h-3 w-4/5 animate-pulse rounded bg-slate-200"></div>
+                            <div class="h-3 w-full animate-pulse rounded bg-slate-200"></div>
+                            <div class="h-3 w-2/3 animate-pulse rounded bg-slate-200"></div>
+                        </div>
+                    </div>
+                @endfor
+            </div>
+
+            {{-- Recent donations skeleton --}}
+            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="mb-4 h-5 w-40 animate-pulse rounded bg-slate-200"></div>
+                <div class="space-y-3">
+                    @for ($i = 0; $i < 5; $i++)
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="size-8 animate-pulse rounded-full bg-slate-200"></div>
+                                <div class="h-4 w-32 animate-pulse rounded bg-slate-200"></div>
+                            </div>
+                            <div class="h-4 w-20 animate-pulse rounded bg-slate-200"></div>
+                        </div>
+                    @endfor
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Loading overlay for period/filter changes --}}
+    <div wire:loading.delay class="absolute inset-0 z-20 bg-white/80 backdrop-blur-sm" aria-hidden="true">
+        <div class="flex h-full items-center justify-center">
+            <x-heroicon-o-arrow-path class="size-8 animate-spin text-slate-400" />
+        </div>
+    </div>
+
+    <div class="space-y-8">
     {{-- Page Header --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -323,4 +407,5 @@
     </x-ui.card>
 
     <livewire:app.campaigns.campaign-create-modal />
+</div>
 </div>
