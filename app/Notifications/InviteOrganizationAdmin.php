@@ -7,7 +7,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Password;
 
-class InviteOrganisationAdmin extends Notification
+class InviteOrganizationAdmin extends Notification
 {
     use Queueable;
 
@@ -27,7 +27,7 @@ class InviteOrganisationAdmin extends Notification
         return (new MailMessage)
             ->subject('You have been invited — '.config('app.name'))
             ->greeting('Hi '.$notifiable->email.',')
-            ->line('Your organisation('.$this->organizationName.') registration application has been approved.')
+            ->line('Your organization ('.$this->organizationName.') registration application has been approved.')
             ->line('You have been invited as an admin for **'.$this->organizationName.'** on the '.config('app.name').' platform.')
             ->line('Please set your password using the button below to start using the panel.')
             ->action('Set Password', url(route('password.reset', ['token' => $token, 'email' => $notifiable->getEmailForPasswordReset()], false)))

@@ -45,7 +45,7 @@ it('renders the polished edit admin modal', function () {
         'pageClass' => EditOrganization::class,
     ])
         ->mountAction(TestAction::make('edit')->table($organizationAdmin))
-        ->assertMountedActionModalSee('Edit Organisation Admin')
+        ->assertMountedActionModalSee('Edit Organization Admin')
         ->assertMountedActionModalSee('Full name')
         ->assertMountedActionModalSee('Email')
         ->assertMountedActionModalSeeHtml('ihsan-admin-editor-modal');

@@ -11,7 +11,7 @@
             </h1>
 
             <p class="mt-4 text-slate-600">
-                To start receiving donations, you need to connect your organisation with Stripe Connect.
+                To start receiving donations, you need to connect your organization with Stripe Connect.
                 This allows us to securely process payments on your behalf and transfer funds directly to your account.
             </p>
         </div>
@@ -30,7 +30,7 @@
 
         <x-ui.card class="text-center">
             <p class="text-sm text-slate-500 mb-6">
-                Click the button below to connect with Stripe Connect. We will create a secure Stripe account for your organisation and redirect you to Stripe to complete the onboarding.
+                Click the button below to connect with Stripe Connect. We will create a secure Stripe account for your organization and redirect you to Stripe to complete the onboarding.
             </p>
 
             <button
@@ -61,7 +61,7 @@
                 <h2 class="mt-4 text-lg font-semibold text-slate-900">Stripe Onboarding Successful</h2>
 
                 <p class="mt-2 text-sm text-slate-600">
-                    Your organisation is now connected with Stripe Connect. You can start receiving donations.
+                    Your organization is now connected with Stripe Connect. You can start receiving donations.
                     Connection and reconnection can be managed in Settings > Payment.
                 </p>
 
@@ -98,7 +98,7 @@
                 <h2 class="mt-4 text-lg font-semibold text-slate-900">Stripe Connect Connected</h2>
 
                 <p class="mt-2 text-sm text-slate-600">
-                    Your organisation is already connected to Stripe Connect. You can manage or reconnect your account from Settings > Payment.
+                    Your organization is already connected to Stripe Connect. You can manage or reconnect your account from Settings > Payment.
                 </p>
 
                 <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">

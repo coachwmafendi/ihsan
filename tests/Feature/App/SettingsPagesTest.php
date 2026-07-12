@@ -188,7 +188,7 @@ it('saves donor portal settings', function () {
     expect($settings['portal_receipt_footer'])->toBe('Thank you for your generosity.');
 });
 
-it('defaults donor portal reply-to email to organisation contact email', function () {
+it('defaults donor portal reply-to email to organization contact email', function () {
     $organization = Organization::factory()->stripeConnected()->create([
         'contact_email' => 'contact@example.com',
         'settings' => [],

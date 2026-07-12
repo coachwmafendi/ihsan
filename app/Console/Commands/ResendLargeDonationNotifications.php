@@ -17,7 +17,7 @@ class ResendLargeDonationNotifications extends Command
                             {--dry-run : Preview which notifications would be queued without sending}
                             {--force : Skip confirmation prompt}';
 
-    protected $description = 'Resend large donation notification emails to organisation admins';
+    protected $description = 'Resend large donation notification emails to organization admins';
 
     public function handle(): int
     {

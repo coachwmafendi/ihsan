@@ -37,7 +37,7 @@ class ProcessingFees extends Page implements HasTable
                     ->date()
                     ->sortable(),
                 TextColumn::make('organization.name')
-                    ->label('Organisation')
+                    ->label('Organization')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('organization.fee_collection_method')
@@ -121,7 +121,7 @@ class ProcessingFees extends Page implements HasTable
             ])
             ->filters([
                 SelectFilter::make('organization_id')
-                    ->label('Organisation')
+                    ->label('Organization')
                     ->options(Organization::pluck('name', 'id')->toArray()),
                 SelectFilter::make('status')
                     ->options([

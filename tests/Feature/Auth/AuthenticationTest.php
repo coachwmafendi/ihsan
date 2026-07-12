@@ -25,7 +25,7 @@ test('users can authenticate using the login screen', function () {
     $this->assertAuthenticated();
 });
 
-test('org admins with a connected organisation are redirected to insights after login', function () {
+test('org admins with a connected organization are redirected to insights after login', function () {
     $organization = Organization::factory()->stripeConnected()->create();
     $user = User::factory()->create([
         'organization_id' => $organization->id,

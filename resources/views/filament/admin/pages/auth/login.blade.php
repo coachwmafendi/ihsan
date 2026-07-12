@@ -83,7 +83,7 @@
                         </div>
                     </div>
                     <p class="text-sm leading-relaxed" style="color: rgba(255,255,255,0.65);">
-                        Manage organisations, track donations, monitor platform revenue, and oversee operations from a unified admin console.
+                        Manage organizations, track donations, monitor platform revenue, and oversee operations from a unified admin console.
                     </p>
                 </div>
 
@@ -92,7 +92,7 @@
                     <p class="text-xs font-medium mb-4" style="color: rgba(255,255,255,0.5);">Platform at a glance</p>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="rounded-lg p-3" style="background-color: rgba(255,255,255,0.05);">
-                            <p class="text-xs mb-1" style="color: rgba(255,255,255,0.45);">Organisations</p>
+                            <p class="text-xs mb-1" style="color: rgba(255,255,255,0.45);">Organizations</p>
                             <p class="text-xl font-bold" style="color: rgba(255,255,255,0.95);">142</p>
                         </div>
                         <div class="rounded-lg p-3" style="background-color: rgba(255,255,255,0.05);">

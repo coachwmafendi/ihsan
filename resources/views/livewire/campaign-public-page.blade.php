@@ -10,7 +10,83 @@ $messageIsLong = mb_strlen($messageText) > 200;
 $messageShort = Illuminate\Support\Str::limit($messageText, 200);
 @endphp
 
-<main class="max-w-6xl mx-auto px-4 py-12">
+<div
+    x-data="{ loaded: false }"
+    x-init="$nextTick(() => setTimeout(() => loaded = true, 350))"
+    class="relative"
+>
+    {{-- Loading skeleton --}}
+    <div
+        x-show="! loaded"
+        x-transition.opacity.duration.250ms
+        x-cloak
+        aria-hidden="true"
+        class="absolute inset-0 z-10 bg-[#eef1f6]"
+    >
+        <main class="max-w-6xl mx-auto px-4 py-12">
+            {{-- Header --}}
+            <div class="mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 shrink-0 animate-pulse rounded-full bg-slate-200"></div>
+                    <div class="h-4 w-40 animate-pulse rounded bg-slate-200"></div>
+                </div>
+                <div class="mt-4 h-8 w-3/4 max-w-xl animate-pulse rounded bg-slate-200"></div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                {{-- Left column skeleton --}}
+                <div class="space-y-6">
+                    @if ($showTotalRaised)
+                        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <div class="flex items-end justify-between gap-4">
+                                <div class="space-y-2">
+                                    <div class="h-3 w-14 animate-pulse rounded bg-slate-200"></div>
+                                    <div class="h-7 w-32 animate-pulse rounded bg-slate-200"></div>
+                                </div>
+                                <div class="h-3 w-24 animate-pulse rounded bg-slate-200"></div>
+                            </div>
+                            <div class="mt-6 h-3 w-full animate-pulse rounded-full bg-slate-200"></div>
+                            <div class="mt-5 h-16 w-full animate-pulse rounded-lg bg-slate-200"></div>
+                        </div>
+                    @endif
+
+                    @if ($contentImage)
+                        <div class="h-96 w-full animate-pulse rounded-xl bg-slate-200"></div>
+                    @endif
+
+                    @if ($contentMessage)
+                        <div class="space-y-3">
+                            <div class="h-4 w-full animate-pulse rounded bg-slate-200"></div>
+                            <div class="h-4 w-full animate-pulse rounded bg-slate-200"></div>
+                            <div class="h-4 w-5/6 animate-pulse rounded bg-slate-200"></div>
+                            <div class="h-4 w-4/5 animate-pulse rounded bg-slate-200"></div>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Right column skeleton --}}
+                <div class="md:sticky md:top-8 md:self-start lg:pl-4">
+                    <div class="h-[32rem] w-full animate-pulse rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="space-y-5">
+                            <div class="h-6 w-1/2 animate-pulse rounded bg-slate-200"></div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="h-10 animate-pulse rounded-lg bg-slate-200"></div>
+                                <div class="h-10 animate-pulse rounded-lg bg-slate-200"></div>
+                                <div class="h-10 animate-pulse rounded-lg bg-slate-200"></div>
+                            </div>
+                            <div class="h-12 w-full animate-pulse rounded-lg bg-slate-200"></div>
+                            <div class="h-12 w-full animate-pulse rounded-lg bg-slate-200"></div>
+                            <div class="h-12 w-full animate-pulse rounded-lg bg-slate-200"></div>
+                            <div class="h-24 w-full animate-pulse rounded-lg bg-slate-200"></div>
+                            <div class="h-12 w-full animate-pulse rounded-lg bg-slate-200"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <main class="max-w-6xl mx-auto px-4 py-12">
     <div class="mb-8">
         <div class="flex items-center gap-3">
             @if ($contentLogo)
@@ -208,7 +284,8 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
 
         {{-- Right column: donation form --}}
         <div class="md:sticky md:top-8 md:self-start lg:pl-4">
-            @livewire('donation-form', ['campaign' => $campaign, 'isPublicPage' => true], key('donation-form-'.$campaign->public_id))
-        </div>
+        @livewire('donation-form', ['campaign' => $campaign, 'isPublicPage' => true], key('donation-form-'.$campaign->public_id))
     </div>
+</div>
 </main>
+</div>

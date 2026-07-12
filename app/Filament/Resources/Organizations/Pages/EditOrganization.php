@@ -14,9 +14,14 @@ class EditOrganization extends EditRecord
 {
     protected static string $resource = OrganizationResource::class;
 
-    public function getMaxContentWidth(): Width
+    public function getMaxContentWidth(): Width|string
     {
-        return Width::Full;
+        return 'max-w-none';
+    }
+
+    public function getPageClasses(): array
+    {
+        return ['fi-edit-organization-page'];
     }
 
     protected function getHeaderActions(): array

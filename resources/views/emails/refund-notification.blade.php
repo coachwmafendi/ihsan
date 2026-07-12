@@ -23,7 +23,7 @@
         </p>
 
         <p class="email-small" style="font-size: 0.875rem; color: #94a3b8;">
-            You are receiving this because your organisation has refund notifications enabled.
+            You are receiving this because your organization has refund notifications enabled.
         </p>
         @include('emails.partials.admin-footer', ['organization' => $donation->campaign->organization])
 

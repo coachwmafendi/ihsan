@@ -198,7 +198,7 @@ class Transactions extends Page implements HasTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('campaign.organization.name')
-                    ->label('Organisation')
+                    ->label('Organization')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('campaign.title')

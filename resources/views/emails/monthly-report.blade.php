@@ -33,7 +33,7 @@
         @endif
 
         <p class="email-small" style="font-size: 0.875rem; color: #94a3b8;">
-            You are receiving this because your organisation has monthly report enabled.
+            You are receiving this because your organization has monthly report enabled.
         </p>
         @include('emails.partials.admin-footer', ['organization' => $organization])
 

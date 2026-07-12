@@ -37,7 +37,7 @@
                 </tr>
             @endif
             <tr style="background: {{ $hasCoveredFee ? '#fff' : '#f5f3ff' }};">
-                <td style="padding: 12px 16px; color: #6b7280;">Net to Organisation</td>
+                <td style="padding: 12px 16px; color: #6b7280;">Net to Organization</td>
                 <td style="padding: 12px 16px; font-weight: 600; color: #16a34a;">{{ $netAmount }}</td>
             </tr>
             <tr style="background: {{ $hasCoveredFee ? '#f5f3ff' : '#fff' }};">
@@ -61,7 +61,7 @@
         </p>
 
         <p class="email-small" style="font-size: 0.875rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px;">
-            You are receiving this because large donation notifications are enabled for your organisation. Manage your notification preferences in the control panel.
+            You are receiving this because large donation notifications are enabled for your organization. Manage your notification preferences in the control panel.
         </p>
         @include('emails.partials.admin-footer', ['organization' => $donation->campaign->organization])
 

@@ -265,6 +265,24 @@
     @apply text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800;
 }
 
+/* Widen vertical tab content on organization edit */
+.fi-panel-admin .fi-sc-tabs.fi-vertical {
+    @apply gap-6;
+}
+
+.fi-panel-admin .fi-sc-tabs.fi-vertical > .fi-tabs.fi-vertical {
+    @apply w-48 shrink-0;
+}
+
+.fi-panel-admin .fi-sc-tabs.fi-vertical > .fi-sc-tabs-tab.fi-active {
+    @apply ms-0;
+}
+
+/* Right-align form actions on pages with vertical tabs */
+.fi-panel-admin .fi-sc-form:has(.fi-sc-tabs.fi-vertical) .fi-sc-actions .fi-ac {
+    @apply justify-end;
+}
+
 /* Demo-style tabs for Organizations */
 .ihsan-org-tabs {
     @apply overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-gray-900;
