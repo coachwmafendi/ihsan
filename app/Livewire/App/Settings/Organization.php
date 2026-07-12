@@ -169,7 +169,7 @@ class Organization extends Component
 
         $org->update($updateData);
 
-        $this->dispatch('notify', message: 'Organisation profile saved.', variant: 'success');
+        $this->dispatch('notify', message: 'Organization profile saved.', variant: 'success');
     }
 
     public function render()

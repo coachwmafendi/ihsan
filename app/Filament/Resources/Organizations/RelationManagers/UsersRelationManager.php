@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Organizations\RelationManagers;
 
 use App\Enums\UserRole;
-use App\Notifications\InviteOrganisationAdmin;
+use App\Notifications\InviteOrganizationAdmin;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -22,7 +22,7 @@ class UsersRelationManager extends RelationManager
 {
     protected static string $relationship = 'users';
 
-    protected static ?string $title = 'Organisation Admin';
+    protected static ?string $title = 'Organization Admin';
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -82,7 +82,7 @@ class UsersRelationManager extends RelationManager
                     ->icon('heroicon-o-user-plus')
                     ->color('success')
                     ->modalWidth(Width::Large)
-                    ->modalHeading('Invite Organisation Admin')
+                    ->modalHeading('Invite Organization Admin')
                     ->modalDescription('Fill in the details below. The invitee will receive an email to set their password.')
                     ->modalIcon('heroicon-o-envelope')
                     ->modalIconColor('success')
@@ -109,7 +109,7 @@ class UsersRelationManager extends RelationManager
                         return $data;
                     })
                     ->after(function ($record) {
-                        $record->notify(new InviteOrganisationAdmin(
+                        $record->notify(new InviteOrganizationAdmin(
                             organizationName: $this->ownerRecord->name,
                         ));
 
@@ -122,8 +122,8 @@ class UsersRelationManager extends RelationManager
             ->recordActions([
                 EditAction::make()
                     ->modalWidth(Width::Large)
-                    ->modalHeading('Edit Organisation Admin')
-                    ->modalDescription('Update profile details used for organisation panel access.')
+                    ->modalHeading('Edit Organization Admin')
+                    ->modalDescription('Update profile details used for organization panel access.')
                     ->modalIcon('heroicon-o-user-circle')
                     ->modalIconColor('primary')
                     ->modalSubmitActionLabel('Save changes')
@@ -133,8 +133,8 @@ class UsersRelationManager extends RelationManager
                     ->extraModalWindowAttributes(['class' => 'ihsan-admin-editor-modal']),
                 DeleteAction::make()
                     ->modalWidth(Width::Medium)
-                    ->modalHeading('Remove Organisation Admin')
-                    ->modalDescription('This will permanently remove this admin from the organisation. They will lose access to the panel.')
+                    ->modalHeading('Remove Organization Admin')
+                    ->modalDescription('This will permanently remove this admin from the organization. They will lose access to the panel.')
                     ->modalIcon('heroicon-o-user-minus')
                     ->modalIconColor('danger')
                     ->modalCancelActionLabel('Cancel')

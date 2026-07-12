@@ -53,10 +53,10 @@
     <form wire:submit="save" class="space-y-6">
         {{-- Information --}}
         <div x-show="tab === 'information'" x-cloak class="space-y-6">
-            <x-ui.card title="Organisation Information" description="Basic details about your organisation.">
+            <x-ui.card title="Organization Information" description="Basic details about your organization.">
                 <div class="grid gap-6 md:grid-cols-2">
                     <div class="md:col-span-2">
-                        <label for="name" class="block text-sm font-medium text-slate-700">Organisation Name <span class="text-red-500">*</span></label>
+                        <label for="name" class="block text-sm font-medium text-slate-700">Organization Name <span class="text-red-500">*</span></label>
                         <input type="text" id="name" wire:model="name" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                         @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
@@ -103,7 +103,7 @@
 
         {{-- Contact --}}
         <div x-show="tab === 'contact'" x-cloak class="space-y-6">
-            <x-ui.card title="Contact Details" description="How supporters can reach your organisation.">
+            <x-ui.card title="Contact Details" description="How supporters can reach your organization.">
                 <div class="grid gap-6 md:grid-cols-2">
                     <div>
                         <label for="contact_email" class="block text-sm font-medium text-slate-700">Contact Email</label>
@@ -122,7 +122,7 @@
 
         {{-- Address --}}
         <div x-show="tab === 'address'" x-cloak class="space-y-6">
-            <x-ui.card title="Organisation Address" description="Your registered or primary operating address.">
+            <x-ui.card title="Organization Address" description="Your registered or primary operating address.">
                 <div class="grid gap-6 md:grid-cols-2">
                     <div class="md:col-span-2">
                         <label for="address_line_1" class="block text-sm font-medium text-slate-700">Address Line 1</label>
@@ -199,7 +199,7 @@
 
         {{-- Social --}}
         <div x-show="tab === 'social'" x-cloak class="space-y-6">
-            <x-ui.card title="Social Media" description="Link your organisation's social media accounts.">
+            <x-ui.card title="Social Media" description="Link your organization's social media accounts.">
                 <div class="grid gap-6 md:grid-cols-2">
                     <div>
                         <label for="social_facebook" class="block text-sm font-medium text-slate-700">Facebook</label>

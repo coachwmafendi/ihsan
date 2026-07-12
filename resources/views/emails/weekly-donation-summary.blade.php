@@ -47,7 +47,7 @@
         {{-- Footer --}}
         <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
             <p class="email-small" style="margin: 0 0 4px; font-size: 12px; color: #94a3b8;">
-                You are receiving this because your organisation has weekly donation summary enabled.
+                You are receiving this because your organization has weekly donation summary enabled.
             </p>
             @include('emails.partials.admin-footer', ['organization' => $organization])
         </div>

@@ -95,7 +95,7 @@ test('recurring donation notification email body matches new layout', function (
         ->toContain('Supporter')
         ->toContain('Email')
         ->toContain('Donation ID')
-        ->toContain('Net to Organisation')
+        ->toContain('Net to Organization')
         ->toContain('Next Billing Date')
         ->toContain('View in Ihsan')
         ->toContain('app/donations/'.$donation->public_id)
