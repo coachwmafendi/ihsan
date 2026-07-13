@@ -171,9 +171,21 @@
                                     <p class="text-xs text-slate-500 font-mono">{{ $element->token }}</p>
                                 </td>
                                 <td class="px-5 py-4">
-                                    <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 capitalize">
-                                        {{ $element->is_donor_portal_default ? 'Donor Portal Button' : str_replace('_', ' ', $element->type->value) }}
-                                    </span>
+                                    @php
+                                        $typeLabel = $element->is_donor_portal_default
+                                            ? 'Donor Portal Button'
+                                            : str_replace('_', ' ', $element->type->value);
+
+                                        $typeStatus = match ($element->type->value) {
+                                            'button', 'floating_button', 'sticky_button', 'link' => 'info',
+                                            'popup' => 'warning',
+                                            'qr_code' => 'default',
+                                            default => 'info',
+                                        };
+                                    @endphp
+                                    <x-ui.badge :status="$typeStatus" size="sm" class="capitalize">
+                                        {{ $typeLabel }}
+                                    </x-ui.badge>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
                                     @if ($element->campaign)
