@@ -13,7 +13,7 @@ class Notifications extends Component
 {
     public bool $notifyNewDonation = true;
 
-    public bool $dailyDonationSummary = false;
+    public bool $dailyDonationSummary = true;
 
     public bool $failedPaymentNotification = true;
 
@@ -27,27 +27,27 @@ class Notifications extends Component
 
     public bool $notifyRefund = true;
 
-    public bool $notifyCampaignMilestone = false;
+    public bool $notifyCampaignMilestone = true;
 
-    public bool $monthlyReport = false;
+    public bool $monthlyReport = true;
 
-    public bool $weeklyReport = false;
+    public bool $weeklyReport = true;
 
     public function mount(): void
     {
         $settings = Auth::user()?->organization?->settings ?? [];
 
         $this->notifyNewDonation = (bool) ($settings['notify_new_donation'] ?? true);
-        $this->dailyDonationSummary = (bool) ($settings['daily_donation_summary'] ?? false);
+        $this->dailyDonationSummary = (bool) ($settings['daily_donation_summary'] ?? true);
         $this->failedPaymentNotification = (bool) ($settings['failed_payment_notification'] ?? true);
         $this->notifyNewSubscription = (bool) ($settings['notify_new_subscription'] ?? true);
         $this->notifySubscriptionCancelled = (bool) ($settings['notify_subscription_cancelled'] ?? true);
         $this->notifyLargeDonation = (bool) ($settings['notify_large_donation'] ?? false);
         $this->largeDonationThreshold = (int) ($settings['large_donation_threshold'] ?? 1000);
         $this->notifyRefund = (bool) ($settings['notify_refund'] ?? true);
-        $this->notifyCampaignMilestone = (bool) ($settings['notify_campaign_milestone'] ?? false);
-        $this->monthlyReport = (bool) ($settings['monthly_report'] ?? false);
-        $this->weeklyReport = (bool) ($settings['weekly_report'] ?? false);
+        $this->notifyCampaignMilestone = (bool) ($settings['notify_campaign_milestone'] ?? true);
+        $this->monthlyReport = (bool) ($settings['monthly_report'] ?? true);
+        $this->weeklyReport = (bool) ($settings['weekly_report'] ?? true);
     }
 
     public function updated(string $property): void
