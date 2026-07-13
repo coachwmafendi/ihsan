@@ -29,3 +29,26 @@ if (! function_exists('myrTime')) {
         return $withLabel ? "{$time} (MYT)" : $time;
     }
 }
+
+if (! function_exists('app_host')) {
+    function app_host(): string
+    {
+        $host = parse_url(config('app.url'), PHP_URL_HOST);
+
+        return $host ?: 'localhost';
+    }
+}
+
+if (! function_exists('support_email')) {
+    function support_email(): string
+    {
+        return 'support@'.app_host();
+    }
+}
+
+if (! function_exists('noreply_email')) {
+    function noreply_email(): string
+    {
+        return config('mail.from.address', 'no-reply@'.app_host());
+    }
+}

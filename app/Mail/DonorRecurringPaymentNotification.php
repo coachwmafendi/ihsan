@@ -38,7 +38,7 @@ class DonorRecurringPaymentNotification extends Mailable
         $locale = $this->donorLocale($this->donation->donor);
 
         return new Envelope(
-            from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName),
+            from: new Address(noreply_email(), $orgName),
             subject: trans('emails.donor_recurring_payment.subject', ['name' => $orgName], $locale),
         );
     }

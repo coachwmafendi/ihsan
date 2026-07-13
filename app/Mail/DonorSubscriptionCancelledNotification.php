@@ -34,7 +34,7 @@ class DonorSubscriptionCancelledNotification extends Mailable
 
         return new Envelope(
             from: new Address(
-                config('mail.from.address', 'no-reply@getihsan.my'),
+                noreply_email(),
                 $organization?->name ?? config('app.name')
             ),
             subject: trans('emails.donor_subscription_cancelled.subject', [

@@ -37,7 +37,7 @@ class SupporterSubscriptionAmountChangedNotification extends Mailable
         $locale = $this->donorLocale($this->subscription->donor);
 
         return new Envelope(
-            from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName),
+            from: new Address(noreply_email(), $orgName),
             subject: trans('emails.supporter_subscription_amount_changed.subject', ['name' => $orgName], $locale),
         );
     }

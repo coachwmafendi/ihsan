@@ -37,7 +37,7 @@
     </table>
 
     <p>
-        <a href="{{ url('/donor-portal/' . $subscription->campaign->organization->code . '?token=' . $subscription->donor->magic_token) }}"
+        <a href="{{ $loginUrl ?? route('donorportal.login', $subscription->campaign->organization) }}"
            style="display: inline-block; background: #0d9488; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
             {{ $t('emails.dunning.update_payment') }}
         </a>

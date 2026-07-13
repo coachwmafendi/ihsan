@@ -34,7 +34,7 @@ class CampaignCompletedDonorNotification extends Mailable
         $locale = $this->donorLocale($this->donor);
 
         return new Envelope(
-            from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName),
+            from: new Address(noreply_email(), $orgName),
             subject: trans('emails.campaign_completed.subject', ['campaign' => $this->campaign->title], $locale),
         );
     }

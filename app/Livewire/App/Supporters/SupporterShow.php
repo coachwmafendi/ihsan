@@ -341,7 +341,7 @@ class SupporterShow extends Component
         $this->previewSubject = $log->subject;
         $this->previewSentAt = $log->sent_at ? myrTime($log->sent_at) : null;
         $this->previewFromName = $org->name;
-        $this->previewFromEmail = config('mail.from.address', 'no-reply@getihsan.my');
+        $this->previewFromEmail = noreply_email();
         $this->previewToEmail = $log->metadata['resent_to_email'] ?? $this->donor->email;
         $this->previewHtml = $html;
         $this->showPreviewModal = true;

@@ -33,7 +33,7 @@ class MagicLink extends Mailable
         $locale = $this->donorLocale($this->donor);
 
         return new Envelope(
-            from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $this->organization->name),
+            from: new Address(noreply_email(), $this->organization->name),
             subject: trans('emails.magic_link.title', ['name' => $this->organization->name], $locale),
         );
     }
