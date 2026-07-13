@@ -25,13 +25,13 @@
         <nav class="-mb-px flex space-x-8" aria-label="Payment gateways">
             <button type="button"
                 @click="tab = 'stripe'"
-                :class="tab === 'stripe' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                :class="tab === 'stripe' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Stripe
             </button>
             <button type="button"
                 @click="tab = 'chip'"
-                :class="tab === 'chip' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                :class="tab === 'chip' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 CHIP
             </button>

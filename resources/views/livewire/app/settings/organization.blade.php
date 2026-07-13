@@ -19,31 +19,31 @@
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
             <button type="button"
                 @click="tab = 'information'"
-                :class="tab === 'information' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                :class="tab === 'information' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Information
             </button>
             <button type="button"
                 @click="tab = 'contact'"
-                :class="tab === 'contact' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                :class="tab === 'contact' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Contact
             </button>
             <button type="button"
                 @click="tab = 'address'"
-                :class="tab === 'address' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                :class="tab === 'address' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Address
             </button>
             <button type="button"
                 @click="tab = 'social'"
-                :class="tab === 'social' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                :class="tab === 'social' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Social
             </button>
             <button type="button"
                 @click="tab = 'bank'"
-                :class="tab === 'bank' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                :class="tab === 'bank' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Bank
             </button>
