@@ -122,6 +122,28 @@ it('renders login page with new design', function () {
         ->assertSee('Send Login Link');
 });
 
+it('uses page name and organization name in donor portal titles', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    $loginResponse = $this->get(route('donorportal.login', $org))->assertOk();
+    expect($loginResponse->content())->toContain('<title>Login - '.$org->name.'</title>');
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()]);
+
+    $dashboardResponse = $this->get(route('donorportal.dashboard', $org))->assertOk();
+    expect($dashboardResponse->content())->toContain('<title>Dashboard - '.$org->name.'</title>');
+
+    $donationsResponse = $this->get(route('donorportal.donations', $org))->assertOk();
+    expect($donationsResponse->content())->toContain('<title>Donations - '.$org->name.'</title>');
+
+    $subscriptionsResponse = $this->get(route('donorportal.subscriptions', $org))->assertOk();
+    expect($subscriptionsResponse->content())->toContain('<title>Subscriptions - '.$org->name.'</title>');
+
+    $profileResponse = $this->get(route('donorportal.profile', $org))->assertOk();
+    expect($profileResponse->content())->toContain('<title>Profile - '.$org->name.'</title>');
+});
+
 it('renders dashboard with stats and activity sections', function () {
     $org = Organization::factory()->create();
     $donor = Donor::factory()->create();

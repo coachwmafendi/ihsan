@@ -34,25 +34,25 @@
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
             <button type="button"
                 @click="tab = 'overview'"
-                :class="tab === 'overview' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                :class="tab === 'overview' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Overview
             </button>
             <button type="button"
                 @click="tab = 'settings'"
-                :class="tab === 'settings' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                :class="tab === 'settings' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Settings
             </button>
             <button type="button"
                 @click="tab = 'checkout'"
-                :class="tab === 'checkout' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                :class="tab === 'checkout' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Checkout Modal
             </button>
             <button type="button"
                 @click="$wire.campaign_page_enabled ? tab = 'campaign-page' : null"
-                :class="tab === 'campaign-page' && $wire.campaign_page_enabled ? 'border-teal-500 text-teal-600' : ($wire.campaign_page_enabled ? 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' : 'border-transparent text-slate-400 cursor-not-allowed')"
+                :class="tab === 'campaign-page' && $wire.campaign_page_enabled ? 'border-blue-600 text-blue-600' : ($wire.campaign_page_enabled ? 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' : 'border-transparent text-slate-400 cursor-not-allowed')"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors"
                 {{ $campaign_page_enabled ? '' : 'disabled' }}>
                 Campaign Page
@@ -62,7 +62,7 @@
             </button>
             <button type="button"
                 @click="tab = 'actions'"
-                :class="tab === 'actions' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                :class="tab === 'actions' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Actions
             </button>
@@ -305,7 +305,7 @@
                             {{-- Content Message --}}
                             <div>
                                 <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Content Message</dt>
-                                <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed">
+                                <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed whitespace-pre-wrap">
                                     @if (empty($campaign->config['content_message']))
                                         Not set
                                     @else

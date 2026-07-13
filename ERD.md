@@ -1,8 +1,8 @@
 # Entity Relationship Diagram (ERD)
 ## Ihsan — MVP Database Design
 
-**Version:** 2.0
-**Tarikh:** 26 Jun 2026
+**Version:** 2.1
+**Tarikh:** 13 Jul 2026
 **Database:** SQLite untuk local dev, MySQL 8/PostgreSQL untuk production
 **Framework:** Laravel 13
 
@@ -167,6 +167,7 @@ erDiagram
     DONATIONS {
         bigint id PK
         string public_id UK "D + 7 chars - public-facing ID"
+        string receipt_token UK "nullable - signed receipt download token"
         bigint campaign_id FK
         bigint donor_id FK
         bigint subscription_id FK "nullable - null if one-time"
@@ -539,6 +540,7 @@ Rekod setiap transaksi tunggal — sama ada one-time atau satu bayaran daripada 
 | Kolum | Jenis | Keterangan |
 |-------|-------|------------|
 | `public_id` | string unique | ID public-facing 8 aksara: `D` + 7 aksara rawak (A–Z, 1–9). Digunakan di receipt, URL, dan komunikasi dengan donor |
+| `receipt_token` | string unique nullable | Token unik untuk muat turun receipt melalui URL signed/private tanpa login |
 | `subscription_id` | FK nullable | NULL = one-time; ada nilai = dijana oleh subscription |
 | `source` | string nullable | Sumber transaksi: `element`, `campaign_page`, `checkout_modal`, `virtual_terminal` |
 | `stripe_invoice_id` | string nullable | ID invois Stripe untuk subscription payment |
@@ -918,6 +920,7 @@ CREATE INDEX idx_donation_type ON donations(type);
 CREATE INDEX idx_donation_created ON donations(created_at);
 CREATE INDEX idx_donation_payment_method ON donations(payment_method_type);
 CREATE INDEX idx_donation_donor_country ON donations(donor_country);
+CREATE UNIQUE INDEX idx_donation_receipt_token ON donations(receipt_token);
 
 -- subscriptions
 CREATE INDEX idx_sub_donor ON subscriptions(donor_id);
