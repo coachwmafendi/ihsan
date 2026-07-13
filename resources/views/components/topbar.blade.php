@@ -24,19 +24,21 @@ $unreadCount = auth()->user()?->getUnreadNotificationsCountAttribute() ?? 0;
     {{-- Right: Notifications + User dropdown --}}
     <div class="flex items-center gap-2">
         {{-- Notification bell --}}
-        <a
-            href="/app/notifications"
-            wire:navigate
-            class="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-        >
-            <x-heroicon-o-bell class="size-5" />
-            <span
-                class="absolute top-1.5 right-1.5 min-w-[1rem] h-4 px-1 flex items-center justify-center rounded-full text-[10px] font-bold text-white bg-teal-600 {{ $unreadCount > 0 ? '' : 'hidden' }}"
-                id="notification-badge"
+        <x-ui.tooltip text="Platform Notifications" position="bottom">
+            <a
+                href="/app/notifications"
+                wire:navigate
+                class="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
             >
-                {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-            </span>
-        </a>
+                <x-heroicon-o-bell class="size-5" />
+                <span
+                    class="absolute top-1.5 right-1.5 min-w-[1rem] h-4 px-1 flex items-center justify-center rounded-full text-[10px] font-bold text-white bg-teal-600 {{ $unreadCount > 0 ? '' : 'hidden' }}"
+                    id="notification-badge"
+                >
+                    {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                </span>
+            </a>
+        </x-ui.tooltip>
 
         {{-- User dropdown --}}
         <div x-data="{ open: false }" class="relative">

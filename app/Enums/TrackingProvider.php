@@ -52,7 +52,7 @@ enum TrackingProvider: string
         return match ($this) {
             self::Meta => [
                 ['key' => 'pixel_id', 'label' => 'Meta Pixel ID', 'type' => 'text', 'placeholder' => '123456789012345'],
-                ['key' => 'access_token', 'label' => 'Conversion API Access Token', 'type' => 'password', 'placeholder' => '••••••••••••••••'],
+                ['key' => 'access_token', 'label' => 'Conversion API Access Token', 'type' => 'password', 'placeholder' => 'EAAGsbA1E4d6BA...'],
             ],
             self::GoogleAnalytics4 => [
                 ['key' => 'measurement_id', 'label' => 'Measurement ID', 'type' => 'text', 'placeholder' => 'G-XXXXXXXXXX', 'hint' => 'Found in GA4 → Admin → Data Streams → your stream.'],

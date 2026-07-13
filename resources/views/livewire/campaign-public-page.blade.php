@@ -257,7 +257,7 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
             @if ($contentMessage)
                 <div x-data="{ expanded: false }" class="text-base/7 text-slate-600">
                     <div x-show="! expanded">
-                        <p>{{ $messageShort }}</p>
+                        <p class="whitespace-pre-wrap">{{ $messageShort }}</p>
                         @if ($messageIsLong)
                             <button
                                 type="button"

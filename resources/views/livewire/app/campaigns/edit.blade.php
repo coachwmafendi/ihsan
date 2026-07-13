@@ -304,7 +304,7 @@
                             {{-- Content Message --}}
                             <div>
                                 <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Content Message</dt>
-                                <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed">
+                                <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed whitespace-pre-wrap">
                                     @if (empty($campaign->config['content_message']))
                                         Not set
                                     @else

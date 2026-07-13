@@ -84,6 +84,27 @@ it('updates a campaign', function () {
         ->and($campaign->config['allow_cover_fee'] ?? true)->toBeFalse();
 });
 
+it('preserves newlines in the campaign page message', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+        'title' => 'Test Campaign',
+    ]);
+
+    $this->actingAs($this->user);
+
+    $message = "First line.\n\nSecond line.\nThird line.";
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->set('contentMessage', $message)
+        ->call('save')
+        ->assertHasNoErrors('contentMessage')
+        ->assertDispatched('notify');
+
+    $campaign->refresh();
+    expect($campaign->config['content_message'] ?? '')->toBe($message)
+        ->and($campaign->config['content_message'] ?? '')->toContain("\n");
+});
+
 it('toggles has_target and has_end_date on and off', function () {
     $campaign = Campaign::factory()->create([
         'organization_id' => $this->organization->id,
