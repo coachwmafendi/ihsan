@@ -4,6 +4,7 @@
 @source '../../../../app/Filament/Resources/**/*';
 @source '../../../../app/Filament/Widgets/**/*';
 @source '../../../views/components/admin/**/*';
+@source '../../../views/components/ui/tooltip.blade.php';
 @source '../../../views/filament/admin/**/*';
 @source '../../../../vendor/filament/**/*.blade.php';
 
@@ -281,27 +282,6 @@
 /* Right-align form actions on pages with vertical tabs */
 .fi-panel-admin .fi-sc-form:has(.fi-sc-tabs.fi-vertical) .fi-sc-actions .fi-ac {
     @apply justify-end;
-}
-
-/* Admin tooltips: always dark so they remain readable in the light theme */
-.fi-panel-admin .tippy-box,
-.fi-panel-admin .tippy-box[data-theme] {
-    background-color: #1f2937;
-    color: #ffffff;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2);
-}
-
-.fi-panel-admin .tippy-box > .tippy-arrow,
-.fi-panel-admin .tippy-box[data-theme] > .tippy-arrow {
-    color: #1f2937;
-}
-
-.fi-panel-admin .tippy-box[data-theme] > .tippy-backdrop {
-    background-color: #1f2937;
-}
-
-.fi-panel-admin .tippy-box[data-theme] > .tippy-svg-arrow {
-    fill: #1f2937;
 }
 
 /* Demo-style tabs for Organizations */
