@@ -1,8 +1,8 @@
 # Product Requirements Document (PRD)
 ## Ihsan — Platform Derma & Fundraising Berulang untuk NGO Malaysia
 
-**Version:** 1.6
-**Tarikh:** 26 Jun 2026
+**Version:** 1.7
+**Tarikh:** 13 Jul 2026
 **Status:** In Progress
 **Pemilik Produk:** TBD
 
@@ -310,16 +310,16 @@ Tetapan notification disimpan dalam `organizations.settings`. Default MVP:
 | Key | Default |
 |-----|---------|
 | `notify_new_donation` | ON |
-| `daily_donation_summary` | OFF |
+| `daily_donation_summary` | ON |
 | `failed_payment_notification` | ON |
 | `notify_new_subscription` | ON |
 | `notify_subscription_cancelled` | ON |
 | `notify_large_donation` | OFF |
 | `large_donation_threshold` | 1000 |
 | `notify_refund` | ON |
-| `notify_campaign_milestone` | OFF |
-| `weekly_report` | OFF |
-| `monthly_report` | OFF |
+| `notify_campaign_milestone` | ON |
+| `weekly_report` | ON |
+| `monthly_report` | ON |
 
 ### 5.4 Embeddable Widget
 
@@ -538,7 +538,7 @@ Hubungan penting:
 - [ ] QA testing menyeluruh
 - [ ] Onboard 3 early adopter NGO (beta)
 
-### 12.1 Status Implementasi Semasa (26 Jun 2026)
+### 12.1 Status Implementasi Semasa (13 Jul 2026)
 
 - Settings NGO telah dipecahkan kepada Organization, Stripe Connect, Account, Allowed Domains, Donor Portal, Notifications, Installation, dan Tracking & Analytics.
 - Notification preferences auto-save ke `organizations.settings` dan email dihantar melalui queued jobs.
@@ -560,6 +560,11 @@ Hubungan penting:
 - Donor payment methods disimpan dalam `donor_payment_methods` untuk prefill dan update payment method.
 - Tracking & Analytics settings menyokong integrasi pixel/provider dengan log event dalam `tracking_events`.
 - CSV export tersedia untuk Donations, Supporters, dan Recurring Plans.
+- `public_id` 8 aksara diperkenalkan untuk `users`, `campaigns`, `donors`, `donations`, `subscriptions`, `elements`, `monthly_invoices`, `organizations`, dan `donor_email_logs` — auto-generated oleh observer dan backfill command.
+- Organisasi settings form menggunakan dropdown pilihan negeri (16 negeri Malaysia) dan negara (21 negara utama).
+- PDF receipt direkabentuk sebagai dokumen rasmi dengan header, maklumat donor, jadual transaksi, dan footer tax-exempt.
+- Campaign Page message menyimpan dan memaparkan baris baharu (newlines) dengan betul dalam edit preview dan halaman awam.
+- Active state sidebar item menggunakan warna biru dan ikon loceng notifikasi mempunyai tooltip "Platform Notifications".
 
 ### 12.2 Rujukan Screenshot Fundraise Up
 
