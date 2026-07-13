@@ -283,6 +283,27 @@
     @apply justify-end;
 }
 
+/* Admin tooltips: always dark so they remain readable in the light theme */
+.fi-panel-admin .tippy-box,
+.fi-panel-admin .tippy-box[data-theme] {
+    background-color: #1f2937;
+    color: #ffffff;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2);
+}
+
+.fi-panel-admin .tippy-box > .tippy-arrow,
+.fi-panel-admin .tippy-box[data-theme] > .tippy-arrow {
+    color: #1f2937;
+}
+
+.fi-panel-admin .tippy-box[data-theme] > .tippy-backdrop {
+    background-color: #1f2937;
+}
+
+.fi-panel-admin .tippy-box[data-theme] > .tippy-svg-arrow {
+    fill: #1f2937;
+}
+
 /* Demo-style tabs for Organizations */
 .ihsan-org-tabs {
     @apply overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-gray-900;
