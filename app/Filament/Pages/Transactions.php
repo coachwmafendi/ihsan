@@ -242,10 +242,21 @@ class Transactions extends Page implements HasTable
                     ->toggleable(),
                 TextColumn::make('type')
                     ->badge()
+                    ->color(fn (DonationType $state): string => match ($state) {
+                        DonationType::OneTime => 'gray',
+                        DonationType::Recurring => 'info',
+                    })
                     ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString())
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge()
+                    ->color(fn (DonationStatus $state): string => match ($state) {
+                        DonationStatus::Pending => 'warning',
+                        DonationStatus::Succeeded => 'success',
+                        DonationStatus::Failed => 'danger',
+                        DonationStatus::Cancelled => 'gray',
+                        DonationStatus::Refunded => 'info',
+                    })
                     ->formatStateUsing(fn (DonationStatus $state): string => str($state->value)->headline()->toString())
                     ->sortable(),
                 TextColumn::make('created_at')

@@ -31,6 +31,12 @@ class OrganizationsTable
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge()
+                    ->color(fn (OrganizationStatus $state): string => match ($state) {
+                        OrganizationStatus::Pending => 'warning',
+                        OrganizationStatus::Active => 'info',
+                        OrganizationStatus::Suspended => 'danger',
+                        OrganizationStatus::Rejected => 'gray',
+                    })
                     ->formatStateUsing(fn (OrganizationStatus $state): string => str($state->value)->headline()->toString())
                     ->searchable()
                     ->sortable(),
