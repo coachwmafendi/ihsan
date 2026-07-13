@@ -136,9 +136,9 @@
                                                 {{ $campaign->title }}
                                             </span>
                                             @if ($campaign->payment_gateway)
-                                                <span class="mt-1 inline-flex w-fit items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                                                <x-ui.badge status="info" size="xs" class="mt-1 w-fit">
                                                     {{ $campaign->payment_gateway->getLabel() }}
-                                                </span>
+                                                </x-ui.badge>
                                             @endif
                                             @if ($campaign->has_target && $campaign->target_amount)
                                                 @php
