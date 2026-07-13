@@ -16,12 +16,18 @@ class DonorDunningNotification extends Mailable
 {
     use Queueable, SerializesModels, SetsDonorLocale;
 
+    public ?string $loginToken = null;
+
     public function __construct(
         public Subscription $subscription,
         public int $retryCount,
         public bool $isFinalAttempt = false,
         public ?string $messageId = null,
     ) {
+        if ($this->subscription->donor !== null) {
+            $this->loginToken = $this->subscription->donor->generateMagicToken();
+        }
+
         if ($this->messageId) {
             $this->metadata('donor_email_log_message_id', $this->messageId);
         }
@@ -40,7 +46,7 @@ class DonorDunningNotification extends Mailable
         };
 
         return new Envelope(
-            from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName),
+            from: new Address(noreply_email(), $orgName),
             subject: $subject,
         );
     }
@@ -55,6 +61,7 @@ class DonorDunningNotification extends Mailable
     public function content(): Content
     {
         $donor = $this->subscription->donor;
+        $organization = $this->subscription->campaign?->organization;
 
         return new Content(
             view: 'emails.donor-dunning-notification',
@@ -62,6 +69,9 @@ class DonorDunningNotification extends Mailable
                 'donor' => $donor,
                 'locale' => $this->donorLocale($donor),
                 'unsubscribeUrl' => $donor ? DonorNotificationController::unsubscribeUrl($donor) : null,
+                'loginUrl' => $donor !== null && $organization !== null && $this->loginToken !== null
+                    ? route('donorportal.magic-login', ['organization' => $organization, 'token' => $this->loginToken])
+                    : null,
             ],
         );
     }

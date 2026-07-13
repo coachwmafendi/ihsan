@@ -49,7 +49,7 @@ class SubscriptionAmountChangedNotification extends Mailable
 
         return new Envelope(
             from: $this->isDonor
-                ? new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName)
+                ? new Address(noreply_email(), $orgName)
                 : null,
             subject: trans('emails.subscription_amount_changed.subject', ['name' => $orgName], $locale),
         );

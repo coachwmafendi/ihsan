@@ -229,7 +229,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 ### Key Decisions
 - Custom HTML toggle buttons (`wire:click="$toggle()"`) instead of `<flux:switch>` — Flux JS not loaded in Filament pages
 - Mail sent to all `NgoAdmin` users in the org, not just primary contact
-- Defaults: `notify_new_donation` ON, `daily_donation_summary` OFF, `failed_payment_notification` ON, `notify_new_subscription` ON, `notify_subscription_cancelled` ON, `notify_large_donation` OFF, `notify_refund` ON, `notify_campaign_milestone` OFF, `monthly_report` OFF
+- Defaults: `notify_new_donation` ON, `daily_donation_summary` ON, `failed_payment_notification` ON, `notify_new_subscription` ON, `notify_subscription_cancelled` ON, `notify_large_donation` OFF, `notify_refund` ON, `notify_campaign_milestone` ON, `monthly_report` ON, `weekly_report` ON
 - Revenue page counts all `ProcessingFee` records (not only `paid`) — pending fees are legitimate collections
 - Period filter uses Alpine dropdown button (not Filament tabs) to match Insights UX
 - Donor country stored on donation record (not donor) — available at charge sync time without additional API calls

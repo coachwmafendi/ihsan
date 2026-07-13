@@ -36,7 +36,7 @@ class DonationReceipt extends Mailable
         $locale = $this->donorLocale($this->donation->donor);
 
         return new Envelope(
-            from: new Address(config('mail.from.address', 'no-reply@getihsan.my'), $orgName),
+            from: new Address(noreply_email(), $orgName),
             subject: trans('emails.receipt.subject', ['name' => $orgName], $locale),
             replyTo: $replyTo ? [new Address($replyTo, $org->name)] : [],
         );

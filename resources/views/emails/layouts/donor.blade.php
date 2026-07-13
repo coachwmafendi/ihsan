@@ -40,7 +40,7 @@
                     </tr>
                     <tr>
                         <td style="padding: 0 20px 24px;">
-                            @include('emails.partials.org-footer', ['organization' => $organization])
+                            @include('emails.partials.org-footer', ['organization' => $organization, 'downloadUrl' => $downloadUrl ?? null])
                         </td>
                     </tr>
                 </table>

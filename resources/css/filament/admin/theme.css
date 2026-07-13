@@ -4,6 +4,7 @@
 @source '../../../../app/Filament/Resources/**/*';
 @source '../../../../app/Filament/Widgets/**/*';
 @source '../../../views/components/admin/**/*';
+@source '../../../views/components/ui/tooltip.blade.php';
 @source '../../../views/filament/admin/**/*';
 @source '../../../../vendor/filament/**/*.blade.php';
 

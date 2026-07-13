@@ -17,8 +17,8 @@
         </div>
 
         <x-admin.settings-panel title="SPF / DKIM / DMARC">
-            Untuk elak email masuk spam, pastikan DNS domain dah setup SPF, DKIM, dan DMARC records.
-            Rujuk documentation mail provider untuk panduan.
+            To prevent emails from landing in spam, make sure your domain DNS has SPF, DKIM, and DMARC records configured.
+            Refer to your mail provider's documentation for guidance.
         </x-admin.settings-panel>
     </div>
 </x-filament-panels::page>
