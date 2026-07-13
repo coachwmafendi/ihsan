@@ -35,23 +35,9 @@
     @endif
 
     @if (filled($organization->website_url))
-        <p style="margin: 0 0 4px 0;">
+        <p style="margin: 0 0 16px 0;">
             <a href="{{ $organization->website_url }}" target="_blank" rel="noopener noreferrer" style="color: #64748b; text-decoration: underline;">
                 {{ $organization->website_url }}
-            </a>
-        </p>
-    @endif
-
-    <p style="margin: 0 0 4px 0;">
-        <a href="{{ route('donorportal.dashboard', $organization) }}" target="_blank" rel="noopener noreferrer" style="color: #64748b; text-decoration: underline;">
-            {{ __('emails.receipt.donor_portal_cta') }}
-        </a>
-    </p>
-
-    @if (isset($downloadUrl) && filled($downloadUrl))
-        <p style="margin: 0 0 16px 0;">
-            <a href="{{ $downloadUrl }}" target="_blank" rel="noopener noreferrer" style="color: #64748b; text-decoration: underline;">
-                {{ __('emails.receipt.download_receipt') }}
             </a>
         </p>
     @endif
