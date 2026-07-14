@@ -244,7 +244,7 @@
                         :data="$sparklineData"
                         :width="200"
                         :height="60"
-                        color="#0d9488"
+                        color="#3b82f6"
                     />
                 </div>
 
