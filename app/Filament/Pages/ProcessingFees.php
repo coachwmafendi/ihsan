@@ -53,16 +53,12 @@ class ProcessingFees extends Page implements HasTable
                     ->toggleable(),
                 TextColumn::make('fee_amount')
                     ->label('Amount')
-                    ->formatStateUsing(function (string $state, ProcessingFee $record): string {
-                        $currency = strtoupper($record->donation->currency);
-
-                        return $currency.' '.number_format((float) $state, 2);
-                    })
+                    ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
                     ->tooltip(function (string $state, ProcessingFee $record): ?string {
-                        if ($record->donation->currency !== 'myr' && $record->donation->base_amount !== null && (float) $record->donation->gross_amount > 0) {
-                            $baseFee = number_format((float) $state * ((float) $record->donation->base_amount / (float) $record->donation->gross_amount), 2);
+                        $exchangeRate = (float) ($record->donation->exchange_rate ?? 0);
 
-                            return '≈ MYR '.$baseFee;
+                        if ($record->donation->currency !== 'myr' && $exchangeRate > 0) {
+                            return '≈ '.strtoupper($record->donation->currency).' '.number_format((float) $state / $exchangeRate, 2);
                         }
 
                         return null;
@@ -81,8 +77,12 @@ class ProcessingFees extends Page implements HasTable
                 TextColumn::make('donation.gross_amount')
                     ->label('Donation')
                     ->formatStateUsing(function (string $state, ProcessingFee $record): string {
-                        if ($record->donation->currency !== 'myr' && $record->donation->base_amount !== null) {
-                            return '≈ MYR '.number_format((float) $record->donation->base_amount, 2);
+                        if ($record->donation->currency !== 'myr') {
+                            if ($record->donation->base_amount !== null) {
+                                return '≈ MYR '.number_format((float) $record->donation->base_amount, 2);
+                            }
+
+                            return strtoupper($record->donation->currency).' '.number_format((float) $state, 2);
                         }
 
                         return 'MYR '.number_format((float) $state, 2);
