@@ -112,6 +112,30 @@ it('displays donation detail sections', function () {
         ->assertSee($this->campaign->title);
 });
 
+it('does not double convert processing fee base for foreign currency donations', function () {
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'currency' => 'usd',
+        'gross_amount' => 100.00,
+        'base_amount' => 407.84,
+        'base_currency' => 'myr',
+        'exchange_rate' => 4.078410,
+        'processing_fee' => 10.93,
+        'stripe_fee' => 27.23,
+        'net_amount' => 399.04,
+        'status' => 'succeeded',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $donation])
+        ->assertSee('$ 6.68 USD')
+        ->assertSee('MYR 27.23')
+        ->assertSee('MYR 10.93')
+        ->assertDontSee('MYR 111.05')
+        ->assertDontSee('MYR 44.58');
+});
+
 it('shows refund modal and validates reason', function () {
     $this->donation->update(['stripe_charge_id' => 'ch_test_123']);
 
