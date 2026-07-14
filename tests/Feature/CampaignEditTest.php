@@ -561,6 +561,41 @@ it('displays default configuration values when fields are empty', function () {
         ->assertSee('No end date');
 });
 
+it('rejects a description with more than 200 words', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $this->actingAs($this->user);
+
+    $longDescription = implode(' ', array_fill(0, 201, 'word'));
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSee('/ 200 words')
+        ->set('description', $longDescription)
+        ->call('save')
+        ->assertHasErrors(['description']);
+});
+
+it('accepts a description with exactly 200 words', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $this->actingAs($this->user);
+
+    $validDescription = implode(' ', array_fill(0, 200, 'word'));
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->set('description', $validDescription)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    $campaign->refresh();
+    expect($campaign->description)->toBe($validDescription);
+});
+
 it('falls back to legacy suggested amounts when config is empty', function () {
     $campaign = Campaign::factory()->create([
         'organization_id' => $this->organization->id,
