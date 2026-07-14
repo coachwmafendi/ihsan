@@ -45,6 +45,10 @@ class AdminPanelProvider extends PanelProvider
             ->domain($domain)
             ->path($domain ? '' : 'admin')
             ->spa()
+            ->spaUrlExceptions([
+                '*/admin/revenue/report/*',
+                '*/revenue/report/*',
+            ])
             ->breadcrumbs(false)
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('16rem')

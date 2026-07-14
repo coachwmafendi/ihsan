@@ -178,6 +178,7 @@
                                         <a
                                             href="{{ route('filament.admin.pages.revenue.report', ['organizationPublicId' => $row['public_id'], 'format' => 'csv', 'period' => $period]) }}"
                                             title="Download CSV"
+                                            aria-label="Download CSV report for {{ $row['name'] }}"
                                             class="inline-flex items-center justify-center rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200"
                                         >
                                             <x-heroicon-o-table-cells class="size-4" />
@@ -185,6 +186,7 @@
                                         <a
                                             href="{{ route('filament.admin.pages.revenue.report', ['organizationPublicId' => $row['public_id'], 'format' => 'pdf', 'period' => $period]) }}"
                                             title="Download PDF"
+                                            aria-label="Download PDF report for {{ $row['name'] }}"
                                             class="inline-flex items-center justify-center rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200"
                                         >
                                             <x-heroicon-o-document-text class="size-4" />
