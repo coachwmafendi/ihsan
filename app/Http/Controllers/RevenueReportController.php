@@ -32,7 +32,7 @@ class RevenueReportController extends Controller
 
     public function __construct(private RevenueReportService $reportService) {}
 
-    public function download(string $organizationPublicId, string $format, ?string $period = null): StreamedResponse|Response
+    public function download(string $organizationPublicId, string $format, ?string $period = null): StreamedResponse
     {
         /** @var User|null $user */
         $user = auth()->user();
@@ -58,6 +58,10 @@ class RevenueReportController extends Controller
         }
 
         $row = $this->reportService->rowForOrganization($organization, $period);
+
+        if ($row === null) {
+            throw new NotFoundHttpException;
+        }
 
         $sanitizedName = Str::limit(Str::slug($organization->name, '-'), 50, '');
         $date = now()->format('Y-m-d');

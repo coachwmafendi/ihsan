@@ -56,11 +56,14 @@ it('downloads a PDF revenue report for an organization', function () {
     $campaign = Campaign::factory()->for($org)->create();
     $donor = Donor::factory()->create();
 
+    $lastMonth = now()->subMonth()->day(15);
+
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 500.00,
         'base_amount' => 500.00,
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::OneTime,
+        'created_at' => $lastMonth,
     ]);
 
     ProcessingFee::factory()->create([
@@ -68,6 +71,7 @@ it('downloads a PDF revenue report for an organization', function () {
         'organization_id' => $org->id,
         'fee_amount' => 12.50,
         'status' => 'paid',
+        'created_at' => $lastMonth,
     ]);
 
     $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
