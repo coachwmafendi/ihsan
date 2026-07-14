@@ -177,17 +177,17 @@ class RevenueReportService
         return match ($period) {
             'today' => 'Today',
             'yesterday' => 'Yesterday',
-            'last_7_days' => 'Last 7 days',
-            'last_30_days' => 'Last 30 days',
-            'last_90_days' => 'Last 90 days',
-            'last_week' => 'Last week',
-            'last_month' => 'Last month',
-            'last_6_months' => 'Last 6 months',
-            'last_year' => 'Last year',
-            'this_week' => 'This week',
-            'this_month' => 'This month',
-            'this_year' => 'This year',
-            default => 'All time',
+            'last_7_days' => 'Last 7 Days',
+            'last_30_days' => 'Last 30 Days',
+            'last_90_days' => 'Last 90 Days',
+            'last_week' => 'Last Week',
+            'last_month' => 'Last Month',
+            'last_6_months' => 'Last 6 Months',
+            'last_year' => 'Last Year',
+            'this_week' => 'This Week',
+            'this_month' => 'This Month',
+            'this_year' => 'This Year',
+            default => 'All Time',
         };
     }
 
@@ -196,7 +196,7 @@ class RevenueReportService
         [$from, $to] = $this->dateRange($period);
 
         if ($from === null) {
-            return 'All time';
+            return 'All Time';
         }
 
         return $from === $to ? $from : "$from to $to";

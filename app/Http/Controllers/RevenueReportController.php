@@ -64,8 +64,9 @@ class RevenueReportController extends Controller
         }
 
         $sanitizedName = Str::limit(Str::slug($organization->name, '-'), 50, '');
+        $periodSlug = str_replace(' ', '-', $this->reportService->periodLabel($period));
         $date = now()->format('Y-m-d');
-        $filename = "ihsan-{$organization->public_id}-{$sanitizedName}-revenue-{$period}-{$date}.{$format}";
+        $filename = "ihsan-{$organization->public_id}-{$sanitizedName}-revenue-{$periodSlug}-{$date}.{$format}";
 
         return match ($format) {
             'csv' => $this->csvResponse($row, $period, $filename),
