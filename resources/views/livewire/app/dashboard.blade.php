@@ -256,7 +256,7 @@
                         @endphp
                         <div class="flex flex-1 flex-col items-center gap-1">
                             <x-ui.tooltip :text="$point['date'].': '.($point['has_approximation'] ? '≈ ' : '').'MYR '.number_format($point['amount'], 2)">
-                                <div class="w-full rounded-t bg-teal-500/20 transition-all duration-300 hover:bg-teal-500/40" style="height: {{ max($heightPercent, 2) }}%;"></div>
+                                <div class="w-full rounded-t bg-blue-500/20 transition-all duration-300 hover:bg-blue-500/40" style="height: {{ max($heightPercent, 2) }}%;"></div>
                             </x-ui.tooltip>
                             @if(count($this->donationTrend) <= 14 || $loop->index % ceil(count($this->donationTrend) / 7) === 0)
                                 <span class="text-[10px] text-slate-400">{{ $point['date'] }}</span>
@@ -296,7 +296,7 @@
                                 </div>
                             </div>
                             <div class="w-full overflow-hidden rounded-full bg-slate-100">
-                                <div class="h-2 rounded-full bg-teal-500 transition-all duration-500" style="width: {{ $percentage }}%"></div>
+                                <div class="h-2 rounded-full bg-blue-500 transition-all duration-500" style="width: {{ $percentage }}%"></div>
                             </div>
                         </div>
                     @endforeach
@@ -323,7 +323,7 @@
                                 </div>
                             </div>
                             <div class="w-full overflow-hidden rounded-full bg-slate-100">
-                                <div class="h-2.5 rounded-full bg-teal-500 transition-all duration-500" style="width: {{ $size['percentage'] }}%"></div>
+                                <div class="h-2.5 rounded-full bg-blue-500 transition-all duration-500" style="width: {{ $size['percentage'] }}%"></div>
                             </div>
                         </div>
                     @endforeach
@@ -351,7 +351,7 @@
                                 </div>
                             </div>
                             <div class="w-full overflow-hidden rounded-full bg-slate-100">
-                                <div class="h-2 rounded-full bg-teal-500 transition-all duration-500" style="width: {{ $method['percentage'] }}%"></div>
+                                <div class="h-2 rounded-full bg-blue-500 transition-all duration-500" style="width: {{ $method['percentage'] }}%"></div>
                             </div>
                         </div>
                     @endforeach

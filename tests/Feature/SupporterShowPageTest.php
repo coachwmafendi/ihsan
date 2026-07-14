@@ -602,7 +602,7 @@ it('shows a receipt download link for succeeded donations', function () {
         ->assertSee('INV-SUC-001');
 });
 
-it('does not show a receipt download link for non-succeeded donations', function (DonationStatus $status) {
+it('does not show non-succeeded donations in the receipts section', function (DonationStatus $status) {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([
         'role' => UserRole::NgoAdmin,
@@ -618,7 +618,7 @@ it('does not show a receipt download link for non-succeeded donations', function
         ->get('/app/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertDontSeeHtml('href="'.e(route('donations.receipt.download', ['donation' => $donation->public_id])).'"')
-        ->assertSee('INV-'.$status->value.'-001');
+        ->assertDontSee('INV-'.$status->value.'-001');
 })->with([
     DonationStatus::Pending,
     DonationStatus::Failed,
