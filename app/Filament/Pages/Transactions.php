@@ -108,20 +108,13 @@ class Transactions extends Page implements HasTable
             'COALESCE(SUM(COALESCE(base_amount, gross_amount)), 0) as total'
         )->value('total');
 
+        // processing_fee and net_amount are already stored in MYR for every currency
         $fee = (float) (clone $base)->selectRaw(
-            "COALESCE(SUM(CASE
-                WHEN currency <> 'myr' AND COALESCE(base_amount, 0) > 0 AND COALESCE(gross_amount, 0) > 0
-                    THEN processing_fee * (base_amount * 1.0 / gross_amount)
-                ELSE processing_fee
-            END), 0) as total"
+            'COALESCE(SUM(processing_fee), 0) as total'
         )->value('total');
 
         $orgReceives = (float) (clone $base)->selectRaw(
-            "COALESCE(SUM(CASE
-                WHEN currency <> 'myr' AND COALESCE(base_amount, 0) > 0 AND COALESCE(gross_amount, 0) > 0
-                    THEN net_amount * (base_amount * 1.0 / gross_amount)
-                ELSE net_amount
-            END), 0) as total"
+            'COALESCE(SUM(net_amount), 0) as total'
         )->value('total');
 
         return [
@@ -211,8 +204,12 @@ class Transactions extends Page implements HasTable
                 TextColumn::make('gross_amount')
                     ->label('Amount')
                     ->formatStateUsing(function (string $state, Donation $record): string {
-                        if ($record->currency !== 'myr' && $record->base_amount !== null) {
-                            return '≈ MYR '.number_format((float) $record->base_amount, 2);
+                        if ($record->currency !== 'myr') {
+                            if ($record->base_amount !== null) {
+                                return '≈ MYR '.number_format((float) $record->base_amount, 2);
+                            }
+
+                            return strtoupper($record->currency).' '.number_format((float) $state, 2);
                         }
 
                         return 'MYR '.number_format((float) $state, 2);
@@ -230,10 +227,15 @@ class Transactions extends Page implements HasTable
                     ->sortable(),
                 TextColumn::make('processing_fee')
                     ->label('Processing Fee')
-                    ->formatStateUsing(function (string $state, Donation $record): string {
-                        $currency = strtoupper($record->currency);
+                    ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
+                    ->tooltip(function (string $state, Donation $record): ?string {
+                        $exchangeRate = (float) ($record->exchange_rate ?? 0);
 
-                        return $currency.' '.number_format((float) $state, 2);
+                        if ($record->currency !== 'myr' && $exchangeRate > 0) {
+                            return '≈ '.strtoupper($record->currency).' '.number_format((float) $state / $exchangeRate, 2);
+                        }
+
+                        return null;
                     })
                     ->toggleable(),
                 TextColumn::make('net_amount')

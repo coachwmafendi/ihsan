@@ -56,6 +56,7 @@ it('displays approximated MYR amount with tooltip for foreign currency donations
         'currency' => 'usd',
         'base_currency' => 'myr',
         'base_amount' => 235.50,
+        'exchange_rate' => 4.71,
     ]);
 
     ProcessingFee::factory()->create([
@@ -68,6 +69,33 @@ it('displays approximated MYR amount with tooltip for foreign currency donations
         ->loadTable()
         ->assertSee('≈ MYR 235.50')
         ->assertSee('USD 50.00'); // shown in tooltip
+});
+
+it('shows the fee amount in MYR with original currency tooltip for foreign donations', function () {
+    $donation = Donation::factory()->create([
+        'gross_amount' => 100.00,
+        'donor_fee_covered' => 7.20,
+        'currency' => 'usd',
+        'base_currency' => 'myr',
+        'base_amount' => 407.84,
+        'exchange_rate' => 4.078410,
+    ]);
+
+    ProcessingFee::factory()->create([
+        'donation_id' => $donation->id,
+        'fee_amount' => 10.93,
+        'fee_percentage' => 2.5,
+    ]);
+
+    Livewire::test(ProcessingFees::class)
+        ->loadTable()
+        // fee_amount is stored in MYR — must not be labelled with the donation currency
+        ->assertSee('MYR 10.93')
+        ->assertDontSee('USD 10.93')
+        // tooltip converts the fee back to the donation currency
+        ->assertSee('≈ USD 2.68')
+        // old double-conversion (fee × base/gross) must not appear
+        ->assertDontSee('MYR 44.58');
 });
 
 it('displays plain MYR amount for local currency donations', function () {
