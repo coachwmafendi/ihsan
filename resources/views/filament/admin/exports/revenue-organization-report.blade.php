@@ -43,7 +43,11 @@
                 <td class="amount">MYR {{ number_format($row['avg_donation_raw'], 2) }}</td>
             </tr>
             <tr>
-                <td>Total Stripe / processing fees</td>
+                <td>Total Stripe fees</td>
+                <td class="amount">MYR {{ number_format($row['stripe_fees_raw'], 2) }}</td>
+            </tr>
+            <tr>
+                <td>Total Ihsan processing fees</td>
                 <td class="amount">MYR {{ number_format($row['fees_raw'], 2) }}</td>
             </tr>
             <tr>

@@ -18,6 +18,8 @@ class RevenueReportService
      *     donations: int,
      *     volume_raw: float,
      *     volume: string,
+     *     stripe_fees_raw: float,
+     *     stripe_fees: string,
      *     fees_raw: float,
      *     fees: string,
      *     avg_donation_raw: float,
@@ -31,7 +33,7 @@ class RevenueReportService
         [$from, $to] = $this->dateRange($period);
 
         $succeededDonations = Donation::query()
-            ->selectRaw('campaigns.organization_id, COUNT(*) as donation_count, SUM(base_amount) as volume, AVG(base_amount) as avg_donation')
+            ->selectRaw('campaigns.organization_id, COUNT(*) as donation_count, SUM(base_amount) as volume, AVG(base_amount) as avg_donation, SUM(stripe_fee) as stripe_fees')
             ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
             ->where('donations.status', DonationStatus::Succeeded)
             ->when($from, fn (Builder $q) => $q->whereDate('donations.created_at', '>=', $from))
@@ -67,6 +69,7 @@ class RevenueReportService
                 $orgFees = $feesByOrg->get($org->id);
                 $volume = (float) ($orgDonations?->volume ?? 0);
                 $fees = (float) ($orgFees?->total_fees ?? 0);
+                $stripeFees = (float) ($orgDonations?->stripe_fees ?? 0);
                 $donations = (int) ($orgDonations?->donation_count ?? 0);
                 $avg = $donations > 0 ? $volume / $donations : 0;
                 $rate = $volume > 0 ? ($fees / $volume) * 100 : 0;
@@ -78,6 +81,8 @@ class RevenueReportService
                     'donations' => $donations,
                     'volume_raw' => $volume,
                     'volume' => 'MYR '.number_format($volume, 2, '.', ''),
+                    'stripe_fees_raw' => $stripeFees,
+                    'stripe_fees' => 'MYR '.number_format($stripeFees, 2, '.', ''),
                     'fees_raw' => $fees,
                     'fees' => 'MYR '.number_format($fees, 2, '.', ''),
                     'avg_donation_raw' => $avg,
@@ -97,7 +102,7 @@ class RevenueReportService
         [$from, $to] = $this->dateRange($period);
 
         $orgDonations = Donation::query()
-            ->selectRaw('campaigns.organization_id, COUNT(*) as donation_count, SUM(base_amount) as volume, AVG(base_amount) as avg_donation')
+            ->selectRaw('campaigns.organization_id, COUNT(*) as donation_count, SUM(base_amount) as volume, AVG(base_amount) as avg_donation, SUM(stripe_fee) as stripe_fees')
             ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
             ->where('campaigns.organization_id', $organization->id)
             ->where('donations.status', DonationStatus::Succeeded)
@@ -118,6 +123,7 @@ class RevenueReportService
 
         $volume = (float) ($orgDonations?->volume ?? 0);
         $donations = (int) ($orgDonations?->donation_count ?? 0);
+        $stripeFees = (float) ($orgDonations?->stripe_fees ?? 0);
         $avg = $donations > 0 ? $volume / $donations : 0;
         $rate = $volume > 0 ? ($fees / $volume) * 100 : 0;
 
@@ -128,6 +134,8 @@ class RevenueReportService
             'donations' => $donations,
             'volume_raw' => $volume,
             'volume' => 'MYR '.number_format($volume, 2, '.', ''),
+            'stripe_fees_raw' => $stripeFees,
+            'stripe_fees' => 'MYR '.number_format($stripeFees, 2, '.', ''),
             'fees_raw' => $fees,
             'fees' => 'MYR '.number_format($fees, 2, '.', ''),
             'avg_donation_raw' => $avg,

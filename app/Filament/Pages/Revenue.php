@@ -55,6 +55,8 @@ class Revenue extends Page
      *     donations: int,
      *     volume_raw: float,
      *     volume: string,
+     *     stripe_fees_raw: float,
+     *     stripe_fees: string,
      *     fees_raw: float,
      *     fees: string,
      *     avg_donation_raw: float,

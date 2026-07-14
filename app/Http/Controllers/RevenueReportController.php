@@ -92,7 +92,8 @@ class RevenueReportController extends Controller
             fputcsv($handle, ['Total donations', $row['donations']]);
             fputcsv($handle, ['Donation volume', number_format($row['volume_raw'], 2)]);
             fputcsv($handle, ['Average donation size', number_format($row['avg_donation_raw'], 2)]);
-            fputcsv($handle, ['Total Stripe / processing fees', number_format($row['fees_raw'], 2)]);
+            fputcsv($handle, ['Total Stripe fees', number_format($row['stripe_fees_raw'], 2)]);
+            fputcsv($handle, ['Total Ihsan processing fees', number_format($row['fees_raw'], 2)]);
             fputcsv($handle, ['Effective fee rate', number_format($row['effective_rate_raw'], 2).'%']);
 
             fclose($handle);

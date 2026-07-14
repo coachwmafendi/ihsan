@@ -18,6 +18,7 @@ it('downloads a CSV revenue report for an organization', function () {
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 100.00,
         'base_amount' => 100.00,
+        'stripe_fee' => 1.50,
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::OneTime,
     ]);
@@ -47,7 +48,10 @@ it('downloads a CSV revenue report for an organization', function () {
     expect($content)
         ->toContain('Test Org')
         ->toContain($org->public_id)
+        ->toContain('Total Stripe fees')
+        ->toContain('Total Ihsan processing fees')
         ->toContain('100.00')
+        ->toContain('1.50')
         ->toContain('2.50');
 });
 
@@ -61,6 +65,7 @@ it('downloads a PDF revenue report for an organization', function () {
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 500.00,
         'base_amount' => 500.00,
+        'stripe_fee' => 8.75,
         'status' => DonationStatus::Succeeded,
         'type' => DonationType::OneTime,
         'created_at' => $lastMonth,
