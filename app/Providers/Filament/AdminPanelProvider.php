@@ -15,6 +15,7 @@ use App\Filament\Widgets\DonationTrendChart;
 use App\Filament\Widgets\PaymentMethodChart;
 use App\Filament\Widgets\ProcessingFeeTrendChart;
 use App\Filament\Widgets\TopOrganizationsChart;
+use App\Http\Controllers\RevenueReportController;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -44,6 +45,10 @@ class AdminPanelProvider extends PanelProvider
             ->domain($domain)
             ->path($domain ? '' : 'admin')
             ->spa()
+            ->spaUrlExceptions([
+                '*/admin/revenue/report/*',
+                '*/revenue/report/*',
+            ])
             ->breadcrumbs(false)
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('16rem')
@@ -61,6 +66,11 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->routes(function () {
+                Route::get('/revenue/report/{organizationPublicId}/{format}/{period?}', [RevenueReportController::class, 'download'])
+                    ->whereIn('format', ['csv', 'pdf'])
+                    ->middleware([Authenticate::class])
+                    ->name('pages.revenue.report');
+
                 Route::get('/', fn () => redirect()->route('filament.admin.pages.platform-overview'))->name('pages.dashboard');
             })
             ->pages([
