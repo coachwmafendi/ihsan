@@ -532,37 +532,45 @@
             label="Total Donations"
             value="{{ ($this->stats['has_approximation'] ? '≈ ' : '').'MYR '.number_format($this->stats['total_amount'] ?? 0, 2) }}"
             subtext="{{ number_format($this->stats['total_count'] ?? 0) }} donations"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="Donors"
             value="{{ number_format($this->stats['total_donors'] ?? 0) }}"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="Active Campaigns"
             value="{{ number_format($this->stats['active_campaigns'] ?? 0) }}"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="Active Subscriptions"
             value="{{ number_format($this->stats['active_subscriptions'] ?? 0) }}"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="Avg Donation"
             value="MYR {{ number_format(($this->stats['total_count'] ?? 0) > 0 ? ($this->stats['total_amount'] ?? 0) / ($this->stats['total_count'] ?? 1) : 0, 2) }}"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="MRR"
             value="{{ ($this->recurringHealth['mrr_has_approximation'] ? '≈ ' : '').'MYR '.number_format($this->recurringHealth['mrr'] ?? 0, 2) }}"
             subtext="Monthly recurring revenue"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="At-risk Subscriptions"
             value="{{ number_format($this->recurringHealth['at_risk_count'] ?? 0) }}"
             subtext="Past due or failed"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="Expected (30 days)"
             value="{{ ($this->recurringHealth['expected_30_days_has_approximation'] ? '≈ ' : '').'MYR '.number_format($this->recurringHealth['expected_30_days'] ?? 0, 2) }}"
             subtext="Scheduled recurring charges"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
     </div>
 

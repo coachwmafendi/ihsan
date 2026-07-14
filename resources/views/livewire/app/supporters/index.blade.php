@@ -14,7 +14,7 @@
 
     {{-- Summary Stats --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <x-ui.stat-card label="Total Supporters" value="{{ number_format($this->totalCount) }}" />
+        <x-ui.stat-card label="Total Supporters" value="{{ number_format($this->totalCount) }}" value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white" />
     </div>
 
     {{-- Filters --}}
