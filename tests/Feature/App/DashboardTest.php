@@ -68,7 +68,86 @@ it('shows analytics sections from merged insights', function () {
         ->assertSee('Donations by Campaign')
         ->assertSee('Donation Sizes')
         ->assertSee('Payment Methods')
+        ->assertSee('Donations by Frequency')
         ->assertSee('Recent Donations');
+});
+
+it('calculates donations by frequency for the selected period', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::OneTime,
+        'created_at' => now(),
+    ]);
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::Recurring,
+        'created_at' => now(),
+    ]);
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::OneTime,
+        'created_at' => now()->subDay(),
+    ]);
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Failed,
+        'type' => DonationType::OneTime,
+        'created_at' => now(),
+    ]);
+
+    $component = Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->set('period', '7_days');
+
+    $frequency = $component->instance()->donationsByFrequency();
+
+    expect($frequency['one_time_total'])->toBe(2);
+    expect($frequency['recurring_total'])->toBe(1);
+    expect($frequency['max_scale'])->toBeGreaterThanOrEqual(3);
+    expect(collect($frequency['days'])->sum('one_time'))->toBe(2);
+    expect(collect($frequency['days'])->sum('recurring'))->toBe(1);
+    expect(collect($frequency['days'])->sum('total'))->toBe(3);
+    expect($frequency['donations_url'])->toBe(route('app.donations.index'));
+    expect($frequency['days'][0]['date_from_key'])->toMatch('/^\d{4}-\d{2}-\d{2}$/');
+    expect($frequency['days'][0]['date_to_key'])->toBe($frequency['days'][0]['date_from_key']);
+    expect($frequency['days'])->toHaveCount(7);
+});
+
+it('aggregates donations by frequency into weekly buckets for long periods', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::OneTime,
+        'created_at' => now(),
+    ]);
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::Recurring,
+        'created_at' => now()->subDays(60),
+    ]);
+
+    $frequency = Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->set('period', '90_days')
+        ->instance()
+        ->donationsByFrequency();
+
+    expect($frequency['days'])->toHaveCount(13);
+    expect($frequency['one_time_total'])->toBe(1);
+    expect($frequency['recurring_total'])->toBe(1);
+    expect(collect($frequency['days'])->sum('total'))->toBe(2);
+
+    $firstBucket = $frequency['days'][0];
+    expect($firstBucket['date_from_key'])->toBe(now()->subDays(89)->format('Y-m-d'));
+    expect($firstBucket['date_to_key'])->toBe(now()->subDays(83)->format('Y-m-d'));
 });
 
 it('has sidebar navigation', function () {
@@ -165,14 +244,92 @@ it('switches period filter and exposes computed data arrays', function () {
         ->test('app.dashboard');
 
     $component->assertSet('period', 'today');
+    $component->assertSeeHtml('wire:key="frequency-chart-today');
 
     $component->set('period', '7_days')->assertSet('period', '7_days');
+    $component->assertSeeHtml('wire:key="frequency-chart-7_days');
+    $component->assertSeeHtml('wire:key="payment-methods-chart-7_days');
+    $component->assertSeeHtml(route('app.donations.index', ['period' => '7_days']));
+
+    $component->set('period', 'this_month');
+    $component->assertSeeHtml(route('app.donations.index', ['period' => 'this_month']));
+
+    expect(substr_count($component->html(), 'aria-label="View donations for this period"'))->toBe(5);
 
     expect($component->donationTrend)->toBeArray();
     expect($component->campaignsBreakdown)->toBeArray();
     expect($component->donationSizes)->toBeArray();
     expect($component->paymentMethods)->toBeArray();
     expect($component->recentDonations)->toBeCollection();
+});
+
+it('groups payment methods with labels, counts, totals, and percentages', function () {
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->for($this->organization)->create();
+
+    Donation::factory()->count(3)->for($campaign)->for($donor)->create([
+        'gross_amount' => 100.00,
+        'base_amount' => null,
+        'status' => DonationStatus::Succeeded,
+        'payment_method_type' => 'card',
+    ]);
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 100.00,
+        'base_amount' => null,
+        'status' => DonationStatus::Succeeded,
+        'payment_method_type' => 'fpx',
+    ]);
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 50.00,
+        'base_amount' => null,
+        'status' => DonationStatus::Succeeded,
+        'payment_method_type' => null,
+    ]);
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 500.00,
+        'base_amount' => null,
+        'status' => DonationStatus::Pending,
+        'payment_method_type' => 'card',
+    ]);
+
+    $component = Livewire::actingAs($this->user)->test(Dashboard::class);
+
+    $component->assertSeeHtml('x-data="JSON.parse(')
+        ->assertSeeHtml('x-init="renderDonutChart($el, chartData, chartDescription,')
+        ->assertSeeHtml("downloadCanvasChartPng('payment-methods-chart'")
+        ->assertSeeHtml("downloadCanvasChartPng('frequency-chart'")
+        ->assertSeeHtml("downloadTrendPng('Donation Trend'")
+        ->assertSeeHtml("downloadBarRowsPng('Donations by Campaign'")
+        ->assertSeeHtml("downloadBarRowsPng('Donation Sizes'")
+        ->assertDontSeeHtml('@js(');
+
+    $methods = $component->instance()->paymentMethods();
+
+    expect($methods)->toHaveCount(3);
+
+    expect($methods[0])->toMatchArray([
+        'name' => 'Card',
+        'count' => 3,
+        'value' => 300.00,
+        'percentage' => 67.0,
+    ]);
+
+    expect($methods[1])->toMatchArray([
+        'name' => 'FPX',
+        'count' => 1,
+        'value' => 100.00,
+        'percentage' => 22.0,
+    ]);
+
+    expect($methods[2])->toMatchArray([
+        'name' => 'Other',
+        'count' => 1,
+        'value' => 50.00,
+        'percentage' => 11.0,
+    ]);
 });
 
 it('calculates MRR by normalizing subscription amounts to a monthly equivalent', function () {

@@ -6,12 +6,15 @@ namespace App\Livewire\App;
 
 use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
+use App\Enums\DonationType;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Subscription;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -214,6 +217,157 @@ class Dashboard extends Component
         return $data;
     }
 
+    /**
+     * @return array{
+     *     days: array<int, array{date: string, date_from_key: string, date_to_key: string, label: string, one_time: int, recurring: int, total: int}>,
+     *     one_time_total: int,
+     *     recurring_total: int,
+     *     max_scale: int,
+     *     step: int,
+     *     donations_url: string,
+     * }
+     */
+    #[Computed]
+    public function donationsByFrequency(): array
+    {
+        $org = $this->organization;
+
+        if (! $org) {
+            return [
+                'days' => [],
+                'one_time_total' => 0,
+                'recurring_total' => 0,
+                'max_scale' => 10,
+                'step' => 2,
+                'donations_url' => route('app.donations.index'),
+            ];
+        }
+
+        [$from, $to] = $this->dateRange;
+
+        if ($from === null || $to === null) {
+            $from = now()->subDays(6)->startOfDay();
+            $to = now()->endOfDay();
+        }
+
+        $counts = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
+            ->where('status', DonationStatus::Succeeded)
+            ->whereBetween('created_at', [$from, $to])
+            ->selectRaw('DATE(created_at) as donation_date, type, COUNT(*) as count')
+            ->groupByRaw('DATE(created_at), type')
+            ->get()
+            ->groupBy('donation_date');
+
+        $data = [];
+        $oneTimeTotal = 0;
+        $recurringTotal = 0;
+        $maxBucket = 0;
+
+        foreach ($this->frequencyBuckets($from, $to) as [$bucketStart, $bucketEnd, $dateLabel, $tooltipLabel]) {
+            $oneTime = 0;
+            $recurring = 0;
+
+            for ($date = $bucketStart; $date->lte($bucketEnd); $date = $date->addDay()) {
+                $dayRows = $counts->get($date->format('Y-m-d'), collect());
+                $oneTime += (int) ($dayRows->firstWhere('type', DonationType::OneTime)?->count ?? 0);
+                $recurring += (int) ($dayRows->firstWhere('type', DonationType::Recurring)?->count ?? 0);
+            }
+
+            $total = $oneTime + $recurring;
+            $oneTimeTotal += $oneTime;
+            $recurringTotal += $recurring;
+            $maxBucket = max($maxBucket, $total);
+
+            $data[] = [
+                'date' => $dateLabel,
+                'date_from_key' => $bucketStart->format('Y-m-d'),
+                'date_to_key' => $bucketEnd->format('Y-m-d'),
+                'label' => $tooltipLabel,
+                'one_time' => $oneTime,
+                'recurring' => $recurring,
+                'total' => $total,
+            ];
+        }
+
+        $maxScale = $this->niceMaxForFrequency($maxBucket);
+        $step = (int) ($maxScale / 5);
+
+        return [
+            'days' => $data,
+            'one_time_total' => $oneTimeTotal,
+            'recurring_total' => $recurringTotal,
+            'max_scale' => $maxScale,
+            'step' => $step,
+            'donations_url' => route('app.donations.index'),
+        ];
+    }
+
+    /**
+     * Bucket the range daily (≤ 31 days), weekly (≤ 182 days), or monthly so long
+     * periods like 90D render a readable number of bars.
+     *
+     * @return array<int, array{0: CarbonImmutable, 1: CarbonImmutable, 2: string, 3: string}>
+     */
+    private function frequencyBuckets(CarbonInterface $from, CarbonInterface $to): array
+    {
+        $from = $from->toImmutable()->startOfDay();
+        $to = $to->toImmutable();
+
+        $days = max(1, (int) $from->diffInDays($to) + 1);
+        $buckets = [];
+
+        if ($days <= 31) {
+            for ($i = 0; $i < $days; $i++) {
+                $date = $from->addDays($i);
+                $buckets[] = [$date, $date, $date->format('M d'), $date->format('j M')];
+            }
+
+            return $buckets;
+        }
+
+        if ($days <= 182) {
+            for ($start = $from; $start->lte($to); $start = $start->addDays(7)) {
+                $end = $start->addDays(6)->min($to)->startOfDay();
+                $buckets[] = [
+                    $start,
+                    $end,
+                    $start->format('j M'),
+                    $start->format('j M').' – '.$end->format('j M'),
+                ];
+            }
+
+            return $buckets;
+        }
+
+        for ($start = $from; $start->lte($to); $start = $start->startOfMonth()->addMonth()) {
+            $end = $start->endOfMonth()->min($to)->startOfDay();
+            $buckets[] = [$start, $end, $start->format('M Y'), $start->format('M Y')];
+        }
+
+        return $buckets;
+    }
+
+    private function niceMaxForFrequency(int $max): int
+    {
+        if ($max <= 10) {
+            return 10;
+        }
+
+        if ($max <= 25) {
+            return 25;
+        }
+
+        if ($max <= 50) {
+            return 50;
+        }
+
+        if ($max <= 100) {
+            return 100;
+        }
+
+        return (int) ceil($max / 50) * 50;
+    }
+
     #[Computed]
     public function campaignsBreakdown(): array
     {
@@ -309,12 +463,12 @@ class Dashboard extends Component
             ->where('status', DonationStatus::Succeeded)
             ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))
-            ->selectRaw('payment_method_type, COUNT(*) as count')
+            ->selectRaw('payment_method_type, COUNT(*) as count, SUM('.Donation::reportAmountSql().') as total_amount')
             ->groupBy('payment_method_type')
-            ->orderByDesc('count')
+            ->orderByDesc('total_amount')
             ->get();
 
-        $total = $methods->sum('count');
+        $total = (float) $methods->sum('total_amount');
 
         return $methods->map(fn ($m) => [
             'name' => match ($m->payment_method_type) {
@@ -330,7 +484,9 @@ class Dashboard extends Component
                 default => ucfirst($m->payment_method_type ?? 'Other'),
             },
             'count' => (int) $m->count,
-            'percentage' => $total > 0 ? round(((int) $m->count / $total) * 100) : 0,
+            'value' => (float) $m->total_amount,
+            'label' => 'MYR '.number_format((float) $m->total_amount, 2),
+            'percentage' => $total > 0 ? round(((float) $m->total_amount / $total) * 100) : 0,
         ])->toArray();
     }
 

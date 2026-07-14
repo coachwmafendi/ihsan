@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\App\Donations\DonationIndex;
 use App\Livewire\App\Donations\DonationShow;
 use App\Mail\DonationReceipt;
 use App\Models\Campaign;
@@ -351,4 +352,45 @@ it('detects chip as the payment processor from chip identifiers', function () {
         ->assertSee('Payment processor')
         ->assertSee('CHIP')
         ->assertSeeHtml('src="'.e(asset('images/payment-processors/chip.svg')).'"');
+});
+
+it('filters donations by frequency and custom date range from query string', function () {
+    $oneTimeToday = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'type' => 'one_time',
+        'status' => 'succeeded',
+        'created_at' => now(),
+    ]);
+
+    $recurringToday = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'type' => 'recurring',
+        'status' => 'succeeded',
+        'created_at' => now(),
+    ]);
+
+    $oneTimeOld = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'type' => 'one_time',
+        'status' => 'succeeded',
+        'created_at' => now()->subDays(5),
+    ]);
+
+    $component = Livewire::actingAs($this->user)
+        ->withQueryParams([
+            'frequencyFilter' => 'one_time',
+            'period' => 'custom',
+            'dateFrom' => now()->format('Y-m-d'),
+            'dateTo' => now()->format('Y-m-d'),
+        ])
+        ->test(DonationIndex::class);
+
+    $ids = $component->instance()->donations()->pluck('id');
+
+    expect($ids)->toContain($oneTimeToday->id);
+    expect($ids)->not->toContain($recurringToday->id);
+    expect($ids)->not->toContain($oneTimeOld->id);
 });
