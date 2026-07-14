@@ -6,7 +6,6 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Services\RevenueReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -60,10 +59,6 @@ class RevenueReportController extends Controller
 
         $row = $this->reportService->rowForOrganization($organization, $period);
 
-        if ($row === null) {
-            throw new NotFoundHttpException;
-        }
-
         $sanitizedName = Str::limit(Str::slug($organization->name, '-'), 50, '');
         $date = now()->format('Y-m-d');
         $filename = "ihsan-{$organization->public_id}-{$sanitizedName}-revenue-{$period}-{$date}.{$format}";
@@ -100,15 +95,17 @@ class RevenueReportController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    private function pdfResponse(array $row, string $period, string $filename): Response
+    private function pdfResponse(array $row, string $period, string $filename): StreamedResponse
     {
-        $pdf = Pdf::loadView('filament.admin.exports.revenue-organization-report', [
-            'row' => $row,
-            'period' => $this->reportService->periodLabel($period),
-            'dateRange' => $this->reportService->periodDateRangeLabel($period),
-            'generatedAt' => now()->toDateTimeString(),
-        ]);
+        return response()->streamDownload(function () use ($row, $period): void {
+            $pdf = Pdf::loadView('filament.admin.exports.revenue-organization-report', [
+                'row' => $row,
+                'period' => $this->reportService->periodLabel($period),
+                'dateRange' => $this->reportService->periodDateRangeLabel($period),
+                'generatedAt' => now()->toDateTimeString(),
+            ]);
 
-        return $pdf->download($filename);
+            echo $pdf->output();
+        }, $filename, ['Content-Type' => 'application/pdf']);
     }
 }

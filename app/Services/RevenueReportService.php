@@ -92,7 +92,7 @@ class RevenueReportService
             ->all();
     }
 
-    public function organizationRowFor(Organization $organization, string $period): ?array
+    public function organizationRowFor(Organization $organization, string $period): array
     {
         [$from, $to] = $this->dateRange($period);
 
@@ -106,18 +106,14 @@ class RevenueReportService
             ->groupBy('campaigns.organization_id')
             ->first();
 
-        if ($orgDonations === null) {
-            return null;
-        }
-
         $fees = (float) ProcessingFee::query()
             ->where('organization_id', $organization->id)
             ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
             ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to))
             ->sum('fee_amount');
 
-        $volume = (float) $orgDonations->volume;
-        $donations = (int) $orgDonations->donation_count;
+        $volume = (float) ($orgDonations?->volume ?? 0);
+        $donations = (int) ($orgDonations?->donation_count ?? 0);
         $avg = $donations > 0 ? $volume / $donations : 0;
         $rate = $volume > 0 ? ($fees / $volume) * 100 : 0;
 
