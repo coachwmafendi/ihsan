@@ -13,7 +13,7 @@ class RevenueReportService
     /**
      * @return array<int, array{
      *     id: int,
-     *     public_id: string,
+     *     public_id: string|null,
      *     name: string,
      *     donations: int,
      *     volume_raw: float,
@@ -92,15 +92,49 @@ class RevenueReportService
             ->all();
     }
 
-    public function rowForOrganization(Organization $organization, string $period): ?array
+    public function organizationRowFor(Organization $organization, string $period): ?array
     {
-        foreach ($this->organizationRows($period) as $row) {
-            if ($row['id'] === $organization->id) {
-                return $row;
-            }
+        [$from, $to] = $this->dateRange($period);
+
+        $orgDonations = Donation::query()
+            ->selectRaw('campaigns.organization_id, COUNT(*) as donation_count, SUM(base_amount) as volume, AVG(base_amount) as avg_donation')
+            ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
+            ->where('campaigns.organization_id', $organization->id)
+            ->where('donations.status', DonationStatus::Succeeded)
+            ->when($from, fn (Builder $q) => $q->whereDate('donations.created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->whereDate('donations.created_at', '<=', $to))
+            ->groupBy('campaigns.organization_id')
+            ->first();
+
+        if ($orgDonations === null) {
+            return null;
         }
 
-        return null;
+        $fees = (float) ProcessingFee::query()
+            ->where('organization_id', $organization->id)
+            ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to))
+            ->sum('fee_amount');
+
+        $volume = (float) $orgDonations->volume;
+        $donations = (int) $orgDonations->donation_count;
+        $avg = $donations > 0 ? $volume / $donations : 0;
+        $rate = $volume > 0 ? ($fees / $volume) * 100 : 0;
+
+        return [
+            'id' => $organization->id,
+            'public_id' => $organization->public_id,
+            'name' => $organization->name,
+            'donations' => $donations,
+            'volume_raw' => $volume,
+            'volume' => 'MYR '.number_format($volume, 2, '.', ''),
+            'fees_raw' => $fees,
+            'fees' => 'MYR '.number_format($fees, 2, '.', ''),
+            'avg_donation_raw' => $avg,
+            'avg_donation' => 'MYR '.number_format($avg, 2, '.', ''),
+            'effective_rate_raw' => $rate,
+            'effective_rate' => number_format($rate, 2, '.', '').'%',
+        ];
     }
 
     /**

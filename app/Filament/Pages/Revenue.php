@@ -50,7 +50,7 @@ class Revenue extends Page
     /**
      * @var array<int, array{
      *     id: int,
-     *     public_id: string,
+     *     public_id: string|null,
      *     name: string,
      *     donations: int,
      *     volume_raw: float,
