@@ -532,6 +532,12 @@ class CampaignEdit extends Component
             return;
         }
 
+        if (str_word_count(strip_tags((string) ($this->description ?? ''))) > 200) {
+            $this->addError('description', 'Description cannot exceed 200 words.');
+
+            return;
+        }
+
         if (str_word_count($this->contentMessage ?? '') > 200) {
             $this->addError('contentMessage', 'Message must not exceed 200 words.');
 
