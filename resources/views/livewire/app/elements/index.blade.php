@@ -174,7 +174,7 @@
                                     @php
                                         $typeLabel = $element->is_donor_portal_default
                                             ? 'Donor Portal Button'
-                                            : str_replace('_', ' ', $element->type->value);
+                                            : $element->type->label();
 
                                         $typeStatus = match ($element->type->value) {
                                             'button', 'floating_button', 'sticky_button', 'link' => 'info',
@@ -183,7 +183,7 @@
                                             default => 'info',
                                         };
                                     @endphp
-                                    <x-ui.badge :status="$typeStatus" size="sm" class="capitalize">
+                                    <x-ui.badge :status="$typeStatus" size="sm">
                                         {{ $typeLabel }}
                                     </x-ui.badge>
                                 </td>

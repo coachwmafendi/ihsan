@@ -192,7 +192,7 @@
 
             {{-- Donations --}}
             <section id="donations">
-                <x-ui.card title="Donations" icon="heroicon-o-banknotes">
+                <x-ui.card title="Donations" icon="heroicon-o-currency-dollar">
                     @if ($this->recentDonations->isNotEmpty())
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-slate-200">
