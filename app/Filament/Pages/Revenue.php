@@ -4,8 +4,8 @@ namespace App\Filament\Pages;
 
 use App\Enums\DonationStatus;
 use App\Models\Donation;
-use App\Models\Organization;
 use App\Models\ProcessingFee;
+use App\Services\RevenueReportService;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -18,6 +18,8 @@ class Revenue extends Page
     protected static ?string $navigationLabel = 'Revenue';
 
     protected static ?int $navigationSort = 20;
+
+    protected ?RevenueReportService $reportService = null;
 
     public string $period = 'today';
 
@@ -46,12 +48,26 @@ class Revenue extends Page
     public string $nominalFeeRate = '2.5';
 
     /**
-     * @var array<int, array{name: string, donations: int, volume: string, fees: string, avg_donation: string, effective_rate: string}>
+     * @var array<int, array{
+     *     id: int,
+     *     public_id: string,
+     *     name: string,
+     *     donations: int,
+     *     volume_raw: float,
+     *     volume: string,
+     *     fees_raw: float,
+     *     fees: string,
+     *     avg_donation_raw: float,
+     *     avg_donation: string,
+     *     effective_rate_raw: float,
+     *     effective_rate: string,
+     * }>
      */
     public array $revenueByOrganization = [];
 
     public function mount(): void
     {
+        $this->reportService = app(RevenueReportService::class);
         $this->nominalFeeRate = number_format($this->processingFeePercent(), 1);
         $this->calculate();
     }
@@ -63,7 +79,9 @@ class Revenue extends Page
 
     public function calculate(): void
     {
-        [$from, $to] = $this->dateRange();
+        $this->reportService ??= app(RevenueReportService::class);
+
+        [$from, $to] = $this->reportService->dateRange($this->period);
 
         $succeeded = Donation::query()
             ->where('status', DonationStatus::Succeeded)
@@ -97,81 +115,7 @@ class Revenue extends Page
             ? number_format(($totalFeeAmount / $totalVolume) * 100, 2, '.', '')
             : '0.00';
 
-        $succeededDonations = Donation::query()
-            ->selectRaw('campaigns.organization_id, COUNT(*) as donation_count, SUM(base_amount) as volume, AVG(base_amount) as avg_donation')
-            ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
-            ->where('donations.status', DonationStatus::Succeeded)
-            ->when($from, fn (Builder $q) => $q->whereDate('donations.created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('donations.created_at', '<=', $to))
-            ->groupBy('campaigns.organization_id')
-            ->get()
-            ->keyBy('organization_id');
-
-        $feesByOrg = ProcessingFee::query()
-            ->selectRaw('organization_id, SUM(fee_amount) as total_fees')
-            ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to))
-            ->groupBy('organization_id')
-            ->get()
-            ->keyBy('organization_id');
-
-        $organizationIds = $succeededDonations
-            ->keys()
-            ->merge($feesByOrg->keys())
-            ->unique()
-            ->values()
-            ->all();
-
-        $organizations = $organizationIds === []
-            ? collect()
-            : Organization::query()->whereIn('id', $organizationIds)->get();
-
-        $this->revenueByOrganization = $organizations
-            ->map(function (Organization $org) use ($succeededDonations, $feesByOrg) {
-                $orgDonations = $succeededDonations->get($org->id);
-                $orgFees = $feesByOrg->get($org->id);
-                $volume = (float) ($orgDonations?->volume ?? 0);
-                $fees = (float) ($orgFees?->total_fees ?? 0);
-
-                return [
-                    'name' => $org->name,
-                    'donations' => (int) ($orgDonations?->donation_count ?? 0),
-                    'volume' => 'MYR '.number_format($volume, 2, '.', ''),
-                    'fees' => 'MYR '.number_format($fees, 2, '.', ''),
-                    'avg_donation' => $orgDonations && $orgDonations->donation_count > 0
-                        ? 'MYR '.number_format((float) $orgDonations->avg_donation, 2, '.', '')
-                        : 'MYR 0.00',
-                    'effective_rate' => $volume > 0
-                        ? number_format(($fees / $volume) * 100, 2, '.', '').'%'
-                        : '0.00%',
-                ];
-            })
-            ->filter(fn (array $row) => $row['donations'] > 0)
-            ->sortByDesc('donations')
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @return array{0: ?string, 1: ?string}
-     */
-    private function dateRange(): array
-    {
-        return match ($this->period) {
-            'today' => [today()->toDateString(), today()->toDateString()],
-            'yesterday' => [today()->subDay()->toDateString(), today()->subDay()->toDateString()],
-            'last_7_days' => [today()->subDays(6)->toDateString(), today()->toDateString()],
-            'last_30_days' => [today()->subDays(29)->toDateString(), today()->toDateString()],
-            'last_90_days' => [today()->subDays(89)->toDateString(), today()->toDateString()],
-            'last_week' => [today()->subWeek()->startOfWeek()->toDateString(), today()->subWeek()->endOfWeek()->toDateString()],
-            'last_month' => [today()->subMonth()->startOfMonth()->toDateString(), today()->subMonth()->endOfMonth()->toDateString()],
-            'last_6_months' => [today()->subMonths(6)->startOfMonth()->toDateString(), today()->subMonth()->endOfMonth()->toDateString()],
-            'last_year' => [today()->subYear()->startOfYear()->toDateString(), today()->subYear()->endOfYear()->toDateString()],
-            'this_week' => [today()->startOfWeek()->toDateString(), today()->endOfWeek()->toDateString()],
-            'this_month' => [today()->startOfMonth()->toDateString(), today()->endOfMonth()->toDateString()],
-            'this_year' => [today()->startOfYear()->toDateString(), today()->endOfYear()->toDateString()],
-            default => [null, null],
-        };
+        $this->revenueByOrganization = $this->reportService->organizationRows($this->period);
     }
 
     private function processingFeePercent(): float
