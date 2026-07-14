@@ -6,6 +6,7 @@ namespace App\Livewire\App\Supporters;
 
 use App\Actions\DonorEmailLog\PreviewDonorEmail;
 use App\Actions\DonorEmailLog\ResendDonorEmail;
+use App\Enums\DonationStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -138,6 +139,7 @@ class SupporterShow extends Component
     public function receiptDonations()
     {
         return $this->scopedDonations()
+            ->where('status', DonationStatus::Succeeded)
             ->with('campaign')
             ->latest()
             ->limit(25)
