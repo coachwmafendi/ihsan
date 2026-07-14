@@ -137,6 +137,7 @@
                             <th class="text-right">Avg donation</th>
                             <th class="text-right">Processing fees</th>
                             <th class="text-right">Eff. rate</th>
+                            <th class="text-right">Report</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -172,10 +173,28 @@
                                         {{ $row['effective_rate'] }}
                                     </span>
                                 </td>
+                                <td class="text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <a
+                                            href="{{ route('filament.admin.pages.revenue.report', ['organizationPublicId' => $row['public_id'], 'format' => 'csv', 'period' => $period]) }}"
+                                            title="Download CSV"
+                                            class="inline-flex items-center justify-center rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200"
+                                        >
+                                            <x-heroicon-o-table-cells class="size-4" />
+                                        </a>
+                                        <a
+                                            href="{{ route('filament.admin.pages.revenue.report', ['organizationPublicId' => $row['public_id'], 'format' => 'pdf', 'period' => $period]) }}"
+                                            title="Download PDF"
+                                            class="inline-flex items-center justify-center rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200"
+                                        >
+                                            <x-heroicon-o-document-text class="size-4" />
+                                        </a>
+                                    </div>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="py-10 text-center">
+                                <td colspan="7" class="py-10 text-center">
                                     <div class="flex flex-col items-center gap-2 text-ihsan-muted dark:text-stone-500">
                                         <x-heroicon-o-chart-bar class="size-8" />
                                         <span class="text-sm font-medium">No revenue data for this period.</span>
