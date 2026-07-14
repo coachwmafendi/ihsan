@@ -56,6 +56,17 @@
                         </div>
                     </div>
                 @endfor
+                <div class="h-80 rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+                    <div class="mb-1 h-5 w-48 animate-pulse rounded bg-slate-200"></div>
+                    <div class="h-4 w-32 animate-pulse rounded bg-slate-200"></div>
+                    <div class="mt-8 space-y-4">
+                        <div class="h-3 w-full animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-3 w-5/6 animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-3 w-4/5 animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-3 w-full animate-pulse rounded bg-slate-200"></div>
+                        <div class="h-3 w-2/3 animate-pulse rounded bg-slate-200"></div>
+                    </div>
+                </div>
             </div>
 
             {{-- Recent donations skeleton --}}
@@ -84,6 +95,345 @@
     </div>
 
     <div class="space-y-8">
+        <script>
+            function downloadChartPng(canvas, filename) {
+                const a = document.createElement('a');
+                a.href = canvas.toDataURL('image/png');
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }
+
+            function chartExportCanvas(width, contentHeight, title, description) {
+                const scale = 2;
+                const headerHeight = 64;
+                const canvas = document.createElement('canvas');
+                canvas.width = width * scale;
+                canvas.height = (contentHeight + headerHeight) * scale;
+
+                const ctx = canvas.getContext('2d');
+                ctx.scale(scale, scale);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, contentHeight + headerHeight);
+                ctx.font = 'bold 18px ui-sans-serif, system-ui, sans-serif';
+                ctx.fillStyle = '#0f172a';
+                ctx.textAlign = 'left';
+                ctx.fillText(title, 16, 30);
+                ctx.font = '12px ui-sans-serif, system-ui, sans-serif';
+                ctx.fillStyle = '#64748b';
+                ctx.fillText(description, 16, 48);
+
+                return { canvas, ctx, offsetY: headerHeight };
+            }
+
+            function downloadCanvasChartPng(canvasId, title, description, filename) {
+                const chartCanvas = document.getElementById(canvasId);
+                if (! chartCanvas) {
+                    return;
+                }
+
+                const paddingTop = 16;
+                const titleHeight = 24;
+                const descHeight = 18;
+                const canvas = document.createElement('canvas');
+                canvas.width = chartCanvas.width;
+                canvas.height = chartCanvas.height + paddingTop + titleHeight + descHeight;
+
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = 'bold 18px ui-sans-serif, system-ui, sans-serif';
+                ctx.fillStyle = '#0f172a';
+                ctx.textAlign = 'left';
+                ctx.fillText(title, 12, paddingTop + 16);
+                ctx.font = '12px ui-sans-serif, system-ui, sans-serif';
+                ctx.fillStyle = '#64748b';
+                ctx.fillText(description, 12, paddingTop + 16 + descHeight);
+                ctx.drawImage(chartCanvas, 0, paddingTop + titleHeight + descHeight);
+
+                downloadChartPng(canvas, filename);
+            }
+
+            function downloadBarRowsPng(title, description, rows, footer, filename) {
+                if (! rows.length) {
+                    return;
+                }
+
+                const width = 720;
+                const rowHeight = 56;
+                const footerHeight = footer ? 28 : 8;
+                const { canvas, ctx, offsetY } = chartExportCanvas(width, rows.length * rowHeight + footerHeight, title, description);
+
+                rows.forEach((row, i) => {
+                    const y = offsetY + i * rowHeight;
+
+                    ctx.font = '600 14px ui-sans-serif, system-ui, sans-serif';
+                    ctx.fillStyle = '#334155';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(row.label, 16, y + 20);
+
+                    ctx.textAlign = 'right';
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillText(`${row.value}`, width - 64, y + 20);
+                    ctx.font = '12px ui-sans-serif, system-ui, sans-serif';
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.fillText(`${row.percentage}%`, width - 16, y + 20);
+
+                    ctx.beginPath();
+                    ctx.roundRect(16, y + 30, width - 32, 8, 4);
+                    ctx.fillStyle = '#f1f5f9';
+                    ctx.fill();
+
+                    if (row.percentage > 0) {
+                        ctx.beginPath();
+                        ctx.roundRect(16, y + 30, (width - 32) * Math.min(row.percentage, 100) / 100, 8, 4);
+                        ctx.fillStyle = '#3b82f6';
+                        ctx.fill();
+                    }
+                });
+
+                if (footer) {
+                    ctx.font = '12px ui-sans-serif, system-ui, sans-serif';
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(footer, width / 2, offsetY + rows.length * rowHeight + 12);
+                }
+
+                downloadChartPng(canvas, filename);
+            }
+
+            function downloadTrendPng(title, description, points, totalLabel, filename) {
+                if (! points.length) {
+                    return;
+                }
+
+                const width = 720;
+                const chartHeight = 220;
+                const labelHeight = 24;
+                const totalHeight = 34;
+                const { canvas, ctx, offsetY } = chartExportCanvas(width, totalHeight + chartHeight + labelHeight, title, description);
+
+                ctx.font = 'bold 16px ui-sans-serif, system-ui, sans-serif';
+                ctx.fillStyle = '#0f172a';
+                ctx.textAlign = 'left';
+                ctx.fillText(totalLabel, 16, offsetY + 16);
+
+                const chartTop = offsetY + totalHeight;
+                const maxAmount = Math.max(...points.map(p => Number(p.amount) || 0), 1);
+                const gap = 2;
+                const barWidth = (width - 32 - gap * (points.length - 1)) / points.length;
+
+                points.forEach((point, i) => {
+                    const value = Number(point.amount) || 0;
+                    const barHeight = Math.max((value / maxAmount) * chartHeight, 3);
+                    const x = 16 + i * (barWidth + gap);
+
+                    ctx.fillStyle = 'rgba(59, 130, 246, 0.35)';
+                    ctx.beginPath();
+                    ctx.roundRect(x, chartTop + chartHeight - barHeight, barWidth, barHeight, [3, 3, 0, 0]);
+                    ctx.fill();
+                });
+
+                const labelStep = Math.max(1, Math.ceil(points.length / 7));
+                ctx.font = '11px ui-sans-serif, system-ui, sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                ctx.textAlign = 'center';
+
+                points.forEach((point, i) => {
+                    if (i % labelStep === 0) {
+                        const x = 16 + i * (barWidth + gap) + barWidth / 2;
+                        ctx.fillText(point.date, x, chartTop + chartHeight + 16);
+                    }
+                });
+
+                downloadChartPng(canvas, filename);
+            }
+
+            function renderStackedBarChart(el, data, description, title) {
+                const canvas = el.querySelector('canvas');
+                if (! canvas) {
+                    return;
+                }
+
+                if (typeof window.Chart === 'undefined') {
+                    setTimeout(() => renderStackedBarChart(el, data, description, title), 100);
+                    return;
+                }
+
+                if (canvas._chart) {
+                    canvas._chart.destroy();
+                }
+
+                const ctx = canvas.getContext('2d');
+                const labels = data.days.map(d => d.date);
+                const oneTime = data.days.map(d => d.one_time);
+                const recurring = data.days.map(d => d.recurring);
+
+                canvas._chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [
+                            {
+                                label: `Recurring donations (${Number(data.recurring_total).toLocaleString()})`,
+                                data: recurring,
+                                backgroundColor: '#60a5fa',
+                                borderRadius: 2,
+                            },
+                            {
+                                label: `One-time donations (${Number(data.one_time_total).toLocaleString()})`,
+                                data: oneTime,
+                                backgroundColor: '#1e40af',
+                                borderRadius: 2,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        onHover(event, elements) {
+                            event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+                        },
+                        onClick(event, elements) {
+                            if (! elements.length || ! data.donations_url) {
+                                return;
+                            }
+
+                            const day = data.days[elements[0].index];
+                            if (! day || ! day.date_from_key) {
+                                return;
+                            }
+
+                            const params = new URLSearchParams({
+                                frequencyFilter: elements[0].datasetIndex === 0 ? 'recurring' : 'one_time',
+                                period: 'custom',
+                                dateFrom: day.date_from_key,
+                                dateTo: day.date_to_key,
+                            });
+
+                            window.location.href = `${data.donations_url}?${params.toString()}`;
+                        },
+                        scales: {
+                            x: {
+                                stacked: true,
+                                grid: { display: false },
+                                ticks: { font: { size: 11 }, color: '#94a3b8' },
+                            },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true,
+                                suggestedMax: data.max_scale,
+                                ticks: { stepSize: data.step, color: '#94a3b8' },
+                                grid: { color: '#f1f5f9' },
+                            },
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                align: 'start',
+                                labels: { usePointStyle: true, boxWidth: 8, color: '#475569' },
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    title: (items) => items.length ? (data.days[items[0].dataIndex]?.label ?? items[0].label) : '',
+                                },
+                            },
+                        },
+                    },
+                });
+            }
+
+            function renderDonutChart(el, data, description, title) {
+                const canvas = el.querySelector('canvas');
+                if (! canvas) {
+                    return;
+                }
+
+                if (typeof window.Chart === 'undefined') {
+                    setTimeout(() => renderDonutChart(el, data, description, title), 100);
+                    return;
+                }
+
+                if (canvas._chart) {
+                    canvas._chart.destroy();
+                }
+
+                const ctx = canvas.getContext('2d');
+                const colors = ['#2563eb', '#3b82f6', '#14b8a6', '#f59e0b', '#f43f5e', '#6366f1', '#10b981', '#06b6d4', '#f97316', '#a855f7'];
+                const backgroundColor = data.map((_, i) => colors[i % colors.length]);
+                const total = data.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+
+                        const centerTextPlugin = {
+                            id: 'centerText',
+                            beforeDraw(chart) {
+                                if (chart.config.type !== 'doughnut') return;
+                                const { ctx } = chart;
+                                const area = chart.chartArea;
+                                if (! area) return;
+                                ctx.save();
+                                const largest = total > 0
+                                    ? Math.round(Math.max(...chart.data.datasets[0].data.map(v => (v / total) * 100)))
+                                    : 0;
+                                const fontSize = Math.min(area.width, area.height) / 5;
+                                ctx.font = `bold ${fontSize}px ui-sans-serif, system-ui, sans-serif`;
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillStyle = '#0f172a';
+                                const x = area.left + area.width / 2;
+                                const y = area.top + area.height / 2;
+                                ctx.fillText(`${largest}%`, x, y);
+                                ctx.restore();
+                            },
+                        };
+
+                canvas._chart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.map(d => d.name),
+                        datasets: [{
+                            data: data.map(d => d.value),
+                            backgroundColor,
+                            borderWidth: 2,
+                            borderColor: '#ffffff',
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    generateLabels(chart) {
+                                        const values = chart.data.datasets[0].data;
+                                        const totalValue = values.reduce((a, b) => a + b, 0);
+                                        return chart.data.labels.map((label, i) => {
+                                            const value = Number(values[i]) || 0;
+                                            const pct = totalValue > 0 ? Math.round((value / totalValue) * 100) : 0;
+                                            return {
+                                                text: `${label} MYR ${value.toLocaleString()} (${pct}%)`,
+                                                fillStyle: chart.data.datasets[0].backgroundColor[i],
+                                                hidden: false,
+                                                index: i,
+                                            };
+                                        });
+                                    },
+                                    usePointStyle: true,
+                                    boxWidth: 8,
+                                    color: '#475569',
+                                },
+                            },
+                        },
+                    },
+                    plugins: [centerTextPlugin],
+                });
+            }
+        </script>
+
     {{-- Page Header --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -217,9 +567,28 @@
     </div>
 
     {{-- Charts Grid --}}
+    @php
+        $donationsFilterUrl = $period === 'custom'
+            ? route('app.donations.index', ['period' => 'custom', 'dateFrom' => $customFrom, 'dateTo' => $customTo])
+            : route('app.donations.index', ['period' => $period]);
+    @endphp
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {{-- Donation Trend --}}
+        @php
+            $trendExportPoints = collect($this->donationTrend)->map(fn ($p) => ['date' => $p['date'], 'amount' => $p['amount']])->values();
+            $trendExportTotal = (collect($this->donationTrend)->contains('has_approximation', true) ? '≈ ' : '')
+                .'MYR '.number_format($trendExportPoints->sum('amount'), 2).' total in period';
+        @endphp
         <x-ui.card title="Donation Trend" description="Donations over the selected period">
+            <x-slot:actions>
+                @if($trendExportPoints->isNotEmpty())
+                    <x-ui.chart-download-button
+                        x-data
+                        @click="downloadTrendPng('Donation Trend', 'Donations over the selected period', {{ \Illuminate\Support\Js::from($trendExportPoints) }}, {{ \Illuminate\Support\Js::from($trendExportTotal) }}, 'donation-trend.png')"
+                    />
+                @endif
+                <x-ui.chart-link-button :href="$donationsFilterUrl" />
+            </x-slot:actions>
             @if(count($this->donationTrend) > 0)
                 @php
                     $sparklineData = collect($this->donationTrend)->pluck('amount')->toArray();
@@ -270,11 +639,25 @@
         </x-ui.card>
 
         {{-- Donations by Campaign --}}
+        @php
+            $totalCampaignAmount = array_sum(array_column($this->campaignsBreakdown, 'amount')) ?: 1;
+            $campaignExportRows = collect($this->campaignsBreakdown)->map(fn ($c) => [
+                'label' => $c['name'],
+                'value' => ($c['has_approximation'] ? '≈ ' : '').'MYR '.number_format($c['amount'], 2),
+                'percentage' => round(($c['amount'] / $totalCampaignAmount) * 100),
+            ])->values();
+        @endphp
         <x-ui.card title="Donations by Campaign" description="Top 5 campaigns by amount raised">
+            <x-slot:actions>
+                @if($campaignExportRows->isNotEmpty())
+                    <x-ui.chart-download-button
+                        x-data
+                        @click="downloadBarRowsPng('Donations by Campaign', 'Top 5 campaigns by amount raised', {{ \Illuminate\Support\Js::from($campaignExportRows) }}, '', 'donations-by-campaign.png')"
+                    />
+                @endif
+                <x-ui.chart-link-button :href="$donationsFilterUrl" />
+            </x-slot:actions>
             @if(count($this->campaignsBreakdown) > 0)
-                @php
-                    $totalCampaignAmount = array_sum(array_column($this->campaignsBreakdown, 'amount')) ?: 1;
-                @endphp
                 <div class="space-y-4">
                     @foreach($this->campaignsBreakdown as $campaign)
                         @php
@@ -307,11 +690,26 @@
         </x-ui.card>
 
         {{-- Donation Sizes --}}
+        @php
+            $totalSizeCount = array_sum(array_column($this->donationSizes, 'count')) ?: 1;
+            $sizeExportRows = collect($this->donationSizes)->map(fn ($s) => [
+                'label' => $s['label'],
+                'value' => number_format($s['count']),
+                'percentage' => $s['percentage'],
+            ])->values();
+            $sizeExportFooter = number_format($totalSizeCount).' total donations';
+        @endphp
         <x-ui.card title="Donation Sizes" description="Distribution by amount range">
+            <x-slot:actions>
+                @if($sizeExportRows->isNotEmpty())
+                    <x-ui.chart-download-button
+                        x-data
+                        @click="downloadBarRowsPng('Donation Sizes', 'Distribution by amount range', {{ \Illuminate\Support\Js::from($sizeExportRows) }}, {{ \Illuminate\Support\Js::from($sizeExportFooter) }}, 'donation-sizes.png')"
+                    />
+                @endif
+                <x-ui.chart-link-button :href="$donationsFilterUrl" />
+            </x-slot:actions>
             @if(count($this->donationSizes) > 0)
-                @php
-                    $totalSizeCount = array_sum(array_column($this->donationSizes, 'count')) ?: 1;
-                @endphp
                 <div class="space-y-4">
                     @foreach($this->donationSizes as $size)
                         <div>
@@ -336,31 +734,108 @@
 
         {{-- Payment Methods --}}
         <x-ui.card title="Payment Methods" description="Breakdown by payment type">
+            <x-slot:actions>
+                @if(count($this->paymentMethods) > 0)
+                    <x-ui.chart-download-button
+                        x-data
+                        @click="downloadCanvasChartPng('payment-methods-chart', 'Payment Methods', 'Breakdown by payment type', 'payment-methods.png')"
+                    />
+                @endif
+                <x-ui.chart-link-button :href="$donationsFilterUrl" />
+            </x-slot:actions>
             @if(count($this->paymentMethods) > 0)
-                @php
-                    $totalMethodCount = array_sum(array_column($this->paymentMethods, 'count')) ?: 1;
-                @endphp
-                <div class="space-y-4">
-                    @foreach($this->paymentMethods as $method)
-                        <div>
-                            <div class="mb-1.5 flex items-center justify-between">
-                                <span class="text-sm font-medium text-slate-700">{{ $method['name'] }}</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm font-semibold text-slate-900">{{ number_format($method['count']) }}</span>
-                                    <span class="text-xs text-slate-400">{{ $method['percentage'] }}%</span>
-                                </div>
-                            </div>
-                            <div class="w-full overflow-hidden rounded-full bg-slate-100">
-                                <div class="h-2 rounded-full bg-blue-500 transition-all duration-500" style="width: {{ $method['percentage'] }}%"></div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-                <div class="mt-4 text-center text-xs text-slate-400">{{ number_format($totalMethodCount) }} total payments</div>
+                <x-ui.donut-chart
+                    wire:key="payment-methods-chart-{{ $period }}-{{ $customFrom }}-{{ $customTo }}"
+                    canvas-id="payment-methods-chart"
+                    title="Payment Methods"
+                    description="Breakdown by payment type"
+                    :data="$this->paymentMethods"
+                />
             @else
                 <div class="py-8 text-center text-sm text-slate-400">No payment data for this period</div>
             @endif
         </x-ui.card>
+
+        {{-- Donations by Frequency --}}
+        @php
+            $frequency = $this->donationsByFrequency;
+            $frequencyDescription = match ($period) {
+                'today' => 'Today',
+                'yesterday' => 'Yesterday',
+                '7_days' => 'Last 7 days',
+                '30_days' => 'Last 30 days',
+                '90_days' => 'Last 90 days',
+                'this_month' => 'This month',
+                'custom' => 'Custom range',
+                default => 'Selected period',
+            };
+        @endphp
+
+        @php
+            $frequencyPeriodOptions = [
+                'today' => 'Today',
+                'yesterday' => 'Yesterday',
+                '7_days' => 'Last 7 days',
+                '30_days' => 'Last 30 days',
+                '90_days' => 'Last 90 days',
+                'this_month' => 'This month',
+            ];
+        @endphp
+
+        <div class="lg:col-span-2" x-data="{ showFilter: false, chartDescription: @js($frequencyDescription) }">
+            <x-ui.card
+                title="Donations by Frequency"
+                :description="$frequencyDescription"
+            >
+                <x-slot:actions>
+                    <x-ui.chart-download-button
+                        @click="downloadCanvasChartPng('frequency-chart', 'Donations by Frequency', chartDescription, 'donations-by-frequency.png')"
+                    />
+                    <x-ui.chart-link-button :href="$donationsFilterUrl" />
+                    <div class="relative">
+                        <button
+                            type="button"
+                            class="rounded-lg border border-slate-200 p-2 text-slate-400 hover:border-slate-300 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            aria-label="Filter time period"
+                            @click="showFilter = !showFilter"
+                        >
+                            <x-heroicon-o-funnel class="size-4" />
+                        </button>
+                        <div
+                            x-show="showFilter"
+                            x-cloak
+                            @click.outside="showFilter = false"
+                            @keydown.escape.window="showFilter = false"
+                            class="absolute right-0 z-20 mt-2 w-44 rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+                        >
+                            @foreach($frequencyPeriodOptions as $value => $label)
+                                <button
+                                    type="button"
+                                    wire:click="$set('period', '{{ $value }}')"
+                                    @click="showFilter = false"
+                                    class="block w-full px-4 py-2 text-left text-sm hover:bg-slate-50 {{ $period === $value ? 'bg-slate-50 font-medium text-slate-900' : 'text-slate-600' }}"
+                                >
+                                    {{ $label }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                </x-slot:actions>
+
+                @if(count($frequency['days']) > 0)
+                    <x-ui.stacked-bar-chart
+                        wire:key="frequency-chart-{{ $period }}-{{ $customFrom }}-{{ $customTo }}"
+                        canvas-id="frequency-chart"
+                        title="Donations by Frequency"
+                        :description="$frequencyDescription"
+                        :data="$frequency"
+                        height-class="h-80"
+                    />
+                @else
+                    <div class="py-8 text-center text-sm text-slate-400">No donation data for this period</div>
+                @endif
+            </x-ui.card>
+        </div>
     </div>
 
     {{-- Recent Donations --}}
