@@ -85,7 +85,7 @@ class RevenueReportController extends Controller
             fputcsv($handle, ['Public ID', $row['public_id']]);
             fputcsv($handle, ['Period', $periodLabel]);
             fputcsv($handle, ['Date range', $dateRangeLabel]);
-            fputcsv($handle, ['Generated at', now()->toDateTimeString()]);
+            fputcsv($handle, ['Generated at', now()->setTimezone('Asia/Kuala_Lumpur')->toDateTimeString().' (MYT)']);
             fputcsv($handle, []);
 
             fputcsv($handle, ['Metric', 'Value']);
@@ -107,7 +107,7 @@ class RevenueReportController extends Controller
                 'row' => $row,
                 'period' => $this->reportService->periodLabel($period),
                 'dateRange' => $this->reportService->periodDateRangeLabel($period),
-                'generatedAt' => now()->toDateTimeString(),
+                'generatedAt' => now()->setTimezone('Asia/Kuala_Lumpur')->toDateTimeString().' (MYT)',
             ]);
 
             echo $pdf->output();
