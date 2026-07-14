@@ -129,6 +129,14 @@
     @apply rounded-md font-semibold;
 }
 
+/* Keep the topbar notification count badge snug to the bell icon */
+.fi-panel-admin .fi-topbar-database-notifications-btn .fi-icon-btn-badge-ctn {
+    inset-inline-start: auto !important;
+    inset-inline-end: calc(var(--spacing) * 1.5) !important;
+    top: calc(var(--spacing) * 1.5) !important;
+    translate: 0 0 !important;
+}
+
 .fi-panel-admin .ihsan-admin-editor-modal {
     @apply overflow-hidden rounded-xl border border-stone-200 bg-ihsan-cream shadow-xl ring-1 ring-black/5 dark:border-stone-800 dark:bg-stone-900 dark:ring-white/10;
 }

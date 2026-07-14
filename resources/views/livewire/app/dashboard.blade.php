@@ -856,6 +856,7 @@
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Donor</th>
                             <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Amount</th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Campaign</th>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
                         </tr>
                     </thead>
@@ -875,6 +876,11 @@
                                 </td>
                                 <td class="px-5 py-3 text-sm text-slate-600">
                                     {{ $donation->campaign?->title ?? '—' }}
+                                </td>
+                                <td class="px-5 py-3">
+                                    <x-ui.badge status="{{ $donation->status->value }}" size="sm">
+                                        {{ ucfirst($donation->status->value) }}
+                                    </x-ui.badge>
                                 </td>
                                 <td class="px-5 py-3 text-sm text-slate-500">
                                     {{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}
