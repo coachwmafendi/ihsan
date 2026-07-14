@@ -137,6 +137,11 @@ class RevenueReportService
         ];
     }
 
+    public function rowForOrganization(Organization $organization, string $period): ?array
+    {
+        return $this->organizationRowFor($organization, $period);
+    }
+
     /**
      * @return array{0: ?string, 1: ?string}
      */
