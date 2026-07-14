@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\App\Campaigns;
 
 use App\Enums\CampaignStatus;
+use App\Enums\DonationStatus;
 use App\Models\Campaign;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -84,7 +85,7 @@ class CampaignIndex extends Component
                 fn ($q) => $q->where('status', CampaignStatus::Archived),
                 fn ($q) => $q->where('status', '!=', CampaignStatus::Archived->value)
             )
-            ->withCount('donations');
+            ->withCount(['donations' => fn ($query) => $query->where('status', DonationStatus::Succeeded)]);
 
         if (filled($this->search)) {
             $query->whereRaw('LOWER(title) LIKE ?', ['%'.strtolower($this->search).'%']);
