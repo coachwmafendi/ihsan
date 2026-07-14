@@ -32,7 +32,8 @@ it('downloads a CSV revenue report for an organization', function () {
 
     $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
     $period = 'this_month';
-    $expectedFilename = "ihsan-{$org->public_id}-test-org-revenue-This-Month-".now()->format('Y-m-d').'.csv';
+    $periodSlug = now()->startOfMonth()->toDateString().'-to-'.now()->endOfMonth()->toDateString();
+    $expectedFilename = "ihsan-{$org->public_id}-test-org-revenue-{$periodSlug}-".now()->format('Y-m-d').'.csv';
 
     $response = $this->actingAs($user)
         ->get(route('filament.admin.pages.revenue.report', [
@@ -81,7 +82,9 @@ it('downloads a PDF revenue report for an organization', function () {
 
     $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
     $period = 'last_month';
-    $expectedFilename = "ihsan-{$org->public_id}-another-org-revenue-Last-Month-".now()->format('Y-m-d').'.pdf';
+    $lastMonth = now()->subMonth();
+    $periodSlug = $lastMonth->startOfMonth()->toDateString().'-to-'.$lastMonth->endOfMonth()->toDateString();
+    $expectedFilename = "ihsan-{$org->public_id}-another-org-revenue-{$periodSlug}-".now()->format('Y-m-d').'.pdf';
 
     $response = $this->actingAs($user)
         ->get(route('filament.admin.pages.revenue.report', [

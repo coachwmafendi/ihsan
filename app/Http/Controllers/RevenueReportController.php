@@ -64,28 +64,25 @@ class RevenueReportController extends Controller
         }
 
         $sanitizedName = Str::limit(Str::slug($organization->name, '-'), 50, '');
-        $periodSlug = str_replace(' ', '-', $this->reportService->periodLabel($period));
+        $dateRangeLabel = $this->reportService->periodDateRangeLabel($period);
+        $periodSlug = str_replace(' ', '-', $dateRangeLabel);
         $date = now()->format('Y-m-d');
         $filename = "ihsan-{$organization->public_id}-{$sanitizedName}-revenue-{$periodSlug}-{$date}.{$format}";
 
         return match ($format) {
-            'csv' => $this->csvResponse($row, $period, $filename),
-            'pdf' => $this->pdfResponse($row, $period, $filename),
+            'csv' => $this->csvResponse($row, $dateRangeLabel, $filename),
+            'pdf' => $this->pdfResponse($row, $dateRangeLabel, $filename),
         };
     }
 
-    private function csvResponse(array $row, string $period, string $filename): StreamedResponse
+    private function csvResponse(array $row, string $dateRangeLabel, string $filename): StreamedResponse
     {
-        $periodLabel = $this->reportService->periodLabel($period);
-        $dateRangeLabel = $this->reportService->periodDateRangeLabel($period);
-
-        return response()->streamDownload(function () use ($row, $periodLabel, $dateRangeLabel): void {
+        return response()->streamDownload(function () use ($row, $dateRangeLabel): void {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, ['Organization', $row['name']]);
             fputcsv($handle, ['Public ID', $row['public_id']]);
-            fputcsv($handle, ['Period', $periodLabel]);
-            fputcsv($handle, ['Date range', $dateRangeLabel]);
+            fputcsv($handle, ['Period', $dateRangeLabel]);
             fputcsv($handle, ['Generated at', now()->setTimezone('Asia/Kuala_Lumpur')->toDateTimeString().' (MYT)']);
             fputcsv($handle, []);
 
@@ -101,13 +98,12 @@ class RevenueReportController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    private function pdfResponse(array $row, string $period, string $filename): StreamedResponse
+    private function pdfResponse(array $row, string $dateRangeLabel, string $filename): StreamedResponse
     {
-        return response()->streamDownload(function () use ($row, $period): void {
+        return response()->streamDownload(function () use ($row, $dateRangeLabel): void {
             $pdf = Pdf::loadView('filament.admin.exports.revenue-organization-report', [
                 'row' => $row,
-                'period' => $this->reportService->periodLabel($period),
-                'dateRange' => $this->reportService->periodDateRangeLabel($period),
+                'dateRange' => $dateRangeLabel,
                 'generatedAt' => now()->setTimezone('Asia/Kuala_Lumpur')->toDateTimeString().' (MYT)',
             ]);
 

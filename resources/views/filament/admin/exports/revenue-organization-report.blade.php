@@ -18,7 +18,7 @@
     <h1>Revenue Report</h1>
     <div class="meta">
         <strong>{{ $row['name'] }}</strong> ({{ $row['public_id'] }})<br>
-        Period: {{ $period }} ({{ $dateRange }})<br>
+        Period: {{ $dateRange }}<br>
         Generated: {{ $generatedAt }}
     </div>
 
