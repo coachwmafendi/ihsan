@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Models\Organization;
 use App\Services\RevenueReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -38,6 +39,8 @@ class RevenueReportController extends Controller
         }
 
         $period ??= 'this_month';
+
+        abort_unless(auth()->user()?->role === UserRole::SuperAdmin, 403);
 
         if (! in_array($period, self::ALLOWED_PERIODS, true)) {
             throw new NotFoundHttpException;

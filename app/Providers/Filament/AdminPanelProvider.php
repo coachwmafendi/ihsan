@@ -64,6 +64,7 @@ class AdminPanelProvider extends PanelProvider
             ->routes(function () {
                 Route::get('/revenue/report/{organizationPublicId}/{format}/{period?}', [RevenueReportController::class, 'download'])
                     ->whereIn('format', ['csv', 'pdf'])
+                    ->middleware([Authenticate::class])
                     ->name('pages.revenue.report');
 
                 Route::get('/', fn () => redirect()->route('filament.admin.pages.platform-overview'))->name('pages.dashboard');
