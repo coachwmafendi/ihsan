@@ -108,21 +108,38 @@ class DonationShow extends Component
         return 'MYR '.number_format((float) ($this->donation->base_amount ?? $this->donation->gross_amount), 2);
     }
 
+    /**
+     * Total amount charged to the donor, including any fee cover
+     * (gross_amount stores the donation only; donor_fee_covered is added on top).
+     */
+    public function paymentAmount(): string
+    {
+        $total = (float) $this->donation->gross_amount + (float) $this->donation->donor_fee_covered;
+
+        return $this->donation->currency_symbol.' '.number_format($total, 2).' '.strtoupper($this->donation->currency);
+    }
+
+    public function paymentAmountBase(): string
+    {
+        $base = (float) ($this->donation->base_amount ?? $this->donation->gross_amount)
+            + $this->feeInBaseCurrency((float) $this->donation->donor_fee_covered);
+
+        return 'MYR '.number_format($base, 2);
+    }
+
     public function beforeFeesCovered(): string
     {
-        $amount = (float) $this->donation->gross_amount - (float) $this->donation->donor_fee_covered;
-
-        return $this->donation->currency_symbol.' '.number_format($amount, 2).' '.strtoupper($this->donation->currency);
+        return $this->formattedOriginalAmount();
     }
 
     public function beforeFeesCoveredBase(): string
     {
-        $ratio = (float) $this->donation->gross_amount > 0
-            ? ((float) $this->donation->gross_amount - (float) $this->donation->donor_fee_covered) / (float) $this->donation->gross_amount
-            : 0;
-        $base = ((float) ($this->donation->base_amount ?? $this->donation->gross_amount)) * $ratio;
+        return $this->formattedBaseAmount();
+    }
 
-        return 'MYR '.number_format($base, 2);
+    public function feeCoveredAmount(): string
+    {
+        return $this->donation->currency_symbol.' '.number_format((float) $this->donation->donor_fee_covered, 2).' '.strtoupper($this->donation->currency);
     }
 
     public function platformFee(): string

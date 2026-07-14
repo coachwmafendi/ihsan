@@ -145,21 +145,23 @@
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Payment amount</dt>
                             <dd class="text-sm font-medium text-slate-900">
-                                {{ $this->formattedOriginalAmount() }}
+                                {{ $this->paymentAmount() }}
                                 @if ($donation->currency !== 'myr' && $donation->base_amount !== null)
-                                    <span class="text-slate-400">≈ {{ $this->formattedBaseAmount() }}</span>
+                                    <span class="text-slate-400">≈ {{ $this->paymentAmountBase() }}</span>
                                 @endif
                             </dd>
                         </div>
-                        <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
-                            <dt class="text-sm text-slate-500">Before fees covered</dt>
-                            <dd class="text-sm font-medium text-slate-900">
-                                {{ $this->beforeFeesCovered() }}
-                                @if ($donation->currency !== 'myr' && $donation->base_amount !== null)
-                                    <span class="text-slate-400">≈ {{ $this->beforeFeesCoveredBase() }}</span>
-                                @endif
-                            </dd>
-                        </div>
+                        @if ((float) $donation->donor_fee_covered > 0)
+                            <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
+                                <dt class="text-sm text-slate-500">Before fees covered</dt>
+                                <dd class="text-sm font-medium text-slate-900">
+                                    {{ $this->beforeFeesCovered() }}
+                                    @if ($donation->currency !== 'myr' && $donation->base_amount !== null)
+                                        <span class="text-slate-400">≈ {{ $this->beforeFeesCoveredBase() }}</span>
+                                    @endif
+                                </dd>
+                            </div>
+                        @endif
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Processing fee</dt>
                             <dd class="text-sm font-medium text-slate-900">
@@ -197,7 +199,7 @@
                                 @if ((float) $donation->donor_fee_covered > 0)
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
                                         <x-heroicon-o-check-circle class="size-4" />
-                                        Covered
+                                        Covered · {{ $this->feeCoveredAmount() }}
                                     </span>
                                 @else
                                     <span class="text-sm text-slate-900">Not covered</span>
