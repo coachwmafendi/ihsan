@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserRole;
 use App\Models\Organization;
+use App\Models\User;
 use App\Services\RevenueReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -32,15 +33,18 @@ class RevenueReportController extends Controller
 
     public function __construct(private RevenueReportService $reportService) {}
 
-    public function download(string $organizationPublicId, string $format, ?string $period = null): StreamedResponse|\Illuminate\Http\Response
+    public function download(string $organizationPublicId, string $format, ?string $period = null): StreamedResponse|Response
     {
+        /** @var User|null $user */
+        $user = auth()->user();
+
+        abort_unless($user !== null && $user->isSuperAdmin(), 403);
+
         if (! in_array($format, self::ALLOWED_FORMATS, true)) {
             throw new NotFoundHttpException;
         }
 
         $period ??= 'this_month';
-
-        abort_unless(auth()->user()?->role === UserRole::SuperAdmin, 403);
 
         if (! in_array($period, self::ALLOWED_PERIODS, true)) {
             throw new NotFoundHttpException;
@@ -96,7 +100,7 @@ class RevenueReportController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    private function pdfResponse(array $row, string $period, string $filename): \Illuminate\Http\Response
+    private function pdfResponse(array $row, string $period, string $filename): Response
     {
         $pdf = Pdf::loadView('filament.admin.exports.revenue-organization-report', [
             'row' => $row,
