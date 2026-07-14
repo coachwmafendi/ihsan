@@ -136,6 +136,43 @@ it('does not double convert processing fee base for foreign currency donations',
         ->assertDontSee('MYR 44.58');
 });
 
+it('shows the full charged amount and fee cover for fee-covered donations', function () {
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'currency' => 'usd',
+        'gross_amount' => 100.00,
+        'donor_fee_covered' => 7.20,
+        'base_amount' => 407.84,
+        'base_currency' => 'myr',
+        'exchange_rate' => 4.078410,
+        'processing_fee' => 10.93,
+        'stripe_fee' => 27.23,
+        'net_amount' => 399.04,
+        'status' => 'succeeded',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $donation])
+        // Payment amount = gross + fee cover (what the donor was actually charged)
+        ->assertSee('$ 107.20 USD')
+        ->assertSee('MYR 437.20')
+        // Before fees covered = the donation amount itself
+        ->assertSee('Before fees covered')
+        ->assertSee('$ 100.00 USD')
+        ->assertSee('Covered · $ 7.20 USD')
+        // gross - fee cover double-subtraction must not appear
+        ->assertDontSee('$ 92.80 USD');
+});
+
+it('hides the before fees covered row when no fee was covered', function () {
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Payment amount')
+        ->assertDontSee('Before fees covered')
+        ->assertSee('Not covered');
+});
+
 it('shows refund modal and validates reason', function () {
     $this->donation->update(['stripe_charge_id' => 'ch_test_123']);
 
