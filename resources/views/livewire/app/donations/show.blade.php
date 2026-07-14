@@ -175,7 +175,12 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Payment processor fee</dt>
-                            <dd class="text-sm font-medium text-slate-900">{{ $this->paymentProcessingFee() }}</dd>
+                            <dd class="text-sm font-medium text-slate-900">
+                                {{ $this->paymentProcessingFee() }}
+                                @if ($donation->currency !== 'myr' && $donation->base_amount !== null)
+                                    <span class="text-slate-400">≈ {{ $this->paymentProcessingFeeBase() }}</span>
+                                @endif
+                            </dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Payout amount</dt>

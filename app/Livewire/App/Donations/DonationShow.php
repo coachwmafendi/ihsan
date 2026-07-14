@@ -132,9 +132,13 @@ class DonationShow extends Component
 
     public function platformFeeBase(): string
     {
-        $base = $this->feeInBaseCurrency((float) $this->donation->processing_fee);
+        $processingFee = (float) $this->donation->processing_fee;
 
-        return 'MYR '.number_format($base, 2);
+        if ($this->donation->base_amount !== null || strtolower($this->donation->currency) === 'myr') {
+            return 'MYR '.number_format($processingFee, 2);
+        }
+
+        return 'MYR '.number_format($this->feeInBaseCurrency($processingFee), 2);
     }
 
     public function paymentProcessingFee(): string
@@ -144,6 +148,20 @@ class DonationShow extends Component
             : (float) $this->donation->stripe_fee;
 
         return $this->donation->currency_symbol.' '.number_format($this->feeInDisplayCurrency($fee), 2).' '.strtoupper($this->donation->currency);
+    }
+
+    public function paymentProcessingFeeBase(): string
+    {
+        $isChip = $this->paymentProcessorLabel() === 'CHIP';
+        $fee = $isChip
+            ? (float) $this->donation->chip_fee
+            : (float) $this->donation->stripe_fee;
+
+        if (! $isChip && ($this->donation->base_amount !== null || strtolower($this->donation->currency) === 'myr')) {
+            return 'MYR '.number_format($fee, 2);
+        }
+
+        return 'MYR '.number_format($this->feeInBaseCurrency($fee), 2);
     }
 
     public function payoutAmount(): string
