@@ -6,15 +6,7 @@ use App\Listeners\LogArtisanCommand;
 use App\Listeners\RecordDonorEmailDelivery;
 use App\Listeners\SendLoginAlertEmail;
 use App\Listeners\UpdateLastLoginAt;
-use App\Models\Campaign;
-use App\Models\Donation;
-use App\Models\Donor;
-use App\Models\Element;
-use App\Models\Organization;
 use App\Models\Setting;
-use App\Models\Subscription;
-use App\Models\User;
-use App\Observers\ModelActivityObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -69,28 +61,9 @@ class AppServiceProvider extends ServiceProvider
             LogArtisanCommand::class,
         );
 
-        $this->observeModelActivity();
-
         Blade::directive('myrtime', function ($expression) {
             return "<?php echo myrTime({$expression}); ?>";
         });
-    }
-
-    protected function observeModelActivity(): void
-    {
-        $models = [
-            Organization::class,
-            User::class,
-            Campaign::class,
-            Donation::class,
-            Donor::class,
-            Subscription::class,
-            Element::class,
-        ];
-
-        foreach ($models as $model) {
-            $model::observe(ModelActivityObserver::class);
-        }
     }
 
     protected function applyStripeConfig(): void
