@@ -35,7 +35,7 @@
             </div>
 
             <div class="flex items-center gap-6">
-                <a href="{{ route('docs.show') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Docs</a>
+                <a href="{{ route('docs.show') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">@lang('docs.nav.docs')</a>
                 <a href="{{ route('login') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Sign in</a>
                 <a href="{{ route('language.switch', ['locale' => app()->getLocale() === 'ms' ? 'en' : 'ms']) }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">
                     @lang('nav.switch_language')

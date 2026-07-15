@@ -13,18 +13,22 @@ $page = $category && $pageSlug ? collect($category['children'] ?? [])->firstWher
         @endphp
         <header class="mb-8">
             <img src="{{ $landing['hero_image'] ?? '' }}"
-                 alt="{{ $landing['hero_alt'] ?? '' }}"
+                 alt="{{ __('docs.landing.hero_alt') }}"
                  class="w-full h-48 sm:h-64 object-cover rounded-2xl border border-slate-200 shadow-sm mb-6">
         </header>
     @elseif ($category)
         <nav aria-label="Breadcrumb" class="mb-4 text-sm text-slate-500">
             <ol class="flex flex-wrap items-center gap-2">
-                <li><a href="{{ route('docs.show') }}" class="hover:text-slate-900 hover:underline">Docs</a></li>
+                @php
+                    $categorySlug = $category['slug'] ?? '';
+                    $pageSlug = $page['slug'] ?? '';
+                @endphp
+                <li><a href="{{ route('docs.show') }}" class="hover:text-slate-900 hover:underline">@lang('docs.nav.docs')</a></li>
                 <li class="text-slate-300">/</li>
-                <li><a href="{{ route('docs.show', ['path' => $category['slug']]) }}" class="hover:text-slate-900 hover:underline">{{ $category['label'] }}</a></li>
+                <li><a href="{{ route('docs.show', ['path' => $categorySlug]) }}" class="hover:text-slate-900 hover:underline">{{ __('docs.nav.'.$categorySlug.'.label') }}</a></li>
                 @if ($page)
                     <li class="text-slate-300">/</li>
-                    <li class="text-slate-700" aria-current="page">{{ $page['label'] }}</li>
+                    <li class="text-slate-700" aria-current="page">{{ __('docs.nav.'.$categorySlug.'.children.'.$pageSlug) }}</li>
                 @endif
             </ol>
         </nav>
@@ -39,25 +43,24 @@ $page = $category && $pageSlug ? collect($category['children'] ?? [])->firstWher
             $landingCards = config('docs.landing.cards', []);
         @endphp
         <section class="mt-12">
-            <h2 class="text-xl font-semibold text-slate-900 mb-4">Browse by topic</h2>
+            <h2 class="text-xl font-semibold text-slate-900 mb-4">@lang('docs.nav.browse_by_topic')</h2>
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 not-prose">
                 @foreach (config('docs.nav') as $category)
                     @php
-                        $card = $landingCards[$category['slug']] ?? null;
+                        $categorySlug = $category['slug'] ?? '';
+                        $card = $landingCards[$categorySlug] ?? null;
                         $cardImage = $card['image'] ?? null;
                     @endphp
-                    <a href="{{ route('docs.show', ['path' => $category['slug']]) }}"
+                    <a href="{{ route('docs.show', ['path' => $categorySlug]) }}"
                        class="group block bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
                         @if ($cardImage)
                             <img src="{{ $cardImage }}"
-                                 alt="{{ $category['label'] }}"
+                                 alt="{{ __('docs.landing.cards.'.$categorySlug.'.title') }}"
                                  class="w-full h-32 object-cover border-b border-slate-200">
                         @endif
                         <div class="p-4">
-                            <h3 class="font-semibold text-slate-900 group-hover:text-teal-700">{{ $category['label'] }}</h3>
-                            @if ($card['description'] ?? null)
-                                <p class="mt-1 text-sm text-slate-600">{{ $card['description'] }}</p>
-                            @endif
+                            <h3 class="font-semibold text-slate-900 group-hover:text-teal-700">{{ __('docs.landing.cards.'.$categorySlug.'.title') }}</h3>
+                            <p class="mt-1 text-sm text-slate-600">{{ __('docs.landing.cards.'.$categorySlug.'.description') }}</p>
                         </div>
                     </a>
                 @endforeach

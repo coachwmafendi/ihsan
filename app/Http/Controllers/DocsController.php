@@ -17,17 +17,11 @@ final class DocsController extends Controller
         $docsPath = realpath(config('docs.path')) ?: resource_path('docs');
         $requested = $path ?? 'index';
         $relative = trim($requested, '/');
+        $locale = app()->getLocale();
 
-        $base = $docsPath.DIRECTORY_SEPARATOR.$relative;
-        $file = null;
+        $file = $this->resolveDocFile($docsPath, $relative, $locale);
 
-        if (is_file($base.'.md')) {
-            $file = realpath($base.'.md');
-        } elseif (is_dir($base) && is_file($base.DIRECTORY_SEPARATOR.'index.md')) {
-            $file = realpath($base.DIRECTORY_SEPARATOR.'index.md');
-        }
-
-        if ($file === false || $file === null || ! str_starts_with($file, $docsPath.DIRECTORY_SEPARATOR)) {
+        if ($file === null) {
             abort(404);
         }
 
@@ -43,5 +37,47 @@ final class DocsController extends Controller
             'title' => $title,
             'path' => $relative,
         ]);
+    }
+
+    private function resolveDocFile(string $docsPath, string $relative, string $locale): ?string
+    {
+        $candidates = [];
+        $localeDir = $docsPath.DIRECTORY_SEPARATOR.$locale;
+
+        if (is_dir($localeDir)) {
+            $candidates[] = $this->fileCandidate($localeDir, $relative);
+        }
+
+        $candidates[] = $this->fileCandidate($docsPath, $relative);
+
+        foreach ($candidates as $candidate) {
+            if ($candidate !== null && is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private function fileCandidate(string $base, string $relative): ?string
+    {
+        $base = rtrim($base, DIRECTORY_SEPARATOR);
+        $path = $base.DIRECTORY_SEPARATOR.$relative;
+
+        if (is_file($path.'.md')) {
+            $resolved = realpath($path.'.md');
+        } elseif (is_dir($path) && is_file($path.DIRECTORY_SEPARATOR.'index.md')) {
+            $resolved = realpath($path.DIRECTORY_SEPARATOR.'index.md');
+        } else {
+            return null;
+        }
+
+        if ($resolved === false) {
+            return null;
+        }
+
+        $safePrefix = $base.DIRECTORY_SEPARATOR;
+
+        return str_starts_with($resolved, $safePrefix) ? $resolved : null;
     }
 }
