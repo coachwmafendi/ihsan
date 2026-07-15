@@ -2,6 +2,8 @@
 
 The JavaScript API lets advanced users control the widget programmatically.
 
+![Elements list](/images/docs/app-elements.png)
+
 ## Available methods
 
 - `Ihsan.open()` — open the checkout modal manually.

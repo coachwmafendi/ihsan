@@ -2,6 +2,8 @@
 
 Export your fundraising data for accounting, reporting, or external analysis.
 
+![Donation export](/images/docs/app-donations-export.png)
+
 ## Supported formats
 
 - CSV for spreadsheets and reporting tools.

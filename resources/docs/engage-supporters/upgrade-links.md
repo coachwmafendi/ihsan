@@ -2,6 +2,8 @@
 
 Upgrade links allow you to ask existing donors to increase their recurring contribution with one click.
 
+![Subscription detail](/images/docs/app-subscription-detail.png)
+
 ## How to send an upgrade link
 
 1. Open a donor or subscription record.

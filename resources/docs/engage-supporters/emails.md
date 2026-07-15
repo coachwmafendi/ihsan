@@ -2,6 +2,8 @@
 
 Ihsan sends automatic emails to keep donors informed and your team up to date.
 
+![Notification settings](/images/docs/app-settings-notifications.png)
+
 ## Donor emails
 
 - Donation receipt with a PDF attachment.

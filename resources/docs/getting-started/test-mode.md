@@ -2,7 +2,7 @@
 
 Test mode lets you simulate donations and review the donor experience without processing real payments.
 
-![Login page](/images/docs/login.png)
+![Donation form](/images/docs/donation-form.png)
 
 ## Enabling test mode
 

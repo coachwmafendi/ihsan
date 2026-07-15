@@ -2,6 +2,8 @@
 
 The Ihsan REST API lets you read and manage donations, campaigns, donors, and subscriptions programmatically.
 
+![Elements list](/images/docs/app-elements.png)
+
 ## Authentication
 
 Authenticate using a bearer token created from the **API keys** section of your organization settings. Include the token in the `Authorization` header of every request.

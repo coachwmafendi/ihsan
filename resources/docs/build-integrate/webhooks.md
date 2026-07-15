@@ -2,6 +2,8 @@
 
 Ihsan can send webhook events to your server when key events happen.
 
+![Elements list](/images/docs/app-elements.png)
+
 ## Common events
 
 - `donation.created` — a new donation was received.
