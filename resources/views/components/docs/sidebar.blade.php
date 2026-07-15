@@ -10,13 +10,13 @@ $currentPage = $segments[1] ?? 'index';
     <a href="{{ route('docs.show') }}"
        class="block text-sm font-semibold {{ $path === 'index' ? 'text-teal-600' : 'text-slate-700 hover:text-slate-900' }}"
        aria-current="{{ $path === 'index' ? 'page' : 'false' }}">
-        Documentation home
+        @lang('docs.nav.documentation_home')
     </a>
 
     @foreach (config('docs.nav') as $category)
         @php
             $categorySlug = $category['slug'] ?? '';
-            $categoryLabel = $category['label'] ?? '';
+            $categoryLabel = __('docs.nav.'.$categorySlug.'.label');
             $categoryActive = $currentCategory === $categorySlug;
             $children = $category['children'] ?? [];
         @endphp
@@ -26,7 +26,7 @@ $currentPage = $segments[1] ?? 'index';
                 @foreach ($children as $child)
                     @php
                         $childSlug = $child['slug'] ?? '';
-                        $childLabel = $child['label'] ?? '';
+                        $childLabel = __('docs.nav.'.$categorySlug.'.children.'.$childSlug);
                         $isIndex = $childSlug === 'index';
                         $childPath = $isIndex ? $categorySlug : $categorySlug.'/'.$childSlug;
                         $isActive = $isIndex

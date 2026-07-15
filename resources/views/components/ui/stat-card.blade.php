@@ -24,7 +24,7 @@
     @if (! is_null($progress))
         @php $clamped = max(0, min(100, (float) $progress)); $visible = $clamped > 0 ? max($clamped, 3) : 0; @endphp
         <div class="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
-            <div class="h-full rounded-full bg-teal-500" style="width: {{ $visible }}%"></div>
+            <div class="h-full rounded-full bg-blue-500" style="width: {{ $visible }}%"></div>
         </div>
     @endif
     @if ($subtext)

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Listeners\LogArtisanCommand;
 use App\Listeners\RecordDonorEmailDelivery;
 use App\Listeners\SendLoginAlertEmail;
 use App\Listeners\UpdateLastLoginAt;
@@ -9,6 +10,7 @@ use App\Models\Setting;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Blade;
@@ -54,6 +56,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             MessageSent::class,
             RecordDonorEmailDelivery::class,
+        );
+
+        Event::listen(
+            CommandStarting::class,
+            LogArtisanCommand::class,
         );
 
         Blade::directive('myrtime', function ($expression) {

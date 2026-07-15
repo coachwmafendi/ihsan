@@ -35,9 +35,15 @@ docs/superpowers/plans/*.md
 !/public/images/docs/*.png
 opencode.json
 
+# Opencode local tooling (agents/ and skills/frontend-design stay tracked)
+/.opencode/*
+!/.opencode/agents/
+!/.opencode/skills/
+/.opencode/skills/*
+!/.opencode/skills/frontend-design/
+
 # Graphify
-graphify-out/cost.json
-graphify-out/cache/
+/graphify-out/
 _ide_helper.php
 _ide_helper_models.php
 .phpstorm.meta.php

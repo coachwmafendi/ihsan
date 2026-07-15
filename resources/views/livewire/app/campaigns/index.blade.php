@@ -150,7 +150,7 @@
                                                 <div class="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
                                                     <x-ui.tooltip :text="$tooltipText">
                                                         <div class="h-2.5 w-28 overflow-hidden rounded-full bg-gray-200 ring-1 ring-gray-300">
-                                                            <div class="h-full rounded-full bg-teal-500 transition-all" style="width: {{ $pct }}%"></div>
+                                                            <div class="h-full rounded-full bg-blue-500 transition-all" style="width: {{ $pct }}%"></div>
                                                         </div>
                                                     </x-ui.tooltip>
                                                     <span>{{ number_format($pct, 1) }}%</span>
