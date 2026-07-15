@@ -28,11 +28,11 @@ $unreadCount = auth()->user()?->getUnreadNotificationsCountAttribute() ?? 0;
             <a
                 href="/app/notifications"
                 wire:navigate
-                class="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                class="relative inline-flex items-center justify-center p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
             >
                 <x-heroicon-o-bell class="size-5" />
                 <span
-                    class="absolute top-1.5 right-1.5 min-w-[1rem] h-4 px-1 flex items-center justify-center rounded-full text-[10px] font-bold text-white bg-teal-600 {{ $unreadCount > 0 ? '' : 'hidden' }}"
+                    class="absolute top-1 right-0.5 min-w-[0.875rem] h-3.5 px-1 flex items-center justify-center rounded-full text-[9px] font-bold text-white bg-teal-600 ring-2 ring-white {{ $unreadCount > 0 ? '' : 'hidden' }}"
                     id="notification-badge"
                 >
                     {{ $unreadCount > 9 ? '9+' : $unreadCount }}

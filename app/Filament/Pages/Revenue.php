@@ -21,7 +21,7 @@ class Revenue extends Page
 
     protected ?RevenueReportService $reportService = null;
 
-    public string $period = 'today';
+    public string $period = 'this_month';
 
     public string $totalProcessingFees = '0.00';
 

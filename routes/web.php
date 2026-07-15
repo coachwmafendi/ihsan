@@ -4,6 +4,7 @@ use App\Http\Controllers\ChipCallbackController;
 use App\Http\Controllers\ChipFinalizeController;
 use App\Http\Controllers\ChipWebhookController;
 use App\Http\Controllers\DemoLandingController;
+use App\Http\Controllers\DocsController;
 use App\Http\Controllers\DonationCampaignImageController;
 use App\Http\Controllers\DonationExportController;
 use App\Http\Controllers\DonorImpersonationController;
@@ -52,6 +53,9 @@ use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 Route::view('/', 'welcome')->name('home');
+Route::get('/docs/{path?}', DocsController::class)
+    ->where('path', '.*')
+    ->name('docs.show');
 Route::get('/register-organization', RegisterOrganization::class)->name('register.org');
 Route::get('/demo/msk', DemoLandingController::class)->name('demo.msk');
 Route::view('/case-studies/madrasah-darul-falah', 'case-studies.madrasah-darul-falah')->name('case-studies.madrasah-darul-falah');

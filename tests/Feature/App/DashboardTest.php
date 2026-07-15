@@ -72,6 +72,29 @@ it('shows analytics sections from merged insights', function () {
         ->assertSee('Recent Donations');
 });
 
+it('shows a status badge for each recent donation', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    $donor = Donor::factory()->create();
+
+    $succeeded = Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now(),
+    ]);
+
+    $failed = Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Failed,
+        'created_at' => now(),
+    ]);
+
+    actingAs($this->user)
+        ->get('/app/dashboard')
+        ->assertOk()
+        ->assertSee(ucfirst($succeeded->status->value), false)
+        ->assertSee('Succeeded', false)
+        ->assertSee(ucfirst($failed->status->value), false)
+        ->assertSee('Failed', false);
+});
+
 it('calculates donations by frequency for the selected period', function () {
     $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
     $donor = Donor::factory()->create();
