@@ -48,6 +48,14 @@ document.addEventListener('alpine:init', () => {
             return this.text.length > 0 || (this.$refs.tooltip?.textContent?.trim().length ?? 0) > 0;
         },
 
+        currentTriggerEl() {
+            const focusableSelector = 'button, a[href], input, select, textarea';
+
+            return this.$el.matches(focusableSelector)
+                ? this.$el
+                : (this.$el.querySelector(focusableSelector) || this.$el);
+        },
+
         show(showDelay = this.delay) {
             if (! this.canShow()) {
                 return;
@@ -77,6 +85,8 @@ document.addEventListener('alpine:init', () => {
         },
 
         reposition() {
+            this.triggerEl = this.currentTriggerEl();
+
             if (! this.triggerEl) {
                 return;
             }

@@ -12,6 +12,14 @@ use App\Models\ProcessingFee;
 use App\Models\User;
 use Livewire\Livewire;
 
+it('defaults to this month period to match per organization report downloads', function () {
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+    $component = Livewire::actingAs($user)->test(Revenue::class);
+
+    expect($component->get('period'))->toBe('this_month');
+});
+
 it('shows revenue metrics to super admins', function () {
     $org = Organization::factory()->create(['status' => 'active']);
     $campaign = Campaign::factory()->for($org)->create();
@@ -151,4 +159,78 @@ it('shows avg donation and effective rate per organization', function () {
         ->test(Revenue::class)
         ->assertSee('MYR 200.00')
         ->assertSee('2.50%'); // 5 / 200 = 2.5%
+});
+
+it('matches per organization csv download for the same period', function () {
+    $org = Organization::factory()->create(['status' => 'active', 'name' => 'Matching Org']);
+    $campaign = Campaign::factory()->for($org)->create();
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 300.00,
+        'base_amount' => 300.00,
+        'stripe_fee' => 4.50,
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::OneTime,
+    ]);
+
+    ProcessingFee::factory()->create([
+        'donation_id' => Donation::first()->id,
+        'organization_id' => $org->id,
+        'fee_amount' => 7.50,
+        'status' => 'paid',
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+    $period = 'this_month';
+
+    Livewire::actingAs($user)
+        ->test(Revenue::class)
+        ->set('period', $period)
+        ->assertSee('MYR 300.00')
+        ->assertSee('MYR 7.50')
+        ->assertSee('Matching Org');
+
+    $response = $this->actingAs($user)
+        ->get(route('filament.admin.pages.revenue.report', [
+            'organizationPublicId' => $org->public_id,
+            'format' => 'csv',
+            'period' => $period,
+        ]));
+
+    $response->assertOk();
+
+    $content = $response->streamedContent();
+    expect($content)
+        ->toContain('Matching Org')
+        ->toContain('300.00')
+        ->toContain('4.50')
+        ->toContain('7.50');
+});
+
+it('updates per organization download links when the period filter changes', function () {
+    $org = Organization::factory()->create(['status' => 'active', 'name' => 'Link Test Org']);
+    $campaign = Campaign::factory()->for($org)->create();
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 100.00,
+        'base_amount' => 100.00,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+    $component = Livewire::actingAs($user)
+        ->test(Revenue::class)
+        ->set('period', 'this_year');
+
+    $html = $component->html();
+    $expectedUrl = route('filament.admin.pages.revenue.report', [
+        'organizationPublicId' => $org->public_id,
+        'format' => 'pdf',
+        'period' => 'this_year',
+    ]);
+
+    expect($html)->toContain($expectedUrl);
 });

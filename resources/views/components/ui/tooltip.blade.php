@@ -20,7 +20,7 @@
 
 <span
     {{ $attributes->merge(['class' => 'inline-block align-middle']) }}
-    wire:ignore
+    wire:ignore.self
     x-data="uiTooltip({ text: @js($tooltipText), position: @js($position), align: @js($align), delay: @js((int) $delay), disabled: @js((bool) $disabled) })"
     :aria-describedby="open ? tipId : null"
     @if (! $isInteractive && ! $disabled && $hasContent)
@@ -33,12 +33,12 @@
     @focusin="show(0)"
     @focusout="hide()"
     @keydown.escape.window="hide()"
-    x-effect="if (open) { triggerEl?.setAttribute('aria-describedby', tipId); } else { triggerEl?.removeAttribute('aria-describedby'); }"
+    x-effect="if (open) { currentTriggerEl()?.setAttribute('aria-describedby', tipId); } else { currentTriggerEl()?.removeAttribute('aria-describedby'); }"
 >
     {{ $slot }}
 
     @if (! $disabled && $hasContent)
-        <template x-teleport="body">
+        <template x-teleport="body" wire:ignore>
             <div
                 x-show="open"
                 x-cloak

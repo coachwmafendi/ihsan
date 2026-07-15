@@ -14,6 +14,7 @@
                 <a href="#pricing" class="text-slate-400 hover:text-white transition-colors">@lang('nav.pricing')</a>
                 <a href="#faq" class="text-slate-400 hover:text-white transition-colors">@lang('nav.faq')</a>
                 <a href="{{ route('case-studies.madrasah-darul-falah') }}" class="text-slate-400 hover:text-white transition-colors">@lang('nav.case_study')</a>
+                <a href="{{ route('docs.show') }}" class="text-slate-400 hover:text-white transition-colors">Docs</a>
 
                 @auth
                     <a href="{{ route('app.dashboard') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-5 py-2 rounded-full font-semibold text-sm transition-colors">Dashboard</a>
@@ -49,6 +50,7 @@
                 <a href="#pricing" @click="open = false" class="text-slate-300 hover:text-white hover:bg-white/5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors">@lang('nav.pricing')</a>
                 <a href="#faq" @click="open = false" class="text-slate-300 hover:text-white hover:bg-white/5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors">@lang('nav.faq')</a>
                 <a href="{{ route('case-studies.madrasah-darul-falah') }}" class="text-slate-300 hover:text-white hover:bg-white/5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors">@lang('nav.case_study')</a>
+                <a href="{{ route('docs.show') }}" class="text-slate-300 hover:text-white hover:bg-white/5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors">Docs</a>
                 <div class="border-t border-white/5 my-1"></div>
                 @auth
                     <a href="{{ route('app.dashboard') }}" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-center">Dashboard</a>

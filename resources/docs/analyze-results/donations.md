@@ -1,0 +1,12 @@
+# Donations
+
+The donations page lists every contribution your organization has received.
+
+## What you can do
+
+- Filter by date, campaign, payment method, or status.
+- Search for a donor by name or email.
+- View detailed transaction information.
+- Resend receipts or refund payment from supported providers.
+
+Each donation record links to the relevant campaign, donor profile, and payout batch for easy reconciliation.
