@@ -455,3 +455,56 @@ it('filters donations by frequency and custom date range from query string', fun
     expect($ids)->not->toContain($recurringToday->id);
     expect($ids)->not->toContain($oneTimeOld->id);
 });
+
+it('displays average donation amount', function () {
+    // beforeEach donation has base_amount 100.00; add one more for 250.50.
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'base_amount' => 250.50,
+        'status' => 'succeeded',
+    ]);
+
+    // (100 + 250.50) / 2 = 175.25
+    Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->assertStatus(200)
+        ->assertSee('Avg Donation')
+        ->assertSee('MYR 175.25');
+});
+
+it('displays succeeded count with failed and refunded breakdown', function () {
+    Donation::factory()->count(2)->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => 'failed',
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => 'refunded',
+    ]);
+
+    $component = Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->assertStatus(200)
+        ->assertSee('Succeeded')
+        ->assertSee('2 failed · 1 refunded');
+
+    expect($component->instance()->succeededCount)->toBe(1);
+});
+
+it('shows new donations this month trend on the total donations card', function () {
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'created_at' => now()->subMonths(2),
+    ]);
+
+    // Only the beforeEach donation was created this month.
+    Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->assertStatus(200)
+        ->assertSee('+1 this month');
+});

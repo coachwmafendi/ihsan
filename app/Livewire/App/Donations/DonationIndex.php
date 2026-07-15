@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Donations;
 
+use App\Enums\DonationStatus;
 use App\Http\Controllers\DonationExportController;
 use App\Models\Campaign;
 use App\Models\Donation;
@@ -267,6 +268,38 @@ class DonationIndex extends Component
             'amount' => (float) $query->sum(Donation::reportAmountColumn()),
             'isApproximate' => Donation::hasReportApproximations($this->baseQuery()),
         ];
+    }
+
+    #[Computed]
+    public function newThisMonthCount(): int
+    {
+        return $this->baseQuery()->where('donations.created_at', '>=', now()->startOfMonth())->count();
+    }
+
+    #[Computed]
+    public function avgDonation(): float
+    {
+        $count = $this->totalCount;
+
+        return $count > 0 ? round($this->totalAmount['amount'] / $count, 2) : 0.0;
+    }
+
+    #[Computed]
+    public function succeededCount(): int
+    {
+        return $this->baseQuery()->where('donations.status', DonationStatus::Succeeded)->count();
+    }
+
+    #[Computed]
+    public function failedCount(): int
+    {
+        return $this->baseQuery()->where('donations.status', DonationStatus::Failed)->count();
+    }
+
+    #[Computed]
+    public function refundedCount(): int
+    {
+        return $this->baseQuery()->where('donations.status', DonationStatus::Refunded)->count();
     }
 
     #[Computed]

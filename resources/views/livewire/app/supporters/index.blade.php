@@ -14,7 +14,31 @@
 
     {{-- Summary Stats --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <x-ui.stat-card label="Total Supporters" value="{{ number_format($this->totalCount) }}" value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white" />
+        <x-ui.stat-card
+            label="Total Supporters"
+            value="{{ number_format($this->totalCount) }}"
+            :trend="$this->newThisMonthCount > 0 ? '+'.number_format($this->newThisMonthCount).' this month' : null"
+            trend-color="success"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+        />
+        <x-ui.stat-card
+            label="Repeat Supporters"
+            value="{{ number_format($this->repeatCount) }}"
+            subtext="{{ $this->totalCount > 0 ? round($this->repeatCount / $this->totalCount * 100) : 0 }}% of all supporters"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+        />
+        <x-ui.stat-card
+            label="Recurring Supporters"
+            value="{{ number_format($this->recurringSupportersCount) }}"
+            subtext="With active plans"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+        />
+        <x-ui.stat-card
+            label="Avg Lifetime Giving"
+            value="MYR {{ number_format($this->avgLifetimeGiving, 2) }}"
+            subtext="Per supporter"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+        />
     </div>
 
     {{-- Filters --}}

@@ -184,6 +184,86 @@ it('shows scheduled to cancel label in the status column', function () {
         ->assertSee('Scheduled to cancel');
 });
 
+it('displays active plans count with paused and past due breakdown', function () {
+    Subscription::factory()->count(3)->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Paused,
+    ]);
+
+    Subscription::factory()->count(2)->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::PastDue,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->assertStatus(200)
+        ->assertSee('Active Plans')
+        ->assertSee('1 paused · 2 past due');
+});
+
+it('displays total collected from recurring installments', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    Donation::factory()->create([
+        'subscription_id' => $subscription->id,
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'base_amount' => 100.00,
+    ]);
+
+    Donation::factory()->create([
+        'subscription_id' => $subscription->id,
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'base_amount' => 250.50,
+    ]);
+
+    // Non-subscription donation must not count.
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'base_amount' => 999.00,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->assertStatus(200)
+        ->assertSee('Total Collected')
+        ->assertSee('MYR 350.50');
+});
+
+it('shows new plans this month trend on the total plans card', function () {
+    Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'created_at' => now()->subMonths(2),
+    ]);
+
+    Subscription::factory()->count(2)->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'created_at' => now()->startOfMonth()->addDay(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->assertStatus(200)
+        ->assertSee('+2 this month');
+});
+
 it('excludes scheduled to cancel plans from expected monthly total', function () {
     Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,
