@@ -64,6 +64,11 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                     <x-sidebar-item href="/app/settings/tracking" icon="presentation-chart-line" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
                 </x-sidebar-dropdown>
             </x-sidebar-group>
+
+            <x-sidebar-dropdown icon="question-mark-circle" label="Help">
+                <x-sidebar-item href="mailto:support@getihsan.my" icon="envelope" label="Email Support" target="_self" />
+                <x-sidebar-item href="https://ihsan.test:8443/docs" icon="book-open" label="Documentation" target="_blank" />
+            </x-sidebar-dropdown>
         </nav>
     </div>
 
@@ -125,6 +130,11 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                     <x-sidebar-item href="/app/settings/tracking" icon="presentation-chart-line" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
                 </x-sidebar-dropdown>
             </x-sidebar-group>
+
+            <x-sidebar-dropdown icon="question-mark-circle" label="Help">
+                <x-sidebar-item href="mailto:support@getihsan.my" icon="envelope" label="Email Support" target="_self" />
+                <x-sidebar-item href="https://ihsan.test:8443/docs" icon="book-open" label="Documentation" target="_blank" />
+            </x-sidebar-dropdown>
         </nav>
     </div>
 </div>
