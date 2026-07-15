@@ -2,6 +2,8 @@
 
 Subscriptions let supporters give automatically on a recurring schedule.
 
+![Recurring plans](/images/docs/app-subscriptions.png)
+
 ## Supported schedules
 
 - Monthly recurring donations.

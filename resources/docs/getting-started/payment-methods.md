@@ -2,6 +2,8 @@
 
 Ihsan connects to leading payment providers so donors can pay using their preferred method.
 
+![Payment settings](/images/docs/app-settings-payment.png)
+
 ## Supported providers
 
 - **Stripe** — cards, wallets, and international payments.

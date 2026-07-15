@@ -64,4 +64,31 @@ return [
             ],
         ],
     ],
+
+    'landing' => [
+        'hero_image' => '/images/docs/app-dashboard.png',
+        'hero_alt' => 'Ihsan admin dashboard',
+        'cards' => [
+            'getting-started' => [
+                'image' => '/images/docs/register-organization.png',
+                'description' => 'Set up your organization, connect payments, and install your first donation form.',
+            ],
+            'run-campaigns' => [
+                'image' => '/images/docs/app-campaigns.png',
+                'description' => 'Create campaigns, publish pages, and accept donations through any channel.',
+            ],
+            'engage-supporters' => [
+                'image' => '/images/docs/app-supporters.png',
+                'description' => 'Manage donor portal, email receipts, subscriptions, and upgrade links.',
+            ],
+            'analyze-results' => [
+                'image' => '/images/docs/app-donations.png',
+                'description' => 'Track donations, understand recurring revenue, and export your data.',
+            ],
+            'build-integrate' => [
+                'image' => '/images/docs/app-elements.png',
+                'description' => 'Integrate the embed widget, JavaScript API, webhooks, and REST API.',
+            ],
+        ],
+    ],
 ];

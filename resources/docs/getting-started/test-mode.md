@@ -2,6 +2,8 @@
 
 Test mode lets you simulate donations and review the donor experience without processing real payments.
 
+![Login page](/images/docs/login.png)
+
 ## Enabling test mode
 
 - Toggle test mode from the organization settings page.
