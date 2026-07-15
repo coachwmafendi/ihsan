@@ -2,6 +2,8 @@
 
 The donations page lists every contribution your organization has received.
 
+![Donations page](/images/docs/app-donations.png)
+
 ## What you can do
 
 - Filter by date, campaign, payment method, or status.

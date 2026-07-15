@@ -2,6 +2,8 @@
 
 Elements are reusable donation components that you can embed across websites, emails, and campaign pages.
 
+![Elements list](/images/docs/app-elements.png)
+
 ## Element types
 
 - **Floating button** — a fixed button that follows the donor as they scroll.

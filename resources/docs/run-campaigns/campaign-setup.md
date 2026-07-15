@@ -2,6 +2,8 @@
 
 A campaign is a focused fundraising goal with its own page, donations, and insights.
 
+![Campaigns list](/images/docs/app-campaigns.png)
+
 ## Creating a campaign
 
 1. Go to **Campaigns** and click **New campaign**.

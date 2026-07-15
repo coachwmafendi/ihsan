@@ -2,6 +2,8 @@
 
 The virtual terminal lets you record donations collected outside Ihsan, such as cash, check, or bank transfer.
 
+![Virtual terminal](/images/docs/app-virtual-terminal.png)
+
 ## When to use it
 
 - A donor hands you cash at an event.

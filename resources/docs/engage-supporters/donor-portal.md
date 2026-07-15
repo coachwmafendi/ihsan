@@ -2,6 +2,8 @@
 
 The donor portal gives supporters a secure space to view and manage their giving history.
 
+![Donor portal login](/images/docs/login.png)
+
 ## What donors can do
 
 - View past donations and receipts.

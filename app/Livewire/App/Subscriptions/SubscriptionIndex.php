@@ -7,6 +7,7 @@ namespace App\Livewire\App\Subscriptions;
 use App\Enums\SubscriptionStatus;
 use App\Http\Controllers\SubscriptionExportController;
 use App\Models\Campaign;
+use App\Models\Donation;
 use App\Models\Subscription;
 use App\Services\SubscriptionSchedule;
 use Carbon\Carbon;
@@ -246,6 +247,38 @@ class SubscriptionIndex extends Component
     public function totalCount(): int
     {
         return $this->baseQuery()->count();
+    }
+
+    #[Computed]
+    public function newThisMonthCount(): int
+    {
+        return $this->baseQuery()->where('subscriptions.created_at', '>=', now()->startOfMonth())->count();
+    }
+
+    #[Computed]
+    public function activeCount(): int
+    {
+        return $this->baseQuery()->where('subscriptions.status', SubscriptionStatus::Active)->count();
+    }
+
+    #[Computed]
+    public function pausedCount(): int
+    {
+        return $this->baseQuery()->where('subscriptions.status', SubscriptionStatus::Paused)->count();
+    }
+
+    #[Computed]
+    public function pastDueCount(): int
+    {
+        return $this->baseQuery()->where('subscriptions.status', SubscriptionStatus::PastDue)->count();
+    }
+
+    #[Computed]
+    public function totalCollected(): float
+    {
+        return round((float) Donation::query()
+            ->whereIn('subscription_id', $this->baseQuery()->select('subscriptions.id'))
+            ->sum('base_amount'), 2);
     }
 
     #[Computed]

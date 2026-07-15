@@ -2,6 +2,8 @@
 
 Every campaign has a public page that you can share with supporters.
 
+![Public campaign page](/images/docs/campaign-public-page.png)
+
 ## What appears on the page
 
 - Campaign title, description, and cover image.

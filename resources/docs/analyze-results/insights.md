@@ -2,6 +2,8 @@
 
 Insights help you understand trends, donor behavior, and the effectiveness of your campaigns.
 
+![Dashboard](/images/docs/app-dashboard.png)
+
 ## Available reports
 
 - Donation trends over time.

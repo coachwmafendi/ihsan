@@ -2,6 +2,8 @@
 
 Adding Ihsan to your website takes a single script tag and an element token.
 
+![Elements list](/images/docs/app-elements.png)
+
 ## Quick start
 
 1. Copy your element token from the Ihsan dashboard.

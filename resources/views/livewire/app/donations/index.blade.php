@@ -14,11 +14,29 @@
 
     {{-- Summary Stats --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <x-ui.stat-card label="Total Donations" value="{{ number_format($this->totalCount) }}" value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white" />
+        <x-ui.stat-card
+            label="Total Donations"
+            value="{{ number_format($this->totalCount) }}"
+            :trend="$this->newThisMonthCount > 0 ? '+'.number_format($this->newThisMonthCount).' this month' : null"
+            trend-color="success"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+        />
         <x-ui.stat-card
             label="Total Amount"
             value="{{ ($this->totalAmount['isApproximate'] ? '≈ ' : '').'MYR '.number_format($this->totalAmount['amount'], 2) }}"
             subtext="{{ $this->originalAmounts->isNotEmpty() ? $this->originalAmounts->map(fn ($amount, $currency) => $currency.' '.number_format($amount, 2))->join(', ') : null }}"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+        />
+        <x-ui.stat-card
+            label="Avg Donation"
+            value="{{ ($this->totalAmount['isApproximate'] ? '≈ ' : '').'MYR '.number_format($this->avgDonation, 2) }}"
+            subtext="Per donation"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+        />
+        <x-ui.stat-card
+            label="Succeeded"
+            value="{{ number_format($this->succeededCount) }}"
+            subtext="{{ number_format($this->failedCount) }} failed · {{ number_format($this->refundedCount) }} refunded"
             value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
     </div>

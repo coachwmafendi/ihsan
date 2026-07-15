@@ -2,6 +2,8 @@
 
 An Ihsan organization represents a nonprofit, project, or fundraising entity. Each organization has its own campaigns, donors, payment settings, and team members.
 
+![Organization settings](/images/docs/app-settings-organization.png)
+
 ## Organization setup
 
 - Enter your organization name, address, and contact details during onboarding.

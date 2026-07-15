@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Supporters;
 
+use App\Enums\SubscriptionStatus;
 use App\Http\Controllers\SupporterExportController;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -249,6 +250,69 @@ class SupporterIndex extends Component
     public function totalCount(): int
     {
         return $this->baseQuery()->count();
+    }
+
+    #[Computed]
+    public function newThisMonthCount(): int
+    {
+        $orgDonations = $this->organizationDonationsConstraint($this->organization);
+        $startOfMonth = now()->startOfMonth();
+
+        return $this->baseQuery()
+            ->whereHas('donations', function (Builder $q) use ($orgDonations, $startOfMonth): void {
+                $orgDonations($q);
+                $q->where('created_at', '>=', $startOfMonth);
+            })
+            ->whereDoesntHave('donations', function (Builder $q) use ($orgDonations, $startOfMonth): void {
+                $orgDonations($q);
+                $q->where('created_at', '<', $startOfMonth);
+            })
+            ->count();
+    }
+
+    #[Computed]
+    public function repeatCount(): int
+    {
+        $orgDonations = $this->organizationDonationsConstraint($this->organization);
+
+        return $this->baseQuery()
+            ->whereHas('donations', function (Builder $q) use ($orgDonations): void {
+                $orgDonations($q);
+            }, '>', 1)
+            ->count();
+    }
+
+    #[Computed]
+    public function recurringSupportersCount(): int
+    {
+        $org = $this->organization;
+
+        return $this->baseQuery()
+            ->whereHas('subscriptions', function (Builder $q) use ($org): void {
+                $q->where('status', SubscriptionStatus::Active)
+                    ->whereHas('campaign', fn (Builder $cq) => $cq->where('organization_id', $org?->id));
+            })
+            ->count();
+    }
+
+    #[Computed]
+    public function avgLifetimeGiving(): float
+    {
+        $count = $this->totalCount;
+
+        if ($count === 0) {
+            return 0.0;
+        }
+
+        $sumSql = Donation::reportSumColumn()->getValue(DB::connection()->getQueryGrammar());
+
+        $total = (float) Donation::query()
+            ->whereIn('donor_id', $this->baseQuery()->select('donors.id'))
+            ->tap($this->organizationDonationsConstraint($this->organization))
+            ->selectRaw($sumSql.' as total')
+            ->value('total');
+
+        return round($total / $count, 2);
     }
 
     public function render()

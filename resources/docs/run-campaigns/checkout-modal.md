@@ -2,6 +2,8 @@
 
 The checkout modal lets donors complete a donation without leaving your website.
 
+![Donation form](/images/docs/donation-form.png)
+
 ## How it works
 
 - A donor clicks a donate button on your page.

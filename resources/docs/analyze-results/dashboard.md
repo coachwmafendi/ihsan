@@ -2,6 +2,8 @@
 
 The dashboard gives your organization a quick overview of fundraising performance.
 
+![Dashboard](/images/docs/app-dashboard.png)
+
 ## Key metrics
 
 - Total raised this month.

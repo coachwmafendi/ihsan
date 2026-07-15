@@ -14,8 +14,31 @@
 
     {{-- Summary Stats --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <x-ui.stat-card label="Total Recurring Plans" value="{{ number_format($this->totalCount) }}" value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white" />
-        <x-ui.stat-card label="Expected Monthly Total" value="MYR {{ number_format($this->expectedMonthlyTotal, 2) }}" subtext="Active & past due subscriptions" value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white" />
+        <x-ui.stat-card
+            label="Total Recurring Plans"
+            value="{{ number_format($this->totalCount) }}"
+            :trend="$this->newThisMonthCount > 0 ? '+'.number_format($this->newThisMonthCount).' this month' : null"
+            trend-color="success"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+        />
+        <x-ui.stat-card
+            label="Active Plans"
+            value="{{ number_format($this->activeCount) }}"
+            subtext="{{ number_format($this->pausedCount) }} paused · {{ number_format($this->pastDueCount) }} past due"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+        />
+        <x-ui.stat-card
+            label="Expected Monthly Total"
+            value="MYR {{ number_format($this->expectedMonthlyTotal, 2) }}"
+            subtext="Active & past due subscriptions"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+        />
+        <x-ui.stat-card
+            label="Total Collected"
+            value="MYR {{ number_format($this->totalCollected, 2) }}"
+            subtext="All installments received"
+            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+        />
     </div>
 
     {{-- Filter chips --}}
