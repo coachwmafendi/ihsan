@@ -2,13 +2,23 @@
 
 namespace App\Providers;
 
+use App\Listeners\LogArtisanCommand;
 use App\Listeners\RecordDonorEmailDelivery;
 use App\Listeners\SendLoginAlertEmail;
 use App\Listeners\UpdateLastLoginAt;
+use App\Models\Campaign;
+use App\Models\Donation;
+use App\Models\Donor;
+use App\Models\Element;
+use App\Models\Organization;
 use App\Models\Setting;
+use App\Models\Subscription;
+use App\Models\User;
+use App\Observers\ModelActivityObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Blade;
@@ -54,9 +64,33 @@ class AppServiceProvider extends ServiceProvider
             RecordDonorEmailDelivery::class,
         );
 
+        Event::listen(
+            CommandStarting::class,
+            LogArtisanCommand::class,
+        );
+
+        $this->observeModelActivity();
+
         Blade::directive('myrtime', function ($expression) {
             return "<?php echo myrTime({$expression}); ?>";
         });
+    }
+
+    protected function observeModelActivity(): void
+    {
+        $models = [
+            Organization::class,
+            User::class,
+            Campaign::class,
+            Donation::class,
+            Donor::class,
+            Subscription::class,
+            Element::class,
+        ];
+
+        foreach ($models as $model) {
+            $model::observe(ModelActivityObserver::class);
+        }
     }
 
     protected function applyStripeConfig(): void
