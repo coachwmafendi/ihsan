@@ -18,7 +18,7 @@
         @php
             $symbol = $donation->currency_symbol;
             $hasCoveredFee = $donation->donor_fee_covered > 0;
-            $netAmount = \App\Support\Currency::symbol('myr').' '.number_format((float) $donation->net_amount, 2);
+            $netAmount = $donation->formatted_net_amount;
         @endphp
 
         <table style="width: 100%; border-collapse: collapse; margin: 24px 0; border-radius: 8px; overflow: hidden;">

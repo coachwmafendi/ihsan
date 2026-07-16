@@ -131,3 +131,42 @@ test('new donation notification is only sent once even when the job runs twice',
     Mail::assertQueued(NewDonationNotification::class, 1);
     expect($donation->fresh()->new_donation_notification_sent_at)->not->toBeNull();
 });
+
+test('net amount keeps the donation currency when no exchange rate is synced', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'currency' => 'usd',
+        'gross_amount' => 50.00,
+        'donor_fee_covered' => 3.75,
+        'net_amount' => 52.50,
+        'exchange_rate' => null,
+        'base_amount' => null,
+    ]);
+
+    $html = (new NewDonationNotification($donation, '$ 53.75'))->render();
+
+    expect($html)->toContain('$ 52.50')
+        ->not->toContain('RM 52.50');
+});
+
+test('net amount shows MYR once the exchange rate is synced', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'currency' => 'usd',
+        'gross_amount' => 50.00,
+        'donor_fee_covered' => 3.75,
+        'net_amount' => 230.10,
+        'exchange_rate' => 4.45,
+        'base_amount' => 222.50,
+    ]);
+
+    $html = (new NewDonationNotification($donation, '$ 53.75'))->render();
+
+    expect($html)->toContain('RM 230.10');
+});

@@ -292,6 +292,20 @@ class Donation extends Model
         return Attribute::get(fn () => $this->currency_symbol.' '.number_format((float) $this->gross_amount, 2));
     }
 
+    /**
+     * net_amount is only in MYR once the settled exchange rate has been
+     * synced; before that it is still in the donation's charge currency.
+     */
+    public function formattedNetAmount(): Attribute
+    {
+        return Attribute::get(function () {
+            $isMyr = strtolower((string) $this->currency) === 'myr' || $this->exchange_rate !== null;
+            $symbol = $isMyr ? Currency::symbol('myr') : $this->currency_symbol;
+
+            return $symbol.' '.number_format((float) $this->net_amount, 2);
+        });
+    }
+
     public function paymentMethodDisplay(): Attribute
     {
         return Attribute::get(function () {
