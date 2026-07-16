@@ -29,8 +29,27 @@
     @apply bg-ihsan-paper text-ihsan-ink antialiased dark:bg-stone-950 dark:text-stone-100;
 }
 
+/* Safari (and password managers) paint input text via -webkit-text-fill-color,
+   which silently overrides `color` — set it explicitly for both themes and
+   autofilled states or typed text renders white on the light theme. */
 .fi-panel-admin .fi-input {
     @apply text-ihsan-ink caret-ihsan-ink dark:text-white dark:caret-white;
+    -webkit-text-fill-color: var(--color-ihsan-ink);
+}
+
+.fi-panel-admin .fi-input:where(.dark, .dark *) {
+    -webkit-text-fill-color: var(--color-white);
+}
+
+.fi-panel-admin .fi-input:-webkit-autofill,
+.fi-panel-admin .fi-input:-webkit-autofill:hover,
+.fi-panel-admin .fi-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-ihsan-ink);
+    transition: background-color 9999s ease-in-out 0s;
+}
+
+.fi-panel-admin .fi-input:where(.dark, .dark *):-webkit-autofill {
+    -webkit-text-fill-color: var(--color-white);
 }
 
 .fi-panel-admin .fi-layout,
