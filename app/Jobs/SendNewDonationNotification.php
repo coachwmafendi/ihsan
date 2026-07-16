@@ -64,7 +64,7 @@ class SendNewDonationNotification implements ShouldQueue
             ->where('role', UserRole::NgoAdmin)
             ->get();
 
-        $amountDisplay = $this->formatAmount($donation);
+        $amountDisplay = $donation->display_payment_amount;
 
         $delay = MailtrapThrottle::delaySeconds();
 
@@ -75,10 +75,5 @@ class SendNewDonationNotification implements ShouldQueue
                     new NewDonationNotification($donation, $amountDisplay)
                 );
         }
-    }
-
-    private function formatAmount(Donation $donation): string
-    {
-        return $donation->total_charged_with_conversion;
     }
 }

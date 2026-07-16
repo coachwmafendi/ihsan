@@ -149,6 +149,21 @@ class Subscription extends Model
         return Attribute::get(fn () => Currency::symbol($this->currency));
     }
 
+    /**
+     * Canonical money format shared with the donation detail page:
+     * MYR amounts as "MYR 100.00", foreign amounts as "$ 50.00 USD".
+     */
+    public function displayAmount(?float $amount = null): string
+    {
+        $amount ??= (float) $this->amount;
+
+        if (strtolower((string) $this->currency) === 'myr') {
+            return 'MYR '.number_format($amount, 2);
+        }
+
+        return $this->currency_symbol.' '.number_format($amount, 2).' '.strtoupper((string) $this->currency);
+    }
+
     public function sourceLabel(): Attribute
     {
         return Attribute::get(function (): string {

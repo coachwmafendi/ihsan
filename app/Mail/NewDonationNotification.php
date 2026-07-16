@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Enums\DonationType;
 use App\Models\Donation;
-use App\Support\Currency;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -37,19 +36,7 @@ class NewDonationNotification extends Mailable
             };
             $ordinal = $paymentNumber.$ordinalSuffix;
 
-            $symbol = Currency::symbol($this->donation->currency);
-            $originalAmount = $symbol.' '.number_format((float) $this->donation->total_charged, 2);
-            $conversionAppend = '';
-
-            if (strtolower($this->donation->currency) !== 'myr' && $this->donation->base_amount !== null) {
-                $exchangeRate = (float) ($this->donation->exchange_rate ?? 0);
-                $feeInBase = $exchangeRate > 0
-                    ? round((float) $this->donation->donor_fee_covered * $exchangeRate, 2)
-                    : (float) $this->donation->donor_fee_covered;
-                $conversionAppend = ' (≈MYR '.number_format((float) $this->donation->base_amount + $feeInBase, 2).')';
-            }
-
-            $amount = $originalAmount.$conversionAppend;
+            $amount = $this->donation->display_payment_amount;
 
             return new Envelope(
                 subject: "{$ordinal} recurring {$amount} donation by {$donorName} on {$campaignTitle}",

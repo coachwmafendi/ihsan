@@ -25,10 +25,10 @@ test('one-time donation notification subject and body include key details', func
         'type' => DonationType::OneTime,
     ]);
 
-    $mailable = new NewDonationNotification($donation, 'RM 100.00');
+    $mailable = new NewDonationNotification($donation, 'MYR 100.00');
 
     expect($mailable->envelope()->subject)
-        ->toBe('New one-time donation RM 100.00 by Ahmad Rizal on Iftar Ramadan — Ihsan');
+        ->toBe('New one-time donation MYR 100.00 by Ahmad Rizal on Iftar Ramadan — Ihsan');
 
     $html = $mailable->render();
 
@@ -61,10 +61,10 @@ test('recurring donation notification subject includes payment number', function
         'subscription_id' => $subscription->id,
     ]);
 
-    $mailable = new NewDonationNotification($donation, 'RM 50.00');
+    $mailable = new NewDonationNotification($donation, 'MYR 50.00');
 
     expect($mailable->envelope()->subject)
-        ->toBe('4th recurring RM 50.00 donation by Ahmad Rizal on Iftar Ramadan');
+        ->toBe('4th recurring MYR 50.00 donation by Ahmad Rizal on Iftar Ramadan');
 });
 
 test('recurring donation notification email body matches new layout', function () {
@@ -85,12 +85,12 @@ test('recurring donation notification email body matches new layout', function (
         'subscription_id' => $subscription->id,
     ]);
 
-    $mailable = new NewDonationNotification($donation, 'RM 50.00');
+    $mailable = new NewDonationNotification($donation, 'MYR 50.00');
     $html = $mailable->render();
 
     expect($html)
         ->toContain('You\'ve received your <strong>3rd</strong> recurring donation')
-        ->toContain('RM 50.00')
+        ->toContain('MYR 50.00')
         ->toContain('Ahmad Rizal')
         ->toContain('Supporter')
         ->toContain('Email')

@@ -964,7 +964,7 @@ it('sends amount change notification to donor and org admins', function () {
         ->toContain($campaign->title)
         ->toContain($donor->name)
         ->toContain($donor->email)
-        ->toContain('RM 50.00')
+        ->toContain('MYR 50.00')
         ->toContain('Total amount');
 });
 

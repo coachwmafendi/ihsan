@@ -22,7 +22,7 @@
             </div>
             <div style="flex: 1; padding: 20px; min-width: 140px; box-sizing: border-box;">
                 <div class="email-label" style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Total Amount</div>
-                <div class="email-metric" style="font-size: 20px; font-weight: 700; color: #0f766e;">RM {{ $totalAmount }}</div>
+                <div class="email-metric" style="font-size: 20px; font-weight: 700; color: #0f766e;">MYR {{ $totalAmount }}</div>
             </div>
         </div>
 
@@ -31,12 +31,12 @@
             <div style="flex: 1; padding: 16px; min-width: 140px; box-sizing: border-box; border-bottom: 1px solid #e2e8f0;">
                 <div class="email-label" style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">One-time</div>
                 <div class="email-value" style="font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 2px;">{{ $oneTimeCount }} <span class="email-small" style="font-size: 13px; font-weight: 400; color: #64748b;">donations</span></div>
-                <div class="email-value" style="font-size: 15px; color: #0f766e; font-weight: 600;">RM {{ $oneTimeTotal }}</div>
+                <div class="email-value" style="font-size: 15px; color: #0f766e; font-weight: 600;">MYR {{ $oneTimeTotal }}</div>
             </div>
             <div style="flex: 1; padding: 16px; min-width: 140px; box-sizing: border-box;">
                 <div class="email-label" style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Recurring</div>
                 <div class="email-value" style="font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 2px;">{{ $recurringCount }} <span class="email-small" style="font-size: 13px; font-weight: 400; color: #64748b;">donations</span></div>
-                <div class="email-value" style="font-size: 15px; color: #0f766e; font-weight: 600;">RM {{ $recurringTotal }}</div>
+                <div class="email-value" style="font-size: 15px; color: #0f766e; font-weight: 600;">MYR {{ $recurringTotal }}</div>
             </div>
         </div>
 
@@ -51,7 +51,7 @@
                         <div class="email-value" style="font-size: 15px; font-weight: 500; color: #1a1a2e; margin-bottom: 6px; line-height: 1.4;">{{ $campaign['title'] }}</div>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span class="email-small" style="font-size: 13px; color: #64748b; flex-shrink: 0;">{{ $campaign['count'] }} {{ Str::plural('donation', $campaign['count']) }}</span>
-                            <span class="email-value" style="font-size: 15px; font-weight: 600; color: #0f766e; text-align: right; margin-left: 12px;">RM {{ $campaign['total'] }}</span>
+                            <span class="email-value" style="font-size: 15px; font-weight: 600; color: #0f766e; text-align: right; margin-left: 12px;">MYR {{ $campaign['total'] }}</span>
                         </div>
                     </div>
                 @endforeach

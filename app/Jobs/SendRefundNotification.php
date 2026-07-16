@@ -6,7 +6,6 @@ use App\Enums\UserRole;
 use App\Mail\RefundNotification;
 use App\Models\Donation;
 use App\Models\User;
-use App\Support\Currency;
 use App\Support\MailtrapThrottle;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -47,7 +46,7 @@ class SendRefundNotification implements ShouldQueue
             ->where('role', UserRole::NgoAdmin)
             ->get();
 
-        $amountDisplay = $this->formatAmount($donation);
+        $amountDisplay = $donation->display_payment_amount;
 
         $delay = MailtrapThrottle::delaySeconds();
 
@@ -58,19 +57,5 @@ class SendRefundNotification implements ShouldQueue
                     new RefundNotification($donation, $amountDisplay)
                 );
         }
-    }
-
-    private function formatAmount(Donation $donation): string
-    {
-        $symbol = Currency::symbol($donation->currency);
-        $amount = number_format((float) $donation->gross_amount, 2);
-
-        if (strtolower($donation->currency) !== 'myr' && $donation->base_amount !== null) {
-            $base = number_format((float) $donation->base_amount, 2);
-
-            return "≈ MYR {$base} ({$symbol} {$amount})";
-        }
-
-        return "{$symbol} {$amount}";
     }
 }

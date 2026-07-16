@@ -25,18 +25,7 @@
                 };
                 $ordinal = $paymentNumber.$ordinalSuffix;
 
-                $originalAmountDisplay = $symbol.' '.number_format((float) $donation->total_charged, 2);
-                $conversionAppend = '';
-
-                if (strtolower($donation->currency) !== 'myr' && $donation->base_amount !== null) {
-                    $exchangeRate = (float) ($donation->exchange_rate ?? 0);
-                    $feeInBase = $exchangeRate > 0
-                        ? round((float) $donation->donor_fee_covered * $exchangeRate, 2)
-                        : (float) $donation->donor_fee_covered;
-                    $conversionAppend = ' (≈MYR '.number_format((float) $donation->base_amount + $feeInBase, 2).')';
-                }
-
-                $amountWithConversionOriginalFirst = $originalAmountDisplay.$conversionAppend;
+                $amountWithConversionOriginalFirst = $donation->display_payment_amount;
 
                 $intervalLabel = match ($subscription?->interval->value ?? 'monthly') {
                     'monthly' => 'month',
@@ -57,7 +46,7 @@
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Donation ID</td><td class="email-id" style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-family: monospace; font-size: 13px;">{{ $donation->public_id }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $hasCoveredFee ? 'Donation (incl. fee)' : 'Donation' }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donation->total_charged_with_conversion }}</td></tr>
                 @if ($hasCoveredFee)
-                    <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Fee Covered by Supporter</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $symbol }} {{ number_format((float) $donation->donor_fee_covered, 2) }}</td></tr>
+                    <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Fee Covered by Supporter</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $donation->display_fee_covered }}</td></tr>
                 @endif
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Net to Organization</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #16a34a;">{{ $netAmount }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Campaign</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->title }}</td></tr>
@@ -84,7 +73,7 @@
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Donation ID</td><td class="email-id" style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-family: monospace; font-size: 13px;">{{ $donation->public_id }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $hasCoveredFee ? 'Donation (incl. fee)' : 'Donation' }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donation->total_charged_with_conversion }}</td></tr>
                 @if ($hasCoveredFee)
-                    <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Fee Covered by Supporter</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $symbol }} {{ number_format((float) $donation->donor_fee_covered, 2) }}</td></tr>
+                    <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Fee Covered by Supporter</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $donation->display_fee_covered }}</td></tr>
                 @endif
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Net to Organization</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #16a34a;">{{ $netAmount }}</td></tr>
                 <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Campaign</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->title }}</td></tr>

@@ -113,9 +113,7 @@ class DonorRecurringPaymentNotification extends Mailable
             return null;
         }
 
-        $symbol = $subscription->currency_symbol ?? Currency::symbol(strtoupper($subscription->currency));
-
-        return $symbol.' '.number_format((float) $subscription->amount, 2);
+        return $subscription->displayAmount();
     }
 
     private function signedReceiptUrl(): ?string

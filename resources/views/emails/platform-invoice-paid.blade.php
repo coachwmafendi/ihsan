@@ -12,7 +12,7 @@
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Invoice</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $invoice->invoice_number }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Period</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ \Carbon\Carbon::parse($invoice->period)->format('F Y') }}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Amount Paid</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">RM {{ number_format($invoice->total_fees, 2) }}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Amount Paid</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">MYR {{ number_format($invoice->total_fees, 2) }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Paid At</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $invoice->paid_at ? myrTime($invoice->paid_at) : myrTime(now()) }}</td></tr>
             <tr><td style="padding: 8px; color: #64748b;">Status</td><td style="padding: 8px; color: #16a34a; font-weight: 600;">Paid</td></tr>
         </table>

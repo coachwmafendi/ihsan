@@ -28,7 +28,7 @@
     <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
         @if ($hasCoveredFee)
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.receipt.donation') }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donation->formatted_amount }}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.receipt.processing_fee') }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $symbol }} {{ number_format((float) $donation->donor_fee_covered, 2) }}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.receipt.processing_fee') }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $donation->display_fee_covered }}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">{{ $t('emails.receipt.total_charged') }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 700;">{{ $totalCharged }}</td></tr>
         @else
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.receipt.amount') }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donation->total_charged_with_conversion }}</td></tr>

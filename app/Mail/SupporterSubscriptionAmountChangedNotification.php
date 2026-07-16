@@ -69,16 +69,12 @@ class SupporterSubscriptionAmountChangedNotification extends Mailable
 
     private function previousAmountDisplay(): string
     {
-        $symbol = $this->currencySymbol();
-
-        return $symbol.' '.number_format($this->previousAmount, 2);
+        return $this->subscription->displayAmount($this->previousAmount);
     }
 
     private function currentAmountDisplay(): string
     {
-        $symbol = $this->currencySymbol();
-
-        return $symbol.' '.number_format((float) $this->subscription->amount, 2);
+        return $this->subscription->displayAmount();
     }
 
     private function currencySymbol(): string

@@ -25,7 +25,7 @@ it('builds donation receipt mailable with correct subject', function () {
     $mailable = new DonationReceipt($donation);
 
     $mailable->assertHasSubject('Your Donation Receipt — Test Org');
-    $mailable->assertSeeInHtml('RM 100');
+    $mailable->assertSeeInHtml('MYR 100');
     $mailable->assertSeeInHtml('Test Campaign');
     $mailable->assertSeeInHtml('Thank you');
 });

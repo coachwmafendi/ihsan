@@ -33,7 +33,7 @@
             @if ($hasCoveredFee)
                 <tr style="background: #f5f3ff;">
                     <td style="padding: 12px 16px; color: #6b7280;">Fee Covered by Donor</td>
-                    <td style="padding: 12px 16px; color: #6b7280;">{{ $symbol }} {{ number_format((float) $donation->donor_fee_covered, 2) }}</td>
+                    <td style="padding: 12px 16px; color: #6b7280;">{{ $donation->display_fee_covered }}</td>
                 </tr>
             @endif
             <tr style="background: {{ $hasCoveredFee ? '#fff' : '#f5f3ff' }};">

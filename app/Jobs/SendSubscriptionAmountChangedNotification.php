@@ -39,7 +39,7 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
             return;
         }
 
-        $amountDisplay = $subscription->currency_symbol.' '.number_format($subscription->amount, 2);
+        $amountDisplay = $subscription->displayAmount();
 
         // Notify supporter
         if (filled($subscription->donor?->email) && $subscription->donor->canReceiveEmails()) {

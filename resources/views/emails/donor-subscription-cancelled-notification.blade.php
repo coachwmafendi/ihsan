@@ -32,7 +32,7 @@
         </tr>
         <tr>
             <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.donor_subscription_cancelled.amount_label') }}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $subscription->currency_symbol }} {{ number_format((float) $subscription->amount, 2) }}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $subscription->displayAmount() }}</td>
         </tr>
         <tr>
             <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.donor_subscription_cancelled.frequency_label') }}</td>

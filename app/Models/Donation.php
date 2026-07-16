@@ -293,16 +293,74 @@ class Donation extends Model
     }
 
     /**
+     * Canonical money format shared with the donation detail page:
+     * MYR amounts as "MYR 100.00", foreign amounts as "$ 50.00 USD".
+     */
+    public function displayAmount(float $amount, bool $asBaseCurrency = false): string
+    {
+        if ($asBaseCurrency || strtolower((string) $this->currency) === 'myr') {
+            return 'MYR '.number_format($amount, 2);
+        }
+
+        return $this->currency_symbol.' '.number_format($amount, 2).' '.strtoupper((string) $this->currency);
+    }
+
+    /** Donor fee cover converted to MYR using the settled exchange rate. */
+    public function feeCoveredInBaseCurrency(): float
+    {
+        $exchangeRate = (float) ($this->exchange_rate ?? 0);
+
+        return $exchangeRate > 0
+            ? round((float) $this->donor_fee_covered * $exchangeRate, 2)
+            : (float) $this->donor_fee_covered;
+    }
+
+    /** Donation amount (gross) with the MYR conversion appended when known. */
+    public function displayDonationAmount(): Attribute
+    {
+        return Attribute::get(function () {
+            $formatted = $this->displayAmount((float) $this->gross_amount);
+
+            if (strtolower((string) $this->currency) !== 'myr' && $this->base_amount !== null) {
+                return $formatted.' (≈ MYR '.number_format((float) $this->base_amount, 2).')';
+            }
+
+            return $formatted;
+        });
+    }
+
+    /** Total charged to the donor with the MYR conversion appended when known. */
+    public function displayPaymentAmount(): Attribute
+    {
+        return Attribute::get(function () {
+            $formatted = $this->displayAmount($this->total_charged);
+
+            if (strtolower((string) $this->currency) !== 'myr' && $this->base_amount !== null) {
+                $base = (float) $this->base_amount + $this->feeCoveredInBaseCurrency();
+
+                return $formatted.' (≈ MYR '.number_format($base, 2).')';
+            }
+
+            return $formatted;
+        });
+    }
+
+    public function displayFeeCovered(): Attribute
+    {
+        return Attribute::get(fn () => $this->displayAmount((float) $this->donor_fee_covered));
+    }
+
+    /**
      * net_amount is only in MYR once the settled exchange rate has been
      * synced; before that it is still in the donation's charge currency.
+     * Mirrors the payout amount shown on the donation detail page.
      */
     public function formattedNetAmount(): Attribute
     {
         return Attribute::get(function () {
-            $isMyr = strtolower((string) $this->currency) === 'myr' || $this->exchange_rate !== null;
-            $prefix = $isMyr ? 'MYR' : $this->currency_symbol;
+            $isMyr = strtolower((string) $this->currency) === 'myr' || $this->base_amount !== null;
 
-            return $prefix.' '.number_format((float) $this->net_amount, 2);
+            return $this->displayAmount((float) $this->net_amount, $isMyr);
         });
     }
 
@@ -368,20 +426,7 @@ class Donation extends Model
 
     public function amountWithConversion(): Attribute
     {
-        return Attribute::get(function () {
-            $symbol = $this->currency_symbol;
-            $amount = number_format((float) $this->gross_amount, 2);
-
-            if ($this->currency !== 'myr' && $this->base_amount !== null) {
-                $base = number_format((float) $this->base_amount, 2);
-
-                if ($base !== $amount) {
-                    return "≈ MYR {$base} ({$symbol} {$amount})";
-                }
-            }
-
-            return "{$symbol} {$amount}";
-        });
+        return Attribute::get(fn () => $this->display_donation_amount);
     }
 
     public function reportAmount(): Attribute
@@ -435,22 +480,7 @@ class Donation extends Model
 
     public function totalChargedWithConversion(): Attribute
     {
-        return Attribute::get(function () {
-            $symbol = $this->currency_symbol;
-            $amount = number_format($this->total_charged, 2);
-
-            if (strtolower($this->currency) !== 'myr' && $this->base_amount !== null) {
-                $exchangeRate = (float) ($this->exchange_rate ?? 0);
-                $feeInBase = $exchangeRate > 0
-                    ? round((float) $this->donor_fee_covered * $exchangeRate, 2)
-                    : (float) $this->donor_fee_covered;
-                $base = number_format((float) $this->base_amount + $feeInBase, 2);
-
-                return "{$symbol} {$amount} (≈ MYR {$base})";
-            }
-
-            return "{$symbol} {$amount}";
-        });
+        return Attribute::get(fn () => $this->display_payment_amount);
     }
 
     public static function reportAmountColumn(): Expression

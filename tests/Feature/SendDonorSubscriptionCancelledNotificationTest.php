@@ -35,7 +35,7 @@ test('donor subscription cancelled email renders correctly', function () {
         ->toContain('Recurring Donation Cancelled')
         ->toContain('Hi Ahmad Ismail')
         ->toContain('Test Campaign')
-        ->toContain('RM 50.00')
+        ->toContain('MYR 50.00')
         ->toContain('3')
         ->toContain($subscription->public_id)
         ->toContain('donor/notifications/'.$donor->public_id);
@@ -131,7 +131,7 @@ test('logged donor subscription cancelled email can be previewed and resent', fu
     expect($html)
         ->not->toBeNull()
         ->toContain('Recurring Donation Cancelled')
-        ->toContain('RM 75.00');
+        ->toContain('MYR 75.00');
 
     $newLog = app(ResendDonorEmail::class)->handle($log);
 

@@ -9,7 +9,7 @@ A donation has been **{{ $action }}** by the fraud prevention system.
 |-------|-------|
 | **Donor** | {{ $donation->donor?->name ?? 'Unknown' }} |
 | **Email** | {{ $donation->donor?->email ?? 'N/A' }} |
-| **Amount** | {{ strtoupper($donation->currency) }} {{ number_format((float) $donation->gross_amount, 2) }} |
+| **Amount** | {{ $donation->display_donation_amount }} |
 | **Campaign** | {{ $donation->campaign?->title ?? 'N/A' }} |
 | **Reason** | {{ $reason }} |
 | **Risk Score** | {{ $donation->risk_score ?? 'N/A' }} |

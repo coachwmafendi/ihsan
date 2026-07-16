@@ -18,7 +18,7 @@ test('total charged with conversion includes fee converted for non myr donations
         'exchange_rate' => 3.16943,
     ]);
 
-    expect($donation->total_charged_with_conversion)->toBe('S$ 103.50 (≈ MYR 328.03)')
+    expect($donation->total_charged_with_conversion)->toBe('S$ 103.50 SGD (≈ MYR 328.03)')
         ->and($donation->total_charged)->toBe(103.50);
 });
 
@@ -29,7 +29,7 @@ test('total charged with conversion returns original amount for myr donations', 
         'donor_fee_covered' => 5.00,
     ]);
 
-    expect($donation->total_charged_with_conversion)->toBe('RM 155.00');
+    expect($donation->total_charged_with_conversion)->toBe('MYR 155.00');
 });
 
 test('new donation notification email subject and body include currency conversion', function () {
@@ -50,12 +50,12 @@ test('new donation notification email subject and body include currency conversi
     $mailable = new NewDonationNotification($donation, 'unused');
 
     expect($mailable->envelope()->subject)
-        ->toContain('S$ 103.50 (≈ MYR 328.03)')
+        ->toContain('S$ 103.50 SGD (≈ MYR 328.03)')
         ->toContain('Ahmad Hasbullah')
         ->toContain('Wakaf Pembinaan Kompleks Masjid Fasa 1');
 
     $rendered = $mailable->render();
-    expect($rendered)->toContain('S$ 103.50 (≈ MYR 328.03)');
+    expect($rendered)->toContain('S$ 103.50 SGD (≈ MYR 328.03)');
 });
 
 test('donor receipt email shows converted total for non myr donations', function () {
@@ -74,5 +74,5 @@ test('donor receipt email shows converted total for non myr donations', function
     $mailable = new DonationReceipt($donation);
 
     $rendered = $mailable->render();
-    expect($rendered)->toContain('S$ 309.50 (≈ MYR 980.94)');
+    expect($rendered)->toContain('S$ 309.50 SGD (≈ MYR 980.94)');
 });

@@ -11,7 +11,7 @@
 
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
             <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Total Donations</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donationCount }}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Total Amount</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">RM {{ $totalAmount }}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Total Amount</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">MYR {{ $totalAmount }}</td></tr>
         </table>
 
         @if (count($campaigns) > 0)
@@ -26,7 +26,7 @@
                     <tr>
                         <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $campaign['title'] }}</td>
                         <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $campaign['count'] }}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">RM {{ $campaign['total'] }}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">MYR {{ $campaign['total'] }}</td>
                     </tr>
                 @endforeach
             </table>

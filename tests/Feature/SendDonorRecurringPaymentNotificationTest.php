@@ -153,7 +153,7 @@ it('renders upgrade chips for recurring donations with signed donor portal links
     $html = $mailable->render();
 
     expect($html)
-        ->toContain('Modify your $ 38.10 monthly donation')
+        ->toContain('Modify your $ 38.10 USD monthly donation')
         ->toContain('+ $15/mo')
         ->toContain('+ $25/mo')
         ->toContain('+ $35/mo')

@@ -5,7 +5,7 @@
     $intervalLabel = $t('emails.subscription_amount_changed.interval_'.$subscription->interval->value);
     $frequencyLabel = $t('emails.subscription_amount_changed.frequency_'.$subscription->interval->value);
 
-    $formatAmount = fn (float $amount): string => $subscription->currency_symbol.' '.number_format($amount, 2);
+    $formatAmount = fn (float $amount): string => $subscription->displayAmount($amount);
     $formatDate = fn (?Carbon\CarbonInterface $date): string => $date ? $date->format('M d, Y') : '-';
 
     $paymentMethodLabel = function (?App\Models\DonorPaymentMethod $method): string {

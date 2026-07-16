@@ -353,14 +353,7 @@ class DonationShow extends Component
      */
     private function formatDisplayAmount(float $amount, bool $asBaseCurrency = false): string
     {
-        $currency = strtolower($this->donation->currency ?? '');
-        $currencyCode = strtoupper($this->donation->currency);
-
-        if ($asBaseCurrency || $currency === 'myr') {
-            return 'MYR '.number_format($amount, 2);
-        }
-
-        return $this->donation->currency_symbol.' '.number_format($amount, 2).' '.$currencyCode;
+        return $this->donation->displayAmount($amount, $asBaseCurrency);
     }
 
     public function canRefund(): bool

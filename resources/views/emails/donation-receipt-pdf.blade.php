@@ -115,7 +115,7 @@
         @if ($hasCoveredFee)
             <tr>
                 <td>Processing Fee (covered by donor)</td>
-                <td style="color: #64748b;">{{ $symbol }} {{ number_format((float) $donation->donor_fee_covered, 2) }}</td>
+                <td style="color: #64748b;">{{ $donation->display_fee_covered }}</td>
             </tr>
             <tr>
                 <td><strong>Total Charged</strong></td>
