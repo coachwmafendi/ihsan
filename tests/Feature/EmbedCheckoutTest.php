@@ -204,3 +204,12 @@ it('auto-populates allowed_domains from website_url when org is registered', fun
     $org = Organization::where('ros_rob_number', 'ROS-TEST-001')->firstOrFail();
     expect($org->settings['allowed_domains'])->toBe(['testngo.org']);
 });
+
+it('locks host page scrolling and sizes the close button for mobile in the widget script', function () {
+    $this->get(route('widget.script'))
+        ->assertOk()
+        ->assertSee('lockBodyScroll', false)
+        ->assertSee('unlockBodyScroll', false)
+        ->assertSee('safe-area-inset-top', false)
+        ->assertSee('closeBtnSize = isMobileView ? 44 : 36', false);
+});

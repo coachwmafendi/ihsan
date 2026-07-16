@@ -282,9 +282,6 @@
                             x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 translate-y-2"
                             x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-150"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 -translate-y-2"
                             class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}"
                         >
                             <div class="grid grid-cols-2 gap-2">
@@ -409,7 +406,7 @@
                                             <span class="flex flex-col gap-0.5">
                                                 <span class="text-sm font-medium text-slate-700">
                                                     I'll cover the transaction fees
-                                                    <span class="text-teal-700" x-text="`(+${currencySymbol}${estimatedFeeAmount})`"></span>
+                                                    <span class="whitespace-nowrap"><span class="text-teal-700" x-text="`(+${currencySymbol}${estimatedFeeAmount})`"></span>
                                                     <span
                                                         class="relative -top-0.5 ml-0.5 inline-flex cursor-help items-center align-middle"
                                                         x-data="{ showTip: false }"
@@ -431,7 +428,7 @@
                                                             style="right: -0.75rem;"
                                                             x-text="'By adding ' + currencySymbol + ' ' + estimatedFeeAmount + ', you help cover essential software and payment processing fees'"
                                                         ></span>
-                                                    </span>
+                                                    </span></span>
                                                 </span>
                                                 <span class="text-xs text-slate-400">Help ensure 100% of your donation reaches us.</span>
                                             </span>
@@ -458,9 +455,6 @@
                              x-transition:enter="transition ease-out duration-200"
                              x-transition:enter-start="opacity-0 translate-y-2"
                              x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 -translate-y-2"
                              class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}"
                          >
 
@@ -474,6 +468,14 @@
                                  Back
                              </button>
 
+                            {{-- Summary bar --}}
+                            <div class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3 text-sm">
+                                <span class="font-semibold text-slate-800"
+                                    x-text="currencySymbol + ' ' + (parseFloat(amount) + (coverFee ? parseFloat(estimatedFeeAmount) : 0)).toFixed(2)"
+                                ></span>
+                                <span class="text-slate-500" x-text="frequency === 'monthly' ? 'Monthly' : 'One-time'"></span>
+                            </div>
+
                             <div class="space-y-3">
                                 <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Your details</p>
 
@@ -485,7 +487,7 @@
                                             x-model="donorFirstName"
                                             type="text"
                                             autocomplete="given-name"
-                                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
+                                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
                                             placeholder="First name"
                                         />
                                         <div x-show="stepErrors.firstName" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.firstName"></div>
@@ -498,7 +500,7 @@
                                             x-model="donorLastName"
                                             type="text"
                                             autocomplete="family-name"
-                                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
+                                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
                                             placeholder="Last name"
                                         />
                                         <div x-show="stepErrors.lastName" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.lastName"></div>
@@ -513,7 +515,7 @@
                                         x-model="donorEmail"
                                         type="email"
                                         autocomplete="email"
-                                        class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
+                                        class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
                                         placeholder="you@example.com"
                                     />
                                     <div x-show="stepErrors.email" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.email"></div>
@@ -528,7 +530,7 @@
                                             x-model="donorPhone"
                                             type="tel"
                                             autocomplete="tel"
-                                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
+                                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
                                             placeholder="012-345 6789"
                                         />
                                     </label>
@@ -545,7 +547,7 @@
                             @if ($showComment)
                                 <label class="block">
                                     <span class="mb-0.5 block text-sm font-medium text-slate-700">Comment <span class="font-normal text-slate-400">(optional)</span></span>
-                                    <textarea wire:model="comment" rows="2" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/10" placeholder="Leave a message..."></textarea>
+                                    <textarea wire:model="comment" rows="2" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/10" placeholder="Leave a message..."></textarea>
                                 </label>
                             @endif
 
@@ -566,9 +568,6 @@
                              x-transition:enter="transition ease-out duration-200"
                              x-transition:enter-start="opacity-0 translate-y-2"
                              x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 -translate-y-2"
                              class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}"
                          >
 
@@ -620,26 +619,26 @@
                                         <label class="block">
                                             <span class="mb-0.5 block text-sm font-medium text-slate-700">Name on card</span>
                                             <input type="text" name="cardholder_name" autocomplete="cc-name" required
-                                                class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
+                                                class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
                                         </label>
 
                                         <label class="block">
                                             <span class="mb-0.5 block text-sm font-medium text-slate-700">Card number</span>
                                             <input type="text" name="card_number" inputmode="numeric" autocomplete="cc-number" required
-                                                class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
+                                                class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
                                         </label>
 
                                         <div class="grid grid-cols-2 gap-3">
                                             <label class="block">
                                                 <span class="mb-0.5 block text-sm font-medium text-slate-700">Expiry (MM/YY)</span>
                                                 <input type="text" name="expires" placeholder="MM/YY" autocomplete="cc-exp" maxlength="5" required
-                                                    class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
+                                                    class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
                                             </label>
 
                                             <label class="block">
                                                 <span class="mb-0.5 block text-sm font-medium text-slate-700">CVC</span>
                                                 <input type="text" name="cvc" inputmode="numeric" autocomplete="cc-csc" maxlength="4" required
-                                                    class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
+                                                    class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20" />
                                             </label>
                                         </div>
                                     </div>

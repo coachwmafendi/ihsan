@@ -140,6 +140,29 @@
     return skeleton;
   }
 
+  // Lock host-page scrolling while the modal is open. position:fixed on body
+  // is required for iOS Safari, where overflow:hidden alone does not stop
+  // touch scrolling behind a fixed overlay.
+  var bodyScrollLockY = 0;
+  function lockBodyScroll() {
+    bodyScrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
+    document.body.style.position = "fixed";
+    document.body.style.top = "-" + bodyScrollLockY + "px";
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+  }
+  function unlockBodyScroll() {
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+    document.body.style.width = "";
+    document.body.style.overflow = "";
+    window.scrollTo(0, bodyScrollLockY);
+  }
+
   function showCheckoutModal(el, overrideUrl) {
     if (document.querySelector('[data-ihsan-overlay]')) return;
     var isMobileView = window.innerWidth <= 768;
@@ -214,17 +237,20 @@
     var closeBtn = document.createElement("button");
     closeBtn.setAttribute("aria-label", "Close");
     closeBtn.innerHTML = "&times;";
+    // 44px on mobile per Apple HIG tap-target size; offset by the safe-area
+    // inset so the button stays reachable under notches in in-app browsers.
+    var closeBtnSize = isMobileView ? 44 : 36;
     closeBtn.style.cssText = [
       "position:absolute",
-      "top:16px",
-      "right:16px",
-      "width:36px",
-      "height:36px",
+      isMobileView ? "top:calc(env(safe-area-inset-top, 0px) + 12px)" : "top:16px",
+      isMobileView ? "right:calc(env(safe-area-inset-right, 0px) + 12px)" : "right:16px",
+      "width:" + closeBtnSize + "px",
+      "height:" + closeBtnSize + "px",
       "border:2px solid rgba(0,0,0,.15)",
       "border-radius:50%",
       "background:#fff",
       "color:#1e293b",
-      "font-size:22px",
+      "font-size:" + (isMobileView ? 26 : 22) + "px",
       "line-height:1",
       "cursor:pointer !important",
       "display:flex",
@@ -254,6 +280,7 @@
     function closeOverlay() {
       window.removeEventListener("message", modalMessageHandler);
       overlay.remove();
+      unlockBodyScroll();
     }
 
     // Hide the skeleton as soon as the donation form reports it is ready.
@@ -300,6 +327,7 @@
     posWrapper.appendChild(modalWrap);
     posWrapper.appendChild(closeBtn);
     overlay.appendChild(posWrapper);
+    lockBodyScroll();
     document.body.appendChild(overlay);
     fadeIn(overlay);
   }
