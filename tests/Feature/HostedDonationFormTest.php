@@ -139,7 +139,7 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertSee('lg:max-w-6xl', false)
         ->assertSee('bg-black/35 backdrop-blur-[1px]', false)
         ->assertSee('md:grid-cols-[minmax(0,1fr)_440px]', false)
-        ->assertSee('lg:border-r lg:border-slate-200', false)
+        ->assertSee('md:border-r md:border-slate-200', false)
         ->assertSee('data-ihsan-ready-media', false)
         ->assertSee('data-ihsan-media-frame', false)
         ->assertSee('imageLoaded', false)
@@ -318,7 +318,7 @@ it('renders the hosted donation form as an image-led popup', function () {
         ->assertSee('Donate monthly')
         ->assertSee('lg:max-w-6xl', false)
         ->assertSee('md:grid-cols-[minmax(0,1fr)_440px]', false)
-        ->assertSee('lg:border-r lg:border-slate-200', false)
+        ->assertSee('md:border-r md:border-slate-200', false)
         ->assertDontSee('Your most generous donation');
 });
 
