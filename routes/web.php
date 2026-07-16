@@ -52,6 +52,12 @@ use App\Livewire\CampaignPublicPage;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+if ($appPanelDomain = config('app.app_panel_domain')) {
+    Route::domain($appPanelDomain)
+        ->get('/', fn () => redirect()->route('app.dashboard'))
+        ->name('app.home');
+}
+
 Route::view('/', 'welcome')->name('home');
 Route::get('/docs/{path?}', DocsController::class)
     ->where('path', '.*')
