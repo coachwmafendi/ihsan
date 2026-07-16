@@ -254,9 +254,9 @@ class ChargeRecurringInstallment
         }
 
         SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
-        SendNewDonationNotification::dispatch($donation);
+        SendNewDonationNotification::dispatch($donation)->delay(now()->addMinutes(3));
         SendDonorRecurringPaymentNotification::dispatch($donation);
-        SendLargeDonationNotification::dispatch($donation);
+        SendLargeDonationNotification::dispatch($donation)->delay(now()->addMinutes(3));
         SendMetaConversionEvent::dispatch($donation);
         SendLinkedInConversionEvent::dispatch($donation);
         SendXAdsConversionEvent::dispatch($donation);
