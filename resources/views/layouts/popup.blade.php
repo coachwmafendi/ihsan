@@ -11,7 +11,7 @@
         <div id="popup-container" class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div id="popup-backdrop" class="absolute inset-0 bg-black/35 backdrop-blur-[1px]" onclick="closePopup()"></div>
 
-            <div class="relative w-full max-w-xl lg:max-w-6xl">
+            <div class="relative w-full max-w-xl md:max-w-3xl lg:max-w-6xl">
                 <button
                     type="button"
                     onclick="closePopup()"
