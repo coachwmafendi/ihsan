@@ -1,8 +1,8 @@
 <?php
 
-use App\Models\Organization;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -19,8 +19,10 @@ return new class extends Migration
             $table->string('code', 8)->after('id')->nullable();
         });
 
-        Organization::query()->each(function (Organization $organization) {
-            $organization->update(['code' => strtoupper(Str::random(8))]);
+        DB::table('organizations')->orderBy('id')->each(function ($organization) {
+            DB::table('organizations')
+                ->where('id', $organization->id)
+                ->update(['code' => strtoupper(Str::random(8))]);
         });
 
         Schema::table('organizations', function (Blueprint $table) {
@@ -39,8 +41,10 @@ return new class extends Migration
             $table->string('slug')->after('name')->nullable();
         });
 
-        Organization::query()->each(function (Organization $organization) {
-            $organization->update(['slug' => str($organization->name)->slug()]);
+        DB::table('organizations')->orderBy('id')->each(function ($organization) {
+            DB::table('organizations')
+                ->where('id', $organization->id)
+                ->update(['slug' => str($organization->name)->slug()]);
         });
 
         Schema::table('organizations', function (Blueprint $table) {
