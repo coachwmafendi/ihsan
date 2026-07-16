@@ -37,3 +37,7 @@ if (! in_array($cacheDriver, ['file', 'database', 'array', null], true)) {
 
 Schedule::command('queue:retry all')->everySixHours();
 Schedule::command('queue:prune-failed --hours=168')->weeklyOn(1, '02:00');
+
+Schedule::command('app:cloudflare-update-ips')
+    ->weeklyOn(0, '03:00')
+    ->timezone('Asia/Kuala_Lumpur');

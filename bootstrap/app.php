@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureDonorSession;
 use App\Http\Middleware\ResolveDonationElement;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\TrustCloudflare;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->trustProxies(at: env('TRUSTED_PROXIES'));
+        $middleware->prepend(TrustCloudflare::class);
         $middleware->append(SecurityHeaders::class);
         $middleware->appendToGroup('web', SetLocale::class);
         $middleware->alias([

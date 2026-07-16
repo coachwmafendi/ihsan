@@ -69,3 +69,15 @@ it('keeps suggested amount chips on a single line', function () {
         ->assertOk()
         ->assertSee('whitespace-nowrap rounded-lg border', false);
 });
+
+it('lets the fee cover tooltip wrap despite its nowrap parent', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+
+    $this->get(route('donations.show', $element->token))
+        ->assertOk()
+        ->assertSee('w-56 whitespace-normal', false);
+});

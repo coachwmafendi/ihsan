@@ -147,7 +147,7 @@ class ProcessStripeWebhook implements ShouldQueue
             $subscription = app(RecurringPlanResolver::class)->create($donation, $paymentIntent, $stripeOptions);
 
             if ($subscription->wasRecentlyCreated) {
-                SendNewSubscriptionNotification::dispatch($donation)->delay(now()->addMinutes(3));
+                SendNewSubscriptionNotification::dispatch($donation)->delay(now()->addMinutes(5));
                 SendDonorNewSubscriptionNotification::dispatch($donation);
             }
         }
@@ -156,10 +156,10 @@ class ProcessStripeWebhook implements ShouldQueue
             SendDonationReceipt::dispatch($donation);
 
             if ($donation->type !== DonationType::Recurring) {
-                SendNewDonationNotification::dispatch($donation)->delay(now()->addMinutes(3));
+                SendNewDonationNotification::dispatch($donation)->delay(now()->addMinutes(5));
             }
 
-            SendLargeDonationNotification::dispatch($donation)->delay(now()->addMinutes(3));
+            SendLargeDonationNotification::dispatch($donation)->delay(now()->addMinutes(5));
             SendMetaConversionEvent::dispatch($donation);
             SendLinkedInConversionEvent::dispatch($donation);
             SendXAdsConversionEvent::dispatch($donation);
@@ -339,9 +339,9 @@ class ProcessStripeWebhook implements ShouldQueue
 
         SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
 
-        SendNewDonationNotification::dispatch($donation);
+        SendNewDonationNotification::dispatch($donation)->delay(now()->addMinutes(5));
         SendDonorRecurringPaymentNotification::dispatch($donation);
-        SendLargeDonationNotification::dispatch($donation);
+        SendLargeDonationNotification::dispatch($donation)->delay(now()->addMinutes(5));
         SendMetaConversionEvent::dispatch($donation);
         SendLinkedInConversionEvent::dispatch($donation);
         SendXAdsConversionEvent::dispatch($donation);
