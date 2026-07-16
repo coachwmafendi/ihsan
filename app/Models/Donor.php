@@ -199,6 +199,20 @@ class Donor extends Model
         return ! $this->hasOptedOutOfEmails() && ! $this->hasBouncedEmail();
     }
 
+    /**
+     * An email is considered validated once at least one email has been
+     * confirmed delivered (or opened) and no permanent bounce is on record.
+     */
+    public function hasValidatedEmail(): bool
+    {
+        return ! $this->hasBouncedEmail()
+            && $this->emailLogs()
+                ->where(function ($query) {
+                    $query->whereNotNull('delivered_at')->orWhereNotNull('opened_at');
+                })
+                ->exists();
+    }
+
     public function markEmailBounced(): void
     {
         $this->update([

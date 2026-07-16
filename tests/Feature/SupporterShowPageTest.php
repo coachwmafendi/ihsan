@@ -147,6 +147,56 @@ it('shows recurring plans section and menu when supporter has subscriptions', fu
         ->assertSeeHtml('href="#recurring-plans"');
 });
 
+it('shows a validated badge next to the email once a delivery is confirmed', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+    DonorEmailLog::factory()->for($donor)->delivered()->create();
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Validated');
+});
+
+it('hides the validated badge when no delivery has been confirmed', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+    DonorEmailLog::factory()->for($donor)->create();
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertDontSee('Validated');
+});
+
+it('hides the validated badge when the email has bounced', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create([
+        'email_bounced_at' => now(),
+    ]);
+    Donation::factory()->for($donor)->for($campaign)->create();
+    DonorEmailLog::factory()->for($donor)->delivered()->create();
+
+    $this->actingAs($user)
+        ->get('/app/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertDontSee('Validated');
+});
+
 it('marks the active section menu with intersection observer data', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([

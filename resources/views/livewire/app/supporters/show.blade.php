@@ -84,7 +84,12 @@
                         </div>
                         <div class="flex gap-4">
                             <dt class="w-36 text-sm text-slate-500">Email</dt>
-                            <dd class="flex-1 text-sm text-slate-900">{{ $donor->email }}</dd>
+                            <dd class="flex flex-1 items-center gap-2 text-sm text-slate-900">
+                                <span>{{ $donor->email }}</span>
+                                @if ($donor->hasValidatedEmail())
+                                    <x-ui.badge status="success" size="sm">Validated</x-ui.badge>
+                                @endif
+                            </dd>
                         </div>
                         <div class="flex gap-4">
                             <dt class="w-36 text-sm text-slate-500">Language</dt>

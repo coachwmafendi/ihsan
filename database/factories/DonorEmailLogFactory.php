@@ -34,6 +34,14 @@ class DonorEmailLogFactory extends Factory
         ];
     }
 
+    public function delivered(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'delivery_status' => 'delivered',
+            'delivered_at' => now(),
+        ]);
+    }
+
     public function donation(Donation $donation): static
     {
         return $this->state(fn (array $attributes) => [
