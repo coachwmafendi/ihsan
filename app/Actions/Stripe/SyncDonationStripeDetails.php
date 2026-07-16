@@ -290,7 +290,13 @@ class SyncDonationStripeDetails
 
         $baseAmount = $baseAmount > 0 ? $baseAmount : null;
 
-        $processingFee = round((float) ($baseAmount ?? $donation->gross_amount) * $this->processingFeePercent() / 100, 2);
+        $donorFeeCoveredBase = (float) ($donation->donor_fee_covered ?? 0);
+        if ($exchangeRate !== null) {
+            $donorFeeCoveredBase = round($donorFeeCoveredBase * $exchangeRate, 2);
+        }
+
+        $processingFeeBase = ((float) ($baseAmount ?? $donation->gross_amount)) + $donorFeeCoveredBase;
+        $processingFee = round($processingFeeBase * $this->processingFeePercent() / 100, 2);
         $stripeFee = 0.0;
         $feeDetails = null;
         $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
