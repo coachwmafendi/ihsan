@@ -100,7 +100,7 @@
                     <p class="mt-1.5 text-xl font-black text-emerald-700">{{ implode(' + ', $currencyBreakdown) }}</p>
                     <p class="mt-1 text-xs text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
                 @else
-                    <p class="mt-1.5 text-xl font-black text-emerald-700">{{ reset($currencyBreakdown) ?? 'RM 0.00' }}</p>
+                    <p class="mt-1.5 text-xl font-black text-emerald-700">{{ reset($currencyBreakdown) ?? 'MYR 0.00' }}</p>
                     @if (count($currencyBreakdown) === 1 && array_key_first($currencyBreakdown) !== 'myr')
                         <p class="mt-1 text-xs text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
                     @endif
@@ -124,7 +124,7 @@
                 @if (count($monthlyRecurringFormatted) > 1)
                     <p class="mt-1.5 text-xl font-black text-emerald-700">{{ implode(' + ', $monthlyRecurringFormatted) }}</p>
                 @else
-                    <p class="mt-1.5 text-xl font-black text-emerald-700">{{ reset($monthlyRecurringFormatted) ?? 'RM 0.00' }}</p>
+                    <p class="mt-1.5 text-xl font-black text-emerald-700">{{ reset($monthlyRecurringFormatted) ?? 'MYR 0.00' }}</p>
                 @endif
             </div>
         </div>
@@ -146,7 +146,7 @@
                                     <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background:{{ $donutColors[$i % count($donutColors)] }};"></span>
                                     <p class="truncate text-xs font-semibold text-slate-700">{{ $item->campaign }}</p>
                                 </div>
-                                <p class="shrink-0 text-xs font-black text-slate-900">RM {{ number_format((float) $item->total, 2) }}</p>
+                                <p class="shrink-0 text-xs font-black text-slate-900">MYR {{ number_format((float) $item->total, 2) }}</p>
                             </div>
                         @endforeach
                     @else

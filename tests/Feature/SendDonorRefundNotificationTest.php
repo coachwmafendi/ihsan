@@ -21,7 +21,7 @@ test('donor refund email renders refund details', function () {
         'gross_amount' => 100.00,
     ]);
 
-    $mailable = new DonorRefundNotification($donation, 'RM 100.00');
+    $mailable = new DonorRefundNotification($donation, 'MYR 100.00');
 
     expect($mailable->envelope()->subject)
         ->toBe('Your donation has been refunded — Test Org');
@@ -31,7 +31,7 @@ test('donor refund email renders refund details', function () {
     expect($html)
         ->toContain('Donation Refunded')
         ->toContain('Hi Ahmad Ismail')
-        ->toContain('RM 100.00')
+        ->toContain('MYR 100.00')
         ->toContain('Test Campaign')
         ->toContain('Donation ID')
         ->toContain($donation->public_id)
@@ -102,7 +102,7 @@ test('logged donor refund email can be previewed', function () {
     expect($html)
         ->not->toBeNull()
         ->toContain('Donation Refunded')
-        ->toContain('RM 75.00')
+        ->toContain('MYR 75.00')
         ->toContain('Test Campaign')
         ->toContain('Hi Siti Aminah');
 });

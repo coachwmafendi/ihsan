@@ -289,20 +289,20 @@ class Donation extends Model
 
     public function formattedAmount(): Attribute
     {
-        return Attribute::get(fn () => $this->currency_symbol.' '.number_format((float) $this->gross_amount, 2));
+        return Attribute::get(fn () => Currency::format((string) $this->currency, (float) $this->gross_amount));
     }
 
     /**
      * Canonical money format shared with the donation detail page:
-     * MYR amounts as "MYR 100.00", foreign amounts as "$ 50.00 USD".
+     * always "{CODE} {amount}" (e.g. "MYR 100.00", "SGD 50.00", "USD 50.00").
      */
     public function displayAmount(float $amount, bool $asBaseCurrency = false): string
     {
-        if ($asBaseCurrency || strtolower((string) $this->currency) === 'myr') {
-            return 'MYR '.number_format($amount, 2);
-        }
+        $currency = $asBaseCurrency || strtolower((string) $this->currency) === 'myr'
+            ? 'MYR'
+            : strtoupper((string) $this->currency);
 
-        return $this->currency_symbol.' '.number_format($amount, 2).' '.strtoupper((string) $this->currency);
+        return Currency::format($currency, $amount);
     }
 
     /** Donor fee cover converted to MYR using the settled exchange rate. */

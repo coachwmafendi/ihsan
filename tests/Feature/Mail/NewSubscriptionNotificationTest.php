@@ -18,9 +18,9 @@ it('builds the new subscription email subject with MYR amount, donor and campaig
         'currency' => 'myr',
     ]);
 
-    $mailable = new NewSubscriptionNotification($donation, 'RM 250.00');
+    $mailable = new NewSubscriptionNotification($donation, 'MYR 250.00');
 
-    $mailable->assertHasSubject('New Recurring Subscription RM 250.00 by Ahmad Rosli on Ramadan Fund — '.config('app.name'));
+    $mailable->assertHasSubject('New Recurring Subscription MYR 250.00 by Ahmad Rosli on Ramadan Fund — '.config('app.name'));
 });
 
 it('builds the new subscription email subject with foreign currency and approximate MYR', function () {
@@ -35,7 +35,7 @@ it('builds the new subscription email subject with foreign currency and approxim
         'currency' => 'usd',
     ]);
 
-    $mailable = new NewSubscriptionNotification($donation, '$ 50.00 (≈ MYR 220.00)');
+    $mailable = new NewSubscriptionNotification($donation, 'USD 50.00 (≈ MYR 220.00)');
 
-    $mailable->assertHasSubject('New Recurring Subscription $ 50.00 (≈ MYR 220.00) by Sarah Lim on Ramadan Fund — '.config('app.name'));
+    $mailable->assertHasSubject('New Recurring Subscription USD 50.00 (≈ MYR 220.00) by Sarah Lim on Ramadan Fund — '.config('app.name'));
 });

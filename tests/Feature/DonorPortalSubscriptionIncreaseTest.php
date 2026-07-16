@@ -25,12 +25,12 @@ it('renders default preset options on the increase page', function () {
 
     $this->get($url)
         ->assertOk()
-        ->assertSee('+ $5')
-        ->assertSee('+ $80')
-        ->assertSee('+ $100')
-        ->assertSee('$ 35.00 USD', false)
-        ->assertSee('$ 110.00 USD', false)
-        ->assertSee('$ 130.00 USD', false);
+        ->assertSee('+ USD 5')
+        ->assertSee('+ USD 80')
+        ->assertSee('+ USD 100')
+        ->assertSee('USD 35.00', false)
+        ->assertSee('USD 110.00', false)
+        ->assertSee('USD 130.00', false);
 });
 
 it('uses increments from the email chip link and preselects the selected value', function () {
@@ -55,15 +55,15 @@ it('uses increments from the email chip link and preselects the selected value',
 
     $this->get($url)
         ->assertOk()
-        ->assertSee('+ $15')
-        ->assertSee('+ $25')
-        ->assertSee('+ $35')
-        ->assertDontSee('+ $5')
-        ->assertDontSee('+ $80')
-        ->assertDontSee('+ $100')
-        ->assertSee('$ 45.00 USD', false)
-        ->assertSee('$ 55.00 USD', false)
-        ->assertSee('$ 65.00 USD', false);
+        ->assertSee('+ USD 15')
+        ->assertSee('+ USD 25')
+        ->assertSee('+ USD 35')
+        ->assertDontSee('+ USD 5')
+        ->assertDontSee('+ USD 80')
+        ->assertDontSee('+ USD 100')
+        ->assertSee('USD 45.00', false)
+        ->assertSee('USD 55.00', false)
+        ->assertSee('USD 65.00', false);
 });
 
 it('falls back to defaults when invalid increments are provided', function () {
@@ -87,7 +87,7 @@ it('falls back to defaults when invalid increments are provided', function () {
 
     $this->get($url)
         ->assertOk()
-        ->assertSee('+ $5')
-        ->assertSee('+ $80')
-        ->assertSee('+ $100');
+        ->assertSee('+ USD 5')
+        ->assertSee('+ USD 80')
+        ->assertSee('+ USD 100');
 });

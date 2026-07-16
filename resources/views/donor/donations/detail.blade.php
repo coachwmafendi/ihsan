@@ -67,7 +67,7 @@
                 <div class="col-span-2">
                     <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Recurring plan</p>
                     <p class="mt-1 text-sm font-semibold text-slate-700">
-                        {{ $donation->subscription->currency_symbol }} {{ number_format($donation->subscription->amount, 2) }}
+                        {{ $donation->subscription->displayAmount() }}
                         / {{ $donation->subscription->interval->value }}
                     </p>
                 </div>
@@ -84,16 +84,16 @@
                 @if ($donation->donor_fee_covered > 0)
                     <div class="flex justify-between">
                         <span class="text-slate-500">Fee covered</span>
-                        <span class="font-semibold text-emerald-600">+ {{ $donation->currency_symbol }} {{ number_format((float) $donation->donor_fee_covered, 2) }}</span>
+                        <span class="font-semibold text-emerald-600">+ {{ $donation->displayAmount((float) $donation->donor_fee_covered) }}</span>
                     </div>
                 @endif
                 <div class="flex justify-between">
                     <span class="text-slate-500">Processing fee</span>
-                    <span class="font-semibold text-slate-700">- {{ $donation->currency_symbol }} {{ number_format((float) $donation->processing_fee, 2) }}</span>
+                    <span class="font-semibold text-slate-700">- {{ $donation->displayAmount((float) $donation->processing_fee) }}</span>
                 </div>
                 <div class="border-t border-slate-100 pt-2 flex justify-between">
                     <span class="font-semibold text-slate-900">Net received</span>
-                    <span class="font-black text-slate-900">{{ $donation->currency_symbol }} {{ number_format((float) $donation->net_amount, 2) }}</span>
+                    <span class="font-black text-slate-900">{{ $donation->displayAmount((float) $donation->net_amount) }}</span>
                 </div>
             </div>
         </div>

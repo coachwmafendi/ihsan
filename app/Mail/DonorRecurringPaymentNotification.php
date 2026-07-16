@@ -9,7 +9,6 @@ use App\Enums\DonationType;
 use App\Http\Controllers\DonorNotificationController;
 use App\Mail\Concerns\SetsDonorLocale;
 use App\Models\Donation;
-use App\Support\Currency;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
@@ -79,7 +78,6 @@ class DonorRecurringPaymentNotification extends Mailable
         }
 
         $currency = strtoupper($subscription->currency);
-        $symbol = $subscription->currency_symbol ?? Currency::symbol($currency);
         $shortInterval = $subscription->interval->shortLabel($locale);
         $expires = now()->addDays(7);
 
@@ -87,9 +85,9 @@ class DonorRecurringPaymentNotification extends Mailable
         $incrementsQuery = implode(',', $increments);
 
         return collect($increments)
-            ->map(function (int $increment) use ($symbol, $shortInterval, $expires, $organization, $subscription, $incrementsQuery): array {
+            ->map(function (int $increment) use ($currency, $shortInterval, $expires, $organization, $subscription, $incrementsQuery): array {
                 return [
-                    'label' => "+ {$symbol}{$increment}/{$shortInterval}",
+                    'label' => "+ {$currency} {$increment}/{$shortInterval}",
                     'url' => URL::temporarySignedRoute(
                         'donorportal.subscriptions.increase-link',
                         $expires,

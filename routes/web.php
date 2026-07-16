@@ -368,7 +368,7 @@ if (app()->environment('local')) {
         ]);
         $admin->id = 10;
 
-        $amountDisplay = $subscription->currency_symbol.' '.number_format($subscription->amount, 2);
+        $amountDisplay = $subscription->displayAmount();
 
         $supporterHtml = (new SupporterSubscriptionAmountChangedNotification($subscription, 50.00))->render();
         $adminHtml = (new SubscriptionAmountChangedNotification(

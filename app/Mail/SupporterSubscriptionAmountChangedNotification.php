@@ -7,7 +7,6 @@ namespace App\Mail;
 use App\Http\Controllers\DonorNotificationController;
 use App\Mail\Concerns\SetsDonorLocale;
 use App\Models\Subscription;
-use App\Support\Currency;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
@@ -77,11 +76,6 @@ class SupporterSubscriptionAmountChangedNotification extends Mailable
         return $this->subscription->displayAmount();
     }
 
-    private function currencySymbol(): string
-    {
-        return $this->subscription->currency_symbol ?? Currency::symbol(strtoupper($this->subscription->currency));
-    }
-
     private function upgradeChips(string $locale): ?array
     {
         $subscription = $this->subscription;
@@ -91,7 +85,7 @@ class SupporterSubscriptionAmountChangedNotification extends Mailable
             return null;
         }
 
-        $symbol = $this->currencySymbol();
+        $currency = strtoupper($subscription->currency);
         $shortInterval = $subscription->interval->shortLabel($locale);
         $expires = now()->addDays(7);
 
@@ -99,9 +93,9 @@ class SupporterSubscriptionAmountChangedNotification extends Mailable
         $incrementsQuery = implode(',', $increments);
 
         return collect($increments)
-            ->map(function (int $increment) use ($symbol, $shortInterval, $expires, $organization, $subscription, $incrementsQuery): array {
+            ->map(function (int $increment) use ($currency, $shortInterval, $expires, $organization, $subscription, $incrementsQuery): array {
                 return [
-                    'label' => "+ {$symbol}{$increment}/{$shortInterval}",
+                    'label' => "+ {$currency} {$increment}/{$shortInterval}",
                     'url' => URL::temporarySignedRoute(
                         'donorportal.subscriptions.increase-link',
                         $expires,

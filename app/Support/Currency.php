@@ -14,4 +14,9 @@ class Currency
     {
         return static::$symbols[strtolower($currency)] ?? strtoupper($currency);
     }
+
+    public static function format(string $currency, float $amount): string
+    {
+        return strtoupper($currency).' '.number_format($amount, 2);
+    }
 }

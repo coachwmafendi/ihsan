@@ -472,8 +472,8 @@ it('filters donations by status and amount range', function () {
             'amount_max' => 100,
         ]))
         ->assertOk()
-        ->assertSee('RM 50.00')
-        ->assertDontSee('RM 500.00');
+        ->assertSee('MYR 50.00')
+        ->assertDontSee('MYR 500.00');
 });
 
 it('filters donations by type and date range', function () {
@@ -856,10 +856,10 @@ it('renders subscription increase page for authenticated donor', function () {
         ->get(route('donorportal.subscriptions.increase', ['organization' => $org, 'subscription' => $subscription]))
         ->assertOk()
         ->assertSee('Boost your impact by increasing your donations')
-        ->assertSee('RM 108.00 MYR/mo')
-        ->assertSee('+ RM5')
-        ->assertSee('+ RM80')
-        ->assertSee('+ RM100')
+        ->assertSee('MYR 108.00/mo')
+        ->assertSee('+ MYR 5')
+        ->assertSee('+ MYR 80')
+        ->assertSee('+ MYR 100')
         ->assertSee('Other amount')
         ->assertSee('Confirm')
         ->assertSee('No, thanks');

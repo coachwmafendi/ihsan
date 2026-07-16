@@ -16,7 +16,6 @@
         </p>
 
         @php
-            $symbol = $donation->currency_symbol;
             $hasCoveredFee = $donation->donor_fee_covered > 0;
             $netAmount = $donation->formatted_net_amount;
         @endphp

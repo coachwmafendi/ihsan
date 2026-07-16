@@ -184,13 +184,13 @@ class DonorSubscriptionController extends Controller
 
         $currentAmount = (float) $subscription->amount;
         $currency = $subscription->currency;
-        $symbol = $subscription->currency_symbol;
+        $symbol = strtoupper($currency);
         $interval = $subscription->interval->value;
 
         $presetOptions = [
-            ['increment' => 5, 'label' => '+ '.$symbol.'5'],
-            ['increment' => 80, 'label' => '+ '.$symbol.'80'],
-            ['increment' => 100, 'label' => '+ '.$symbol.'100'],
+            ['increment' => 5, 'label' => '+ '.$symbol.' 5'],
+            ['increment' => 80, 'label' => '+ '.$symbol.' 80'],
+            ['increment' => 100, 'label' => '+ '.$symbol.' 100'],
         ];
 
         return view('donor.subscription-increase', [
@@ -218,7 +218,7 @@ class DonorSubscriptionController extends Controller
             ['organization' => $organization, 'subscription' => $subscription],
         );
 
-        $symbol = $subscription->currency_symbol;
+        $symbol = strtoupper($subscription->currency);
 
         $presetIncrements = $this->resolvePresetIncrements();
         $selectedIncrement = $this->resolveSelectedIncrement($presetIncrements);
@@ -226,7 +226,7 @@ class DonorSubscriptionController extends Controller
         $presetOptions = collect($presetIncrements)
             ->map(fn (int $increment): array => [
                 'increment' => $increment,
-                'label' => '+ '.$symbol.$increment,
+                'label' => '+ '.$symbol.' '.$increment,
             ])
             ->all();
 

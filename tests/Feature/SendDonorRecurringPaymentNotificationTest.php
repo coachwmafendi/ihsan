@@ -129,9 +129,9 @@ it('renders the recurring payment email in malay when the supporter locale is ms
     $mailable = new DonorRecurringPaymentNotification($donation);
 
     expect($mailable->render())->toContain('Kami amat menghargai sokongan berterusan anda.')
-        ->toContain('+ RM15/bln')
-        ->toContain('+ RM25/bln')
-        ->toContain('+ RM35/bln')
+        ->toContain('+ MYR 15/bln')
+        ->toContain('+ MYR 25/bln')
+        ->toContain('+ MYR 35/bln')
         ->and($mailable->envelope()->subject)->toBe('Terima kasih atas sokongan berterusan anda!');
 });
 
@@ -153,10 +153,10 @@ it('renders upgrade chips for recurring donations with signed donor portal links
     $html = $mailable->render();
 
     expect($html)
-        ->toContain('Modify your $ 38.10 USD monthly donation')
-        ->toContain('+ $15/mo')
-        ->toContain('+ $25/mo')
-        ->toContain('+ $35/mo')
+        ->toContain('Modify your USD 38.10 monthly donation')
+        ->toContain('+ USD 15/mo')
+        ->toContain('+ USD 25/mo')
+        ->toContain('+ USD 35/mo')
         ->toContain(route('donorportal.subscriptions.increase-link', [$organization->code, $subscription->public_id]))
         ->toContain('increments=')
         ->toContain('selected=15')

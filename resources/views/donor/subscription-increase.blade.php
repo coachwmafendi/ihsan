@@ -96,7 +96,7 @@
         <p class="mt-3 text-base text-slate-600">
             Your donation has been increased to<br>
             <span class="font-bold text-slate-900"
-                  x-text="symbol + ' ' + (newAmount ?? newTotal).toFixed(2) + ' ' + currency.toUpperCase() + '/' + interval"></span>
+                  x-text="symbol + ' ' + (newAmount ?? newTotal).toFixed(2) + '/' + interval"></span>
         </p>
         <a href="{{ route('donorportal.subscriptions', $organization) }}"
            class="mt-8 inline-flex items-center justify-center rounded-lg bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-500">
@@ -111,7 +111,7 @@
                 Boost your impact by increasing your donations
             </h1>
             <p class="mt-2 text-base text-slate-700">
-                Increase your current <span class="font-semibold">{{ $symbol }} {{ number_format($currentAmount, 2) }} {{ strtoupper($currency) }}/{{ $interval }}</span> donation by:
+                Increase your current <span class="font-semibold">{{ $symbol }} {{ number_format($currentAmount, 2) }}/{{ $interval }}</span> donation by:
             </p>
         </div>
 
@@ -134,7 +134,7 @@
                     <p class="text-lg font-bold text-slate-900">{{ $option['label'] }}</p>
                     <p class="mt-1.5 text-sm text-slate-600">
                         Future donations will be<br>
-                        <span class="font-semibold">{{ $symbol }} {{ number_format($currentAmount + $option['increment'], 2) }} {{ strtoupper($currency) }}/{{ $interval }}</span>
+                        <span class="font-semibold">{{ $symbol }} {{ number_format($currentAmount + $option['increment'], 2) }}/{{ $interval }}</span>
                     </p>
                 </button>
             @endforeach
@@ -172,7 +172,7 @@
             </div>
             <p class="mt-3 text-sm text-slate-600">
                 Future donations will be
-                <span class="font-bold text-slate-900" x-text="symbol + ' ' + newTotal.toFixed(2) + ' ' + currency.toUpperCase() + '/' + interval"></span>
+                <span class="font-bold text-slate-900" x-text="symbol + ' ' + newTotal.toFixed(2) + '/' + interval"></span>
             </p>
         </div>
 

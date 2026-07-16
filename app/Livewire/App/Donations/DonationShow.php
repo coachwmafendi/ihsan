@@ -296,13 +296,8 @@ class DonationShow extends Component
 
         $subscription = $this->donation->subscription;
         $total = (float) $subscription->amount * (int) $subscription->payment_count;
-        $currency = strtolower($subscription->currency ?? '');
 
-        if ($currency === 'myr') {
-            return 'MYR '.number_format($total, 2);
-        }
-
-        return $subscription->currency_symbol.' '.number_format($total, 2).' '.strtoupper($subscription->currency);
+        return $subscription->displayAmount($total);
     }
 
     public function subscriptionPreviousInstallment(): ?string

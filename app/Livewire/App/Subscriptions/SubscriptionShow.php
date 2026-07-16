@@ -85,7 +85,7 @@ class SubscriptionShow extends Component
     {
         $sum = $this->subscription->donations()->sum('gross_amount');
 
-        return $this->subscription->currency_symbol.' '.number_format((float) $sum, 2);
+        return $this->subscription->displayAmount((float) $sum);
     }
 
     #[Computed]
@@ -192,7 +192,7 @@ class SubscriptionShow extends Component
 
     public function formattedAmount(): string
     {
-        return $this->subscription->currency_symbol.' '.number_format((float) $this->subscription->amount, 2).' '.strtoupper($this->subscription->currency);
+        return $this->subscription->displayAmount();
     }
 
     public function frequencyLabel(): string
@@ -372,7 +372,7 @@ class SubscriptionShow extends Component
         $amount = $this->editAmount + $fee;
 
         return [
-            'amount' => $this->subscription->currency_symbol.' '.number_format($amount, 2),
+            'amount' => $this->subscription->displayAmount($amount),
             'date' => $this->estimatedNextInstallmentDate() ? myrTime($this->estimatedNextInstallmentDate()) : '—',
         ];
     }

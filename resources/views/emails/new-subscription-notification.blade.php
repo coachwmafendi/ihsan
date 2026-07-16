@@ -10,7 +10,6 @@
         <p><strong>{{ $donation->donor->name }}</strong> has started a recurring subscription of <strong>{{ $amountDisplay }}</strong> for <strong>{{ $donation->campaign->title }}</strong>.</p>
 
         @php
-            $symbol = $donation->currency_symbol;
             $hasCoveredFee = $donation->donor_fee_covered > 0;
             $netAmount = $donation->formatted_net_amount;
         @endphp

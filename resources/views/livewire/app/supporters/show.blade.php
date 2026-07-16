@@ -274,7 +274,7 @@
                                                 onclick="window.location='{{ route('app.subscriptions.show', $subscription) }}'"
                                             >
                                                 <td class="px-4 py-3 text-sm font-semibold text-slate-900">
-                                                    {{ $subscription->currency_symbol }} {{ number_format((float) $subscription->amount, 2) }}
+                                                    {{ $subscription->displayAmount() }}
                                                 </td>
                                                 <td class="px-4 py-3 text-sm text-slate-600">
                                                     {{ ucfirst($subscription->interval->value) }}
@@ -345,7 +345,7 @@
                                                 @endif
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-900">
-                                                {{ $donation->currency_symbol }} {{ number_format((float) $donation->gross_amount, 2) }}
+                                                {{ $donation->displayAmount((float) $donation->gross_amount) }}
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-500">
                                                 {{ $donation->receipt_sent_at ? myrTime($donation->receipt_sent_at, withLabel: false, format: 'M d, Y') : myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}

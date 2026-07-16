@@ -38,9 +38,9 @@ it('formats foreign amounts with symbol and currency code like the detail page',
         'exchange_rate' => null,
     ]);
 
-    expect($donation->display_donation_amount)->toBe('$ 50.00 USD')
-        ->and($donation->display_payment_amount)->toBe('$ 53.75 USD')
-        ->and($donation->display_fee_covered)->toBe('$ 3.75 USD');
+    expect($donation->display_donation_amount)->toBe('USD 50.00')
+        ->and($donation->display_payment_amount)->toBe('USD 53.75')
+        ->and($donation->display_fee_covered)->toBe('USD 3.75');
 });
 
 it('appends the MYR conversion once the exchange rate is synced', function () {
@@ -52,8 +52,8 @@ it('appends the MYR conversion once the exchange rate is synced', function () {
         'exchange_rate' => 4.45,
     ]);
 
-    expect($donation->display_donation_amount)->toBe('$ 50.00 USD (≈ MYR 222.50)')
-        ->and($donation->display_payment_amount)->toBe('$ 53.75 USD (≈ MYR 239.19)');
+    expect($donation->display_donation_amount)->toBe('USD 50.00 (≈ MYR 222.50)')
+        ->and($donation->display_payment_amount)->toBe('USD 53.75 (≈ MYR 239.19)');
 });
 
 it('shows the net amount in MYR once settled, matching the payout amount on the detail page', function () {
@@ -74,5 +74,5 @@ it('shows the net amount in MYR once settled, matching the payout amount on the 
     ]);
 
     expect($settled->formatted_net_amount)->toBe('MYR 230.10')
-        ->and($unsettled->formatted_net_amount)->toBe('$ 52.50 USD');
+        ->and($unsettled->formatted_net_amount)->toBe('USD 52.50');
 });

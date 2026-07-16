@@ -146,9 +146,9 @@ test('net amount keeps the donation currency when no exchange rate is synced', f
         'base_amount' => null,
     ]);
 
-    $html = (new NewDonationNotification($donation, '$ 53.75'))->render();
+    $html = (new NewDonationNotification($donation, 'USD 53.75'))->render();
 
-    expect($html)->toContain('$ 52.50')
+    expect($html)->toContain('USD 52.50')
         ->not->toContain('RM 52.50');
 });
 
@@ -166,7 +166,7 @@ test('net amount shows MYR once the exchange rate is synced', function () {
         'base_amount' => 222.50,
     ]);
 
-    $html = (new NewDonationNotification($donation, '$ 53.75'))->render();
+    $html = (new NewDonationNotification($donation, 'USD 53.75'))->render();
 
     expect($html)->toContain('MYR 230.10');
 });

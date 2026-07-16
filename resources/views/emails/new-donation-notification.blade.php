@@ -4,7 +4,6 @@
 <body style="font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; color: #1a1a2e;">
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         @php
-            $symbol = $donation->currency_symbol;
             $hasCoveredFee = $donation->donor_fee_covered > 0;
             $netAmount = $donation->formatted_net_amount;
             $isRecurring = $donation->type === \App\Enums\DonationType::Recurring;

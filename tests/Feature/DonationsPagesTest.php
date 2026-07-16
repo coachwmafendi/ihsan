@@ -117,8 +117,8 @@ it('formats MYR amounts as MYR {amount} without duplicating the symbol', functio
         ->test(DonationShow::class, ['donation' => $this->donation])
         ->assertSee('MYR 150.00')
         ->assertSee('MYR 145.50')
-        ->assertDontSee('RM 150.00 MYR')
-        ->assertDontSee('RM 145.50 MYR');
+        ->assertDontSee('MYR 150.00 MYR')
+        ->assertDontSee('MYR 145.50 MYR');
 });
 
 it('does not double convert processing fee base for foreign currency donations', function () {
@@ -138,7 +138,7 @@ it('does not double convert processing fee base for foreign currency donations',
 
     Livewire::actingAs($this->user)
         ->test(DonationShow::class, ['donation' => $donation])
-        ->assertSee('$ 6.68 USD')
+        ->assertSee('USD 6.68')
         ->assertSee('MYR 27.23')
         ->assertSee('MYR 10.93')
         ->assertDontSee('MYR 111.05')
@@ -164,14 +164,14 @@ it('shows the full charged amount and fee cover for fee-covered donations', func
     Livewire::actingAs($this->user)
         ->test(DonationShow::class, ['donation' => $donation])
         // Payment amount = gross + fee cover (what the donor was actually charged)
-        ->assertSee('$ 107.20 USD')
+        ->assertSee('USD 107.20')
         ->assertSee('MYR 437.20')
         // Before fees covered = the donation amount itself
         ->assertSee('Before fees covered')
-        ->assertSee('$ 100.00 USD')
-        ->assertSee('Covered · $ 7.20 USD')
+        ->assertSee('USD 100.00')
+        ->assertSee('Covered · USD 7.20')
         // gross - fee cover double-subtraction must not appear
-        ->assertDontSee('$ 92.80 USD');
+        ->assertDontSee('USD 92.80');
 });
 
 it('hides the before fees covered row when no fee was covered', function () {

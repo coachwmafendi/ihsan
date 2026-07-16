@@ -34,7 +34,7 @@
     {{-- Page Header --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ $this->subscription->currency_symbol }}{{ number_format((float) $this->subscription->amount, 2) }} {{ strtoupper($this->subscription->currency) }} recurring plan</h1>
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ $this->subscription->displayAmount() }} recurring plan</h1>
             <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
                 <span>ID {{ $subscription->public_id }}</span>
                 <x-ui.tooltip text="Copy subscription ID">
@@ -434,7 +434,7 @@
                                                 </div>
                                             </td>
                                             <td class="py-3 pr-4 font-medium text-slate-900">
-                                                {{ $donation->currency_symbol }} {{ number_format((float) $donation->gross_amount, 2) }}
+                                                {{ $donation->displayAmount((float) $donation->gross_amount) }}
                                             </td>
                                             <td class="py-3 pr-4 text-slate-600">{{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}</td>
                                             <td class="py-3 text-right">
@@ -677,9 +677,8 @@
                 <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[160px_1fr]">
                     <label class="text-sm font-medium text-slate-900">Installment amount</label>
                     <div class="flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 transition focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
-                        <span class="text-base font-medium text-slate-900">{{ $subscription->currency_symbol }}</span>
+                        <span class="text-base font-medium text-slate-900">{{ strtoupper($subscription->currency) }}</span>
                         <input type="number" wire:model.live="editAmount" step="0.01" min="1" max="99999.99" class="min-w-0 flex-1 border-0 bg-transparent px-1 text-base text-slate-900 outline-none placeholder:text-slate-400">
-                        <span class="text-sm text-slate-400">{{ strtoupper($subscription->currency) }}</span>
                     </div>
                 </div>
 
@@ -739,7 +738,7 @@
                     <label class="text-sm font-medium text-slate-900">Max plan amount</label>
                     @if ($editHasMaxPlanAmount)
                         <div class="flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 transition focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
-                            <span class="text-base font-medium text-slate-900">{{ $subscription->currency_symbol }}</span>
+                            <span class="text-base font-medium text-slate-900">{{ strtoupper($subscription->currency) }}</span>
                             <input type="number" wire:model="editMaxPlanAmount" step="0.01" min="1" max="99999.99" class="min-w-0 flex-1 border-0 bg-transparent px-1 text-base text-slate-900 outline-none placeholder:text-slate-400">
                         </div>
                     @else
@@ -766,7 +765,7 @@
                 {{-- Estimated transaction costs --}}
                 <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[160px_1fr]">
                     <label class="text-sm font-medium text-slate-900">Estimated transaction costs</label>
-                    <div class="text-sm font-semibold text-slate-900">{{ $subscription->currency_symbol }}{{ number_format($this->transactionCostEstimate, 2) }}</div>
+                    <div class="text-sm font-semibold text-slate-900">{{ strtoupper($subscription->currency) }} {{ number_format($this->transactionCostEstimate, 2) }}</div>
                 </div>
 
                 {{-- Cover transaction costs --}}

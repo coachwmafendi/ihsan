@@ -226,7 +226,7 @@
                         </div>
                         <div class="flex-shrink-0 sm:text-right text-left">
                             <p class="text-base font-black text-slate-900">
-                                {{ $subscription->currency_symbol }} {{ number_format($subscription->amount, 2) }}<span class="text-xs font-normal text-slate-400">/{{ $subscription->interval->value }}</span>
+                                {{ $subscription->displayAmount() }}<span class="text-xs font-normal text-slate-400">/{{ $subscription->interval->value }}</span>
                             </p>
                             @if ($subscription->current_period_end)
                                 <p class="mt-0.5 text-xs text-slate-400">
@@ -259,7 +259,7 @@
                                     'public_id' => $subscription->public_id,
                                     'amount' => (float) $subscription->amount,
                                     'currency' => $subscription->currency,
-                                    'symbol' => $subscription->currency_symbol,
+                                    'symbol' => strtoupper($subscription->currency),
                                     'interval' => $subscription->interval->value,
                                     'cover_fee' => $subscription->cover_fee,
                                     'preset_increments' => [5, 80, 100],
@@ -470,7 +470,7 @@
                 <p class="mt-2 text-sm text-slate-600">
                     Your donation has been increased to<br>
                     <span class="font-bold text-slate-900"
-                          x-text="increaseSubscription?.symbol + ' ' + increaseNewTotal.toFixed(2) + ' ' + (increaseSubscription?.currency || '').toUpperCase() + '/' + (increaseSubscription?.interval || '')"></span>
+                          x-text="increaseSubscription?.symbol + ' ' + increaseNewTotal.toFixed(2) + '/' + (increaseSubscription?.interval || '')"></span>
                 </p>
             </div>
 
@@ -480,7 +480,7 @@
                 <p class="mt-1 text-sm text-slate-600">
                     Increase your current
                     <span class="font-semibold"
-                          x-text="increaseSubscription?.symbol + ' ' + parseFloat(increaseSubscription?.amount || 0).toFixed(2) + ' ' + (increaseSubscription?.currency || '').toUpperCase() + '/' + (increaseSubscription?.interval || '')"></span>
+                          x-text="increaseSubscription?.symbol + ' ' + parseFloat(increaseSubscription?.amount || 0).toFixed(2) + '/' + (increaseSubscription?.interval || '')"></span>
                     donation by:
                 </p>
 
@@ -496,11 +496,11 @@
                                 :class="increaseSelected === increment
                                     ? 'border-blue-500 bg-blue-50/50 shadow-sm'
                                     : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'">
-                            <p class="text-lg font-bold text-slate-900" x-text="'+ ' + increaseSubscription?.symbol + increment"></p>
+                            <p class="text-lg font-bold text-slate-900" x-text="'+ ' + increaseSubscription?.symbol + ' ' + increment"></p>
                             <p class="mt-1.5 text-sm text-slate-600">
                                 Future donations will be<br>
                                 <span class="font-semibold"
-                                      x-text="increaseSubscription?.symbol + ' ' + (parseFloat(increaseSubscription?.amount || 0) + increment).toFixed(2) + ' ' + (increaseSubscription?.currency || '').toUpperCase() + '/' + (increaseSubscription?.interval || '')"></span>
+                                      x-text="increaseSubscription?.symbol + ' ' + (parseFloat(increaseSubscription?.amount || 0) + increment).toFixed(2) + '/' + (increaseSubscription?.interval || '')"></span>
                             </p>
                         </button>
                     </template>
@@ -532,7 +532,7 @@
                     </div>
                     <p class="mt-2 text-sm text-slate-600">
                         Future donations will be
-                        <span class="font-bold text-slate-900" x-text="increaseSubscription?.symbol + ' ' + increaseNewTotal.toFixed(2) + ' ' + (increaseSubscription?.currency || '').toUpperCase() + '/' + (increaseSubscription?.interval || '')"></span>
+                        <span class="font-bold text-slate-900" x-text="increaseSubscription?.symbol + ' ' + increaseNewTotal.toFixed(2) + '/' + (increaseSubscription?.interval || '')"></span>
                     </p>
                 </div>
 

@@ -150,18 +150,14 @@ class Subscription extends Model
     }
 
     /**
-     * Canonical money format shared with the donation detail page:
-     * MYR amounts as "MYR 100.00", foreign amounts as "$ 50.00 USD".
+     * Canonical money format shared with the subscription detail page:
+     * always "{CODE} {amount}" (e.g. "MYR 100.00", "SGD 50.00", "USD 50.00").
      */
     public function displayAmount(?float $amount = null): string
     {
         $amount ??= (float) $this->amount;
 
-        if (strtolower((string) $this->currency) === 'myr') {
-            return 'MYR '.number_format($amount, 2);
-        }
-
-        return $this->currency_symbol.' '.number_format($amount, 2).' '.strtoupper((string) $this->currency);
+        return Currency::format((string) $this->currency, $amount);
     }
 
     public function sourceLabel(): Attribute

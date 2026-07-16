@@ -16,7 +16,7 @@ test('refund notification displays supporter details and public ids', function (
         'gross_amount' => 300.00,
     ]);
 
-    $mailable = new RefundNotification($donation, 'RM 300.00');
+    $mailable = new RefundNotification($donation, 'MYR 300.00');
 
     expect($mailable->envelope()->subject)
         ->toBe('Donation Refunded — '.config('app.name'));
@@ -26,7 +26,7 @@ test('refund notification displays supporter details and public ids', function (
     expect($html)
         ->toContain('Donation Refunded')
         ->toContain('Hi <strong>Darul Mujtaba</strong>')
-        ->toContain('RM 300.00')
+        ->toContain('MYR 300.00')
         ->toContain('Hajan Amanina Zamam')
         ->toContain('Supporter')
         ->toContain('Supporter ID')

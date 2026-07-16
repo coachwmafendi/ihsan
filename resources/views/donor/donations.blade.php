@@ -49,7 +49,7 @@
                 @if ($subscription !== null)
                     <p class="mt-0.5 text-xs text-slate-500">
                         Payment history for <strong>{{ $subscription->campaign->title }}</strong>
-                        · {{ $subscription->currency_symbol }} {{ number_format($subscription->amount, 2) }}/{{ $subscription->interval->value }}
+                        · {{ $subscription->displayAmount() }}/{{ $subscription->interval->value }}
                     </p>
                     <a href="{{ route('donorportal.donations', $organization) }}"
                        class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700">
@@ -76,7 +76,7 @@
                     <p class="mt-1.5 text-xl font-black text-emerald-700">{{ implode(' + ', $currencyBreakdown) }}</p>
                     <p class="mt-1 text-xs text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
                 @else
-                    <p class="mt-1.5 text-xl font-black text-emerald-700">{{ reset($currencyBreakdown) ?? 'RM 0.00' }}</p>
+                    <p class="mt-1.5 text-xl font-black text-emerald-700">{{ reset($currencyBreakdown) ?? 'MYR 0.00' }}</p>
                     @if (count($currencyBreakdown) === 1 && array_key_first($currencyBreakdown) !== 'myr')
                         <p class="mt-1 text-xs text-slate-400">≈ MYR {{ number_format($totalGiven, 2) }}</p>
                     @endif

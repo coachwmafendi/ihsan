@@ -375,7 +375,7 @@
                                             $displayAmount = ($isMyr ? '' : '≈ ').'MYR '.number_format($myrAmount, 2).$intervalSuffix;
                                         @endphp
                                         @if (! $isMyr)
-                                            <x-ui.tooltip :text="$subscription->currency_symbol.' '.number_format((float) $subscription->amount, 2).$intervalSuffix">
+                                            <x-ui.tooltip :text="$subscription->displayAmount().$intervalSuffix">
                                                 <span class="cursor-pointer text-sm font-semibold text-slate-800">{{ $displayAmount }}</span>
                                             </x-ui.tooltip>
                                         @else

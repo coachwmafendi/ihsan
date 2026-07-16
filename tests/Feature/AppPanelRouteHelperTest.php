@@ -27,7 +27,7 @@ it('is used for admin notification email buttons', function () {
     $donor = Donor::factory()->create();
     $donation = Donation::factory()->for($campaign)->for($donor)->create();
 
-    $html = (new NewDonationNotification($donation, 'RM 100.00'))->render();
+    $html = (new NewDonationNotification($donation, 'MYR 100.00'))->render();
 
     expect($html)->toContain('https://app.example.test/app/donations/'.$donation->public_id);
 });

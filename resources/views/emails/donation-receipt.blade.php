@@ -14,7 +14,6 @@
     <p>{{ $t('emails.common.greeting', ['name' => $donor->name]) }},</p>
 
     @php
-        $symbol = $donation->currency_symbol;
         $hasCoveredFee = $donation->donor_fee_covered > 0;
         $totalCharged = $donation->total_charged_with_conversion;
     @endphp
