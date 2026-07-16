@@ -98,3 +98,18 @@ test('org registration fails with duplicate ros_rob_number', function () {
         ->call('submit')
         ->assertHasErrors(['ros_rob_number']);
 });
+
+test('org registration defaults fee collection method to the configured default', function () {
+    Livewire::test(RegisterOrganization::class)
+        ->set('name', 'Masjid An-Nur')
+        ->set('registration_type', 'ROS')
+        ->set('ros_rob_number', 'PPM-002-10-01012020')
+        ->set('sector', 'religion')
+        ->set('contact_email', 'admin@annur.org')
+        ->set('website_url', 'https://annur.org')
+        ->call('submit')
+        ->assertSet('submitted', true);
+
+    expect(config('services.billing.default_fee_collection_method'))->toBe('upfront')
+        ->and(Organization::first()->fee_collection_method)->toBe('upfront');
+});

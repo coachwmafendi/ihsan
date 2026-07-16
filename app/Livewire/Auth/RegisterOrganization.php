@@ -45,6 +45,7 @@ class RegisterOrganization extends Component
             'website_url' => $this->website_url,
             'facebook_url' => $this->facebook_url ?: null,
             'status' => OrganizationStatus::Pending,
+            'fee_collection_method' => config('services.billing.default_fee_collection_method'),
         ]);
 
         $host = parse_url($this->website_url, PHP_URL_HOST);

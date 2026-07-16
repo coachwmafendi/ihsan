@@ -55,7 +55,7 @@ class Payment extends Component
             'sgd' => in_array('sgd', $accepted),
         ];
 
-        $this->feeCollectionMethod = $org?->fee_collection_method ?? 'invoice';
+        $this->feeCollectionMethod = $org?->fee_collection_method ?? config('services.billing.default_fee_collection_method');
         $this->chipBrandId = $org?->chip_brand_id ?? '';
         $this->chipApiKey = $org?->chip_api_key ?? '';
         $this->chipWebhookId = $org?->chip_webhook_id ?? '';

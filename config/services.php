@@ -45,6 +45,10 @@ return [
         'processing_fee_percent' => (float) env('PAYMENT_PROCESSING_FEE_PERCENT', 2.5),
     ],
 
+    'billing' => [
+        'default_fee_collection_method' => env('DEFAULT_FEE_COLLECTION_METHOD', 'upfront'),
+    ],
+
     'chip' => [
         'processing_fee_percent' => (float) env('CHIP_PROCESSING_FEE_PERCENT', 2.5),
         'fpx_processing_fee_percent' => (float) env('CHIP_FPX_PLATFORM_FEE_PERCENT', 1.5),

@@ -128,6 +128,7 @@ it('creates connected account customers for connected organization payments', fu
     $organization = Organization::factory()->create([
         'stripe_account_id' => 'acct_connected_test',
         'stripe_onboarded' => true,
+        'fee_collection_method' => 'invoice',
     ]);
     $campaign = Campaign::factory()->for($organization)->create([
         'title' => 'Connected Campaign',

@@ -367,7 +367,7 @@ class OrganizationForm
                                         'invoice' => 'Monthly Invoice',
                                         'upfront' => 'Upfront Payment',
                                     ])
-                                    ->default('upfront')
+                                    ->default(config('services.billing.default_fee_collection_method'))
                                     ->selectablePlaceholder(false)
                                     ->helperText('How processing fees are collected from this organization.'),
                                 TextInput::make('processing_fee_override')
