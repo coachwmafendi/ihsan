@@ -57,3 +57,15 @@ it('forces the Stripe payment element to render in English', function () {
         ->assertSee("locale: 'en'", false)
         ->assertDontSee("locale: 'ms'", false);
 });
+
+it('keeps suggested amount chips on a single line', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+
+    $this->get(route('donations.show', $element->token))
+        ->assertOk()
+        ->assertSee('whitespace-nowrap rounded-lg border', false);
+});

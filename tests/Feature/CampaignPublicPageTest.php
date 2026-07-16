@@ -215,3 +215,17 @@ it('places the current milestone checkpoint at the next unachieved milestone', f
     expect($progress['leftToNext'])->toBe(11247.69);
     expect($progress['goalReached'])->toBeFalse();
 });
+
+it('shows a mobile sticky donate shortcut that scrolls to the donation form', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => Organization::factory()->create(),
+        'status' => CampaignStatus::Active,
+    ]);
+
+    $this->get('/campaigns/'.$campaign->public_id)
+        ->assertSuccessful()
+        ->assertSee('id="donation-form-panel"', false)
+        ->assertSee('Donate now')
+        ->assertSee('IntersectionObserver', false)
+        ->assertSee('lg:hidden', false);
+});

@@ -314,7 +314,7 @@
                                         <button
                                             type="button"
                                             x-on:click="selectAmount(amt)"
-                                            class="min-h-12 rounded-lg border px-2 text-base font-semibold transition"
+                                            class="min-h-12 whitespace-nowrap rounded-lg border px-1.5 text-sm font-semibold transition sm:px-2 sm:text-base"
                                             :class="isSelectedAmount(amt) ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
                                             x-text="currencySymbol + ' ' + Number(amt).toLocaleString('en')"
                                         ></button>

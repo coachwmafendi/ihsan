@@ -257,7 +257,7 @@ class OrganizationForm
                                             '<div class="divide-y divide-gray-200 dark:divide-gray-700">'.
                                             '<div class="flex items-center justify-between gap-4 py-3">'.
                                             '<div class="flex flex-col gap-1">'.
-                                            '<div class="text-sm font-medium text-gray-950 dark:text-white">'.__('Stripe Connect').'</div>'.
+                                            '<div class="text-sm font-medium text-gray-950 dark:text-white">'.__('Stripe').'</div>'.
                                             '<div class="text-xs text-gray-500 dark:text-gray-400">'.($record?->stripe_account_id ?: 'No account ID').'</div>'.
                                             '</div>'.
                                             '<div class="flex flex-col gap-1 text-right">'.
@@ -278,7 +278,7 @@ class OrganizationForm
                                         )),
                                     ]),
 
-                                Section::make('Stripe Connect')
+                                Section::make('Stripe')
                                     ->icon('heroicon-o-credit-card')
                                     ->collapsible()
                                     ->schema([

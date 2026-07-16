@@ -283,9 +283,37 @@ $messageShort = Illuminate\Support\Str::limit($messageText, 200);
         </div>
 
         {{-- Right column: donation form --}}
-        <div class="md:sticky md:top-8 md:self-start lg:pl-4">
+        <div id="donation-form-panel" class="scroll-mt-4 md:sticky md:top-8 md:self-start lg:pl-4">
         @livewire('donation-form', ['campaign' => $campaign, 'isPublicPage' => true], key('donation-form-'.$campaign->public_id))
     </div>
+</div>
+
+{{-- Mobile-only sticky CTA: the form sits below the fold on phones, so keep a
+     donate shortcut visible until the donor reaches the form itself. --}}
+<div
+    wire:ignore
+    x-data="{ formVisible: false }"
+    x-init="new IntersectionObserver(
+        (entries) => { formVisible = entries[0].isIntersecting; },
+        { threshold: 0.1 }
+    ).observe(document.getElementById('donation-form-panel'))"
+    x-show="! formVisible"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="translate-y-full"
+    x-transition:enter-end="translate-y-0"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="translate-y-0"
+    x-transition:leave-end="translate-y-full"
+    class="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur lg:hidden"
+>
+    <button
+        type="button"
+        x-on:click="document.getElementById('donation-form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' })"
+        class="min-h-12 w-full rounded-xl bg-teal-600 text-base font-bold text-white shadow-lg transition hover:bg-teal-700 active:scale-[0.99]"
+    >
+        Donate now
+    </button>
 </div>
 </main>
 </div>
