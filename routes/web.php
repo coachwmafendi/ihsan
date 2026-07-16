@@ -68,6 +68,18 @@ Route::view('/case-studies/madrasah-darul-falah', 'case-studies.madrasah-darul-f
 
 Route::get('/_test-widget', fn () => response('<!DOCTYPE html><html><body style="padding:40px"><h2>Widget Test</h2><script src="/e/widget.js" data-token="sgxqLo" data-api-base="'.url('/').'"></script></body></html>')->header('Content-Type', 'text/html'));
 
+Route::get('/_debug-ip', function () {
+    return [
+        'laravel_ip' => request()->ip(),
+        'remote_addr' => $_SERVER['REMOTE_ADDR'] ?? null,
+        'x_forwarded_for' => request()->header('X-Forwarded-For'),
+        'cf_connecting_ip' => request()->header('CF-Connecting-IP'),
+        'x_forwarded_proto' => request()->header('X-Forwarded-Proto'),
+        'user_agent' => request()->userAgent(),
+        'is_cloudflare_ip' => request()->ip() !== ($_SERVER['REMOTE_ADDR'] ?? null),
+    ];
+});
+
 Route::get('/_test-iframe-button/{element:token}', function (Element $element) {
     $token = $element->token;
     $baseUrl = url('/');
