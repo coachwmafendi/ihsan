@@ -31,7 +31,23 @@ COPY . .
 RUN composer dump-autoload --optimize
 
 # --------------------------------------------------
-# Stage 2: Final Apache + PHP runtime image
+# Stage 2: Build frontend assets with Vite
+# --------------------------------------------------
+FROM node:22-bookworm-slim AS assets
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Tailwind scans Blade/PHP sources (including vendor views), so the full
+# application plus Composer vendor directory must be present for the build.
+COPY . .
+COPY --from=vendor /app/vendor ./vendor
+RUN npm run build
+
+# --------------------------------------------------
+# Stage 3: Final Apache + PHP runtime image
 # --------------------------------------------------
 FROM php:8.4-apache
 
@@ -51,6 +67,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     curl \
+    supervisor \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" \
         pdo \
@@ -75,9 +92,10 @@ RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-av
 
 WORKDIR /var/www/html
 
-# Copy application code and pre-built assets, then vendor dependencies
+# Copy application code, vendor dependencies, and built frontend assets
 COPY . .
 COPY --from=vendor /app/vendor ./vendor
+COPY --from=assets /app/public/build ./public/build
 
 # Ensure Laravel can write to required directories
 RUN chown -R www-data:www-data storage bootstrap/cache \
@@ -89,8 +107,56 @@ RUN APP_KEY=$(php -r "echo 'base64:'.base64_encode(random_bytes(32));" | tr -d '
     && APP_KEY=$(php -r "echo 'base64:'.base64_encode(random_bytes(32));" | tr -d '\n') \
     php artisan filament:upgrade --ansi
 
+# Supervisor runs the web server, queue worker, and scheduler in one
+# container, which suits a single small VPS deployment.
+COPY <<'EOF' /etc/supervisor/conf.d/app.conf
+[supervisord]
+nodaemon=true
+user=root
+logfile=/dev/null
+logfile_maxbytes=0
+
+[program:apache]
+command=apache2-foreground
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+autorestart=true
+
+[program:queue-worker]
+command=php /var/www/html/artisan queue:work --tries=3 --max-time=3600 --sleep=3
+user=www-data
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+autorestart=true
+stopwaitsecs=3600
+
+[program:scheduler]
+command=sh -c 'while true; do php /var/www/html/artisan schedule:run --no-interaction >> /dev/stdout 2>&1; sleep 60; done'
+user=www-data
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+autorestart=true
+EOF
+
+COPY <<'EOF' /usr/local/bin/app-entrypoint.sh
+#!/bin/sh
+set -e
+
+php artisan storage:link --force
+php artisan config:cache
+php artisan view:cache
+php artisan migrate --force
+
+exec supervisord -c /etc/supervisor/supervisord.conf
+EOF
+RUN chmod +x /usr/local/bin/app-entrypoint.sh
+
 EXPOSE 80
 
-# Free-tier Render web services do not support pre-deploy commands, so we
-# run migrations as part of the container startup instead.
-CMD ["sh", "-c", "php artisan migrate --force && exec apache2-foreground"]
+CMD ["app-entrypoint.sh"]
