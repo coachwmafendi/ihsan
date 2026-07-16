@@ -519,7 +519,7 @@
                 <div x-show="increaseSelected === 'custom'" x-transition.opacity.duration.200ms class="mt-5">
                     <label class="block text-sm font-bold text-slate-900 mb-2">Custom increase amount</label>
                     <div class="relative max-w-sm">
-                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-base font-bold text-slate-400" x-text="increaseSubscription?.symbol"></span>
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 pr-2 text-base font-bold text-slate-400" x-text="increaseSubscription?.symbol"></span>
                         <input type="number"
                                step="0.01"
                                min="1"
@@ -528,7 +528,7 @@
                                x-model="increaseCustomAmount"
                                @input="increaseCustomAmount = parseFloat($event.target.value) > 99999.99 ? '99999.99' : $event.target.value"
                                placeholder="0.00"
-                               class="block w-full appearance-none rounded-xl border-2 border-slate-900 bg-white py-3 pl-11 pr-4 text-base font-bold text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-blue-600 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                               class="block w-full appearance-none rounded-xl border-2 border-slate-900 bg-white py-3 pl-[4.5rem] pr-4 text-base font-bold text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-blue-600 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                     </div>
                     <p class="mt-2 text-sm text-slate-600">
                         Future donations will be
