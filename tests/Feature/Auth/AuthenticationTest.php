@@ -96,3 +96,10 @@ test('users can logout', function () {
 
     $this->assertGuest();
 });
+
+test('admin login inputs force dark text on the light-only page', function () {
+    $this->get(route('filament.admin.auth.login'))
+        ->assertOk()
+        ->assertSee('-webkit-text-fill-color: #251811', false)
+        ->assertSee('color-scheme: light', false);
+});

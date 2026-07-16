@@ -16,6 +16,19 @@
 
                 {{-- Form: override Filament label colors for light background --}}
                 <style>
+                    /* This page is light-only, but Filament still applies the
+                       .dark class when the OS is in dark mode — force light
+                       form rendering or typed text turns white on cream. */
+                    .ihsan-admin-login-form { color-scheme: light; }
+                    .ihsan-admin-login-form .fi-input,
+                    .ihsan-admin-login-form input[type="email"],
+                    .ihsan-admin-login-form input[type="password"] {
+                        color: #251811 !important;
+                        caret-color: #251811 !important;
+                        -webkit-text-fill-color: #251811 !important;
+                    }
+                    .ihsan-admin-login-form .fi-input::placeholder { color: #a49a8e !important; -webkit-text-fill-color: #a49a8e !important; }
+                    .ihsan-admin-login-form .fi-input-wrp { background-color: #ffffff !important; --tw-ring-color: #d1c7bc !important; }
                     .ihsan-admin-login-form .fi-fo-field-label-content,
                     .ihsan-admin-login-form .fi-checkbox-input + span,
                     .ihsan-admin-login-form label { color: #251811 !important; }
