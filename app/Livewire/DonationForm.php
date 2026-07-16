@@ -90,6 +90,8 @@ class DonationForm extends Component
 
     public ?string $chipFpxBankCode = null;
 
+    public ?string $deviceType = null;
+
     public float $campaignCollectedAmount = 0.0;
 
     public float $campaignTargetAmount = 0.0;
@@ -594,6 +596,10 @@ class DonationForm extends Component
             ...ClientInfo::fromRequest(request()),
             'page_url' => $this->pageUrl,
         ];
+
+        if (filled($this->deviceType)) {
+            $clientInfo['device_type'] = $this->deviceType;
+        }
 
         $fraudService = new FraudDetectionService($donor);
         $fraudResult = $fraudService->assess([

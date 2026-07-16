@@ -91,8 +91,8 @@
 
     @if ($usesSecureDonationShell)
         @if ($isPopup)
-            <div class="bg-white lg:grid lg:grid-cols-[minmax(0,1fr)_440px]">
-                <section class="hidden lg:flex lg:min-h-0 lg:flex-col lg:border-r lg:border-slate-200">
+            <div class="bg-white md:grid md:grid-cols-[minmax(0,1fr)_440px]">
+                <section class="hidden md:flex md:min-h-0 md:flex-col md:border-r md:border-slate-200">
         @else
             <div class="{{ $isPublicPage ? 'min-h-0 bg-transparent px-0 py-0' : 'min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8' }}">
                 <main class="mx-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white {{ $isPublicPage ? 'shadow-sm' : 'shadow-2xl' }}">
@@ -154,7 +154,7 @@
             @endif
 
             @if (! $isPublicPage)
-            <div class="px-6 py-6 {{ $isPopup ? 'lg:px-8 lg:py-7' : '' }}">
+            <div class="px-6 py-6 {{ $isPopup ? 'md:px-8 md:py-7' : '' }}">
                 <div>
                 <div class="mb-5">
                     <p class="min-w-0 truncate text-xs font-bold uppercase tracking-[0.18em] text-slate-400">{{ $organization->name }}</p>
@@ -187,9 +187,9 @@
                 </section>
             @endif
 
-            <section class="px-6 py-6 {{ $isPublicPage ? 'border-t-0' : 'border-t border-slate-200' }} {{ $isPopup ? 'lg:border-t-0 lg:px-7 lg:py-7' : '' }}">
+            <section class="px-6 py-6 {{ $isPublicPage ? 'border-t-0' : 'border-t border-slate-200' }} {{ $isPopup ? 'md:border-t-0 md:px-7 md:py-7' : '' }}">
                 @if ($isPopup && $campaignImageUrl)
-                    <div class="mb-5 -mx-6 -mt-6 lg:hidden">
+                    <div class="mb-5 -mx-6 -mt-6 md:hidden">
                         <div
                             x-data="{ imageLoaded: false }"
                             x-init="$nextTick(() => { imageLoaded = $refs.readyImage?.complete && $refs.readyImage?.naturalWidth > 0 })"
@@ -873,4 +873,27 @@
             </main>
         </div>
     @endif
+
+    <div class="sr-only" aria-hidden="true" x-data x-init="
+        if (! $wire.deviceType) {
+            const ua = navigator.userAgent.toLowerCase();
+            const platform = (navigator.platform || '').toLowerCase();
+            const isTouch = (navigator.maxTouchPoints || 0) > 0;
+            let type = 'desktop';
+
+            if (/ipad/.test(ua) || (platform === 'macintel' && isTouch)) {
+                type = 'tablet';
+            } else if (/iphone|ipod/.test(ua)) {
+                type = 'mobile';
+            } else if (/android/.test(ua)) {
+                type = /mobile/.test(ua) ? 'mobile' : 'tablet';
+            } else if (/tablet/.test(ua)) {
+                type = 'tablet';
+            } else if (/mobile/.test(ua)) {
+                type = 'mobile';
+            }
+
+            $wire.deviceType = type;
+        }
+    "></div>
 </div>

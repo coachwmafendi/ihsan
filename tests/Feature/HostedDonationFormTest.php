@@ -107,7 +107,7 @@ it('uses the saved secure donation template for standard form elements', functio
         ->assertSee('Secure donation')
         ->assertSee(route('donations.campaign-image-campaign', $campaign), false)
         ->assertSee('Donate monthly')
-        ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
+        ->assertDontSee('md:grid-cols-[minmax(0,1fr)_440px]', false);
 });
 
 it('uses the saved secure donation template for popup elements', function () {
@@ -138,7 +138,7 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertSee('Donate monthly')
         ->assertSee('lg:max-w-6xl', false)
         ->assertSee('bg-black/35 backdrop-blur-[1px]', false)
-        ->assertSee('lg:grid-cols-[minmax(0,1fr)_440px]', false)
+        ->assertSee('md:grid-cols-[minmax(0,1fr)_440px]', false)
         ->assertSee('lg:border-r lg:border-slate-200', false)
         ->assertSee('data-ihsan-ready-media', false)
         ->assertSee('data-ihsan-media-frame', false)
@@ -217,7 +217,7 @@ it('hides the left panel on mobile in popup mode', function () {
 
     $this->get(route('donations.show', $element))
         ->assertOk()
-        ->assertSee('hidden lg:flex lg:min-h-0 lg:flex-col lg:border-r lg:border-slate-200', false);
+        ->assertSee('hidden md:flex md:min-h-0 md:flex-col md:border-r md:border-slate-200', false);
 });
 
 it('renders the hosted donation form in a compact layout when embedded', function () {
@@ -237,7 +237,7 @@ it('renders the hosted donation form in a compact layout when embedded', functio
         ->assertOk()
         ->assertSee('MTMT Development Fund')
         ->assertSee('px-4 py-5 sm:px-5', false)
-        ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
+        ->assertDontSee('md:grid-cols-[minmax(0,1fr)_440px]', false);
 
     Livewire::withQueryParams(['embed' => 1])
         ->test(DonationForm::class, ['element' => $element])
@@ -251,7 +251,7 @@ it('renders the hosted donation form in a compact layout when embedded', functio
             'email' => 'required',
         ])
         ->assertSee('px-4 py-5 sm:px-5', false)
-        ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
+        ->assertDontSee('md:grid-cols-[minmax(0,1fr)_440px]', false);
 });
 
 it('uses the configured button text on the embedded step one button', function () {
@@ -317,7 +317,7 @@ it('renders the hosted donation form as an image-led popup', function () {
         ->assertSee('x-for="amt in currentAmounts"', false)
         ->assertSee('Donate monthly')
         ->assertSee('lg:max-w-6xl', false)
-        ->assertSee('lg:grid-cols-[minmax(0,1fr)_440px]', false)
+        ->assertSee('md:grid-cols-[minmax(0,1fr)_440px]', false)
         ->assertSee('lg:border-r lg:border-slate-200', false)
         ->assertDontSee('Your most generous donation');
 });
@@ -453,7 +453,7 @@ it('creates a pending donation from the embedded form and keeps the compact layo
         ->assertHasNoErrors()
         ->assertReturned('pi_test_embed_123_secret_abc')
         ->assertSee('px-4 py-5 sm:px-5', false)
-        ->assertDontSee('lg:grid-cols-[minmax(0,1fr)_440px]', false);
+        ->assertDontSee('md:grid-cols-[minmax(0,1fr)_440px]', false);
 
     $donor = Donor::query()->where('email', 'embedded@example.test')->firstOrFail();
     $donation = Donation::query()->whereBelongsTo($donor)->firstOrFail();
@@ -1204,4 +1204,38 @@ it('preserves the custom amount query parameter when currency is also provided',
         ->assertSet('currency', 'myr')
         ->assertSet('isPopup', true)
         ->assertOk();
+});
+
+it('uses frontend-detected device type when creating a donation', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'suggested_amounts' => [50, 100, 200],
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+
+    $paymentIntent = PaymentIntent::constructFrom([
+        'id' => 'pi_device_type_123',
+        'client_secret' => 'pi_device_type_123_secret',
+    ]);
+
+    $this->mock(CreatePaymentIntent::class, function ($mock) use ($paymentIntent): void {
+        $mock->shouldReceive('create')->once()->andReturn($paymentIntent);
+    });
+
+    Livewire::test(DonationForm::class, ['element' => $element])
+        ->set('frequency', 'one_time')
+        ->set('amount', 50)
+        ->set('firstName', 'iPad Donor')
+        ->set('email', 'ipad@example.test')
+        ->set('deviceType', 'tablet')
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertReturned('pi_device_type_123_secret');
+
+    $donor = Donor::query()->where('email', 'ipad@example.test')->firstOrFail();
+    $donation = Donation::query()->whereBelongsTo($donor)->firstOrFail();
+
+    expect($donation->device_type)->toBe('tablet');
 });
