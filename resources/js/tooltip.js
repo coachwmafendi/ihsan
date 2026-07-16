@@ -9,6 +9,7 @@ document.addEventListener('alpine:init', () => {
         triggerEl: null,
         style: {},
         disabled,
+        resolvedPosition: position,
 
         init() {
             this.$nextTick(() => {
@@ -157,6 +158,7 @@ document.addEventListener('alpine:init', () => {
             }
 
             this.style = { top: `${top}px`, left: `${left}px`, position: 'fixed' };
+            this.resolvedPosition = pos;
         },
     }));
 });

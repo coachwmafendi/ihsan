@@ -424,7 +424,7 @@
                                                             x-show="showTip"
                                                             x-cloak
                                                             x-transition
-                                                            class="absolute bottom-full z-10 mb-2 w-56 rounded-xl bg-white px-3 py-2 text-left text-xs font-medium leading-relaxed text-slate-700 shadow-[0_10px_30px_rgba(15,23,42,0.15)] ring-1 ring-slate-900/10"
+                                                            class="absolute bottom-full z-10 mb-2 w-56 rounded-xl bg-white px-3 py-2 text-left text-xs font-medium leading-relaxed text-slate-700 shadow-[0_4px_20px_rgba(15,23,42,0.22)] after:absolute after:top-full after:size-2 after:-translate-y-1/2 after:rotate-45 after:bg-white after:content-[''] after:[inset-inline-end:0.875rem]"
                                                             style="right: -0.75rem;"
                                                             x-text="'By adding ' + currencySymbol + ' ' + estimatedFeeAmount + ', you help cover essential software and payment processing fees'"
                                                         ></span>

@@ -45,7 +45,7 @@
                 x-ref="tooltip"
                 :id="tipId"
                 role="tooltip"
-                class="fixed {{ $maxWidth }} z-50 whitespace-normal rounded-xl bg-white px-3 py-2 text-xs font-medium leading-relaxed text-slate-700 shadow-[0_10px_30px_rgba(15,23,42,0.15)] ring-1 ring-slate-900/10"
+                class="fixed {{ $maxWidth }} z-50 whitespace-normal rounded-xl bg-white px-3 py-2 text-xs font-medium leading-relaxed text-slate-700 shadow-[0_4px_20px_rgba(15,23,42,0.22)]"
                 :style="style"
                 x-transition:enter="transition ease-out duration-75"
                 x-transition:enter-start="opacity-0 scale-95"
@@ -54,6 +54,19 @@
                 x-transition:leave-start="opacity-100 scale-100"
                 x-transition:leave-end="opacity-0 scale-95"
             >
+                {{-- Balloon tail pointing at the trigger; follows the side the
+                     tooltip actually rendered on after viewport flipping. --}}
+                <span
+                    aria-hidden="true"
+                    class="absolute size-2 rotate-45 rounded-[2px] bg-white"
+                    :class="{
+                        'top-full -translate-y-1/2': resolvedPosition === 'top',
+                        'bottom-full translate-y-1/2': resolvedPosition === 'bottom',
+                        'left-full -translate-x-1/2 top-1/2 -translate-y-1/2': resolvedPosition === 'left',
+                        'right-full translate-x-1/2 top-1/2 -translate-y-1/2': resolvedPosition === 'right',
+                        '{{ $align === 'start' ? 'left-3.5' : ($align === 'end' ? 'right-3.5' : 'left-1/2 -translate-x-1/2') }}': resolvedPosition === 'top' || resolvedPosition === 'bottom',
+                    }"
+                ></span>
                 @if ($tipHtml)
                     {!! $tipHtml !!}
                 @else
