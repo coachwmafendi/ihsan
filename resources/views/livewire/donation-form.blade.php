@@ -49,8 +49,8 @@
     $introTitle = filled($campaign->headline) ? $campaign->headline : $campaign->title;
     $introText = $campaign->description ?? '';
     $introTextPlain = strip_tags($introText);
-    $introTruncated = str($introTextPlain)->limit(300)->toString();
-    $isLongIntro = strlen($introTextPlain) > 300;
+    $introTruncated = str($introTextPlain)->words(80, '')->toString();
+    $isLongIntro = \Illuminate\Support\Str::wordCount($introTextPlain) > 80;
     $postDonationMode = $campaign?->config['post_donation_mode'] ?? 'default';
     $shareChannels = $campaign?->config['share_channels'] ?? ['facebook', 'x', 'linkedin', 'email'];
     $shareMessage = $campaign?->config['share_message'] ?? '';
@@ -91,7 +91,7 @@
 
     @if ($usesSecureDonationShell)
         @if ($isPopup)
-            <div class="bg-white lg:grid lg:min-h-[760px] lg:grid-cols-[minmax(0,1fr)_440px] lg:items-stretch">
+            <div class="bg-white lg:grid lg:grid-cols-[minmax(0,1fr)_440px]">
                 <section class="hidden lg:flex lg:min-h-0 lg:flex-col lg:border-r lg:border-slate-200">
         @else
             <div class="{{ $isPublicPage ? 'min-h-0 bg-transparent px-0 py-0' : 'min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8' }}">
@@ -154,7 +154,7 @@
             @endif
 
             @if (! $isPublicPage)
-            <div class="px-6 py-6 {{ $isPopup ? 'lg:flex lg:flex-1 lg:flex-col lg:justify-between lg:px-8 lg:py-7' : '' }}">
+            <div class="px-6 py-6 {{ $isPopup ? 'lg:px-8 lg:py-7' : '' }}">
                 <div>
                 <div class="mb-5">
                     <p class="min-w-0 truncate text-xs font-bold uppercase tracking-[0.18em] text-slate-400">{{ $organization->name }}</p>
