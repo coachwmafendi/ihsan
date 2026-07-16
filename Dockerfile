@@ -90,6 +90,16 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/000-default.conf \
     && sed -ri -e "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf
 
+# Laravel's public/.htaccess rewrite rules require AllowOverride, which the
+# base image sets to None; without this every non-root route returns 404.
+COPY <<'EOF' /etc/apache2/conf-available/laravel.conf
+<Directory /var/www/html/public>
+    AllowOverride All
+    Require all granted
+</Directory>
+EOF
+RUN a2enconf laravel
+
 WORKDIR /var/www/html
 
 # Copy application code, vendor dependencies, and built frontend assets
@@ -135,7 +145,7 @@ autorestart=true
 stopwaitsecs=3600
 
 [program:scheduler]
-command=sh -c 'while true; do php /var/www/html/artisan schedule:run --no-interaction >> /dev/stdout 2>&1; sleep 60; done'
+command=sh -c 'while true; do php /var/www/html/artisan schedule:run --no-interaction; sleep 60; done'
 user=www-data
 stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
