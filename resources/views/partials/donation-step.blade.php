@@ -165,7 +165,7 @@
                                 amount: amount,
                                 currency: this.currency,
                                 setupFutureUsage: isRecurring ? 'off_session' : undefined,
-                                locale: 'ms',
+                                locale: 'en',
                                 appearance: {
                                     theme: 'stripe',
                                     variables: {

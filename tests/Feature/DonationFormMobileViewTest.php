@@ -44,3 +44,16 @@ it('does not animate step containers on leave, keeping one step in the layout at
         ->assertOk()
         ->assertDontSee('x-transition:leave', false);
 });
+
+it('forces the Stripe payment element to render in English', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+
+    $this->get(route('donations.show', $element->token))
+        ->assertOk()
+        ->assertSee("locale: 'en'", false)
+        ->assertDontSee("locale: 'ms'", false);
+});
