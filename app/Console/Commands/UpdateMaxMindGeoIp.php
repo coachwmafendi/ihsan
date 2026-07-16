@@ -26,6 +26,10 @@ class UpdateMaxMindGeoIp extends Command
 
     public function handle(): int
     {
+        // Extracting the ~65MB database exceeds the default 128M CLI limit,
+        // which killed the process without any error output.
+        ini_set('memory_limit', '512M');
+
         $licenseKey = config('services.maxmind.license_key');
 
         if (blank($licenseKey)) {
