@@ -19,8 +19,18 @@
     --color-ihsan-muted: #75685d;
 }
 
+/* Keep browser form-control rendering in sync with the applied theme class;
+   without this, an OS in dark mode paints input text white on light pages. */
+:root:not(.dark) {
+    color-scheme: light;
+}
+
 .fi-panel-admin {
     @apply bg-ihsan-paper text-ihsan-ink antialiased dark:bg-stone-950 dark:text-stone-100;
+}
+
+.fi-panel-admin .fi-input {
+    @apply text-ihsan-ink caret-ihsan-ink dark:text-white dark:caret-white;
 }
 
 .fi-panel-admin .fi-layout,
