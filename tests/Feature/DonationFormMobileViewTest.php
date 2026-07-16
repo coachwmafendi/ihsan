@@ -42,7 +42,7 @@ it('does not animate step containers on leave, keeping one step in the layout at
 
     $this->get(route('donations.show', $element->token))
         ->assertOk()
-        ->assertDontSee('x-transition:leave', false);
+        ->assertDontSee('opacity-0 -translate-y-2', false);
 });
 
 it('forces the Stripe payment element to render in English', function () {
@@ -70,14 +70,17 @@ it('keeps suggested amount chips on a single line', function () {
         ->assertSee('whitespace-nowrap rounded-lg border', false);
 });
 
-it('lets the fee cover tooltip wrap despite its nowrap parent', function () {
+it('renders the fee cover tooltip through the shared viewport-clamped component', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();
     $element = Element::factory()->for($organization)->for($campaign)->create([
         'type' => ElementType::Form,
     ]);
 
-    $this->get(route('donations.show', $element->token))
-        ->assertOk()
-        ->assertSee('w-56 whitespace-normal', false);
+    $response = $this->get(route('donations.show', $element->token))->assertOk();
+
+    expect($response->getContent())
+        ->toContain('you help cover essential software and payment processing fees')
+        ->toContain('uiTooltip(')
+        ->not->toContain('style="right: -0.75rem;"');
 });

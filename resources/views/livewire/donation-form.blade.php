@@ -407,28 +407,18 @@
                                                 <span class="text-sm font-medium text-slate-700">
                                                     I'll cover the transaction fees
                                                     <span class="whitespace-nowrap"><span class="text-teal-700" x-text="`(+${currencySymbol}${estimatedFeeAmount})`"></span>
-                                                    <span
-                                                        class="relative -top-0.5 ml-0.5 inline-flex cursor-help items-center align-middle"
-                                                        x-data="{ showTip: false }"
+                                                    <x-ui.tooltip
+                                                        text="By adding the fee amount, you help cover essential software and payment processing fees"
+                                                        position="top"
+                                                        align="end"
+                                                        class="relative -top-0.5 ml-0.5 cursor-help"
                                                         x-on:click.stop=""
-                                                        x-on:mouseenter="showTip = true"
-                                                        x-on:mouseleave="showTip = false"
-                                                        x-on:focusin="showTip = true"
-                                                        x-on:focusout="showTip = false"
-                                                        tabindex="0"
-                                                        role="img"
-                                                        :aria-label="'By adding ' + currencySymbol + ' ' + estimatedFeeAmount + ', you help cover essential software and payment processing fees'"
                                                     >
                                                         <x-heroicon-o-information-circle class="size-4 text-slate-400" />
-                                                        <span
-                                                            x-show="showTip"
-                                                            x-cloak
-                                                            x-transition
-                                                            class="absolute bottom-full z-10 mb-2 w-56 whitespace-normal rounded-xl bg-white px-3 py-2 text-left text-xs font-medium leading-relaxed text-slate-700 shadow-[0_4px_20px_rgba(15,23,42,0.22)] after:absolute after:top-full after:size-2 after:-translate-y-1/2 after:rotate-45 after:bg-white after:content-[''] after:[inset-inline-end:0.875rem]"
-                                                            style="right: -0.75rem;"
-                                                            x-text="'By adding ' + currencySymbol + ' ' + estimatedFeeAmount + ', you help cover essential software and payment processing fees'"
-                                                        ></span>
-                                                    </span></span>
+                                                        <x-slot:tip>
+                                                            <span x-text="'By adding ' + currencySymbol + ' ' + estimatedFeeAmount + ', you help cover essential software and payment processing fees'"></span>
+                                                        </x-slot:tip>
+                                                    </x-ui.tooltip></span>
                                                 </span>
                                                 <span class="text-xs text-slate-400">Help ensure 100% of your donation reaches us.</span>
                                             </span>
