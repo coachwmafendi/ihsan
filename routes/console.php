@@ -41,3 +41,7 @@ Schedule::command('queue:prune-failed --hours=168')->weeklyOn(1, '02:00');
 Schedule::command('app:cloudflare-update-ips')
     ->weeklyOn(0, '03:00')
     ->timezone('Asia/Kuala_Lumpur');
+
+Schedule::command('app:maxmind-update')
+    ->weeklyOn(1, '03:30')
+    ->timezone('Asia/Kuala_Lumpur');

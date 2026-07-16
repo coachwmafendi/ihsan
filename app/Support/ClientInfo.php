@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Services\GeoLocation\MaxMindGeoIp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -112,6 +113,20 @@ class ClientInfo
             ];
         }
 
+        $maxMind = app(MaxMindGeoIp::class)->lookup($ip);
+
+        if ($maxMind !== null) {
+            return $maxMind;
+        }
+
+        return self::lookupGeoFromIpApi($ip);
+    }
+
+    /**
+     * @return array{geo_city: string|null, geo_region: string|null}
+     */
+    private static function lookupGeoFromIpApi(string $ip): array
+    {
         try {
             $response = Http::timeout(3)->get("http://ip-api.com/json/{$ip}");
 

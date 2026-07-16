@@ -56,6 +56,11 @@ return [
         'fpx_fee_amount' => (int) env('CHIP_FPX_FEE_AMOUNT', 150),
     ],
 
+    'maxmind' => [
+        'license_key' => env('MAXMIND_LICENSE_KEY'),
+        'database_path' => env('MAXMIND_DATABASE_PATH', storage_path('app/maxmind/GeoLite2-City.mmdb')),
+    ],
+
     'recurring' => [
         'use_app_controlled' => filter_var(env('RECURRING_USE_APP_CONTROLLED', true), FILTER_VALIDATE_BOOLEAN),
         'retry_intervals_days' => [1, 3, 7, 7],

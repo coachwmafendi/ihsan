@@ -7,6 +7,7 @@ use App\Listeners\RecordDonorEmailDelivery;
 use App\Listeners\SendLoginAlertEmail;
 use App\Listeners\UpdateLastLoginAt;
 use App\Models\Setting;
+use App\Services\GeoLocation\MaxMindGeoIp;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -29,7 +30,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(MaxMindGeoIp::class, function ($app): MaxMindGeoIp {
+            $defaultPath = storage_path('app/maxmind/GeoLite2-City.mmdb');
+
+            return new MaxMindGeoIp(
+                $app['config']['services.maxmind.database_path'] ?: $defaultPath,
+            );
+        });
     }
 
     /**
