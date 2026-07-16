@@ -101,3 +101,24 @@ it('uses fallback ranges when cache is empty', function () {
         return new Response('ok');
     });
 });
+
+it('uses CF-Connecting-IP when behind an internal load balancer', function () {
+    $request = Request::create(
+        'https://ihsan.test/app/dashboard',
+        'GET',
+        [],
+        [],
+        [],
+        [
+            'REMOTE_ADDR' => '10.0.1.6',
+            'HTTP_X_FORWARDED_FOR' => '172.69.176.144',
+            'HTTP_CF_CONNECTING_IP' => '2001:e68:5472:8c18:14a0:73f1:4f32:5ab5',
+        ]
+    );
+
+    $this->middleware->handle($request, function (Request $request): Response {
+        expect($request->ip())->toBe('2001:e68:5472:8c18:14a0:73f1:4f32:5ab5');
+
+        return new Response('ok');
+    });
+});
