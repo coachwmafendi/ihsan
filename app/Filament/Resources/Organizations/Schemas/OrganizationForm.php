@@ -255,22 +255,22 @@ class OrganizationForm
                                     ->schema([
                                         Text::make(fn ($record) => new HtmlString(
                                             '<div class="divide-y divide-gray-200 dark:divide-gray-700">'.
-                                            '<div class="flex items-center justify-between py-3">'.
-                                            '<div>'.
+                                            '<div class="flex items-center justify-between gap-4 py-3">'.
+                                            '<div class="flex flex-col gap-1">'.
                                             '<div class="text-sm font-medium text-gray-950 dark:text-white">'.__('Stripe Connect').'</div>'.
                                             '<div class="text-xs text-gray-500 dark:text-gray-400">'.($record?->stripe_account_id ?: 'No account ID').'</div>'.
                                             '</div>'.
-                                            '<div class="text-right">'.
+                                            '<div class="flex flex-col gap-1 text-right">'.
                                             '<div class="text-sm font-semibold '.($record?->stripe_onboarded ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400').'">'.($record?->stripe_onboarded ? __('Connected') : __('Not connected')).'</div>'.
                                             '<div class="text-xs text-gray-500 dark:text-gray-400">'.($record?->stripe_onboarded_at ? myrTime($record->stripe_onboarded_at, withLabel: true, format: 'd/m/Y H:i') : '—').'</div>'.
                                             '</div>'.
                                             '</div>'.
-                                            '<div class="flex items-center justify-between py-3">'.
-                                            '<div>'.
+                                            '<div class="flex items-center justify-between gap-4 py-3">'.
+                                            '<div class="flex flex-col gap-1">'.
                                             '<div class="text-sm font-medium text-gray-950 dark:text-white">'.__('CHIP').'</div>'.
                                             '<div class="text-xs text-gray-500 dark:text-gray-400">'.($record?->chip_brand_id ?: 'No brand ID').'</div>'.
                                             '</div>'.
-                                            '<div class="text-right">'.
+                                            '<div class="flex flex-col gap-1 text-right">'.
                                             '<div class="text-sm font-semibold '.($record?->chip_onboarded ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400').'">'.($record?->chip_onboarded ? __('Onboarded') : __('Not onboarded')).'</div>'.
                                             '</div>'.
                                             '</div>'.

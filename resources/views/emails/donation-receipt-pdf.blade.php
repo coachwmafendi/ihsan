@@ -110,7 +110,7 @@
         </tr>
         <tr>
             <td>Donation Amount</td>
-            <td class="amount">{{ $hasCoveredFee ? $donation->formatted_amount : $donation->total_charged_with_conversion }}</td>
+            <td class="amount">{{ $hasCoveredFee ? $donation->display_donation_amount : $donation->total_charged_with_conversion }}</td>
         </tr>
         @if ($hasCoveredFee)
             <tr>

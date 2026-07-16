@@ -45,7 +45,7 @@
                 x-ref="tooltip"
                 :id="tipId"
                 role="tooltip"
-                class="fixed {{ $maxWidth }} z-50 whitespace-normal rounded-md bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg"
+                class="fixed {{ $maxWidth }} z-50 whitespace-normal rounded-xl bg-white px-3 py-2 text-xs font-medium leading-relaxed text-slate-700 shadow-[0_10px_30px_rgba(15,23,42,0.15)] ring-1 ring-slate-900/10"
                 :style="style"
                 x-transition:enter="transition ease-out duration-75"
                 x-transition:enter-start="opacity-0 scale-95"

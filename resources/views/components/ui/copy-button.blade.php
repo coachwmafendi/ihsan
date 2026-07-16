@@ -48,7 +48,7 @@
             x-transition:leave="transition ease-in duration-100"
             x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 translate-y-1"
-            class="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-slate-800 px-2 py-1 text-xs font-medium text-white shadow-sm"
+            class="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-lg bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-[0_6px_20px_rgba(15,23,42,0.15)] ring-1 ring-slate-900/10"
         >{{ $copiedText }}</span>
     </span>
 </x-ui.tooltip>
