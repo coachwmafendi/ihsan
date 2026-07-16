@@ -300,9 +300,9 @@ class Donation extends Model
     {
         return Attribute::get(function () {
             $isMyr = strtolower((string) $this->currency) === 'myr' || $this->exchange_rate !== null;
-            $symbol = $isMyr ? Currency::symbol('myr') : $this->currency_symbol;
+            $prefix = $isMyr ? 'MYR' : $this->currency_symbol;
 
-            return $symbol.' '.number_format((float) $this->net_amount, 2);
+            return $prefix.' '.number_format((float) $this->net_amount, 2);
         });
     }
 

@@ -30,6 +30,22 @@ if (! function_exists('myrTime')) {
     }
 }
 
+if (! function_exists('appPanelRoute')) {
+    /**
+     * Absolute URL for a named route, always on the app panel domain. Use in
+     * emails and queued jobs where the request host (or APP_URL fallback)
+     * would otherwise point at the landing or admin domain.
+     */
+    function appPanelRoute(string $name, mixed $parameters = []): string
+    {
+        $root = ($domain = config('app.app_panel_domain'))
+            ? 'https://'.$domain
+            : rtrim(config('app.url'), '/');
+
+        return $root.route($name, $parameters, false);
+    }
+}
+
 if (! function_exists('app_host')) {
     function app_host(): string
     {

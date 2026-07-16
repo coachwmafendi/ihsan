@@ -130,7 +130,7 @@ it('includes a link to the account page in the email body', function () {
     $html = $mail->render();
 
     expect($html)
-        ->toContain(route('app.settings.account'))
+        ->toContain(appPanelRoute('app.settings.account'))
         ->toContain('target="_blank"')
         ->toContain('rel="noopener noreferrer"');
 });

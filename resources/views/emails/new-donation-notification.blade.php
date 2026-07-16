@@ -68,7 +68,7 @@
             </table>
 
             <p style="margin: 24px 0;">
-                <a href="{{ route('app.donations.show', $donation) }}" class="email-button" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
+                <a href="{{ appPanelRoute('app.donations.show', $donation) }}" class="email-button" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
             </p>
         @else
             <h1 style="color: #16a34a;">New Donation Received 🎉</h1>
@@ -93,7 +93,7 @@
             </table>
 
             <p style="margin: 24px 0;">
-                <a href="{{ route('app.donations.show', $donation) }}" class="email-button" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
+                <a href="{{ appPanelRoute('app.donations.show', $donation) }}" class="email-button" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
             </p>
         @endif
 

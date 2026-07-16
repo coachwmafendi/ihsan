@@ -80,7 +80,7 @@ class DonationShow extends Component
     #[Computed]
     public function netAmount(): string
     {
-        return $this->donation->currency_symbol.' '.number_format((float) $this->donation->net_amount, 2);
+        return $this->formatDisplayAmount((float) $this->donation->net_amount);
     }
 
     /**
@@ -89,10 +89,10 @@ class DonationShow extends Component
      */
     public function donationAmountDisplay(): string
     {
-        $original = $this->donation->currency_symbol.' '.number_format((float) $this->donation->gross_amount, 2).' '.strtoupper($this->donation->currency);
+        $original = $this->formatDisplayAmount((float) $this->donation->gross_amount);
 
         if ($this->donation->currency !== 'myr' && $this->donation->base_amount !== null) {
-            return $original.' <span class="text-slate-400">≈ MYR '.number_format((float) $this->donation->base_amount, 2).'</span>';
+            return $original.' <span class="text-slate-400">≈ '.$this->formattedBaseAmount().'</span>';
         }
 
         return $original;
@@ -100,12 +100,12 @@ class DonationShow extends Component
 
     public function formattedOriginalAmount(): string
     {
-        return $this->donation->currency_symbol.' '.number_format((float) $this->donation->gross_amount, 2).' '.strtoupper($this->donation->currency);
+        return $this->formatDisplayAmount((float) $this->donation->gross_amount);
     }
 
     public function formattedBaseAmount(): string
     {
-        return 'MYR '.number_format((float) ($this->donation->base_amount ?? $this->donation->gross_amount), 2);
+        return $this->formatDisplayAmount((float) ($this->donation->base_amount ?? $this->donation->gross_amount), true);
     }
 
     /**
@@ -116,7 +116,7 @@ class DonationShow extends Component
     {
         $total = (float) $this->donation->gross_amount + (float) $this->donation->donor_fee_covered;
 
-        return $this->donation->currency_symbol.' '.number_format($total, 2).' '.strtoupper($this->donation->currency);
+        return $this->formatDisplayAmount($total);
     }
 
     public function paymentAmountBase(): string
@@ -124,7 +124,7 @@ class DonationShow extends Component
         $base = (float) ($this->donation->base_amount ?? $this->donation->gross_amount)
             + $this->feeInBaseCurrency((float) $this->donation->donor_fee_covered);
 
-        return 'MYR '.number_format($base, 2);
+        return $this->formatDisplayAmount($base, true);
     }
 
     public function beforeFeesCovered(): string
@@ -139,12 +139,12 @@ class DonationShow extends Component
 
     public function feeCoveredAmount(): string
     {
-        return $this->donation->currency_symbol.' '.number_format((float) $this->donation->donor_fee_covered, 2).' '.strtoupper($this->donation->currency);
+        return $this->formatDisplayAmount((float) $this->donation->donor_fee_covered);
     }
 
     public function platformFee(): string
     {
-        return $this->donation->currency_symbol.' '.number_format($this->feeInDisplayCurrency((float) $this->donation->processing_fee), 2).' '.strtoupper($this->donation->currency);
+        return $this->formatDisplayAmount($this->feeInDisplayCurrency((float) $this->donation->processing_fee));
     }
 
     public function platformFeeBase(): string
@@ -152,10 +152,10 @@ class DonationShow extends Component
         $processingFee = (float) $this->donation->processing_fee;
 
         if ($this->donation->base_amount !== null || strtolower($this->donation->currency) === 'myr') {
-            return 'MYR '.number_format($processingFee, 2);
+            return $this->formatDisplayAmount($processingFee, true);
         }
 
-        return 'MYR '.number_format($this->feeInBaseCurrency($processingFee), 2);
+        return $this->formatDisplayAmount($this->feeInBaseCurrency($processingFee), true);
     }
 
     public function paymentProcessingFee(): string
@@ -164,7 +164,7 @@ class DonationShow extends Component
             ? (float) $this->donation->chip_fee
             : (float) $this->donation->stripe_fee;
 
-        return $this->donation->currency_symbol.' '.number_format($this->feeInDisplayCurrency($fee), 2).' '.strtoupper($this->donation->currency);
+        return $this->formatDisplayAmount($this->feeInDisplayCurrency($fee));
     }
 
     public function paymentProcessingFeeBase(): string
@@ -175,10 +175,10 @@ class DonationShow extends Component
             : (float) $this->donation->stripe_fee;
 
         if (! $isChip && ($this->donation->base_amount !== null || strtolower($this->donation->currency) === 'myr')) {
-            return 'MYR '.number_format($fee, 2);
+            return $this->formatDisplayAmount($fee, true);
         }
 
-        return 'MYR '.number_format($this->feeInBaseCurrency($fee), 2);
+        return $this->formatDisplayAmount($this->feeInBaseCurrency($fee), true);
     }
 
     public function payoutAmount(): string
@@ -186,10 +186,10 @@ class DonationShow extends Component
         $amount = (float) ($this->donation->net_amount ?? $this->donation->gross_amount);
 
         if ($this->donation->base_amount !== null) {
-            return 'MYR '.number_format($amount, 2);
+            return $this->formatDisplayAmount($amount, true);
         }
 
-        return $this->donation->currency_symbol.' '.number_format($amount, 2).' '.strtoupper($this->donation->currency);
+        return $this->formatDisplayAmount($amount);
     }
 
     public function effectiveFeeRate(): string
@@ -294,9 +294,15 @@ class DonationShow extends Component
             return '—';
         }
 
-        $total = (float) $this->donation->subscription->amount * (int) $this->donation->subscription->payment_count;
+        $subscription = $this->donation->subscription;
+        $total = (float) $subscription->amount * (int) $subscription->payment_count;
+        $currency = strtolower($subscription->currency ?? '');
 
-        return $this->donation->subscription->currency_symbol.' '.number_format($total, 2);
+        if ($currency === 'myr') {
+            return 'MYR '.number_format($total, 2);
+        }
+
+        return $subscription->currency_symbol.' '.number_format($total, 2).' '.strtoupper($subscription->currency);
     }
 
     public function subscriptionPreviousInstallment(): ?string
@@ -338,6 +344,23 @@ class DonationShow extends Component
         }
 
         return $fee / (float) $this->donation->exchange_rate;
+    }
+
+    /**
+     * Format an amount for display. MYR donations use "MYR {amount}" to avoid the
+     * redundant "RM {amount} MYR" layout. Foreign currencies keep their symbol
+     * and ISO code (e.g. "$ 38.10 USD").
+     */
+    private function formatDisplayAmount(float $amount, bool $asBaseCurrency = false): string
+    {
+        $currency = strtolower($this->donation->currency ?? '');
+        $currencyCode = strtoupper($this->donation->currency);
+
+        if ($asBaseCurrency || $currency === 'myr') {
+            return 'MYR '.number_format($amount, 2);
+        }
+
+        return $this->donation->currency_symbol.' '.number_format($amount, 2).' '.$currencyCode;
     }
 
     public function canRefund(): bool

@@ -168,5 +168,5 @@ test('net amount shows MYR once the exchange rate is synced', function () {
 
     $html = (new NewDonationNotification($donation, '$ 53.75'))->render();
 
-    expect($html)->toContain('RM 230.10');
+    expect($html)->toContain('MYR 230.10');
 });

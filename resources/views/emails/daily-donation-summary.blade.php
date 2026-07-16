@@ -59,7 +59,7 @@
         @endif
 
         <p style="margin: 24px 0;">
-            <a href="{{ route('app.donations.index') }}" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
+            <a href="{{ appPanelRoute('app.donations.index') }}" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
         </p>
 
         {{-- Footer --}}

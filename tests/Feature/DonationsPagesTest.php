@@ -112,6 +112,15 @@ it('displays donation detail sections', function () {
         ->assertSee($this->campaign->title);
 });
 
+it('formats MYR amounts as MYR {amount} without duplicating the symbol', function () {
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('MYR 150.00')
+        ->assertSee('MYR 145.50')
+        ->assertDontSee('RM 150.00 MYR')
+        ->assertDontSee('RM 145.50 MYR');
+});
+
 it('does not double convert processing fee base for foreign currency donations', function () {
     $donation = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,

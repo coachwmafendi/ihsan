@@ -19,7 +19,7 @@
         </table>
 
         <p style="margin: 24px 0;">
-            <a class="email-button" href="{{ route('app.donations.show', $donation) }}" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
+            <a class="email-button" href="{{ appPanelRoute('app.donations.show', $donation) }}" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
         </p>
 
         <p class="email-small" style="font-size: 0.875rem; color: #94a3b8;">

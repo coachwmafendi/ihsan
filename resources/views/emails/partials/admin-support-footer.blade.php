@@ -4,7 +4,7 @@
         <a href="mailto:{{ support_email() }}" style="color: #0d9488; text-decoration: underline;">{{ support_email() }}</a>
         and include email reference "<strong>{{ $emailReference }}</strong>" in your message.
         To manage your email settings
-        <a href="{{ route('app.settings.notifications') }}" style="color: #0d9488; text-decoration: underline;">update your notification settings</a>.
+        <a href="{{ appPanelRoute('app.settings.notifications') }}" style="color: #0d9488; text-decoration: underline;">update your notification settings</a>.
     </p>
 
     <p class="email-small" style="margin: 0;">Sent with ❤️ from {{ config('app.name') }}</p>

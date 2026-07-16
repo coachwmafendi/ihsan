@@ -26,7 +26,7 @@
             </tr>
         </table>
 
-        <p>If you do not recognize this activity or did not initiate this login, we strongly recommend that you <a href="{{ route('app.settings.account') }}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline;">reset your password immediately and review your account</a> for any unauthorized changes.</p>
+        <p>If you do not recognize this activity or did not initiate this login, we strongly recommend that you <a href="{{ appPanelRoute('app.settings.account') }}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline;">reset your password immediately and review your account</a> for any unauthorized changes.</p>
 
         <p>Thank you for helping us keep your account secure.</p>
 
