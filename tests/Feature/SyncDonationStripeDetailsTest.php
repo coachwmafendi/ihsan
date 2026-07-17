@@ -114,6 +114,12 @@ it('saves donor payment method after syncing donation stripe details', function 
         'country' => 'MY',
         'is_default' => true,
     ]);
+
+    $this->assertDatabaseHas('donations', [
+        'id' => $donation->id,
+        'payment_method_exp_month' => 12,
+        'payment_method_exp_year' => 2030,
+    ]);
 });
 
 it('updates existing donor payment method instead of duplicating', function () {

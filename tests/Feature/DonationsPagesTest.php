@@ -447,6 +447,34 @@ it('detects chip as the payment processor from chip identifiers', function () {
         ->assertSeeHtml('src="'.e(asset('images/payment-processors/chip.svg')).'"');
 });
 
+it('displays credit card expiry date when available', function () {
+    $this->donation->update([
+        'payment_method_brand' => 'visa',
+        'payment_method_last4' => '4242',
+        'payment_method_exp_month' => 12,
+        'payment_method_exp_year' => 2025,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Visa')
+        ->assertSee('•••• 4242')
+        ->assertSee('(Exp. 12/25)');
+});
+
+it('does not display expiry date when card expiry is missing', function () {
+    $this->donation->update([
+        'payment_method_brand' => 'mastercard',
+        'payment_method_last4' => '5555',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Mastercard')
+        ->assertSee('•••• 5555')
+        ->assertDontSee('(Exp.');
+});
+
 it('filters donations by frequency and custom date range from query string', function () {
     $oneTimeToday = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,

@@ -300,6 +300,9 @@
                                     @if ($donation->payment_method_last4)
                                         <span class="text-slate-500">•••• {{ $donation->payment_method_last4 }}</span>
                                     @endif
+                                    @if ($donation->payment_method_exp_month && $donation->payment_method_exp_year)
+                                        <span class="text-slate-500">(Exp. {{ str_pad((string) $donation->payment_method_exp_month, 2, '0', STR_PAD_LEFT) }}/{{ substr((string) $donation->payment_method_exp_year, -2) }})</span>
+                                    @endif
                                 </dd>
                             </div>
                         @endif
