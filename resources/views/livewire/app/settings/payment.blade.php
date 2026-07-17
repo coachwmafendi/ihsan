@@ -26,14 +26,19 @@
             <button type="button"
                 @click="tab = 'stripe'"
                 :class="tab === 'stripe' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
-                class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
+                class="inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
+                <img src="{{ asset('images/payment-processors/stripe.svg') }}" alt=""
+                    :class="tab === 'stripe' ? '' : 'grayscale opacity-60'"
+                    class="h-5 w-5 rounded transition" />
                 Stripe
             </button>
             <button type="button"
                 @click="tab = 'chip'"
                 :class="tab === 'chip' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
-                class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
-                CHIP
+                class="inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
+                <x-icons.chip
+                    ::class="tab === 'chip' ? '' : 'grayscale opacity-60'"
+                    class="h-4 w-auto transition" />
             </button>
         </nav>
     </div>
