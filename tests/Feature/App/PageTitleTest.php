@@ -3,11 +3,15 @@
 declare(strict_types=1);
 
 use App\Models\Campaign;
+use App\Models\Donation;
+use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\User;
 
 beforeEach(function () {
-    $this->organization = Organization::factory()->stripeConnected()->create();
+    $this->organization = Organization::factory()->stripeConnected()->create([
+        'name' => 'Acme Foundation',
+    ]);
     $this->user = User::factory()->for($this->organization)->create();
     Campaign::factory()->for($this->organization)->count(2)->create();
 });
@@ -36,3 +40,14 @@ it('formats app page titles as {Title} - {Organization Name}', function (string 
     ['https://app.example.test/settings/tracking', 'Settings — Tracking'],
     ['https://app.example.test/settings/installation', 'Settings — Installation'],
 ]);
+
+it('formats supporter detail page title as {Name} - Supporter - {Organization Name}', function () {
+    $campaign = Campaign::factory()->for($this->organization)->create();
+    $donor = Donor::factory()->create(['name' => 'John Doe']);
+    Donation::factory()->for($campaign)->for($donor)->create();
+
+    $this->actingAs($this->user)
+        ->get("https://app.example.test/supporters/{$donor->public_id}")
+        ->assertOk()
+        ->assertSee('<title>John Doe - Supporter - Acme Foundation</title>', false);
+});
