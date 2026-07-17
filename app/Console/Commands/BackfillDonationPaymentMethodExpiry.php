@@ -24,6 +24,7 @@ class BackfillDonationPaymentMethodExpiry extends Command
         Stripe::setApiKey(config('services.stripe.secret'));
 
         $query = Donation::query()
+            ->with('campaign.organization')
             ->whereNotNull('stripe_payment_intent_id')
             ->whereNotNull('payment_method_brand')
             ->whereNotNull('payment_method_last4')
@@ -61,7 +62,7 @@ class BackfillDonationPaymentMethodExpiry extends Command
                 }
 
                 try {
-                    $sync->sync($donation);
+                    $sync->sync($donation, null, $this->stripeOptionsFor($donation));
                     $donation->refresh();
 
                     if ($donation->payment_method_exp_month && $donation->payment_method_exp_year) {
@@ -81,5 +82,18 @@ class BackfillDonationPaymentMethodExpiry extends Command
         $this->info("Done. Processed: {$processed}, Updated: {$updated}, Failed: {$failed}");
 
         return $failed > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    /**
+     * Connect donations live on the NGO's connected account, so Stripe
+     * lookups must be scoped there or the payment intent is not found.
+     *
+     * @return array<string, string>
+     */
+    private function stripeOptionsFor(Donation $donation): array
+    {
+        $stripeAccountId = $donation->campaign?->organization?->stripe_account_id;
+
+        return $stripeAccountId ? ['stripe_account' => $stripeAccountId] : [];
     }
 }
