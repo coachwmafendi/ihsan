@@ -46,6 +46,19 @@ if (! function_exists('appPanelRoute')) {
     }
 }
 
+if (! function_exists('app_panel_port_suffix')) {
+    /**
+     * Port suffix for redirects onto the app panel domain. Empty on standard
+     * ports; keeps non-standard local dev ports (e.g. Herd's 8443) working.
+     */
+    function app_panel_port_suffix(): string
+    {
+        $port = request()->getPort();
+
+        return in_array($port, [80, 443], true) ? '' : ':'.$port;
+    }
+}
+
 if (! function_exists('app_host')) {
     function app_host(): string
     {

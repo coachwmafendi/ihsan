@@ -61,3 +61,9 @@ it('301-redirects root-domain /login to the panel domain', function () {
         ->assertStatus(301)
         ->assertRedirect('https://app.example.test/login');
 });
+
+it('preserves a non-standard port when redirecting legacy /app paths', function () {
+    $this->get('http://localhost:8443/app/campaigns')
+        ->assertStatus(301)
+        ->assertRedirect('https://app.example.test:8443/campaigns');
+});
