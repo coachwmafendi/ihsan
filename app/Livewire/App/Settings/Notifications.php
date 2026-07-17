@@ -6,9 +6,11 @@ namespace App\Livewire\App\Settings;
 
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
+#[Title('Settings — Notifications')]
 class Notifications extends Component
 {
     public bool $notifyNewDonation = true;
@@ -93,6 +95,6 @@ class Notifications extends Component
 
     public function render()
     {
-        return view('livewire.app.settings.notifications', ['title' => 'Settings — Notifications']);
+        return view('livewire.app.settings.notifications');
     }
 }

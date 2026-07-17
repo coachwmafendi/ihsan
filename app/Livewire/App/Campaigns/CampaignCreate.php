@@ -11,11 +11,13 @@ use App\Models\Element;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 #[Layout('layouts.app')]
+#[Title('Create Campaign')]
 class CampaignCreate extends Component
 {
     use WithFileUploads;
@@ -196,8 +198,6 @@ class CampaignCreate extends Component
 
     public function render()
     {
-        return view('livewire.app.campaigns.create', [
-            'title' => 'Create Campaign',
-        ]);
+        return view('livewire.app.campaigns.create');
     }
 }

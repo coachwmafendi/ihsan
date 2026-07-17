@@ -12,9 +12,11 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
+#[Title('Settings — Tracking')]
 class Tracking extends Component
 {
     /** @var array<string, array<string, string>> Credential values keyed by provider slug */

@@ -10,11 +10,13 @@ use App\Models\Campaign;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 #[Layout('layouts.app')]
+#[Title('Edit Campaign')]
 class CampaignEdit extends Component
 {
     use WithFileUploads;
@@ -710,8 +712,6 @@ class CampaignEdit extends Component
 
     public function render()
     {
-        return view('livewire.app.campaigns.edit', [
-            'title' => 'Edit Campaign',
-        ]);
+        return view('livewire.app.campaigns.edit');
     }
 }

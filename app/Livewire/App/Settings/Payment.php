@@ -9,12 +9,14 @@ use App\Models\User;
 use App\Services\AuditLogLogger;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Stripe\Account as StripeAccount;
 use Stripe\Stripe;
 use Throwable;
 
 #[Layout('layouts.app')]
+#[Title('Settings — Payment Processors')]
 class Payment extends Component
 {
     public array $currencies = ['myr' => true, 'usd' => false, 'sgd' => false];
@@ -207,7 +209,7 @@ class Payment extends Component
 
     public function render()
     {
-        return view('livewire.app.settings.payment', ['title' => 'Settings — Payment Processors']);
+        return view('livewire.app.settings.payment');
     }
 
     private function getUser(): ?User

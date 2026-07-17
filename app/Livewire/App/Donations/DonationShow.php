@@ -16,9 +16,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
+#[Title('Donation')]
 class DonationShow extends Component
 {
     public Donation $donation;
@@ -618,8 +620,6 @@ class DonationShow extends Component
 
     public function render()
     {
-        return view('livewire.app.donations.show', [
-            'title' => 'Donation '.$this->donation->public_id,
-        ]);
+        return view('livewire.app.donations.show');
     }
 }

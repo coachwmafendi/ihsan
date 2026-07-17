@@ -11,10 +11,12 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
+#[Title('Edit Element')]
 class ElementEdit extends Component
 {
     #[Locked]
@@ -254,8 +256,6 @@ class ElementEdit extends Component
 
     public function render()
     {
-        return view('livewire.app.elements.edit', [
-            'title' => 'Edit Element',
-        ]);
+        return view('livewire.app.elements.edit');
     }
 }

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Livewire\App;
 
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
+#[Title('Coming Soon')]
 class PlaceholderPage extends Component
 {
     public string $title = 'Coming Soon';
@@ -29,6 +31,6 @@ class PlaceholderPage extends Component
 
     public function render()
     {
-        return view('livewire.app.placeholder', ['title' => $this->title]);
+        return view('livewire.app.placeholder');
     }
 }
