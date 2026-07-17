@@ -76,6 +76,23 @@ On the root domain:
   and query preserved; root `/login` redirects; Fortify login works on the
   subdomain.
 
+## Cross-Domain Session Flows (addendum, found during planning)
+
+Host-scoped cookies break two flows that previously relied on a shared same-host
+session:
+
+1. **Stripe Connect OAuth** — `redirect` stores `stripe_connect_state` in the
+   session and `callback` validates it. Both routes move to the subdomain so the
+   state check keeps working. The Stripe dashboard redirect-URI allowlist must
+   gain `https://app.getihsan.my/stripe/connect/callback`.
+2. **Donor impersonation** — the panel wrote `admin_impersonating_*` session keys
+   that donor-portal views (root domain) read. Now the panel redirects to a
+   temporary **signed** `donorportal.magic-login` URL carrying
+   `impersonate=1&return={url}`; the magic-login handler writes those keys into
+   the root-domain session. The exit route moves to the root domain
+   (`POST /impersonate/exit`), guarded by the presence of the impersonation
+   session keys instead of admin auth.
+
 ## Known Effects / Risks
 
 - **One-time session drop at deploy:** the session cookie host changes, so all
