@@ -12,15 +12,11 @@
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    @livewireStyles
     @vite(['resources/css/landing.css'])
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="{{ $bodyClass ?? 'bg-[#0f172a] text-[#e2e8f0]' }} font-sans antialiased">
 
 {{ $slot }}
-
-    @livewireScripts
-    @fluxScripts
 </body>
 </html>

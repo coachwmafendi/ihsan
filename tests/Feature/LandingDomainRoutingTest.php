@@ -23,3 +23,11 @@ it('redirects the app panel domain root to the dashboard', function () {
 it('serves the landing page on hosts without a domain-scoped route', function () {
     $this->get('/')->assertOk()->assertViewIs('welcome');
 });
+
+it('loads a single Alpine instance on the landing page', function () {
+    $html = $this->get('/')->assertOk()->getContent();
+
+    expect($html)->toContain('alpinejs')
+        ->not->toContain('livewire.js')
+        ->not->toContain('flux.js');
+});
