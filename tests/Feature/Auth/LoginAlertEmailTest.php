@@ -8,12 +8,17 @@ use App\Models\Organization;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 beforeEach(function () {
     Bus::fake([SendLoginAlertEmailJob::class]);
+});
+
+afterEach(function () {
+    Request::setTrustedProxies([], Request::HEADER_X_FORWARDED_FOR);
 });
 
 it('dispatches login alert job for ngo admin with organization', function () {
@@ -133,4 +138,72 @@ it('includes a link to the account page in the email body', function () {
         ->toContain(appPanelRoute('app.settings.account'))
         ->toContain('target="_blank"')
         ->toContain('rel="noopener noreferrer"');
+});
+
+it('resolves city, region and isp from ip-api and labels ipv6 traffic', function () {
+    Mail::fake();
+    Http::fake([
+        'http://ip-api.com/json/2001:db8::*' => Http::response([
+            'status' => 'success',
+            'country' => 'Malaysia',
+            'countryCode' => 'MY',
+            'region' => '10',
+            'regionName' => 'Selangor',
+            'city' => 'Petaling Jaya',
+            'zip' => '47301',
+            'isp' => 'TM Net',
+            'org' => 'Telekom Malaysia',
+        ]),
+    ]);
+
+    $organization = Organization::factory()->create();
+    $user = User::factory()->create([
+        'role' => UserRole::NgoAdmin,
+        'organization_id' => $organization->id,
+        'email' => 'admin@example.org',
+    ]);
+
+    $job = new SendLoginAlertEmailJob(
+        user: $user,
+        ipAddress: '2001:db8::1',
+        userAgent: 'Mozilla/5.0',
+        loggedInAt: CarbonImmutable::now(),
+        ipv4Address: '60.52.100.5',
+    );
+
+    $job->handle();
+
+    Mail::assertQueued(LoginAlertNotification::class, function (LoginAlertNotification $mail) {
+        return $mail->country === 'Malaysia'
+            && $mail->city === 'Petaling Jaya'
+            && $mail->region === 'Selangor'
+            && $mail->isp === 'TM Net'
+            && $mail->ipType === 'IPv6'
+            && $mail->ipv4Address === '60.52.100.5';
+    });
+});
+
+it('captures an ipv4 fallback from x-forwarded-for headers in the listener', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->create([
+        'role' => UserRole::NgoAdmin,
+        'organization_id' => $organization->id,
+    ]);
+
+    $request = Request::create('https://app.example.test/dashboard', 'GET', [], [], [], [
+        'REMOTE_ADDR' => '10.0.0.5',
+        'HTTP_X_FORWARDED_FOR' => '2606:4700:4700::1111, 60.52.100.5, 192.168.1.1',
+        'HTTP_USER_AGENT' => 'Mozilla/5.0',
+    ]);
+    Request::setTrustedProxies(['10.0.0.5'], Request::HEADER_X_FORWARDED_FOR);
+    $this->app->instance('request', $request);
+
+    Bus::fake([SendLoginAlertEmailJob::class]);
+
+    $listener = new SendLoginAlertEmailListener;
+    $listener->handle(new Login('web', $user, false));
+
+    Bus::assertDispatched(SendLoginAlertEmailJob::class, function (SendLoginAlertEmailJob $job) {
+        return $job->ipv4Address === '60.52.100.5';
+    });
 });
