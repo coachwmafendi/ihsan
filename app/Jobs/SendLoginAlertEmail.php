@@ -24,6 +24,7 @@ class SendLoginAlertEmail implements ShouldQueue
         public string $ipAddress,
         public string $userAgent,
         public CarbonImmutable $loggedInAt,
+        public ?string $ipv4Address = null,
     ) {}
 
     public function handle(): void
@@ -40,7 +41,7 @@ class SendLoginAlertEmail implements ShouldQueue
             return;
         }
 
-        $country = $this->resolveCountry($this->ipAddress);
+        $location = $this->resolveLocation($this->ipAddress);
         $browser = Browser::parse($this->userAgent);
 
         $delay = MailtrapThrottle::delaySeconds();
@@ -48,33 +49,60 @@ class SendLoginAlertEmail implements ShouldQueue
         Mail::to($user->email)
             ->later(
                 now()->addSeconds($delay),
-                new LoginAlertNotification($organization, $country, $this->ipAddress, $browser, $this->loggedInAt)
+                new LoginAlertNotification(
+                    organization: $organization,
+                    country: $location['country'],
+                    ipAddress: $this->ipAddress,
+                    browser: $browser,
+                    loggedInAt: $this->loggedInAt,
+                    ipType: $this->ipType($this->ipAddress),
+                    ipv4Address: $this->ipv4Address,
+                    city: $location['city'] ?? '',
+                    region: $location['regionName'] ?? '',
+                    isp: $location['isp'] ?? '',
+                )
             );
     }
 
-    private function resolveCountry(string $ipAddress): string
+    /** @return array<string, string> */
+    private function resolveLocation(string $ipAddress): array
     {
         if ($this->isPrivateIp($ipAddress)) {
-            return 'Unknown';
+            return [
+                'country' => 'Unknown',
+                'city' => '',
+                'regionName' => '',
+                'isp' => '',
+            ];
         }
 
         try {
             $response = Http::timeout(3)
                 ->connectTimeout(2)
                 ->get("http://ip-api.com/json/{$ipAddress}", [
-                    'fields' => 'status,country,countryCode,message',
+                    'fields' => 'status,country,countryCode,region,regionName,city,zip,isp,org,query,message',
                 ]);
 
             $data = $response->json();
 
             if (is_array($data) && ($data['status'] ?? '') === 'success' && filled($data['country'] ?? null)) {
-                return $data['country'];
+                return [
+                    'country' => $data['country'],
+                    'city' => $data['city'] ?? '',
+                    'regionName' => $data['regionName'] ?? '',
+                    'isp' => $data['isp'] ?? '',
+                ];
             }
         } catch (\Throwable) {
             // fall through to unknown
         }
 
-        return 'Unknown';
+        return [
+            'country' => 'Unknown',
+            'city' => '',
+            'regionName' => '',
+            'isp' => '',
+        ];
     }
 
     private function isPrivateIp(string $ipAddress): bool
@@ -84,5 +112,10 @@ class SendLoginAlertEmail implements ShouldQueue
         }
 
         return filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
+    }
+
+    private function ipType(string $ipAddress): string
+    {
+        return filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false ? 'IPv6' : 'IPv4';
     }
 }

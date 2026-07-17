@@ -14,7 +14,28 @@
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
             <tr>
                 <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Location</td>
-                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $country }} — {{ $ipAddress }}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">
+                    @if($city || $region)
+                        {{ collect([$city, $region, $country])->filter()->implode(', ') }}
+                    @else
+                        {{ $country }}
+                    @endif
+                </td>
+            </tr>
+            @if($isp)
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Network / ISP</td>
+                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $isp }}</td>
+            </tr>
+            @endif
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">IP address</td>
+                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">
+                    {{ $ipAddress }} ({{ $ipType }})
+                    @if($ipType === 'IPv6' && $ipv4Address)
+                        <br><span style="color: #64748b;">IPv4 fallback: {{ $ipv4Address }}</span>
+                    @endif
+                </td>
             </tr>
             <tr>
                 <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Browser</td>

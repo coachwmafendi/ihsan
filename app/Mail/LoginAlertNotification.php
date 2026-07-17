@@ -24,6 +24,11 @@ class LoginAlertNotification extends Mailable
         public string $ipAddress,
         public string $browser,
         public CarbonImmutable $loggedInAt,
+        public string $ipType = 'IPv4',
+        public ?string $ipv4Address = null,
+        public string $city = '',
+        public string $region = '',
+        public string $isp = '',
     ) {
         $this->emailReference = strtoupper(Str::random(8));
     }
