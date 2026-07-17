@@ -182,6 +182,29 @@ it('hides the before fees covered row when no fee was covered', function () {
         ->assertSee('Not covered');
 });
 
+it('shows the payment intent id as the payment id when available', function () {
+    $this->donation->update([
+        'stripe_payment_intent_id' => 'pi_test_123',
+        'stripe_charge_id' => 'ch_test_123',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('pi_test_123')
+        ->assertDontSee('ch_test_123');
+});
+
+it('falls back to the charge id as the payment id when no intent exists', function () {
+    $this->donation->update([
+        'stripe_payment_intent_id' => null,
+        'stripe_charge_id' => 'ch_test_123',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('ch_test_123');
+});
+
 it('shows refund modal and validates reason', function () {
     $this->donation->update(['stripe_charge_id' => 'ch_test_123']);
 

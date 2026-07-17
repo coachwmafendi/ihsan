@@ -213,14 +213,17 @@
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Payment ID</dt>
                             <dd class="text-sm font-medium">
-                                @if ($donation->stripe_charge_id)
+                                @if ($donation->stripe_payment_intent_id || $donation->stripe_charge_id)
+                                    @php
+                                        $stripePaymentId = $donation->stripe_payment_intent_id ?? $donation->stripe_charge_id;
+                                    @endphp
                                     <a
-                                        href="https://dashboard.stripe.com/payments/{{ $donation->stripe_charge_id }}"
+                                        href="https://dashboard.stripe.com/payments/{{ $stripePaymentId }}"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700"
                                     >
-                                        {{ $donation->stripe_charge_id }}
+                                        {{ $stripePaymentId }}
                                         <x-heroicon-o-arrow-top-right-on-square class="size-4" />
                                     </a>
                                 @elseif ($donation->chip_purchase_id)
