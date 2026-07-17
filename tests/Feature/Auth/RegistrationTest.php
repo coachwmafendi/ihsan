@@ -21,7 +21,7 @@ test('new users can register', function () {
     ]);
 
     $response->assertSessionHasNoErrors()
-        ->assertRedirect('/app');
+        ->assertRedirect(route('app.dashboard'));
 
     $this->assertAuthenticated();
 });

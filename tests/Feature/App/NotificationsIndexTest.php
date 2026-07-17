@@ -26,7 +26,7 @@ it('renders the notifications inbox', function () {
     ));
 
     actingAs($this->user)
-        ->get('/app/notifications')
+        ->get('https://app.example.test/notifications')
         ->assertOk()
         ->assertSee('Notifications')
         ->assertSee('Platform maintenance scheduled.');
@@ -39,7 +39,7 @@ it('only shows admin-to-org notifications', function () {
         organizationId: $this->organization->id,
     ));
 
-    actingAs($this->user)->get('/app/notifications')->assertSee('Visible notification');
+    actingAs($this->user)->get('https://app.example.test/notifications')->assertSee('Visible notification');
 });
 
 it('marks a notification as read', function () {
@@ -108,7 +108,7 @@ it('shows the unread count in the topbar', function () {
     ));
 
     actingAs($this->user)
-        ->get('/app/dashboard')
+        ->get('https://app.example.test/dashboard')
         ->assertOk()
         ->assertSee('1');
 });
@@ -137,7 +137,7 @@ it('renders message line breaks and links', function () {
     ));
 
     actingAs($this->user)
-        ->get('/app/notifications')
+        ->get('https://app.example.test/notifications')
         ->assertOk()
         ->assertSee('Hello admin,', false)
         ->assertSee('<a href="https://example.com/info"', false)
@@ -153,12 +153,12 @@ it('escapes html tags in notification message', function () {
     ));
 
     actingAs($this->user)
-        ->get('/app/notifications')
+        ->get('https://app.example.test/notifications')
         ->assertOk()
         ->assertSee(e('<script>alert("xss")</script>'), false)
         ->assertDontSee('<script>alert("xss")</script>', false);
 });
 
 it('redirects guests from the inbox', function () {
-    get('/app/notifications')->assertRedirect('/login');
+    get('https://app.example.test/notifications')->assertRedirect(route('login'));
 });

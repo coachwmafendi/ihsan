@@ -10,10 +10,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
+#[Title('Create Element')]
 class ElementCreate extends Component
 {
     #[Validate('required|exists:campaigns,id')]
@@ -173,8 +175,6 @@ class ElementCreate extends Component
 
     public function render()
     {
-        return view('livewire.app.elements.create', [
-            'title' => 'Create Element',
-        ]);
+        return view('livewire.app.elements.create');
     }
 }

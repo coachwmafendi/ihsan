@@ -32,7 +32,7 @@
         {{-- Notification bell --}}
         <x-ui.tooltip text="Platform Notifications" position="bottom">
             <a
-                href="/app/notifications"
+                href="/notifications"
                 wire:navigate
                 class="relative inline-flex items-center justify-center p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
             >
@@ -79,7 +79,7 @@
                     <p class="text-xs text-slate-500">{{ auth()->user()?->email }}</p>
                 </div>
 
-                <a href="/app/settings/account" wire:navigate class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                <a href="/settings/account" wire:navigate class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                     <x-heroicon-o-user-circle class="size-4" />
                     Account
                 </a>

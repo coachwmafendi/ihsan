@@ -35,7 +35,7 @@ it('redirects unauthenticated users from the export route', function () {
     $this->get(route('app.supporters.export', [
         'format' => 'csv',
         'fields' => ['public_id', 'name'],
-    ]))->assertRedirect('/login');
+    ]))->assertRedirect(route('login'));
 });
 
 it('exports supporters as csv with selected fields', function () {

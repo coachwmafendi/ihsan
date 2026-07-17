@@ -10,9 +10,11 @@ use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
+#[Title('Billing')]
 class Billing extends Component
 {
     public string $selectedMonth = '';
@@ -91,6 +93,6 @@ class Billing extends Component
 
     public function render()
     {
-        return view('livewire.app.billing', ['title' => 'Billing']);
+        return view('livewire.app.billing');
     }
 }

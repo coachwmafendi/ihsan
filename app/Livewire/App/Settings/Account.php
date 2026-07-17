@@ -11,10 +11,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 #[Layout('layouts.app')]
+#[Title('Settings — Account')]
 class Account extends Component
 {
     use WithFileUploads;
@@ -143,6 +145,6 @@ class Account extends Component
 
     public function render()
     {
-        return view('livewire.app.settings.account', ['title' => 'Settings — Account']);
+        return view('livewire.app.settings.account');
     }
 }

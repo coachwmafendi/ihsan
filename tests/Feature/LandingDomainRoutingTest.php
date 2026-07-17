@@ -1,11 +1,22 @@
 <?php
 
+use App\Enums\UserRole;
+use App\Models\Organization;
+use App\Models\User;
+
 it('serves the landing page on the root domain', function () {
     $this->get('http://example.test/')->assertOk()->assertViewIs('welcome');
 });
 
 it('redirects the app panel domain root to the dashboard', function () {
-    $this->get('http://app.example.test/')
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->create([
+        'organization_id' => $organization->id,
+        'role' => UserRole::NgoAdmin,
+    ]);
+
+    $this->actingAs($user)
+        ->get('http://app.example.test/')
         ->assertRedirect(route('app.dashboard'));
 });
 

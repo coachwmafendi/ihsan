@@ -8,11 +8,13 @@ use App\Models\User;
 use App\Services\AuditLogLogger;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Stripe\Account;
 use Stripe\Stripe;
 
 #[Layout('layouts.app')]
+#[Title('Stripe Connect Onboarding')]
 class StripeOnboarding extends Component
 {
     public bool $showSuccessModal = false;
@@ -98,7 +100,7 @@ class StripeOnboarding extends Component
 
     public function render()
     {
-        return view('livewire.app.stripe-onboarding', ['title' => 'Stripe Connect Onboarding']);
+        return view('livewire.app.stripe-onboarding');
     }
 
     private function getUser(): ?User

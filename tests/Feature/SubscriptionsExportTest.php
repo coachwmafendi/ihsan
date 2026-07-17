@@ -32,7 +32,7 @@ it('redirects unauthenticated users from the export route', function () {
     $this->get(route('app.recurring-plans.export', [
         'format' => 'csv',
         'fields' => ['public_id', 'created_at'],
-    ]))->assertRedirect('/login');
+    ]))->assertRedirect(route('login'));
 });
 
 it('exports subscriptions as csv with selected fields', function () {

@@ -11,12 +11,14 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Spatie\Activitylog\Models\Activity;
 
 #[Layout('layouts.app')]
+#[Title('Audit Log')]
 class Index extends Component
 {
     use WithPagination;
@@ -79,7 +81,6 @@ class Index extends Component
     public function render()
     {
         return view('livewire.app.audit-log.index', [
-            'title' => 'Audit Log',
             'eventOptions' => AuditLogQuery::eventOptions(),
             'subjectTypeOptions' => AuditLogQuery::subjectTypeOptions(),
         ]);

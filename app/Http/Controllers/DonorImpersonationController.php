@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 class DonorImpersonationController extends Controller
 {
@@ -42,25 +43,19 @@ class DonorImpersonationController extends Controller
 
         $token = $donor->generateMagicToken();
 
-        $request->session()->put([
-            'admin_impersonating_donor_id' => $donor->getKey(),
-            'admin_impersonating_donor_public_id' => $donor->public_id,
-            'admin_impersonating_donor_name' => $donor->name,
-            'admin_impersonate_return_url' => $request->headers->get('referer') ?: route('app.supporters.show', $donor),
-        ]);
+        $returnUrl = $request->headers->get('referer') ?: route('app.supporters.show', $donor);
 
-        return redirect()->route('donorportal.magic-login', [
+        return redirect()->away(URL::temporarySignedRoute('donorportal.magic-login', now()->addMinutes(5), [
             'organization' => $organization,
             'token' => $token,
-        ]);
+            'impersonate' => 1,
+            'return' => $returnUrl,
+        ]));
     }
 
     public function exit(Request $request): RedirectResponse
     {
-        /** @var User|null $user */
-        $user = $request->user();
-
-        if ($user === null || $user->role !== UserRole::NgoAdmin) {
+        if (! $request->session()->has('admin_impersonating_donor_id')) {
             abort(403);
         }
 
@@ -80,13 +75,21 @@ class DonorImpersonationController extends Controller
 
     private function safeInternalUrl(string $url): string
     {
-        if (str_starts_with($url, '/') && ! str_starts_with($url, '//')) {
+        $parts = parse_url($url);
+
+        $isCleanRelative = $parts !== false
+            && ! isset($parts['scheme'], $parts['host'])
+            && str_starts_with($url, '/')
+            && ! str_starts_with($url, '//')
+            && ! str_contains($url, '\\');
+
+        if ($isCleanRelative) {
             return $url;
         }
 
-        $host = parse_url($url, PHP_URL_HOST);
+        $panelHost = config('app.app_panel_domain');
 
-        if ($host !== null && $host === request()->getHost()) {
+        if ($panelHost && $parts !== false && ($parts['host'] ?? null) === $panelHost) {
             return $url;
         }
 

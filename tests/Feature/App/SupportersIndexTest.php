@@ -213,7 +213,7 @@ it('scopes donor aggregates to the current organization only', function () {
 });
 
 it('redirects guests to login', function () {
-    $this->get(route('app.supporters.index'))->assertRedirect('/login');
+    $this->get(route('app.supporters.index'))->assertRedirect(route('login'));
 });
 
 it('paginates supporters based on per page selection', function () {

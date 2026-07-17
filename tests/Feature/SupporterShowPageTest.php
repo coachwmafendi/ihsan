@@ -26,7 +26,7 @@ it('renders the supporter detail page with sections and menus', function () {
     Donation::factory()->for($donor)->for($campaign)->create();
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSee($donor->name)
         ->assertSee('Information')
@@ -59,7 +59,7 @@ it('renders donation date with malaysian time and payment method icon', function
     expect($donation->card_icon_component)->toBe('icons.visa');
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSee($expectedTime);
 });
@@ -83,7 +83,7 @@ it('shows installment number badge for recurring donations', function () {
     ]);
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSeeHtml('1')
         ->assertSeeHtml('2');
@@ -109,7 +109,7 @@ it('shows approximate myr lifetime total when foreign donations lack base amount
     ]);
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSee('Lifetime donated ≈ MYR 200.00');
 });
@@ -124,7 +124,7 @@ it('hides recurring plans section and menu when supporter has no subscriptions',
     Donation::factory()->for($donor)->for($campaign)->create();
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertDontSeeHtml('id="recurring-plans"')
         ->assertDontSeeHtml('href="#recurring-plans"');
@@ -141,7 +141,7 @@ it('shows recurring plans section and menu when supporter has subscriptions', fu
     Subscription::factory()->for($donor)->for($campaign)->create();
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSeeHtml('id="recurring-plans"')
         ->assertSeeHtml('href="#recurring-plans"');
@@ -158,7 +158,7 @@ it('shows a validated badge next to the email once a delivery is confirmed', fun
     DonorEmailLog::factory()->for($donor)->delivered()->create();
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSee('Validated');
 });
@@ -174,7 +174,7 @@ it('hides the validated badge when no delivery has been confirmed', function () 
     DonorEmailLog::factory()->for($donor)->create();
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertDontSee('Validated');
 });
@@ -192,7 +192,7 @@ it('hides the validated badge when the email has bounced', function () {
     DonorEmailLog::factory()->for($donor)->delivered()->create();
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertDontSee('Validated');
 });
@@ -252,7 +252,7 @@ it('renders an impersonation form on the open donor portal action', function () 
     Donation::factory()->for($donor)->for($campaign)->create();
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSee('Open Donor Portal')
         ->assertSeeHtml('action="'.e(route('admin.donor-portal.impersonate', $donor)).'"')
@@ -349,7 +349,7 @@ it('renders the emails section with sent emails for the donor', function () {
     ]);
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSee('Emails')
         ->assertSee('Sent')
@@ -369,7 +369,7 @@ it('shows empty state when no emails have been sent to the donor', function () {
     Donation::factory()->for($donor)->for($campaign)->create();
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSee('Emails')
         ->assertSee('No emails yet');
@@ -394,7 +394,7 @@ it('does not show email logs from other organizations', function () {
     ]);
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSee('Emails')
         ->assertDontSee('Other Org Email')
@@ -646,7 +646,7 @@ it('shows a receipt download link for succeeded donations', function () {
     ]);
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSeeHtml('href="'.e(route('donations.receipt.download', ['donation' => $donation->public_id])).'"')
         ->assertSee('INV-SUC-001');
@@ -665,7 +665,7 @@ it('does not show non-succeeded donations in the receipts section', function (Do
     ]);
 
     $this->actingAs($user)
-        ->get('/app/supporters/'.$donor->public_id)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertDontSeeHtml('href="'.e(route('donations.receipt.download', ['donation' => $donation->public_id])).'"')
         ->assertDontSee('INV-'.$status->value.'-001');

@@ -6,59 +6,36 @@ use App\Http\Controllers\ChipWebhookController;
 use App\Http\Controllers\DemoLandingController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\DonationCampaignImageController;
-use App\Http\Controllers\DonationExportController;
 use App\Http\Controllers\DonorImpersonationController;
 use App\Http\Controllers\DonorNotificationController;
-use App\Http\Controllers\EmailLogResponsivePreviewController;
 use App\Http\Controllers\EmbedCheckoutController;
 use App\Http\Controllers\PublicElementController;
 use App\Http\Controllers\ReceiptDownloadController;
-use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
-use App\Http\Controllers\SubscriptionExportController;
-use App\Http\Controllers\SupporterExportController;
 use App\Http\Controllers\Webhooks\EmailWebhookController;
-use App\Http\Middleware\EnsureNgoAdmin;
-use App\Http\Middleware\RedirectIfStripeNotOnboarded;
-use App\Livewire\App\AuditLog\Index as AuditLogIndex;
-use App\Livewire\App\Billing;
-use App\Livewire\App\Campaigns\CampaignCreate;
-use App\Livewire\App\Campaigns\CampaignEdit;
-use App\Livewire\App\Campaigns\CampaignIndex;
-use App\Livewire\App\Dashboard;
-use App\Livewire\App\Donations\DonationIndex;
-use App\Livewire\App\Donations\DonationShow;
-use App\Livewire\App\Elements\ElementCreate;
-use App\Livewire\App\Elements\ElementEdit;
-use App\Livewire\App\Elements\ElementIndex;
-use App\Livewire\App\Notifications\Index as NotificationsIndex;
-use App\Livewire\App\Settings\Account;
-use App\Livewire\App\Settings\AllowDomains;
-use App\Livewire\App\Settings\DonorPortal;
-use App\Livewire\App\Settings\Installation;
-use App\Livewire\App\Settings\Notifications;
-use App\Livewire\App\Settings\Organization as OrganizationSettings;
-use App\Livewire\App\Settings\Payment;
-use App\Livewire\App\Settings\Tracking;
-use App\Livewire\App\StripeOnboarding;
-use App\Livewire\App\Subscriptions\SubscriptionIndex;
-use App\Livewire\App\Subscriptions\SubscriptionShow;
-use App\Livewire\App\Supporters\SupporterIndex;
-use App\Livewire\App\Supporters\SupporterShow;
-use App\Livewire\App\VirtualTerminal;
 use App\Livewire\Auth\RegisterOrganization;
 use App\Livewire\CampaignPublicPage;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-if ($appPanelDomain = config('app.app_panel_domain')) {
-    Route::domain($appPanelDomain)
-        ->get('/', fn () => redirect()->route('app.dashboard'))
-        ->name('app.home');
-}
-
 Route::view('/', 'welcome')->name('home');
+
+// Legacy panel URLs: the panel moved to its own subdomain.
+Route::get('/app/{path?}', function (string $path = '') {
+    $target = 'https://'.config('app.app_panel_domain').'/'.$path;
+
+    if ($query = request()->getQueryString()) {
+        $target .= '?'.$query;
+    }
+
+    return redirect()->away($target, 301);
+})->where('path', '.*');
+
+Route::get('/login', fn () => redirect()->away(
+    'https://'.config('app.app_panel_domain').'/login', 301
+));
+
 Route::get('/docs/{path?}', DocsController::class)
     ->where('path', '.*')
     ->name('docs.show');
@@ -166,72 +143,8 @@ Route::post('/webhooks/mailgun', [EmailWebhookController::class, 'mailgun'])->na
 Route::post('/webhooks/postmark', [EmailWebhookController::class, 'postmark'])->name('webhooks.postmark');
 Route::post('/webhooks/ses/{token}', [EmailWebhookController::class, 'ses'])->name('webhooks.ses');
 
-Route::middleware(['auth', EnsureNgoAdmin::class])->group(function () {
-    Route::post('/app/supporters/{donor:public_id}/impersonate', [DonorImpersonationController::class, 'impersonate'])
-        ->name('admin.donor-portal.impersonate');
-    Route::post('/app/impersonate/exit', [DonorImpersonationController::class, 'exit'])
-        ->name('admin.donor-portal.exit');
-});
-
-Route::middleware(['auth', EnsureNgoAdmin::class, RedirectIfStripeNotOnboarded::class])->group(function () {
-    Route::get('/app', fn () => redirect()->route('app.dashboard'))->name('app');
-    Route::get('/app/dashboard', Dashboard::class)->name('app.dashboard');
-    Route::get('/app/insights', fn () => redirect()->route('app.dashboard', [], 301))->name('app.insights');
-
-    Route::get('/app/campaigns', CampaignIndex::class)->name('app.campaigns.index');
-    Route::get('/app/campaigns/create', CampaignCreate::class)->name('app.campaigns.create');
-    Route::get('/app/campaigns/{campaign:public_id}/edit', CampaignEdit::class)->name('app.campaigns.edit');
-
-    Route::get('/app/donations', DonationIndex::class)->name('app.donations.index');
-    Route::get('/app/donations/export', DonationExportController::class)->name('app.donations.export');
-    Route::get('/app/donations/{donation:public_id}', DonationShow::class)->name('app.donations.show');
-
-    Route::get('/app/supporters', SupporterIndex::class)->name('app.supporters.index');
-    Route::get('/app/supporters/export', SupporterExportController::class)->name('app.supporters.export');
-    Route::get('/app/supporters/{donor:public_id}', SupporterShow::class)->name('app.supporters.show');
-    Route::get('/app/supporters/{donor:public_id}/emails/{emailLog:public_id}/responsive-preview', [EmailLogResponsivePreviewController::class, 'show'])
-        ->name('app.supporters.emails.responsive-preview');
-
-    Route::get('/app/settings/organization', OrganizationSettings::class)->name('app.settings.organization');
-    Route::get('/app/settings/payment', Payment::class)->name('app.settings.payment');
-    Route::get('/app/settings/notifications', Notifications::class)->name('app.settings.notifications');
-    Route::get('/app/settings/tracking', Tracking::class)->name('app.settings.tracking');
-    Route::get('/app/settings/installation', Installation::class)->name('app.settings.installation');
-    Route::get('/app/settings/allow-domains', AllowDomains::class)->name('app.settings.allow-domains');
-    Route::get('/app/settings/donor-portal', DonorPortal::class)->name('app.settings.donor-portal');
-    Route::get('/app/settings/account', Account::class)->name('app.settings.account');
-    Route::get('/app/notifications', NotificationsIndex::class)->name('app.notifications.index');
-    Route::get('/app/billing', Billing::class)->name('app.billing');
-    Route::get('/app/stripe-onboarding', StripeOnboarding::class)->name('app.stripe-onboarding');
-
-    Route::get('/app/subscriptions', SubscriptionIndex::class)->name('app.subscriptions.index');
-    Route::get('/app/subscriptions/{subscription:public_id}', SubscriptionShow::class)->name('app.subscriptions.show');
-    Route::get('/app/recurring-plans', SubscriptionIndex::class)->name('app.recurring-plans');
-    Route::get('/app/recurring-plans/export', SubscriptionExportController::class)->name('app.recurring-plans.export');
-
-    Route::get('/app/elements', ElementIndex::class)->name('app.elements.index');
-    Route::get('/app/elements/create', ElementCreate::class)->name('app.elements.create');
-    Route::get('/app/elements/{element}/edit', ElementEdit::class)->name('app.elements.edit');
-    Route::get('/app/virtual-terminal', VirtualTerminal::class)->name('app.virtual-terminal');
-    Route::get('/app/audit-log', AuditLogIndex::class)->name('app.audit-log.index');
-
-    // Placeholder routes for upcoming features
-    Route::get('/app/payouts', fn () => redirect('/app/dashboard'))->name('app.payouts');
-    Route::get('/app/members', fn () => redirect('/app/dashboard'))->name('app.members');
-    Route::get('/app/teams', fn () => redirect('/app/dashboard'))->name('app.teams');
-    Route::get('/app/developer/api-keys', fn () => redirect('/app/dashboard'))->name('app.developer.api-keys');
-    Route::get('/app/developer/webhooks', fn () => redirect('/app/dashboard'))->name('app.developer.webhooks');
-    Route::get('/app/developer/embed-forms', fn () => redirect('/app/dashboard'))->name('app.developer.embed-forms');
-
-    Route::get('/stripe/connect/redirect', [StripeConnectController::class, 'redirect'])
-        ->name('stripe.connect.redirect');
-
-    Route::get('/donations/{donation}/receipt', ReceiptDownloadController::class)
-        ->name('donations.receipt.download');
-});
-
-Route::get('/stripe/connect/callback', [StripeConnectController::class, 'callback'])
-    ->name('stripe.connect.callback');
+Route::post('/impersonate/exit', [DonorImpersonationController::class, 'exit'])
+    ->name('admin.donor-portal.exit');
 
 use App\Enums\SubscriptionInterval;
 use App\Http\Controllers\DonorAuthController;
