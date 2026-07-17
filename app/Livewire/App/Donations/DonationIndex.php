@@ -14,11 +14,13 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
+#[Title('Donations')]
 class DonationIndex extends Component
 {
     use WithPagination;
@@ -314,8 +316,6 @@ class DonationIndex extends Component
 
     public function render()
     {
-        return view('livewire.app.donations.index', [
-            'title' => 'Donations',
-        ]);
+        return view('livewire.app.donations.index');
     }
 }

@@ -10,11 +10,13 @@ use App\Models\Campaign;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
+#[Title('Campaigns')]
 class CampaignIndex extends Component
 {
     use WithPagination;
@@ -255,8 +257,6 @@ class CampaignIndex extends Component
 
     public function render()
     {
-        return view('livewire.app.campaigns.index', [
-            'title' => 'Campaigns',
-        ]);
+        return view('livewire.app.campaigns.index');
     }
 }

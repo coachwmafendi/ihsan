@@ -15,11 +15,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
+#[Title('Supporters')]
 class SupporterIndex extends Component
 {
     use WithPagination;
@@ -331,7 +333,6 @@ class SupporterIndex extends Component
             ->map(fn ($items) => $items->mapWithKeys(fn ($item) => [strtoupper($item->currency) => $item->total]));
 
         return view('livewire.app.supporters.index', [
-            'title' => 'Supporters',
             'exactAmounts' => $exactAmounts,
         ]);
     }

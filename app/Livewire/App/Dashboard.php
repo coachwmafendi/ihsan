@@ -19,9 +19,11 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
+#[Title('Dashboard')]
 class Dashboard extends Component
 {
     public string $period = 'today';
@@ -539,8 +541,6 @@ class Dashboard extends Component
 
     public function render()
     {
-        return view('livewire.app.dashboard', [
-            'title' => 'Dashboard',
-        ]);
+        return view('livewire.app.dashboard');
     }
 }
