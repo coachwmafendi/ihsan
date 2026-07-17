@@ -40,7 +40,7 @@ test('one-time donation notification subject and body include key details', func
         ->toContain($donor->email)
         ->toContain($donation->public_id)
         ->toContain('View in Ihsan')
-        ->toContain('app/donations/'.$donation->public_id)
+        ->toContain('https://app.example.test/donations/'.$donation->public_id)
         ->toContain(myrTime($donation->created_at));
 });
 
@@ -98,7 +98,7 @@ test('recurring donation notification email body matches new layout', function (
         ->toContain('Net to Organization')
         ->toContain('Next Billing Date')
         ->toContain('View in Ihsan')
-        ->toContain('app/donations/'.$donation->public_id)
+        ->toContain('https://app.example.test/donations/'.$donation->public_id)
         ->toContain('Hi <strong>')
         ->not->toContain('Payment Number')
         ->not->toContain('Frequency');

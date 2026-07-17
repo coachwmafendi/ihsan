@@ -11,7 +11,7 @@ it('redirects app panel root to dashboard', function () {
     ]);
 
     $this->actingAs($user)
-        ->get('/app')
+        ->get(route('app'))
         ->assertRedirect(route('app.dashboard'));
 });
 
@@ -43,7 +43,7 @@ it('keeps panel roles separated', function () {
         ->assertForbidden();
 
     $this->actingAs($superAdmin)
-        ->get('/app')
+        ->get(route('app'))
         ->assertForbidden();
 });
 
@@ -68,12 +68,12 @@ it('shows app panel resource pages to ngo admins', function () {
     $this->actingAs($user);
 
     foreach ([
-        '/app/dashboard',
-        '/app/campaigns',
-        '/app/elements',
-        '/app/donations',
-        '/app/subscriptions',
-        '/app/supporters',
+        'https://app.example.test/dashboard',
+        'https://app.example.test/campaigns',
+        'https://app.example.test/elements',
+        'https://app.example.test/donations',
+        'https://app.example.test/subscriptions',
+        'https://app.example.test/supporters',
     ] as $path) {
         $this->get($path)->assertSuccessful();
     }

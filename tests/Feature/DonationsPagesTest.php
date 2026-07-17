@@ -244,8 +244,8 @@ it('renders date and donation columns without wrapping', function () {
 });
 
 it('redirects guests to login', function () {
-    $this->get(route('app.donations.index'))->assertRedirect('/login');
-    $this->get(route('app.donations.show', $this->donation))->assertRedirect('/login');
+    $this->get(route('app.donations.index'))->assertRedirect(route('login'));
+    $this->get(route('app.donations.show', $this->donation))->assertRedirect(route('login'));
 });
 
 it('links the source element to the element edit page', function () {

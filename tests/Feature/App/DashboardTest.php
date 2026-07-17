@@ -27,13 +27,13 @@ beforeEach(function () {
 });
 
 it('redirects guests to login', function () {
-    get('/app/dashboard')
-        ->assertRedirect('/login');
+    get('https://app.example.test/dashboard')
+        ->assertRedirect(route('login'));
 });
 
 it('renders successfully for authenticated users', function () {
     actingAs($this->user)
-        ->get('/app/dashboard')
+        ->get('https://app.example.test/dashboard')
         ->assertOk()
         ->assertSee('Dashboard')
         ->assertSee('Overview of your fundraising activity');
@@ -41,7 +41,7 @@ it('renders successfully for authenticated users', function () {
 
 it('displays dashboard stats', function () {
     actingAs($this->user)
-        ->get('/app/dashboard')
+        ->get('https://app.example.test/dashboard')
         ->assertOk()
         ->assertSee('Total Donations')
         ->assertSee('Donors')
@@ -52,7 +52,7 @@ it('displays dashboard stats', function () {
 
 it('shows quick action buttons', function () {
     actingAs($this->user)
-        ->get('/app/dashboard')
+        ->get('https://app.example.test/dashboard')
         ->assertOk()
         ->assertSee('Create Campaign')
         ->assertSee('View Donations')
@@ -62,7 +62,7 @@ it('shows quick action buttons', function () {
 
 it('shows analytics sections from merged insights', function () {
     actingAs($this->user)
-        ->get('/app/dashboard')
+        ->get('https://app.example.test/dashboard')
         ->assertOk()
         ->assertSee('Donation Trend')
         ->assertSee('Donations by Campaign')
@@ -87,7 +87,7 @@ it('shows a status badge for each recent donation', function () {
     ]);
 
     actingAs($this->user)
-        ->get('/app/dashboard')
+        ->get('https://app.example.test/dashboard')
         ->assertOk()
         ->assertSee(ucfirst($succeeded->status->value), false)
         ->assertSee('Succeeded', false)
@@ -175,7 +175,7 @@ it('aggregates donations by frequency into weekly buckets for long periods', fun
 
 it('has sidebar navigation', function () {
     actingAs($this->user)
-        ->get('/app/dashboard')
+        ->get('https://app.example.test/dashboard')
         ->assertOk()
         ->assertSee('Fundraise')
         ->assertSee('Finance')
@@ -185,9 +185,9 @@ it('has sidebar navigation', function () {
 
 it('opens virtual terminal navigation in a new tab', function () {
     actingAs($this->user)
-        ->get('/app/dashboard')
+        ->get('https://app.example.test/dashboard')
         ->assertOk()
-        ->assertSee('href="/app/virtual-terminal"', false)
+        ->assertSee('href="/virtual-terminal"', false)
         ->assertSee('target="_blank"', false)
         ->assertSee('Opens in new tab', false);
 });
@@ -454,7 +454,7 @@ it('flags approximation when a contributing subscription is not in MYR', functio
 
 it('displays recurring revenue health stat cards', function () {
     actingAs($this->user)
-        ->get('/app/dashboard')
+        ->get('https://app.example.test/dashboard')
         ->assertOk()
         ->assertSee('MRR')
         ->assertSee('At-risk Subscriptions')

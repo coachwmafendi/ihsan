@@ -116,7 +116,7 @@ it('scopes donation and subscription activities through their campaign', functio
 // Page
 it('renders the audit log page', function () {
     actingAs($this->user)
-        ->get('/app/audit-log')
+        ->get('https://app.example.test/audit-log')
         ->assertOk()
         ->assertSee('Audit Log');
 });
@@ -131,7 +131,7 @@ it('lists organization audit log entries on the page', function () {
         ->log('Updated campaign');
 
     actingAs($this->user)
-        ->get('/app/audit-log')
+        ->get('https://app.example.test/audit-log')
         ->assertOk()
         ->assertSee('Updated campaign');
 });
@@ -145,7 +145,7 @@ it('does not show other organizations activity entries', function () {
         ->log('Updated other campaign');
 
     actingAs($this->user)
-        ->get('/app/audit-log')
+        ->get('https://app.example.test/audit-log')
         ->assertOk()
         ->assertDontSee('Updated other campaign');
 });
@@ -215,7 +215,7 @@ it('shows stripe connect manual logs in audit log page', function () {
     AuditLogLogger::stripeConnected($this->organization, $this->user, 'acct_test123');
 
     actingAs($this->user)
-        ->get('/app/audit-log')
+        ->get('https://app.example.test/audit-log')
         ->assertOk()
         ->assertSee('Stripe Connect');
 });

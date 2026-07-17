@@ -26,7 +26,7 @@ beforeEach(function () {
 
 test('virtual terminal page is accessible by org admin', function () {
     // TODO: use route() helper once VirtualTerminal page is registered
-    $response = $this->get('/app/virtual-terminal');
+    $response = $this->get('https://app.example.test/virtual-terminal');
     $response->assertOk();
     $response->assertSee('Virtual Terminal', false);
     $response->assertSee('mx-auto min-h-screen max-w-7xl', false);
@@ -43,7 +43,7 @@ test('virtual terminal page preloads supporter from query param', function () {
     ]);
 
     // TODO: use route() helper once VirtualTerminal page is registered
-    $response = $this->get("/app/virtual-terminal?vt-supporter={$donor->public_id}");
+    $response = $this->get("https://app.example.test/virtual-terminal?vt-supporter={$donor->public_id}");
     $response->assertOk();
     $response->assertSee('Ahmad Ali');
     $response->assertSee('ahmad@example.com');
@@ -67,7 +67,7 @@ test('virtual terminal shows saved cards for preloaded supporter', function () {
         'is_default' => true,
     ]);
 
-    $response = $this->get("/app/virtual-terminal?vt-supporter={$donor->public_id}");
+    $response = $this->get("https://app.example.test/virtual-terminal?vt-supporter={$donor->public_id}");
 
     $response->assertOk();
     $response->assertSee('Existing debit/credit card');
@@ -111,7 +111,7 @@ test('virtual terminal amount field uses decimal text input and organization cur
         'settings' => ['accepted_currencies' => ['myr', 'sgd']],
     ]);
 
-    $response = $this->get('/app/virtual-terminal');
+    $response = $this->get('https://app.example.test/virtual-terminal');
 
     $response->assertOk();
     $response->assertSee('inputmode="decimal"', false);
@@ -218,15 +218,15 @@ test('one-time donation creates donation record for existing donor', function ()
 test('unauthenticated user cannot access virtual terminal', function () {
     auth()->logout();
 
-    $response = $this->get('/app/virtual-terminal');
-    $response->assertRedirect('/login');
+    $response = $this->get('https://app.example.test/virtual-terminal');
+    $response->assertRedirect(route('login'));
 });
 
 test('user without organization cannot access virtual terminal', function () {
     $user = User::factory()->create(['organization_id' => null]);
     $this->actingAs($user);
 
-    $response = $this->get('/app/virtual-terminal');
+    $response = $this->get('https://app.example.test/virtual-terminal');
     $response->assertForbidden();
 });
 

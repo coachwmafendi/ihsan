@@ -18,10 +18,10 @@ it('formats app page titles as {Title} - {Organization Name}', function (string 
         ->assertOk()
         ->assertSee("<title>{$expectedTitle} - {$this->organization->name}</title>", false);
 })->with([
-    ['/app/dashboard', 'Dashboard'],
-    ['/app/campaigns', 'Campaigns'],
-    ['/app/elements', 'Elements'],
-    ['/app/donations', 'Donations'],
-    ['/app/recurring-plans', 'Recurring Plans'],
-    ['/app/supporters', 'Supporters'],
+    ['https://app.example.test/dashboard', 'Dashboard'],
+    ['https://app.example.test/campaigns', 'Campaigns'],
+    ['https://app.example.test/elements', 'Elements'],
+    ['https://app.example.test/donations', 'Donations'],
+    ['https://app.example.test/recurring-plans', 'Recurring Plans'],
+    ['https://app.example.test/supporters', 'Supporters'],
 ]);

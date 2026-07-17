@@ -27,8 +27,8 @@ it('requires authentication', function () {
         'organization_id' => $this->organization->id,
     ]);
 
-    $this->get("/app/campaigns/{$campaign->public_id}/edit")
-        ->assertRedirect('/login');
+    $this->get("https://app.example.test/campaigns/{$campaign->public_id}/edit")
+        ->assertRedirect(route('login'));
 });
 
 it('renders for an authorized user', function () {
@@ -55,7 +55,7 @@ it('shows a copied tooltip instead of a toast when copying from the edit page', 
     ]);
 
     $this->actingAs($this->user)
-        ->get("/app/campaigns/{$campaign->public_id}/edit")
+        ->get("https://app.example.test/campaigns/{$campaign->public_id}/edit")
         ->assertOk()
         ->assertSee('Copy ID', false)
         ->assertSee('Copied', false)
