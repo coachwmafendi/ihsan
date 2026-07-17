@@ -20,14 +20,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 use Stripe\Customer;
 use Stripe\Stripe;
 use Stripe\Subscription as StripeSubscription;
 
 #[Layout('layouts.app')]
-#[Title('Supporter')]
 class SupporterShow extends Component
 {
     public Donor $donor;
@@ -400,6 +398,7 @@ class SupporterShow extends Component
 
     public function render()
     {
-        return view('livewire.app.supporters.show');
+        return view('livewire.app.supporters.show')
+            ->title("{$this->donor->name} - Supporter");
     }
 }
