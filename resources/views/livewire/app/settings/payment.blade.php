@@ -123,7 +123,7 @@
                                 Link your Stripe account to start accepting donations.
                             </p>
                         </div>
-                        <x-ui.button variant="primary" size="sm" href="/app/stripe-onboarding">
+                        <x-ui.button variant="primary" size="sm" href="/stripe-onboarding">
                             Connect with Stripe
                         </x-ui.button>
                     </div>

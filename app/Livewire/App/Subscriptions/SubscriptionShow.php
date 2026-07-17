@@ -23,11 +23,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Stripe\Invoice as StripeInvoice;
 use Stripe\Stripe;
 
 #[Layout('layouts.app')]
+#[Title('Recurring Plan')]
 class SubscriptionShow extends Component
 {
     public Subscription $subscription;
@@ -855,8 +857,6 @@ class SubscriptionShow extends Component
 
     public function render()
     {
-        return view('livewire.app.subscriptions.show', [
-            'title' => 'Subscription '.$this->subscription->public_id,
-        ]);
+        return view('livewire.app.subscriptions.show');
     }
 }

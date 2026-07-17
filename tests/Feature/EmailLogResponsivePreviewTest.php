@@ -69,5 +69,5 @@ it('redirects guests to login', function () {
     $log = DonorEmailLog::factory()->donation($donation)->create();
 
     $this->get(route('app.supporters.emails.responsive-preview', ['donor' => $donor->public_id, 'emailLog' => $log->public_id]))
-        ->assertRedirect('/login');
+        ->assertRedirect(route('login'));
 });

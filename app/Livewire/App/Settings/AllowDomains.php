@@ -7,9 +7,11 @@ namespace App\Livewire\App\Settings;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
+#[Title('Settings — Allowed Domains')]
 class AllowDomains extends Component
 {
     public const MAX_ALLOWED_DOMAINS = 10;
@@ -115,6 +117,6 @@ class AllowDomains extends Component
 
     public function render()
     {
-        return view('livewire.app.settings.allow-domains', ['title' => 'Settings — Allowed Domains']);
+        return view('livewire.app.settings.allow-domains');
     }
 }

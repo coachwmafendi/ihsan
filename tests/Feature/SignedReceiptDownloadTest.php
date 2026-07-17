@@ -132,7 +132,7 @@ it('downloads receipt via authenticated donation receipt route', function () {
     ]);
 
     $this->actingAs($user)
-        ->get('/donations/'.$donation->public_id.'/receipt')
+        ->get('https://app.example.test/donations/'.$donation->public_id.'/receipt')
         ->assertSuccessful()
         ->assertHeader('content-type', 'application/pdf');
 });
@@ -149,7 +149,7 @@ it('returns 404 for non-succeeded donations via authenticated donation receipt r
     ]);
 
     $this->actingAs($user)
-        ->get('/donations/'.$donation->public_id.'/receipt')
+        ->get('https://app.example.test/donations/'.$donation->public_id.'/receipt')
         ->assertNotFound();
 })->with([
     DonationStatus::Pending,

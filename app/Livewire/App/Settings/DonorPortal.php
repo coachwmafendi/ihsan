@@ -7,9 +7,11 @@ namespace App\Livewire\App\Settings;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
+#[Title('Settings — Donor Portal')]
 class DonorPortal extends Component
 {
     public ?string $portal_reply_to_email = null;
@@ -62,6 +64,6 @@ class DonorPortal extends Component
 
     public function render()
     {
-        return view('livewire.app.settings.donor-portal', ['title' => 'Settings — Donor Portal']);
+        return view('livewire.app.settings.donor-portal');
     }
 }

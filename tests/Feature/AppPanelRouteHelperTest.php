@@ -11,14 +11,14 @@ uses(RefreshDatabase::class);
 
 it('builds app routes on the app panel domain', function () {
     expect(appPanelRoute('app.dashboard'))
-        ->toBe('https://app.example.test/app/dashboard');
+        ->toBe('https://app.example.test/dashboard');
 });
 
 it('falls back to the app url when no app panel domain is configured', function () {
     config(['app.app_panel_domain' => null]);
 
     expect(appPanelRoute('app.dashboard'))
-        ->toBe(rtrim(config('app.url'), '/').'/app/dashboard');
+        ->toBe(rtrim(config('app.url'), '/').'/dashboard');
 });
 
 it('is used for admin notification email buttons', function () {
@@ -29,5 +29,5 @@ it('is used for admin notification email buttons', function () {
 
     $html = (new NewDonationNotification($donation, 'MYR 100.00'))->render();
 
-    expect($html)->toContain('https://app.example.test/app/donations/'.$donation->public_id);
+    expect($html)->toContain('https://app.example.test/donations/'.$donation->public_id);
 });

@@ -23,20 +23,20 @@ beforeEach(function () {
 // Settings Organization
 it('renders settings organization page', function () {
     actingAs($this->user)
-        ->get('/app/settings/organization')
+        ->get('https://app.example.test/settings/organization')
         ->assertOk()
         ->assertSee('Settings')
         ->assertSee('Organization');
 });
 
 it('redirects guests from settings organization', function () {
-    get('/app/settings/organization')->assertRedirect('/login');
+    get('https://app.example.test/settings/organization')->assertRedirect(route('login'));
 });
 
 // Settings Payment
 it('renders settings payment page', function () {
     actingAs($this->user)
-        ->get('/app/settings/payment')
+        ->get('https://app.example.test/settings/payment')
         ->assertOk()
         ->assertSee('Settings')
         ->assertSee('Payment');
@@ -45,7 +45,7 @@ it('renders settings payment page', function () {
 // Settings Notifications
 it('renders settings notifications page', function () {
     actingAs($this->user)
-        ->get('/app/settings/notifications')
+        ->get('https://app.example.test/settings/notifications')
         ->assertOk()
         ->assertSee('Settings')
         ->assertSee('Notifications');
@@ -54,7 +54,7 @@ it('renders settings notifications page', function () {
 // Billing
 it('renders billing page', function () {
     actingAs($this->user)
-        ->get('/app/billing')
+        ->get('https://app.example.test/billing')
         ->assertOk()
         ->assertSee('Billing');
 });
@@ -67,7 +67,7 @@ it('renders stripe onboarding page', function () {
     ]);
 
     actingAs($user)
-        ->get('/app/stripe-onboarding')
+        ->get('https://app.example.test/stripe-onboarding')
         ->assertOk()
         ->assertSee('Stripe');
 });
@@ -75,7 +75,7 @@ it('renders stripe onboarding page', function () {
 // Settings Allowed Domains
 it('renders settings allowed domains page', function () {
     actingAs($this->user)
-        ->get('/app/settings/allow-domains')
+        ->get('https://app.example.test/settings/allow-domains')
         ->assertOk()
         ->assertSee('Settings')
         ->assertSee('Allowed Domains');
@@ -159,7 +159,7 @@ it('enforces a maximum of 10 allowed domains', function () {
 // Settings Donor Portal
 it('renders settings donor portal page', function () {
     actingAs($this->user)
-        ->get('/app/settings/donor-portal')
+        ->get('https://app.example.test/settings/donor-portal')
         ->assertOk()
         ->assertSee('Settings')
         ->assertSee('Donor Portal');
@@ -204,14 +204,14 @@ it('defaults donor portal reply-to email to organization contact email', functio
 // Settings Account
 it('renders settings account page', function () {
     actingAs($this->user)
-        ->get('/app/settings/account')
+        ->get('https://app.example.test/settings/account')
         ->assertOk()
         ->assertSee('Settings')
         ->assertSee('Account');
 });
 
 it('redirects guests from settings account', function () {
-    get('/app/settings/account')->assertRedirect('/login');
+    get('https://app.example.test/settings/account')->assertRedirect(route('login'));
 });
 
 it('updates account name', function () {

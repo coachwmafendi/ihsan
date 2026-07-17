@@ -8,10 +8,12 @@ use App\Models\Organization as OrganizationModel;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 #[Layout('layouts.app')]
+#[Title('Settings — Organization')]
 class Organization extends Component
 {
     use WithFileUploads;
@@ -179,6 +181,6 @@ class Organization extends Component
 
     public function render()
     {
-        return view('livewire.app.settings.organization', ['title' => 'Settings — Organization']);
+        return view('livewire.app.settings.organization');
     }
 }

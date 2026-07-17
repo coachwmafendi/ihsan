@@ -43,7 +43,7 @@ it('shows the brand wordmark next to the mark on guest auth pages', function (st
     $this->get($path)
         ->assertOk()
         ->assertSee('>ihsan</span>', false);
-})->with(['/login', '/forgot-password']);
+})->with(fn () => [route('login'), route('password.request')]);
 
 it('shows the star mark and wordmark in the app sidebar', function () {
     $organization = Organization::factory()->create();
@@ -52,7 +52,7 @@ it('shows the star mark and wordmark in the app sidebar', function () {
     ]);
 
     $response = $this->actingAs($user)
-        ->get('/app/dashboard')
+        ->get('https://app.example.test/dashboard')
         ->assertOk()
         ->assertSee('>ihsan</span>', false)
         ->assertSee('rotate(45 32 32)', false);

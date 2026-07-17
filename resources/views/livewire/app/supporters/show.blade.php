@@ -29,7 +29,7 @@
         </div>
         <div class="flex items-center gap-2 lg:hidden">
             <x-ui.button
-                href="/app/virtual-terminal?vt-supporter={{ $donor->public_id }}"
+                href="/virtual-terminal?vt-supporter={{ $donor->public_id }}"
                 variant="outline"
                 target="_blank"
             >
@@ -437,7 +437,7 @@
                 {{-- Actions --}}
                 <div class="rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
                     <a
-                        href="/app/virtual-terminal?vt-supporter={{ $donor->public_id }}"
+                        href="/virtual-terminal?vt-supporter={{ $donor->public_id }}"
                         target="_blank"
                         class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                     >

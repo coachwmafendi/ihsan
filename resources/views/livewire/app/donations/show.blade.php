@@ -91,7 +91,7 @@
                             <dt class="text-sm text-slate-500">Supporter</dt>
                             <dd class="text-sm font-medium">
                                 @if ($donation->donor)
-                                    <a href="/app/supporters/{{ $donation->donor->public_id }}" wire:navigate class="text-blue-600 hover:text-blue-700">
+                                    <a href="/supporters/{{ $donation->donor->public_id }}" wire:navigate class="text-blue-600 hover:text-blue-700">
                                         {{ $donation->donor->name }}
                                     </a>
                                 @else

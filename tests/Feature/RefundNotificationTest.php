@@ -35,7 +35,7 @@ test('refund notification displays supporter details and public ids', function (
         ->toContain($donation->public_id)
         ->toContain('Tabung Lillah Darul Mujtaba')
         ->toContain('View in '.config('app.name'))
-        ->toContain('app/donations/'.$donation->public_id)
+        ->toContain('https://app.example.test/donations/'.$donation->public_id)
         ->not->toContain('>Donor<')
         ->not->toContain('Original Donation');
 });
