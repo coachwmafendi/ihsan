@@ -89,6 +89,15 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
+/* Flux input action buttons (e.g. show/hide password) are too faint by default. */
+[data-flux-input] button[type='button'] {
+    @apply !text-slate-500;
+}
+
+[data-flux-input] button[type='button']:hover {
+    @apply !bg-slate-100 !text-slate-900;
+}
+
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */

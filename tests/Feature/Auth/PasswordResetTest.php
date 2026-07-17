@@ -36,6 +36,7 @@ test('reset password screen can be rendered', function () {
         $response = $this->get(route('password.reset', $notification->token));
 
         $response->assertOk();
+        $response->assertSee('!border-slate-300');
 
         return true;
     });

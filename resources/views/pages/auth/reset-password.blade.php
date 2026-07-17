@@ -18,7 +18,7 @@
                 type="email"
                 required
                 autocomplete="email"
-                class:input="!text-slate-900"
+                class:input="!text-slate-900 !border-slate-300"
             />
 
             <!-- Password -->
@@ -31,7 +31,7 @@
                 :placeholder="__('Password')"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
                 viewable
-                class:input="!text-slate-900"
+                class:input="!text-slate-900 !border-slate-300"
             />
 
             <!-- Confirm Password -->
@@ -44,7 +44,7 @@
                 :placeholder="__('Confirm password')"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
                 viewable
-                class:input="!text-slate-900"
+                class:input="!text-slate-900 !border-slate-300"
             />
 
             <div class="flex items-center justify-end">
