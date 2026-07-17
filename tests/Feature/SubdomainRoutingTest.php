@@ -43,3 +43,21 @@ it('redirects the app panel root to the dashboard', function () {
         ->get('https://app.example.test/')
         ->assertRedirect(route('app.dashboard'));
 });
+
+it('301-redirects legacy /app paths to the panel domain preserving path and query', function () {
+    $this->get('http://localhost/app/campaigns?page=2')
+        ->assertStatus(301)
+        ->assertRedirect('https://app.example.test/campaigns?page=2');
+});
+
+it('301-redirects the bare /app path to the panel domain root', function () {
+    $this->get('http://localhost/app')
+        ->assertStatus(301)
+        ->assertRedirect('https://app.example.test/');
+});
+
+it('301-redirects root-domain /login to the panel domain', function () {
+    $this->get('http://localhost/login')
+        ->assertStatus(301)
+        ->assertRedirect('https://app.example.test/login');
+});

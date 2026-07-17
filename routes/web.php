@@ -20,6 +20,22 @@ use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 Route::view('/', 'welcome')->name('home');
+
+// Legacy panel URLs: the panel moved to its own subdomain.
+Route::get('/app/{path?}', function (string $path = '') {
+    $target = 'https://'.config('app.app_panel_domain').'/'.$path;
+
+    if ($query = request()->getQueryString()) {
+        $target .= '?'.$query;
+    }
+
+    return redirect()->away($target, 301);
+})->where('path', '.*');
+
+Route::get('/login', fn () => redirect()->away(
+    'https://'.config('app.app_panel_domain').'/login', 301
+));
+
 Route::get('/docs/{path?}', DocsController::class)
     ->where('path', '.*')
     ->name('docs.show');
