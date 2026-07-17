@@ -57,7 +57,7 @@ class DonorAuthController extends Controller
             ->with('success', 'If that email is registered, a login link has been sent.');
     }
 
-    public function login(Organization $organization, string $token)
+    public function login(Request $request, Organization $organization, string $token)
     {
         $donor = Donor::query()
             ->where('magic_token', hash('sha256', $token))
@@ -67,11 +67,25 @@ class DonorAuthController extends Controller
             return redirect()->route('donorportal.login', $organization)->with('error', 'Invalid or expired login link.');
         }
 
-        session()->put('donor_id', $donor->getKey());
-        session()->put('organization_id', $organization->getKey());
-        session()->regenerate();
+        $request->session()->put('donor_id', $donor->getKey());
+        $request->session()->put('organization_id', $organization->getKey());
+        $request->session()->regenerate();
 
-        $redirect = request()->query('redirect');
+        /**
+         * Expired or tampered impersonation links intentionally fall back to a
+         * plain donor login: the donor gets a normal session and no admin
+         * impersonation context is attached.
+         */
+        if ($request->boolean('impersonate') && $request->hasValidSignature()) {
+            $request->session()->put([
+                'admin_impersonating_donor_id' => $donor->getKey(),
+                'admin_impersonating_donor_public_id' => $donor->public_id,
+                'admin_impersonating_donor_name' => $donor->name,
+                'admin_impersonate_return_url' => $request->query('return', appPanelRoute('app.supporters.index')),
+            ]);
+        }
+
+        $redirect = $request->query('redirect');
         if ($redirect && str_starts_with($redirect, '/') && ! str_starts_with($redirect, '//')) {
             return redirect($redirect);
         }
