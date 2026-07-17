@@ -133,7 +133,7 @@ class Payment extends Component
 
         AuditLogLogger::stripeDisconnected($org, $this->getUser());
 
-        $this->redirect('/app/stripe-onboarding');
+        $this->redirect('/stripe-onboarding');
     }
 
     public function saveChipSettings(): void

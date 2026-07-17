@@ -513,12 +513,12 @@
                 Create Campaign
             </x-ui.button>
 
-            <x-ui.button href="/app/donations" variant="outline">
+            <x-ui.button href="/donations" variant="outline">
                 <x-heroicon-o-banknotes class="size-4" />
                 View Donations
             </x-ui.button>
 
-            <x-ui.button href="/app/virtual-terminal" variant="outline" target="_blank">
+            <x-ui.button href="/virtual-terminal" variant="outline" target="_blank">
                 <x-heroicon-o-device-phone-mobile class="size-4" />
                 Virtual Terminal
                 <x-heroicon-o-arrow-top-right-on-square aria-label="Opens in new tab" class="size-4" />

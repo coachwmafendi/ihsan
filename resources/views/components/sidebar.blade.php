@@ -37,31 +37,31 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
 
         <nav class="flex-1 overflow-y-auto py-4">
             <x-sidebar-group label="Fundraise">
-                <x-sidebar-item href="/app/dashboard" icon="home" label="Dashboard" :active="$isActive('/app/dashboard')" />
-                <x-sidebar-item href="/app/campaigns" icon="megaphone" label="Campaigns" :active="$isActive('/app/campaigns')" />
-                <x-sidebar-item href="/app/elements" icon="cursor-arrow-rays" label="Elements" :active="$isActive('/app/elements')" />
+                <x-sidebar-item href="/dashboard" icon="home" label="Dashboard" :active="$isActive('/dashboard')" />
+                <x-sidebar-item href="/campaigns" icon="megaphone" label="Campaigns" :active="$isActive('/campaigns')" />
+                <x-sidebar-item href="/elements" icon="cursor-arrow-rays" label="Elements" :active="$isActive('/elements')" />
 
             </x-sidebar-group>
 
             <x-sidebar-group label="Finance">
-                <x-sidebar-item href="/app/donations" icon="banknotes" label="Donations" :active="$isActive('/app/donations')" />
-                <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans') || $isActive('/app/subscriptions')" />
-                <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
-                <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
+                <x-sidebar-item href="/donations" icon="banknotes" label="Donations" :active="$isActive('/donations')" />
+                <x-sidebar-item href="/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/recurring-plans') || $isActive('/subscriptions')" />
+                <x-sidebar-item href="/supporters" icon="users" label="Supporters" :active="$isActive('/supporters')" />
+                <x-sidebar-item href="/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
             </x-sidebar-group>
 
             <x-sidebar-group label="Organization">
-                <x-sidebar-item href="/app/audit-log" icon="clipboard-document-list" label="Audit Log" :active="$isActive('/app/audit-log')" />
+                <x-sidebar-item href="/audit-log" icon="clipboard-document-list" label="Audit Log" :active="$isActive('/audit-log')" />
 
-                <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/app/settings')">
-                    <x-sidebar-item href="/app/settings/organization" icon="building-office" label="Organization" :active="$isActive('/app/settings/organization')" />
-                    <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Payment Processors" :active="$isActive('/app/settings/payment')" />
-                    <x-sidebar-item href="/app/settings/account" icon="user-circle" label="Account" :active="$isActive('/app/settings/account')" />
-                    <x-sidebar-item href="/app/settings/allow-domains" icon="globe-alt" label="Allowed Domains" :active="$isActive('/app/settings/allow-domains')" />
-                    <x-sidebar-item href="/app/settings/donor-portal" icon="icon.donor-portal" label="Donor Portal" :active="$isActive('/app/settings/donor-portal')" />
-                    <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
-                    <x-sidebar-item href="/app/settings/installation" icon="code-bracket" label="Installation" :active="$isActive('/app/settings/installation')" />
-                    <x-sidebar-item href="/app/settings/tracking" icon="presentation-chart-line" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
+                <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/settings')">
+                    <x-sidebar-item href="/settings/organization" icon="building-office" label="Organization" :active="$isActive('/settings/organization')" />
+                    <x-sidebar-item href="/settings/payment" icon="credit-card" label="Payment Processors" :active="$isActive('/settings/payment')" />
+                    <x-sidebar-item href="/settings/account" icon="user-circle" label="Account" :active="$isActive('/settings/account')" />
+                    <x-sidebar-item href="/settings/allow-domains" icon="globe-alt" label="Allowed Domains" :active="$isActive('/settings/allow-domains')" />
+                    <x-sidebar-item href="/settings/donor-portal" icon="icon.donor-portal" label="Donor Portal" :active="$isActive('/settings/donor-portal')" />
+                    <x-sidebar-item href="/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/settings/notifications')" />
+                    <x-sidebar-item href="/settings/installation" icon="code-bracket" label="Installation" :active="$isActive('/settings/installation')" />
+                    <x-sidebar-item href="/settings/tracking" icon="presentation-chart-line" label="Tracking & Analytics" :active="$isActive('/settings/tracking')" />
                 </x-sidebar-dropdown>
             </x-sidebar-group>
 
@@ -103,31 +103,31 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
 
         <nav class="flex-1 overflow-x-hidden overflow-y-auto py-4">
             <x-sidebar-group label="Fundraise">
-                <x-sidebar-item href="/app/dashboard" icon="home" label="Dashboard" :active="$isActive('/app/dashboard')" />
-                <x-sidebar-item href="/app/campaigns" icon="megaphone" label="Campaigns" :active="$isActive('/app/campaigns')" />
-                <x-sidebar-item href="/app/elements" icon="cursor-arrow-rays" label="Elements" :active="$isActive('/app/elements')" />
+                <x-sidebar-item href="/dashboard" icon="home" label="Dashboard" :active="$isActive('/dashboard')" />
+                <x-sidebar-item href="/campaigns" icon="megaphone" label="Campaigns" :active="$isActive('/campaigns')" />
+                <x-sidebar-item href="/elements" icon="cursor-arrow-rays" label="Elements" :active="$isActive('/elements')" />
 
             </x-sidebar-group>
 
             <x-sidebar-group label="Finance">
-                <x-sidebar-item href="/app/donations" icon="banknotes" label="Donations" :active="$isActive('/app/donations')" />
-                <x-sidebar-item href="/app/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/app/recurring-plans') || $isActive('/app/subscriptions')" />
-                <x-sidebar-item href="/app/supporters" icon="users" label="Supporters" :active="$isActive('/app/supporters')" />
-                <x-sidebar-item href="/app/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
+                <x-sidebar-item href="/donations" icon="banknotes" label="Donations" :active="$isActive('/donations')" />
+                <x-sidebar-item href="/recurring-plans" icon="arrow-path" label="Recurring Plans" :active="$isActive('/recurring-plans') || $isActive('/subscriptions')" />
+                <x-sidebar-item href="/supporters" icon="users" label="Supporters" :active="$isActive('/supporters')" />
+                <x-sidebar-item href="/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
             </x-sidebar-group>
 
             <x-sidebar-group label="Organization">
-                <x-sidebar-item href="/app/audit-log" icon="clipboard-document-list" label="Audit Log" :active="$isActive('/app/audit-log')" />
+                <x-sidebar-item href="/audit-log" icon="clipboard-document-list" label="Audit Log" :active="$isActive('/audit-log')" />
 
-                <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/app/settings')">
-                    <x-sidebar-item href="/app/settings/organization" icon="building-office" label="Organization" :active="$isActive('/app/settings/organization')" />
-                    <x-sidebar-item href="/app/settings/payment" icon="credit-card" label="Payment Processors" :active="$isActive('/app/settings/payment')" />
-                    <x-sidebar-item href="/app/settings/account" icon="user-circle" label="Account" :active="$isActive('/app/settings/account')" />
-                    <x-sidebar-item href="/app/settings/allow-domains" icon="globe-alt" label="Allowed Domains" :active="$isActive('/app/settings/allow-domains')" />
-                    <x-sidebar-item href="/app/settings/donor-portal" icon="icon.donor-portal" label="Donor Portal" :active="$isActive('/app/settings/donor-portal')" />
-                    <x-sidebar-item href="/app/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/app/settings/notifications')" />
-                    <x-sidebar-item href="/app/settings/installation" icon="code-bracket" label="Installation" :active="$isActive('/app/settings/installation')" />
-                    <x-sidebar-item href="/app/settings/tracking" icon="presentation-chart-line" label="Tracking & Analytics" :active="$isActive('/app/settings/tracking')" />
+                <x-sidebar-dropdown icon="cog-6-tooth" label="Settings" :active="$isActive('/settings')">
+                    <x-sidebar-item href="/settings/organization" icon="building-office" label="Organization" :active="$isActive('/settings/organization')" />
+                    <x-sidebar-item href="/settings/payment" icon="credit-card" label="Payment Processors" :active="$isActive('/settings/payment')" />
+                    <x-sidebar-item href="/settings/account" icon="user-circle" label="Account" :active="$isActive('/settings/account')" />
+                    <x-sidebar-item href="/settings/allow-domains" icon="globe-alt" label="Allowed Domains" :active="$isActive('/settings/allow-domains')" />
+                    <x-sidebar-item href="/settings/donor-portal" icon="icon.donor-portal" label="Donor Portal" :active="$isActive('/settings/donor-portal')" />
+                    <x-sidebar-item href="/settings/notifications" icon="bell-alert" label="Notifications" :active="$isActive('/settings/notifications')" />
+                    <x-sidebar-item href="/settings/installation" icon="code-bracket" label="Installation" :active="$isActive('/settings/installation')" />
+                    <x-sidebar-item href="/settings/tracking" icon="presentation-chart-line" label="Tracking & Analytics" :active="$isActive('/settings/tracking')" />
                 </x-sidebar-dropdown>
             </x-sidebar-group>
 
