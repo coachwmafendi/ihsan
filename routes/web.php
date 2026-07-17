@@ -23,7 +23,7 @@ Route::view('/', 'welcome')->name('home');
 
 // Legacy panel URLs: the panel moved to its own subdomain.
 Route::get('/app/{path?}', function (string $path = '') {
-    $target = 'https://'.config('app.app_panel_domain').'/'.$path;
+    $target = 'https://'.config('app.app_panel_domain').app_panel_port_suffix().'/'.$path;
 
     if ($query = request()->getQueryString()) {
         $target .= '?'.$query;
@@ -33,7 +33,7 @@ Route::get('/app/{path?}', function (string $path = '') {
 })->where('path', '.*');
 
 Route::get('/login', fn () => redirect()->away(
-    'https://'.config('app.app_panel_domain').'/login', 301
+    'https://'.config('app.app_panel_domain').app_panel_port_suffix().'/login', 301
 ));
 
 Route::get('/docs/{path?}', DocsController::class)
