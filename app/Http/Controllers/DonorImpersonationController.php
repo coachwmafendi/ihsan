@@ -90,6 +90,12 @@ class DonorImpersonationController extends Controller
             return $url;
         }
 
+        $panelHost = config('app.app_panel_domain');
+
+        if ($host !== null && $panelHost && $host === $panelHost) {
+            return $url;
+        }
+
         return route('app.supporters.index');
     }
 }
