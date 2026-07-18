@@ -140,7 +140,7 @@
                             </div>
                             <dd class="mt-0.5 text-sm text-slate-900">
                                 @if ($campaign->has_target && $campaign->target_amount)
-                                    Target {{ $this->getCurrencySymbolFor($this->default_currency) }} {{ number_format((float) $campaign->target_amount, 2) }}
+                                    Target {{ $this->default_currency }} {{ number_format((float) $campaign->target_amount, 2) }}
                                 @else
                                     No target
                                 @endif
@@ -172,7 +172,7 @@
                                     {{ $campaign->allow_custom_amount ? 'Custom amount on' : 'Custom amount off' }}
                                 </x-ui.badge>
                                 @if ($campaign->minimum_amount)
-                                    <x-ui.badge status="default" size="sm">Min {{ $this->getCurrencySymbolFor($this->default_currency) }} {{ number_format((float) $campaign->minimum_amount, 2) }}</x-ui.badge>
+                                    <x-ui.badge status="default" size="sm">Min {{ $this->default_currency }} {{ number_format((float) $campaign->minimum_amount, 2) }}</x-ui.badge>
                                 @endif
                             </dd>
                         </div>
@@ -182,7 +182,7 @@
                             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Checkout Defaults</dt>
                             <dd class="mt-0.5 text-sm text-slate-900 leading-relaxed">
                                 Default frequency: <strong>{{ ucfirst(str_replace('_', ' ', $this->default_frequency)) }}</strong><br>
-                                Default amount: <strong>{{ $this->getCurrencySymbolFor($this->default_currency) }} {{ number_format((float) ($this->default_amount ?? 50), 2) }}</strong><br>
+                                Default amount: <strong>{{ $this->default_currency }} {{ number_format((float) ($this->default_amount ?? 50), 2) }}</strong><br>
                                 Default currency: <strong>{{ $this->default_currency }}</strong><br>
                                 Currency auto-detect: <strong>{{ $this->currency_autodetect ? 'On' : 'Off' }}</strong>
                             </dd>
@@ -822,7 +822,7 @@
                                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                             @foreach ($suggestedOneTime as $index => $amount)
                                                 <div class="inline-flex min-h-14 items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-lg font-semibold text-teal-700">
-                                                    <span>{{ $this->getCurrencySymbol() }}</span>
+                                                    <span>{{ $this->activeCurrency }}</span>
                                                     <input
                                                         type="text"
                                                         inputmode="numeric"
@@ -844,7 +844,7 @@
                                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                             @foreach ($suggestedMonthly as $index => $amount)
                                                 <div class="inline-flex min-h-14 items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-lg font-semibold text-teal-700">
-                                                    <span>{{ $this->getCurrencySymbol() }}</span>
+                                                    <span>{{ $this->activeCurrency }}</span>
                                                     <input
                                                         type="text"
                                                         inputmode="numeric"
@@ -863,7 +863,7 @@
                                 <div class="border-t border-slate-100"></div>
 
                                 <div class="max-w-xs">
-                                    <label for="default_amount" class="block text-sm font-medium text-slate-700">Default Amount ({{ $this->getCurrencySymbol() }})</label>
+                                    <label for="default_amount" class="block text-sm font-medium text-slate-700">Default Amount ({{ $this->activeCurrency }})</label>
                                     <input
                                         type="text"
                                         inputmode="numeric"
@@ -887,7 +887,7 @@
                         @if ($checkoutPanel === 'minimum')
                             <div class="space-y-4">
                                 <div class="max-w-xs">
-                                    <label for="minimum_amount" class="block text-sm font-medium text-slate-700">Minimum Amount ({{ $this->getCurrencySymbol() }})</label>
+                                    <label for="minimum_amount" class="block text-sm font-medium text-slate-700">Minimum Amount ({{ $this->activeCurrency }})</label>
                                     <input
                                         type="text"
                                         inputmode="numeric"
