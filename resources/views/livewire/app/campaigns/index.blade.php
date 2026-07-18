@@ -98,6 +98,9 @@
                             </th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Raised</th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Donations</th>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Recurring</th>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Recurring amount</th>
+                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Last Donation</th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
                                     Created
@@ -141,11 +144,12 @@
                                                 </x-ui.badge>
                                             @endif
                                             @if ($campaign->has_target && $campaign->target_amount)
-                                                @php
+                                                    @php
                                                         $pct = $campaign->target_amount > 0
                                                             ? min(100, ($campaign->collected_amount / $campaign->target_amount) * 100)
                                                             : 0;
-                                                        $tooltipText = 'RM ' . number_format((float) $campaign->collected_amount, 2) . ' of RM ' . number_format((float) $campaign->target_amount, 2);
+                                                        $approxPrefix = $campaign->has_non_myr_donations ? '≈ ' : '';
+                                                        $tooltipText = $approxPrefix . 'MYR ' . number_format((float) $campaign->collected_amount, 2) . ' of MYR ' . number_format((float) $campaign->target_amount, 2);
                                                     @endphp
                                                 <div class="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
                                                     <x-ui.tooltip :text="$tooltipText">
@@ -165,10 +169,32 @@
                                     </x-ui.badge>
                                 </td>
                                 <td class="px-5 py-4 text-sm font-medium text-slate-900">
-                                    RM {{ number_format((float) $campaign->collected_amount, 2) }}
+                                    {{ $campaign->has_non_myr_donations ? '≈' : '' }} MYR {{ number_format((float) $campaign->collected_amount, 2) }}
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
                                     {{ number_format($campaign->donations_count) }}
+                                </td>
+                                @php
+                                    $monthlyMultiplier = [
+                                        'weekly' => 52 / 12,
+                                        'biweekly' => 26 / 12,
+                                        'monthly' => 1,
+                                        'bimonthly' => 6 / 12,
+                                        'quarterly' => 4 / 12,
+                                        'semiannual' => 2 / 12,
+                                        'yearly' => 1 / 12,
+                                    ];
+                                    $recurringAmount = $campaign->subscriptions->sum(fn ($subscription) => (float) $subscription->amount * ($monthlyMultiplier[$subscription->interval->value] ?? 1));
+                                    $recurringHasApproximation = $campaign->subscriptions->contains(fn ($subscription) => strtolower($subscription->currency) !== 'myr');
+                                @endphp
+                                <td class="px-5 py-4 text-sm text-slate-600">
+                                    {{ number_format($campaign->subscriptions->count()) }}
+                                </td>
+                                <td class="px-5 py-4 text-sm font-medium text-slate-900">
+                                    {{ $recurringHasApproximation ? '≈' : '' }} MYR {{ number_format($recurringAmount, 2) }}<span class="text-xs font-normal text-slate-500">/mo</span>
+                                </td>
+                                <td class="px-5 py-4 text-sm text-slate-500">
+                                    {{ $campaign->latestDonation ? myrTime($campaign->latestDonation->created_at, withLabel: false, format: 'M d, Y') : '—' }}
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
                                     {{ myrTime($campaign->created_at, withLabel: false, format: 'M d, Y') }}

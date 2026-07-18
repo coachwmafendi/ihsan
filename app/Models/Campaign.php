@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CampaignStatus;
+use App\Enums\DonationStatus;
 use App\Enums\PaymentGateway;
 use App\Services\PublicIdGenerator;
 use Carbon\CarbonImmutable;
@@ -176,7 +177,12 @@ class Campaign extends Model
 
     public function latestDonation(): HasOne
     {
-        return $this->hasOne(Donation::class)->ofMany();
+        return $this->hasOne(Donation::class)
+            ->ofMany(
+                ['created_at' => 'max'],
+                fn ($query) => $query->where('status', DonationStatus::Succeeded),
+                'latest_donation'
+            );
     }
 
     public function restore(): void
