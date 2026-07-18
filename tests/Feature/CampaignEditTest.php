@@ -526,6 +526,7 @@ it('shows the MYR-converted amount for a recent donation made in a foreign curre
 
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
         ->assertSee('MYR 115.23')
+        ->assertSee('≈ MYR')
         ->assertDontSee('RM 25.00', false);
 });
 
@@ -544,9 +545,10 @@ it('shows amounts raised per checkout channel on the overview tab', function () 
 
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
         ->assertSeeInOrder(['Checkout Modal', 'Campaign Page', 'Virtual Terminal'])
-        ->assertSee('RM85.00')
-        ->assertSee('RM150.00')
-        ->assertSee('RM200.00');
+        ->assertSee('MYR 85.00')
+        ->assertSee('MYR 150.00')
+        ->assertSee('MYR 200.00')
+        ->assertDontSee('≈');
 });
 
 it('shows fallback campaign page content title on the overview tab', function () {

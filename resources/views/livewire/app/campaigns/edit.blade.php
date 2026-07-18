@@ -72,11 +72,12 @@
     {{-- Overview Tab (read-only campaign summary) --}}
     <div x-show="tab === 'overview'" x-cloak class="space-y-6">
         {{-- Stats Cards --}}
+        @php $approx = $this->hasApproximateRaisedTotals() ? '≈ ' : ''; @endphp
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <x-ui.stat-card
                 label="Amount Raised"
-                value="{{ $this->getCurrencySymbol() }} {{ number_format((float) $campaign->collected_amount, 2) }}"
-                subtext="{{ $campaign->has_target && $campaign->target_amount ? 'Goal: '.$this->getCurrencySymbol().' '.number_format((float) $campaign->target_amount, 2).' ('.number_format(min(100, ((float) $campaign->collected_amount / (float) $campaign->target_amount) * 100), 1).'%)' : 'No target set' }}"
+                value="{{ $approx }}MYR {{ number_format((float) $campaign->collected_amount, 2) }}"
+                subtext="{{ $campaign->has_target && $campaign->target_amount ? 'Goal: MYR '.number_format((float) $campaign->target_amount, 2).' ('.number_format(min(100, ((float) $campaign->collected_amount / (float) $campaign->target_amount) * 100), 1).'%)' : 'No target set' }}"
                 :progress="$campaign->has_target && $campaign->target_amount ? ((float) $campaign->collected_amount / (float) $campaign->target_amount) * 100 : null"
             />
             <x-ui.stat-card
@@ -96,28 +97,19 @@
 
         {{-- Raised by Channel --}}
         @php $bySource = $this->donationAmountsBySource(); @endphp
-        <div class="flex flex-wrap gap-3">
-            <div class="w-full sm:w-48">
-                <x-ui.stat-card
-                    label="Checkout Modal"
-                    value="{{ $this->getCurrencySymbol() }}{{ number_format($bySource['checkout_modal'], 2) }}"
-                    value-class="text-lg font-semibold tracking-tight text-gray-950 dark:text-white"
-                />
-            </div>
-            <div class="w-full sm:w-48">
-                <x-ui.stat-card
-                    label="Campaign Page"
-                    value="{{ $this->getCurrencySymbol() }}{{ number_format($bySource['campaign_page'], 2) }}"
-                    value-class="text-lg font-semibold tracking-tight text-gray-950 dark:text-white"
-                />
-            </div>
-            <div class="w-full sm:w-48">
-                <x-ui.stat-card
-                    label="Virtual Terminal"
-                    value="{{ $this->getCurrencySymbol() }}{{ number_format($bySource['virtual_terminal'], 2) }}"
-                    value-class="text-lg font-semibold tracking-tight text-gray-950 dark:text-white"
-                />
-            </div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <x-ui.stat-card
+                label="Checkout Modal"
+                value="{{ $approx }}MYR {{ number_format($bySource['checkout_modal'], 2) }}"
+            />
+            <x-ui.stat-card
+                label="Campaign Page"
+                value="{{ $approx }}MYR {{ number_format($bySource['campaign_page'], 2) }}"
+            />
+            <x-ui.stat-card
+                label="Virtual Terminal"
+                value="{{ $approx }}MYR {{ number_format($bySource['virtual_terminal'], 2) }}"
+            />
         </div>
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">

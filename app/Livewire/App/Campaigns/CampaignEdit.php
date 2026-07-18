@@ -8,6 +8,7 @@ use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
 use App\Enums\PaymentGateway;
 use App\Models\Campaign;
+use App\Models\Donation;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -526,6 +527,17 @@ class CampaignEdit extends Component
             });
 
         return $amounts;
+    }
+
+    /**
+     * Whether any succeeded donation was made in a non-MYR currency,
+     * making MYR totals approximate (converted at capture-time rates).
+     */
+    public function hasApproximateRaisedTotals(): bool
+    {
+        return Donation::hasReportApproximations(
+            $this->campaign->donations()->where('status', DonationStatus::Succeeded)->getQuery()
+        );
     }
 
     /**
