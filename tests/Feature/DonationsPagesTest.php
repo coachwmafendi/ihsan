@@ -84,6 +84,51 @@ it('filters donations by status', function () {
     $response->assertDontSee($failedDonation->public_id);
 });
 
+it('filters donations by source including null as checkout modal', function () {
+    $campaignPageDonation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'source' => 'campaign_page',
+    ]);
+
+    $elementDonation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'source' => 'element',
+    ]);
+
+    // $this->donation has a null source and must display under Checkout Modal.
+    Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->set('sourceFilter', ['checkout_modal'])
+        ->assertSee($this->donation->public_id)
+        ->assertDontSee($campaignPageDonation->public_id)
+        ->assertDontSee($elementDonation->public_id)
+        ->set('sourceFilter', ['campaign_page', 'element'])
+        ->assertSee($campaignPageDonation->public_id)
+        ->assertSee($elementDonation->public_id)
+        ->assertDontSee($this->donation->public_id)
+        ->set('sourceFilter', [])
+        ->assertSee($this->donation->public_id)
+        ->assertSee($campaignPageDonation->public_id);
+});
+
+it('shows a combined source chip label for multiple selections', function () {
+    $component = Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->set('sourceFilter', ['checkout_modal', 'campaign_page', 'virtual_terminal']);
+
+    expect($component->instance()->sourceChipLabel())->toBe('Checkout Modal and 2 more');
+
+    $component->set('sourceFilter', ['virtual_terminal']);
+
+    expect($component->instance()->sourceChipLabel())->toBe('Virtual Terminal');
+
+    $component->call('clearSourceFilter');
+
+    expect($component->instance()->sourceChipLabel())->toBe('Source');
+});
+
 it('searches donations by donor name', function () {
     $otherDonor = Donor::factory()->create(['name' => 'Zara Unique']);
     $otherDonation = Donation::factory()->create([

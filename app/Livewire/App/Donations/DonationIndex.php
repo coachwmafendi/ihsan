@@ -37,6 +37,10 @@ class DonationIndex extends Component
     #[Url(except: '')]
     public string $frequencyFilter = '';
 
+    /** @var array<int, string> */
+    #[Url(except: [])]
+    public array $sourceFilter = [];
+
     #[Url(except: 'all_time')]
     public string $period = 'all_time';
 
@@ -70,6 +74,41 @@ class DonationIndex extends Component
     public function updatedFrequencyFilter(): void
     {
         $this->resetPage();
+    }
+
+    public function updatedSourceFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearSourceFilter(): void
+    {
+        $this->sourceFilter = [];
+        $this->resetPage();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function sourceOptions(): array
+    {
+        return [
+            'checkout_modal' => 'Checkout Modal',
+            'campaign_page' => 'Campaign Page',
+            'virtual_terminal' => 'Virtual Terminal',
+            'element' => 'Element',
+        ];
+    }
+
+    public function sourceChipLabel(): string
+    {
+        $selected = array_values(array_intersect_key($this->sourceOptions(), array_flip($this->sourceFilter)));
+
+        return match (count($selected)) {
+            0 => 'Source',
+            1 => $selected[0],
+            default => $selected[0].' and '.(count($selected) - 1).' more',
+        };
     }
 
     public function updatedPeriod(): void
@@ -220,6 +259,19 @@ class DonationIndex extends Component
 
         if (filled($this->frequencyFilter)) {
             $query->where('type', $this->frequencyFilter);
+        }
+
+        if ($this->sourceFilter !== []) {
+            $sources = array_intersect($this->sourceFilter, array_keys($this->sourceOptions()));
+
+            $query->where(function (Builder $q) use ($sources): void {
+                $q->whereIn('donations.source', $sources);
+
+                // Donations without a stored source display as Checkout Modal.
+                if (in_array('checkout_modal', $sources, true)) {
+                    $q->orWhereNull('donations.source');
+                }
+            });
         }
 
         [$start, $end] = $this->periodRange();

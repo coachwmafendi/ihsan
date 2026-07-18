@@ -271,6 +271,35 @@
             </flux:menu>
         </flux:dropdown>
 
+        {{-- Source chip --}}
+        <flux:dropdown>
+            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($sourceFilter !== []) border-teal-600 bg-teal-50 font-medium text-teal-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
+                @if ($sourceFilter !== [])
+                    Source <span class="font-semibold">{{ $this->sourceChipLabel() }}</span>
+                @else
+                    Source
+                @endif
+                @if ($sourceFilter !== [])
+                    <span wire:click.stop="clearSourceFilter" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
+                        <x-heroicon-o-x-mark class="size-3.5" />
+                    </span>
+                @endif
+            </button>
+            <flux:menu keep-open class="w-60 p-1">
+                @foreach ($this->sourceOptions() as $value => $label)
+                    <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                        <span>{{ $label }}</span>
+                        <input
+                            type="checkbox"
+                            value="{{ $value }}"
+                            wire:model.live="sourceFilter"
+                            class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                        />
+                    </label>
+                @endforeach
+            </flux:menu>
+        </flux:dropdown>
+
         {{-- More filters (search) --}}
         <flux:dropdown>
             <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($search) border-teal-600 bg-teal-50 font-medium text-teal-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
