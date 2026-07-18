@@ -65,10 +65,10 @@
     <x-ui.card>
         @if ($this->campaigns->isNotEmpty())
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200">
+                <table class="w-full min-w-max divide-y divide-slate-200">
                     <thead>
                         <tr class="bg-slate-50">
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('title')" class="group inline-flex items-center gap-1">
                                     Title
                                     @if ($sortField === 'title')
@@ -82,7 +82,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('status')" class="group inline-flex items-center gap-1">
                                     Status
                                     @if ($sortField === 'status')
@@ -96,12 +96,12 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Raised</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Donations</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Recurring</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Recurring amount</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Last Donation</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
+                            <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">Raised</th>
+                            <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">Donations</th>
+                            <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">Recurring</th>
+                            <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">Recurring amount</th>
+                            <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">Last Donation</th>
+                            <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
                                     Created
                                     @if ($sortField === 'created_at')
@@ -115,7 +115,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="px-5 py-3 text-right text-xs font-semibold tracking-wider text-slate-500">Actions</th>
+                            <th scope="col" class="px-5 py-3 text-right whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
@@ -163,15 +163,15 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-5 py-4">
+                                <td class="px-5 py-4 whitespace-nowrap">
                                     <x-ui.badge status="{{ $campaign->status->value }}" size="sm">
                                         {{ ucfirst($campaign->status->value) }}
                                     </x-ui.badge>
                                 </td>
-                                <td class="px-5 py-4 text-sm font-medium text-slate-900">
+                                <td class="px-5 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
                                     {{ $campaign->has_non_myr_donations ? '≈' : '' }} MYR {{ number_format((float) $campaign->collected_amount, 2) }}
                                 </td>
-                                <td class="px-5 py-4 text-sm text-slate-600">
+                                <td class="px-5 py-4 whitespace-nowrap text-sm text-slate-600">
                                     {{ number_format($campaign->donations_count) }}
                                 </td>
                                 @php
@@ -187,19 +187,19 @@
                                     $recurringAmount = $campaign->subscriptions->sum(fn ($subscription) => (float) $subscription->amount * ($monthlyMultiplier[$subscription->interval->value] ?? 1));
                                     $recurringHasApproximation = $campaign->subscriptions->contains(fn ($subscription) => strtolower($subscription->currency) !== 'myr');
                                 @endphp
-                                <td class="px-5 py-4 text-sm text-slate-600">
+                                <td class="px-5 py-4 whitespace-nowrap text-sm text-slate-600">
                                     {{ number_format($campaign->subscriptions->count()) }}
                                 </td>
-                                <td class="px-5 py-4 text-sm font-medium text-slate-900">
+                                <td class="px-5 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
                                     {{ $recurringHasApproximation ? '≈' : '' }} MYR {{ number_format($recurringAmount, 2) }}<span class="text-xs font-normal text-slate-500">/mo</span>
                                 </td>
-                                <td class="px-5 py-4 text-sm text-slate-500">
+                                <td class="px-5 py-4 whitespace-nowrap text-sm text-slate-500">
                                     {{ $campaign->latestDonation ? myrTime($campaign->latestDonation->created_at, withLabel: false, format: 'M d, Y') : '—' }}
                                 </td>
-                                <td class="px-5 py-4 text-sm text-slate-500">
+                                <td class="px-5 py-4 whitespace-nowrap text-sm text-slate-500">
                                     {{ myrTime($campaign->created_at, withLabel: false, format: 'M d, Y') }}
                                 </td>
-                                <td class="px-5 py-4 text-right" wire:click.stop>
+                                <td class="px-5 py-4 whitespace-nowrap text-right" wire:click.stop>
                                     @if ($showArchived)
                                         <button
                                             wire:click="restore('{{ $campaign->public_id }}')"
