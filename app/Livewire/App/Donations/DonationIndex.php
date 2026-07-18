@@ -105,7 +105,6 @@ class DonationIndex extends Component
             'checkout_modal' => 'Checkout Modal',
             'campaign_page' => 'Campaign Page',
             'virtual_terminal' => 'Virtual Terminal',
-            'element' => 'Element',
         ];
     }
 
@@ -355,10 +354,14 @@ class DonationIndex extends Component
         if ($this->sourceFilter !== []) {
             $sources = array_intersect($this->sourceFilter, array_keys($this->sourceOptions()));
 
+            // Element and legacy null sources surface as Checkout Modal.
+            if (in_array('checkout_modal', $sources, true)) {
+                $sources[] = 'element';
+            }
+
             $query->where(function (Builder $q) use ($sources): void {
                 $q->whereIn('donations.source', $sources);
 
-                // Donations without a stored source display as Checkout Modal.
                 if (in_array('checkout_modal', $sources, true)) {
                     $q->orWhereNull('donations.source');
                 }

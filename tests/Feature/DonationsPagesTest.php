@@ -84,7 +84,7 @@ it('filters donations by status', function () {
     $response->assertDontSee($failedDonation->public_id);
 });
 
-it('filters donations by source including null as checkout modal', function () {
+it('filters donations by source counting element and null as checkout modal', function () {
     $campaignPageDonation = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,
         'donor_id' => $this->donor->id,
@@ -97,20 +97,41 @@ it('filters donations by source including null as checkout modal', function () {
         'source' => 'element',
     ]);
 
-    // $this->donation has a null source and must display under Checkout Modal.
+    // $this->donation has a null source; element and null both display under Checkout Modal.
     Livewire::actingAs($this->user)
         ->test(DonationIndex::class)
         ->set('sourceFilter', ['checkout_modal'])
         ->assertSee($this->donation->public_id)
-        ->assertDontSee($campaignPageDonation->public_id)
-        ->assertDontSee($elementDonation->public_id)
-        ->set('sourceFilter', ['campaign_page', 'element'])
-        ->assertSee($campaignPageDonation->public_id)
         ->assertSee($elementDonation->public_id)
+        ->assertDontSee($campaignPageDonation->public_id)
+        ->set('sourceFilter', ['campaign_page'])
+        ->assertSee($campaignPageDonation->public_id)
         ->assertDontSee($this->donation->public_id)
+        ->assertDontSee($elementDonation->public_id)
         ->set('sourceFilter', [])
         ->assertSee($this->donation->public_id)
         ->assertSee($campaignPageDonation->public_id);
+});
+
+it('does not offer element as a source option', function () {
+    $component = Livewire::actingAs($this->user)->test(DonationIndex::class);
+
+    expect($component->instance()->sourceOptions())
+        ->toBe([
+            'checkout_modal' => 'Checkout Modal',
+            'campaign_page' => 'Campaign Page',
+            'virtual_terminal' => 'Virtual Terminal',
+        ]);
+});
+
+it('labels element donations as checkout modal', function () {
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'source' => 'element',
+    ]);
+
+    expect($donation->source_label)->toBe('Checkout Modal');
 });
 
 it('filters donations by element token and payment method type', function () {

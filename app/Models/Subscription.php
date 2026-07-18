@@ -164,10 +164,9 @@ class Subscription extends Model
     {
         return Attribute::get(function (): string {
             return match ($this->source) {
-                'element' => 'Element',
                 'campaign_page' => 'Campaign Page',
-                'checkout_modal' => 'Checkout Modal',
                 'virtual_terminal' => 'Virtual Terminal',
+                // 'element' and legacy null sources surface as Checkout Modal.
                 default => 'Checkout Modal',
             };
         });
