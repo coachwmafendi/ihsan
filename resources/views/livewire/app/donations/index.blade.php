@@ -103,16 +103,19 @@
                 class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors"
                 :class="open ? 'border-slate-400 bg-slate-50 text-slate-800' : ''"
                 @class([
-                    'border-teal-600 bg-teal-50 font-medium text-teal-700' => $dateActive,
+                    'border-slate-300 bg-white text-slate-700' => $dateActive,
                     'border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800' => ! $dateActive,
                 ])
             >
                 <x-heroicon-o-calendar-days class="size-3.5 shrink-0" />
-                <span>{{ $dateLabel }}</span>
                 @if ($dateActive)
-                    <span wire:click.stop="clearDate" class="ml-0.5 cursor-pointer rounded-full text-teal-500 hover:text-teal-800">
+                    <span>Date</span>
+                    <span class="font-medium text-blue-600">{{ $dateLabel }}</span>
+                    <span wire:click.stop="clearDate" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
                         <x-heroicon-o-x-mark class="size-3.5" />
                     </span>
+                @else
+                    <span>{{ $dateLabel }}</span>
                 @endif
             </button>
 
@@ -204,10 +207,11 @@
 
         {{-- Campaign chip --}}
         <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($campaignFilter) border-teal-600 bg-teal-50 font-medium text-teal-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
+            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($campaignFilter) border-slate-300 bg-white text-slate-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
                 Campaign
                 @if ($campaignFilter)
-                    <span wire:click.stop="$set('campaignFilter', '')" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
+                    <span class="font-medium text-blue-600">{{ $this->campaigns->firstWhere('id', (int) $campaignFilter)?->title }}</span>
+                    <span wire:click.stop="$set('campaignFilter', '')" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
                         <x-heroicon-o-x-mark class="size-3.5" />
                     </span>
                 @endif
@@ -225,14 +229,11 @@
 
         {{-- Status chip --}}
         <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($statusFilter) border-teal-600 bg-teal-50 font-medium text-teal-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
+            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($statusFilter) border-slate-300 bg-white text-slate-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
+                Status
                 @if ($statusFilter)
-                    {{ ucfirst($statusFilter) }}
-                @else
-                    Status
-                @endif
-                @if ($statusFilter)
-                    <span wire:click.stop="$set('statusFilter', '')" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
+                    <span class="font-medium text-blue-600">{{ ucfirst($statusFilter) }}</span>
+                    <span wire:click.stop="$set('statusFilter', '')" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
                         <x-heroicon-o-x-mark class="size-3.5" />
                     </span>
                 @endif
@@ -249,16 +250,11 @@
 
         {{-- Frequency chip --}}
         <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($frequencyFilter) border-teal-600 bg-teal-50 font-medium text-teal-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
-                @if ($frequencyFilter === 'one_time')
-                    One-time
-                @elseif ($frequencyFilter === 'recurring')
-                    Recurring
-                @else
-                    Frequency
-                @endif
+            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($frequencyFilter) border-slate-300 bg-white text-slate-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
+                Frequency
                 @if ($frequencyFilter)
-                    <span wire:click.stop="$set('frequencyFilter', '')" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
+                    <span class="font-medium text-blue-600">{{ $frequencyFilter === 'one_time' ? 'One-time' : 'Recurring' }}</span>
+                    <span wire:click.stop="$set('frequencyFilter', '')" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
                         <x-heroicon-o-x-mark class="size-3.5" />
                     </span>
                 @endif
@@ -274,9 +270,9 @@
         {{-- Active filter chips (from More filters) --}}
         @if ($sourceFilter !== [])
             <flux:dropdown>
-                <button class="inline-flex items-center gap-1.5 rounded-lg border border-teal-600 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700 transition-colors">
-                    Source <span class="font-semibold">{{ $this->sourceChipLabel() }}</span>
-                    <span wire:click.stop="clearSourceFilter" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
+                <button class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors">
+                    Source <span class="font-medium text-blue-600">{{ $this->sourceChipLabel() }}</span>
+                    <span wire:click.stop="clearSourceFilter" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
                         <x-heroicon-o-x-mark class="size-3.5" />
                     </span>
                 </button>
@@ -293,9 +289,9 @@
 
         @if ($elementFilter !== [])
             <flux:dropdown>
-                <button class="inline-flex items-center gap-1.5 rounded-lg border border-teal-600 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700 transition-colors">
-                    Element <span class="font-semibold">{{ $this->elementChipLabel() }}</span>
-                    <span wire:click.stop="clearElementFilter" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
+                <button class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors">
+                    Element <span class="font-medium text-blue-600">{{ $this->elementChipLabel() }}</span>
+                    <span wire:click.stop="clearElementFilter" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
                         <x-heroicon-o-x-mark class="size-3.5" />
                     </span>
                 </button>
@@ -312,9 +308,9 @@
 
         @if ($paymentMethodFilter !== [])
             <flux:dropdown>
-                <button class="inline-flex items-center gap-1.5 rounded-lg border border-teal-600 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700 transition-colors">
-                    Payment <span class="font-semibold">{{ $this->paymentMethodChipLabel() }}</span>
-                    <span wire:click.stop="clearPaymentMethodFilter" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
+                <button class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors">
+                    Payment <span class="font-medium text-blue-600">{{ $this->paymentMethodChipLabel() }}</span>
+                    <span wire:click.stop="clearPaymentMethodFilter" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
                         <x-heroicon-o-x-mark class="size-3.5" />
                     </span>
                 </button>
@@ -331,9 +327,9 @@
 
         @if ($search)
             <flux:dropdown>
-                <button class="inline-flex items-center gap-1.5 rounded-lg border border-teal-600 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700 transition-colors">
-                    Supporter <span class="font-semibold">“{{ $search }}”</span>
-                    <span wire:click.stop="$set('search', '')" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
+                <button class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors">
+                    Supporter <span class="font-medium text-blue-600">“{{ $search }}”</span>
+                    <span wire:click.stop="$set('search', '')" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
                         <x-heroicon-o-x-mark class="size-3.5" />
                     </span>
                 </button>
@@ -427,6 +423,18 @@
                 </div>
             </flux:menu>
         </flux:dropdown>
+
+        {{-- Reset all filters --}}
+        @if ($this->hasActiveFilters())
+            <button
+                type="button"
+                wire:click="resetFilters"
+                class="inline-flex items-center gap-1.5 px-2 py-2 text-sm font-medium text-blue-600 transition-colors hover:text-blue-800"
+            >
+                <x-heroicon-o-backspace class="size-4" />
+                Reset filters
+            </button>
+        @endif
 
     </div>
 

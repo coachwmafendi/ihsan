@@ -224,6 +224,28 @@ class DonationIndex extends Component
         $this->resetPage();
     }
 
+    public function hasActiveFilters(): bool
+    {
+        return $this->period !== 'all_time'
+            || filled($this->search)
+            || filled($this->statusFilter)
+            || filled($this->campaignFilter)
+            || filled($this->frequencyFilter)
+            || $this->sourceFilter !== []
+            || $this->elementFilter !== []
+            || $this->paymentMethodFilter !== [];
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset([
+            'search', 'statusFilter', 'campaignFilter', 'frequencyFilter',
+            'sourceFilter', 'elementFilter', 'paymentMethodFilter',
+            'period', 'dateFrom', 'dateTo',
+        ]);
+        $this->resetPage();
+    }
+
     public function redirectToShow(string $publicId): void
     {
         $this->redirectRoute('app.donations.show', $publicId, navigate: true);

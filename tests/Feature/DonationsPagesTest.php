@@ -113,6 +113,23 @@ it('filters donations by source counting element and null as checkout modal', fu
         ->assertSee($campaignPageDonation->public_id);
 });
 
+it('resets all filters at once', function () {
+    Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->assertDontSee('Reset filters')
+        ->set('statusFilter', 'succeeded')
+        ->set('sourceFilter', ['campaign_page'])
+        ->set('period', '7_days')
+        ->set('search', 'zara')
+        ->assertSee('Reset filters')
+        ->call('resetFilters')
+        ->assertSet('statusFilter', '')
+        ->assertSet('sourceFilter', [])
+        ->assertSet('period', 'all_time')
+        ->assertSet('search', '')
+        ->assertDontSee('Reset filters');
+});
+
 it('does not offer element as a source option', function () {
     $component = Livewire::actingAs($this->user)->test(DonationIndex::class);
 
