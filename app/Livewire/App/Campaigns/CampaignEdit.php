@@ -507,26 +507,35 @@ class CampaignEdit extends Component
     /**
      * Succeeded donation amounts for this campaign, bucketed by checkout channel.
      * Any source other than 'campaign_page' and 'virtual_terminal' (e.g. 'checkout_modal',
-     * 'element', or null) is counted under 'checkout_modal'.
+     * 'element', or null) is counted under 'checkout_modal'. A bucket is approximate
+     * when it includes non-MYR donations converted at capture-time rates.
      *
-     * @return array<string, float>
+     * @return array<string, array{amount: float, approximate: bool}>
      */
     public function donationAmountsBySource(): array
     {
-        $amounts = ['campaign_page' => 0.0, 'checkout_modal' => 0.0, 'virtual_terminal' => 0.0];
+        $buckets = [
+            'campaign_page' => ['amount' => 0.0, 'approximate' => false],
+            'checkout_modal' => ['amount' => 0.0, 'approximate' => false],
+            'virtual_terminal' => ['amount' => 0.0, 'approximate' => false],
+        ];
 
         $this->campaign->donations()
             ->where('status', DonationStatus::Succeeded)
-            ->get(['source', 'base_amount', 'gross_amount'])
-            ->each(function ($donation) use (&$amounts): void {
+            ->get(['source', 'currency', 'base_amount', 'gross_amount'])
+            ->each(function ($donation) use (&$buckets): void {
                 $bucket = in_array($donation->source, ['campaign_page', 'virtual_terminal'], true)
                     ? $donation->source
                     : 'checkout_modal';
 
-                $amounts[$bucket] += (float) ($donation->base_amount ?? $donation->gross_amount);
+                $buckets[$bucket]['amount'] += (float) ($donation->base_amount ?? $donation->gross_amount);
+
+                if (strtolower($donation->currency ?? '') !== 'myr') {
+                    $buckets[$bucket]['approximate'] = true;
+                }
             });
 
-        return $amounts;
+        return $buckets;
     }
 
     /**

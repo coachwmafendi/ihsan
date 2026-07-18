@@ -86,15 +86,15 @@
                 </div>
                 <div>
                     <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Checkout Modal</dt>
-                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">MYR {{ number_format($bySource['checkout_modal']) }}</dd>
+                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $bySource['checkout_modal']['approximate'] ? '≈ ' : '' }}MYR {{ number_format($bySource['checkout_modal']['amount']) }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Campaign Page</dt>
-                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">MYR {{ number_format($bySource['campaign_page']) }}</dd>
+                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $bySource['campaign_page']['approximate'] ? '≈ ' : '' }}MYR {{ number_format($bySource['campaign_page']['amount']) }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Virtual Terminal</dt>
-                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">MYR {{ number_format($bySource['virtual_terminal']) }}</dd>
+                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $bySource['virtual_terminal']['approximate'] ? '≈ ' : '' }}MYR {{ number_format($bySource['virtual_terminal']['amount']) }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Recurring plans</dt>

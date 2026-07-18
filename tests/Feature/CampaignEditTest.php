@@ -551,6 +551,27 @@ it('shows amounts raised per checkout channel on the overview tab', function () 
         ->assertDontSee('≈');
 });
 
+it('marks only channels containing non-MYR donations as approximate', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    Donation::factory()->create(['campaign_id' => $campaign->id, 'source' => 'checkout_modal', 'currency' => 'usd', 'gross_amount' => 10, 'base_amount' => 45]);
+    Donation::factory()->create(['campaign_id' => $campaign->id, 'source' => 'campaign_page', 'currency' => 'myr', 'base_amount' => 150, 'gross_amount' => 150]);
+
+    $this->actingAs($this->user);
+
+    $component = Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSee('≈ MYR 45')
+        ->assertSee('MYR 150');
+
+    $bySource = $component->instance()->donationAmountsBySource();
+
+    expect($bySource['checkout_modal']['approximate'])->toBeTrue()
+        ->and($bySource['campaign_page']['approximate'])->toBeFalse()
+        ->and($bySource['virtual_terminal']['approximate'])->toBeFalse();
+});
+
 it('shows fallback campaign page content title on the overview tab', function () {
     $campaign = Campaign::factory()->create([
         'organization_id' => $this->organization->id,
