@@ -48,6 +48,21 @@ it('renders the supporters index with summary cards', function () {
         ->assertSee('Avg Lifetime Giving');
 });
 
+it('resets search and date filters at once', function () {
+    makeSupporterWithDonations($this->campaign);
+
+    Livewire::actingAs($this->user)
+        ->test(SupporterIndex::class)
+        ->assertDontSee('Reset filters')
+        ->set('search', 'zara')
+        ->set('period', '7_days')
+        ->assertSee('Reset filters')
+        ->call('resetFilters')
+        ->assertSet('search', '')
+        ->assertSet('period', 'all_time')
+        ->assertDontSee('Reset filters');
+});
+
 it('marks avg lifetime giving as approximate when non-MYR donations exist', function () {
     makeSupporterWithDonations($this->campaign, donationAttributes: [
         'currency' => 'usd',

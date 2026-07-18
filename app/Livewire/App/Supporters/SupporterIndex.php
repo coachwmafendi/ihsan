@@ -85,6 +85,17 @@ class SupporterIndex extends Component
         $this->resetPage();
     }
 
+    public function hasActiveFilters(): bool
+    {
+        return $this->period !== 'all_time' || filled($this->search);
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'period', 'dateFrom', 'dateTo']);
+        $this->resetPage();
+    }
+
     public function sortBy(string $field): void
     {
         if ($this->sortField === $field) {

@@ -202,6 +202,18 @@
             </div>
         </div>
 
+        {{-- Reset all filters --}}
+        @if ($this->hasActiveFilters())
+            <button
+                type="button"
+                wire:click="resetFilters"
+                class="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:text-blue-800"
+            >
+                <x-heroicon-o-backspace class="size-3.5" />
+                Reset filters
+            </button>
+        @endif
+
         {{-- Per Page --}}
         <div class="ml-auto flex items-center gap-2">
             <x-heroicon-o-list-bullet class="size-4 text-slate-400" />
