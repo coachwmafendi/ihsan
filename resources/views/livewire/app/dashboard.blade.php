@@ -604,43 +604,24 @@
                     $donationTrendHasApproximation = collect($this->donationTrend)->contains('has_approximation', true);
                 @endphp
 
-                <div class="flex items-end justify-between gap-4">
-                    <div>
-                        <div class="text-2xl font-bold text-slate-900">
-                            @if($donationTrendHasApproximation)
-                                <x-ui.tooltip text="Includes converted foreign currencies">
-                                    <span>≈ MYR {{ number_format($donationTrendTotal, 2) }}</span>
-                                </x-ui.tooltip>
-                            @else
-                                <span>MYR {{ number_format($donationTrendTotal, 2) }}</span>
-                            @endif
-                        </div>
-                        <div class="text-sm text-slate-500">Total in period</div>
+                <div class="mb-4">
+                    <div class="text-2xl font-bold text-slate-900">
+                        @if($donationTrendHasApproximation)
+                            <x-ui.tooltip text="Includes converted foreign currencies">
+                                <span>≈ MYR {{ number_format($donationTrendTotal, 2) }}</span>
+                            </x-ui.tooltip>
+                        @else
+                            <span>MYR {{ number_format($donationTrendTotal, 2) }}</span>
+                        @endif
                     </div>
-                    <x-ui.sparkline
-                        :data="$sparklineData"
-                        :width="200"
-                        :height="60"
-                        color="#3b82f6"
-                    />
+                    <div class="text-sm text-slate-500">Total in period</div>
                 </div>
 
-                <div class="mt-4 flex h-32 items-end justify-between gap-1">
-                    @foreach($this->donationTrend as $point)
-                        @php
-                            $maxAmount = max(array_column($this->donationTrend, 'amount')) ?: 1;
-                            $heightPercent = $maxAmount > 0 ? ($point['amount'] / $maxAmount) * 100 : 0;
-                        @endphp
-                        <div class="flex flex-1 flex-col items-center gap-1">
-                            <x-ui.tooltip :text="$point['date'].': '.($point['has_approximation'] ? '≈ ' : '').'MYR '.number_format($point['amount'], 2)">
-                                <div class="w-full rounded-t bg-blue-500/20 transition-all duration-300 hover:bg-blue-500/40" style="height: {{ max($heightPercent, 2) }}%;"></div>
-                            </x-ui.tooltip>
-                            @if(count($this->donationTrend) <= 14 || $loop->index % ceil(count($this->donationTrend) / 7) === 0)
-                                <span class="text-[10px] text-slate-400">{{ $point['date'] }}</span>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
+                <x-ui.line-chart
+                    :data="$this->donationTrend"
+                    :height="160"
+                    color="#3b82f6"
+                />
             @else
                 <div class="py-8 text-center text-sm text-slate-400">No donation data for this period</div>
             @endif

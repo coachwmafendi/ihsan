@@ -90,6 +90,27 @@ it('shows analytics sections from merged insights', function () {
         ->assertSee('Recent Donations');
 });
 
+it('renders an interactive line chart with hover figures for the donation trend', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 250.00,
+        'base_amount' => 250.00,
+        'created_at' => now(),
+    ]);
+
+    actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->assertSee('Donation Trend')
+        // Interactive chart scaffolding: SVG path + Alpine hover handlers.
+        ->assertSee('vector-effect="non-scaling-stroke"', false)
+        ->assertSee('onMove($event)', false)
+        ->assertSee('points[active].amount', false);
+});
+
 it('shows a status badge for each recent donation', function () {
     $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
     $donor = Donor::factory()->create();
