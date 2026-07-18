@@ -271,55 +271,159 @@
             </flux:menu>
         </flux:dropdown>
 
-        {{-- Source chip --}}
-        <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($sourceFilter !== []) border-teal-600 bg-teal-50 font-medium text-teal-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
-                @if ($sourceFilter !== [])
+        {{-- Active filter chips (from More filters) --}}
+        @if ($sourceFilter !== [])
+            <flux:dropdown>
+                <button class="inline-flex items-center gap-1.5 rounded-lg border border-teal-600 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700 transition-colors">
                     Source <span class="font-semibold">{{ $this->sourceChipLabel() }}</span>
-                @else
-                    Source
-                @endif
-                @if ($sourceFilter !== [])
                     <span wire:click.stop="clearSourceFilter" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
                         <x-heroicon-o-x-mark class="size-3.5" />
                     </span>
-                @endif
-            </button>
-            <flux:menu keep-open class="w-60 p-1">
-                @foreach ($this->sourceOptions() as $value => $label)
-                    <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
-                        <span>{{ $label }}</span>
-                        <input
-                            type="checkbox"
-                            value="{{ $value }}"
-                            wire:model.live="sourceFilter"
-                            class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                        />
-                    </label>
-                @endforeach
-            </flux:menu>
-        </flux:dropdown>
+                </button>
+                <flux:menu keep-open class="w-60 p-1">
+                    @foreach ($this->sourceOptions() as $value => $label)
+                        <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                            <span>{{ $label }}</span>
+                            <input type="checkbox" value="{{ $value }}" wire:model.live="sourceFilter" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                        </label>
+                    @endforeach
+                </flux:menu>
+            </flux:dropdown>
+        @endif
 
-        {{-- More filters (search) --}}
-        <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($search) border-teal-600 bg-teal-50 font-medium text-teal-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
-                <x-heroicon-o-plus class="size-3.5" />
-                More filters
-                @if ($search)
+        @if ($elementFilter !== [])
+            <flux:dropdown>
+                <button class="inline-flex items-center gap-1.5 rounded-lg border border-teal-600 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700 transition-colors">
+                    Element <span class="font-semibold">{{ $this->elementChipLabel() }}</span>
+                    <span wire:click.stop="clearElementFilter" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
+                        <x-heroicon-o-x-mark class="size-3.5" />
+                    </span>
+                </button>
+                <flux:menu keep-open class="max-h-72 w-64 overflow-y-auto p-1">
+                    @foreach ($this->elementOptions as $element)
+                        <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                            <span class="truncate">{{ $element->name }}</span>
+                            <input type="checkbox" value="{{ $element->token }}" wire:model.live="elementFilter" class="size-4 shrink-0 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                        </label>
+                    @endforeach
+                </flux:menu>
+            </flux:dropdown>
+        @endif
+
+        @if ($paymentMethodFilter !== [])
+            <flux:dropdown>
+                <button class="inline-flex items-center gap-1.5 rounded-lg border border-teal-600 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700 transition-colors">
+                    Payment <span class="font-semibold">{{ $this->paymentMethodChipLabel() }}</span>
+                    <span wire:click.stop="clearPaymentMethodFilter" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
+                        <x-heroicon-o-x-mark class="size-3.5" />
+                    </span>
+                </button>
+                <flux:menu keep-open class="w-60 p-1">
+                    @foreach ($this->paymentMethodOptions as $value => $label)
+                        <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                            <span>{{ $label }}</span>
+                            <input type="checkbox" value="{{ $value }}" wire:model.live="paymentMethodFilter" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                        </label>
+                    @endforeach
+                </flux:menu>
+            </flux:dropdown>
+        @endif
+
+        @if ($search)
+            <flux:dropdown>
+                <button class="inline-flex items-center gap-1.5 rounded-lg border border-teal-600 bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700 transition-colors">
+                    Supporter <span class="font-semibold">“{{ $search }}”</span>
                     <span wire:click.stop="$set('search', '')" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
                         <x-heroicon-o-x-mark class="size-3.5" />
                     </span>
-                @endif
+                </button>
+                <flux:menu keep-open class="w-64 p-2">
+                    <div class="relative px-1 py-1">
+                        <x-heroicon-o-magnifying-glass class="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search supporters..." class="h-9 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500" />
+                    </div>
+                </flux:menu>
+            </flux:dropdown>
+        @endif
+
+        {{-- More filters (category menu) --}}
+        <flux:dropdown>
+            <button class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 transition-colors hover:border-slate-400 hover:text-slate-800">
+                <x-heroicon-o-plus class="size-3.5" />
+                More filters
             </button>
-            <flux:menu keep-open class="w-64 p-2">
-                <div class="relative px-1 py-1">
-                    <x-heroicon-o-magnifying-glass class="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                        type="text"
-                        wire:model.live.debounce.300ms="search"
-                        placeholder="Search supporters..."
-                        class="h-9 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                    />
+            <flux:menu keep-open class="w-64 p-1">
+                <div x-data="{ panel: null }">
+                    {{-- Category list --}}
+                    <div x-show="panel === null">
+                        @foreach ([
+                            ['source', 'Source'],
+                            ['element', 'Element'],
+                            ['payment', 'Payment method'],
+                            ['supporter', 'Supporter'],
+                        ] as [$key, $label])
+                            <button type="button" @click="panel = '{{ $key }}'" class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                                <span>{{ $label }}</span>
+                                <x-heroicon-o-chevron-right class="size-4 text-slate-400" />
+                            </button>
+                        @endforeach
+                    </div>
+
+                    {{-- Source panel --}}
+                    <div x-show="panel === 'source'" x-cloak>
+                        <button type="button" @click="panel = null" class="mb-1 flex w-full items-center gap-1.5 rounded-lg px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:bg-slate-50">
+                            <x-heroicon-o-chevron-left class="size-3.5" /> Source
+                        </button>
+                        @foreach ($this->sourceOptions() as $value => $label)
+                            <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                                <span>{{ $label }}</span>
+                                <input type="checkbox" value="{{ $value }}" wire:model.live="sourceFilter" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                            </label>
+                        @endforeach
+                    </div>
+
+                    {{-- Element panel --}}
+                    <div x-show="panel === 'element'" x-cloak>
+                        <button type="button" @click="panel = null" class="mb-1 flex w-full items-center gap-1.5 rounded-lg px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:bg-slate-50">
+                            <x-heroicon-o-chevron-left class="size-3.5" /> Element
+                        </button>
+                        <div class="max-h-60 overflow-y-auto">
+                            @forelse ($this->elementOptions as $element)
+                                <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                                    <span class="truncate">{{ $element->name }}</span>
+                                    <input type="checkbox" value="{{ $element->token }}" wire:model.live="elementFilter" class="size-4 shrink-0 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                                </label>
+                            @empty
+                                <p class="px-3 py-2.5 text-sm text-slate-500">No elements yet.</p>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    {{-- Payment method panel --}}
+                    <div x-show="panel === 'payment'" x-cloak>
+                        <button type="button" @click="panel = null" class="mb-1 flex w-full items-center gap-1.5 rounded-lg px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:bg-slate-50">
+                            <x-heroicon-o-chevron-left class="size-3.5" /> Payment method
+                        </button>
+                        @forelse ($this->paymentMethodOptions as $value => $label)
+                            <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                                <span>{{ $label }}</span>
+                                <input type="checkbox" value="{{ $value }}" wire:model.live="paymentMethodFilter" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                            </label>
+                        @empty
+                            <p class="px-3 py-2.5 text-sm text-slate-500">No payment data yet.</p>
+                        @endforelse
+                    </div>
+
+                    {{-- Supporter panel --}}
+                    <div x-show="panel === 'supporter'" x-cloak>
+                        <button type="button" @click="panel = null" class="mb-1 flex w-full items-center gap-1.5 rounded-lg px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:bg-slate-50">
+                            <x-heroicon-o-chevron-left class="size-3.5" /> Supporter
+                        </button>
+                        <div class="relative px-1 py-1">
+                            <x-heroicon-o-magnifying-glass class="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search supporters..." class="h-9 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500" />
+                        </div>
+                    </div>
                 </div>
             </flux:menu>
         </flux:dropdown>

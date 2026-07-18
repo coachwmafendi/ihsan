@@ -113,6 +113,39 @@ it('filters donations by source including null as checkout modal', function () {
         ->assertSee($campaignPageDonation->public_id);
 });
 
+it('filters donations by element token and payment method type', function () {
+    $element = Element::factory()->create([
+        'organization_id' => $this->organization->id,
+        'campaign_id' => $this->campaign->id,
+    ]);
+
+    $elementDonation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'utm_params' => ['source' => 'element', 'element_token' => $element->token],
+    ]);
+
+    $fpxDonation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'payment_method_type' => 'fpx',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->set('elementFilter', [$element->token])
+        ->assertSee($elementDonation->public_id)
+        ->assertDontSee($this->donation->public_id)
+        ->assertDontSee($fpxDonation->public_id)
+        ->call('clearElementFilter')
+        ->set('paymentMethodFilter', ['fpx'])
+        ->assertSee($fpxDonation->public_id)
+        ->assertDontSee($elementDonation->public_id)
+        ->call('clearPaymentMethodFilter')
+        ->assertSee($elementDonation->public_id)
+        ->assertSee($fpxDonation->public_id);
+});
+
 it('shows a combined source chip label for multiple selections', function () {
     $component = Livewire::actingAs($this->user)
         ->test(DonationIndex::class)

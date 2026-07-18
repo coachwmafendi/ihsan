@@ -8,6 +8,7 @@ use App\Enums\DonationStatus;
 use App\Http\Controllers\DonationExportController;
 use App\Models\Campaign;
 use App\Models\Donation;
+use App\Models\Element;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -40,6 +41,14 @@ class DonationIndex extends Component
     /** @var array<int, string> */
     #[Url(except: [])]
     public array $sourceFilter = [];
+
+    /** @var array<int, string> */
+    #[Url(except: [])]
+    public array $elementFilter = [];
+
+    /** @var array<int, string> */
+    #[Url(except: [])]
+    public array $paymentMethodFilter = [];
 
     #[Url(except: 'all_time')]
     public string $period = 'all_time';
@@ -102,10 +111,92 @@ class DonationIndex extends Component
 
     public function sourceChipLabel(): string
     {
-        $selected = array_values(array_intersect_key($this->sourceOptions(), array_flip($this->sourceFilter)));
+        return $this->summariseSelection('Source', array_values(array_intersect_key($this->sourceOptions(), array_flip($this->sourceFilter))));
+    }
 
+    public function updatedElementFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearElementFilter(): void
+    {
+        $this->elementFilter = [];
+        $this->resetPage();
+    }
+
+    #[Computed]
+    public function elementOptions()
+    {
+        $org = $this->organization;
+
+        if (! $org) {
+            return collect();
+        }
+
+        return Element::where('organization_id', $org->id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'token']);
+    }
+
+    public function elementChipLabel(): string
+    {
+        $selected = $this->elementOptions
+            ->whereIn('token', $this->elementFilter)
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        return $this->summariseSelection('Element', $selected);
+    }
+
+    public function updatedPaymentMethodFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearPaymentMethodFilter(): void
+    {
+        $this->paymentMethodFilter = [];
+        $this->resetPage();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    #[Computed]
+    public function paymentMethodOptions(): array
+    {
+        $org = $this->organization;
+
+        if (! $org) {
+            return [];
+        }
+
+        return Donation::query()
+            ->whereHas('campaign', fn (Builder $q) => $q->where('organization_id', $org->id))
+            ->whereNotNull('payment_method_type')
+            ->distinct()
+            ->orderBy('payment_method_type')
+            ->pluck('payment_method_type')
+            ->mapWithKeys(fn (string $type) => [$type => ucwords(str_replace('_', ' ', $type))])
+            ->all();
+    }
+
+    public function paymentMethodChipLabel(): string
+    {
+        $selected = array_values(array_intersect_key($this->paymentMethodOptions, array_flip($this->paymentMethodFilter)));
+
+        return $this->summariseSelection('Payment method', $selected);
+    }
+
+    /**
+     * @param  array<int, string>  $selected
+     */
+    private function summariseSelection(string $fallback, array $selected): string
+    {
         return match (count($selected)) {
-            0 => 'Source',
+            0 => $fallback,
             1 => $selected[0],
             default => $selected[0].' and '.(count($selected) - 1).' more',
         };
@@ -272,6 +363,14 @@ class DonationIndex extends Component
                     $q->orWhereNull('donations.source');
                 }
             });
+        }
+
+        if ($this->elementFilter !== []) {
+            $query->whereIn('donations.utm_params->element_token', $this->elementFilter);
+        }
+
+        if ($this->paymentMethodFilter !== []) {
+            $query->whereIn('donations.payment_method_type', $this->paymentMethodFilter);
         }
 
         [$start, $end] = $this->periodRange();
