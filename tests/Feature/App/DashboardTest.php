@@ -108,7 +108,10 @@ it('renders an interactive line chart with hover figures for the donation trend'
         // Interactive chart scaffolding: SVG path + Alpine hover handlers.
         ->assertSee('vector-effect="non-scaling-stroke"', false)
         ->assertSee('onMove($event)', false)
-        ->assertSee('points[active].amount', false);
+        ->assertSee('points[active].amount', false)
+        // Fundraise Up-style axis + tooltip title.
+        ->assertSee('MYR 250', false)
+        ->assertSee('Total raised');
 });
 
 it('shows a status badge for each recent donation', function () {

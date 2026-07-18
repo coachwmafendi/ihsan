@@ -619,8 +619,9 @@
 
                 <x-ui.line-chart
                     :data="$this->donationTrend"
-                    :height="160"
+                    :height="220"
                     color="#3b82f6"
+                    label="Total raised"
                 />
             @else
                 <div class="py-8 text-center text-sm text-slate-400">No donation data for this period</div>
