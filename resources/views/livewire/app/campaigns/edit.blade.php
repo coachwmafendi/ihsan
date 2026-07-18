@@ -79,29 +79,29 @@
             $lastDonationAt = $campaign->donations()->latest()->first()?->created_at;
         @endphp
         <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
-            <dl class="flex flex-wrap gap-x-10 gap-y-4">
+            <dl class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
                 <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Total raised</dt>
+                    <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Total raised</dt>
                     <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $approx }}MYR {{ number_format((float) $campaign->collected_amount) }}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Checkout Modal</dt>
+                    <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Checkout Modal</dt>
                     <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">MYR {{ number_format($bySource['checkout_modal']) }}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Campaign Page</dt>
+                    <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Campaign Page</dt>
                     <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">MYR {{ number_format($bySource['campaign_page']) }}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Virtual Terminal</dt>
+                    <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Virtual Terminal</dt>
                     <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">MYR {{ number_format($bySource['virtual_terminal']) }}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Recurring plans</dt>
+                    <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Recurring plans</dt>
                     <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ number_format($activePlansCount) }} active</dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Last donation</dt>
+                    <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Last donation</dt>
                     <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $lastDonationAt ? myrTime($lastDonationAt, withLabel: false, format: 'M j, Y') : '—' }}</dd>
                 </div>
             </dl>
