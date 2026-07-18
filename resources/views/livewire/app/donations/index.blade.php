@@ -98,26 +98,14 @@
             }"
             @click.outside="open = false"
         >
-            <button
-                @click="open = !open"
-                class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors"
-                :class="open ? 'border-slate-400 bg-slate-50 text-slate-800' : ''"
-                @class([
-                    'border-slate-300 bg-white text-slate-700' => $dateActive,
-                    'border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800' => ! $dateActive,
-                ])
-            >
-                <x-heroicon-o-calendar-days class="size-3.5 shrink-0" />
-                @if ($dateActive)
-                    <span>Date</span>
-                    <span class="font-medium text-blue-600">{{ $dateLabel }}</span>
-                    <span wire:click.stop="clearDate" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
-                        <x-heroicon-o-x-mark class="size-3.5" />
-                    </span>
-                @else
-                    <span>{{ $dateLabel }}</span>
-                @endif
-            </button>
+            <x-ui.filter-chip
+                x-on:click="open = !open"
+                x-bind:class="open ? 'border-slate-400 bg-slate-50' : ''"
+                icon="calendar-days"
+                label="Date"
+                :value="$dateActive ? $dateLabel : null"
+                clear="clearDate"
+            />
 
             <div
                 x-show="open"
@@ -207,15 +195,11 @@
 
         {{-- Campaign chip --}}
         <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($campaignFilter) border-slate-300 bg-white text-slate-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
-                Campaign
-                @if ($campaignFilter)
-                    <span class="font-medium text-blue-600">{{ $this->campaigns->firstWhere('id', (int) $campaignFilter)?->title }}</span>
-                    <span wire:click.stop="$set('campaignFilter', '')" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
-                        <x-heroicon-o-x-mark class="size-3.5" />
-                    </span>
-                @endif
-            </button>
+            <x-ui.filter-chip
+                label="Campaign"
+                :value="$campaignFilter ? $this->campaigns->firstWhere('id', (int) $campaignFilter)?->title : null"
+                clear="$set('campaignFilter', '')"
+            />
             <flux:menu class="max-h-72 w-56 overflow-y-auto">
                 <flux:menu.item wire:click="$set('campaignFilter', '')" @class(['font-semibold text-teal-700' => ! $campaignFilter])>All Campaigns</flux:menu.item>
                 <flux:menu.separator />
@@ -229,15 +213,11 @@
 
         {{-- Status chip --}}
         <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($statusFilter) border-slate-300 bg-white text-slate-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
-                Status
-                @if ($statusFilter)
-                    <span class="font-medium text-blue-600">{{ ucfirst($statusFilter) }}</span>
-                    <span wire:click.stop="$set('statusFilter', '')" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
-                        <x-heroicon-o-x-mark class="size-3.5" />
-                    </span>
-                @endif
-            </button>
+            <x-ui.filter-chip
+                label="Status"
+                :value="$statusFilter ? ucfirst($statusFilter) : null"
+                clear="$set('statusFilter', '')"
+            />
             <flux:menu>
                 <flux:menu.item wire:click="$set('statusFilter', '')"    @class(['font-semibold text-teal-700' => ! $statusFilter])>All</flux:menu.item>
                 <flux:menu.separator />
@@ -250,15 +230,11 @@
 
         {{-- Frequency chip --}}
         <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($frequencyFilter) border-slate-300 bg-white text-slate-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
-                Frequency
-                @if ($frequencyFilter)
-                    <span class="font-medium text-blue-600">{{ $frequencyFilter === 'one_time' ? 'One-time' : 'Recurring' }}</span>
-                    <span wire:click.stop="$set('frequencyFilter', '')" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
-                        <x-heroicon-o-x-mark class="size-3.5" />
-                    </span>
-                @endif
-            </button>
+            <x-ui.filter-chip
+                label="Frequency"
+                :value="$frequencyFilter ? ($frequencyFilter === 'one_time' ? 'One-time' : 'Recurring') : null"
+                clear="$set('frequencyFilter', '')"
+            />
             <flux:menu>
                 <flux:menu.item wire:click="$set('frequencyFilter', '')"          @class(['font-semibold text-teal-700' => ! $frequencyFilter])>All</flux:menu.item>
                 <flux:menu.separator />
@@ -270,12 +246,7 @@
         {{-- Active filter chips (from More filters) --}}
         @if ($sourceFilter !== [])
             <flux:dropdown>
-                <button class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors">
-                    Source <span class="font-medium text-blue-600">{{ $this->sourceChipLabel() }}</span>
-                    <span wire:click.stop="clearSourceFilter" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
-                        <x-heroicon-o-x-mark class="size-3.5" />
-                    </span>
-                </button>
+                <x-ui.filter-chip label="Source" :value="$this->sourceChipLabel()" clear="clearSourceFilter" />
                 <flux:menu keep-open class="w-60 p-1">
                     @foreach ($this->sourceOptions() as $value => $label)
                         <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
@@ -289,12 +260,7 @@
 
         @if ($elementFilter !== [])
             <flux:dropdown>
-                <button class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors">
-                    Element <span class="font-medium text-blue-600">{{ $this->elementChipLabel() }}</span>
-                    <span wire:click.stop="clearElementFilter" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
-                        <x-heroicon-o-x-mark class="size-3.5" />
-                    </span>
-                </button>
+                <x-ui.filter-chip label="Element" :value="$this->elementChipLabel()" clear="clearElementFilter" />
                 <flux:menu keep-open class="max-h-72 w-64 overflow-y-auto p-1">
                     @foreach ($this->elementOptions as $element)
                         <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
@@ -308,12 +274,7 @@
 
         @if ($paymentMethodFilter !== [])
             <flux:dropdown>
-                <button class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors">
-                    Payment <span class="font-medium text-blue-600">{{ $this->paymentMethodChipLabel() }}</span>
-                    <span wire:click.stop="clearPaymentMethodFilter" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
-                        <x-heroicon-o-x-mark class="size-3.5" />
-                    </span>
-                </button>
+                <x-ui.filter-chip label="Payment" :value="$this->paymentMethodChipLabel()" clear="clearPaymentMethodFilter" />
                 <flux:menu keep-open class="w-60 p-1">
                     @foreach ($this->paymentMethodOptions as $value => $label)
                         <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
@@ -327,12 +288,7 @@
 
         @if ($search)
             <flux:dropdown>
-                <button class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors">
-                    Supporter <span class="font-medium text-blue-600">“{{ $search }}”</span>
-                    <span wire:click.stop="$set('search', '')" class="ml-1 cursor-pointer border-l border-slate-200 pl-2 text-slate-500 hover:text-slate-800">
-                        <x-heroicon-o-x-mark class="size-3.5" />
-                    </span>
-                </button>
+                <x-ui.filter-chip label="Supporter" :value="'“'.$search.'”'" clear="$set('search', '')" />
                 <flux:menu keep-open class="w-64 p-2">
                     <div class="relative px-1 py-1">
                         <x-heroicon-o-magnifying-glass class="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
@@ -344,10 +300,7 @@
 
         {{-- More filters (category menu) --}}
         <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 transition-colors hover:border-slate-400 hover:text-slate-800">
-                <x-heroicon-o-plus class="size-3.5" />
-                More filters
-            </button>
+            <x-ui.filter-chip icon="plus" label="More filters" />
             <flux:menu keep-open class="w-64 p-1">
                 <div x-data="{ panel: null }">
                     {{-- Category list --}}
@@ -429,9 +382,9 @@
             <button
                 type="button"
                 wire:click="resetFilters"
-                class="inline-flex items-center gap-1.5 px-2 py-2 text-sm font-medium text-blue-600 transition-colors hover:text-blue-800"
+                class="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:text-blue-800"
             >
-                <x-heroicon-o-backspace class="size-4" />
+                <x-heroicon-o-backspace class="size-3.5" />
                 Reset filters
             </button>
         @endif

@@ -91,22 +91,13 @@
             }"
             @click.outside="open = false"
         >
-            <button
-                @click="open = !open"
-                class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors"
-                @class([
-                    'border-teal-600 bg-teal-50 font-medium text-teal-700' => $dateActive,
-                    'border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800' => ! $dateActive,
-                ])
-            >
-                <x-heroicon-o-calendar-days class="size-3.5 shrink-0" />
-                <span>{{ $dateLabel }}</span>
-                @if ($dateActive)
-                    <span wire:click.stop="clearDate" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800">
-                        <x-heroicon-o-x-mark class="size-3.5" />
-                    </span>
-                @endif
-            </button>
+            <x-ui.filter-chip
+                x-on:click="open = !open"
+                icon="calendar-days"
+                label="Date"
+                :value="$dateActive ? $dateLabel : null"
+                clear="clearDate"
+            />
 
             <div
                 x-show="open"
@@ -181,12 +172,11 @@
 
         {{-- Status chip --}}
         <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($statusFilter) border-teal-600 bg-teal-50 font-medium text-teal-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
-                @if ($statusFilter) {{ ucfirst(str_replace('_', ' ', $statusFilter)) }} @else Status @endif
-                @if ($statusFilter)
-                    <span wire:click.stop="$set('statusFilter', '')" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800"><x-heroicon-o-x-mark class="size-3.5" /></span>
-                @endif
-            </button>
+            <x-ui.filter-chip
+                label="Status"
+                :value="$statusFilter ? ucfirst(str_replace('_', ' ', $statusFilter)) : null"
+                clear="$set('statusFilter', '')"
+            />
             <flux:menu>
                 <flux:menu.item wire:click="$set('statusFilter', '')"          @class(['font-semibold text-teal-700' => ! $statusFilter])>All</flux:menu.item>
                 <flux:menu.separator />
@@ -202,12 +192,11 @@
 
         {{-- Campaign chip --}}
         <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($campaignFilter) border-teal-600 bg-teal-50 font-medium text-teal-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
-                Campaign
-                @if ($campaignFilter)
-                    <span wire:click.stop="$set('campaignFilter', '')" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800"><x-heroicon-o-x-mark class="size-3.5" /></span>
-                @endif
-            </button>
+            <x-ui.filter-chip
+                label="Campaign"
+                :value="$campaignFilter ? $this->campaigns->firstWhere('id', (int) $campaignFilter)?->title : null"
+                clear="$set('campaignFilter', '')"
+            />
             <flux:menu class="max-h-72 w-56 overflow-y-auto">
                 <flux:menu.item wire:click="$set('campaignFilter', '')" @class(['font-semibold text-teal-700' => ! $campaignFilter])>All Campaigns</flux:menu.item>
                 <flux:menu.separator />
@@ -219,13 +208,12 @@
 
         {{-- More filters (search) --}}
         <flux:dropdown>
-            <button class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors @if($search) border-teal-600 bg-teal-50 font-medium text-teal-700 @else border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800 @endif">
-                <x-heroicon-o-plus class="size-3.5" />
-                More filters
-                @if ($search)
-                    <span wire:click.stop="$set('search', '')" class="ml-0.5 cursor-pointer text-teal-500 hover:text-teal-800"><x-heroicon-o-x-mark class="size-3.5" /></span>
-                @endif
-            </button>
+            <x-ui.filter-chip
+                icon="plus"
+                label="More filters"
+                :value="$search ? '“'.$search.'”' : null"
+                clear="$set('search', '')"
+            />
             <flux:menu keep-open class="w-64 p-2">
                 <div class="relative px-1 py-1">
                     <x-heroicon-o-magnifying-glass class="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />

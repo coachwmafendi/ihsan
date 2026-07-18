@@ -107,23 +107,14 @@
             }"
             @click.outside="open = false"
         >
-            <button
-                @click="open = !open"
-                class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors"
-                :class="open ? 'border-slate-400 bg-slate-50 text-slate-800' : ''"
-                @class([
-                    'border-teal-600 bg-teal-50 font-medium text-teal-700' => $dateActive,
-                    'border-dashed border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-800' => ! $dateActive,
-                ])
-            >
-                <x-heroicon-o-calendar-days class="size-3.5 shrink-0" />
-                <span>{{ $dateLabel }}</span>
-                @if ($dateActive)
-                    <span wire:click.stop="clearDate" class="ml-0.5 cursor-pointer rounded-full text-teal-500 hover:text-teal-800">
-                        <x-heroicon-o-x-mark class="size-3.5" />
-                    </span>
-                @endif
-            </button>
+            <x-ui.filter-chip
+                x-on:click="open = !open"
+                x-bind:class="open ? 'border-slate-400 bg-slate-50' : ''"
+                icon="calendar-days"
+                label="Date"
+                :value="$dateActive ? $dateLabel : null"
+                clear="clearDate"
+            />
 
             <div
                 x-show="open"
