@@ -77,20 +77,24 @@
             <x-ui.stat-card
                 label="Amount Raised"
                 value="{{ $approx }}MYR {{ number_format((float) $campaign->collected_amount, 2) }}"
+                value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
                 subtext="{{ $campaign->has_target && $campaign->target_amount ? 'Goal: MYR '.number_format((float) $campaign->target_amount, 2).' ('.number_format(min(100, ((float) $campaign->collected_amount / (float) $campaign->target_amount) * 100), 1).'%)' : 'No target set' }}"
                 :progress="$campaign->has_target && $campaign->target_amount ? ((float) $campaign->collected_amount / (float) $campaign->target_amount) * 100 : null"
             />
             <x-ui.stat-card
                 label="Donations"
                 value="{{ number_format($campaign->donations()->where('status', DonationStatus::Succeeded->value)->count()) }}"
+                value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
             />
             <x-ui.stat-card
                 label="Active Recurring"
                 value="{{ number_format($campaign->subscriptions()->whereIn('status', ['active', 'trialing'])->count()) }}"
+                value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
             />
             <x-ui.stat-card
                 label="Last Donation"
                 value="{{ $campaign->donations()->latest()->first()?->created_at?->diffForHumans() ?? '—' }}"
+                value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
                 subtext="{{ $campaign->donations()->latest()->first()?->donor?->name ?? '' }}"
             />
         </div>
@@ -101,14 +105,17 @@
             <x-ui.stat-card
                 label="Checkout Modal"
                 value="{{ $approx }}MYR {{ number_format($bySource['checkout_modal'], 2) }}"
+                value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
             />
             <x-ui.stat-card
                 label="Campaign Page"
                 value="{{ $approx }}MYR {{ number_format($bySource['campaign_page'], 2) }}"
+                value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
             />
             <x-ui.stat-card
                 label="Virtual Terminal"
                 value="{{ $approx }}MYR {{ number_format($bySource['virtual_terminal'], 2) }}"
+                value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
             />
         </div>
 
