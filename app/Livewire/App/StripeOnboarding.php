@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App;
 
+use App\Jobs\RegisterStripePaymentMethodDomains;
 use App\Models\User;
 use App\Services\AuditLogLogger;
 use Illuminate\Support\Facades\Auth;
@@ -55,6 +56,8 @@ class StripeOnboarding extends Component
                         $this->getUser(),
                         $org->stripe_account_id,
                     );
+
+                    RegisterStripePaymentMethodDomains::dispatch($org->id);
                 }
             } catch (\Throwable) {
                 // Ignore Stripe errors and leave the onboarding page visible.

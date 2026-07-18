@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\RegisterStripePaymentMethodDomains;
 use App\Models\Organization;
 use App\Services\AuditLogLogger;
 use Illuminate\Http\RedirectResponse;
@@ -106,6 +107,8 @@ class StripeConnectController extends Controller
         ]);
 
         AuditLogLogger::stripeConnected($org, auth()->user(), $stripeUserId);
+
+        RegisterStripePaymentMethodDomains::dispatch($org->id);
 
         try {
             $account = Account::retrieve($stripeUserId);

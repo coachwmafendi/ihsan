@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\Settings;
 
+use App\Jobs\RegisterStripePaymentMethodDomains;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -83,6 +84,10 @@ class AllowDomains extends Component
         ]);
 
         $org->update(['settings' => $settings]);
+
+        if (filled($org->stripe_account_id)) {
+            RegisterStripePaymentMethodDomains::dispatch($org->id);
+        }
 
         $this->dispatch('notify', message: 'Allowed domains saved.', variant: 'success');
     }
