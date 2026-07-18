@@ -82,19 +82,19 @@
             <dl class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
                 <div>
                     <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Total raised</dt>
-                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $approx }}MYR {{ number_format((float) $campaign->collected_amount) }}</dd>
+                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $approx }}MYR {{ number_format((float) $campaign->collected_amount, 2) }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Checkout Modal</dt>
-                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $bySource['checkout_modal']['approximate'] ? '≈ ' : '' }}MYR {{ number_format($bySource['checkout_modal']['amount']) }}</dd>
+                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $bySource['checkout_modal']['approximate'] ? '≈ ' : '' }}MYR {{ number_format($bySource['checkout_modal']['amount'], 2) }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Campaign Page</dt>
-                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $bySource['campaign_page']['approximate'] ? '≈ ' : '' }}MYR {{ number_format($bySource['campaign_page']['amount']) }}</dd>
+                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $bySource['campaign_page']['approximate'] ? '≈ ' : '' }}MYR {{ number_format($bySource['campaign_page']['amount'], 2) }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Virtual Terminal</dt>
-                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $bySource['virtual_terminal']['approximate'] ? '≈ ' : '' }}MYR {{ number_format($bySource['virtual_terminal']['amount']) }}</dd>
+                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $bySource['virtual_terminal']['approximate'] ? '≈ ' : '' }}MYR {{ number_format($bySource['virtual_terminal']['amount'], 2) }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Recurring plans</dt>

@@ -545,9 +545,9 @@ it('shows amounts raised per checkout channel on the overview tab', function () 
 
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
         ->assertSeeInOrder(['Total raised', 'Checkout Modal', 'Campaign Page', 'Virtual Terminal', 'Recurring plans', 'Last donation'])
-        ->assertSee('MYR 85')
-        ->assertSee('MYR 150')
-        ->assertSee('MYR 200')
+        ->assertSee('MYR 85.00')
+        ->assertSee('MYR 150.00')
+        ->assertSee('MYR 200.00')
         ->assertDontSee('≈');
 });
 
@@ -562,8 +562,8 @@ it('marks only channels containing non-MYR donations as approximate', function (
     $this->actingAs($this->user);
 
     $component = Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
-        ->assertSee('≈ MYR 45')
-        ->assertSee('MYR 150');
+        ->assertSee('≈ MYR 45.00')
+        ->assertSee('MYR 150.00');
 
     $bySource = $component->instance()->donationAmountsBySource();
 
