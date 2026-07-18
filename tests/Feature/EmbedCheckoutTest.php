@@ -31,6 +31,17 @@ it('serves the widget script with checkout modal skeleton loading states', funct
         ->assertDontSee('setTimeout(hideSkeleton, 2000)', false);
 });
 
+it('grants the payment permission to widget iframes for wallet payments', function () {
+    // Google Pay / Apple Pay need allow="payment" on cross-origin iframes.
+    $widget = $this->get(route('widget.script'))->assertOk()->getContent();
+
+    expect(substr_count($widget, 'iframe.setAttribute("allow", "payment *; clipboard-write; autoplay")'))->toBe(2);
+
+    $this->get(route('loader.script'))
+        ->assertOk()
+        ->assertSee('payment *; clipboard-write; autoplay', false);
+});
+
 it('does not render inactive elements from the widget fallback', function () {
     $script = $this->get(route('widget.script'))->getContent();
 

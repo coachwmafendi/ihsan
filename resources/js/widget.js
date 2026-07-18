@@ -187,6 +187,7 @@
     var checkUrl = overrideUrl || checkoutUrl(el, true);
     var iframe = document.createElement("iframe");
     iframe.src = checkUrl;
+    iframe.setAttribute("allow", "payment *; clipboard-write; autoplay");
     iframe.style.cssText = [
       "width:100%",
       "height:100%",
@@ -911,6 +912,7 @@
 
     var iframe = document.createElement("iframe");
     iframe.src = formUrl;
+    iframe.setAttribute("allow", "payment *; clipboard-write; autoplay");
     iframe.setAttribute("width", "100%");
     iframe.setAttribute("height", script.getAttribute("data-height") || "540");
     iframe.setAttribute("frameborder", "0");
