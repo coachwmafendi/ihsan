@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use App\Livewire\App\Campaigns\CampaignEdit;
 use App\Livewire\DonationForm;
 use App\Models\Campaign;
+use App\Models\Donation;
 use App\Models\Element;
 use App\Models\Organization;
 use App\Models\User;
@@ -506,6 +507,46 @@ it('displays a configuration snapshot on the overview tab', function () {
         ->assertSee("wire:click=\"\$set('activeTab', 'campaign-page')\"", false)
         ->call('$set', 'activeTab', 'campaign-page')
         ->assertSet('activeTab', 'campaign-page');
+});
+
+it('shows the MYR-converted amount for a recent donation made in a foreign currency', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $campaign->id,
+        'currency' => 'usd',
+        'gross_amount' => 25.00,
+        'base_amount' => 115.23,
+        'exchange_rate' => 4.6092,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSee('MYR 115.23')
+        ->assertDontSee('RM 25.00', false);
+});
+
+it('shows amounts raised per checkout channel on the overview tab', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    Donation::factory()->create(['campaign_id' => $campaign->id, 'source' => 'campaign_page', 'base_amount' => 150, 'gross_amount' => 150]);
+    Donation::factory()->create(['campaign_id' => $campaign->id, 'source' => 'checkout_modal', 'base_amount' => 50, 'gross_amount' => 50]);
+    Donation::factory()->create(['campaign_id' => $campaign->id, 'source' => 'virtual_terminal', 'base_amount' => 200, 'gross_amount' => 200]);
+    Donation::factory()->create(['campaign_id' => $campaign->id, 'source' => 'element', 'base_amount' => 25, 'gross_amount' => 25]);
+    Donation::factory()->create(['campaign_id' => $campaign->id, 'source' => null, 'base_amount' => 10, 'gross_amount' => 10]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
+        ->assertSeeInOrder(['Checkout Modal', 'Campaign Page', 'Virtual Terminal'])
+        ->assertSee('RM85.00')
+        ->assertSee('RM150.00')
+        ->assertSee('RM200.00');
 });
 
 it('shows fallback campaign page content title on the overview tab', function () {

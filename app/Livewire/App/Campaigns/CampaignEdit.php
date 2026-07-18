@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\App\Campaigns;
 
 use App\Enums\CampaignStatus;
+use App\Enums\DonationStatus;
 use App\Enums\PaymentGateway;
 use App\Models\Campaign;
 use Illuminate\Support\Facades\Auth;
@@ -500,6 +501,31 @@ class CampaignEdit extends Component
     public function getCurrencySymbol(): string
     {
         return $this->getCurrencySymbolFor($this->activeCurrency);
+    }
+
+    /**
+     * Succeeded donation amounts for this campaign, bucketed by checkout channel.
+     * Any source other than 'campaign_page' and 'virtual_terminal' (e.g. 'checkout_modal',
+     * 'element', or null) is counted under 'checkout_modal'.
+     *
+     * @return array<string, float>
+     */
+    public function donationAmountsBySource(): array
+    {
+        $amounts = ['campaign_page' => 0.0, 'checkout_modal' => 0.0, 'virtual_terminal' => 0.0];
+
+        $this->campaign->donations()
+            ->where('status', DonationStatus::Succeeded)
+            ->get(['source', 'base_amount', 'gross_amount'])
+            ->each(function ($donation) use (&$amounts): void {
+                $bucket = in_array($donation->source, ['campaign_page', 'virtual_terminal'], true)
+                    ? $donation->source
+                    : 'checkout_modal';
+
+                $amounts[$bucket] += (float) ($donation->base_amount ?? $donation->gross_amount);
+            });
+
+        return $amounts;
     }
 
     /**

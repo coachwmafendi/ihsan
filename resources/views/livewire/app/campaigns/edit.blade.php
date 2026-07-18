@@ -94,6 +94,32 @@
             />
         </div>
 
+        {{-- Raised by Channel --}}
+        @php $bySource = $this->donationAmountsBySource(); @endphp
+        <div class="flex flex-wrap gap-3">
+            <div class="w-full sm:w-48">
+                <x-ui.stat-card
+                    label="Checkout Modal"
+                    value="{{ $this->getCurrencySymbol() }}{{ number_format($bySource['checkout_modal'], 2) }}"
+                    value-class="text-lg font-semibold tracking-tight text-gray-950 dark:text-white"
+                />
+            </div>
+            <div class="w-full sm:w-48">
+                <x-ui.stat-card
+                    label="Campaign Page"
+                    value="{{ $this->getCurrencySymbol() }}{{ number_format($bySource['campaign_page'], 2) }}"
+                    value-class="text-lg font-semibold tracking-tight text-gray-950 dark:text-white"
+                />
+            </div>
+            <div class="w-full sm:w-48">
+                <x-ui.stat-card
+                    label="Virtual Terminal"
+                    value="{{ $this->getCurrencySymbol() }}{{ number_format($bySource['virtual_terminal'], 2) }}"
+                    value-class="text-lg font-semibold tracking-tight text-gray-950 dark:text-white"
+                />
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {{-- Left Column --}}
             <div class="lg:col-span-2 space-y-6">
@@ -221,7 +247,7 @@
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <p class="text-sm font-semibold text-slate-900">{{ $this->getCurrencySymbol() }} {{ number_format((float) $donation->gross_amount, 2) }}</p>
+                                        <x-donation-report-amount :donation="$donation" />
                                         <x-ui.badge status="{{ $donation->status->value }}" size="sm">{{ ucfirst($donation->status->value) }}</x-ui.badge>
                                     </div>
                                 </div>
