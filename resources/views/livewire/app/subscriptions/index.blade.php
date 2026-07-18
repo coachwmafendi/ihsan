@@ -29,13 +29,13 @@
         />
         <x-ui.stat-card
             label="Expected Monthly Total"
-            value="MYR {{ number_format($this->expectedMonthlyTotal, 2) }}"
+            value="{{ ($this->expectedMonthlyTotalIsApproximate ? '≈ ' : '') }}MYR {{ number_format($this->expectedMonthlyTotal, 2) }}"
             subtext="Active & past due subscriptions"
             value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="Total Collected"
-            value="MYR {{ number_format($this->totalCollected, 2) }}"
+            value="{{ ($this->totalCollectedIsApproximate ? '≈ ' : '') }}MYR {{ number_format($this->totalCollected, 2) }}"
             subtext="All installments received"
             value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />

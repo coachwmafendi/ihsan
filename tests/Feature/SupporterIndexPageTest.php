@@ -48,6 +48,19 @@ it('renders the supporters index with summary cards', function () {
         ->assertSee('Avg Lifetime Giving');
 });
 
+it('marks avg lifetime giving as approximate when non-MYR donations exist', function () {
+    makeSupporterWithDonations($this->campaign, donationAttributes: [
+        'currency' => 'usd',
+        'gross_amount' => 20.00,
+        'base_amount' => 90.00,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SupporterIndex::class)
+        ->assertStatus(200)
+        ->assertSeeInOrder(['Avg Lifetime Giving', '≈ MYR 90.00']);
+});
+
 it('displays repeat supporters count with percentage of all supporters', function () {
     makeSupporterWithDonations($this->campaign, donations: 3);
     makeSupporterWithDonations($this->campaign, donations: 2);

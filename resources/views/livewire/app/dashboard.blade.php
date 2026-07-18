@@ -551,7 +551,7 @@
         />
         <x-ui.stat-card
             label="Avg Donation"
-            value="MYR {{ number_format(($this->stats['total_count'] ?? 0) > 0 ? ($this->stats['total_amount'] ?? 0) / ($this->stats['total_count'] ?? 1) : 0, 2) }}"
+            value="{{ ($this->stats['has_approximation'] ? '≈ ' : '') }}MYR {{ number_format(($this->stats['total_count'] ?? 0) > 0 ? ($this->stats['total_amount'] ?? 0) / ($this->stats['total_count'] ?? 1) : 0, 2) }}"
             value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card

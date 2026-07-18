@@ -35,7 +35,7 @@
         />
         <x-ui.stat-card
             label="Avg Lifetime Giving"
-            value="MYR {{ number_format($this->avgLifetimeGiving, 2) }}"
+            value="{{ ($this->avgLifetimeGivingIsApproximate ? '≈ ' : '') }}MYR {{ number_format($this->avgLifetimeGiving, 2) }}"
             subtext="Per supporter"
             value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />

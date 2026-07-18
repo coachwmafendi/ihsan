@@ -284,6 +284,31 @@ class SubscriptionIndex extends Component
     }
 
     #[Computed]
+    public function totalCollectedIsApproximate(): bool
+    {
+        return Donation::hasReportApproximations(
+            Donation::query()->whereIn('subscription_id', $this->baseQuery()->select('subscriptions.id'))
+        );
+    }
+
+    #[Computed]
+    public function expectedMonthlyTotalIsApproximate(): bool
+    {
+        $org = $this->organization;
+
+        if (! $org) {
+            return false;
+        }
+
+        return Subscription::query()
+            ->whereHas('campaign', fn (Builder $q) => $q->where('organization_id', $org->id))
+            ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::PastDue])
+            ->where('cancel_at_period_end', false)
+            ->whereRaw("LOWER(currency) != 'myr'")
+            ->exists();
+    }
+
+    #[Computed]
     public function expectedMonthlyTotal(): float
     {
         $org = $this->organization;

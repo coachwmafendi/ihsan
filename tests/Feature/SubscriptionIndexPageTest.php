@@ -245,6 +245,33 @@ it('displays total collected from recurring installments', function () {
         ->assertSee('MYR 350.50');
 });
 
+it('marks expected monthly and total collected as approximate when non-MYR plans exist', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'amount' => 10.00,
+        'currency' => 'usd',
+        'interval' => SubscriptionInterval::Monthly,
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $subscription->id,
+        'currency' => 'usd',
+        'gross_amount' => 10.00,
+        'base_amount' => 45.00,
+        'exchange_rate' => 4.5,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->assertStatus(200)
+        ->assertSeeInOrder(['Expected Monthly Total', '≈ MYR 45.00'])
+        ->assertSeeInOrder(['Total Collected', '≈ MYR 45.00']);
+});
+
 it('shows new plans this month trend on the total plans card', function () {
     Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,

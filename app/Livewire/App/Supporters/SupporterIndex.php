@@ -317,6 +317,16 @@ class SupporterIndex extends Component
         return round($total / $count, 2);
     }
 
+    #[Computed]
+    public function avgLifetimeGivingIsApproximate(): bool
+    {
+        return Donation::hasReportApproximations(
+            Donation::query()
+                ->whereIn('donor_id', $this->baseQuery()->select('donors.id'))
+                ->tap($this->organizationDonationsConstraint($this->organization))
+        );
+    }
+
     public function render()
     {
         $donors = $this->donors;

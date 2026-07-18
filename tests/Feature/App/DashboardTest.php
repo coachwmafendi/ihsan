@@ -50,6 +50,24 @@ it('displays dashboard stats', function () {
         ->assertSee('Avg Donation');
 });
 
+it('marks avg donation as approximate when non-MYR donations exist', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'currency' => 'usd',
+        'gross_amount' => 25.00,
+        'base_amount' => 115.00,
+        'created_at' => now(),
+    ]);
+
+    actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->assertSeeInOrder(['Avg Donation', '≈ MYR 115.00']);
+});
+
 it('shows quick action buttons', function () {
     actingAs($this->user)
         ->get('https://app.example.test/dashboard')
