@@ -6,9 +6,9 @@ namespace App\Livewire\App\Donations;
 
 use App\Enums\DonationStatus;
 use App\Http\Controllers\DonationExportController;
+use App\Livewire\Concerns\HasSourceAndElementFilters;
 use App\Models\Campaign;
 use App\Models\Donation;
-use App\Models\Element;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -24,6 +24,7 @@ use Livewire\WithPagination;
 #[Title('Donations')]
 class DonationIndex extends Component
 {
+    use HasSourceAndElementFilters;
     use WithPagination;
 
     #[Url(except: '')]
@@ -37,14 +38,6 @@ class DonationIndex extends Component
 
     #[Url(except: '')]
     public string $frequencyFilter = '';
-
-    /** @var array<int, string> */
-    #[Url(except: [])]
-    public array $sourceFilter = [];
-
-    /** @var array<int, string> */
-    #[Url(except: [])]
-    public array $elementFilter = [];
 
     /** @var array<int, string> */
     #[Url(except: [])]
@@ -85,70 +78,6 @@ class DonationIndex extends Component
         $this->resetPage();
     }
 
-    public function updatedSourceFilter(): void
-    {
-        $this->resetPage();
-    }
-
-    public function clearSourceFilter(): void
-    {
-        $this->sourceFilter = [];
-        $this->resetPage();
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public function sourceOptions(): array
-    {
-        return [
-            'checkout_modal' => 'Checkout Modal',
-            'campaign_page' => 'Campaign Page',
-            'virtual_terminal' => 'Virtual Terminal',
-        ];
-    }
-
-    public function sourceChipLabel(): string
-    {
-        return $this->summariseSelection('Source', array_values(array_intersect_key($this->sourceOptions(), array_flip($this->sourceFilter))));
-    }
-
-    public function updatedElementFilter(): void
-    {
-        $this->resetPage();
-    }
-
-    public function clearElementFilter(): void
-    {
-        $this->elementFilter = [];
-        $this->resetPage();
-    }
-
-    #[Computed]
-    public function elementOptions()
-    {
-        $org = $this->organization;
-
-        if (! $org) {
-            return collect();
-        }
-
-        return Element::where('organization_id', $org->id)
-            ->orderBy('name')
-            ->get(['id', 'name', 'token']);
-    }
-
-    public function elementChipLabel(): string
-    {
-        $selected = $this->elementOptions
-            ->whereIn('token', $this->elementFilter)
-            ->pluck('name')
-            ->values()
-            ->all();
-
-        return $this->summariseSelection('Element', $selected);
-    }
-
     public function updatedPaymentMethodFilter(): void
     {
         $this->resetPage();
@@ -187,18 +116,6 @@ class DonationIndex extends Component
         $selected = array_values(array_intersect_key($this->paymentMethodOptions, array_flip($this->paymentMethodFilter)));
 
         return $this->summariseSelection('Payment method', $selected);
-    }
-
-    /**
-     * @param  array<int, string>  $selected
-     */
-    private function summariseSelection(string $fallback, array $selected): string
-    {
-        return match (count($selected)) {
-            0 => $fallback,
-            1 => $selected[0],
-            default => $selected[0].' and '.(count($selected) - 1).' more',
-        };
     }
 
     public function updatedPeriod(): void
@@ -374,17 +291,12 @@ class DonationIndex extends Component
         }
 
         if ($this->sourceFilter !== []) {
-            $sources = array_intersect($this->sourceFilter, array_keys($this->sourceOptions()));
-
-            // Element and legacy null sources surface as Checkout Modal.
-            if (in_array('checkout_modal', $sources, true)) {
-                $sources[] = 'element';
-            }
+            $sources = $this->selectedSourceValues();
 
             $query->where(function (Builder $q) use ($sources): void {
                 $q->whereIn('donations.source', $sources);
 
-                if (in_array('checkout_modal', $sources, true)) {
+                if (in_array('element', $sources, true)) {
                     $q->orWhereNull('donations.source');
                 }
             });

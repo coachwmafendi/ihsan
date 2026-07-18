@@ -6,6 +6,7 @@ use App\Livewire\App\Subscriptions\SubscriptionIndex;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\Element;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
@@ -270,6 +271,44 @@ it('marks expected monthly and total collected as approximate when non-MYR plans
         ->assertStatus(200)
         ->assertSeeInOrder(['Expected Monthly Total', '≈ MYR 45.00'])
         ->assertSeeInOrder(['Total Collected', '≈ MYR 45.00']);
+});
+
+it('filters subscriptions by source and element', function () {
+    $checkoutSub = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'source' => 'element',
+    ]);
+
+    $campaignPageSub = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => Donor::factory()->create(['name' => 'Page Donor'])->id,
+        'source' => 'campaign_page',
+    ]);
+
+    $element = Element::factory()->create([
+        'organization_id' => $this->organization->id,
+        'campaign_id' => $this->campaign->id,
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $checkoutSub->id,
+        'utm_params' => ['source' => 'element', 'element_token' => $element->token],
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->set('sourceFilter', ['checkout_modal'])
+        ->assertSee($this->donor->name)
+        ->assertDontSee('Page Donor')
+        ->call('clearSourceFilter')
+        ->set('elementFilter', [$element->token])
+        ->assertSee($this->donor->name)
+        ->assertDontSee('Page Donor')
+        ->call('resetFilters')
+        ->assertSee('Page Donor');
 });
 
 it('shows new plans this month trend on the total plans card', function () {

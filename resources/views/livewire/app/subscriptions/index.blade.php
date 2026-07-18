@@ -206,26 +206,117 @@
             </flux:menu>
         </flux:dropdown>
 
-        {{-- More filters (search) --}}
+        {{-- Active filter chips (from More filters) --}}
+        @if ($sourceFilter !== [])
+            <flux:dropdown>
+                <x-ui.filter-chip label="Source" :value="$this->sourceChipLabel()" clear="clearSourceFilter" />
+                <flux:menu keep-open class="w-60 p-1">
+                    @foreach ($this->sourceOptions() as $value => $label)
+                        <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                            <span>{{ $label }}</span>
+                            <input type="checkbox" value="{{ $value }}" wire:model.live="sourceFilter" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                        </label>
+                    @endforeach
+                </flux:menu>
+            </flux:dropdown>
+        @endif
+
+        @if ($elementFilter !== [])
+            <flux:dropdown>
+                <x-ui.filter-chip label="Element" :value="$this->elementChipLabel()" clear="clearElementFilter" />
+                <flux:menu keep-open class="max-h-72 w-64 overflow-y-auto p-1">
+                    @foreach ($this->elementOptions as $element)
+                        <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                            <span class="truncate">{{ $element->name }}</span>
+                            <input type="checkbox" value="{{ $element->token }}" wire:model.live="elementFilter" class="size-4 shrink-0 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                        </label>
+                    @endforeach
+                </flux:menu>
+            </flux:dropdown>
+        @endif
+
+        @if ($search)
+            <flux:dropdown>
+                <x-ui.filter-chip label="Supporter" :value="'“'.$search.'”'" clear="$set('search', '')" />
+                <flux:menu keep-open class="w-64 p-2">
+                    <div class="relative px-1 py-1">
+                        <x-heroicon-o-magnifying-glass class="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search supporters..." class="h-9 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500" />
+                    </div>
+                </flux:menu>
+            </flux:dropdown>
+        @endif
+
+        {{-- More filters (category menu) --}}
         <flux:dropdown>
-            <x-ui.filter-chip
-                icon="plus"
-                label="More filters"
-                :value="$search ? '“'.$search.'”' : null"
-                clear="$set('search', '')"
-            />
-            <flux:menu keep-open class="w-64 p-2">
-                <div class="relative px-1 py-1">
-                    <x-heroicon-o-magnifying-glass class="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                        type="text"
-                        wire:model.live.debounce.300ms="search"
-                        placeholder="Search supporters..."
-                        class="h-9 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                    />
+            <x-ui.filter-chip icon="plus" label="More filters" />
+            <flux:menu keep-open class="w-64 p-1">
+                <div x-data="{ panel: null }">
+                    <div x-show="panel === null">
+                        @foreach ([
+                            ['source', 'Source'],
+                            ['element', 'Element'],
+                            ['supporter', 'Supporter'],
+                        ] as [$key, $label])
+                            <button type="button" @click="panel = '{{ $key }}'" class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                                <span>{{ $label }}</span>
+                                <x-heroicon-o-chevron-right class="size-4 text-slate-400" />
+                            </button>
+                        @endforeach
+                    </div>
+
+                    <div x-show="panel === 'source'" x-cloak>
+                        <button type="button" @click="panel = null" class="mb-1 flex w-full items-center gap-1.5 rounded-lg px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:bg-slate-50">
+                            <x-heroicon-o-chevron-left class="size-3.5" /> Source
+                        </button>
+                        @foreach ($this->sourceOptions() as $value => $label)
+                            <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                                <span>{{ $label }}</span>
+                                <input type="checkbox" value="{{ $value }}" wire:model.live="sourceFilter" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <div x-show="panel === 'element'" x-cloak>
+                        <button type="button" @click="panel = null" class="mb-1 flex w-full items-center gap-1.5 rounded-lg px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:bg-slate-50">
+                            <x-heroicon-o-chevron-left class="size-3.5" /> Element
+                        </button>
+                        <div class="max-h-60 overflow-y-auto">
+                            @forelse ($this->elementOptions as $element)
+                                <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-800 transition-colors hover:bg-slate-50">
+                                    <span class="truncate">{{ $element->name }}</span>
+                                    <input type="checkbox" value="{{ $element->token }}" wire:model.live="elementFilter" class="size-4 shrink-0 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                                </label>
+                            @empty
+                                <p class="px-3 py-2.5 text-sm text-slate-500">No elements yet.</p>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <div x-show="panel === 'supporter'" x-cloak>
+                        <button type="button" @click="panel = null" class="mb-1 flex w-full items-center gap-1.5 rounded-lg px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500 transition-colors hover:bg-slate-50">
+                            <x-heroicon-o-chevron-left class="size-3.5" /> Supporter
+                        </button>
+                        <div class="relative px-1 py-1">
+                            <x-heroicon-o-magnifying-glass class="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search supporters..." class="h-9 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500" />
+                        </div>
+                    </div>
                 </div>
             </flux:menu>
         </flux:dropdown>
+
+        {{-- Reset all filters --}}
+        @if ($this->hasActiveFilters())
+            <button
+                type="button"
+                wire:click="resetFilters"
+                class="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:text-blue-800"
+            >
+                <x-heroicon-o-backspace class="size-3.5" />
+                Reset filters
+            </button>
+        @endif
 
     </div>
 

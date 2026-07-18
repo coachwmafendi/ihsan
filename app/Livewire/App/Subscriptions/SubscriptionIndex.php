@@ -6,6 +6,7 @@ namespace App\Livewire\App\Subscriptions;
 
 use App\Enums\SubscriptionStatus;
 use App\Http\Controllers\SubscriptionExportController;
+use App\Livewire\Concerns\HasSourceAndElementFilters;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Subscription;
@@ -24,6 +25,7 @@ use Livewire\WithPagination;
 #[Title('Recurring Plans')]
 class SubscriptionIndex extends Component
 {
+    use HasSourceAndElementFilters;
     use WithPagination;
 
     #[Url(except: '')]
@@ -85,6 +87,26 @@ class SubscriptionIndex extends Component
         $this->period = 'all_time';
         $this->dateFrom = '';
         $this->dateTo = '';
+        $this->resetPage();
+    }
+
+    public function hasActiveFilters(): bool
+    {
+        return $this->period !== 'all_time'
+            || filled($this->search)
+            || filled($this->statusFilter)
+            || filled($this->campaignFilter)
+            || $this->sourceFilter !== []
+            || $this->elementFilter !== [];
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset([
+            'search', 'statusFilter', 'campaignFilter',
+            'sourceFilter', 'elementFilter',
+            'period', 'dateFrom', 'dateTo',
+        ]);
         $this->resetPage();
     }
 
@@ -214,6 +236,24 @@ class SubscriptionIndex extends Component
 
         if (filled($this->campaignFilter)) {
             $query->where('campaign_id', $this->campaignFilter);
+        }
+
+        if ($this->sourceFilter !== []) {
+            $sources = $this->selectedSourceValues();
+
+            $query->where(function (Builder $q) use ($sources): void {
+                $q->whereIn('subscriptions.source', $sources);
+
+                if (in_array('element', $sources, true)) {
+                    $q->orWhereNull('subscriptions.source');
+                }
+            });
+        }
+
+        if ($this->elementFilter !== []) {
+            $query->whereHas('donations', function (Builder $q): void {
+                $q->whereIn('utm_params->element_token', $this->elementFilter);
+            });
         }
 
         [$start, $end] = $this->periodRange();
