@@ -544,10 +544,10 @@ it('shows amounts raised per checkout channel on the overview tab', function () 
     $this->actingAs($this->user);
 
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
-        ->assertSeeInOrder(['Checkout Modal', 'Campaign Page', 'Virtual Terminal'])
-        ->assertSee('MYR 85.00')
-        ->assertSee('MYR 150.00')
-        ->assertSee('MYR 200.00')
+        ->assertSeeInOrder(['Total raised', 'Checkout Modal', 'Campaign Page', 'Virtual Terminal', 'Recurring plans', 'Last donation'])
+        ->assertSee('MYR 85')
+        ->assertSee('MYR 150')
+        ->assertSee('MYR 200')
         ->assertDontSee('≈');
 });
 
