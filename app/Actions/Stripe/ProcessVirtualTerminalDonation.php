@@ -9,7 +9,6 @@ use App\Mail\DonationReceipt;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
-use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Services\DonationFeeEstimator;
 use App\Services\StripeMetadata;
@@ -19,7 +18,6 @@ use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 use Stripe\Exception\InvalidRequestException;
 use Stripe\PaymentIntent;
-use Stripe\PaymentMethod;
 use Stripe\Stripe;
 
 class ProcessVirtualTerminalDonation
@@ -135,7 +133,7 @@ class ProcessVirtualTerminalDonation
             'donor_id' => $donor->getKey(),
             'source' => $source,
             'gross_amount' => $amount,
-            'base_amount' => $amount,
+            'base_amount' => strtolower($currency) === 'myr' ? $amount : null,
             'donor_fee_covered' => $feeCoverAmount,
             'currency' => strtolower($currency),
             'base_currency' => 'myr',
@@ -144,8 +142,15 @@ class ProcessVirtualTerminalDonation
             'stripe_payment_intent_id' => $paymentIntent->id,
         ]);
 
-        // Sync payment method details to local cache
-        $this->syncPaymentMethod($donor, $paymentIntent->payment_method, $stripeOptions);
+        // Populate the MYR-converted base amount, exchange rate, fees, payment
+        // method details and saved card from the settled charge, matching the
+        // webhook-driven sync used by the public donation flow.
+        try {
+            app(SyncDonationStripeDetails::class)->sync($donation, $paymentIntent, $stripeOptions);
+            $donation->refresh();
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         $mailable = new DonationReceipt($donation);
 
@@ -174,37 +179,5 @@ class ProcessVirtualTerminalDonation
                 'last_name' => $lastName,
             ],
         );
-    }
-
-    private function syncPaymentMethod(Donor $donor, ?string $stripePaymentMethodId, array $stripeOptions): void
-    {
-        if (! $stripePaymentMethodId || ! $donor->stripe_customer_id) {
-            return;
-        }
-
-        // Skip if already cached
-        if (DonorPaymentMethod::where('stripe_payment_method_id', $stripePaymentMethodId)->exists()) {
-            return;
-        }
-
-        try {
-            $pm = PaymentMethod::retrieve($stripePaymentMethodId, $stripeOptions);
-
-            if ($pm->type !== 'card' || ! $pm->card) {
-                return;
-            }
-
-            DonorPaymentMethod::create([
-                'donor_id' => $donor->getKey(),
-                'stripe_payment_method_id' => $pm->id,
-                'brand' => ucfirst($pm->card->brand),
-                'last4' => $pm->card->last4,
-                'exp_month' => $pm->card->exp_month,
-                'exp_year' => $pm->card->exp_year,
-                'country' => $pm->card->country ?? null,
-            ]);
-        } catch (\Throwable $e) {
-            report($e);
-        }
     }
 }
