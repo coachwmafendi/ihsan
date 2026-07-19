@@ -28,6 +28,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property CarbonImmutable|null $magic_token_expires_at
  * @property CarbonImmutable|null $email_opt_out_at
  * @property CarbonImmutable|null $email_bounced_at
+ * @property CarbonImmutable|null $email_validated_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property string|null $address_line1
@@ -80,7 +81,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['public_id', 'name', 'first_name', 'last_name', 'email', 'phone', 'title', 'occupation', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'email_opt_out_at', 'email_bounced_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale', 'photo_path'])]
+#[Fillable(['public_id', 'name', 'first_name', 'last_name', 'email', 'phone', 'title', 'occupation', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'email_opt_out_at', 'email_bounced_at', 'email_validated_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale', 'photo_path'])]
 class Donor extends Model
 {
     /** @use HasFactory<DonorFactory> */
@@ -181,6 +182,7 @@ class Donor extends Model
             'magic_token_expires_at' => 'datetime',
             'email_opt_out_at' => 'datetime',
             'email_bounced_at' => 'datetime',
+            'email_validated_at' => 'datetime',
         ];
     }
 
@@ -205,18 +207,37 @@ class Donor extends Model
      */
     public function hasValidatedEmail(): bool
     {
-        return ! $this->hasBouncedEmail()
-            && $this->emailLogs()
-                ->where(function ($query) {
-                    $query->whereNotNull('delivered_at')->orWhereNotNull('opened_at');
-                })
-                ->exists();
+        if ($this->hasBouncedEmail()) {
+            return false;
+        }
+
+        if ($this->email_validated_at !== null) {
+            return true;
+        }
+
+        return $this->emailLogs()
+            ->where(function ($query) {
+                $query->whereNotNull('delivered_at')->orWhereNotNull('opened_at');
+            })
+            ->exists();
+    }
+
+    public function markEmailValidated(): void
+    {
+        if ($this->email_validated_at !== null) {
+            return;
+        }
+
+        $this->update([
+            'email_validated_at' => now(),
+        ]);
     }
 
     public function markEmailBounced(): void
     {
         $this->update([
             'email_bounced_at' => now(),
+            'email_validated_at' => null,
         ]);
     }
 

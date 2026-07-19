@@ -105,6 +105,8 @@ class EmailWebhookService
                     'delivery_status' => 'delivered',
                     'delivered_at' => now(),
                 ]);
+
+                $log->donor->markEmailValidated();
                 break;
 
             case 'failed':
@@ -134,10 +136,12 @@ class EmailWebhookService
 
             case 'open':
                 $this->markOpened($log);
+                $log->donor->markEmailValidated();
                 break;
 
             case 'opened':
                 $this->markOpened($log);
+                $log->donor->markEmailValidated();
                 break;
         }
     }
@@ -246,6 +250,8 @@ class EmailWebhookService
                     'delivery_status' => 'delivered',
                     'delivered_at' => now(),
                 ]);
+
+                $log->donor->markEmailValidated();
                 break;
 
             case 'bounce':
@@ -282,6 +288,8 @@ class EmailWebhookService
                         'opened_user_agent' => $open['userAgent'] ?? null,
                     ],
                 );
+
+                $log->donor->markEmailValidated();
                 break;
         }
     }

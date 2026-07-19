@@ -300,6 +300,41 @@ it('shows validation error when saving a duplicate email address', function () {
     expect($donor->fresh()->email)->toBe('ali@example.com');
 });
 
+it('keeps the validated badge after the supporter email is updated', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+
+    $donor = Donor::factory()->create(['email' => 'ali@example.com']);
+    Donation::factory()->for($donor)->for($campaign)->create();
+    DonorEmailLog::factory()->for($donor)->delivered()->create();
+
+    expect($donor->hasValidatedEmail())->toBeTrue();
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->call('openEditModal')
+        ->set('firstName', 'Ali')
+        ->set('lastName', 'Abu')
+        ->set('email', 'new.email@example.com')
+        ->set('updateRecurringPlans', false)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $donor = $donor->fresh();
+
+    expect($donor)
+        ->email->toBe('new.email@example.com')
+        ->hasValidatedEmail()->toBeTrue();
+
+    $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Validated');
+});
+
 it('opens the edit modal and saves the supporter details', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([

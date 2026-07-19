@@ -30,6 +30,8 @@ class DonorFactory extends Factory
             'country' => fake()->optional()->randomElement(['my', 'sg', 'id']),
             'photo_path' => null,
             'email_opt_out_at' => null,
+            'email_bounced_at' => null,
+            'email_validated_at' => null,
         ];
     }
 }

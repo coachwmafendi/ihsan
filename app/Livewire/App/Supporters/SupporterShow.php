@@ -182,11 +182,18 @@ class SupporterShow extends Component
             'email' => ['required', 'email', 'max:255', Rule::unique('donors', 'email')->ignore($this->donor)],
         ]);
 
+        $oldEmail = $this->donor->email;
+        $wasValidated = $this->donor->hasValidatedEmail();
+
         $this->donor->update([
             'first_name' => $validated['firstName'],
             'last_name' => $validated['lastName'],
             'email' => $validated['email'],
         ]);
+
+        if ($validated['email'] !== $oldEmail && $wasValidated) {
+            $this->donor->markEmailValidated();
+        }
 
         if ($this->updateRecurringPlans && $this->donor->stripe_customer_id) {
             try {
