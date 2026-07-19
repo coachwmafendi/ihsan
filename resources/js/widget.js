@@ -78,7 +78,7 @@
       showCheckoutModal(el);
       return;
     }
-    window.open(el.campaign_url || checkoutUrl(el), "_blank", "noopener");
+    window.open(el.campaign_url || checkoutUrl(el, true), "_blank", "noopener");
   }
 
   function preloadCheckoutImage(el) {
@@ -951,7 +951,7 @@
 
   function renderLink(el) {
     var s = el.settings;
-    var campaignUrl = el.campaign_url || checkoutUrl(el);
+    var campaignUrl = el.campaign_url || checkoutUrl(el, true);
     var href = s.url || campaignUrl;
     var text = s.text || s.button_text || "Derma Sekarang";
     var alignment = s.alignment || "center";
@@ -1258,7 +1258,7 @@
         type: script.getAttribute("data-type") || "",
         token: token,
         is_active: true,
-        campaign_url: script.getAttribute("data-campaign-url") || baseUrl + "/donate/" + token,
+        campaign_url: script.getAttribute("data-campaign-url") || baseUrl + "/donate/" + token + "?popup=1",
         campaign_form_parameter: script.getAttribute("data-campaign-form-parameter") || "",
         settings: {
           text: script.getAttribute("data-text") || "Derma Sekarang",

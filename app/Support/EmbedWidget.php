@@ -117,14 +117,9 @@ class EmbedWidget
             'action' => 'checkout_modal',
         ], $element->config ?? []);
 
-        $action = $config['action'];
-        $openInPopup = in_array($action, ['checkout_modal', 'open_checkout_modal'], true);
-
-        if ($element->campaign !== null) {
-            $url = url('/donate/'.$element->token.($openInPopup ? '?popup=1' : ''));
-        } else {
-            $url = url('/');
-        }
+        $url = $element->campaign !== null
+            ? url('/donate/'.$element->token.'?popup=1')
+            : url('/');
 
         $text = e($config['text'] ?: $config['button_text']);
         $alignment = in_array($config['alignment'], ['left', 'center', 'right'], true)
@@ -175,14 +170,9 @@ class EmbedWidget
             'action' => 'checkout_modal',
         ], $element->config ?? []);
 
-        $action = $config['action'];
-        $openInPopup = in_array($action, ['checkout_modal', 'open_checkout_modal'], true);
-
-        if ($element->campaign !== null) {
-            $url = url('/donate/'.$element->token.($openInPopup ? '?popup=1' : ''));
-        } else {
-            $url = url('/');
-        }
+        $url = $element->campaign !== null
+            ? url('/donate/'.$element->token.'?popup=1')
+            : url('/');
 
         $colour = self::resolveColour($config['button_color']);
         [$padding, $fontSize] = self::resolveSize($config['button_size']);

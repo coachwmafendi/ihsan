@@ -65,14 +65,9 @@ class EmbedCheckoutController extends Controller
             'action' => 'checkout_modal',
         ], $element->config ?? []);
 
-        $action = $settings['action'];
-        $openInPopup = in_array($action, ['checkout_modal', 'open_checkout_modal'], true);
-
-        if ($element->campaign) {
-            $url = url('/donate/'.$element->token.($openInPopup ? '?popup=1' : ''));
-        } else {
-            $url = url('/');
-        }
+        $url = $element->campaign
+            ? url('/donate/'.$element->token.'?popup=1')
+            : url('/');
 
         $rawColor = Str::lower((string) $settings['button_color']);
         $colorHex = '#2563eb';
@@ -158,7 +153,7 @@ class EmbedCheckoutController extends Controller
             'alignment' => in_array($settings['alignment'], ['left', 'center', 'right'], true)
                 ? $settings['alignment']
                 : 'center',
-            'openInPopup' => $openInPopup,
+            'openInPopup' => true,
         ]);
     }
 
@@ -228,7 +223,7 @@ class EmbedCheckoutController extends Controller
             }
 
             if (isMobile()) {
-                window.location.href = donateBaseUrl + '/' + encodeURIComponent(form);
+                window.location.href = donateBaseUrl + '/' + encodeURIComponent(form) + '?popup=1';
                 return;
             }
 
