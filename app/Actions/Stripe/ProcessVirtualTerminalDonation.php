@@ -7,6 +7,7 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendNewDonationNotification;
+use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Mail\DonationReceipt;
 use App\Models\Campaign;
 use App\Models\Donation;
@@ -162,6 +163,11 @@ class ProcessVirtualTerminalDonation
         } catch (\Throwable $e) {
             report($e);
         }
+
+        // Re-sync once the balance transaction has settled so the MYR base amount
+        // and exchange rate are captured (not always available immediately after
+        // an off-session confirm).
+        SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
 
         $mailable = new DonationReceipt($donation);
 

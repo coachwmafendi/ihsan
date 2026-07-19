@@ -8,6 +8,7 @@ use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Jobs\SendDonorNewSubscriptionNotification;
 use App\Jobs\SendNewSubscriptionNotification;
+use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -249,6 +250,9 @@ class ProcessVirtualTerminalSubscription
         } catch (\Throwable $e) {
             report($e);
         }
+
+        // Re-sync once the balance transaction has settled to capture the MYR base amount.
+        SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
 
         SendNewSubscriptionNotification::dispatch($donation)->delay(now()->addMinutes(5));
         SendDonorNewSubscriptionNotification::dispatch($donation);

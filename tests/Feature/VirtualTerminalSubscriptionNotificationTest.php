@@ -7,6 +7,7 @@ use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\DonationType;
 use App\Jobs\SendDonorNewSubscriptionNotification;
 use App\Jobs\SendNewSubscriptionNotification;
+use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Organization;
@@ -51,6 +52,7 @@ it('records the first installment donation and notifies on a new VT subscription
 
     Queue::assertPushed(SendNewSubscriptionNotification::class);
     Queue::assertPushed(SendDonorNewSubscriptionNotification::class);
+    Queue::assertPushed(SyncDonationStripeDetailsJob::class);
 });
 
 it('does not duplicate the donation when the payment intent already exists', function () {

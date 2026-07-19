@@ -6,6 +6,7 @@ use App\Actions\Stripe\ProcessVirtualTerminalDonation;
 use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendNewDonationNotification;
+use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Organization;
@@ -69,6 +70,8 @@ function fakeStripeClientForVtDonation(string $paymentIntentId, ?array &$request
 }
 
 it('delegates foreign-currency conversion to the stripe details sync', function () {
+    Queue::fake();
+
     $organization = Organization::factory()->stripeConnected()->create();
     $campaign = Campaign::factory()->for($organization)->create();
 
@@ -101,6 +104,8 @@ it('delegates foreign-currency conversion to the stripe details sync', function 
 });
 
 it('attaches the card to the customer before charging', function () {
+    Queue::fake();
+
     $organization = Organization::factory()->stripeConnected()->create();
     $campaign = Campaign::factory()->for($organization)->create();
 
@@ -155,9 +160,12 @@ it('notifies the organisation of a virtual terminal donation', function () {
 
     Queue::assertPushed(SendNewDonationNotification::class);
     Queue::assertPushed(SendLargeDonationNotification::class);
+    Queue::assertPushed(SyncDonationStripeDetailsJob::class);
 });
 
 it('keeps base amount equal to gross for MYR donations', function () {
+    Queue::fake();
+
     $organization = Organization::factory()->stripeConnected()->create();
     $campaign = Campaign::factory()->for($organization)->create();
 
