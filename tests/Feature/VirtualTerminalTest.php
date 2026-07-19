@@ -230,7 +230,9 @@ test('one-time donation creates donation record for existing donor', function ()
         ->set('formData.last_name', 'Ali')
         ->set('formData.email', 'ahmad@example.com')
         ->set('formData.payment_method_id', 'pm_test_123')
-        ->call('processDonation');
+        ->call('processDonation')
+        ->assertSet('flash.type', 'success')
+        ->assertSee('processed successfully');
 
     $this->assertDatabaseHas('donations', [
         'campaign_id' => $campaign->id,
@@ -238,6 +240,26 @@ test('one-time donation creates donation record for existing donor', function ()
         'gross_amount' => '50.00',
         'source' => 'virtual_terminal',
     ]);
+});
+
+test('shows the failure reason when processing throws', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+
+    $mock = Mockery::mock(ProcessVirtualTerminalDonation::class);
+    $mock->shouldReceive('handle')->once()->andThrow(new RuntimeException('Card declined: insufficient funds'));
+    app()->instance(ProcessVirtualTerminalDonation::class, $mock);
+
+    Livewire::test(VirtualTerminal::class)
+        ->set('formData.campaign_id', (string) $campaign->id)
+        ->set('formData.frequency', 'once')
+        ->set('formData.amount', '50.00')
+        ->set('formData.first_name', 'Ahmad')
+        ->set('formData.last_name', 'Ali')
+        ->set('formData.email', 'ahmad@example.com')
+        ->set('formData.payment_method_id', 'pm_test_123')
+        ->call('processDonation')
+        ->assertSet('flash.type', 'error')
+        ->assertSee('Card declined: insufficient funds');
 });
 
 test('transaction costs are estimated and shown in summary when cover fee is enabled', function () {

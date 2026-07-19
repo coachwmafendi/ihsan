@@ -297,8 +297,11 @@ class VirtualTerminal extends Component
             'cover_fee' => ['boolean'],
         ]);
 
+        $this->flash = [];
+
         if ($validator->fails()) {
             $this->dispatch('vt-error', message: 'Please check your form.');
+            $this->flash = ['type' => 'error', 'message' => 'Please check the form and try again.'];
 
             return;
         }
@@ -322,7 +325,9 @@ class VirtualTerminal extends Component
                     coverFee: (bool) ($data['cover_fee'] ?? false),
                 );
 
-                $this->dispatch('notify', message: "Donation of {$this->getCurrency()} {$formattedAmount} processed successfully.", variant: 'success');
+                $message = "Donation of {$this->getCurrency()} {$formattedAmount} processed successfully.";
+                $this->dispatch('notify', message: $message, variant: 'success');
+                $this->flash = ['type' => 'success', 'message' => $message];
             } else {
                 app(ProcessVirtualTerminalSubscription::class)->handle(
                     campaignId: (int) $data['campaign_id'],
@@ -338,14 +343,18 @@ class VirtualTerminal extends Component
                     coverFee: (bool) ($data['cover_fee'] ?? false),
                 );
 
-                $this->dispatch('notify', message: "Monthly donation of {$this->getCurrency()} {$formattedAmount} set up successfully.", variant: 'success');
+                $message = "Monthly donation of {$this->getCurrency()} {$formattedAmount} set up successfully.";
+                $this->dispatch('notify', message: $message, variant: 'success');
+                $this->flash = ['type' => 'success', 'message' => $message];
             }
 
             $this->resetForm();
         } catch (\Throwable $e) {
             report($e);
 
-            $this->dispatch('notify', message: 'Payment failed. Please try again.', variant: 'danger');
+            $reason = $e instanceof \RuntimeException ? $e->getMessage() : 'Payment failed. Please try again.';
+            $this->dispatch('notify', message: $reason, variant: 'danger');
+            $this->flash = ['type' => 'error', 'message' => $reason];
         }
     }
 

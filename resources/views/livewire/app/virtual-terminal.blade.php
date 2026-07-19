@@ -14,8 +14,23 @@
 
         {{-- Flash Messages --}}
         @if ($flash)
-            <div class="rounded-lg border p-4 {{ $flash['type'] === 'success' ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800' }}">
-                {{ $flash['message'] }}
+            <div
+                x-data="{ show: true }"
+                x-show="show"
+                x-transition
+                x-init="@if($flash['type'] === 'success') setTimeout(() => show = false, 6000) @endif"
+                class="flex items-start gap-3 rounded-lg border p-4 {{ $flash['type'] === 'success' ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800' }}"
+                role="status"
+            >
+                @if ($flash['type'] === 'success')
+                    <x-heroicon-o-check-circle class="mt-0.5 size-5 shrink-0 text-green-600" />
+                @else
+                    <x-heroicon-o-x-circle class="mt-0.5 size-5 shrink-0 text-red-600" />
+                @endif
+                <span class="text-sm font-medium">{{ $flash['message'] }}</span>
+                <button type="button" x-on:click="show = false" class="ml-auto shrink-0 opacity-60 hover:opacity-100">
+                    <x-heroicon-o-x-mark class="size-4" />
+                </button>
             </div>
         @endif
 
