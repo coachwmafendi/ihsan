@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Actions\Stripe\ProcessVirtualTerminalDonation;
 use App\Actions\Stripe\SyncDonationStripeDetails;
+use App\Jobs\SendLargeDonationNotification;
+use App\Jobs\SendNewDonationNotification;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Organization;
@@ -81,6 +83,33 @@ it('delegates foreign-currency conversion to the stripe details sync', function 
     expect($donation->currency)->toBe('sgd')
         ->and($donation->gross_amount)->toBe('16.00')
         ->and($donation->base_amount)->toBeNull();
+});
+
+it('notifies the organisation of a virtual terminal donation', function () {
+    Queue::fake();
+
+    $organization = Organization::factory()->stripeConnected()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+
+    ApiRequestor::setHttpClient(fakeStripeClientForVtDonation('pi_vt_notify'));
+
+    $syncSpy = Mockery::mock(SyncDonationStripeDetails::class);
+    $syncSpy->shouldReceive('sync')->once()->andReturn(['payment_intent' => null, 'charge_id' => null]);
+    app()->instance(SyncDonationStripeDetails::class, $syncSpy);
+
+    app(ProcessVirtualTerminalDonation::class)->handle(
+        campaignId: $campaign->id,
+        amount: 75.00,
+        firstName: 'Ahmad',
+        lastName: 'Ali',
+        email: 'notify@example.test',
+        organization: $organization,
+        currency: 'myr',
+        paymentMethodId: 'pm_vt_test',
+    );
+
+    Queue::assertPushed(SendNewDonationNotification::class);
+    Queue::assertPushed(SendLargeDonationNotification::class);
 });
 
 it('keeps base amount equal to gross for MYR donations', function () {

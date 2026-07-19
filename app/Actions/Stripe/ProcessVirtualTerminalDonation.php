@@ -5,6 +5,8 @@ namespace App\Actions\Stripe;
 use App\Actions\DonorEmailLog\LogDonorEmail;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
+use App\Jobs\SendLargeDonationNotification;
+use App\Jobs\SendNewDonationNotification;
 use App\Mail\DonationReceipt;
 use App\Models\Campaign;
 use App\Models\Donation;
@@ -162,6 +164,10 @@ class ProcessVirtualTerminalDonation
             organization: $organization,
             donation: $donation,
         );
+
+        // Notify the organisation of the new donation, matching the public flow.
+        SendNewDonationNotification::dispatch($donation)->delay(now()->addMinutes(5));
+        SendLargeDonationNotification::dispatch($donation)->delay(now()->addMinutes(5));
 
         return $donation;
     }
