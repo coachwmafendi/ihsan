@@ -25,18 +25,33 @@ afterEach(function (): void {
     ApiRequestor::setHttpClient(CurlClient::instance());
 });
 
-function fakeStripeClientForVtDonation(string $paymentIntentId): object
+function fakeStripeClientForVtDonation(string $paymentIntentId, ?array &$requests = null): object
 {
-    return new class($paymentIntentId) implements ClientInterface
+    $requests ??= [];
+
+    return new class($paymentIntentId, $requests) implements ClientInterface
     {
-        public function __construct(private string $paymentIntentId) {}
+        /** @param array<int, string> $requests */
+        public function __construct(private string $paymentIntentId, private array &$requests) {}
 
         public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
         {
+            $this->requests[] = $method.' '.$absUrl;
             $response = match (true) {
                 str_ends_with($absUrl, '/v1/customers') && $method === 'post' => [
                     'id' => 'cus_vt_test',
                     'object' => 'customer',
+                ],
+                str_contains($absUrl, '/v1/payment_methods/') && str_ends_with($absUrl, '/attach') => [
+                    'id' => 'pm_vt_test',
+                    'object' => 'payment_method',
+                    'customer' => 'cus_vt_test',
+                ],
+                str_contains($absUrl, '/v1/payment_methods/pm_vt_test') && $method === 'get' => [
+                    'id' => 'pm_vt_test',
+                    'object' => 'payment_method',
+                    'type' => 'card',
+                    'card' => ['brand' => 'visa', 'last4' => '4242'],
                 ],
                 str_ends_with($absUrl, '/v1/payment_intents') && $method === 'post' => [
                     'id' => $this->paymentIntentId,
@@ -83,6 +98,36 @@ it('delegates foreign-currency conversion to the stripe details sync', function 
     expect($donation->currency)->toBe('sgd')
         ->and($donation->gross_amount)->toBe('16.00')
         ->and($donation->base_amount)->toBeNull();
+});
+
+it('attaches the card to the customer before charging', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+
+    $requests = [];
+    ApiRequestor::setHttpClient(fakeStripeClientForVtDonation('pi_vt_attach', $requests));
+
+    $syncSpy = Mockery::mock(SyncDonationStripeDetails::class);
+    $syncSpy->shouldReceive('sync')->once()->andReturn(['payment_intent' => null, 'charge_id' => null]);
+    app()->instance(SyncDonationStripeDetails::class, $syncSpy);
+
+    app(ProcessVirtualTerminalDonation::class)->handle(
+        campaignId: $campaign->id,
+        amount: 30.00,
+        firstName: 'Ahmad',
+        lastName: 'Ali',
+        email: 'attach@example.test',
+        organization: $organization,
+        currency: 'myr',
+        paymentMethodId: 'pm_vt_test',
+    );
+
+    $attachIndex = collect($requests)->search(fn ($r) => str_contains($r, '/payment_methods/pm_vt_test/attach'));
+    $chargeIndex = collect($requests)->search(fn ($r) => str_ends_with($r, '/v1/payment_intents'));
+
+    expect($attachIndex)->not->toBeFalse()
+        ->and($chargeIndex)->not->toBeFalse()
+        ->and($attachIndex)->toBeLessThan($chargeIndex);
 });
 
 it('notifies the organisation of a virtual terminal donation', function () {

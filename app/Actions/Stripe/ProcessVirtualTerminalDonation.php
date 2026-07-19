@@ -20,6 +20,7 @@ use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 use Stripe\Exception\InvalidRequestException;
 use Stripe\PaymentIntent;
+use Stripe\PaymentMethod;
 use Stripe\Stripe;
 
 class ProcessVirtualTerminalDonation
@@ -78,6 +79,14 @@ class ProcessVirtualTerminalDonation
                 $customer = Customer::create($customerParams, $stripeOptions);
 
                 $donor->update(['stripe_customer_id' => $customer->id]);
+            }
+
+            // Attach a freshly tokenised card to the customer before charging.
+            // Stripe rejects re-using an unattached PaymentMethod, so an off-session
+            // confirm needs the card attached first.
+            if ($paymentMethodId) {
+                PaymentMethod::retrieve($paymentMethodId, $stripeOptions)
+                    ->attach(['customer' => $donor->stripe_customer_id], $stripeOptions);
             }
 
             $params = [
