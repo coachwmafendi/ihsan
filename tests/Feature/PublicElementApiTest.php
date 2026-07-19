@@ -28,7 +28,7 @@ it('returns element data as json for a valid floating button token', function ()
             'type' => 'floating_button',
             'token' => $element->token,
             'is_active' => true,
-            'campaign_form_parameter' => 'FLOAT2026',
+            'campaign_form_parameter' => null,
             'settings' => [
                 'text' => 'Derma Yuk',
                 'position' => 'bottom_right',

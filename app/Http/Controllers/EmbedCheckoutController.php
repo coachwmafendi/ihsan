@@ -65,16 +65,10 @@ class EmbedCheckoutController extends Controller
             'action' => 'checkout_modal',
         ], $element->config ?? []);
 
-        $campaignFormParameter = $element->campaign?->checkout_modal_enabled
-            ? $element->campaign->form_parameter
-            : null;
-
         $action = $settings['action'];
         $openInPopup = in_array($action, ['checkout_modal', 'open_checkout_modal'], true);
 
-        if ($campaignFormParameter) {
-            $url = url('/checkout/'.$campaignFormParameter.($openInPopup ? '?popup=1' : ''));
-        } elseif ($element->campaign) {
+        if ($element->campaign) {
             $url = url('/donate/'.$element->token.($openInPopup ? '?popup=1' : ''));
         } else {
             $url = url('/');

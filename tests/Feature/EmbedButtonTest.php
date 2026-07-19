@@ -33,7 +33,8 @@ it('renders a styled button iframe for an active button element', function () {
     $base = config('app.url');
 
     $response->assertSee('Donate Now', false);
-    $response->assertSee($base.'/checkout/RAMADAN2026', false);
+    $response->assertSee($base.'/donate/btn123?popup=1', false);
+    $response->assertDontSee('/checkout/RAMADAN2026', false);
     $response->assertSee('background: #16a34a', false);
     $response->assertSee('border-radius: 12px', false);
 });

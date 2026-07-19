@@ -37,16 +37,7 @@
     var isMobile = w.innerWidth <= 768;
     var url;
 
-    if (
-      elData.settings &&
-      (elData.settings.action === "checkout_modal" ||
-        elData.settings.action === "open_checkout_modal") &&
-      elData.campaign_form_parameter
-    ) {
-      url = base + "/checkout/" + elData.campaign_form_parameter + "?popup=1";
-    } else {
-      url = base + "/donate/" + elData.token + "?popup=1";
-    }
+    url = base + "/donate/" + elData.token + "?popup=1";
 
     var overlay = d.createElement("div");
     overlay.setAttribute("role", "dialog");

@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-it('renders a static button with campaign checkout url', function () {
+it('renders a static button with donation popup url', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create([
         'status' => CampaignStatus::Active,
@@ -39,7 +39,8 @@ it('renders a static button with campaign checkout url', function () {
         ->toContain('Donate Now')
         ->toContain('ihsan-button')
         ->toContain('data-ihsan-token="btn-static"')
-        ->toContain('/checkout/RAMADAN2026?popup=1')
+        ->toContain('/donate/btn-static?popup=1')
+        ->not->toContain('/checkout/RAMADAN2026')
         ->toContain('background:#16a34a')
         ->toContain('border-radius:12px')
         ->toContain('cursor:pointer !important')

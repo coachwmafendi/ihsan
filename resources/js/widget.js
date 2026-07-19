@@ -68,9 +68,6 @@
   }
 
   function checkoutUrl(el, asPopup) {
-    if (asPopup && el.campaign_form_parameter) {
-      return baseUrl + "/checkout/" + el.campaign_form_parameter + "?popup=1";
-    }
     var qs = asPopup ? "?popup=1" : "?embed=1";
     return baseUrl + "/donate/" + el.token + qs;
   }

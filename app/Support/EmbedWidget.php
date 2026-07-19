@@ -117,16 +117,10 @@ class EmbedWidget
             'action' => 'checkout_modal',
         ], $element->config ?? []);
 
-        $campaignFormParameter = $element->campaign !== null && $element->campaign->checkout_modal_enabled
-            ? $element->campaign->form_parameter
-            : null;
-
         $action = $config['action'];
         $openInPopup = in_array($action, ['checkout_modal', 'open_checkout_modal'], true);
 
-        if ($campaignFormParameter) {
-            $url = url('/checkout/'.$campaignFormParameter.($openInPopup ? '?popup=1' : ''));
-        } elseif ($element->campaign !== null) {
+        if ($element->campaign !== null) {
             $url = url('/donate/'.$element->token.($openInPopup ? '?popup=1' : ''));
         } else {
             $url = url('/');
@@ -181,16 +175,10 @@ class EmbedWidget
             'action' => 'checkout_modal',
         ], $element->config ?? []);
 
-        $campaignFormParameter = $element->campaign !== null && $element->campaign->checkout_modal_enabled
-            ? $element->campaign->form_parameter
-            : null;
-
         $action = $config['action'];
         $openInPopup = in_array($action, ['checkout_modal', 'open_checkout_modal'], true);
 
-        if ($campaignFormParameter) {
-            $url = url('/checkout/'.$campaignFormParameter.($openInPopup ? '?popup=1' : ''));
-        } elseif ($element->campaign !== null) {
+        if ($element->campaign !== null) {
             $url = url('/donate/'.$element->token.($openInPopup ? '?popup=1' : ''));
         } else {
             $url = url('/');
