@@ -36,6 +36,23 @@ test('virtual terminal page is accessible by org admin', function () {
     $response->assertDontSee('Finance');
 });
 
+test('scopes card tokenisation to the connected stripe account', function () {
+    $this->organization->update([
+        'stripe_account_id' => 'acct_testVT123',
+        'stripe_onboarded' => true,
+    ]);
+
+    $component = Livewire::test(VirtualTerminal::class);
+
+    expect($component->instance()->connectedStripeAccountId())->toBe('acct_testVT123');
+
+    // Client-side Stripe.js must be initialised with the connected account.
+    $this->get('https://app.example.test/virtual-terminal')
+        ->assertOk()
+        ->assertSee('initStripe(', false)
+        ->assertSee('acct_testVT123', false);
+});
+
 test('summary labels the fee line as processing fees', function () {
     $response = $this->get('https://app.example.test/virtual-terminal');
     $response->assertOk();

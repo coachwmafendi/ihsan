@@ -1,6 +1,6 @@
 {{-- resources/views/livewire/app/virtual-terminal.blade.php --}}
 <div>
-    <div x-data="vtPayment()" x-init="initStripe(@js($this->stripePublishableKey))" class="space-y-8">
+    <div x-data="vtPayment()" x-init="initStripe(@js($this->stripePublishableKey), @js($this->connectedStripeAccountId))" class="space-y-8">
         {{-- Page Header --}}
         <div>
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">
@@ -303,9 +303,11 @@
                     errorMessage: '',
                     cardMounted: false,
 
-                    initStripe(publishableKey) {
+                    initStripe(publishableKey, connectedAccountId) {
                         if (!publishableKey) return;
-                        this.stripe = Stripe(publishableKey);
+                        this.stripe = connectedAccountId
+                            ? Stripe(publishableKey, { stripeAccount: connectedAccountId })
+                            : Stripe(publishableKey);
                         this.cardElement = this.stripe.elements().create('card', {
                             style: {
                                 base: {

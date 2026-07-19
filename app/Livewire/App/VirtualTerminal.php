@@ -216,6 +216,19 @@ class VirtualTerminal extends Component
             ->toArray();
     }
 
+    /**
+     * The connected Stripe account to scope card tokenisation to, so
+     * client-side PaymentMethods are created on the same account that
+     * the charge runs on (direct charges).
+     */
+    #[Computed]
+    public function connectedStripeAccountId(): ?string
+    {
+        return $this->organization?->stripe_onboarded
+            ? $this->organization->stripe_account_id
+            : null;
+    }
+
     #[Computed]
     public function acceptedCurrencies(): array
     {
