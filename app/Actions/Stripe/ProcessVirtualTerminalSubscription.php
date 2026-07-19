@@ -2,9 +2,14 @@
 
 namespace App\Actions\Stripe;
 
+use App\Enums\DonationStatus;
+use App\Enums\DonationType;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
+use App\Jobs\SendDonorNewSubscriptionNotification;
+use App\Jobs\SendNewSubscriptionNotification;
 use App\Models\Campaign;
+use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
@@ -117,6 +122,7 @@ class ProcessVirtualTerminalSubscription
             $subscriptionParams = [
                 'customer' => $donor->stripe_customer_id,
                 'items' => [['price' => $price->id]],
+                'expand' => ['latest_invoice.payment_intent'],
                 'metadata' => StripeMetadata::forVirtualTerminalSubscription(
                     campaign: $campaign,
                     donor: $donor,
@@ -173,13 +179,79 @@ class ProcessVirtualTerminalSubscription
             ),
         ], $stripeOptions);
 
-        // TODO: Send subscription confirmation email
-
         // Sync payment method details to local cache
         $pmId = $paymentMethodId ?? $savedCardId;
         $this->syncPaymentMethod($donor, $pmId, $stripeOptions);
 
+        $this->recordFirstInstallment(
+            $stripeSubscription,
+            $subscription,
+            $amount,
+            $feeCoverAmount,
+            $currency,
+            $source,
+            $stripeOptions,
+        );
+
         return $subscription;
+    }
+
+    /**
+     * Record the subscription's first paid invoice as a donation and notify the
+     * organisation. Keyed on the payment intent so the invoice webhook, which
+     * skips donations that already exist, does not create a duplicate.
+     *
+     * @param  array<string, string>  $stripeOptions
+     */
+    private function recordFirstInstallment(
+        StripeSubscription $stripeSubscription,
+        Subscription $subscription,
+        float $amount,
+        float $feeCoverAmount,
+        string $currency,
+        string $source,
+        array $stripeOptions,
+    ): void {
+        $invoice = $stripeSubscription->latest_invoice ?? null;
+
+        if (! is_object($invoice)) {
+            return;
+        }
+
+        $paymentIntent = $invoice->payment_intent ?? null;
+        $paymentIntentId = is_object($paymentIntent) ? $paymentIntent->id : $paymentIntent;
+
+        if (blank($paymentIntentId)) {
+            return;
+        }
+
+        $donation = Donation::updateOrCreate(
+            ['stripe_payment_intent_id' => $paymentIntentId],
+            [
+                'campaign_id' => $subscription->campaign_id,
+                'donor_id' => $subscription->donor_id,
+                'subscription_id' => $subscription->getKey(),
+                'source' => $source,
+                'gross_amount' => $amount,
+                'base_amount' => strtolower($currency) === 'myr' ? $amount : null,
+                'donor_fee_covered' => $feeCoverAmount,
+                'currency' => strtolower($currency),
+                'base_currency' => 'myr',
+                'status' => DonationStatus::Succeeded,
+                'type' => DonationType::Recurring,
+                'stripe_invoice_id' => $invoice->id ?? null,
+            ],
+        );
+
+        try {
+            app(SyncDonationStripeDetails::class)->sync($donation, null, $stripeOptions);
+            $donation->refresh();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        SendNewSubscriptionNotification::dispatch($donation)->delay(now()->addMinutes(5));
+        SendDonorNewSubscriptionNotification::dispatch($donation);
     }
 
     private function syncPaymentMethod(Donor $donor, ?string $stripePaymentMethodId, array $stripeOptions): void
