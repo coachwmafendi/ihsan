@@ -21,6 +21,36 @@
         {{ $slot }}
     </main>
 
+    {{-- Flux Toast Container --}}
+    <flux:toast.group position="top right">
+        <flux:toast variant="success" icon="heroicon-o-check-circle" />
+        <flux:toast variant="danger" icon="heroicon-o-x-circle" />
+        <flux:toast variant="warning" icon="heroicon-o-exclamation-triangle" />
+        <flux:toast variant="info" icon="heroicon-o-information-circle" />
+    </flux:toast.group>
+
+    {{-- Bridge: Convert Livewire 'notify' events to Flux toasts --}}
+    <script>
+        document.addEventListener('livewire:init', () => {
+            document.addEventListener('notify', (e) => {
+                const detail = e.detail || {};
+
+                document.dispatchEvent(new CustomEvent('toast-show', {
+                    detail: {
+                        slots: {
+                            heading: detail.heading,
+                            text: detail.message || detail.text,
+                        },
+                        dataset: {
+                            variant: detail.variant || 'info',
+                        },
+                        duration: detail.duration,
+                    },
+                }));
+            });
+        }, { once: true });
+    </script>
+
     @livewireScripts
     @fluxScripts
 </body>
