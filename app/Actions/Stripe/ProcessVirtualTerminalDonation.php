@@ -47,7 +47,7 @@ class ProcessVirtualTerminalDonation
             ->where('organization_id', $organization->getKey())
             ->firstOrFail();
 
-        $donor = $this->resolveOrCreateDonor($firstName, $lastName, $email, $organization);
+        $donor = $this->resolveOrCreateDonor($firstName, $lastName, $email);
 
         $stripeOptions = $organization->stripe_account_id
             ? ['stripe_account' => $organization->stripe_account_id]
@@ -165,22 +165,15 @@ class ProcessVirtualTerminalDonation
         string $firstName,
         string $lastName,
         string $email,
-        Organization $organization,
     ): Donor {
-        $donor = Donor::query()
-            ->where('email', $email)
-            ->whereHas('donations.campaign', fn ($q) => $q->where('organization_id', $organization->getKey()))
-            ->first();
-
-        if ($donor) {
-            return $donor;
-        }
-
-        return Donor::create([
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'email' => $email,
-        ]);
+        // Donors are keyed by their globally-unique email, matching the public donation form.
+        return Donor::updateOrCreate(
+            ['email' => str($email)->lower()->toString()],
+            [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+            ],
+        );
     }
 
     private function syncPaymentMethod(Donor $donor, ?string $stripePaymentMethodId, array $stripeOptions): void
