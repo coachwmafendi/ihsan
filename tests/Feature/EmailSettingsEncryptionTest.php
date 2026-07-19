@@ -31,6 +31,32 @@ it('leaves non secret settings unencrypted', function () {
     expect(Setting::get('mail_driver'))->toBe('smtp');
 });
 
+it('persists ses webhook settings and encrypts the token', function () {
+    $admin = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+    Livewire::actingAs($admin)
+        ->test(EmailSettings::class)
+        ->set('data.mail_driver', 'ses')
+        ->set('data.mail_from_address', 'no-reply@getihsan.my')
+        ->set('data.mail_from_name', 'Ihsan')
+        ->set('data.mail_throttle_seconds', 0)
+        ->set('data.ses_key', 'AKIA123')
+        ->set('data.ses_secret', 'sekret')
+        ->set('data.ses_region', 'ap-southeast-1')
+        ->set('data.ses_configuration_set', 'ihsan-events')
+        ->set('data.ses_webhook_token', 'whtoken123')
+        ->set('data.ses_webhook_topic_arn', 'arn:aws:sns:ap-southeast-1:123:ihsan')
+        ->call('save');
+
+    expect(Setting::get('ses_configuration_set'))->toBe('ihsan-events')
+        ->and(Setting::get('ses_webhook_topic_arn'))->toBe('arn:aws:sns:ap-southeast-1:123:ihsan')
+        ->and(Setting::get('ses_webhook_token'))->toBe('whtoken123');
+
+    // Token stored encrypted, config-set/topic left in the clear.
+    expect(Setting::where('key', 'ses_webhook_token')->value('value'))->not->toBe('whtoken123');
+    expect(Setting::where('key', 'ses_configuration_set')->value('value'))->toBe('ihsan-events');
+});
+
 it('shows decrypted secrets in the email settings form', function () {
     Setting::set('mail_driver', 'smtp');
     Setting::set('mail_password', 'secret-password');

@@ -50,6 +50,9 @@ class EmailSettings extends Page
             'ses_key' => Setting::get('ses_key', config('services.ses.key')),
             'ses_secret' => Setting::get('ses_secret', config('services.ses.secret')),
             'ses_region' => Setting::get('ses_region', config('services.ses.region', 'us-east-1')),
+            'ses_configuration_set' => Setting::get('ses_configuration_set', config('mail.mailers.ses.options.ConfigurationSetName')),
+            'ses_webhook_token' => Setting::get('ses_webhook_token', config('services.ses.webhook_token')),
+            'ses_webhook_topic_arn' => Setting::get('ses_webhook_topic_arn', config('services.ses.topic_arn')),
             'mailgun_domain' => Setting::get('mailgun_domain', config('services.mailgun.domain')),
             'mailgun_secret' => Setting::get('mailgun_secret', config('services.mailgun.secret')),
             'postmark_token' => Setting::get('postmark_token', config('services.postmark.token')),
@@ -131,6 +134,20 @@ class EmailSettings extends Page
                     ->label('AWS Region')
                     ->default('us-east-1')
                     ->visible(fn ($get) => $get('mail_driver') === 'ses'),
+                TextInput::make('ses_configuration_set')
+                    ->label('SES Configuration Set')
+                    ->helperText('Name of the SES configuration set that publishes delivery/open/bounce events. Required for email validation.')
+                    ->visible(fn ($get) => $get('mail_driver') === 'ses'),
+                TextInput::make('ses_webhook_token')
+                    ->label('Webhook Token')
+                    ->password()
+                    ->revealable()
+                    ->helperText('Secret in the SNS subscription URL: /webhooks/ses/{token}')
+                    ->visible(fn ($get) => $get('mail_driver') === 'ses'),
+                TextInput::make('ses_webhook_topic_arn')
+                    ->label('SNS Topic ARN')
+                    ->helperText('The SNS topic ARN the configuration set publishes to.')
+                    ->visible(fn ($get) => $get('mail_driver') === 'ses'),
 
                 // Mailgun
                 TextInput::make('mailgun_domain')
@@ -203,8 +220,11 @@ class EmailSettings extends Page
             Setting::set('ses_key', $data['ses_key']);
             Setting::set('ses_secret', $data['ses_secret']);
             Setting::set('ses_region', $data['ses_region']);
+            Setting::set('ses_configuration_set', $data['ses_configuration_set'] ?? null);
+            Setting::set('ses_webhook_token', $data['ses_webhook_token'] ?? null);
+            Setting::set('ses_webhook_topic_arn', $data['ses_webhook_topic_arn'] ?? null);
         } else {
-            foreach (['ses_key', 'ses_secret', 'ses_region'] as $key) {
+            foreach (['ses_key', 'ses_secret', 'ses_region', 'ses_configuration_set', 'ses_webhook_token', 'ses_webhook_topic_arn'] as $key) {
                 Setting::set($key, null);
             }
         }

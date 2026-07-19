@@ -37,6 +37,7 @@ class Setting extends Model
     protected static array $encryptedKeys = [
         'mail_password',
         'ses_secret',
+        'ses_webhook_token',
         'mailgun_secret',
         'postmark_token',
     ];

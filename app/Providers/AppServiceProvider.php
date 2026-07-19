@@ -126,6 +126,9 @@ class AppServiceProvider extends ServiceProvider
             'services.ses.key' => Setting::get('ses_key'),
             'services.ses.secret' => Setting::get('ses_secret'),
             'services.ses.region' => Setting::get('ses_region'),
+            'services.ses.webhook_token' => Setting::get('ses_webhook_token'),
+            'services.ses.topic_arn' => Setting::get('ses_webhook_topic_arn'),
+            'mail.mailers.ses.options.ConfigurationSetName' => Setting::get('ses_configuration_set'),
         ];
 
         foreach ($settings as $key => $value) {
