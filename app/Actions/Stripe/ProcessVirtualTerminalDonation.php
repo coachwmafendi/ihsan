@@ -121,11 +121,11 @@ class ProcessVirtualTerminalDonation
 
             $paymentIntent = PaymentIntent::create($params, $stripeOptions);
         } catch (CardException $e) {
-            throw new \RuntimeException('Card declined: '.$e->getMessage());
+            throw new \RuntimeException('Card declined: '.$e->getMessage(), previous: $e);
         } catch (InvalidRequestException $e) {
-            throw new \RuntimeException('Invalid payment request. Please check your details.');
+            throw new \RuntimeException('Invalid payment request: '.$e->getMessage(), previous: $e);
         } catch (ApiErrorException $e) {
-            throw new \RuntimeException('Payment service error. Please try again.');
+            throw new \RuntimeException('Payment service error: '.$e->getMessage(), previous: $e);
         }
 
         $donation = Donation::create([
