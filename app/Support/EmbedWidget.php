@@ -58,7 +58,7 @@ class EmbedWidget
         }
 
         $campaignUrl = $element->campaign !== null
-            ? url('/donate/'.$element->token)
+            ? url('/donate/'.$element->token.'?popup=1')
             : url('/');
 
         $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size='.$size.'x'.$size.'&data='.urlencode($campaignUrl).'&bgcolor=ffffff&color=0f172a&qzone=2';

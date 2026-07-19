@@ -65,6 +65,21 @@ it('renders fallback donation url when checkout modal is disabled', function () 
     expect($html)->not->toContain('/checkout/RAMADAN2026');
 });
 
+it('encodes the popup checkout url in the qr code', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'status' => CampaignStatus::Active,
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'qr-popup',
+        'type' => ElementType::QrCode,
+    ]);
+
+    $html = EmbedWidget::staticQrCodeHtml($element);
+
+    expect($html)->toContain(urlencode(url('/donate/qr-popup?popup=1')));
+});
+
 it('escapes html in button text', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();

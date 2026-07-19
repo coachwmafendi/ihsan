@@ -335,7 +335,8 @@
 
   function renderQrCode(el) {
     var s = el.settings;
-    var campaignUrl = el.campaign_url || checkoutUrl(el);
+    // Scanning the QR should open the polished popup checkout, not the plain page.
+    var campaignUrl = checkoutUrl(el, true);
     var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=' + (s.size || 200) + 'x' + (s.size || 200) + '&data=' + encodeURIComponent(campaignUrl) + '&bgcolor=ffffff&color=0f172a&qzone=2';
     var size = isFinite(s.size) ? parseInt(s.size, 10) : ({ small: 150, medium: 200, large: 250, "extra large": 300 })[(s.size || "medium").toLowerCase()] || 200;
     var alignment = s.alignment || 'center';
