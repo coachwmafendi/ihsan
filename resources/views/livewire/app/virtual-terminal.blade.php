@@ -253,7 +253,7 @@
                         </div>
                         <div class="flex items-center justify-between text-sm">
                             <div class="flex items-center gap-2">
-                                <span class="text-slate-600">Transaction costs</span>
+                                <span class="text-slate-600">Processing fees</span>
                                 <span
                                     title="Estimated Stripe + platform processing fee for the selected payment method."
                                     class="text-slate-400 hover:text-slate-600"
@@ -269,7 +269,7 @@
                                 wire:model.live="formData.cover_fee"
                                 class="h-5 w-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
                             />
-                            <span class="text-sm font-medium text-slate-900">Cover transaction costs</span>
+                            <span class="text-sm font-medium text-slate-900">Cover processing fees</span>
                         </label>
                         <div class="flex justify-between gap-x-4 border-t border-slate-200 pt-3 text-sm font-semibold">
                             <span class="text-slate-900">Total donation amount</span>
@@ -336,7 +336,7 @@
                     },
 
                     async submitPayment() {
-                        const paymentMethod = $wire.formData.payment_method;
+                        const paymentMethod = this.$wire.formData.payment_method;
                         this.processing = true;
                         this.errorMessage = '';
                         try {
@@ -355,9 +355,9 @@
                                     this.processing = false;
                                     return;
                                 }
-                                await $wire.set('formData.payment_method_id', stripePM.id);
+                                await this.$wire.set('formData.payment_method_id', stripePM.id);
                             }
-                            await $wire.processDonation();
+                            await this.$wire.processDonation();
                         } catch (e) {
                             this.errorMessage = 'Payment failed. Please try again.';
                         }

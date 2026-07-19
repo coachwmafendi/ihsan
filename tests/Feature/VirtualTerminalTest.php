@@ -36,6 +36,14 @@ test('virtual terminal page is accessible by org admin', function () {
     $response->assertDontSee('Finance');
 });
 
+test('summary labels the fee line as processing fees', function () {
+    $response = $this->get('https://app.example.test/virtual-terminal');
+    $response->assertOk();
+    $response->assertSee('Processing fees');
+    $response->assertSee('Cover processing fees');
+    $response->assertDontSee('Transaction costs');
+});
+
 test('virtual terminal page preloads supporter from query param', function () {
     $donor = Donor::factory()->create([
         'name' => 'Ahmad Ali',
