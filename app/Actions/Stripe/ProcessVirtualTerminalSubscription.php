@@ -9,6 +9,7 @@ use App\Models\Donor;
 use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Services\DonationFeeEstimator;
 use App\Services\StripeMetadata;
 use Stripe\Customer;
 use Stripe\Exception\ApiErrorException;
@@ -32,8 +33,12 @@ class ProcessVirtualTerminalSubscription
         ?string $savedCardId = null,
         ?string $paymentMethodId = null,
         string $source = 'virtual_terminal',
+        bool $coverFee = false,
     ): Subscription {
         Stripe::setApiKey(config('services.stripe.secret'));
+
+        $feeCoverAmount = $coverFee ? DonationFeeEstimator::estimate($amount, $currency, 'stripe') : 0.0;
+        $chargedAmount = $amount + $feeCoverAmount;
 
         $campaign = Campaign::query()
             ->where('id', $campaignId)
@@ -73,7 +78,7 @@ class ProcessVirtualTerminalSubscription
                 $donor->update(['stripe_customer_id' => $customer->id]);
             }
 
-            $unitAmount = (int) ($amount * 100);
+            $unitAmount = (int) round($chargedAmount * 100);
 
             $existingPrices = Price::all([
                 'product' => $campaign->stripe_product_id,
@@ -149,6 +154,8 @@ class ProcessVirtualTerminalSubscription
             'currency' => strtolower($currency),
             'interval' => SubscriptionInterval::Monthly,
             'status' => SubscriptionStatus::Active,
+            'cover_fee' => $coverFee,
+            'fee_cover_amount' => $feeCoverAmount,
             'stripe_subscription_id' => $stripeSubscription->id,
             'stripe_price_id' => $price->id,
             'started_at' => now(),

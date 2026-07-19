@@ -215,6 +215,100 @@ test('one-time donation creates donation record for existing donor', function ()
     ]);
 });
 
+test('transaction costs are estimated and shown in summary when cover fee is enabled', function () {
+    $this->organization->update([
+        'settings' => ['accepted_currencies' => ['myr']],
+    ]);
+
+    Livewire::test(VirtualTerminal::class)
+        ->set('formData.amount', '50.00')
+        ->set('formData.currency', 'myr')
+        ->set('formData.cover_fee', true)
+        ->assertSee('MYR 53.75')
+        ->assertSee('MYR 3.75');
+});
+
+test('transaction costs are not added when cover fee is disabled', function () {
+    $this->organization->update([
+        'settings' => ['accepted_currencies' => ['myr']],
+    ]);
+
+    Livewire::test(VirtualTerminal::class)
+        ->set('formData.amount', '50.00')
+        ->set('formData.currency', 'myr')
+        ->set('formData.cover_fee', false)
+        ->assertSee('MYR 50.00')
+        ->assertDontSee('Transaction costs covered');
+});
+
+test('process donation passes cover fee flag to processing action', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $capturedCoverFee = null;
+
+    $mock = Mockery::mock(ProcessVirtualTerminalDonation::class);
+    $mock->shouldReceive('handle')->once()->andReturnUsing(function (...$args) use (&$capturedCoverFee) {
+        $capturedCoverFee = $args[10] ?? null;
+
+        return Donation::factory()->create([
+            'campaign_id' => $args[0],
+            'donor_id' => Donor::factory()->create()->id,
+            'source' => 'virtual_terminal',
+            'stripe_payment_intent_id' => 'pi_test_'.uniqid(),
+        ]);
+    });
+    app()->instance(ProcessVirtualTerminalDonation::class, $mock);
+
+    Livewire::test(VirtualTerminal::class)
+        ->set('formData.campaign_id', (string) $campaign->id)
+        ->set('formData.frequency', 'once')
+        ->set('formData.amount', '20.00')
+        ->set('formData.first_name', 'Ali')
+        ->set('formData.last_name', 'Bakar')
+        ->set('formData.email', 'ali@example.com')
+        ->set('formData.cover_fee', false)
+        ->set('formData.payment_method_id', 'pm_test')
+        ->call('processDonation');
+
+    expect($capturedCoverFee)->toBeFalse();
+});
+
+test('process subscription passes cover fee true when enabled', function () {
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $this->organization->id,
+    ]);
+
+    $capturedCoverFee = null;
+
+    $mock = Mockery::mock(ProcessVirtualTerminalSubscription::class);
+    $mock->shouldReceive('handle')->once()->andReturnUsing(function (...$args) use (&$capturedCoverFee) {
+        $capturedCoverFee = $args[10] ?? null;
+
+        return Subscription::factory()->create([
+            'campaign_id' => $args[0],
+            'donor_id' => Donor::factory()->create()->id,
+            'source' => 'virtual_terminal',
+            'stripe_subscription_id' => 'sub_test_'.uniqid(),
+        ]);
+    });
+    app()->instance(ProcessVirtualTerminalSubscription::class, $mock);
+
+    Livewire::test(VirtualTerminal::class)
+        ->set('formData.campaign_id', (string) $campaign->id)
+        ->set('formData.frequency', 'monthly')
+        ->set('formData.amount', '25.00')
+        ->set('formData.first_name', 'Ahmad')
+        ->set('formData.last_name', 'Ali')
+        ->set('formData.email', 'ahmad@example.com')
+        ->set('formData.cover_fee', true)
+        ->set('formData.payment_method_id', 'pm_test')
+        ->call('processDonation');
+
+    expect($capturedCoverFee)->toBeTrue();
+});
+
 test('unauthenticated user cannot access virtual terminal', function () {
     auth()->logout();
 

@@ -10,6 +10,7 @@ use App\Actions\Stripe\ProcessVirtualTerminalSubscription;
 use App\Models\Campaign;
 use App\Models\Donor;
 use App\Models\Organization;
+use App\Services\DonationFeeEstimator;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -43,6 +44,7 @@ class VirtualTerminal extends Component
         'email' => '',
         'payment_method' => 'new_card',
         'payment_method_id' => '',
+        'cover_fee' => true,
     ];
 
     /** @var array<string, mixed> */
@@ -230,17 +232,20 @@ class VirtualTerminal extends Component
         return ['myr'];
     }
 
-    public function getProcessingFeeEstimate(): string
+    #[Computed]
+    public function estimatedFee(): float
     {
         $amount = (float) $this->formData['amount'];
-        if ($amount <= 0) {
-            return $this->getCurrency().' 0.00';
+        if ($amount <= 0 || empty($this->formData['cover_fee'])) {
+            return 0.0;
         }
 
-        $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
-        $fee = $amount * $feePercent / 100;
+        return DonationFeeEstimator::estimate($amount, $this->formData['currency'], 'stripe');
+    }
 
-        return $this->getCurrency().' '.number_format($fee, 2);
+    public function getProcessingFeeEstimate(): string
+    {
+        return $this->getCurrency().' '.number_format($this->estimatedFee, 2);
     }
 
     public function getCurrency(): string
@@ -253,6 +258,13 @@ class VirtualTerminal extends Component
         $amount = (float) $this->formData['amount'];
 
         return $this->getCurrency().' '.number_format($amount, 2);
+    }
+
+    public function getGrandTotal(): string
+    {
+        $amount = (float) $this->formData['amount'];
+
+        return $this->getCurrency().' '.number_format($amount + $this->estimatedFee, 2);
     }
 
     public function processDonation(): void
@@ -269,6 +281,7 @@ class VirtualTerminal extends Component
             'email' => ['required', 'email', 'max:255'],
             'payment_method' => ['nullable', 'string'],
             'payment_method_id' => ['nullable', 'string'],
+            'cover_fee' => ['boolean'],
         ]);
 
         if ($validator->fails()) {
@@ -293,6 +306,7 @@ class VirtualTerminal extends Component
                     savedCardId: $data['payment_method'] !== 'new_card' ? $data['payment_method'] : null,
                     paymentMethodId: $data['payment_method_id'] ?? null,
                     source: 'virtual_terminal',
+                    coverFee: (bool) ($data['cover_fee'] ?? false),
                 );
 
                 $this->dispatch('notify', message: "Donation of {$this->getCurrency()} {$formattedAmount} processed successfully.", variant: 'success');
@@ -308,6 +322,7 @@ class VirtualTerminal extends Component
                     savedCardId: $data['payment_method'] !== 'new_card' ? $data['payment_method'] : null,
                     paymentMethodId: $data['payment_method_id'] ?? null,
                     source: 'virtual_terminal',
+                    coverFee: (bool) ($data['cover_fee'] ?? false),
                 );
 
                 $this->dispatch('notify', message: "Monthly donation of {$this->getCurrency()} {$formattedAmount} set up successfully.", variant: 'success');
@@ -334,6 +349,7 @@ class VirtualTerminal extends Component
             'email' => $this->preloadedSupporter ? $this->formData['email'] : '',
             'payment_method' => $this->savedCards !== [] ? (string) collect($this->savedCards)->pluck('id')->first() : 'new_card',
             'payment_method_id' => '',
+            'cover_fee' => $this->formData['cover_fee'] ?? true,
         ];
     }
 

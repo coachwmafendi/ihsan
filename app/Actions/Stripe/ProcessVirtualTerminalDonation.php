@@ -11,6 +11,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
+use App\Services\DonationFeeEstimator;
 use App\Services\StripeMetadata;
 use Illuminate\Support\Facades\Mail;
 use Stripe\Customer;
@@ -34,8 +35,12 @@ class ProcessVirtualTerminalDonation
         ?string $savedCardId = null,
         ?string $paymentMethodId = null,
         string $source = 'virtual_terminal',
+        bool $coverFee = false,
     ): Donation {
         Stripe::setApiKey(config('services.stripe.secret'));
+
+        $feeCoverAmount = $coverFee ? DonationFeeEstimator::estimate($amount, $currency, 'stripe') : 0.0;
+        $chargedAmount = $amount + $feeCoverAmount;
 
         $campaign = Campaign::query()
             ->where('id', $campaignId)
@@ -76,7 +81,7 @@ class ProcessVirtualTerminalDonation
             }
 
             $params = [
-                'amount' => (int) ($amount * 100),
+                'amount' => (int) round($chargedAmount * 100),
                 'currency' => strtolower($currency),
                 'customer' => $donor->stripe_customer_id,
                 'description' => (string) str($campaign->title)->limit(200),
@@ -131,6 +136,7 @@ class ProcessVirtualTerminalDonation
             'source' => $source,
             'gross_amount' => $amount,
             'base_amount' => $amount,
+            'donor_fee_covered' => $feeCoverAmount,
             'currency' => strtolower($currency),
             'base_currency' => 'myr',
             'status' => DonationStatus::Succeeded,
