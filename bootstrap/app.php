@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '/stripe/webhook',
             '/webhooks/mailgun',
             '/webhooks/postmark',
+            '/webhooks/ses/*',
         ]);
 
         $middleware->trustProxies(at: env('TRUSTED_PROXIES'));
