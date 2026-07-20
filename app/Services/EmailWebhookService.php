@@ -179,7 +179,17 @@ class EmailWebhookService
 
     public function processSes(Request $request, string $token): void
     {
+        // SNS posts its JSON body with a text/plain content type, so the framework
+        // does not parse it automatically — decode the raw body ourselves.
         $payload = $request->all();
+
+        if (! isset($payload['Type']) && ! isset($payload['eventType'])) {
+            $decoded = json_decode($request->getContent(), true);
+
+            if (is_array($decoded)) {
+                $payload = $decoded;
+            }
+        }
 
         if (isset($payload['Type'])) {
             $this->processSesSnsMessage($payload, $token);
