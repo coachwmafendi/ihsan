@@ -2,6 +2,7 @@
     'status' => 'default',
     'color' => null,
     'size' => 'md',
+    'icon' => null,
 ])
 
 @php
@@ -44,6 +45,9 @@ $classes = $color ?? ($colorMap[$status] ?? $colorMap['default']);
 $sizeClasses = $sizeMap[$size] ?? $sizeMap['md'];
 @endphp
 
-<span {{ $attributes->merge(['class' => 'inline-flex items-center rounded-md font-medium ring-1 ring-inset ' . $classes . ' ' . $sizeClasses]) }}>
+<span {{ $attributes->merge(['class' => 'inline-flex items-center gap-1 rounded-md font-medium ring-1 ring-inset ' . $classes . ' ' . $sizeClasses]) }}>
+    @if ($icon)
+        <x-dynamic-component :component="$icon" class="size-3.5 shrink-0" />
+    @endif
     {{ $slot }}
 </span>

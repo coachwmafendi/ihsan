@@ -420,7 +420,17 @@
                                                 </x-ui.tooltip>
                                             </td>
                                             <td class="py-3 pr-4">
-                                                <x-ui.badge status="{{ $payment->status->value }}" size="sm">
+                                                @php
+                                                    $statusIcon = match ($payment->status->value) {
+                                                        'succeeded' => 'heroicon-s-check-circle',
+                                                        'failed' => 'heroicon-o-x-circle',
+                                                        'pending' => 'heroicon-o-clock',
+                                                        'refunded' => 'heroicon-o-arrow-uturn-left',
+                                                        'cancelled' => 'heroicon-o-x-mark',
+                                                        default => 'heroicon-o-question-mark-circle',
+                                                    };
+                                                @endphp
+                                                <x-ui.badge status="{{ $payment->status->value }}" size="sm" icon="{{ $statusIcon }}">
                                                     {{ ucfirst($payment->status->value) }}
                                                 </x-ui.badge>
                                             </td>
