@@ -260,6 +260,7 @@ it('updates retry schedule and sends dunning notification after a failed charge'
     $subscription->refresh();
     expect($subscription)
         ->status->toBe(SubscriptionStatus::PastDue)
+        ->last_failure_message->toBe('Your card was declined.')
         ->retry_count->toBe(1)
         ->last_charge_attempt_at->not->toBeNull()
         ->next_charge_at->format('Y-m-d')->toBe(now()->addDay()->format('Y-m-d'));
@@ -291,6 +292,7 @@ it('marks subscription as failed and dispatches final dunning on terminal failur
     $subscription->refresh();
     expect($subscription)
         ->status->toBe(SubscriptionStatus::Failed)
+        ->last_failure_message->toBe('Your card was declined.')
         ->next_charge_at->toBeNull();
 
     Queue::assertPushed(SendFailedPaymentNotification::class);

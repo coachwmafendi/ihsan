@@ -281,19 +281,20 @@ class ChargeRecurringInstallment
         $errorCode = $paymentIntent->last_payment_error?->code ?? $paymentIntent->status;
         $errorMessage = $paymentIntent->last_payment_error?->message ?? null;
 
-        $oldRetryCount = $this->recordAttemptFailure($subscription);
+        $oldRetryCount = $this->recordAttemptFailure($subscription, $errorMessage);
         $this->dispatchFailureNotifications($subscription, $errorMessage, $oldRetryCount, true);
 
         return new ChargeResult('failed', errorCode: (string) $errorCode);
     }
 
-    private function recordAttemptFailure(Subscription $subscription): int
+    private function recordAttemptFailure(Subscription $subscription, ?string $errorMessage = null): int
     {
         $oldRetryCount = $subscription->retry_count;
         $schedule = $this->scheduleRetry->afterFailure($subscription);
 
         $subscription->update([
             'status' => $schedule['status'],
+            'last_failure_message' => $errorMessage,
             'retry_count' => $schedule['retry_count'],
             'failed_installment_count' => $schedule['failed_installment_count'],
             'last_charge_attempt_at' => now(),

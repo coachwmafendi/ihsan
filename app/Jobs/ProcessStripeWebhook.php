@@ -407,9 +407,11 @@ class ProcessStripeWebhook implements ShouldQueue
         }
 
         $retryCount = $invoice->attempt_count ?? ($subscription->retry_count + 1);
+        $failureMessage = $invoice->toArray()['last_payment_error']['message'] ?? null;
 
         $subscription->update([
             'status' => SubscriptionStatus::PastDue,
+            'last_failure_message' => $failureMessage,
             'retry_count' => $retryCount,
         ]);
 
@@ -442,8 +444,6 @@ class ProcessStripeWebhook implements ShouldQueue
                 ->queue($mailable);
         }
 
-        $invoiceData = $invoice->toArray();
-        $failureMessage = $invoiceData['last_payment_error']['message'] ?? null;
         SendFailedPaymentNotification::dispatch($subscription, $failureMessage, $isFinalAttempt);
     }
 

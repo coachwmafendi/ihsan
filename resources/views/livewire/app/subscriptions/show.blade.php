@@ -97,7 +97,12 @@
 
                 @case('past_due')
                     <x-ui.alert :compact="true" variant="danger" icon="heroicon-o-exclamation-circle">
-                        The most recent installment failed{{ filled($this->lastInstallmentDate) ? ' on '.$this->lastInstallmentDate : '' }}. We will retry the payment{{ $this->nextInstallmentDate ? ' on '.myrTime($this->nextInstallmentDate) : ' shortly' }}.
+                        <div>
+                            The most recent installment failed{{ filled($this->lastInstallmentDate) ? ' on '.$this->lastInstallmentDate : '' }}. We will retry the payment{{ $this->nextInstallmentDate ? ' on '.myrTime($this->nextInstallmentDate) : ' shortly' }}.
+                            @if (filled($subscription->last_failure_message))
+                                <div class="mt-1 font-medium text-red-700">Reason: {{ $subscription->last_failure_message }}</div>
+                            @endif
+                        </div>
                     </x-ui.alert>
                     @break
 

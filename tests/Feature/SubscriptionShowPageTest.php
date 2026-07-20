@@ -183,6 +183,22 @@ it('shows the past due recurring donation status banner', function () {
         ->assertSee(myrTime($subscription->next_charge_at));
 });
 
+it('shows the stripe failure reason on the past due status banner', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::PastDue,
+        'interval' => SubscriptionInterval::Monthly,
+        'last_failure_message' => 'Your card was declined.',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('The most recent installment failed')
+        ->assertSee('Reason:')
+        ->assertSee('Your card was declined.');
+});
+
 it('shows the incomplete recurring donation status banner', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,
