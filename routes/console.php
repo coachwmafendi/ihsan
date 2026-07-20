@@ -45,3 +45,7 @@ Schedule::command('app:cloudflare-update-ips')
 Schedule::command('app:maxmind-update')
     ->weeklyOn(1, '03:30')
     ->timezone('Asia/Kuala_Lumpur');
+
+Schedule::command('app:sync-payouts --days=7')
+    ->dailyAt('05:00')
+    ->timezone('Asia/Kuala_Lumpur');
