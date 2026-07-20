@@ -312,6 +312,33 @@ it('shows converted myr amount, payment method and installment number in the ins
         ->assertSee('1');
 });
 
+it('shows converted myr amount with original currency tooltip in the receipts table', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'currency' => 'sgd',
+    ]);
+
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $subscription->id,
+        'currency' => 'sgd',
+        'gross_amount' => 50.00,
+        'base_amount' => null,
+        'exchange_rate' => 3.16,
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now()->subDay(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('≈ MYR 158.00')
+        ->assertSee($donation->formatted_amount);
+});
+
 it('renders the emails section with sent emails for the subscription', function () {
     Mail::fake();
 

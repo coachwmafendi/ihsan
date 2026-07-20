@@ -455,7 +455,9 @@
                                                 </div>
                                             </td>
                                             <td class="py-3 pr-4 font-medium text-slate-900">
-                                                {{ $donation->displayAmount((float) $donation->gross_amount) }}
+                                                <x-ui.tooltip :text="$donation->formatted_amount">
+                                                    <span>{{ $donation->formatted_report_amount }}</span>
+                                                </x-ui.tooltip>
                                             </td>
                                             <td class="py-3 pr-4 text-slate-600">{{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}</td>
                                             <td class="py-3 text-right">
