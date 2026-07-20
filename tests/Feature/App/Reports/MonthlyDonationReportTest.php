@@ -93,6 +93,25 @@ it('does not show donations from other organizations', function () {
         ->assertDontSee('999.00');
 });
 
+it('lists months from the first donation to the current month', function () {
+    $firstDonationMonth = now()->subMonths(6)->startOfMonth();
+
+    Donation::factory()->for($this->campaign)->for($this->donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 100.00,
+        'base_amount' => 100.00,
+        'processing_fee' => 2.00,
+        'stripe_fee' => 1.00,
+        'net_amount' => 97.00,
+        'created_at' => $firstDonationMonth->day(15),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(MonthlyDonations::class)
+        ->assertSee($firstDonationMonth->format('F Y'))
+        ->assertSee(now()->format('F Y'));
+});
+
 it('updates summary and breakdown for custom date range', function () {
     $previousMonth = now()->subMonth();
     $previousCampaign = Campaign::factory()->for($this->organization)->create(['title' => 'Ramadan Fund']);

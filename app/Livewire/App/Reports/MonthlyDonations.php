@@ -88,14 +88,30 @@ class MonthlyDonations extends Component
     #[Computed]
     public function availableMonths(): array
     {
-        $months = [];
+        $org = $this->organization;
 
-        for ($i = 0; $i < 12; $i++) {
-            $date = today()->copy()->subMonths($i);
-            $months[$date->format('Y-m')] = $date->format('F Y');
+        if (! $org) {
+            return [];
         }
 
-        return $months;
+        $firstDonationDate = Donation::query()
+            ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
+            ->where('status', DonationStatus::Succeeded)
+            ->min('created_at');
+
+        $start = $firstDonationDate !== null
+            ? CarbonImmutable::parse($firstDonationDate)->startOfMonth()
+            : today()->toImmutable()->subMonths(11)->startOfMonth();
+
+        $end = today()->toImmutable()->startOfMonth();
+        $months = [];
+
+        while ($start->lte($end)) {
+            $months[$start->format('Y-m')] = $start->format('F Y');
+            $start = $start->addMonth();
+        }
+
+        return array_reverse($months, true);
     }
 
     /**
