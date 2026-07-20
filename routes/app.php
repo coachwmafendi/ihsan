@@ -22,6 +22,7 @@ use App\Livewire\App\Elements\ElementCreate;
 use App\Livewire\App\Elements\ElementEdit;
 use App\Livewire\App\Elements\ElementIndex;
 use App\Livewire\App\Notifications\Index as NotificationsIndex;
+use App\Livewire\App\Payouts;
 use App\Livewire\App\Reports\MonthlyDonations;
 use App\Livewire\App\Settings\Account;
 use App\Livewire\App\Settings\AllowDomains;
@@ -97,7 +98,7 @@ Route::domain($appPanelDomain)->group(function () {
         Route::get('/audit-log', AuditLogIndex::class)->name('app.audit-log.index');
 
         // Placeholder routes for upcoming features
-        Route::get('/payouts', fn () => redirect()->route('app.dashboard'))->name('app.payouts');
+        Route::get('/payouts', Payouts::class)->name('app.payouts');
         Route::get('/members', fn () => redirect()->route('app.dashboard'))->name('app.members');
         Route::get('/teams', fn () => redirect()->route('app.dashboard'))->name('app.teams');
         Route::get('/developer/api-keys', fn () => redirect()->route('app.dashboard'))->name('app.developer.api-keys');
