@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Actions\DonorEmailLog\LogDonorEmail;
 use App\Actions\Stripe\SyncDonationStripeDetails;
+use App\Actions\Stripe\SyncPayout;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\SubscriptionStatus;
@@ -71,6 +72,10 @@ class ProcessStripeWebhook implements ShouldQueue
             'customer.subscription.updated' => $this->handleSubscriptionUpdated($event),
             'charge.refunded' => $this->handleChargeRefunded($event),
             'account.updated' => $this->handleAccountUpdated($event),
+            'payout.created' => $this->handlePayout($event),
+            'payout.paid' => $this->handlePayout($event),
+            'payout.failed' => $this->handlePayout($event),
+            'payout.canceled' => $this->handlePayout($event),
             default => null,
         };
 
@@ -540,5 +545,26 @@ class ProcessStripeWebhook implements ShouldQueue
         }
 
         $organization->update($updates);
+    }
+
+    private function handlePayout(StripeEvent $event): void
+    {
+        $payout = $event->data->object;
+
+        $accountId = $event->account ?? $payout->on_behalf_of ?? null;
+
+        if (blank($accountId)) {
+            return;
+        }
+
+        $organization = Organization::query()
+            ->where('stripe_account_id', $accountId)
+            ->first();
+
+        if ($organization === null) {
+            return;
+        }
+
+        app(SyncPayout::class)->sync($organization, (array) $payout->toArray());
     }
 }
