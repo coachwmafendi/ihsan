@@ -2,6 +2,7 @@
 
 use App\Actions\Stripe\ChargeRecurringInstallment;
 use App\Data\ChargeResult;
+use App\Enums\DonationStatus;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Livewire\App\Subscriptions\SubscriptionShow;
@@ -275,6 +276,40 @@ it('shows approximate myr total when subscription donations lack base amount', f
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('≈ MYR 100.00');
+});
+
+it('shows converted myr amount, payment method and installment number in the installments table', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'currency' => 'sgd',
+        'amount' => 50.00,
+    ]);
+
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $subscription->id,
+        'currency' => 'sgd',
+        'gross_amount' => 50.00,
+        'base_amount' => null,
+        'exchange_rate' => 3.16,
+        'payment_method_brand' => 'visa',
+        'payment_method_last4' => '4242',
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now()->subDay(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('≈ MYR 158.00')
+        ->assertSee($donation->public_id)
+        ->assertSee($donation->formatted_amount)
+        ->assertSee('Visa **** 4242')
+        ->assertSee('1st installment')
+        ->assertSee('1');
 });
 
 it('renders the emails section with sent emails for the subscription', function () {

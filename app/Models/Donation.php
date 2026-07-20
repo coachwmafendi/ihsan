@@ -425,6 +425,26 @@ class Donation extends Model
         });
     }
 
+    public function installmentNumberLabel(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            $number = $this->installment_number;
+
+            if ($number === null) {
+                return null;
+            }
+
+            $ordinal = $number.((($number % 100) >= 11 && ($number % 100) <= 13) ? 'th' : match ($number % 10) {
+                1 => 'st',
+                2 => 'nd',
+                3 => 'rd',
+                default => 'th',
+            });
+
+            return $ordinal.' installment';
+        });
+    }
+
     public function amountWithConversion(): Attribute
     {
         return Attribute::get(fn () => $this->display_donation_amount);

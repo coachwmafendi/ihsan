@@ -370,6 +370,8 @@
                                     <tr class="border-b border-slate-100">
                                         <th class="py-2 pr-4 font-medium text-slate-900">Donation ID</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Amount</th>
+                                        <th class="py-2 pr-4 font-medium text-slate-900">Method</th>
+                                        <th class="py-2 pr-4 font-medium text-slate-900">Installment</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Campaign</th>
                                         <th class="py-2 font-medium text-slate-900">Date</th>
                                     </tr>
@@ -382,7 +384,26 @@
                                                     {{ $payment->public_id }}
                                                 </a>
                                             </td>
-                                            <td class="py-3 pr-4 font-medium text-slate-900">{{ $payment->formatted_amount }}</td>
+                                            <td class="py-3 pr-4 font-medium text-slate-900">
+                                                <x-ui.tooltip :text="$payment->formatted_amount">
+                                                    <span>{{ $payment->formatted_report_amount }}</span>
+                                                </x-ui.tooltip>
+                                            </td>
+                                            <td class="py-3 pr-4">
+                                                <x-ui.tooltip :text="$payment->payment_method_display">
+                                                    <x-dynamic-component :component="$payment->card_icon_component" class="size-6 text-slate-700" />
+                                                </x-ui.tooltip>
+                                            </td>
+                                            <td class="py-3 pr-4">
+                                                <x-ui.tooltip :text="$payment->installment_number_label ?? '—'">
+                                                    <span class="inline-flex items-center gap-1.5">
+                                                        <x-heroicon-o-arrow-path class="size-4 text-slate-400" />
+                                                        <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-emerald-50 px-1.5 text-xs font-medium text-emerald-700">
+                                                            {{ $payment->installment_number ?? '—' }}
+                                                        </span>
+                                                    </span>
+                                                </x-ui.tooltip>
+                                            </td>
                                             <td class="py-3 pr-4 text-slate-600">
                                                 @if ($payment->campaign)
                                                     {{ $payment->campaign->title }}
