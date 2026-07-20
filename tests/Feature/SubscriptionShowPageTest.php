@@ -178,7 +178,7 @@ it('shows the past due recurring donation status banner', function () {
 
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
-        ->assertSee('The most recent installment failed')
+        ->assertSee('Installment #1 failed')
         ->assertSee('We will retry the payment on')
         ->assertSee(myrTime($subscription->next_charge_at));
 });
