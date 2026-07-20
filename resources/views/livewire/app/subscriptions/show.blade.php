@@ -387,11 +387,9 @@
                             <table class="min-w-full text-left text-sm">
                                 <thead>
                                     <tr class="border-b border-slate-100">
+                                        <th class="py-2 pr-4 font-medium text-slate-900">Status</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Donation ID</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Amount</th>
-                                        <th class="py-2 pr-4 font-medium text-slate-900">Method</th>
-                                        <th class="py-2 pr-4 font-medium text-slate-900">Installment</th>
-                                        <th class="py-2 pr-4 font-medium text-slate-900">Status</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Campaign</th>
                                         <th class="py-2 font-medium text-slate-900">Date</th>
                                     </tr>
@@ -399,31 +397,6 @@
                                 <tbody>
                                     @foreach ($this->recentPayments as $payment)
                                         <tr class="border-b border-slate-50 last:border-0">
-                                            <td class="py-3 pr-4">
-                                                <a href="{{ route('app.donations.show', $payment) }}" wire:navigate class="font-medium text-blue-600 hover:text-blue-700">
-                                                    {{ $payment->public_id }}
-                                                </a>
-                                            </td>
-                                            <td class="py-3 pr-4 font-medium text-slate-900">
-                                                <x-ui.tooltip :text="$payment->formatted_amount">
-                                                    <span>{{ $payment->formatted_report_amount }}</span>
-                                                </x-ui.tooltip>
-                                            </td>
-                                            <td class="py-3 pr-4">
-                                                <x-ui.tooltip :text="$payment->payment_method_display">
-                                                    <x-dynamic-component :component="$payment->card_icon_component" class="size-6 text-slate-700" />
-                                                </x-ui.tooltip>
-                                            </td>
-                                            <td class="py-3 pr-4">
-                                                <x-ui.tooltip :text="$payment->installment_number_label ?? '—'">
-                                                    <span class="inline-flex items-center gap-1.5">
-                                                        <x-heroicon-o-arrow-path class="size-4 text-slate-400" />
-                                                        <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-emerald-50 px-1.5 text-xs font-medium text-emerald-700">
-                                                            {{ $payment->installment_number ?? '—' }}
-                                                        </span>
-                                                    </span>
-                                                </x-ui.tooltip>
-                                            </td>
                                             <td class="py-3 pr-4">
                                                 @php
                                                     $statusIcon = match ($payment->status->value) {
@@ -443,11 +416,36 @@
                                                         default => ucfirst($payment->status->value),
                                                     };
                                                 @endphp
-                                                <x-ui.tooltip :text="$statusTooltip">
-                                                    <x-ui.badge status="{{ $payment->status->value }}" size="sm" icon="{{ $statusIcon }}">
-                                                        {{ ucfirst($payment->status->value) }}
-                                                    </x-ui.badge>
-                                                </x-ui.tooltip>
+                                                <div class="inline-flex items-center gap-2">
+                                                    <x-ui.tooltip :text="$payment->installment_number_label ?? '—'">
+                                                        <span class="inline-flex items-center gap-1">
+                                                            <x-heroicon-o-arrow-path class="size-3.5 text-slate-400" />
+                                                            <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-50 px-1 text-[10px] font-medium text-emerald-700">
+                                                                {{ $payment->installment_number ?? '—' }}
+                                                            </span>
+                                                        </span>
+                                                    </x-ui.tooltip>
+                                                    <x-ui.tooltip :text="$statusTooltip">
+                                                        <x-ui.badge status="{{ $payment->status->value }}" size="sm" icon="{{ $statusIcon }}">
+                                                            {{ ucfirst($payment->status->value) }}
+                                                        </x-ui.badge>
+                                                    </x-ui.tooltip>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 pr-4">
+                                                <a href="{{ route('app.donations.show', $payment) }}" wire:navigate class="font-medium text-blue-600 hover:text-blue-700">
+                                                    {{ $payment->public_id }}
+                                                </a>
+                                            </td>
+                                            <td class="py-3 pr-4 font-medium text-slate-900">
+                                                <div class="inline-flex items-center gap-2">
+                                                    <x-ui.tooltip :text="$payment->payment_method_display">
+                                                        <x-dynamic-component :component="$payment->card_icon_component" class="size-5 text-slate-700" />
+                                                    </x-ui.tooltip>
+                                                    <x-ui.tooltip :text="$payment->formatted_amount">
+                                                        <span>{{ $payment->formatted_report_amount }}</span>
+                                                    </x-ui.tooltip>
+                                                </div>
                                             </td>
                                             <td class="py-3 pr-4 text-slate-600">
                                                 @if ($payment->campaign)
