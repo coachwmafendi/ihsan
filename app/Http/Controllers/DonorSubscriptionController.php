@@ -8,6 +8,7 @@ use App\Actions\Stripe\ChangeRecurringAmount;
 use App\Actions\Stripe\ManageStripeSubscription;
 use App\Actions\Stripe\PauseLocalRecurringPlan;
 use App\Actions\Stripe\ResumeLocalRecurringPlan;
+use App\Actions\Stripe\UpdateAppControlledPaymentMethod;
 use App\Jobs\SendSubscriptionAmountChangedNotification;
 use App\Models\Donor;
 use App\Models\Organization;
@@ -15,6 +16,8 @@ use App\Models\Subscription;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\URL;
+use Stripe\SetupIntent;
+use Stripe\Stripe;
 
 class DonorSubscriptionController extends Controller
 {
@@ -319,14 +322,12 @@ class DonorSubscriptionController extends Controller
             ], 422);
         }
 
-        if (! $this->isStripeBacked($subscription)) {
-            return response()->json([
-                'error' => 'Updating payment method is not supported for this subscription.',
-            ], 422);
-        }
-
         try {
-            $clientSecret = app(ManageStripeSubscription::class)->createSetupIntent($subscription);
+            if ($this->isStripeBacked($subscription)) {
+                $clientSecret = app(ManageStripeSubscription::class)->createSetupIntent($subscription);
+            } else {
+                $clientSecret = $this->createAppControlledSetupIntent($subscription);
+            }
 
             $org = $subscription->campaign?->organization;
 
@@ -335,6 +336,8 @@ class DonorSubscriptionController extends Controller
                 'stripe_account_id' => $org?->stripe_account_id,
             ]);
         } catch (\Exception $e) {
+            report($e);
+
             return response()->json(['error' => 'Unable to process payment method update.'], 500);
         }
     }
@@ -350,22 +353,47 @@ class DonorSubscriptionController extends Controller
             ], 422);
         }
 
-        if (! $this->isStripeBacked($subscription)) {
-            return response()->json([
-                'error' => 'Updating payment method is not supported for this subscription.',
-            ], 422);
-        }
-
         $data = request()->validate([
             'payment_method_id' => 'required|string',
         ]);
 
         try {
-            app(ManageStripeSubscription::class)->updatePaymentMethod($subscription, $data['payment_method_id']);
+            if ($this->isStripeBacked($subscription)) {
+                app(ManageStripeSubscription::class)->updatePaymentMethod($subscription, $data['payment_method_id']);
+            } else {
+                app(UpdateAppControlledPaymentMethod::class)->update($subscription, $data['payment_method_id']);
+            }
 
             return response()->json(['status' => 'ok']);
         } catch (\Exception $e) {
+            report($e);
+
             return response()->json(['error' => 'Unable to update payment method.'], 500);
         }
+    }
+
+    private function createAppControlledSetupIntent(Subscription $subscription): string
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        $subscription->loadMissing(['campaign.organization', 'donor']);
+        $organization = $subscription->campaign?->organization;
+        $donor = request()->donor;
+
+        if (blank($donor?->stripe_customer_id)) {
+            throw new \RuntimeException('Donor does not have a Stripe customer ID.');
+        }
+
+        $stripeOptions = $organization !== null && filled($organization->stripe_account_id)
+            ? ['stripe_account' => $organization->stripe_account_id]
+            : [];
+
+        $setupIntent = SetupIntent::create([
+            'customer' => $donor->stripe_customer_id,
+            'usage' => 'off_session',
+            'payment_method_types' => ['card'],
+        ], $stripeOptions);
+
+        return $setupIntent->client_secret;
     }
 }

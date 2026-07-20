@@ -1,5 +1,7 @@
 <?php
 
+use App\Actions\Stripe\ChargeRecurringInstallment;
+use App\Data\ChargeResult;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Livewire\App\Subscriptions\SubscriptionShow;
@@ -8,6 +10,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\DonorEmailLog;
+use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
@@ -435,6 +438,99 @@ it('blocks manage actions when subscription is scheduled to cancel', function ()
         ->assertDispatched('notify', type: 'error');
 });
 
+it('cancels an app-controlled subscription immediately from the admin panel', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'stripe_subscription_id' => null,
+        'chip_recurring_token' => null,
+        'next_charge_at' => now()->addMonth(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Cancel recurring')
+        ->call('openCancelModal')
+        ->call('cancelSubscription')
+        ->assertDispatched('notify', type: 'success');
+
+    $subscription->refresh();
+
+    expect($subscription->status)->toBe(SubscriptionStatus::Cancelled)
+        ->and($subscription->cancelled_at)->not->toBeNull()
+        ->and($subscription->next_charge_at)->toBeNull();
+});
+
+it('updates payment details for an app-controlled subscription', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'stripe_subscription_id' => null,
+        'chip_recurring_token' => null,
+        'amount' => 50.00,
+        'currency' => 'myr',
+        'cover_fee' => false,
+        'next_charge_at' => now()->addMonth()->setDay(15)->startOfDay(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->call('openEditPaymentDetailsModal')
+        ->set('editAmount', 75.00)
+        ->set('editInterval', 'monthly')
+        ->set('editBillingDay', 20)
+        ->set('editCoverFee', true)
+        ->call('savePaymentDetails')
+        ->assertDispatched('notify', type: 'success');
+
+    $subscription->refresh();
+
+    expect($subscription->amount)->toEqual(75.00)
+        ->and($subscription->cover_fee)->toBeTrue()
+        ->and((int) $subscription->next_charge_at->format('j'))->toBe(20);
+});
+
+it('processes an immediate payment for an app-controlled subscription from edit details', function () {
+    $paymentMethod = DonorPaymentMethod::create([
+        'donor_id' => $this->donor->getKey(),
+        'stripe_payment_method_id' => 'pm_test_'.uniqid(),
+        'brand' => 'Visa',
+        'last4' => '4242',
+        'is_default' => true,
+    ]);
+
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'donor_payment_method_id' => $paymentMethod->getKey(),
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'stripe_subscription_id' => null,
+        'chip_recurring_token' => null,
+        'amount' => 50.00,
+        'currency' => 'myr',
+        'next_charge_at' => now()->addMonth(),
+    ]);
+
+    $action = Mockery::mock(ChargeRecurringInstallment::class);
+    $action->shouldReceive('handle')
+        ->once()
+        ->with(Mockery::on(fn ($sub) => $sub->is($subscription)))
+        ->andReturn(new ChargeResult('succeeded'));
+    $this->instance(ChargeRecurringInstallment::class, $action);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->call('openEditPaymentDetailsModal')
+        ->set('editProcessPaymentNow', true)
+        ->call('savePaymentDetails')
+        ->assertDispatched('notify', type: 'success');
+});
+
 it('shows ended state and blocks manage actions for cancelled subscriptions', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,
@@ -451,4 +547,52 @@ it('shows ended state and blocks manage actions for cancelled subscriptions', fu
         ->assertSee('This recurring donation was cancelled on')
         ->call('openEditPaymentDetailsModal')
         ->assertDispatched('notify', type: 'error');
+});
+
+it('pauses an app-controlled subscription from the admin panel', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'stripe_subscription_id' => null,
+        'chip_recurring_token' => null,
+        'next_charge_at' => now()->addMonth(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->call('pauseSubscription')
+        ->assertDispatched('notify', type: 'success');
+
+    $subscription->refresh();
+
+    expect($subscription->status)->toBe(SubscriptionStatus::Paused)
+        ->and($subscription->paused_until)->not->toBeNull()
+        ->and($subscription->next_charge_at)->not->toBeNull();
+});
+
+it('skips installments for an app-controlled subscription from the admin panel', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'stripe_subscription_id' => null,
+        'chip_recurring_token' => null,
+        'next_charge_at' => now()->addMonth(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->call('openSkipModal')
+        ->set('skipDuration', '3')
+        ->call('confirmSkip')
+        ->assertDispatched('notify', type: 'success');
+
+    $subscription->refresh();
+
+    expect($subscription->status)->toBe(SubscriptionStatus::Paused)
+        ->and($subscription->paused_until)->not->toBeNull()
+        ->and($subscription->next_charge_at)->not->toBeNull();
 });

@@ -18,7 +18,9 @@ class ChargeRecurringInstallment implements ShouldQueue
 
     public function handle(): void
     {
-        if (filled($this->subscription->stripe_subscription_id)) {
+        $this->subscription->loadMissing('donorPaymentMethod');
+
+        if (filled($this->subscription->donorPaymentMethod?->stripe_payment_method_id)) {
             app(ChargeStripeAction::class)->handle($this->subscription);
 
             return;

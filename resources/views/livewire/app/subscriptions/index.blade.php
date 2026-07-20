@@ -427,8 +427,9 @@
                                         $statusColor = 'text-amber-600';
                                     }
 
-                                    $statusTooltip = $subscription->current_period_end
-                                        ? 'Next installment: '.myrTime($subscription->current_period_end)
+                                    $nextInstallmentAt = $subscription->next_charge_at ?? $subscription->current_period_end;
+                                    $statusTooltip = $nextInstallmentAt
+                                        ? 'Next installment: '.myrTime($nextInstallmentAt)
                                         : 'No upcoming installment';
                                 @endphp
                                 <td class="px-5 py-4">

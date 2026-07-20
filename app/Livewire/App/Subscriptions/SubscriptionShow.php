@@ -6,7 +6,12 @@ namespace App\Livewire\App\Subscriptions;
 
 use App\Actions\DonorEmailLog\PreviewDonorEmail;
 use App\Actions\DonorEmailLog\ResendDonorEmail;
+use App\Actions\Stripe\CancelLocalRecurringPlan;
+use App\Actions\Stripe\ChangeRecurringAmount;
+use App\Actions\Stripe\ChargeRecurringInstallment as ChargeRecurringInstallmentAction;
 use App\Actions\Stripe\ManageStripeSubscription;
+use App\Actions\Stripe\PauseLocalRecurringPlan;
+use App\Actions\Stripe\UpdateAppControlledPaymentMethod;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
 use App\Models\Donation;
@@ -148,19 +153,19 @@ class SubscriptionShow extends Component
             return null;
         }
 
-        $periodEnd = $this->subscription->current_period_end;
+        $baseDate = $this->subscription->next_charge_at ?? $this->subscription->current_period_end;
 
-        if ($periodEnd === null) {
+        if ($baseDate === null) {
             return null;
         }
 
-        $periodEnd = CarbonImmutable::parse($periodEnd);
+        $date = CarbonImmutable::parse($baseDate);
 
-        while ($periodEnd->isPast()) {
-            $periodEnd = SubscriptionSchedule::nextChargeAt($periodEnd, $this->subscription->interval);
+        while ($date->isPast()) {
+            $date = SubscriptionSchedule::nextChargeAt($date, $this->subscription->interval);
         }
 
-        return $periodEnd;
+        return $date;
     }
 
     #[Computed]
@@ -270,7 +275,7 @@ class SubscriptionShow extends Component
         ]);
 
         try {
-            app(ManageStripeSubscription::class)->cancel($this->subscription, false);
+            app(CancelLocalRecurringPlan::class)->cancel($this->subscription);
         } catch (\Exception $e) {
             $this->dispatch('notify', type: 'error', message: 'Unable to cancel subscription. Please try again.');
 
@@ -288,7 +293,7 @@ class SubscriptionShow extends Component
 
         $this->subscription->refresh();
         $this->showCancelModal = false;
-        $this->dispatch('notify', type: 'success', message: 'Subscription will cancel at the end of the billing period.');
+        $this->dispatch('notify', type: 'success', message: 'Subscription cancelled.');
     }
 
     public bool $showEditPaymentDetailsModal = false;
@@ -328,8 +333,8 @@ class SubscriptionShow extends Component
         $this->editAmount = (float) $this->subscription->amount;
         $this->editInterval = $this->subscription->interval->value;
 
-        $start = $this->subscription->current_period_start ?? $this->subscription->created_at ?? now();
-        $this->editBillingDay = min((int) $start->format('j'), 28);
+        $chargeDate = $this->subscription->next_charge_at ?? $this->subscription->current_period_start ?? $this->subscription->created_at ?? now();
+        $this->editBillingDay = min((int) $chargeDate->format('j'), 28);
 
         $this->editProcessPaymentNow = false;
         $this->editEndDate = $this->subscription->cancel_at?->format('Y-m-d');
@@ -381,22 +386,28 @@ class SubscriptionShow extends Component
 
     private function estimatedNextInstallmentDate(): ?CarbonInterface
     {
-        $base = $this->subscription->current_period_start ?? now();
+        $base = $this->subscription->next_charge_at ?? $this->subscription->current_period_start ?? now();
         $day = $this->editBillingDay;
 
         if ($this->editInterval === 'monthly') {
-            $candidate = $base->copy()->setDay($day)->startOfDay();
+            $candidate = $base->copy()->setDay(min($day, $base->daysInMonth))->startOfDay();
 
             return $candidate->isPast() ? $candidate->addMonth() : $candidate;
         }
 
         if ($this->editInterval === 'yearly') {
-            $candidate = $base->copy()->setDay($day)->startOfDay();
+            $candidate = $base->copy()->setDay(min($day, $base->daysInMonth))->startOfDay();
 
             return $candidate->isPast() ? $candidate->addYear() : $candidate;
         }
 
-        return $this->subscription->current_period_end;
+        if ($this->editInterval === 'weekly') {
+            $candidate = $base->copy()->addWeek()->startOfDay();
+
+            return $candidate;
+        }
+
+        return $this->subscription->next_charge_at ?? $this->subscription->current_period_end;
     }
 
     public function updatedEditPaymentMethod(): void
@@ -421,10 +432,16 @@ class SubscriptionShow extends Component
     public function updatePaymentMethodFromJs(string $paymentMethodId): void
     {
         try {
-            app(ManageStripeSubscription::class)->updatePaymentMethod($this->subscription, $paymentMethodId);
+            if (filled($this->subscription->stripe_subscription_id)) {
+                app(ManageStripeSubscription::class)->updatePaymentMethod($this->subscription, $paymentMethodId);
+            } else {
+                app(UpdateAppControlledPaymentMethod::class)->update($this->subscription, $paymentMethodId);
+            }
+
             $this->subscription->refresh();
             $this->dispatch('notify', type: 'success', message: 'Payment method updated.');
         } catch (\Exception $e) {
+            report($e);
             $this->dispatch('notify', type: 'error', message: 'Unable to update payment method. Please try again.');
         }
     }
@@ -459,6 +476,17 @@ class SubscriptionShow extends Component
 
     private function applyPaymentDetailsChanges(): void
     {
+        if (filled($this->subscription->stripe_subscription_id)) {
+            $this->applyStripePaymentDetailsChanges();
+
+            return;
+        }
+
+        $this->applyAppControlledPaymentDetailsChanges();
+    }
+
+    private function applyStripePaymentDetailsChanges(): void
+    {
         $manager = app(ManageStripeSubscription::class);
 
         $amountChanged = (float) $this->editAmount !== (float) $this->subscription->amount;
@@ -475,6 +503,62 @@ class SubscriptionShow extends Component
             'cover_fee' => $this->editCoverFee,
         ]);
 
+        $this->updateMaxPlanLimits();
+
+        if ($this->editProcessPaymentNow) {
+            $this->createImmediateInvoice();
+        }
+    }
+
+    private function applyAppControlledPaymentDetailsChanges(): void
+    {
+        $amountChanged = (float) $this->editAmount !== (float) $this->subscription->amount;
+
+        if ($amountChanged) {
+            app(ChangeRecurringAmount::class)->change($this->subscription, (float) $this->editAmount);
+        }
+
+        $updateData = [
+            'interval' => $this->editInterval,
+            'cover_fee' => $this->editCoverFee,
+            'cancel_at' => $this->editEndDate ? CarbonImmutable::parse($this->editEndDate) : null,
+        ];
+
+        $intervalChanged = $this->editInterval !== $this->subscription->interval->value;
+        $billingDayChanged = $this->editBillingDay !== (int) ($this->subscription->next_charge_at ?? now())->format('j');
+
+        if ($intervalChanged || $billingDayChanged) {
+            $updateData['next_charge_at'] = $this->calculateNextChargeAtFromEdits();
+        }
+
+        $this->subscription->update($updateData);
+
+        $this->updateMaxPlanLimits();
+
+        if ($this->editProcessPaymentNow) {
+            app(ChargeRecurringInstallmentAction::class)->handle($this->subscription);
+            $this->subscription->refresh();
+        }
+    }
+
+    private function calculateNextChargeAtFromEdits(): CarbonImmutable
+    {
+        $base = CarbonImmutable::parse($this->subscription->next_charge_at ?? now());
+        $candidate = $base->setDay(min($this->editBillingDay, $base->daysInMonth))->startOfDay();
+
+        if ($candidate->isPast()) {
+            $candidate = match ($this->editInterval) {
+                'weekly' => $candidate->addWeek(),
+                'yearly' => $candidate->addYear(),
+                default => $candidate->addMonth(),
+            };
+        }
+
+        return $candidate;
+    }
+
+    private function updateMaxPlanLimits(): void
+    {
         $maxAmount = $this->editHasMaxPlanAmount ? (float) $this->editMaxPlanAmount : null;
         $maxInstallments = $this->editHasMaxPlanInstallments ? (int) $this->editMaxPlanInstallments : null;
 
@@ -482,10 +566,6 @@ class SubscriptionShow extends Component
             'max_plan_amount' => $maxAmount,
             'max_plan_installments' => $maxInstallments,
         ]);
-
-        if ($this->editProcessPaymentNow) {
-            $this->createImmediateInvoice();
-        }
     }
 
     private function createImmediateInvoice(): void
@@ -529,7 +609,11 @@ class SubscriptionShow extends Component
         }
 
         try {
-            app(ManageStripeSubscription::class)->pause($this->subscription);
+            if (filled($this->subscription->stripe_subscription_id)) {
+                app(ManageStripeSubscription::class)->pause($this->subscription);
+            } else {
+                app(PauseLocalRecurringPlan::class)->pause($this->subscription);
+            }
         } catch (\Exception $e) {
             $this->dispatch('notify', type: 'error', message: 'Unable to pause subscription. Please try again.');
 
@@ -565,7 +649,7 @@ class SubscriptionShow extends Component
     #[Computed]
     public function skipNextInstallmentDate(): ?CarbonInterface
     {
-        $base = $this->subscription->current_period_end ?? now();
+        $base = $this->subscription->next_charge_at ?? $this->subscription->current_period_end ?? now();
 
         return $base->copy()->addMonths($this->resolveSkipMonths());
     }
@@ -579,7 +663,11 @@ class SubscriptionShow extends Component
         $months = $this->resolveSkipMonths();
 
         try {
-            app(ManageStripeSubscription::class)->pause($this->subscription, $months);
+            if (filled($this->subscription->stripe_subscription_id)) {
+                app(ManageStripeSubscription::class)->pause($this->subscription, $months);
+            } else {
+                app(PauseLocalRecurringPlan::class)->pause($this->subscription, $months);
+            }
         } catch (\Exception $e) {
             $this->dispatch('notify', type: 'error', message: 'Unable to skip installments. Please try again.');
 

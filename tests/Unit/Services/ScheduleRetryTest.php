@@ -36,7 +36,22 @@ it('increments failed_installment_count after exhausting all retries', function 
         ->and($result['status'])->toBe('past_due');
 });
 
-it('marks the subscription as failed after max failed installments', function (): void {
+it('marks the subscription as failed after four failed installments', function (): void {
+    $scheduleRetry = new ScheduleRetry([1, 3, 7, 7], 4);
+
+    $subscription = new Subscription([
+        'retry_count' => 3,
+        'failed_installment_count' => 3,
+    ]);
+
+    $result = $scheduleRetry->afterFailure($subscription);
+
+    expect($result['status'])->toBe('failed')
+        ->and($result['failed_installment_count'])->toBe(4)
+        ->and($result['next_charge_at'])->toBeNull();
+});
+
+it('marks the subscription as failed after injected max failed installments', function (): void {
     $subscription = new Subscription([
         'retry_count' => 3,
         'failed_installment_count' => 5,

@@ -228,9 +228,9 @@
                             <p class="text-base font-black text-slate-900">
                                 {{ $subscription->displayAmount() }}<span class="text-xs font-normal text-slate-400">/{{ $subscription->interval->value }}</span>
                             </p>
-                            @if ($subscription->current_period_end)
+                            @if ($subscription->next_charge_at)
                                 <p class="mt-0.5 text-xs text-slate-400">
-                                    Next: {{ myrTime($subscription->current_period_end, withLabel: false, format: 'd M Y') }}
+                                    Next: {{ myrTime($subscription->next_charge_at, withLabel: false, format: 'd M Y') }}
                                 </p>
                             @endif
                         </div>
@@ -272,9 +272,9 @@
                                     <x-heroicon name="plus" class="h-3.5 w-3.5" />
                                     Change Amount
                                 </button>
-                                @if (filled($subscription->stripe_subscription_id))
+                                @if (blank($subscription->chip_recurring_token))
                                     <button @click="openPayment('{{ $subscription->public_id }}')"
-                                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
+                                             class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50">
                                         <x-heroicon name="credit-card" class="h-3.5 w-3.5" />
                                         Update Card Details
                                     </button>
