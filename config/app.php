@@ -58,6 +58,8 @@ return [
 
     'admin_panel_domain' => env('ADMIN_PANEL_DOMAIN'),
 
+    'version' => env('APP_VERSION', '1.0.0'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

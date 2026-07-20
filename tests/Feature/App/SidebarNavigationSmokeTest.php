@@ -35,6 +35,18 @@ it('uses wire:navigate on internal sidebar links', function (string $path) {
     '/settings/account',
 ]);
 
+it('displays the application version in the sidebar', function () {
+    $response = $this->actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk();
+
+    $version = config('app.version', '1.0.0');
+
+    expect($response->getContent())
+        ->toContain('<span class="font-medium text-slate-500">Ihsan</span>')
+        ->toContain("v{$version}");
+});
+
 it('does not use wire:navigate on external sidebar links', function () {
     $response = $this->actingAs($this->user)
         ->get('https://app.example.test/dashboard')

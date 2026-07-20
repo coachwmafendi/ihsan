@@ -74,6 +74,12 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-item href="{{ route('docs.show') }}" icon="book-open" label="Documentation" target="_blank" />
             </x-sidebar-dropdown>
         </nav>
+
+        <div class="shrink-0 border-t border-slate-200 px-4 py-3">
+            <div class="text-[11px] leading-tight text-slate-400">
+                <span class="font-medium text-slate-500">Ihsan</span> v{{ config('app.version', '1.0.0') }}
+            </div>
+        </div>
     </div>
 
     {{-- Desktop sidebar --}}
@@ -144,5 +150,11 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-item href="{{ route('docs.show') }}" icon="book-open" label="Documentation" target="_blank" />
             </x-sidebar-dropdown>
         </nav>
+
+        <div class="shrink-0 border-t border-slate-200 px-4 py-3">
+            <div class="text-[11px] leading-tight text-slate-400">
+                <span class="font-medium text-slate-500">Ihsan</span> v{{ config('app.version', '1.0.0') }}
+            </div>
+        </div>
     </div>
 </div>
