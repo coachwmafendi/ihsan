@@ -183,7 +183,7 @@
                 <flux:menu.item wire:click="$set('statusFilter', 'active')"             @class(['font-semibold text-teal-700' => $statusFilter === 'active'])>Active</flux:menu.item>
                 <flux:menu.item wire:click="$set('statusFilter', 'paused')"             @class(['font-semibold text-teal-700' => $statusFilter === 'paused'])>Paused</flux:menu.item>
                 <flux:menu.item wire:click="$set('statusFilter', 'cancelled')"          @class(['font-semibold text-teal-700' => $statusFilter === 'cancelled'])>Cancelled</flux:menu.item>
-                <flux:menu.item wire:click="$set('statusFilter', 'past_due')"           @class(['font-semibold text-teal-700' => $statusFilter === 'past_due'])>Past Due</flux:menu.item>
+                <flux:menu.item wire:click="$set('statusFilter', 'past_due')"           @class(['font-semibold text-teal-700' => $statusFilter === 'past_due'])>Retrying</flux:menu.item>
                 <flux:menu.item wire:click="$set('statusFilter', 'incomplete')"         @class(['font-semibold text-teal-700' => $statusFilter === 'incomplete'])>Incomplete</flux:menu.item>
                 <flux:menu.item wire:click="$set('statusFilter', 'incomplete_expired')" @class(['font-semibold text-teal-700' => $statusFilter === 'incomplete_expired'])>Incomplete Expired</flux:menu.item>
                 <flux:menu.item wire:click="$set('statusFilter', 'completed')"          @class(['font-semibold text-teal-700' => $statusFilter === 'completed'])>Completed</flux:menu.item>
@@ -405,10 +405,11 @@
                                         'active' => 'heroicon-s-check-circle',
                                         'paused' => 'heroicon-o-pause-circle',
                                         'cancelled' => 'heroicon-o-x-circle',
-                                        'past_due' => 'heroicon-o-exclamation-circle',
+                                        'past_due' => 'heroicon-o-arrow-path',
                                         'incomplete' => 'heroicon-o-exclamation-triangle',
                                         'incomplete_expired' => 'heroicon-o-clock',
                                         'completed' => 'heroicon-s-check-badge',
+                                        'failed' => 'heroicon-o-x-mark',
                                         default => 'heroicon-o-question-mark-circle',
                                     };
                                     $statusColor = match ($subscription->status->value) {
@@ -418,7 +419,8 @@
                                         'past_due' => 'text-amber-600',
                                         'incomplete' => 'text-amber-600',
                                         'incomplete_expired' => 'text-slate-500',
-                                        'completed' => 'text-emerald-600',
+                                        'completed' => 'text-blue-600',
+                                        'failed' => 'text-red-600',
                                         default => 'text-slate-500',
                                     };
 

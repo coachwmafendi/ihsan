@@ -21,7 +21,7 @@ enum SubscriptionStatus: string implements HasLabel
             self::Active => 'Active',
             self::Paused => 'Paused',
             self::Cancelled => 'Cancelled',
-            self::PastDue => 'Past Due',
+            self::PastDue => 'Retrying',
             self::Incomplete => 'Incomplete',
             self::IncompleteExpired => 'Incomplete Expired',
             self::Completed => 'Completed',

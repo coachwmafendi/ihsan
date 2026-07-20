@@ -116,7 +116,7 @@ return [
         'status_failed' => 'Failed',
         'status_cancelled' => 'Cancelled',
         'status_paused' => 'Paused',
-        'status_past_due' => 'Past Due',
+        'status_past_due' => 'Retrying',
         'status_incomplete' => 'Incomplete',
         'status_incomplete_expired' => 'Incomplete Expired',
         'status_completed' => 'Completed',
