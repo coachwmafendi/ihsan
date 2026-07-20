@@ -430,9 +430,15 @@
                                     }
 
                                     $nextInstallmentAt = $subscription->next_charge_at ?? $subscription->current_period_end;
-                                    $statusTooltip = $nextInstallmentAt
-                                        ? 'Next installment: '.myrTime($nextInstallmentAt)
-                                        : 'No upcoming installment';
+                                    $statusTooltip = match ($subscription->status->value) {
+                                        'past_due' => $nextInstallmentAt
+                                            ? 'Payment failed — next retry on '.myrTime($nextInstallmentAt)
+                                            : 'Payment failed — retry schedule pending',
+                                        'failed' => 'No further retries scheduled',
+                                        default => $nextInstallmentAt
+                                            ? 'Next installment: '.myrTime($nextInstallmentAt)
+                                            : 'No upcoming installment',
+                                    };
                                 @endphp
                                 <td class="px-5 py-4">
                                     <x-ui.tooltip :text="$statusTooltip">

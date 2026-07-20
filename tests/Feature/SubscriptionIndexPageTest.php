@@ -52,6 +52,21 @@ it('shows next installment tooltip on the status label', function () {
         ->assertSee('Next installment:');
 });
 
+it('shows retry tooltip for past due subscriptions', function () {
+    Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::PastDue,
+        'next_charge_at' => now()->addDays(3),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->assertStatus(200)
+        ->assertSee('Payment failed — next retry on')
+        ->assertSee(myrTime(now()->addDays(3)));
+});
+
 it('redirects to the subscription show page via navigate when a row is clicked', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,
