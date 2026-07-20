@@ -173,7 +173,7 @@ class MonthlyDonationReportController extends Controller
 
             fputcsv($handle, ['Organization', $organization->name]);
             fputcsv($handle, ['Public ID', $organization->public_id]);
-            fputcsv($handle, ['Report type', 'Monthly Donation Report']);
+            fputcsv($handle, ['Report type', 'Report']);
             fputcsv($handle, ['Period', $from->toDateString().' to '.$to->toDateString()]);
             fputcsv($handle, ['Generated at', $generatedAt]);
             fputcsv($handle, []);

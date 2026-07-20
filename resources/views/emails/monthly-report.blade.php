@@ -3,7 +3,7 @@
 <head><meta charset="utf-8">@include('emails.partials.admin-styles')</head>
 <body style="font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; color: #1a1a2e;">
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #0f766e;">Monthly Donation Report</h1>
+        <h1 style="color: #0f766e;">Report</h1>
 
         <p>Hi <strong>{{ $organization->name }}</strong>,</p>
 

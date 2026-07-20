@@ -30,7 +30,7 @@ it('renders for authenticated ngo admin', function () {
     actingAs($this->user)
         ->get('https://app.example.test/reports/monthly-donations')
         ->assertOk()
-        ->assertSee('Monthly Donation Report')
+        ->assertSee('Report')
         ->assertSee('Review donation collections for your organization');
 });
 
@@ -159,7 +159,7 @@ it('downloads a csv monthly donation report for an organization', function () {
     expect($content)
         ->toContain($this->organization->name)
         ->toContain($this->organization->public_id)
-        ->toContain('Monthly Donation Report')
+        ->toContain('Report')
         ->toContain('Qurban 2026')
         ->toContain('250.00')
         ->toContain('242.50')

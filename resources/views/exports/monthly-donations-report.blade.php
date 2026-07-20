@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Monthly Donation Report — {{ $organization->name }}</title>
+    <title>Report — {{ $organization->name }}</title>
     <style>
         @page { size: A4 portrait; margin: 40px; }
         body { font-family: Helvetica, Arial, sans-serif; font-size: 13px; color: #1f2937; margin: 0; padding: 0; }
@@ -28,7 +28,7 @@
 </head>
 <body>
     <div class="page">
-        <h1>Monthly Donation Report</h1>
+        <h1>Report</h1>
         <p class="subtitle">Donation collections by campaign</p>
 
         <div class="meta">

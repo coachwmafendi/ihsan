@@ -19,7 +19,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-#[Title('Monthly Donation Report')]
+#[Title('Report')]
 class MonthlyDonations extends Component
 {
     public string $selectedMonth = '';

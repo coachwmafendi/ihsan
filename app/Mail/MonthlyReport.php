@@ -23,7 +23,7 @@ class MonthlyReport extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Monthly Donation Report — '.$this->period,
+            subject: 'Report — '.$this->period,
         );
     }
 
