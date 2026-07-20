@@ -386,6 +386,7 @@
                                         <th class="py-2 pr-4 font-medium text-slate-900">Amount</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Method</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Installment</th>
+                                        <th class="py-2 pr-4 font-medium text-slate-900">Status</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Campaign</th>
                                         <th class="py-2 font-medium text-slate-900">Date</th>
                                     </tr>
@@ -417,6 +418,11 @@
                                                         </span>
                                                     </span>
                                                 </x-ui.tooltip>
+                                            </td>
+                                            <td class="py-3 pr-4">
+                                                <x-ui.badge status="{{ $payment->status->value }}" size="sm">
+                                                    {{ ucfirst($payment->status->value) }}
+                                                </x-ui.badge>
                                             </td>
                                             <td class="py-3 pr-4 text-slate-600">
                                                 @if ($payment->campaign)

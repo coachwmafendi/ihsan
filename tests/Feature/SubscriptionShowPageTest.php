@@ -335,7 +335,8 @@ it('shows converted myr amount, payment method and installment number in the ins
         ->assertSee($donation->formatted_amount)
         ->assertSee('Visa **** 4242')
         ->assertSee('1st installment')
-        ->assertSee('1');
+        ->assertSee('1')
+        ->assertSee('Succeeded');
 });
 
 it('shows converted myr amount with original currency tooltip in the receipts table', function () {
