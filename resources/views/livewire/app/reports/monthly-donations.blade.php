@@ -7,10 +7,10 @@
             <p class="mt-1 text-sm text-slate-500">Review donation collections for your organization</p>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{{ route('app.reports.monthly-donations.download', ['format' => 'csv']) }}" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+            <a href="{{ route('app.reports.monthly-donations.download', ['format' => 'csv', 'dateFrom' => $dateFrom, 'dateTo' => $dateTo]) }}" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
                 Download CSV
             </a>
-            <a href="{{ route('app.reports.monthly-donations.download', ['format' => 'pdf']) }}" class="inline-flex items-center justify-center rounded-lg border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+            <a href="{{ route('app.reports.monthly-donations.download', ['format' => 'pdf', 'dateFrom' => $dateFrom, 'dateTo' => $dateTo]) }}" class="inline-flex items-center justify-center rounded-lg border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
                 Download PDF
             </a>
         </div>
@@ -72,31 +72,39 @@
     </x-ui.card>
 
     {{-- Summary Cards --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <x-ui.card>
-            <div class="text-sm font-medium text-slate-500">Total Gross</div>
-            <div class="mt-2 text-2xl font-bold text-slate-900">RM {{ number_format($this->summary['total_gross'], 2) }}</div>
-        </x-ui.card>
+    <div class="space-y-2">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <x-ui.card>
+                <div class="text-sm font-medium text-slate-500">Total Gross</div>
+                <div class="mt-2 text-2xl font-bold text-slate-900">MYR {{ number_format($this->summary['total_gross'], 2) }}</div>
+            </x-ui.card>
 
-        <x-ui.card>
-            <div class="text-sm font-medium text-slate-500">Processing Fee</div>
-            <div class="mt-2 text-2xl font-bold text-slate-900">RM {{ number_format($this->summary['processing_fee'], 2) }}</div>
-        </x-ui.card>
+            <x-ui.card>
+                <div class="text-sm font-medium text-slate-500">Processing Fee</div>
+                <div class="mt-2 text-2xl font-bold text-slate-900">MYR {{ number_format($this->summary['processing_fee'], 2) }}</div>
+            </x-ui.card>
 
-        <x-ui.card class="bg-emerald-50 ring-emerald-200">
-            <div class="text-sm font-medium text-emerald-700">Net Received</div>
-            <div class="mt-2 text-2xl font-bold text-emerald-900">RM {{ number_format($this->summary['net_received'], 2) }}</div>
-        </x-ui.card>
+            <x-ui.card class="bg-emerald-50 ring-emerald-200">
+                <div class="text-sm font-medium text-emerald-700">Net Received</div>
+                <div class="mt-2 text-2xl font-bold text-emerald-900">MYR {{ number_format($this->summary['net_received'], 2) }}</div>
+            </x-ui.card>
 
-        <x-ui.card>
-            <div class="text-sm font-medium text-slate-500">Total Donations</div>
-            <div class="mt-2 text-2xl font-bold text-slate-900">{{ number_format($this->summary['total_donations']) }}</div>
-        </x-ui.card>
+            <x-ui.card>
+                <div class="text-sm font-medium text-slate-500">Total Donations</div>
+                <div class="mt-2 text-2xl font-bold text-slate-900">{{ number_format($this->summary['total_donations']) }}</div>
+            </x-ui.card>
 
-        <x-ui.card>
-            <div class="text-sm font-medium text-slate-500">Unique Donors</div>
-            <div class="mt-2 text-2xl font-bold text-slate-900">{{ number_format($this->summary['unique_donors']) }}</div>
-        </x-ui.card>
+            <x-ui.card>
+                <div class="text-sm font-medium text-slate-500">Unique Donors</div>
+                <div class="mt-2 text-2xl font-bold text-slate-900">{{ number_format($this->summary['unique_donors']) }}</div>
+            </x-ui.card>
+        </div>
+
+        @if ($this->summary['has_approximations'])
+            <p class="text-xs text-amber-600">
+                * Non-MYR donations are converted using available exchange rates; totals may be approximate.
+            </p>
+        @endif
     </div>
 
     {{-- Campaign Breakdown --}}

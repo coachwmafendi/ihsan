@@ -9,7 +9,10 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Organization;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -47,6 +50,10 @@ class MonthlyDonations extends Component
 
     private function setDateRangeFromMonth(): void
     {
+        if (! Carbon::canBeCreatedFromFormat('Y-m', $this->selectedMonth)) {
+            $this->selectedMonth = today()->format('Y-m');
+        }
+
         $date = Carbon::createFromFormat('Y-m', $this->selectedMonth);
 
         $this->dateFrom = $date->copy()->startOfMonth()->toDateString();
@@ -59,12 +66,25 @@ class MonthlyDonations extends Component
         return Auth::user()?->organization;
     }
 
+    /**
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     */
     #[Computed]
     public function dateRange(): array
     {
-        return [$this->dateFrom, $this->dateTo];
+        $from = CarbonImmutable::parse($this->dateFrom ?: today()->toDateString())->startOfDay();
+        $to = CarbonImmutable::parse($this->dateTo ?: today()->toDateString())->endOfDay();
+
+        if ($from->gt($to)) {
+            [$from, $to] = [$to->startOfDay(), $from->endOfDay()];
+        }
+
+        return [$from, $to];
     }
 
+    /**
+     * @return array<string, string>
+     */
     #[Computed]
     public function availableMonths(): array
     {
@@ -78,6 +98,16 @@ class MonthlyDonations extends Component
         return $months;
     }
 
+    /**
+     * @return array{
+     *     total_gross: float,
+     *     processing_fee: float,
+     *     net_received: float,
+     *     total_donations: int,
+     *     unique_donors: int,
+     *     has_approximations: bool
+     * }
+     */
     #[Computed]
     public function summary(): array
     {
@@ -90,6 +120,7 @@ class MonthlyDonations extends Component
                 'net_received' => 0.0,
                 'total_donations' => 0,
                 'unique_donors' => 0,
+                'has_approximations' => false,
             ];
         }
 
@@ -98,20 +129,29 @@ class MonthlyDonations extends Component
         $donations = Donation::query()
             ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->where('status', DonationStatus::Succeeded)
-            ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to));
+            ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to));
+
+        $result = (clone $donations)
+            ->selectRaw('COALESCE(SUM('.Donation::reportAmountSql().'), 0) as total_gross')
+            ->selectRaw('SUM(processing_fee + stripe_fee) as processing_fee')
+            ->selectRaw('COALESCE(SUM(net_amount), 0) as net_received')
+            ->selectRaw('COUNT(*) as total_donations')
+            ->selectRaw('COUNT(DISTINCT donor_id) as unique_donors')
+            ->first();
 
         return [
-            'total_gross' => (float) (clone $donations)->sum('gross_amount'),
-            'processing_fee' => (float) (clone $donations)->sum('processing_fee') + (float) (clone $donations)->sum('stripe_fee'),
-            'net_received' => (float) (clone $donations)->sum('net_amount'),
-            'total_donations' => (clone $donations)->count(),
-            'unique_donors' => (clone $donations)->distinct('donor_id')->count('donor_id'),
+            'total_gross' => (float) $result->total_gross,
+            'processing_fee' => (float) $result->processing_fee,
+            'net_received' => (float) $result->net_received,
+            'total_donations' => (int) $result->total_donations,
+            'unique_donors' => (int) $result->unique_donors,
+            'has_approximations' => Donation::hasReportApproximations($donations),
         ];
     }
 
     #[Computed]
-    public function campaignBreakdown()
+    public function campaignBreakdown(): Collection
     {
         $org = $this->organization;
 
@@ -127,24 +167,24 @@ class MonthlyDonations extends Component
             ->withCount([
                 'donations' => fn ($q) => $q
                     ->where('status', DonationStatus::Succeeded)
-                    ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
-                    ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to)),
+                    ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
+                    ->when($to, fn ($q) => $q->where('created_at', '<=', $to)),
             ])
             ->selectSub(
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.campaign_id', 'campaigns.id')
                     ->where('donations.status', DonationStatus::Succeeded)
-                    ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
-                    ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
-                    ->selectRaw('SUM(donations.gross_amount)'),
+                    ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+                    ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to))
+                    ->selectRaw('COALESCE(SUM('.Donation::reportAmountSql().'), 0)'),
                 'gross_amount'
             )
             ->selectSub(
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.campaign_id', 'campaigns.id')
                     ->where('donations.status', DonationStatus::Succeeded)
-                    ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
-                    ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
+                    ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+                    ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to))
                     ->selectRaw('SUM(donations.processing_fee + donations.stripe_fee)'),
                 'processing_fee'
             )
@@ -152,8 +192,8 @@ class MonthlyDonations extends Component
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.campaign_id', 'campaigns.id')
                     ->where('donations.status', DonationStatus::Succeeded)
-                    ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
-                    ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
+                    ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+                    ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to))
                     ->selectRaw('SUM(donations.net_amount)'),
                 'net_amount'
             )
@@ -161,7 +201,7 @@ class MonthlyDonations extends Component
             ->get();
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.app.reports.monthly-donations');
     }
