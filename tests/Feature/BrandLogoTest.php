@@ -39,11 +39,11 @@ it('renders the teal wordmark in the sidebar variant', function () {
         ->toContain('[&amp;&gt;div:last-child]:text-teal-700');
 });
 
-it('shows the brand wordmark next to the mark on guest auth pages', function (string $path) {
-    $this->get($path)
+it('shows the brand wordmark next to the mark on guest auth pages', function (string $routeName) {
+    $this->get(route($routeName))
         ->assertOk()
         ->assertSee('>ihsan</span>', false);
-})->with(fn () => [route('login'), route('password.request')]);
+})->with(['login', 'password.request']);
 
 it('shows the star mark and wordmark in the app sidebar', function () {
     $organization = Organization::factory()->create();
