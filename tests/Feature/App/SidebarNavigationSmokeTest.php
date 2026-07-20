@@ -33,6 +33,7 @@ it('uses wire:navigate on internal sidebar links', function (string $path) {
     '/settings/organization',
     '/settings/payment',
     '/settings/account',
+    '/payouts',
 ]);
 
 it('displays the application version in the sidebar', function () {
