@@ -3,6 +3,7 @@
 use App\Http\Controllers\DonationExportController;
 use App\Http\Controllers\DonorImpersonationController;
 use App\Http\Controllers\EmailLogResponsivePreviewController;
+use App\Http\Controllers\MonthlyDonationReportController;
 use App\Http\Controllers\ReceiptDownloadController;
 use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\SubscriptionExportController;
@@ -80,9 +81,8 @@ Route::domain($appPanelDomain)->group(function () {
         Route::get('/notifications', NotificationsIndex::class)->name('app.notifications.index');
         Route::get('/billing', Billing::class)->name('app.billing');
         Route::get('/reports/monthly-donations', MonthlyDonations::class)->name('app.reports.monthly-donations');
-        Route::get('/reports/monthly-donations/download/{format}', fn (string $format) => redirect()->route('app.reports.monthly-donations'))
-            ->name('app.reports.monthly-donations.download')
-            ->where('format', 'csv|pdf');
+        Route::get('/reports/monthly-donations/download', [MonthlyDonationReportController::class, 'download'])
+            ->name('app.reports.monthly-donations.download');
         Route::get('/stripe-onboarding', StripeOnboarding::class)->name('app.stripe-onboarding');
 
         Route::get('/subscriptions', SubscriptionIndex::class)->name('app.subscriptions.index');
