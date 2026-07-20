@@ -165,12 +165,22 @@ it('shows the past due recurring donation status banner', function () {
         'donor_id' => $this->donor->id,
         'status' => SubscriptionStatus::PastDue,
         'interval' => SubscriptionInterval::Monthly,
+        'next_charge_at' => now()->addDays(3),
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $subscription->id,
+        'status' => DonationStatus::Failed,
+        'created_at' => now()->subDay(),
     ]);
 
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
-        ->assertSee('The most recent installment failed.')
-        ->assertSee('We will retry the payment shortly.');
+        ->assertSee('The most recent installment failed')
+        ->assertSee('We will retry the payment on')
+        ->assertSee(myrTime($subscription->next_charge_at));
 });
 
 it('shows the incomplete recurring donation status banner', function () {
@@ -337,6 +347,33 @@ it('shows converted myr amount with original currency tooltip in the receipts ta
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('≈ MYR 158.00')
         ->assertSee($donation->formatted_amount);
+});
+
+it('shows the credit card expiry date in the recurring plan details', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $subscription->id,
+        'payment_method_brand' => 'visa',
+        'payment_method_last4' => '4242',
+        'payment_method_exp_month' => 12,
+        'payment_method_exp_year' => 2025,
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now()->subDay(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Credit card')
+        ->assertSee('Visa')
+        ->assertSee('12/25');
 });
 
 it('renders the emails section with sent emails for the subscription', function () {

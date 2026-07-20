@@ -97,7 +97,7 @@
 
                 @case('past_due')
                     <x-ui.alert :compact="true" variant="danger" icon="heroicon-o-exclamation-circle">
-                        The most recent installment failed. We will retry the payment shortly.
+                        The most recent installment failed{{ filled($this->lastInstallmentDate) ? ' on '.$this->lastInstallmentDate : '' }}. We will retry the payment{{ $this->nextInstallmentDate ? ' on '.myrTime($this->nextInstallmentDate) : ' shortly' }}.
                     </x-ui.alert>
                     @break
 
@@ -257,7 +257,7 @@
                                 @endif
                             </dd>
                         </div>
-                        @if ($this->latestDonation?->payment_method_brand || $this->latestDonation?->payment_method_last4)
+                        @if ($this->latestDonation?->payment_method_brand || $this->latestDonation?->payment_method_exp_month || $this->latestDonation?->payment_method_last4)
                             <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                                 <dt class="text-sm text-slate-500">Credit card</dt>
                                 <dd class="flex items-center gap-2 text-sm font-medium text-slate-900">
@@ -273,10 +273,19 @@
                                             'unionpay' => 'icons.unionpay',
                                             default => 'heroicon-o-credit-card',
                                         };
+
+                                        $expiryMonth = $this->latestDonation->payment_method_exp_month
+                                            ? str_pad((string) $this->latestDonation->payment_method_exp_month, 2, '0', STR_PAD_LEFT)
+                                            : null;
+                                        $expiryYear = $this->latestDonation->payment_method_exp_year
+                                            ? substr((string) $this->latestDonation->payment_method_exp_year, -2)
+                                            : null;
                                     @endphp
                                     <x-dynamic-component :component="$cardIcon" class="size-6" />
                                     {{ $this->latestDonation->payment_method_brand ? ucfirst($this->latestDonation->payment_method_brand) : 'Card' }}
-                                    @if ($this->latestDonation->payment_method_last4)
+                                    @if ($expiryMonth && $expiryYear)
+                                        <span class="text-slate-500">{{ $expiryMonth }}/{{ $expiryYear }}</span>
+                                    @elseif ($this->latestDonation->payment_method_last4)
                                         <span class="text-slate-500">•••• {{ $this->latestDonation->payment_method_last4 }}</span>
                                     @endif
                                 </dd>
