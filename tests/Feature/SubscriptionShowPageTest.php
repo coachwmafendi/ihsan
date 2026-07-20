@@ -339,6 +339,28 @@ it('shows converted myr amount, payment method and installment number in the ins
         ->assertSee('Succeeded');
 });
 
+it('shows retry scheduled tooltip for failed installments while subscription is still retrying', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::PastDue,
+        'interval' => SubscriptionInterval::Monthly,
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $subscription->id,
+        'status' => DonationStatus::Failed,
+        'created_at' => now()->subDay(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Failed')
+        ->assertSee('Failed — retry is scheduled');
+});
+
 it('shows converted myr amount with original currency tooltip in the receipts table', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,

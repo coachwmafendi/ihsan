@@ -429,10 +429,20 @@
                                                         'cancelled' => 'heroicon-o-x-mark',
                                                         default => 'heroicon-o-question-mark-circle',
                                                     };
+                                                    $statusTooltip = match ($payment->status->value) {
+                                                        'failed' => $this->isTerminalStatus ? 'Failed — no further retries' : 'Failed — retry is scheduled',
+                                                        'succeeded' => 'Succeeded',
+                                                        'pending' => 'Pending',
+                                                        'refunded' => 'Refunded',
+                                                        'cancelled' => 'Cancelled',
+                                                        default => ucfirst($payment->status->value),
+                                                    };
                                                 @endphp
-                                                <x-ui.badge status="{{ $payment->status->value }}" size="sm" icon="{{ $statusIcon }}">
-                                                    {{ ucfirst($payment->status->value) }}
-                                                </x-ui.badge>
+                                                <x-ui.tooltip :text="$statusTooltip">
+                                                    <x-ui.badge status="{{ $payment->status->value }}" size="sm" icon="{{ $statusIcon }}">
+                                                        {{ ucfirst($payment->status->value) }}
+                                                    </x-ui.badge>
+                                                </x-ui.tooltip>
                                             </td>
                                             <td class="py-3 pr-4 text-slate-600">
                                                 @if ($payment->campaign)
