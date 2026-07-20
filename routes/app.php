@@ -21,6 +21,7 @@ use App\Livewire\App\Elements\ElementCreate;
 use App\Livewire\App\Elements\ElementEdit;
 use App\Livewire\App\Elements\ElementIndex;
 use App\Livewire\App\Notifications\Index as NotificationsIndex;
+use App\Livewire\App\Reports\MonthlyDonations;
 use App\Livewire\App\Settings\Account;
 use App\Livewire\App\Settings\AllowDomains;
 use App\Livewire\App\Settings\DonorPortal;
@@ -78,6 +79,10 @@ Route::domain($appPanelDomain)->group(function () {
         Route::get('/settings/account', Account::class)->name('app.settings.account');
         Route::get('/notifications', NotificationsIndex::class)->name('app.notifications.index');
         Route::get('/billing', Billing::class)->name('app.billing');
+        Route::get('/reports/monthly-donations', MonthlyDonations::class)->name('app.reports.monthly-donations');
+        Route::get('/reports/monthly-donations/download/{format}', fn (string $format) => redirect()->route('app.reports.monthly-donations'))
+            ->name('app.reports.monthly-donations.download')
+            ->where('format', 'csv|pdf');
         Route::get('/stripe-onboarding', StripeOnboarding::class)->name('app.stripe-onboarding');
 
         Route::get('/subscriptions', SubscriptionIndex::class)->name('app.subscriptions.index');
