@@ -25,7 +25,7 @@ Schedule::command('ihsan:send-monthly-report')
     ->timezone('Asia/Kuala_Lumpur');
 
 $recurringSchedule = Schedule::command('ihsan:charge-recurring-plans')
-    ->dailyAt('06:00')
+    ->everyMinute()
     ->timezone('Asia/Kuala_Lumpur')
     ->withoutOverlapping();
 
