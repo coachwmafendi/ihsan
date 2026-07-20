@@ -29,6 +29,7 @@ it('uses wire:navigate on internal sidebar links', function (string $path) {
     '/recurring-plans',
     '/supporters',
     '/audit-log',
+    '/reports/monthly-donations',
     '/settings/organization',
     '/settings/payment',
     '/settings/account',
