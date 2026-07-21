@@ -212,6 +212,54 @@
             </x-filament::section>
         </div>
 
+        {{-- Recurring Health --}}
+        <x-filament::section>
+            <x-slot name="heading">
+                <div class="flex items-center gap-2">
+                    Recurring Health
+
+                    @if ($recurringHealthLastProcess !== 'Never')
+                        <span class="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    @endif
+                </div>
+            </x-slot>
+
+            <x-slot name="afterHeader">
+                <div class="flex items-center gap-2 text-sm text-ihsan-muted dark:text-stone-400">
+                    <x-heroicon-o-clock class="size-4" />
+                    <span>Last process:</span>
+                    <span class="font-medium text-ihsan-ink dark:text-white">{{ $recurringHealthLastProcess }}</span>
+                </div>
+            </x-slot>
+
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <x-admin.stat-tile
+                    icon="heroicon-o-calendar"
+                    label="Today's Due"
+                    :value="$recurringHealthDueToday"
+                    tone="sky"
+                />
+                <x-admin.stat-tile
+                    icon="heroicon-o-check-circle"
+                    label="Success"
+                    :value="$recurringHealthSuccessToday"
+                    tone="emerald"
+                />
+                <x-admin.stat-tile
+                    icon="heroicon-o-arrow-path"
+                    label="Retrying"
+                    :value="$recurringHealthRetrying"
+                    tone="amber"
+                />
+                <x-admin.stat-tile
+                    icon="heroicon-o-x-circle"
+                    label="Failed"
+                    :value="$recurringHealthFailed"
+                    tone="red"
+                />
+            </div>
+        </x-filament::section>
+
         <div class="grid gap-6 xl:grid-cols-2">
             @livewire(\App\Filament\Widgets\DonationTrendChart::class)
             @livewire(\App\Filament\Widgets\SubscriptionMrrTrendChart::class)

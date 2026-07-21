@@ -10,7 +10,9 @@ use App\Models\Fraud\BlockedDonation;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\Subscription;
+use Carbon\Carbon;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Cache;
 
 class PlatformOverview extends Page
 {
@@ -92,6 +94,16 @@ class PlatformOverview extends Page
     public int $cancelledSubscriptionsThisMonth = 0;
 
     public int $netSubscriptionChange = 0;
+
+    public string $recurringHealthLastProcess = 'Never';
+
+    public int $recurringHealthDueToday = 0;
+
+    public int $recurringHealthSuccessToday = 0;
+
+    public int $recurringHealthRetrying = 0;
+
+    public int $recurringHealthFailed = 0;
 
     private function momChange(float $current, float $previous): float
     {
@@ -270,5 +282,46 @@ class PlatformOverview extends Page
             ->count();
 
         $this->netSubscriptionChange = $this->newSubscriptionsThisMonth - $this->cancelledSubscriptionsThisMonth;
+
+        $this->calculateRecurringHealth();
+    }
+
+    private function calculateRecurringHealth(): void
+    {
+        $lastRun = Cache::get('recurring_plans:last_run_at');
+
+        if ($lastRun instanceof Carbon) {
+            $this->recurringHealthLastProcess = $lastRun->diffForHumans();
+        }
+
+        $today = now();
+
+        $this->recurringHealthDueToday = Subscription::query()
+            ->where('status', SubscriptionStatus::Active)
+            ->whereNotNull('next_charge_at')
+            ->whereDate('next_charge_at', '<=', $today->toDateString())
+            ->where(function ($query): void {
+                $query->whereNull('paused_until')
+                    ->orWhere('paused_until', '<=', now());
+            })
+            ->where(function ($query): void {
+                $query->whereNull('cancel_at')
+                    ->orWhere('cancel_at', '>=', now());
+            })
+            ->count();
+
+        $this->recurringHealthSuccessToday = Donation::query()
+            ->whereNotNull('subscription_id')
+            ->where('status', DonationStatus::Succeeded)
+            ->whereDate('created_at', $today->toDateString())
+            ->count();
+
+        $this->recurringHealthRetrying = Subscription::query()
+            ->where('status', SubscriptionStatus::PastDue)
+            ->count();
+
+        $this->recurringHealthFailed = Subscription::query()
+            ->where('status', SubscriptionStatus::Failed)
+            ->count();
     }
 }

@@ -13,6 +13,7 @@ use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 
 it('shows platform overview to super admins only', function () {
@@ -300,4 +301,52 @@ it('calculates donor and subscription health metrics', function () {
         ->assertSet('newSubscriptionsThisMonth', 2)
         ->assertSet('cancelledSubscriptionsThisMonth', 1)
         ->assertSet('netSubscriptionChange', 1);
+});
+
+it('calculates recurring health metrics', function () {
+    $org = Organization::factory()->create(['status' => 'active']);
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+
+    $dueToday = Subscription::factory()->for($campaign)->for($donor)->create([
+        'status' => SubscriptionStatus::Active,
+        'interval' => 'monthly',
+        'next_charge_at' => now(),
+    ]);
+
+    Subscription::factory()->for($campaign)->for($donor)->create([
+        'status' => SubscriptionStatus::Active,
+        'interval' => 'monthly',
+        'next_charge_at' => now()->addDay(),
+    ]);
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'subscription_id' => $dueToday->id,
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now(),
+    ]);
+
+    Subscription::factory()->for($campaign)->for($donor)->create([
+        'status' => SubscriptionStatus::PastDue,
+        'interval' => 'monthly',
+    ]);
+
+    Subscription::factory()->for($campaign)->for($donor)->create([
+        'status' => SubscriptionStatus::Failed,
+        'interval' => 'monthly',
+    ]);
+
+    Cache::put('recurring_plans:last_run_at', now()->subMinute());
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+    $this->actingAs($user);
+
+    Livewire::test(PlatformOverview::class)
+        ->assertSet('recurringHealthDueToday', 1)
+        ->assertSet('recurringHealthSuccessToday', 1)
+        ->assertSet('recurringHealthRetrying', 1)
+        ->assertSet('recurringHealthFailed', 1)
+        ->assertSee('Recurring Health')
+        ->assertSee('Last process')
+        ->assertSee('Retrying');
 });

@@ -8,6 +8,7 @@ use App\Models\Subscription;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 
 #[Signature('ihsan:charge-recurring-plans {--chunk=100}')]
 #[Description('Dispatch jobs to charge due app-controlled recurring plans')]
@@ -47,6 +48,8 @@ class ChargeDueRecurringPlans extends Command
         });
 
         $this->info('Done.');
+
+        Cache::put('recurring_plans:last_run_at', now(), now()->addDay());
 
         return Command::SUCCESS;
     }
