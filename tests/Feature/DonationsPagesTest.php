@@ -53,6 +53,23 @@ it('renders the donation show page', function () {
         ->assertSee($this->campaign->title);
 });
 
+it('shows the exact original currency amount in a tooltip for non-MYR receipts', function () {
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => 'succeeded',
+        'currency' => 'usd',
+        'gross_amount' => 400.00,
+        'base_amount' => 2047.73,
+        'net_amount' => 390.00,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $donation])
+        ->assertSee('≈ MYR 2,047.73', false)
+        ->assertSee('USD 400.00', false);
+});
+
 it('filters donations by period', function () {
     $oldDonation = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,

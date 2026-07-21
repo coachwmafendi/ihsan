@@ -492,7 +492,9 @@
                                     </td>
                                     <td class="py-3 pr-4 font-medium text-slate-900">
                                         @if ($donation->currency !== 'myr' && $donation->base_amount !== null)
-                                            ≈ {{ $this->formattedBaseAmount() }}
+                                            <x-ui.tooltip text="{{ $this->formattedOriginalAmount() }}">
+                                                <span>≈ {{ $this->formattedBaseAmount() }}</span>
+                                            </x-ui.tooltip>
                                         @else
                                             {{ $this->formattedBaseAmount() }}
                                         @endif
