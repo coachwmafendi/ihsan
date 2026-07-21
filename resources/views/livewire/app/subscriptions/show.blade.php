@@ -384,7 +384,7 @@
                 <x-ui.card title="Installments" icon="heroicon-o-calendar-days">
                     @if ($this->recentPayments->isNotEmpty())
                         <div class="overflow-x-auto">
-                            <table class="min-w-full text-left text-sm">
+                            <table class="min-w-full text-left text-sm whitespace-nowrap md:whitespace-normal">
                                 <thead>
                                     <tr class="border-b border-slate-100">
                                         <th class="py-2 pr-4 font-medium text-slate-900">Status</th>

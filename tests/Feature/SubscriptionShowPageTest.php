@@ -45,6 +45,23 @@ it('renders the subscription show page', function () {
         ->assertSee($subscription->public_id);
 });
 
+it('wraps the installments table in a horizontally scrollable container', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+    ]);
+    Donation::factory()->create([
+        'subscription_id' => $subscription->id,
+        'campaign_id' => $this->campaign->id,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('overflow-x-auto', false)
+        ->assertSee('min-w-full text-left text-sm whitespace-nowrap', false);
+});
+
 it('shows the active recurring donation status banner', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,
