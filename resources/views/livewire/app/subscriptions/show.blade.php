@@ -420,7 +420,7 @@
                                                     <x-ui.tooltip :text="$payment->installment_number_label ?? '—'">
                                                         <span class="inline-flex items-center gap-1">
                                                             <x-heroicon-o-arrow-path class="size-3.5 text-slate-400" />
-                                                            <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-50 px-1 text-[10px] font-medium text-emerald-700">
+                                                            <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-50 px-1.5 text-xs font-medium text-emerald-700">
                                                                 {{ $payment->installment_number ?? '—' }}
                                                             </span>
                                                         </span>
