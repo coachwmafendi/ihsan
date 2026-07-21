@@ -415,6 +415,14 @@
                                                         'cancelled' => 'Cancelled',
                                                         default => ucfirst($payment->status->value),
                                                     };
+                                                    $statusIconColor = match ($payment->status->value) {
+                                                        'succeeded' => 'text-emerald-600',
+                                                        'failed' => 'text-red-600',
+                                                        'pending' => 'text-amber-600',
+                                                        'refunded' => 'text-amber-600',
+                                                        'cancelled' => 'text-red-600',
+                                                        default => 'text-slate-500',
+                                                    };
                                                 @endphp
                                                 <div class="inline-flex items-center gap-2">
                                                     <x-ui.tooltip :text="$payment->installment_number_label ?? '—'">
@@ -426,9 +434,7 @@
                                                         </span>
                                                     </x-ui.tooltip>
                                                     <x-ui.tooltip :text="$statusTooltip">
-                                                        <x-ui.badge status="{{ $payment->status->value }}" size="sm" icon="{{ $statusIcon }}">
-                                                            {{ ucfirst($payment->status->value) }}
-                                                        </x-ui.badge>
+                                                        <x-dynamic-component :component="$statusIcon" class="size-6 {{ $statusIconColor }}" />
                                                     </x-ui.tooltip>
                                                 </div>
                                             </td>
@@ -439,11 +445,11 @@
                                             </td>
                                             <td class="py-3 pr-4 font-medium text-slate-900">
                                                 <div class="inline-flex items-center gap-2">
-                                                    <x-ui.tooltip :text="$payment->payment_method_display">
-                                                        <x-dynamic-component :component="$payment->card_icon_component" class="size-5 text-slate-700" />
-                                                    </x-ui.tooltip>
                                                     <x-ui.tooltip :text="$payment->formatted_amount">
                                                         <span>{{ $payment->formatted_report_amount }}</span>
+                                                    </x-ui.tooltip>
+                                                    <x-ui.tooltip :text="$payment->payment_method_display">
+                                                        <x-dynamic-component :component="$payment->card_icon_component" class="size-5 text-slate-700" />
                                                     </x-ui.tooltip>
                                                 </div>
                                             </td>
