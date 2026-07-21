@@ -294,7 +294,7 @@
                                     <x-dynamic-component :component="$cardIcon" class="size-6" />
                                     {{ $this->latestDonation->payment_method_brand ? ucfirst($this->latestDonation->payment_method_brand) : 'Card' }}
                                     @if ($expiryMonth && $expiryYear)
-                                        <span class="text-slate-500">{{ $expiryMonth }}/{{ $expiryYear }}</span>
+                                        <span class="text-slate-500">Exp. {{ $expiryMonth }}/{{ $expiryYear }}</span>
                                     @elseif ($this->latestDonation->payment_method_last4)
                                         <span class="text-slate-500">•••• {{ $this->latestDonation->payment_method_last4 }}</span>
                                     @endif
@@ -391,7 +391,7 @@
                                         <th class="py-2 pr-4 font-medium text-slate-900">Donation ID</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Amount</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Campaign</th>
-                                        <th class="py-2 font-medium text-slate-900">Date</th>
+                                        <th class="py-2 font-medium text-slate-900">Date & Time</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -454,7 +454,7 @@
                                                     <span class="text-slate-400">—</span>
                                                 @endif
                                             </td>
-                                            <td class="py-3 pr-4 text-slate-600">{{ myrTime($payment->created_at, withLabel: false, format: 'M d, Y') }}</td>
+                                            <td class="py-3 pr-4 text-slate-600">{{ myrTime($payment->created_at) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -481,6 +481,7 @@
                                         <th class="py-2 pr-4 font-medium text-slate-900">Receipt Number</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Amount</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Donation Date</th>
+                                        <th class="py-2 pr-4 font-medium text-slate-900">Issue Date</th>
                                         <th class="py-2"></th>
                                     </tr>
                                 </thead>
@@ -503,6 +504,7 @@
                                                 </x-ui.tooltip>
                                             </td>
                                             <td class="py-3 pr-4 text-slate-600">{{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}</td>
+                                            <td class="py-3 pr-4 text-slate-600">{{ myrTime($donation->finalized_at ?? $donation->created_at) }}</td>
                                             <td class="py-3 text-right">
                                                 @if ($donation->status->value === 'succeeded')
                                                     <a href="{{ route('donations.receipt.download', ['donation' => $donation->public_id]) }}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900">

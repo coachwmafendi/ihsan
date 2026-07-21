@@ -556,6 +556,7 @@ class Donation extends Model
             'status' => DonationStatus::class,
             'type' => DonationType::class,
             'risk_score' => 'integer',
+            'finalized_at' => 'datetime',
             'refunded_at' => 'datetime',
             'receipt_sent_at' => 'datetime',
             'new_donation_notification_sent_at' => 'datetime',

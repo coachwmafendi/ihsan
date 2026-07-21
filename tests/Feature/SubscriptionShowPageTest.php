@@ -379,13 +379,16 @@ it('shows converted myr amount with original currency tooltip in the receipts ta
         'base_amount' => null,
         'exchange_rate' => 3.16,
         'status' => DonationStatus::Succeeded,
+        'finalized_at' => now()->subHours(2),
         'created_at' => now()->subDay(),
     ]);
 
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('≈ MYR 158.00')
-        ->assertSee($donation->formatted_amount);
+        ->assertSee($donation->formatted_amount)
+        ->assertSee('Issue Date')
+        ->assertSee(myrTime($donation->finalized_at ?? $donation->created_at));
 });
 
 it('shows the credit card expiry date in the recurring plan details', function () {
@@ -412,7 +415,7 @@ it('shows the credit card expiry date in the recurring plan details', function (
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('Credit card')
         ->assertSee('Visa')
-        ->assertSee('12/25');
+        ->assertSee('Exp. 12/25');
 });
 
 it('renders the emails section with sent emails for the subscription', function () {
