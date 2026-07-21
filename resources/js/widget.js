@@ -6,6 +6,7 @@
 
   var token = script.getAttribute("data-token") || "";
   var enhance = script.getAttribute("data-enhance") === "true";
+  var autoTrigger = script.getAttribute("data-auto-trigger") === "true";
   if (!token) return;
 
   var apiBase = script.getAttribute("data-api-base") || "";
@@ -332,8 +333,9 @@
 
   function renderQrCode(el) {
     var s = el.settings;
-    // Scanning the QR should open the polished popup checkout, not the plain page.
-    var campaignUrl = checkoutUrl(el, true);
+    // Scanning the QR should open the auto-trigger checkout redirect page so the
+    // modal opens instantly, even without a host-page script.
+    var campaignUrl = baseUrl + "/qr/" + el.token;
     var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=' + (s.size || 200) + 'x' + (s.size || 200) + '&data=' + encodeURIComponent(campaignUrl) + '&bgcolor=ffffff&color=0f172a&qzone=2';
     var size = isFinite(s.size) ? parseInt(s.size, 10) : ({ small: 150, medium: 200, large: 250, "extra large": 300 })[(s.size || "medium").toLowerCase()] || 200;
     var alignment = s.alignment || 'center';
@@ -1242,6 +1244,13 @@
     .then(function (data) {
       if (!data) return;
       ready(function () {
+        if (autoTrigger) {
+          data.settings = data.settings || {};
+          data.settings.action = "checkout_modal";
+          preloadCheckoutImage(data);
+          showCheckoutModal(data);
+          return;
+        }
         if (enhance) {
           enhanceExistingElement(data);
         } else {
@@ -1253,6 +1262,11 @@
       if (enhance) {
         return;
       }
+      if (autoTrigger) {
+        window.location.replace(baseUrl + "/donate/" + encodeURIComponent(token) + "?popup=1");
+        return;
+      }
+
       // Fallback: render from data-attributes (backward compat)
       var el = {
         type: script.getAttribute("data-type") || "",

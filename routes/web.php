@@ -10,6 +10,7 @@ use App\Http\Controllers\DonorImpersonationController;
 use App\Http\Controllers\DonorNotificationController;
 use App\Http\Controllers\EmbedCheckoutController;
 use App\Http\Controllers\PublicElementController;
+use App\Http\Controllers\QrRedirectController;
 use App\Http\Controllers\ReceiptDownloadController;
 use App\Http\Controllers\StripePaymentIntentController;
 use App\Http\Controllers\StripeWebhookController;
@@ -115,6 +116,7 @@ Route::livewire('/campaigns/{campaign:public_id}', CampaignPublicPage::class)->n
 Route::get('/e/widget.js', [EmbedCheckoutController::class, 'widget'])->name('widget.script');
 Route::get('/e/loader.js', [EmbedCheckoutController::class, 'loader'])->name('loader.script');
 Route::get('/e/button/{token}', [EmbedCheckoutController::class, 'button'])->name('embed.button');
+Route::get('/qr/{element:token}', [QrRedirectController::class, 'show'])->name('qr.redirect');
 Route::get('/embed.js', [EmbedCheckoutController::class, 'script'])->name('embed.script');
 Route::get('/checkout/{form}', [EmbedCheckoutController::class, 'checkout'])->name('checkout.form');
 

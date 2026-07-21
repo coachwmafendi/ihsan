@@ -78,7 +78,7 @@ it('encodes the popup checkout url in the qr code', function () {
 
     $html = EmbedWidget::staticQrCodeHtml($element);
 
-    expect($html)->toContain(urlencode(url('/donate/qr-popup?popup=1')));
+    expect($html)->toContain(urlencode(url('/qr/qr-popup')));
 });
 
 it('escapes html in button text', function () {
