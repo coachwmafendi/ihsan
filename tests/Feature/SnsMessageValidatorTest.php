@@ -14,14 +14,18 @@ function signSnsMessage(array $message, int $algorithm): array
     openssl_pkey_export($keyPair, $privatePem);
     $publicPem = openssl_pkey_get_details($keyPair)['key'];
 
-    // Rebuild the canonical string the validator signs (Notification form).
+    // Rebuild the canonical string AWS signs: alphabetical field order, with
+    // Subject (when present) between MessageId and Timestamp.
     $parts = [
         'Message' => $message['Message'] ?? '',
         'MessageId' => $message['MessageId'] ?? '',
-        'Timestamp' => $message['Timestamp'] ?? '',
-        'TopicArn' => $message['TopicArn'] ?? '',
-        'Type' => $message['Type'] ?? '',
     ];
+    if (isset($message['Subject'])) {
+        $parts['Subject'] = $message['Subject'];
+    }
+    $parts['Timestamp'] = $message['Timestamp'] ?? '';
+    $parts['TopicArn'] = $message['TopicArn'] ?? '';
+    $parts['Type'] = $message['Type'] ?? '';
 
     $lines = [];
     foreach ($parts as $key => $value) {
@@ -63,6 +67,18 @@ it('validates an sns message signed with sha256 (signature version 2)', function
 it('validates an sns message signed with sha1 (signature version 1)', function () {
     $message = baseNotification();
     $message['SignatureVersion'] = '1';
+
+    [$signature, $certUrl] = signSnsMessage($message, OPENSSL_ALGO_SHA1);
+    $message['Signature'] = base64_encode($signature);
+    $message['SigningCertURL'] = $certUrl;
+
+    expect(app(SnsMessageValidator::class)->validate($message))->toBeTrue();
+});
+
+it('validates a notification that includes a subject (alphabetical canonical order)', function () {
+    $message = baseNotification();
+    $message['SignatureVersion'] = '1';
+    $message['Subject'] = 'Your donation receipt';
 
     [$signature, $certUrl] = signSnsMessage($message, OPENSSL_ALGO_SHA1);
     $message['Signature'] = base64_encode($signature);
