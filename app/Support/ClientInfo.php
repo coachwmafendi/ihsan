@@ -123,6 +123,42 @@ class ClientInfo
     }
 
     /**
+     * Resolve the ISO 3166-1 alpha-2 country code for an IP (e.g. "MY", "SG").
+     *
+     * MaxMind is consulted first (fast local lookup). The remote ip-api
+     * fallback is only used for public IPs when MaxMind has no answer.
+     */
+    public static function detectCountryCode(string $ip): ?string
+    {
+        $country = app(MaxMindGeoIp::class)->country($ip);
+
+        if ($country !== null) {
+            return $country;
+        }
+
+        if (self::isPrivateIp($ip)) {
+            return null;
+        }
+
+        return self::countryCodeFromIpApi($ip);
+    }
+
+    private static function countryCodeFromIpApi(string $ip): ?string
+    {
+        try {
+            $response = Http::timeout(3)->get("http://ip-api.com/json/{$ip}");
+
+            if ($response->ok() && ($response['status'] ?? '') === 'success') {
+                return $response['countryCode'] ?? null;
+            }
+        } catch (\Exception $e) {
+            // Geo lookup failed — non-critical
+        }
+
+        return null;
+    }
+
+    /**
      * @return array{geo_city: string|null, geo_region: string|null}
      */
     private static function lookupGeoFromIpApi(string $ip): array
