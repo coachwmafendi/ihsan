@@ -196,7 +196,9 @@ class Donation extends Model
                 $organization = $donation->campaign->organization;
                 $year = $donation->created_at?->format('Y') ?? now()->format('Y');
 
-                $donation->invoice_number = "RECEIPT-{$organization->public_id}-{$year}-{$donation->id}";
+                $sequence = str_pad((string) $donation->id, 6, '0', STR_PAD_LEFT);
+
+                $donation->invoice_number = "RECEIPT-{$organization->public_id}-{$year}-{$sequence}";
                 $donation->saveQuietly();
             }
         });
