@@ -7,7 +7,9 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Mail\Mailables\Attachment;
+use Illuminate\Support\Facades\Storage;
 
 it('builds donation receipt mailable with correct subject', function () {
     $organization = Organization::factory()->create(['name' => 'Test Org']);
@@ -137,6 +139,78 @@ it('shows signed download receipt link for recurring donations', function () {
 
     $mailable->assertSeeInHtml('Download Receipt');
     $mailable->assertSeeInHtml('/receipts/'.$donation->public_id);
+});
+
+it('renders the pdf receipt template with the new layout', function () {
+    $organization = Organization::factory()->create([
+        'name' => 'Darul Mujtaba',
+        'city' => 'Johor Bahru',
+        'state' => 'Johor',
+        'country' => 'Malaysia',
+        'contact_email' => 'info@darulmujtaba.org',
+        'contact_phone' => '+60 7-XXX XXXX',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create(['title' => 'Tabung Lillah Darul Mujtaba 2026']);
+    $donor = Donor::factory()->create(['name' => 'Yusof Musa', 'email' => 'alqurra.my@gmail.com']);
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 54.00,
+        'donor_fee_covered' => 4.03,
+        'currency' => 'myr',
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::OneTime,
+        'invoice_number' => 'RECEIPT-OQEDNW6S-2026-000028',
+        'payment_method_brand' => 'visa',
+        'payment_method_last4' => '4242',
+    ]);
+
+    $html = view('emails.donation-receipt-pdf', ['donation' => $donation])->render();
+
+    expect($html)
+        ->toContain('Donation Receipt')
+        ->toContain('Thank you, Yusof Musa.')
+        ->toContain('Darul Mujtaba')
+        ->toContain('D</span>') // org initial badge
+        ->toContain('RECEIPT-OQEDNW6S-2026-000028')
+        ->toContain('Successful')
+        ->toContain($donation->public_id) // transaction no.
+        ->toContain('Tabung Lillah Darul Mujtaba 2026')
+        ->toContain('Amount (MYR)')
+        ->toContain('Total Paid')
+        ->toContain('MYR 58.03')
+        ->toContain('Johor Bahru, Johor, Malaysia')
+        ->toContain('info@darulmujtaba.org');
+});
+
+it('embeds the organization logo in the pdf receipt when available', function () {
+    Storage::fake('public');
+    // 1x1 transparent PNG
+    $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+    Storage::disk('public')->put('logos/org.png', $png);
+
+    $organization = Organization::factory()->create(['name' => 'Darul Mujtaba', 'logo_path' => 'logos/org.png']);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create();
+
+    $html = view('emails.donation-receipt-pdf', ['donation' => $donation])->render();
+
+    expect($html)
+        ->toContain('data:image/png;base64,')
+        ->not->toContain('<span class="badge">'); // initial fallback suppressed
+});
+
+it('produces a valid pdf document for the receipt attachment', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'type' => DonationType::OneTime,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $output = Pdf::loadView('emails.donation-receipt-pdf', ['donation' => $donation])->output();
+
+    expect($output)->toStartWith('%PDF');
 });
 
 it('does not show download receipt button for one-time donations', function () {
