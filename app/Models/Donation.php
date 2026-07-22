@@ -193,7 +193,10 @@ class Donation extends Model
 
         static::created(function (Donation $donation) {
             if ($donation->invoice_number === null) {
-                $donation->invoice_number = 'INV-'.str_pad((string) $donation->id, 6, '0', STR_PAD_LEFT);
+                $organization = $donation->campaign->organization;
+                $year = $donation->created_at?->format('Y') ?? now()->format('Y');
+
+                $donation->invoice_number = "RECEIPT-{$organization->public_id}-{$year}-{$donation->id}";
                 $donation->saveQuietly();
             }
         });
