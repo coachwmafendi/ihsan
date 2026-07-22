@@ -191,6 +191,13 @@ class EmailWebhookService
             }
         }
 
+        \Log::info('processSes debug', [
+            'keys' => array_keys($payload),
+            'has_type' => isset($payload['Type']),
+            'has_eventType' => isset($payload['eventType']),
+            'content_type' => $request->header('Content-Type'),
+        ]);
+
         if (isset($payload['Type'])) {
             $this->processSesSnsMessage($payload, $token);
 
@@ -206,6 +213,15 @@ class EmailWebhookService
 
     private function processSesSnsMessage(array $payload, string $token): void
     {
+        \Log::info('SNS msg debug', [
+            'type' => $payload['Type'] ?? null,
+            'sigver' => $payload['SignatureVersion'] ?? null,
+            'topic' => $payload['TopicArn'] ?? null,
+            'expected_topic' => config('services.ses.topic_arn'),
+            'valid' => $this->snsValidator()->validate($payload),
+            'cert' => $payload['SigningCertURL'] ?? null,
+        ]);
+
         if (! $this->snsValidator()->validate($payload)) {
             abort(401, 'Invalid SNS signature.');
         }
