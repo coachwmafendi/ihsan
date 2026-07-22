@@ -249,7 +249,12 @@ class EmailWebhookService
         $log = $this->findSesLog($messageId, $headers);
 
         if ($log === null) {
-            Log::info('SES event received but no matching DonorEmailLog found.', ['message_id' => $messageId, 'event_type' => $eventType]);
+            Log::info('SES event received but no matching DonorEmailLog found.', [
+                'message_id' => $messageId,
+                'event_type' => $eventType,
+                'header_names' => collect($headers)->pluck('name')->all(),
+                'tracking_header' => collect($headers)->firstWhere('name', 'X-Donor-Email-Log-Message-Id')['value'] ?? null,
+            ]);
 
             return;
         }
