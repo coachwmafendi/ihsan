@@ -71,17 +71,20 @@ class SnsMessageValidator
         $type = $message['Type'] ?? '';
 
         if ($type === 'Notification') {
+            // AWS requires the fields in alphabetical order; Subject (when present)
+            // sits between MessageId and Timestamp, not at the end.
             $parts = [
                 'Message' => $message['Message'] ?? '',
                 'MessageId' => $message['MessageId'] ?? '',
-                'Timestamp' => $message['Timestamp'] ?? '',
-                'TopicArn' => $message['TopicArn'] ?? '',
-                'Type' => $type,
             ];
 
             if (isset($message['Subject'])) {
                 $parts['Subject'] = $message['Subject'];
             }
+
+            $parts['Timestamp'] = $message['Timestamp'] ?? '';
+            $parts['TopicArn'] = $message['TopicArn'] ?? '';
+            $parts['Type'] = $type;
         } else {
             // SubscriptionConfirmation or UnsubscribeConfirmation
             $parts = [
