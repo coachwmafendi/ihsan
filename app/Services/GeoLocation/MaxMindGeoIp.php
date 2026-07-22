@@ -33,4 +33,22 @@ class MaxMindGeoIp
             return null;
         }
     }
+
+    /**
+     * Resolve the ISO 3166-1 alpha-2 country code for an IP (e.g. "MY", "SG").
+     */
+    public function country(string $ip): ?string
+    {
+        if (! file_exists($this->databasePath)) {
+            return null;
+        }
+
+        try {
+            $reader = new Reader($this->databasePath);
+
+            return $reader->city($ip)->country->isoCode;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
 }

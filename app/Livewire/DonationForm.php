@@ -251,6 +251,7 @@ class DonationForm extends Component
         }
 
         $this->syncCampaignTotals();
+        $this->applyGeoCurrency();
         $this->overrideFromQueryParams();
         $this->handleChipReturnQueryParams();
 
@@ -283,6 +284,46 @@ class DonationForm extends Component
 
         $this->campaignCollectedAmount = (float) $campaign->collected_amount;
         $this->campaignTargetAmount = (float) ($campaign->target_amount ?? 0);
+    }
+
+    /**
+     * When currency autodetect is enabled for the campaign, pick the
+     * supporter's currency from their IP geolocation. An explicit
+     * ?currency= query param and the CHIP gateway (MYR-only) take
+     * precedence, and the detected currency must be one the organization
+     * actually accepts.
+     */
+    private function applyGeoCurrency(): void
+    {
+        if ($this->isChipGateway()) {
+            return;
+        }
+
+        if (! $this->config('currency_autodetect', false)) {
+            return;
+        }
+
+        if (request()->query('currency') !== null) {
+            return;
+        }
+
+        $country = ClientInfo::detectCountryCode(request()->ip() ?? '');
+
+        if ($country === null) {
+            return;
+        }
+
+        $currency = match (strtoupper($country)) {
+            'MY' => 'myr',
+            'SG' => 'sgd',
+            default => 'usd',
+        };
+
+        if (! in_array($currency, $this->getAcceptedCurrencies(), true)) {
+            return;
+        }
+
+        $this->selectCurrency($currency);
     }
 
     private function overrideFromQueryParams(): void
