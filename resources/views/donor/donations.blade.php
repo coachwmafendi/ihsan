@@ -61,11 +61,28 @@
                 @endif
             </div>
             @if ($donationCount > 0 && $subscription === null)
-                <a href="{{ route('donorportal.donations.receipts.download-all', $organization) }}"
-                   class="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:shadow-md bg-emerald-600">
-                    <x-heroicon name="arrow-down-tray" class="h-4 w-4" />
-                    Download all receipts
-                </a>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    @if (! empty($statementYears))
+                        <div x-data="{ year: '{{ $statementYears[0] }}' }" class="flex items-center gap-2">
+                            <select x-model="year"
+                                    class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 focus:border-emerald-500 focus:ring-emerald-500">
+                                @foreach ($statementYears as $statementYear)
+                                    <option value="{{ $statementYear }}">{{ $statementYear }}</option>
+                                @endforeach
+                            </select>
+                            <a :href="'{{ route('donorportal.donations.annual-statement', $organization) }}?year=' + year"
+                               class="inline-flex items-center gap-2 rounded-xl border border-emerald-600 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50">
+                                <x-heroicon name="document-text" class="h-4 w-4" />
+                                Annual statement
+                            </a>
+                        </div>
+                    @endif
+                    <a href="{{ route('donorportal.donations.receipts.download-all', $organization) }}"
+                       class="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:shadow-md bg-emerald-600">
+                        <x-heroicon name="arrow-down-tray" class="h-4 w-4" />
+                        Download all receipts
+                    </a>
+                </div>
             @endif
         </div>
 

@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Models\Donation;
+use App\Models\Donor;
 use App\Models\Organization;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 
 class DonorDonationController extends Controller
@@ -76,6 +78,7 @@ class DonorDonationController extends Controller
                 ->where('status', DonationStatus::Succeeded)
                 ->count(),
             'donations' => $query->latest()->paginate(10)->withQueryString(),
+            'statementYears' => $this->availableStatementYears($donor, $organization),
             'subscription' => $subscription,
             'filters' => [
                 'status' => $request->query('status', ''),
@@ -125,5 +128,67 @@ class DonorDonationController extends Controller
         ]);
 
         return $pdf->download($filename);
+    }
+
+    public function downloadAnnualStatement(Request $request, Organization $organization)
+    {
+        $donor = $request->donor;
+
+        $year = (int) $request->query('year', now()->timezone('Asia/Kuala_Lumpur')->year);
+
+        [$start, $end] = $this->malaysianYearBounds($year);
+
+        $donations = $this->scopeToOrg($donor->donations(), $organization)
+            ->where('status', DonationStatus::Succeeded)
+            ->whereBetween('created_at', [$start, $end])
+            ->with('campaign.organization')
+            ->orderBy('created_at')
+            ->get();
+
+        if ($donations->isEmpty()) {
+            return redirect()->route('donorportal.donations', $organization)
+                ->with('error', "No donations found for {$year}.");
+        }
+
+        $filename = config('app.name').'-'.$organization->code.'-annual-statement-'.$year.'.pdf';
+
+        $pdf = Pdf::loadView('emails.donation-annual-statement', [
+            'donations' => $donations,
+            'organization' => $organization,
+            'donor' => $donor,
+            'year' => $year,
+        ]);
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Descending list of calendar years (MYT) that have succeeded donations.
+     *
+     * @return array<int, int>
+     */
+    private function availableStatementYears(Donor $donor, Organization $organization): array
+    {
+        return $this->scopeToOrg($donor->donations(), $organization)
+            ->where('status', DonationStatus::Succeeded)
+            ->pluck('created_at')
+            ->map(fn ($createdAt) => (int) $createdAt->timezone('Asia/Kuala_Lumpur')->year)
+            ->unique()
+            ->sortDesc()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * UTC boundaries for a calendar year expressed in Malaysian time.
+     *
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     */
+    private function malaysianYearBounds(int $year): array
+    {
+        $start = CarbonImmutable::create($year, 1, 1, 0, 0, 0, 'Asia/Kuala_Lumpur')->utc();
+        $end = $start->addYear()->subSecond();
+
+        return [$start, $end];
     }
 }
