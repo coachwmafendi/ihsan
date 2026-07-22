@@ -163,11 +163,9 @@
                 <h1 class="text-2xl font-bold leading-tight tracking-normal text-slate-950">{{ $introTitle }}</h1>
 
                 @if (filled($introText))
-                    <div x-data="{ expanded: false }" class="mt-1 whitespace-pre-line text-justify text-base/7 text-slate-600">
-                        <div x-show="! expanded" class="[&amp;>*]:inline [&amp;>p]:inline">
-                            {{ trim($introTruncated) }}{{ $isLongIntro ? '...' : '' }}
-                        </div>
-                        <div x-show="expanded" x-cloak>
+                    <div x-data="{ expanded: false }" class="mt-1 text-justify text-base/7 text-slate-600">
+                        <div x-show="! expanded" class="whitespace-pre-line [&amp;>*]:inline [&amp;>p]:inline">{{ trim($introTruncated) }}{{ $isLongIntro ? '...' : '' }}</div>
+                        <div x-show="expanded" x-cloak class="whitespace-pre-line">
                             {!! $introText !!}
                         </div>
                         @if ($isLongIntro)
