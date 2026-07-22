@@ -21,9 +21,10 @@ it('generates a receipt number in the RECEIPT format when a donation is created'
     $donation->refresh();
 
     $year = $donation->created_at->format('Y');
+    $sequence = str_pad((string) $donation->id, 6, '0', STR_PAD_LEFT);
 
     expect($donation->invoice_number)
-        ->toBe("RECEIPT-{$organization->public_id}-{$year}-{$donation->id}");
+        ->toBe("RECEIPT-{$organization->public_id}-{$year}-{$sequence}");
 });
 
 it('does not overwrite an existing invoice number', function () {
