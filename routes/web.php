@@ -239,6 +239,8 @@ Route::prefix('donorportal/{organization:code}')->name('donorportal.')->group(fu
             ->name('donations.receipt.download');
         Route::get('receipts', [DonorDonationController::class, 'downloadAllReceipts'])
             ->name('donations.receipts.download-all');
+        Route::get('annual-statement', [DonorDonationController::class, 'downloadAnnualStatement'])
+            ->name('donations.annual-statement');
         Route::get('subscriptions', [DonorSubscriptionController::class, 'subscriptions'])->name('subscriptions');
         Route::post('subscriptions/{subscription}/cancel', [DonorSubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
         Route::post('subscriptions/{subscription}/pause', [DonorSubscriptionController::class, 'pause'])->name('subscriptions.pause');

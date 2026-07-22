@@ -199,6 +199,42 @@ it('embeds the organization logo in the pdf receipt when available', function ()
         ->not->toContain('<span class="badge">'); // initial fallback suppressed
 });
 
+it('renders the pdf receipt for recurring donations with recurring labels', function () {
+    $organization = Organization::factory()->create(['name' => 'Darul Mujtaba']);
+    $campaign = Campaign::factory()->for($organization)->create(['title' => 'Monthly Sadaqah']);
+    $donor = Donor::factory()->create(['name' => 'Yusof Musa']);
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::Recurring,
+    ]);
+
+    $html = view('emails.donation-receipt-pdf', ['donation' => $donation])->render();
+
+    expect($html)
+        ->toContain('Donation Receipt')
+        ->toContain('Type: Recurring donation')
+        ->toContain('A receipt is issued for each successful payment.');
+});
+
+it('renders the bulk receipts pdf with one receipt per donation', function () {
+    $organization = Organization::factory()->create(['name' => 'Darul Mujtaba']);
+    $campaign = Campaign::factory()->for($organization)->create(['title' => 'Tabung Lillah']);
+    $donor = Donor::factory()->create(['name' => 'Yusof Musa']);
+    $donations = Donation::factory()->count(3)->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::OneTime,
+    ]);
+
+    $html = view('emails.donation-receipt-pdf-bulk', ['donations' => $donations])->render();
+
+    expect(substr_count($html, 'class="receipt-page"'))->toBe(3)
+        ->and(substr_count($html, 'Donation Receipt'))->toBe(3)
+        ->and($html)->toContain('Darul Mujtaba');
+
+    $output = Pdf::loadView('emails.donation-receipt-pdf-bulk', ['donations' => $donations])->output();
+    expect($output)->toStartWith('%PDF');
+});
+
 it('produces a valid pdf document for the receipt attachment', function () {
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();
