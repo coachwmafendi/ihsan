@@ -42,11 +42,16 @@ class SnsMessageValidator
             return false;
         }
 
+        // SNS SignatureVersion 2 signs with SHA256; version 1 uses SHA1.
+        $algorithm = ($message['SignatureVersion'] ?? '1') === '2'
+            ? OPENSSL_ALGO_SHA256
+            : OPENSSL_ALGO_SHA1;
+
         $verified = openssl_verify(
             $canonical,
             base64_decode((string) $signature),
             $publicKey,
-            OPENSSL_ALGO_SHA1
+            $algorithm
         ) === 1;
 
         openssl_free_key($publicKey);
