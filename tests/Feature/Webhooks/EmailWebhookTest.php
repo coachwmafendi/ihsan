@@ -191,6 +191,32 @@ it('marks an email as delivered via direct ses event', function () {
         ->delivered_at->not->toBeNull();
 });
 
+it('parses ses events posted as text/plain like SNS does', function () {
+    config(['services.ses.webhook_token' => 'ses-secret-token']);
+
+    $log = DonorEmailLog::factory()->create([
+        'provider_message_id' => 'ses-textplain-123',
+        'delivery_status' => 'sent',
+    ]);
+
+    $body = json_encode([
+        'eventType' => 'Delivery',
+        'mail' => ['messageId' => 'ses-textplain-123'],
+    ]);
+
+    $this->call(
+        'POST',
+        route('webhooks.ses', ['token' => 'ses-secret-token']),
+        [], [], [],
+        ['CONTENT_TYPE' => 'text/plain; charset=UTF-8'],
+        $body,
+    )->assertOk();
+
+    expect($log->fresh())
+        ->delivery_status->toBe('delivered')
+        ->delivered_at->not->toBeNull();
+});
+
 it('marks an email as bounced via direct ses event and flags permanent bounce', function () {
     config(['services.ses.webhook_token' => 'ses-secret-token']);
 
