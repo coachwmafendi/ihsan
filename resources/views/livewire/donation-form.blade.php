@@ -160,10 +160,10 @@
                     <p class="min-w-0 truncate text-xs font-bold uppercase tracking-[0.18em] text-slate-400">{{ $organization->name }}</p>
                 </div>
 
-                <h1 class="text-2xl font-bold tracking-normal text-slate-950">{{ $introTitle }}</h1>
+                <h1 class="text-2xl font-bold leading-tight tracking-normal text-slate-950">{{ $introTitle }}</h1>
 
                 @if (filled($introText))
-                    <div x-data="{ expanded: false }" class="mt-1.5 whitespace-pre-line text-justify text-base/7 text-slate-600">
+                    <div x-data="{ expanded: false }" class="mt-1 whitespace-pre-line text-justify text-base/7 text-slate-600">
                         <div x-show="! expanded" class="[&amp;>*]:inline [&amp;>p]:inline">
                             {{ trim($introTruncated) }}{{ $isLongIntro ? '...' : '' }}
                         </div>

@@ -83,5 +83,4 @@
     .footer .fname { font-size: 12px; font-weight: 700; color: #1a1a2e; }
     .footer .fcontact { font-size: 10px; color: #64748b; margin-top: 3px; }
     .footer .fdisc { font-size: 10px; color: #64748b; }
-    .footer .fbrand { font-size: 10px; font-weight: 700; color: #0f766e; }
 </style>

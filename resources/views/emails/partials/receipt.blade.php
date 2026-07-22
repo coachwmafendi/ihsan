@@ -20,8 +20,6 @@
 
     $addressParts = array_filter([$org->city, $org->state, $org->country]);
     $contactParts = array_filter([implode(', ', $addressParts), $org->contact_email, $org->contact_phone]);
-
-    $brand = parse_url((string) config('app.url'), PHP_URL_HOST) ?: config('app.name');
 @endphp
 
 {{-- Header --}}
@@ -126,7 +124,6 @@
     <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
         <tr>
             <td class="fdisc">This receipt was generated electronically by {{ config('app.name') }} and does not require a signature.</td>
-            <td class="fbrand" style="text-align: right; white-space: nowrap;">{{ $brand }}</td>
         </tr>
     </table>
 </div>
