@@ -62,6 +62,30 @@ it('wraps the installments table in a horizontally scrollable container', functi
         ->assertSee('min-w-full text-left text-sm whitespace-nowrap', false);
 });
 
+it('shows the validated badge when the donor email is validated', function () {
+    $this->donor->update(['email_validated_at' => now()]);
+
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Validated');
+});
+
+it('hides the validated badge when the donor email is not validated', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertDontSee('Validated');
+});
+
 it('shows the active recurring donation status banner', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,
