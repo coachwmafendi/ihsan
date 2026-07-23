@@ -103,8 +103,17 @@
         money(value) {
             return this.prefix + ' ' + Number(value).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         },
+        observe() {
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    this.visible = true;
+                    observer.disconnect();
+                }
+            }, { threshold: 0.2, rootMargin: '0px 0px -40px 0px' });
+            observer.observe(this.$el);
+        },
     }"
-    x-init="const observer = new IntersectionObserver((entries) => { if (entries[0].isIntersecting) this.visible = true; }, { threshold: 0.2, rootMargin: '0px 0px -40px 0px' }); observer.observe($el);"
+    x-init="observe()"
     :class="{ 'chart-visible': visible }"
 >
     <div class="relative pr-14" style="height: {{ $height }}px">

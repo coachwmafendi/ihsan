@@ -14,8 +14,17 @@
         chartDescription: @js($description),
         visible: false,
         rendered: false,
+        observe() {
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    this.visible = true;
+                    observer.disconnect();
+                }
+            }, { threshold: 0.2, rootMargin: '0px 0px -40px 0px' });
+            observer.observe(this.$el);
+        },
     }"
-    x-init="const observer = new IntersectionObserver((entries) => { if (entries[0].isIntersecting) this.visible = true; }, { threshold: 0.2, rootMargin: '0px 0px -40px 0px' }); observer.observe($el);"
+    x-init="observe()"
     x-effect="if (visible && ! rendered) { rendered = true; renderStackedBarChart($el, chartData, chartDescription, @js($title)); }"
 >
     <canvas id="{{ $canvasId }}" class="h-full w-full"></canvas>
