@@ -53,6 +53,20 @@ it('renders the donation show page', function () {
         ->assertSee($this->campaign->title);
 });
 
+it('shows the validated badge when the donor email is validated', function () {
+    $this->donor->update(['email_validated_at' => now()]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Validated');
+});
+
+it('hides the validated badge when the donor email is not validated', function () {
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertDontSee('Validated');
+});
+
 it('filters donations by period', function () {
     $oldDonation = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,

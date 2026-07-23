@@ -376,7 +376,12 @@
                             </div>
                             <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                                 <dt class="text-sm text-slate-500">Email</dt>
-                                <dd class="text-sm font-medium text-slate-900">{{ $donation->donor->email }}</dd>
+                                <dd class="flex items-center gap-2 text-sm font-medium text-slate-900">
+                                    <span>{{ $donation->donor->email }}</span>
+                                    @if ($donation->donor->hasValidatedEmail())
+                                        <x-ui.badge status="success" size="sm">Validated</x-ui.badge>
+                                    @endif
+                                </dd>
                             </div>
                         </dl>
                     @else
