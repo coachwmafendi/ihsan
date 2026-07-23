@@ -525,6 +525,21 @@ class Donation extends Model
         return DB::connection()->getQueryGrammar()->getValue(self::reportAmountColumn());
     }
 
+    public static function reportDonorFeeColumn(): Expression
+    {
+        $table = (new static)->getTable();
+        $donorFeeCovered = $table.'.donor_fee_covered';
+        $currency = $table.'.currency';
+        $exchangeRate = $table.'.exchange_rate';
+
+        return DB::raw("COALESCE(CASE WHEN LOWER({$currency}) = 'myr' THEN {$donorFeeCovered} ELSE {$donorFeeCovered} * {$exchangeRate} END, {$donorFeeCovered})");
+    }
+
+    public static function reportDonorFeeSql(): string
+    {
+        return DB::connection()->getQueryGrammar()->getValue(self::reportDonorFeeColumn());
+    }
+
     public static function reportSumColumn(): Expression
     {
         $table = (new static)->getTable();

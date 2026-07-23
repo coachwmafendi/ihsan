@@ -77,6 +77,7 @@ class MonthlyDonationReportController extends Controller
     /**
      * @return array{
      *     total_gross: float,
+     *     donor_covered_fees: float,
      *     processing_fee: float,
      *     net_received: float,
      *     total_donations: int,
@@ -94,7 +95,8 @@ class MonthlyDonationReportController extends Controller
 
         $result = (clone $donations)
             ->selectRaw('COALESCE(SUM('.Donation::reportAmountSql().'), 0) as total_gross')
-            ->selectRaw('COALESCE(SUM(processing_fee + stripe_fee), 0) as processing_fee')
+            ->selectRaw('COALESCE(SUM('.Donation::reportDonorFeeSql().'), 0) as donor_covered_fees')
+            ->selectRaw('COALESCE(SUM(processing_fee + stripe_fee + chip_fee), 0) as processing_fee')
             ->selectRaw('COALESCE(SUM(net_amount), 0) as net_received')
             ->selectRaw('COUNT(*) as total_donations')
             ->selectRaw('COUNT(DISTINCT donor_id) as unique_donors')
@@ -102,6 +104,7 @@ class MonthlyDonationReportController extends Controller
 
         return [
             'total_gross' => (float) $result->total_gross,
+            'donor_covered_fees' => (float) $result->donor_covered_fees,
             'processing_fee' => (float) $result->processing_fee,
             'net_received' => (float) $result->net_received,
             'total_donations' => (int) $result->total_donations,
@@ -139,8 +142,17 @@ class MonthlyDonationReportController extends Controller
                     ->where('donations.status', DonationStatus::Succeeded)
                     ->where('donations.created_at', '>=', $from)
                     ->where('donations.created_at', '<=', $to)
-                    ->selectRaw('COALESCE(SUM(donations.processing_fee + donations.stripe_fee), 0)'),
+                    ->selectRaw('COALESCE(SUM(donations.processing_fee + donations.stripe_fee + donations.chip_fee), 0)'),
                 'processing_fee'
+            )
+            ->selectSub(
+                fn ($q) => $q->from('donations')
+                    ->whereColumn('donations.campaign_id', 'campaigns.id')
+                    ->where('donations.status', DonationStatus::Succeeded)
+                    ->where('donations.created_at', '>=', $from)
+                    ->where('donations.created_at', '<=', $to)
+                    ->selectRaw('COALESCE(SUM('.Donation::reportDonorFeeSql().'), 0)'),
+                'donor_covered_fees'
             )
             ->selectSub(
                 fn ($q) => $q->from('donations')
@@ -170,6 +182,7 @@ class MonthlyDonationReportController extends Controller
         return response()->streamDownload(function () use ($organization, $summary, $campaigns, $from, $to): void {
             $handle = fopen('php://output', 'w');
             $generatedAt = now()->setTimezone('Asia/Kuala_Lumpur')->toDateTimeString().' (MYT)';
+            $showDonorCovered = $summary['donor_covered_fees'] > 0;
 
             fputcsv($handle, ['Organization', $organization->name]);
             fputcsv($handle, ['Public ID', $organization->public_id]);
@@ -180,22 +193,35 @@ class MonthlyDonationReportController extends Controller
 
             fputcsv($handle, ['Metric', 'Value']);
             fputcsv($handle, ['Total gross', number_format($summary['total_gross'], 2)]);
+            if ($showDonorCovered) {
+                fputcsv($handle, ['Donor-covered fees', number_format($summary['donor_covered_fees'], 2)]);
+            }
             fputcsv($handle, ['Processing fee', number_format($summary['processing_fee'], 2)]);
             fputcsv($handle, ['Net received', number_format($summary['net_received'], 2)]);
             fputcsv($handle, ['Total donations', $summary['total_donations']]);
             fputcsv($handle, ['Unique donors', $summary['unique_donors']]);
             fputcsv($handle, []);
 
-            fputcsv($handle, ['Campaign', 'Donations', 'Gross', 'Processing Fee', 'Net']);
+            $header = ['Campaign', 'Donations', 'Gross'];
+            if ($showDonorCovered) {
+                $header[] = 'Donor-covered';
+            }
+            $header[] = 'Processing Fee';
+            $header[] = 'Net';
+            fputcsv($handle, $header);
 
             foreach ($campaigns as $campaign) {
-                fputcsv($handle, [
+                $row = [
                     $campaign->title,
                     $campaign->donations_count,
                     number_format((float) $campaign->gross_amount, 2),
-                    number_format((float) $campaign->processing_fee, 2),
-                    number_format((float) $campaign->net_amount, 2),
-                ]);
+                ];
+                if ($showDonorCovered) {
+                    $row[] = number_format((float) $campaign->donor_covered_fees, 2);
+                }
+                $row[] = number_format((float) $campaign->processing_fee, 2);
+                $row[] = number_format((float) $campaign->net_amount, 2);
+                fputcsv($handle, $row);
             }
 
             fclose($handle);

@@ -38,14 +38,21 @@
             Generated: {{ $generatedAt }}
         </div>
 
+        @php($showDonorCovered = $summary['donor_covered_fees'] > 0)
         <div class="section-title">Summary</div>
         <table class="summary">
             <tr>
-                <td class="summary-box">
+                <td class="summary-box" style="width: {{ $showDonorCovered ? '16.6%' : '20%' }};">
                     <div class="summary-label">Total Gross</div>
                     <div class="summary-value">MYR {{ number_format($summary['total_gross'], 2) }}</div>
                 </td>
-                <td class="summary-box">
+                @if ($showDonorCovered)
+                    <td class="summary-box" style="width: 16.6%;">
+                        <div class="summary-label">Donor-covered Fees</div>
+                        <div class="summary-value">+MYR {{ number_format($summary['donor_covered_fees'], 2) }}</div>
+                    </td>
+                @endif
+                <td class="summary-box" style="width: {{ $showDonorCovered ? '16.6%' : '20%' }};">
                     <div class="summary-label">Processing Fee</div>
                     <div class="summary-value">MYR {{ number_format($summary['processing_fee'], 2) }}</div>
                 </td>
@@ -75,6 +82,9 @@
                     <th>Campaign</th>
                     <th class="numeric">Donations</th>
                     <th class="numeric">Gross (MYR)</th>
+                    @if ($showDonorCovered)
+                        <th class="numeric">Donor-covered (MYR)</th>
+                    @endif
                     <th class="numeric">Processing Fee (MYR)</th>
                     <th class="numeric">Net (MYR)</th>
                 </tr>
@@ -85,12 +95,15 @@
                         <td>{{ $campaign->title }}</td>
                         <td class="numeric">{{ number_format($campaign->donations_count) }}</td>
                         <td class="numeric">{{ number_format((float) $campaign->gross_amount, 2) }}</td>
+                        @if ($showDonorCovered)
+                            <td class="numeric">{{ number_format((float) $campaign->donor_covered_fees, 2) }}</td>
+                        @endif
                         <td class="numeric">{{ number_format((float) $campaign->processing_fee, 2) }}</td>
                         <td class="numeric">{{ number_format((float) $campaign->net_amount, 2) }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" style="text-align: center; color: #6b7280;">No donations found for the selected period.</td>
+                        <td colspan="{{ $showDonorCovered ? 6 : 5 }}" style="text-align: center; color: #6b7280;">No donations found for the selected period.</td>
                     </tr>
                 @endforelse
             </tbody>

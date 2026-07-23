@@ -72,12 +72,25 @@
     </x-ui.card>
 
     {{-- Summary Cards --}}
+    @php($showDonorCovered = $this->summary['donor_covered_fees'] > 0)
     <div class="space-y-2">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 {{ $showDonorCovered ? 'lg:grid-cols-6' : 'lg:grid-cols-5' }}">
             <x-ui.card>
                 <div class="text-sm font-medium text-slate-500">Total Gross</div>
                 <div class="mt-2 text-2xl font-bold text-slate-900">MYR {{ number_format($this->summary['total_gross'], 2) }}</div>
             </x-ui.card>
+
+            @if ($showDonorCovered)
+                <x-ui.card>
+                    <div class="flex items-center gap-1 text-sm font-medium text-slate-500">
+                        Donor-covered Fees
+                        <x-ui.tooltip text="Fees donors chose to cover on top of their donation. Added to your net received.">
+                            <flux:icon.information-circle class="size-4 text-slate-400" />
+                        </x-ui.tooltip>
+                    </div>
+                    <div class="mt-2 text-2xl font-bold text-slate-900">+MYR {{ number_format($this->summary['donor_covered_fees'], 2) }}</div>
+                </x-ui.card>
+            @endif
 
             <x-ui.card>
                 <div class="text-sm font-medium text-slate-500">Processing Fee</div>
@@ -116,6 +129,9 @@
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Campaign</th>
                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Donations</th>
                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Gross (MYR)</th>
+                        @if ($showDonorCovered)
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Donor-covered (MYR)</th>
+                        @endif
                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Processing Fee (MYR)</th>
                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Net (MYR)</th>
                     </tr>
@@ -126,12 +142,15 @@
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">{{ $campaign->title }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm text-slate-900">{{ number_format($campaign->donations_count) }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm text-slate-900">{{ number_format((float) $campaign->gross_amount, 2) }}</td>
+                            @if ($showDonorCovered)
+                                <td class="whitespace-nowrap px-6 py-4 text-right text-sm text-slate-900">{{ number_format((float) $campaign->donor_covered_fees, 2) }}</td>
+                            @endif
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm text-slate-900">{{ number_format((float) $campaign->processing_fee, 2) }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm text-slate-900">{{ number_format((float) $campaign->net_amount, 2) }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-sm text-slate-500">No donations found for the selected period.</td>
+                            <td colspan="{{ $showDonorCovered ? 6 : 5 }}" class="px-6 py-8 text-center text-sm text-slate-500">No donations found for the selected period.</td>
                         </tr>
                     @endforelse
                 </tbody>

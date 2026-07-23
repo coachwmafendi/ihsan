@@ -60,6 +60,68 @@ it('shows correct summary cards when donations exist', function () {
         ->assertSee('Qurban 2026');
 });
 
+it('surfaces donor-covered fees so net reconciles with gross and fees', function () {
+    Donation::factory()->for($this->campaign)->for($this->donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 100.00,
+        'base_amount' => 100.00,
+        'donor_fee_covered' => 3.00,
+        'processing_fee' => 2.00,
+        'stripe_fee' => 1.00,
+        'net_amount' => 100.00, // 100 + 3 donor-covered - 2 - 1
+        'created_at' => now(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(MonthlyDonations::class)
+        ->assertSet('summary.total_gross', 100.00)
+        ->assertSet('summary.donor_covered_fees', 3.00)
+        ->assertSet('summary.processing_fee', 3.00)
+        ->assertSet('summary.net_received', 100.00)
+        ->assertSee('Donor-covered Fees');
+
+    // Reconciles: gross + donor-covered - fee = net
+});
+
+it('includes chip fee in the processing fee total', function () {
+    Donation::factory()->for($this->campaign)->for($this->donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 100.00,
+        'base_amount' => 100.00,
+        'chip_fee' => 4.00,
+        'processing_fee' => 2.00,
+        'stripe_fee' => 0.00,
+        'net_amount' => 94.00, // 100 - 4 chip - 2 processing
+        'created_at' => now(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(MonthlyDonations::class)
+        ->assertSet('summary.processing_fee', 6.00)
+        ->assertSet('summary.net_received', 94.00);
+});
+
+it('converts donor-covered fees to myr for non-myr donations', function () {
+    Donation::factory()->for($this->campaign)->for($this->donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'currency' => 'usd',
+        'gross_amount' => 100.00,     // usd
+        'base_amount' => 450.00,      // myr @ 4.5
+        'exchange_rate' => 4.5,
+        'donor_fee_covered' => 3.00,  // usd -> 13.50 myr
+        'processing_fee' => 5.00,
+        'stripe_fee' => 4.00,
+        'net_amount' => 454.50,       // 450 + 13.50 - 5 - 4
+        'created_at' => now(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(MonthlyDonations::class)
+        ->assertSet('summary.total_gross', 450.00)
+        ->assertSet('summary.donor_covered_fees', 13.50)
+        ->assertSet('summary.net_received', 454.50);
+});
+
 it('does not show donations from other organizations', function () {
     $otherOrganization = Organization::factory()->stripeConnected()->create();
     $otherCampaign = Campaign::factory()->for($otherOrganization)->create(['title' => 'Other Org Campaign']);
@@ -183,6 +245,30 @@ it('downloads a csv monthly donation report for an organization', function () {
         ->toContain('250.00')
         ->toContain('242.50')
         ->toContain('7.50');
+});
+
+it('includes donor-covered and chip fees in the csv download so it reconciles', function () {
+    Donation::factory()->for($this->campaign)->for($this->donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 200.00,
+        'base_amount' => 200.00,
+        'donor_fee_covered' => 6.00,
+        'chip_fee' => 3.00,
+        'processing_fee' => 2.00,
+        'stripe_fee' => 1.00,
+        'net_amount' => 200.00, // 200 + 6 donor-covered - 3 - 2 - 1
+        'created_at' => now()->startOfMonth()->addDay(),
+    ]);
+
+    $response = actingAs($this->user)
+        ->get(route('app.reports.monthly-donations.download', ['format' => 'csv']));
+
+    $response->assertOk();
+
+    expect($response->streamedContent())
+        ->toContain('"Donor-covered fees",6.00')
+        ->toContain('"Processing fee",6.00') // 3 chip + 2 processing + 1 stripe
+        ->toContain('"Net received",200.00');
 });
 
 it('downloads a pdf monthly donation report for an organization', function () {

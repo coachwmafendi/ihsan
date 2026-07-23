@@ -117,6 +117,7 @@ class MonthlyDonations extends Component
     /**
      * @return array{
      *     total_gross: float,
+     *     donor_covered_fees: float,
      *     processing_fee: float,
      *     net_received: float,
      *     total_donations: int,
@@ -132,6 +133,7 @@ class MonthlyDonations extends Component
         if (! $org) {
             return [
                 'total_gross' => 0.0,
+                'donor_covered_fees' => 0.0,
                 'processing_fee' => 0.0,
                 'net_received' => 0.0,
                 'total_donations' => 0,
@@ -150,7 +152,8 @@ class MonthlyDonations extends Component
 
         $result = (clone $donations)
             ->selectRaw('COALESCE(SUM('.Donation::reportAmountSql().'), 0) as total_gross')
-            ->selectRaw('SUM(processing_fee + stripe_fee) as processing_fee')
+            ->selectRaw('COALESCE(SUM('.Donation::reportDonorFeeSql().'), 0) as donor_covered_fees')
+            ->selectRaw('SUM(processing_fee + stripe_fee + chip_fee) as processing_fee')
             ->selectRaw('COALESCE(SUM(net_amount), 0) as net_received')
             ->selectRaw('COUNT(*) as total_donations')
             ->selectRaw('COUNT(DISTINCT donor_id) as unique_donors')
@@ -158,6 +161,7 @@ class MonthlyDonations extends Component
 
         return [
             'total_gross' => (float) $result->total_gross,
+            'donor_covered_fees' => (float) $result->donor_covered_fees,
             'processing_fee' => (float) $result->processing_fee,
             'net_received' => (float) $result->net_received,
             'total_donations' => (int) $result->total_donations,
@@ -201,8 +205,17 @@ class MonthlyDonations extends Component
                     ->where('donations.status', DonationStatus::Succeeded)
                     ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
                     ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to))
-                    ->selectRaw('SUM(donations.processing_fee + donations.stripe_fee)'),
+                    ->selectRaw('SUM(donations.processing_fee + donations.stripe_fee + donations.chip_fee)'),
                 'processing_fee'
+            )
+            ->selectSub(
+                fn ($q) => $q->from('donations')
+                    ->whereColumn('donations.campaign_id', 'campaigns.id')
+                    ->where('donations.status', DonationStatus::Succeeded)
+                    ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+                    ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to))
+                    ->selectRaw('COALESCE(SUM('.Donation::reportDonorFeeSql().'), 0)'),
+                'donor_covered_fees'
             )
             ->selectSub(
                 fn ($q) => $q->from('donations')
