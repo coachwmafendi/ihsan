@@ -54,12 +54,40 @@
     $last = $series->last();
 @endphp
 
+<style>
+    .line-chart {
+        opacity: 0;
+        transform: translateY(12px);
+        transition: opacity 600ms ease-out, transform 600ms ease-out;
+    }
+    .line-chart.chart-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .line-chart .line-path {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        transition: stroke-dashoffset 1200ms ease-out;
+    }
+    .line-chart.chart-visible .line-path {
+        stroke-dashoffset: 0;
+    }
+    .line-chart .area-path {
+        opacity: 0;
+        transition: opacity 800ms ease-out 200ms;
+    }
+    .line-chart.chart-visible .area-path {
+        opacity: 1;
+    }
+</style>
+
 <div
-    {{ $attributes->merge(['class' => 'w-full']) }}
+    {{ $attributes->merge(['class' => 'line-chart w-full']) }}
     x-data="{
         points: @js($points),
         active: null,
         prefix: @js($prefix),
+        visible: false,
         onMove(event) {
             const rect = this.$refs.plot.getBoundingClientRect();
             if (rect.width === 0 || this.points.length === 0) return;
@@ -76,6 +104,8 @@
             return this.prefix + ' ' + Number(value).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         },
     }"
+    x-init="const observer = new IntersectionObserver((entries) => { if (entries[0].isIntersecting) this.visible = true; }, { threshold: 0.2, rootMargin: '0px 0px -40px 0px' }); observer.observe($el);"
+    :class="{ 'chart-visible': visible }"
 >
     <div class="relative pr-14" style="height: {{ $height }}px">
         {{-- Plot area (excludes the y-axis label gutter) --}}
@@ -101,9 +131,9 @@
                 @endforeach
 
                 @if($areaPath)
-                    <path d="{{ $areaPath }}" fill="url(#{{ $gradientId }})" />
+                    <path d="{{ $areaPath }}" fill="url(#{{ $gradientId }})" class="area-path" />
                 @endif
-                <path d="{{ $linePath }}" fill="none" stroke="{{ $color }}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="{{ $linePath }}" fill="none" stroke="{{ $color }}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" class="line-path" />
 
                 {{-- Hover guide line --}}
                 <template x-if="active !== null">

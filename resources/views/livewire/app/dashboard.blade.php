@@ -292,6 +292,10 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        animation: {
+                            duration: 900,
+                            easing: 'easeOutQuart',
+                        },
                         onHover(event, elements) {
                             event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
                         },
@@ -404,6 +408,12 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         cutout: '60%',
+                        animation: {
+                            animateRotate: true,
+                            animateScale: false,
+                            duration: 900,
+                            easing: 'easeOutQuart',
+                        },
                         plugins: {
                             legend: {
                                 position: 'bottom',
@@ -618,6 +628,7 @@
                 </div>
 
                 <x-ui.line-chart
+                    wire:key="donation-trend-chart-{{ $period }}-{{ $customFrom }}-{{ $customTo }}"
                     :data="$this->donationTrend"
                     :height="220"
                     color="#3b82f6"

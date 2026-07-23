@@ -362,8 +362,9 @@ it('groups payment methods with labels, counts, totals, and percentages', functi
 
     $component = Livewire::actingAs($this->user)->test(Dashboard::class);
 
-    $component->assertSeeHtml('x-data="JSON.parse(')
-        ->assertSeeHtml('x-init="renderDonutChart($el, chartData, chartDescription,')
+    $component->assertSeeHtml('renderDonutChart')
+        ->assertSeeHtml('renderStackedBarChart')
+        ->assertSeeHtml('IntersectionObserver')
         ->assertSeeHtml("downloadCanvasChartPng('payment-methods-chart'")
         ->assertSeeHtml("downloadCanvasChartPng('frequency-chart'")
         ->assertSeeHtml("downloadTrendPng('Donation Trend'")
