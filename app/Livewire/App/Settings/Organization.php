@@ -50,13 +50,6 @@ class Organization extends Component
 
     public ?string $country = 'Malaysia';
 
-    // Bank fields
-    public ?string $bank_name = null;
-
-    public ?string $bank_account_name = null;
-
-    public ?string $bank_account_number = null;
-
     // Social links (displayed on the public donor portal)
     public ?string $social_facebook = null;
 
@@ -97,10 +90,6 @@ class Organization extends Component
         $this->postcode = $org->postcode;
         $this->country = $org->country ?? 'Malaysia';
 
-        $this->bank_name = $org->bank_name;
-        $this->bank_account_name = $org->bank_account_name;
-        $this->bank_account_number = $org->bank_account_number;
-
         /** @var array<string, mixed> $settings */
         $settings = $org->settings ?? [];
         $this->social_facebook = $settings['social_facebook'] ?? null;
@@ -123,9 +112,6 @@ class Organization extends Component
             'state' => ['nullable', 'string', 'max:255'],
             'postcode' => ['nullable', 'string', 'max:20'],
             'country' => ['nullable', 'string', 'max:255'],
-            'bank_name' => ['nullable', 'string', 'max:255'],
-            'bank_account_name' => ['nullable', 'string', 'max:255'],
-            'bank_account_number' => ['nullable', 'string', 'max:255'],
         ]);
 
         /** @var OrganizationModel|null $org */
@@ -159,9 +145,6 @@ class Organization extends Component
             'state' => $this->state,
             'postcode' => $this->postcode,
             'country' => $this->country,
-            'bank_name' => $this->bank_name,
-            'bank_account_name' => $this->bank_account_name,
-            'bank_account_number' => $this->bank_account_number,
             'settings' => $settings,
         ];
 

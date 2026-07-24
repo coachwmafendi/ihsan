@@ -41,12 +41,6 @@
                 class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
                 Social
             </button>
-            <button type="button"
-                @click="tab = 'bank'"
-                :class="tab === 'bank' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
-                class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors">
-                Bank
-            </button>
         </nav>
     </div>
 
@@ -233,34 +227,6 @@
                         <input type="url" id="social_youtube" wire:model="social_youtube" placeholder="https://youtube.com/..." class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
                     </div>
                 </div>
-            </x-ui.card>
-        </div>
-
-        {{-- Bank --}}
-        <div x-show="tab === 'bank'" x-cloak class="space-y-6">
-            <x-ui.card title="Bank Details" description="Bank account used for payouts.">
-                <div class="grid gap-6 md:grid-cols-2">
-                    <div class="md:col-span-2">
-                        <label for="bank_name" class="block text-sm font-medium text-slate-700">Bank Name</label>
-                        <input type="text" id="bank_name" wire:model="bank_name" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-
-                    <div>
-                        <label for="bank_account_name" class="block text-sm font-medium text-slate-700">Account Holder Name</label>
-                        <input type="text" id="bank_account_name" wire:model="bank_account_name" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-
-                    <div>
-                        <label for="bank_account_number" class="block text-sm font-medium text-slate-700">Account Number</label>
-                        <input type="text" id="bank_account_number" wire:model="bank_account_number" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-                </div>
-
-                <x-slot:footer>
-                    <div class="flex items-center justify-between">
-                        <p class="text-xs text-slate-500">These details are for reference only. Payouts are processed via Stripe Connect.</p>
-                    </div>
-                </x-slot:footer>
             </x-ui.card>
         </div>
 
