@@ -18,6 +18,19 @@
 
 
     <x-ui.card title="Email Notifications" description="Choose which account activity emails you receive. Changes are saved automatically.">
+        <x-slot:actions>
+            <div
+                x-data="{ saved: false, t: null }"
+                @preferences-saved.window="saved = true; clearTimeout(t); t = setTimeout(() => saved = false, 2000)"
+                x-show="saved"
+                x-transition.opacity
+                x-cloak
+                class="flex items-center gap-1.5 text-sm font-medium text-teal-600"
+            >
+                <x-heroicon-o-check-circle class="size-4" />
+                Saved
+            </div>
+        </x-slot:actions>
         <div class="divide-y divide-slate-100">
             {{-- Donations --}}
             <div class="flex flex-col gap-6 py-6 first:pt-0 md:flex-row md:gap-8">

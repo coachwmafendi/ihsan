@@ -107,7 +107,7 @@
                 class="absolute left-0 top-full z-50 mt-2 flex rounded-xl border border-slate-200 bg-white shadow-xl"
                 style="display:none"
             >
-                <div class="flex gap-8 p-5">
+                <div class="flex flex-col gap-6 p-5 sm:flex-row sm:gap-8">
                     @foreach ([['leftYear', 'leftMonth', false], ['rightYear', 'rightMonth', true]] as [$yr, $mo, $isRight])
                     <div class="w-48">
                         <div class="mb-3 flex items-center justify-between">
