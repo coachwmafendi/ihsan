@@ -116,7 +116,7 @@
                 style="display:none"
             >
                 {{-- Dual calendar --}}
-                <div class="flex gap-8 p-5">
+                <div class="flex flex-col gap-6 p-5 sm:flex-row sm:gap-8">
                     @foreach ([['leftYear', 'leftMonth', false], ['rightYear', 'rightMonth', true]] as [$yr, $mo, $isRight])
                     <div class="w-48">
                         <div class="mb-3 flex items-center justify-between">

@@ -16,7 +16,7 @@
     </x-ui.page-header>
 
     <div class="border-b border-slate-200">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        <nav class="-mb-px flex space-x-6 overflow-x-auto sm:space-x-8" aria-label="Tabs">
             <button type="button"
                 @click="tab = 'information'"
                 :class="tab === 'information' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
