@@ -73,8 +73,8 @@
         {{-- Platform Account --}}
         <x-admin.settings-panel title="Platform Account">
             @if ($platform)
-                <div class="grid grid-cols-2 gap-3">
-                    <div><span class="text-xs text-stone-500 dark:text-stone-400">Account ID</span><p class="font-mono text-sm font-medium">{{ $platform['id'] }}</p></div>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div><span class="text-xs text-stone-500 dark:text-stone-400">Account ID</span><p class="break-all font-mono text-sm font-medium">{{ $platform['id'] }}</p></div>
                     <div><span class="text-xs text-stone-500 dark:text-stone-400">Business Name</span><p class="text-sm font-medium">{{ $platform['business_name'] ?? '—' }}</p></div>
                     <div><span class="text-xs text-stone-500 dark:text-stone-400">Email</span><p class="text-sm font-medium">{{ $platform['email'] ?? '—' }}</p></div>
                     <div><span class="text-xs text-stone-500 dark:text-stone-400">Country</span><p class="text-sm font-medium">{{ $platform['country'] ?? '—' }}</p></div>
@@ -90,7 +90,7 @@
 
         {{-- Connected Accounts Summary --}}
         <x-admin.settings-panel title="Connected Accounts">
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div><span class="text-xs text-stone-500 dark:text-stone-400">Total Organizations</span><p class="text-sm font-medium">{{ $summary['total_organizations'] }}</p></div>
                 <div><span class="text-xs text-stone-500 dark:text-stone-400">Stripe Connected</span><p class="text-sm font-medium">{{ $summary['connected'] }}</p></div>
                 <div><span class="text-xs text-stone-500 dark:text-stone-400">Onboarded</span><p class="text-sm font-medium text-teal-600 dark:text-teal-400">{{ $summary['onboarded'] }}</p></div>
@@ -101,7 +101,7 @@
         {{-- Config Status + Endpoints --}}
         <x-admin.settings-panel title="Configuration & Endpoints">
             <div class="space-y-3">
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div><span class="text-xs text-stone-500 dark:text-stone-400">Secret Key</span><p class="text-sm font-medium {{ $config['secret_key'] ? 'text-teal-600 dark:text-teal-400' : 'text-red-600 dark:text-red-400' }}">{{ $config['secret_key'] ? 'Configured' : 'Missing' }}</p></div>
                     <div><span class="text-xs text-stone-500 dark:text-stone-400">Webhook Secret</span><p class="text-sm font-medium {{ $config['webhook_secret'] ? 'text-teal-600 dark:text-teal-400' : 'text-red-600 dark:text-red-400' }}">{{ $config['webhook_secret'] ? 'Configured' : 'Missing' }}</p></div>
                     <div><span class="text-xs text-stone-500 dark:text-stone-400">Connect Client ID</span><p class="text-sm font-medium {{ $config['connect_client_id'] ? 'text-teal-600 dark:text-teal-400' : 'text-red-600 dark:text-red-400' }}">{{ $config['connect_client_id'] ? 'Configured' : 'Missing' }}</p></div>

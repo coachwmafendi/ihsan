@@ -49,7 +49,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-item href="/supporters" icon="users" label="Supporters" :active="$isActive('/supporters')" />
                 <x-sidebar-item href="/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
                 <x-sidebar-item href="/payouts" icon="building-library" label="Payouts" :active="$isActive('/payouts')" />
-                <x-sidebar-item href="/reports/monthly-donations" icon="document-chart-bar" label="Report" :active="$isActive('/reports/monthly-donations')" />
+                <x-sidebar-item href="/reports/monthly-donations" icon="document-chart-bar" label="Reports" :active="$isActive('/reports/monthly-donations')" />
             </x-sidebar-group>
 
             <x-sidebar-group label="Organization">
@@ -123,7 +123,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
                 <x-sidebar-item href="/supporters" icon="users" label="Supporters" :active="$isActive('/supporters')" />
                 <x-sidebar-item href="/virtual-terminal" icon="device-phone-mobile" label="Virtual Terminal" target="_blank" />
                 <x-sidebar-item href="/payouts" icon="building-library" label="Payouts" :active="$isActive('/payouts')" />
-                <x-sidebar-item href="/reports/monthly-donations" icon="document-chart-bar" label="Report" :active="$isActive('/reports/monthly-donations')" />
+                <x-sidebar-item href="/reports/monthly-donations" icon="document-chart-bar" label="Reports" :active="$isActive('/reports/monthly-donations')" />
             </x-sidebar-group>
 
             <x-sidebar-group label="Organization">
