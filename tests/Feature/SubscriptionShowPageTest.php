@@ -277,6 +277,22 @@ it('opens the edit payment details modal', function () {
         ->assertSee('Frequency');
 });
 
+it('only offers a monthly frequency option in the edit payment details modal', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->call('openEditPaymentDetailsModal')
+        ->assertSeeHtml('value="monthly"')
+        ->assertDontSeeHtml('value="weekly"')
+        ->assertDontSeeHtml('value="yearly"');
+});
+
 it('validates payment details form', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,

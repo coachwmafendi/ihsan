@@ -766,8 +766,6 @@
                     <label class="text-sm font-medium text-slate-900">Frequency</label>
                     <flux:select wire:model.live="editInterval">
                         <flux:select.option value="monthly">Monthly</flux:select.option>
-                        <flux:select.option value="weekly">Weekly</flux:select.option>
-                        <flux:select.option value="yearly">Yearly</flux:select.option>
                     </flux:select>
                 </div>
 
