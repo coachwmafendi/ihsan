@@ -541,13 +541,17 @@ it('shows amounts raised per checkout channel on the overview tab', function () 
     Donation::factory()->create(['campaign_id' => $campaign->id, 'source' => 'element', 'base_amount' => 25, 'gross_amount' => 25]);
     Donation::factory()->create(['campaign_id' => $campaign->id, 'source' => null, 'base_amount' => 10, 'gross_amount' => 10]);
 
+    $campaign->update(['collected_amount' => 999.99]);
+
     $this->actingAs($this->user);
 
     Livewire::test(CampaignEdit::class, ['campaign' => $campaign])
         ->assertSeeInOrder(['Total raised', 'Checkout Modal', 'Campaign Page', 'Virtual Terminal', 'Recurring plans', 'Last donation'])
+        ->assertSee('MYR 435.00')
         ->assertSee('MYR 85.00')
         ->assertSee('MYR 150.00')
         ->assertSee('MYR 200.00')
+        ->assertDontSee('MYR 999.99')
         ->assertDontSee('≈');
 });
 
