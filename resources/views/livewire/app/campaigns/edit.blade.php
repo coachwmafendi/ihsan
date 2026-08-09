@@ -75,6 +75,9 @@
         @php
             $approx = $this->hasApproximateRaisedTotals() ? '≈ ' : '';
             $bySource = $this->donationAmountsBySource();
+            $totalRaised = $bySource['campaign_page']['amount']
+                + $bySource['checkout_modal']['amount']
+                + $bySource['virtual_terminal']['amount'];
             $activePlansCount = $campaign->subscriptions()->whereIn('status', ['active', 'trialing'])->count();
             $lastDonationAt = $campaign->donations()->latest()->first()?->created_at;
         @endphp
@@ -82,7 +85,7 @@
             <dl class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
                 <div>
                     <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Total raised</dt>
-                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $approx }}MYR {{ number_format((float) $campaign->collected_amount, 2) }}</dd>
+                    <dd class="mt-1 text-base font-semibold text-gray-950 dark:text-white">{{ $approx }}MYR {{ number_format($totalRaised, 2) }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">Checkout Modal</dt>
