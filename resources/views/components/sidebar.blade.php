@@ -69,7 +69,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
 
             <x-sidebar-dropdown icon="question-mark-circle" label="Help">
                 <x-sidebar-item href="mailto:support@getihsan.my" icon="envelope" label="Email Support" target="_self" />
-                <x-sidebar-item href="{{ route('docs.show') }}" icon="book-open" label="Documentation" target="_blank" />
+                <x-sidebar-item href="{{ url('/docs') }}" icon="book-open" label="Documentation" target="_blank" />
             </x-sidebar-dropdown>
         </nav>
 
@@ -143,7 +143,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
 
             <x-sidebar-dropdown icon="question-mark-circle" label="Help">
                 <x-sidebar-item href="mailto:support@getihsan.my" icon="envelope" label="Email Support" target="_self" />
-                <x-sidebar-item href="{{ route('docs.show') }}" icon="book-open" label="Documentation" target="_blank" />
+                <x-sidebar-item href="{{ url('/docs') }}" icon="book-open" label="Documentation" target="_blank" />
             </x-sidebar-dropdown>
         </nav>
 

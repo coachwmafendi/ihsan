@@ -1,3 +1,7 @@
+---
+title: 'Embed widget'
+order: 1
+---
 # Embed widget
 
 The Ihsan embed widget is a single JavaScript file that renders donation components on your site.

@@ -1,3 +1,7 @@
+---
+title: 'Dashboard'
+order: 1
+---
 # Dashboard
 
 Dashboard memberikan organisasi anda gambaran keseluruhan prestasi pengumpulan dana.

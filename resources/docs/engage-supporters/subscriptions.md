@@ -1,3 +1,7 @@
+---
+title: 'Subscriptions'
+order: 3
+---
 # Subscriptions
 
 Subscriptions let supporters give automatically on a recurring schedule.

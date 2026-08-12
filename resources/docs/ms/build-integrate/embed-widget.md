@@ -1,3 +1,7 @@
+---
+title: 'Benam widget'
+order: 1
+---
 # Benam widget
 
 Widget benam Ihsan ialah satu fail JavaScript yang memaparkan komponen derma di laman web anda.

@@ -1,3 +1,7 @@
+---
+title: 'Engage supporters'
+order: 3
+---
 # Engage supporters
 
 Keep donors informed, manage recurring giving, and make it easy for supporters to upgrade their contributions.

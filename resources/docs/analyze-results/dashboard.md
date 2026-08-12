@@ -1,3 +1,7 @@
+---
+title: 'Dashboard'
+order: 1
+---
 # Dashboard
 
 The dashboard gives your organization a quick overview of fundraising performance.

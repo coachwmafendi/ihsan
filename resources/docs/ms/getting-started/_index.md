@@ -1,3 +1,7 @@
+---
+title: 'Permulaan'
+order: 1
+---
 # Permulaan
 
 Aktifkan dan jalankan akaun Ihsan anda. Artikel dalam bahagian ini membimbing anda melalui pemasangan, persediaan pembayaran, mod ujian, dan struktur akaun.

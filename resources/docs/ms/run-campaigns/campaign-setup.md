@@ -1,3 +1,7 @@
+---
+title: 'Penyediaan kempen'
+order: 1
+---
 # Penyediaan kempen
 
 Kempen ialah matlamat pengumpulan dana yang fokus dengan halaman, sumbangan, dan analitis tersendiri.

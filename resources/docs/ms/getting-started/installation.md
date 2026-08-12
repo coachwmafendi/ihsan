@@ -1,3 +1,7 @@
+---
+title: 'Pemasangan'
+order: 1
+---
 # Pemasangan
 
 Menambah Ihsan ke laman web anda memerlukan satu tag skrip dan token elemen.

@@ -1,3 +1,7 @@
+---
+title: 'Campaign page'
+order: 2
+---
 # Campaign page
 
 Every campaign has a public page that you can share with supporters.

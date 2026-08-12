@@ -1,3 +1,7 @@
+---
+title: 'Organizations and accounts'
+order: 4
+---
 # Organizations and accounts
 
 An Ihsan organization represents a nonprofit, project, or fundraising entity. Each organization has its own campaigns, donors, payment settings, and team members.

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 test('documentation renders in english by default', function () {
     $response = $this->get('/docs');
 
@@ -8,10 +10,8 @@ test('documentation renders in english by default', function () {
     $response->assertSee('Getting started', false);
 });
 
-test('documentation renders in bahasa malaysia after switching locale', function () {
-    $this->get('/language/ms')->assertRedirect();
-
-    $response = $this->get('/docs');
+test('documentation renders in bahasa malaysia at the locale url', function () {
+    $response = $this->get('/docs/ms');
 
     $response->assertStatus(200);
     $response->assertSee('Dokumentasi Ihsan', false);
@@ -20,9 +20,7 @@ test('documentation renders in bahasa malaysia after switching locale', function
 });
 
 test('bahasa malaysia docs article renders from translated markdown', function () {
-    $this->get('/language/ms');
-
-    $response = $this->get('/docs/getting-started');
+    $response = $this->get('/docs/ms/getting-started');
 
     $response->assertStatus(200);
     $response->assertSee('Permulaan', false);

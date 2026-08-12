@@ -1,3 +1,7 @@
+---
+title: 'Run campaigns'
+order: 2
+---
 # Run campaigns
 
 Create and manage fundraising campaigns, configure checkout experiences, and collect donations on any channel.

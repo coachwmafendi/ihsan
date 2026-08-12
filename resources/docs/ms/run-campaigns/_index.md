@@ -1,3 +1,7 @@
+---
+title: 'Menjalankan kempen'
+order: 2
+---
 # Menjalankan kempen
 
 Cipta dan urus kempen pengumpulan dana, konfigurasi pengalaman pembayaran, dan kumpulkan sumbangan di mana-mana saluran.

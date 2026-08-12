@@ -1,3 +1,7 @@
+---
+title: 'E-mel'
+order: 2
+---
 # E-mel
 
 Ihsan menghantar e-mel automatik untuk memastikan penderma dimaklumkan dan pasukan anda sentiasa terkini.

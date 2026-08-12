@@ -1,3 +1,7 @@
+---
+title: 'Insights'
+order: 2
+---
 # Insights
 
 Insights membantu anda memahami trend, tingkah laku penderma, dan keberkesanan kempen anda.

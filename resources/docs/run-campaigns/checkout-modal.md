@@ -1,3 +1,7 @@
+---
+title: 'Checkout modal'
+order: 3
+---
 # Checkout modal
 
 The checkout modal lets donors complete a donation without leaving your website.

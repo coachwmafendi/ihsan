@@ -1,3 +1,7 @@
+---
+title: 'Halaman kempen'
+order: 2
+---
 # Halaman kempen
 
 Setiap kempen mempunyai halaman awam yang boleh anda kongsi dengan penyokong.

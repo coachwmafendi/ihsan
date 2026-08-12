@@ -1,3 +1,7 @@
+---
+title: 'Organisasi dan akaun'
+order: 4
+---
 # Organisasi dan akaun
 
 Organisasi Ihsan mewakili entiti bukan keuntungan, projek, atau entiti pengumpulan dana. Setiap organisasi mempunyai kempen, penderma, tetapan pembayaran, dan ahli pasukan yang tersendiri.

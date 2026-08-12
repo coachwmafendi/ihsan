@@ -4,7 +4,6 @@ use App\Http\Controllers\ChipCallbackController;
 use App\Http\Controllers\ChipFinalizeController;
 use App\Http\Controllers\ChipWebhookController;
 use App\Http\Controllers\DemoLandingController;
-use App\Http\Controllers\DocsController;
 use App\Http\Controllers\DonationCampaignImageController;
 use App\Http\Controllers\DonorImpersonationController;
 use App\Http\Controllers\DonorNotificationController;
@@ -37,9 +36,6 @@ Route::get('/login', fn () => redirect()->away(
     'https://'.config('app.app_panel_domain').app_panel_port_suffix().'/login', 301
 ));
 
-Route::get('/docs/{path?}', DocsController::class)
-    ->where('path', '.*')
-    ->name('docs.show');
 Route::get('/register-organization', RegisterOrganization::class)->name('register.org');
 Route::get('/demo/msk', DemoLandingController::class)->name('demo.msk');
 Route::view('/case-studies/madrasah-darul-falah', 'case-studies.madrasah-darul-falah')->name('case-studies.madrasah-darul-falah');

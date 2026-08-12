@@ -1,3 +1,7 @@
+---
+title: 'Kaedah pembayaran'
+order: 2
+---
 # Kaedah pembayaran
 
 Ihsan disambungkan kepada pembekal pembayaran terkemuka supaya penderma boleh membayar dengan kaedah pilihan mereka.

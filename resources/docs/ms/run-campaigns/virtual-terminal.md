@@ -1,3 +1,7 @@
+---
+title: 'Terminal maya'
+order: 5
+---
 # Terminal maya
 
 Terminal maya membolehkan anda merekodkan sumbangan yang dikumpulkan di luar Ihsan, seperti tunai, cek, atau pemindahan bank.

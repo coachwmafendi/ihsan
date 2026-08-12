@@ -1,3 +1,7 @@
+---
+title: 'Campaign setup'
+order: 1
+---
 # Campaign setup
 
 A campaign is a focused fundraising goal with its own page, donations, and insights.

@@ -1,3 +1,7 @@
+---
+title: 'Analyze results'
+order: 4
+---
 # Analyze results
 
 Review your fundraising performance, understand donor behavior, and export data for reporting.

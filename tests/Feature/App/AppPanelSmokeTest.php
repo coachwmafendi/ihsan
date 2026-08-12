@@ -81,5 +81,5 @@ it('does not hardcode the documentation url in the sidebar component', function 
     $contents = file_get_contents(resource_path('views/components/sidebar.blade.php'));
 
     expect($contents)->not->toContain('ihsan.test:8443/docs')
-        ->and($contents)->toContain("route('docs.show')");
+        ->and($contents)->toContain("url('/docs')");
 });

@@ -1,3 +1,7 @@
+---
+title: 'Installation'
+order: 1
+---
 # Installation
 
 Adding Ihsan to your website takes a single script tag and an element token.

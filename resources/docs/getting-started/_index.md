@@ -1,3 +1,7 @@
+---
+title: 'Getting started'
+order: 1
+---
 # Getting started
 
 Get your Ihsan account up and running. The articles in this section walk you through installation, payment setup, test mode, and account structure.

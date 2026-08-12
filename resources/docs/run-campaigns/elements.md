@@ -1,3 +1,7 @@
+---
+title: 'Elements'
+order: 4
+---
 # Elements
 
 Elements are reusable donation components that you can embed across websites, emails, and campaign pages.

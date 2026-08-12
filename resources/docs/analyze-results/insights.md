@@ -1,3 +1,7 @@
+---
+title: 'Insights'
+order: 2
+---
 # Insights
 
 Insights help you understand trends, donor behavior, and the effectiveness of your campaigns.

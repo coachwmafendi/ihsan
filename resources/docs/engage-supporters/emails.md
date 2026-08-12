@@ -1,3 +1,7 @@
+---
+title: 'Emails'
+order: 2
+---
 # Emails
 
 Ihsan sends automatic emails to keep donors informed and your team up to date.

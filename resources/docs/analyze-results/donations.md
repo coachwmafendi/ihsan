@@ -1,3 +1,7 @@
+---
+title: 'Donations'
+order: 3
+---
 # Donations
 
 The donations page lists every contribution your organization has received.

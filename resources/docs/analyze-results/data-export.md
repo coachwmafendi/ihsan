@@ -1,3 +1,7 @@
+---
+title: 'Data export'
+order: 5
+---
 # Data export
 
 Export your fundraising data for accounting, reporting, or external analysis.

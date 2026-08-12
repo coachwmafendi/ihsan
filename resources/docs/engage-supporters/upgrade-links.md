@@ -1,3 +1,7 @@
+---
+title: 'Upgrade links'
+order: 4
+---
 # Upgrade links
 
 Upgrade links allow you to ask existing donors to increase their recurring contribution with one click.

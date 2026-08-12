@@ -1,3 +1,7 @@
+---
+title: 'Payment methods'
+order: 2
+---
 # Payment methods
 
 Ihsan connects to leading payment providers so donors can pay using their preferred method.

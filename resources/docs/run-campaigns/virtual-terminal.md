@@ -1,3 +1,7 @@
+---
+title: 'Virtual terminal'
+order: 5
+---
 # Virtual terminal
 
 The virtual terminal lets you record donations collected outside Ihsan, such as cash, check, or bank transfer.

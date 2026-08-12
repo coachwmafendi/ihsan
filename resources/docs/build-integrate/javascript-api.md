@@ -1,3 +1,7 @@
+---
+title: 'JavaScript API'
+order: 2
+---
 # JavaScript API
 
 The JavaScript API lets advanced users control the widget programmatically.

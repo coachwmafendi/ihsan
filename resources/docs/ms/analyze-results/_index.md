@@ -1,3 +1,7 @@
+---
+title: 'Analisis keputusan'
+order: 4
+---
 # Analisis keputusan
 
 Semak prestasi pengumpulan dana, fahami tingkah laku penderma, dan eksport data untuk laporan.

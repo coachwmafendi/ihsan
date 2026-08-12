@@ -1,3 +1,7 @@
+---
+title: 'Test mode'
+order: 3
+---
 # Test mode
 
 Test mode lets you simulate donations and review the donor experience without processing real payments.
