@@ -751,3 +751,35 @@ it('syncs donor personal information changes to stripe', function () {
         ->name->toBe('Siti Aminah')
         ->email->toBe('siti@example.com');
 });
+
+it('does not sync donor personal information to stripe when donor has no customer id', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create([
+        'stripe_customer_id' => null,
+        'first_name' => 'Ali',
+        'last_name' => 'Abu',
+        'email' => 'ali@example.com',
+    ]);
+    $donation = Donation::factory()->for($donor)->for($campaign)->create();
+
+    $spy = Mockery::mock(SyncDonorDetailsToStripe::class);
+    $spy->shouldReceive('sync')
+        ->never();
+    app()->instance(SyncDonorDetailsToStripe::class, $spy);
+
+    Livewire::actingAs($user)
+        ->test(DonationShow::class, ['donation' => $donation])
+        ->call('openEditPersonalModal')
+        ->set('editFirstName', 'Siti')
+        ->set('editLastName', 'Aminah')
+        ->set('editEmail', 'siti@example.com')
+        ->call('savePersonalInformation')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    expect($donor->fresh())
+        ->name->toBe('Siti Aminah')
+        ->email->toBe('siti@example.com');
+});
