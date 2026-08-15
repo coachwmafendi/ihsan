@@ -188,6 +188,8 @@ class SupporterShow extends Component
         }
 
         if ($this->donor->stripe_customer_id) {
+            // mount() already verified this donor has donated to $org, and all subscription
+            // queries on this page are scoped to $org. Sync to that Stripe Connect account.
             app(SyncDonorDetailsToStripe::class)->sync($this->donor, $org);
         }
 
