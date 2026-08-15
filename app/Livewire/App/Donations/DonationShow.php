@@ -496,7 +496,12 @@ class DonationShow extends Component
             'country' => $this->editCountry ?: null,
         ]);
 
-        app(SyncDonorDetailsToStripe::class)->sync($donor, $this->donation->campaign->organization);
+        if ($donor->stripe_customer_id) {
+            // Use the campaign organization (the Stripe Connect account owner) rather than
+            // the logged-in user's organization, so cross-organization users can't sync into
+            // the wrong Stripe account.
+            app(SyncDonorDetailsToStripe::class)->sync($donor, $this->donation->campaign->organization);
+        }
 
         $this->donation->update(['is_anonymous' => $this->editIsAnonymous]);
 
