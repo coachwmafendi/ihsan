@@ -10,7 +10,7 @@
 ])
 
 <div
-    class="relative"
+    {{ $attributes->merge(['class' => 'relative']) }}
     x-data="{
         open: @js($inline),
         leftYear: new Date().getFullYear(),
