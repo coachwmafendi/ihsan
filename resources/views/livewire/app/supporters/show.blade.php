@@ -169,19 +169,6 @@
                                     @error('email')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                                 </div>
                             </div>
-
-                            <div class="grid grid-cols-[140px_1fr] items-start gap-4">
-                                <div></div>
-                                <label class="flex items-center gap-2 text-sm text-slate-700">
-                                    <input
-                                        type="checkbox"
-                                        wire:model="updateRecurringPlans"
-                                        class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                                    />
-                                    Update recurring plans
-                                    <x-heroicon-o-question-mark-circle class="size-4 text-slate-400" />
-                                </label>
-                            </div>
                         </div>
 
                         <div class="flex justify-end gap-3 border-t border-slate-200 px-5 py-4">
