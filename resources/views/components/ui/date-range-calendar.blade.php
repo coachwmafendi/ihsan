@@ -6,12 +6,13 @@
     'labelTo' => 'End',
     'initialFrom' => null,
     'initialTo' => null,
+    'inline' => false,
 ])
 
 <div
     class="relative"
     x-data="{
-        open: false,
+        open: @js($inline),
         leftYear: new Date().getFullYear(),
         leftMonth: new Date().getMonth() - 1,
         startDate: @js($initialFrom ?: null),
@@ -53,7 +54,7 @@
                 this.endDate = e;
                 $wire.set('{{ $wireFrom }}', s);
                 $wire.set('{{ $wireTo }}', e);
-                this.open = false;
+                this.open = @js($inline) || false;
             }
         },
         isStart(d) { return d === this.startDate },
@@ -70,36 +71,45 @@
         }
     }"
     x-init="init()"
-    @click.outside="open = false"
+    @if (! $inline)
+        @click.outside="open = false"
+    @endif
 >
-    <div class="flex items-center gap-3">
-        <div>
-            <label class="block text-xs font-medium text-slate-600">{{ $labelFrom }}</label>
-            <button
-                type="button"
-                @click="open = !open"
-                class="mt-1 flex w-36 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm hover:bg-slate-50 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                x-text="displayDate(startDate)"
-            ></button>
+    @if (! $inline)
+        <div class="flex items-center gap-3">
+            <div>
+                <label class="block text-xs font-medium text-slate-600">{{ $labelFrom }}</label>
+                <button
+                    type="button"
+                    @click="open = !open"
+                    class="mt-1 flex w-36 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm hover:bg-slate-50 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                    x-text="displayDate(startDate)"
+                ></button>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600">{{ $labelTo }}</label>
+                <button
+                    type="button"
+                    @click="open = !open"
+                    class="mt-1 flex w-36 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm hover:bg-slate-50 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                    x-text="displayDate(endDate)"
+                ></button>
+            </div>
         </div>
-        <div>
-            <label class="block text-xs font-medium text-slate-600">{{ $labelTo }}</label>
-            <button
-                type="button"
-                @click="open = !open"
-                class="mt-1 flex w-36 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm hover:bg-slate-50 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                x-text="displayDate(endDate)"
-            ></button>
-        </div>
-    </div>
+    @endif
 
     <div
         x-show="open"
         x-transition:enter="transition ease-out duration-100"
         x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100"
-        class="absolute left-0 top-full z-50 mt-2 rounded-xl border border-slate-200 bg-white p-5 shadow-xl"
-        style="display:none"
+        @class([
+            'rounded-xl border border-slate-200 bg-white p-5 shadow-xl',
+            'absolute left-0 top-full z-50 mt-2' => ! $inline,
+        ])
+        @if (! $inline)
+            style="display:none"
+        @endif
     >
         <div class="flex flex-col gap-6 sm:flex-row sm:gap-8">
             @foreach ([['leftYear', 'leftMonth', false], ['rightYear', 'rightMonth', true]] as [$yr, $mo, $isRight])

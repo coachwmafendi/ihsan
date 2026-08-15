@@ -16,16 +16,39 @@ use Livewire\Component;
 #[Title('Payouts')]
 class Payouts extends Component
 {
+    public string $dateOperator = 'last';
+
+    public ?int $dateValue = 11;
+
+    public string $dateUnit = 'months';
+
+    public ?string $dateSingle = null;
+
+    public ?string $pendingDateFrom = null;
+
+    public ?string $pendingDateTo = null;
+
     public ?string $dateFrom = null;
 
     public ?string $dateTo = null;
 
-    public string $statusFilter = '';
+    public string $amountOperator = 'equal';
+
+    public ?float $amountValue = null;
+
+    public ?float $amountMin = null;
+
+    public ?float $amountMax = null;
+
+    public ?float $amountFrom = null;
+
+    public ?float $amountTo = null;
+
+    public ?string $statusFilter = '';
 
     public function mount(): void
     {
-        $this->dateFrom = today()->subMonths(11)->format('Y-m-d');
-        $this->dateTo = today()->format('Y-m-d');
+        $this->applyDateFilter();
     }
 
     #[Computed]
@@ -34,20 +57,109 @@ class Payouts extends Component
         return Auth::user()?->organization;
     }
 
+    public function applyDateFilter(): void
+    {
+        switch ($this->dateOperator) {
+            case 'last':
+                $this->dateFrom = now()->sub((int) $this->dateValue, $this->dateUnit)->startOfDay()->format('Y-m-d');
+                $this->dateTo = today()->format('Y-m-d');
+                break;
+
+            case 'equal':
+                $date = $this->dateSingle ?? today()->format('Y-m-d');
+                $this->dateFrom = $date;
+                $this->dateTo = $date;
+                break;
+
+            case 'between':
+                $this->dateFrom = $this->pendingDateFrom ?? today()->subMonth()->format('Y-m-d');
+                $this->dateTo = $this->pendingDateTo ?? today()->format('Y-m-d');
+
+                if ($this->dateFrom && $this->dateTo && $this->dateFrom > $this->dateTo) {
+                    [$this->dateFrom, $this->dateTo] = [$this->dateTo, $this->dateFrom];
+                }
+                break;
+
+            case 'on_or_after':
+                $this->dateFrom = $this->dateSingle ?? today()->format('Y-m-d');
+                $this->dateTo = null;
+                break;
+
+            case 'before_or_on':
+                $this->dateFrom = null;
+                $this->dateTo = $this->dateSingle ?? today()->format('Y-m-d');
+                break;
+        }
+    }
+
+    public function applyAmountFilter(): void
+    {
+        switch ($this->amountOperator) {
+            case 'between':
+                $this->amountFrom = $this->amountMin;
+                $this->amountTo = $this->amountMax;
+                break;
+
+            case 'greater_than':
+                $this->amountFrom = $this->amountValue;
+                $this->amountTo = null;
+                break;
+
+            case 'less_than':
+                $this->amountFrom = null;
+                $this->amountTo = $this->amountValue;
+                break;
+
+            default:
+                $this->amountFrom = $this->amountValue;
+                $this->amountTo = $this->amountValue;
+                break;
+        }
+    }
+
+    public function applyStatusFilter(): void
+    {
+        // statusFilter is bound directly; this method lets the UI trigger a refresh.
+    }
+
+    public function clearDateFilter(): void
+    {
+        $this->dateFrom = null;
+        $this->dateTo = null;
+    }
+
+    public function clearAmountFilter(): void
+    {
+        $this->amountFrom = null;
+        $this->amountTo = null;
+    }
+
+    public function clearStatusFilter(): void
+    {
+        $this->statusFilter = '';
+    }
+
+    public function clearFilters(): void
+    {
+        $this->clearDateFilter();
+        $this->clearAmountFilter();
+        $this->clearStatusFilter();
+    }
+
     /**
-     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     * @return array{0: ?CarbonImmutable, 1: ?CarbonImmutable}
      */
     private function dateRange(): array
     {
         $from = filled($this->dateFrom)
             ? CarbonImmutable::parse($this->dateFrom)->startOfDay()
-            : today()->subMonths(11)->startOfDay();
+            : null;
 
         $to = filled($this->dateTo)
             ? CarbonImmutable::parse($this->dateTo)->endOfDay()
-            : today()->endOfDay();
+            : null;
 
-        if ($from->gt($to)) {
+        if ($from && $to && $from->gt($to)) {
             [$from, $to] = [$to->startOfDay(), $from->endOfDay()];
         }
 
@@ -66,9 +178,11 @@ class Payouts extends Component
 
         return Payout::query()
             ->where('organization_id', $org->id)
-            ->whereDate('arrival_date', '>=', $from)
-            ->whereDate('arrival_date', '<=', $to)
-            ->when(filled($this->statusFilter), fn ($q) => $q->where('status', $this->statusFilter));
+            ->when($from, fn ($q) => $q->whereDate('arrival_date', '>=', $from))
+            ->when($to, fn ($q) => $q->whereDate('arrival_date', '<=', $to))
+            ->when(filled($this->statusFilter), fn ($q) => $q->where('status', $this->statusFilter))
+            ->when(! is_null($this->amountFrom), fn ($q) => $q->where('amount', '>=', (int) round($this->amountFrom * 100)))
+            ->when(! is_null($this->amountTo), fn ($q) => $q->where('amount', '<=', (int) round($this->amountTo * 100)));
     }
 
     #[Computed]
@@ -119,6 +233,58 @@ class Payouts extends Component
             'next_expected' => $nextExpected?->amount ? (float) ($nextExpected->amount / 100) : 0.0,
             'next_expected_at' => $nextExpected?->arrival_date?->format('j M Y'),
         ];
+    }
+
+    public function dateChipLabel(): string
+    {
+        return match ($this->dateOperator) {
+            'last' => "In the last {$this->dateValue} {$this->dateUnit}",
+            'equal' => 'On '.$this->formatDate($this->dateFrom),
+            'between' => 'From '.$this->formatDate($this->dateFrom).' to '.$this->formatDate($this->dateTo),
+            'on_or_after' => 'On or after '.$this->formatDate($this->dateFrom),
+            'before_or_on' => 'On or before '.$this->formatDate($this->dateTo),
+            default => 'Date',
+        };
+    }
+
+    public function amountChipLabel(): string
+    {
+        return match ($this->amountOperator) {
+            'between' => 'MYR '.number_format((float) $this->amountMin, 2).' - '.number_format((float) $this->amountMax, 2),
+            'greater_than' => '> MYR '.number_format((float) $this->amountValue, 2),
+            'less_than' => '< MYR '.number_format((float) $this->amountValue, 2),
+            default => '= MYR '.number_format((float) $this->amountValue, 2),
+        };
+    }
+
+    public function statusChipLabel(): string
+    {
+        return $this->statusFilter ? ucfirst(str_replace('_', ' ', $this->statusFilter)) : 'Status';
+    }
+
+    public function hasDateFilter(): bool
+    {
+        return filled($this->dateFrom) || filled($this->dateTo);
+    }
+
+    public function hasAmountFilter(): bool
+    {
+        return ! is_null($this->amountFrom) || ! is_null($this->amountTo);
+    }
+
+    public function hasStatusFilter(): bool
+    {
+        return filled($this->statusFilter);
+    }
+
+    public function hasAnyFilter(): bool
+    {
+        return $this->hasDateFilter() || $this->hasAmountFilter() || $this->hasStatusFilter();
+    }
+
+    private function formatDate(?string $date): string
+    {
+        return $date ? CarbonImmutable::parse($date)->format('d/m/Y') : '—';
     }
 
     public function render()

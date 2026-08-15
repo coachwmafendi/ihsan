@@ -74,7 +74,156 @@ it('filters payouts by status', function () {
     Livewire::actingAs($this->user)
         ->test(PayoutsPage::class)
         ->set('statusFilter', 'paid')
+        ->call('applyStatusFilter')
         ->assertSee('MYR 100.00')
         ->assertSeeHtml('100.00</td>')
         ->assertDontSeeHtml('200.00</td>');
+});
+
+it('filters payouts by date in the last N days', function () {
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 10000,
+        'status' => 'paid',
+        'arrival_date' => now()->subDays(2),
+    ]);
+
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 20000,
+        'status' => 'paid',
+        'arrival_date' => now()->subDays(30),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(PayoutsPage::class)
+        ->set('dateValue', 7)
+        ->set('dateUnit', 'days')
+        ->call('applyDateFilter')
+        ->assertSeeHtml('100.00</td>')
+        ->assertDontSeeHtml('200.00</td>');
+});
+
+it('filters payouts on or after a date', function () {
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 10000,
+        'status' => 'paid',
+        'arrival_date' => now()->subDays(5),
+    ]);
+
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 20000,
+        'status' => 'paid',
+        'arrival_date' => now()->subDays(15),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(PayoutsPage::class)
+        ->set('dateOperator', 'on_or_after')
+        ->set('dateSingle', now()->subDays(7)->format('Y-m-d'))
+        ->call('applyDateFilter')
+        ->assertSeeHtml('100.00</td>')
+        ->assertDontSeeHtml('200.00</td>');
+});
+
+it('filters payouts before or on a date', function () {
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 10000,
+        'status' => 'paid',
+        'arrival_date' => now()->subDays(15),
+    ]);
+
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 20000,
+        'status' => 'paid',
+        'arrival_date' => now()->subDays(5),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(PayoutsPage::class)
+        ->set('dateOperator', 'before_or_on')
+        ->set('dateSingle', now()->subDays(7)->format('Y-m-d'))
+        ->call('applyDateFilter')
+        ->assertSeeHtml('100.00</td>')
+        ->assertDontSeeHtml('200.00</td>');
+});
+
+it('filters payouts between two dates', function () {
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 10000,
+        'status' => 'paid',
+        'arrival_date' => now()->subDays(5),
+    ]);
+
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 20000,
+        'status' => 'paid',
+        'arrival_date' => now()->subDays(20),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(PayoutsPage::class)
+        ->set('dateOperator', 'between')
+        ->set('pendingDateFrom', now()->subDays(10)->format('Y-m-d'))
+        ->set('pendingDateTo', now()->subDays(2)->format('Y-m-d'))
+        ->call('applyDateFilter')
+        ->assertSeeHtml('100.00</td>')
+        ->assertDontSeeHtml('200.00</td>');
+});
+
+it('filters payouts equal to a specific date', function () {
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 10000,
+        'status' => 'paid',
+        'arrival_date' => now()->subDays(3),
+    ]);
+
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 20000,
+        'status' => 'paid',
+        'arrival_date' => now()->subDays(5),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(PayoutsPage::class)
+        ->set('dateOperator', 'equal')
+        ->set('dateSingle', now()->subDays(3)->format('Y-m-d'))
+        ->call('applyDateFilter')
+        ->assertSeeHtml('100.00</td>')
+        ->assertDontSeeHtml('200.00</td>');
+});
+
+it('filters payouts by amount greater than a value', function () {
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 10000,
+        'status' => 'paid',
+        'arrival_date' => now(),
+    ]);
+
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 99900,
+        'status' => 'paid',
+        'arrival_date' => now(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(PayoutsPage::class)
+        ->set('amountOperator', 'greater_than')
+        ->set('amountValue', 500.00)
+        ->call('applyAmountFilter')
+        ->assertSeeHtml('999.00</td>')
+        ->assertDontSeeHtml('100.00</td>');
+});
+
+it('clears all filters', function () {
+    Payout::factory()->for($this->organization)->create([
+        'amount' => 10000,
+        'status' => 'paid',
+        'arrival_date' => now(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(PayoutsPage::class)
+        ->set('statusFilter', 'pending')
+        ->call('applyStatusFilter')
+        ->call('clearFilters')
+        ->assertSeeHtml('100.00</td>');
 });
