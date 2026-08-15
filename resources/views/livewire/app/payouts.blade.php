@@ -50,7 +50,11 @@
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-900">{{ ucfirst(str_replace('_', ' ', $payout->status)) }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-right text-sm text-slate-900">{{ number_format($payout->amount / 100, 2) }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-900">
-                                    {{ $payout->bank_name ?? 'Bank' }} ****{{ $payout->bank_account_last4 ?? '----' }}
+                                    @if ($payout->bank_name || $payout->bank_account_last4)
+                                        {{ $payout->bank_name ?? 'Bank' }} ****{{ $payout->bank_account_last4 ?? '----' }}
+                                    @else
+                                        —
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

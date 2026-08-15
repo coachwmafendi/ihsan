@@ -34,7 +34,11 @@ class SyncPayouts extends Command
 
             $stripe = new StripeClient(config('services.stripe.secret'));
             $payouts = $stripe->payouts->all(
-                ['created' => ['gte' => $createdAfter], 'limit' => 100],
+                [
+                    'created' => ['gte' => $createdAfter],
+                    'limit' => 100,
+                    'expand' => ['data.destination'],
+                ],
                 ['stripe_account' => $organization->stripe_account_id]
             );
 
