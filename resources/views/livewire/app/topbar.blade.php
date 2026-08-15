@@ -76,7 +76,7 @@
             >
                 <div class="px-4 py-2 border-b border-slate-100">
                     <p class="text-sm font-medium text-slate-900">{{ auth()->user()?->name }}</p>
-                    <p class="text-xs text-slate-500">{{ auth()->user()?->email }}</p>
+                    <p class="break-words text-xs text-slate-500">{{ auth()->user()?->email }}</p>
                 </div>
 
                 <a href="/settings/account" wire:navigate class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
