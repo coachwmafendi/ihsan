@@ -49,24 +49,12 @@
                     </x-ui.select>
                 </div>
             @else
-                <div>
-                    <label for="date-from" class="block text-sm font-medium text-slate-700">Date from</label>
-                    <input
-                        id="date-from"
-                        type="date"
-                        wire:model.live="dateFrom"
-                        class="mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                    >
-                </div>
-                <div>
-                    <label for="date-to" class="block text-sm font-medium text-slate-700">Date to</label>
-                    <input
-                        id="date-to"
-                        type="date"
-                        wire:model.live="dateTo"
-                        class="mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                    >
-                </div>
+                <x-ui.date-range-calendar
+                    wire:from="dateFrom"
+                    wire:to="dateTo"
+                    :initial-from="$dateFrom"
+                    :initial-to="$dateTo"
+                />
             @endif
         </div>
     </x-ui.card>
