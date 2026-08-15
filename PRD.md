@@ -1,8 +1,8 @@
 # Product Requirements Document (PRD)
 ## Ihsan — Platform Derma & Fundraising Berulang untuk NGO Malaysia
 
-**Version:** 1.7
-**Tarikh:** 13 Jul 2026
+**Version:** 1.8
+**Tarikh:** 15 Ogos 2026
 **Status:** In Progress
 **Pemilik Produk:** TBD
 
@@ -47,7 +47,8 @@ Screenshot pertama menunjukkan Fundraise Up admin console dengan struktur naviga
 | Elements | MVP | Donation forms/buttons/popups/widget config |
 | Exports | MVP | CSV export untuk audit dan LHDN/manual reporting |
 | Virtual Terminal | MVP | Admin-created manual donations/payment entry — Shipped |
-| Settings | MVP | Organization, Stripe, branding, receipts |
+| Payouts | MVP | Read-only senarai Stripe payout ke bank NGO — Shipped |
+| Settings | MVP | Organization, Payment Processors (Stripe + CHIP), branding, receipts |
 | Help | MVP ringan | Link dokumentasi/support sahaja |
 
 Halaman **Insights** dalam screenshot mempunyai:
@@ -158,15 +159,17 @@ Fokus MVP pertama ialah **admin experience untuk NGO**, dengan donation flow min
 
 #### 4.1.3 NGO Admin Console
 - [x] Insights ringkasan: total raised, MRR, active recurring donors, donor baru, donation conversion signal asas
-- [x] Navigation utama: Dashboard, Campaigns, Elements, Insights, Donations, Recurring Plans, Supporters, Virtual Terminal, Audit Log, Settings
+- [x] Navigation utama: Dashboard, Campaigns, Elements, Insights, Donations, Recurring Plans, Supporters, Virtual Terminal, Payouts, Reports (Monthly Donations), Audit Log, Settings — dikumpul dalam sidebar groups "Fundraise", "Finance", dan "Organization"
 - [x] Insights dengan filter asas: date range, aggregation (daily/weekly/monthly), campaign, source/UTM, frequency
 - [x] Insights sections MVP: Overview, Performance, Recurring plans, Recurring revenue, Retention asas, Payment methods, Elements, URL, UTM
-- [x] Senarai donor/supporter dengan status, total given, last donation, dan recurring status
-- [x] Senarai recurring plans/subscriptions dengan status aktif, past due, paused, cancelled
+- [x] Senarai donor/supporter dengan status, total given, last donation, dan recurring status, termasuk badge "Validated" untuk email yang disahkan
+- [x] Senarai recurring plans/subscriptions dengan status aktif, retrying (dahulu "Past Due"), paused, cancelled, status icons, dan retry tooltip pada installment gagal
 - [x] Senarai transaksi dengan filter campaign, status, tarikh, dan type
+- [x] Payouts — senarai read-only payout Stripe ke bank NGO (jumlah, tarikh jangkaan, status, bank), disync harian melalui `app:sync-payouts` dan webhook `payout.*`
+- [x] Reports > Monthly Donations — laporan derma bulanan dengan pecahan kempen, muat turun CSV/PDF
 - [x] Eksport CSV untuk donations, supporters, dan recurring plans
-- [x] Settings organisasi berpecah kepada Organization, Stripe Connect, Account, Allowed Domains, Donor Portal, Notifications, Installation, dan Tracking & Analytics
-- [x] Email notification settings disimpan dalam `organizations.settings` dan auto-save apabila toggle berubah
+- [x] Settings organisasi berpecah kepada Organization, Payment Processors (Stripe + CHIP dengan toggle enable/disable berasingan), Account, Allowed Domains, Donor Portal, Notifications, Installation, dan Tracking & Analytics
+- [x] Email notification settings disimpan dalam `organizations.settings` dan auto-save apabila toggle berubah, dengan indikator "Saved" inline (menggantikan toast per-toggle)
 - [x] Fraud Prevention dashboard untuk super admin — senarai peraturan fraud, cubaan yang ditandakan/blocked, dan blocked donations yang menunggu semakan
 
 #### 4.1.4 Fraud Prevention & Security
@@ -180,12 +183,14 @@ Fokus MVP pertama ialah **admin experience untuk NGO**, dengan donation flow min
 #### 4.1.5 Donation Elements & Checkout
 - [x] Suggested amounts (3 pilihan + custom amount)
 - [x] Pilihan: One-time atau Recurring (weekly / monthly / yearly)
-- [x] Payment via **Stripe Connect** (kad, Apple Pay, Google Pay apabila tersedia)
-- [x] Donor boleh memilih untuk cover estimated Stripe processing fee apabila kempen/element membenarkan
+- [x] Payment via **Stripe Connect** (kad, Apple Pay, Google Pay apabila tersedia) atau **CHIP** (kad, FPX) — NGO boleh aktifkan salah satu atau kedua-dua processor
+- [x] Donor boleh memilih untuk cover estimated processing fee apabila kempen/element membenarkan
 - [x] Embeddable donation elements: Button, Floating Button, Sticky Button, Form, Popup, QR Code, dan Link
 - [x] Semua embed script menggunakan widget tunggal `/e/widget.js` dengan `data-token` dan `data-type`
+- [x] Imbasan QR Code membuka checkout modal terus melalui redirect `/qr/{element_token}`
+- [x] Currency autodetect berdasarkan geolocation IP donor semasa donation form dimuatkan
 - [x] Standalone donation page (hosted di Ihsan)
-- [x] Email resit automatik kepada donor selepas bayar, termasuk PDF receipt formal untuk download
+- [x] Email resit automatik kepada donor selepas bayar, termasuk PDF receipt formal untuk download, dan penyata derma tahunan (annual donation statement) melalui Donor Portal
 
 #### 4.1.6 Recurring Subscription Management
 - [x] Stripe Subscription untuk handle auto-billing
@@ -211,7 +216,8 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 
 | Feature | Fasa |
 |---------|------|
-| FPX / DuitNow / TNG eWallet | V2 |
+| FPX (via CHIP) | ~~V2~~ Shipped |
+| DuitNow / TNG eWallet | V2 |
 | Zakat & Sedekah module | V2 |
 | LHDN tax-exempt receipt automation | V2 |
 | White-label (NGO guna domain sendiri) | V2 |
@@ -245,14 +251,15 @@ Ini adalah feature yang penting tapi **tidak** dibina dalam MVP. Akan dimasukkan
 
 | Keperluan | Keterangan |
 |-----------|------------|
-| Payment gateway | Stripe (Malaysia-enabled account) |
-| One-time payment | Stripe Elements / PaymentIntent melalui connected account |
-| Recurring payment | Stripe Subscriptions + Stripe Billing |
-| Webhook handling | Stripe webhooks untuk event utama: `payment_intent.succeeded`, `payment_intent.payment_failed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`, `customer.subscription.updated`, `charge.refunded`, `account.updated` |
+| Payment gateway | **Stripe** (Malaysia-enabled account) dan **CHIP** — dua processor, NGO boleh aktif/nyahaktif setiap satu berasingan (`stripe_active` / `chip_active` pada `organizations`) |
+| One-time payment | Stripe Elements / PaymentIntent melalui connected account, atau CHIP Purchase (kad/FPX) melalui CHIP brand account |
+| Recurring payment | Stripe Subscriptions + Stripe Billing, atau CHIP recurring token untuk auto-charge berulang |
+| Webhook handling | Stripe webhooks untuk event utama: `payment_intent.succeeded`, `payment_intent.payment_failed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`, `customer.subscription.updated`, `charge.refunded`, `account.updated`, `payout.paid`, `payout.failed`. CHIP webhook untuk purchase status per organisasi (`chip/webhook/{organization?}`) dengan verifikasi public key. |
 | Processing fee | Default 2.5% daripada jumlah kasar; boleh dikonfigurasi oleh platform owner dan override per organisasi |
-| Donor covers fee | Donor boleh pilih untuk cover estimated processing cost. Estimate menggabungkan Stripe fee + processing fee 2.5% + FX markup 1.5% untuk non-MYR. Lihat formula di bawah. |
+| Fee collection default | Kaedah kutipan fee lalai adalah **upfront** (config `services.default_fee_collection_method`, boleh diubah via `DEFAULT_FEE_COLLECTION_METHOD` env) |
+| Donor covers fee | Donor boleh pilih untuk cover estimated processing cost. Estimate menggabungkan Stripe/CHIP fee + processing fee 2.5% + FX markup 1.5% untuk non-MYR. Lihat formula di bawah. |
 | Fee collection | Rekod dalam `processing_fees`; boleh dikutip sebagai application fee / monthly invoice bergantung aliran pembayaran |
-| Payout ke NGO | Stripe Connect — auto payout setiap 7 hari |
+| Payout ke NGO | Stripe Connect — auto payout setiap 7 hari, disync dan direkod dalam `payouts` melalui command `app:sync-payouts` (dijadualkan harian) dan webhook payout Stripe. NGO admin boleh semak senarai payout (read-only) di halaman Payouts. |
 | Refund | Manual oleh NGO Admin dalam 7 hari |
 | Fraud detection | Penilaian real-time semasa checkout berdasarkan `fraud_rules` — flag, block, atau notify |
 | Blocked donation review | Super admin boleh semak dan release blocked donations dari Fraud Prevention dashboard |
@@ -321,6 +328,13 @@ Tetapan notification disimpan dalam `organizations.settings`. Default MVP:
 | `weekly_report` | ON |
 | `monthly_report` | ON |
 
+#### 5.3.1 Pengesahan Penghantaran Email (SES/SNS)
+
+- Konfigurasi SES dan webhook SNS diurus dari halaman admin **Email Settings** (`admin/email-settings`) — bukan melalui `.env`
+- SNS notification (delivery, bounce, complaint) diterima melalui webhook, disahkan signature-nya (SignatureVersion 1 dan 2), dan direkod status delivery pada `donor_email_logs.delivery_status`
+- Apabila email donor disahkan (delivered tanpa bounce), donor akan menunjukkan badge **"Validated"** pada halaman Donations, Subscriptions, dan Supporters
+- Status validated dikekalkan (carry forward) apabila supporter/donor diedit
+
 ### 5.4 Embeddable Widget
 
 ```html
@@ -383,29 +397,47 @@ Tetapan notification disimpan dalam `organizations.settings`. Default MVP:
 
 ### 7.2 Halaman / Screen Utama
 
+Sejak migrasi subdomain, panel NGO admin dan panel Super Admin masing-masing dilayan pada subdomain berasingan daripada landing marketing (`getihsan.my`):
+
+| Panel | Domain (production) | Domain (local dev) |
+|-------|---------------------|---------------------|
+| Landing / marketing | `getihsan.my` | `ihsan.test` |
+| NGO Admin app | `app.getihsan.my` | `app.ihsan.test` |
+| Super Admin (Filament) | `admin.getihsan.my` | `admin.ihsan.test` |
+
+Laluan legacy `/app/...` dan `/login` (pada domain root) di-301-redirect ke domain panel yang betul, termasuk port bukan-standard semasa dev. Impersonation donor oleh NGO admin dibawa merentasi domain melalui signed magic-login URL.
+
 **Untuk Donor (Public)**
 - Halaman kempen (`/campaigns/{public_id}`)
 - Checkout flow melalui element (`/donate/{element_token}`) atau campaign (`/donate/campaign/{form_parameter}`)
-- Donor portal (`/donorportal/{organization_code}/...` — magic link access)
+- QR Code checkout — imbasan membuka checkout modal terus melalui `/qr/{element_token}`
+- Donor portal (`/donorportal/{organization_code}/...` — magic link access), termasuk halaman penyata derma tahunan (`/donorportal/{organization_code}/annual-statement`)
 
-**Untuk NGO Admin**
+**Untuk NGO Admin** (pada `app.getihsan.my`, tanpa prefix `/app`)
 - Login (`/login`)
-- Dashboard (`/app/dashboard`)
-- Insights (`/app/insights`)
-- Campaigns (`/app/campaigns`)
-- Elements (`/app/elements`)
-- Donations (`/app/donations`)
-- Recurring Plans (`/app/recurring-plans`)
-- Supporters / Donors (`/app/supporters`)
-- Virtual Terminal (`/app/virtual-terminal`)
-- Audit Log (`/app/audit-log`)
-- Export CSV (`/app/donations/export`, `/app/supporters/export`, `/app/recurring-plans/export`)
-- Tetapan — Organization, Stripe Connect, Account, Allowed Domains, Donor Portal, Notifications, Installation, Tracking & Analytics (`/app/settings/...`)
+- Dashboard (`/dashboard`)
+- Insights (`/insights`)
+- Campaigns (`/campaigns`)
+- Elements (`/elements`)
+- Donations (`/donations`)
+- Recurring Plans (`/recurring-plans`)
+- Supporters / Donors (`/supporters`)
+- Virtual Terminal (`/virtual-terminal`)
+- Payouts (`/payouts`) — senarai read-only payout Stripe
+- Reports > Monthly Donations (`/reports/monthly-donations`, muat turun `/reports/monthly-donations/download`)
+- Audit Log (`/audit-log`)
+- Export CSV (`/donations/export`, `/supporters/export`, `/recurring-plans/export`)
+- Tetapan — Organization, Payment Processors, Account, Allowed Domains, Donor Portal, Notifications, Installation, Tracking & Analytics (`/settings/...`)
 
-**Untuk Super Admin**
+**Untuk Super Admin** (pada `admin.getihsan.my`)
 - Admin panel (`/admin`)
-- Senarai NGO + approval
-- Overview transaksi platform
+- Senarai NGO + approval (`/admin/organizations`)
+- Overview transaksi platform (`/admin/transactions`, `/admin/platform-overview`)
+- Revenue report per organisasi dengan muat turun CSV/PDF (`/admin/revenue`)
+- Email Settings — konfigurasi SES/SNS (`/admin/email-settings`)
+- Fraud Prevention (`/admin/fraud-prevention`)
+- Stripe Settings — overview sambungan Stripe Connect platform (`/admin/stripe-settings`)
+- Monthly Invoices (`/admin/monthly-invoices`), Processing Fees (`/admin/processing-fees`)
 
 ### 7.3 Design System
 
@@ -425,8 +457,9 @@ Tetapan notification disimpan dalam `organizations.settings`. Default MVP:
 | UI Components | Flux UI | Built for Livewire, professional look |
 | Database | SQLite untuk local dev, MySQL 8/PostgreSQL untuk production | Relational, mature, hosting mudah |
 | Cache/Queue | Redis + Laravel Horizon | Queue email & webhook processing |
-| Payment | Stripe + Stripe Connect | Best recurring support, Malaysia-enabled |
-| Email | Laravel Mail + Mailgun/Resend | Reliable delivery, template-based |
+| Payment | Stripe + Stripe Connect, dan CHIP | Best recurring support, Malaysia-enabled; CHIP sebagai alternatif tempatan dengan sokongan FPX |
+| Geolocation | MaxMind GeoLite2 City, dengan fallback ip-api | IP-to-city/region untuk analitik donor dan alert login |
+| Email | Laravel Mail + Amazon SES (SNS webhook untuk delivery tracking) | Reliable delivery, template-based, boleh disahkan status penghantaran |
 | Storage | Cloudflare R2 | Murah, S3-compatible, gambar kempen |
 | Hosting | Hetzner VPS / Laravel Forge | Cost-effective, control penuh |
 | Tunnel (dev) | Cloudflare Tunnel | Test Stripe webhooks secara local |
@@ -444,6 +477,7 @@ organizations          → NGO/badan amal berdaftar
   elements             → Button, Floating Button, Form, Popup, QR Code, Link
   processing_fees      → Rekod fee yang dikutip platform
   monthly_invoices     → Invois bulanan untuk accumulated processing fees
+  payouts              → Rekod payout Stripe ke akaun bank NGO
   webhook_logs         → Log semua Stripe webhook events
   fraud_rules          → Peraturan deteksi penipuan (global atau per organisasi)
   fraud_attempts       → Log cubaan transaksi yang ditandakan/dihalang
@@ -522,8 +556,8 @@ Hubungan penting:
 - [x] Donations, Supporters, dan Recurring list pages
 - [x] Recurring subscription list dan status management
 - [x] Donor Portal (magic link, history, receipts, cancel, pause/resume, change amount, update payment method)
-- [ ] CSV export
-- [ ] Smart dunning logic
+- [x] CSV export
+- [x] Smart dunning logic
 
 ### Fasa 4 — Widget, Super Admin & Polish (Minggu 10–12)
 
@@ -533,12 +567,34 @@ Hubungan penting:
 - [x] Virtual Terminal — admin manual donation processing dengan Stripe Card Element
 - [x] Platform Overview report (admin) — MRR/MTD financial health, operational alerts, donor & subscription health metrics
 - [x] Stripe Connect platform overview dalam admin Stripe settings
-- [x] Domain routing — app panel di `app.getihsan.my`, admin panel di `admin.getihsan.my`
+- [x] Domain routing — app panel di `app.getihsan.my`, admin panel di `admin.getihsan.my`, legacy `/app` dan `/login` di-301-redirect
 - [x] UI component system — reusable `x-ui-*` blade components untuk semua app panel pages
+- [x] CHIP payment processor — gateway kedua selain Stripe, dengan toggle enable/disable berasingan per organisasi
+- [x] Payouts — sync dan senarai read-only payout Stripe
+- [x] Monthly Donation Report — laporan bulanan dengan pecahan kempen dan muat turun CSV/PDF
+- [x] Audit Log dikuasakan oleh table `activity_log` (model + artisan command activity logging)
 - [ ] QA testing menyeluruh
 - [ ] Onboard 3 early adopter NGO (beta)
 
-### 12.1 Status Implementasi Semasa (13 Jul 2026)
+### 12.1 Status Implementasi Semasa (15 Ogos 2026)
+
+- **Payouts** — table dan model `Payout` baharu; command `app:sync-payouts` (dijadualkan harian) menyegerak payout daripada Stripe, disokong oleh webhook `payout.paid`/`payout.failed`; NGO admin melihat senarai read-only di `/payouts` (Finance sidebar group).
+- **CHIP payment processor** — gateway pembayaran kedua selain Stripe. `organizations` kini ada `chip_brand_id`, `chip_api_key` (encrypted), `chip_webhook_id`, `chip_webhook_public_key` (encrypted), `stripe_enabled`, dan `chip_enabled`; computed attribute `chip_active`/`stripe_active` menentukan sama ada processor live. Settings > Payment Processors memaparkan logo jenama Stripe dan CHIP dengan toggle enable/disable berasingan. CHIP menyokong kad dan FPX (senarai bank B2C).
+- **Monthly Donation Report** — halaman Livewire baharu di Reports > Monthly Donations, dengan pecahan kempen, muat turun CSV/PDF, dan pilihan bulan berdasarkan tarikh derma pertama organisasi.
+- **Migrasi subdomain app** — panel NGO admin dipindah ke `app.getihsan.my`, panel Super Admin ke `admin.getihsan.my`; laluan legacy `/app` dan `/login` di-301-redirect (termasuk port bukan-standard semasa dev); impersonation donor dibawa merentasi domain melalui signed magic-login URL.
+- **MaxMind GeoLite2** diintegrasikan untuk geolocation IP (city/region) dengan fallback ip-api, digunakan pada `donations.geo_city`/`geo_region` untuk analitik dan pada emel amaran login.
+- **Reka bentuk semula PDF resit** — resit derma menggunakan layout baharu yang dikongsi antara resit tunggal dan pukal (bulk); nombor resit diformat `RECEIPT-{ORG_PUBLIC_ID}-{TAHUN}-{id}` (id dipadatkan 6 digit); penyata derma tahunan (annual donation statement) ditambah di Donor Portal; jenama `getihsan.my` dibuang daripada footer PDF.
+- **Pengesahan penghantaran emel SES/SNS** — status delivery emel dijejak melalui webhook SNS (disahkan signature-nya) dan dikonfigurasi dari halaman admin Email Settings (bukan `.env`); donor mendapat badge "Validated" pada halaman Donations, Subscriptions, dan Supporters apabila emel disahkan.
+- **Audit Log** kini dikuasakan oleh table `activity_log` (spatie/laravel-activitylog) melalui model activity observer dan artisan command activity logging, dipaparkan di `/audit-log` dengan filter organisasi.
+- **QR Code checkout** — imbasan QR kini membuka terus checkout modal melalui redirect `/qr/{element_token}`.
+- **Currency/geolocation autodetect** pada donation form; jumlah dalam mata wang bukan-MYR pada laporan/kempen ditanda dengan penanda anggaran (approximation marker) apabila totals bercampur currency.
+- **Fee collection default** ditukar kepada `upfront` melalui config `services.default_fee_collection_method` (`DEFAULT_FEE_COLLECTION_METHOD` env).
+- **Virtual Terminal** — tambah cover-fee toggle, notifikasi organisasi untuk derma/langganan VT, penukaran ke MYR base amount untuk kad asing, dan card tokenization pada connected account.
+- **Subscription/installments UI** — jadual installment dengan status icons, retry tooltip, status "Retrying" (dahulu "Past Due"), dan pengurusan subscription terkawal-app di Donor Portal.
+- **`organizations.approved_at`** kini auto-stamp oleh model hook apabila status bertukar kepada `active`, tanpa perlu set manual.
+- `payouts` **tidak** menggunakan skema `public_id` — ia jadual internal read-only yang di-scope oleh `organization_id` dan `stripe_payout_id`, tiada keperluan untuk sembunyikan auto-increment ID dalam URL.
+
+### 12.2 Status Implementasi Terdahulu (13 Jul 2026)
 
 - Settings NGO telah dipecahkan kepada Organization, Stripe Connect, Account, Allowed Domains, Donor Portal, Notifications, Installation, dan Tracking & Analytics.
 - Notification preferences auto-save ke `organizations.settings` dan email dihantar melalui queued jobs.
@@ -566,7 +622,7 @@ Hubungan penting:
 - Campaign Page message menyimpan dan memaparkan baris baharu (newlines) dengan betul dalam edit preview dan halaman awam.
 - Active state sidebar item menggunakan warna biru dan ikon loceng notifikasi mempunyai tooltip "Platform Notifications".
 
-### 12.2 Rujukan Screenshot Fundraise Up
+### 12.3 Rujukan Screenshot Fundraise Up
 
 Pemilik produk mempunyai akses login Fundraise Up dan boleh menyediakan screenshot/menu sebagai rujukan. Setiap screenshot yang diterima akan diklasifikasikan kepada:
 
