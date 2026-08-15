@@ -8,8 +8,11 @@ use App\Models\Campaign;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Services\StripeMetadata;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Stripe\ApiRequestor;
+use Stripe\Exception\ApiConnectionException;
 use Stripe\HttpClient\ClientInterface;
 use Stripe\HttpClient\CurlClient;
 use Stripe\Stripe;
@@ -113,6 +116,13 @@ it('updates active and paused subscription metadata for the organization', funct
         'stripe_subscription_id' => 'sub_paused_123',
     ]);
 
+    $otherOrg = Organization::factory()->create();
+    $otherCampaign = Campaign::factory()->for($otherOrg)->create();
+    Subscription::factory()->for($donor)->for($otherCampaign)->create([
+        'status' => SubscriptionStatus::Active,
+        'stripe_subscription_id' => 'sub_other_org_123',
+    ]);
+
     $requests = [];
     ApiRequestor::setHttpClient(fakeStripeClientForDonorUpdate($requests));
 
@@ -121,18 +131,24 @@ it('updates active and paused subscription metadata for the organization', funct
     $subscriptionRequests = collect($requests)
         ->filter(fn ($r) => str_contains($r['url'], '/v1/subscriptions/'));
 
-    expect($subscriptionRequests)->toHaveCount(2);
+    expect($subscriptionRequests)->toHaveCount(2)
+        ->and($subscriptionRequests->pluck('url'))->each(fn ($url) => $url->not->toContain('sub_other_org_123'));
+
+    $expectedMetadata = StripeMetadata::forDonorUpdate($donor);
+    $subscriptionRequests->each(fn ($r) => expect($r['params']['metadata'] ?? null)->toBe($expectedMetadata));
 });
 
-it('returns false when stripe throws but does not bubble exception', function () {
+it('returns false and logs an error when stripe throws', function () {
     $org = Organization::factory()->create();
     $donor = Donor::factory()->create(['stripe_customer_id' => 'cus_test_123']);
+
+    Log::shouldReceive('error')->once();
 
     $client = new class implements ClientInterface
     {
         public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
         {
-            throw new RuntimeException('Stripe is down');
+            throw new ApiConnectionException('Stripe is down');
         }
     };
 
@@ -141,4 +157,69 @@ it('returns false when stripe throws but does not bubble exception', function ()
     $result = app(SyncDonorDetailsToStripe::class)->sync($donor, $org);
 
     expect($result)->toBeFalse();
+});
+
+it('continues updating remaining subscriptions when one subscription update fails', function () {
+    $org = Organization::factory()->stripeConnected()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+    $donor = Donor::factory()->create([
+        'stripe_customer_id' => 'cus_test_123',
+        'first_name' => 'Ahmad',
+        'last_name' => 'Bakar',
+        'email' => 'ahmad@example.com',
+    ]);
+    Subscription::factory()->for($donor)->for($campaign)->create([
+        'status' => SubscriptionStatus::Active,
+        'stripe_subscription_id' => 'sub_fail_123',
+    ]);
+    Subscription::factory()->for($donor)->for($campaign)->create([
+        'status' => SubscriptionStatus::Active,
+        'stripe_subscription_id' => 'sub_ok_123',
+    ]);
+
+    Log::shouldReceive('error')->once();
+
+    $requests = [];
+    $client = new class($requests) implements ClientInterface
+    {
+        public function __construct(private array &$requests) {}
+
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $this->requests[] = [
+                'method' => $method,
+                'url' => $absUrl,
+                'params' => $params,
+            ];
+
+            if (str_contains($absUrl, '/v1/subscriptions/sub_fail_123')) {
+                throw new ApiConnectionException('Subscription update failed');
+            }
+
+            $response = match (true) {
+                str_contains($absUrl, '/v1/customers/') && $method === 'post' => [
+                    'id' => 'cus_test',
+                    'object' => 'customer',
+                ],
+                str_contains($absUrl, '/v1/subscriptions/') && $method === 'post' => [
+                    'id' => 'sub_test',
+                    'object' => 'subscription',
+                ],
+                default => throw new RuntimeException('Unexpected Stripe request: '.$method.' '.$absUrl),
+            };
+
+            return [json_encode($response), 200, []];
+        }
+    };
+
+    ApiRequestor::setHttpClient($client);
+
+    $result = app(SyncDonorDetailsToStripe::class)->sync($donor, $org);
+
+    $subscriptionRequests = collect($requests)
+        ->filter(fn ($r) => str_contains($r['url'], '/v1/subscriptions/'));
+
+    expect($result)->toBeFalse()
+        ->and($subscriptionRequests)->toHaveCount(2)
+        ->and(collect($requests)->first(fn ($r) => str_contains($r['url'], '/v1/customers/cus_test_123')))->not->toBeNull();
 });

@@ -11,9 +11,9 @@ use App\Models\Subscription;
 use App\Services\StripeMetadata;
 use Illuminate\Database\Eloquent\Builder;
 use Stripe\Customer;
+use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 use Stripe\Subscription as StripeSubscription;
-use Throwable;
 
 final class SyncDonorDetailsToStripe
 {
@@ -29,31 +29,65 @@ final class SyncDonorDetailsToStripe
             ? ['stripe_account' => $organization->stripe_account_id]
             : [];
 
+        $successful = $this->updateStripeCustomer($donor, $stripeOptions);
+
+        $subscriptions = $donor->subscriptions()
+            ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Paused])
+            ->whereHas('campaign', fn (Builder $q) => $q->where('organization_id', $organization->getKey()))
+            ->get();
+
+        foreach ($subscriptions as $subscription) {
+            if ($subscription->stripe_subscription_id === null) {
+                continue;
+            }
+
+            if (! $this->updateStripeSubscription($subscription, $donor, $stripeOptions)) {
+                $successful = false;
+            }
+        }
+
+        return $successful;
+    }
+
+    /**
+     * Update the Stripe Customer record for the donor.
+     */
+    private function updateStripeCustomer(Donor $donor, array $stripeOptions): bool
+    {
         try {
             Customer::update($donor->stripe_customer_id, [
-                'name' => trim(($donor->first_name ?? '').' '.($donor->last_name ?? '')),
+                'name' => $donor->name,
                 'email' => $donor->email,
                 'preferred_locales' => StripeMetadata::customerLocale($donor) ?? [],
             ], $stripeOptions);
 
-            $donor->subscriptions()
-                ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Paused])
-                ->whereHas('campaign', fn (Builder $q) => $q->where('organization_id', $organization->getKey()))
-                ->each(function (Subscription $subscription) use ($donor, $stripeOptions): void {
-                    if ($subscription->stripe_subscription_id === null) {
-                        return;
-                    }
+            return true;
+        } catch (ApiErrorException $e) {
+            report($e);
+        } catch (\Exception $e) {
+            report($e);
+        }
 
-                    StripeSubscription::update($subscription->stripe_subscription_id, [
-                        'metadata' => StripeMetadata::forDonorUpdate($donor),
-                    ], $stripeOptions);
-                });
+        return false;
+    }
+
+    /**
+     * Update a single Stripe Subscription with the donor's current metadata.
+     */
+    private function updateStripeSubscription(Subscription $subscription, Donor $donor, array $stripeOptions): bool
+    {
+        try {
+            StripeSubscription::update($subscription->stripe_subscription_id, [
+                'metadata' => StripeMetadata::forDonorUpdate($donor),
+            ], $stripeOptions);
 
             return true;
-        } catch (Throwable $e) {
+        } catch (ApiErrorException $e) {
             report($e);
-
-            return false;
+        } catch (\Exception $e) {
+            report($e);
         }
+
+        return false;
     }
 }
