@@ -11,6 +11,7 @@ use App\Actions\Stripe\ChangeRecurringAmount;
 use App\Actions\Stripe\ChargeRecurringInstallment as ChargeRecurringInstallmentAction;
 use App\Actions\Stripe\ManageStripeSubscription;
 use App\Actions\Stripe\PauseLocalRecurringPlan;
+use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Actions\Stripe\UpdateAppControlledPaymentMethod;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
@@ -809,6 +810,12 @@ class SubscriptionShow extends Component
             'address_postal_code' => $this->editAddressPostalCode ?: null,
             'country' => $this->editCountry ?: null,
         ]);
+
+        if ($donor->stripe_customer_id) {
+            // Use the campaign organization (the Stripe Connect account owner), not the
+            // logged-in user's organization, so the sync targets the correct Stripe account.
+            app(SyncDonorDetailsToStripe::class)->sync($donor, $this->subscription->campaign->organization);
+        }
 
         $this->subscription->refresh();
         $this->showEditPersonalModal = false;

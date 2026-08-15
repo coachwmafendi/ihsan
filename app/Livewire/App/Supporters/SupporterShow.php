@@ -6,13 +6,11 @@ namespace App\Livewire\App\Supporters;
 
 use App\Actions\DonorEmailLog\PreviewDonorEmail;
 use App\Actions\DonorEmailLog\ResendDonorEmail;
+use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Enums\DonationStatus;
-use App\Enums\SubscriptionStatus;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
-use App\Models\Subscription;
-use App\Services\StripeMetadata;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
@@ -21,9 +19,6 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Stripe\Customer;
-use Stripe\Stripe;
-use Stripe\Subscription as StripeSubscription;
 
 #[Layout('layouts.app')]
 class SupporterShow extends Component
@@ -37,8 +32,6 @@ class SupporterShow extends Component
     public string $lastName = '';
 
     public string $email = '';
-
-    public bool $updateRecurringPlans = true;
 
     public bool $showPreviewModal = false;
 
@@ -159,7 +152,6 @@ class SupporterShow extends Component
         $this->firstName = $this->donor->first_name ?? '';
         $this->lastName = $this->donor->last_name ?? '';
         $this->email = $this->donor->email;
-        $this->updateRecurringPlans = true;
         $this->editing = true;
     }
 
@@ -195,36 +187,10 @@ class SupporterShow extends Component
             $this->donor->markEmailValidated();
         }
 
-        if ($this->updateRecurringPlans && $this->donor->stripe_customer_id) {
-            try {
-                Stripe::setApiKey(config('services.stripe.secret'));
-
-                $stripeOptions = $org->stripe_account_id
-                    ? ['stripe_account' => $org->stripe_account_id]
-                    : [];
-
-                Customer::update($this->donor->stripe_customer_id, [
-                    'first_name' => $this->donor->first_name,
-                    'last_name' => $this->donor->last_name,
-                    'email' => $validated['email'],
-                    'preferred_locales' => StripeMetadata::customerLocale($this->donor) ?? [],
-                ], $stripeOptions);
-
-                $this->donor->subscriptions()
-                    ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Paused])
-                    ->whereHas('campaign', fn (Builder $q) => $q->where('organization_id', $org->id))
-                    ->each(function (Subscription $subscription) use ($stripeOptions): void {
-                        if ($subscription->stripe_subscription_id === null) {
-                            return;
-                        }
-
-                        StripeSubscription::update($subscription->stripe_subscription_id, [
-                            'metadata' => StripeMetadata::forDonorUpdate($this->donor),
-                        ], $stripeOptions);
-                    });
-            } catch (\Exception $e) {
-                report($e);
-            }
+        if ($this->donor->stripe_customer_id) {
+            // mount() already verified this donor has donated to $org, and all subscription
+            // queries on this page are scoped to $org. Sync to that Stripe Connect account.
+            app(SyncDonorDetailsToStripe::class)->sync($this->donor, $org);
         }
 
         $this->editing = false;

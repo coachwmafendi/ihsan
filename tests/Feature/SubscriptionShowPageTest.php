@@ -1,10 +1,12 @@
 <?php
 
 use App\Actions\Stripe\ChargeRecurringInstallment;
+use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Data\ChargeResult;
 use App\Enums\DonationStatus;
 use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
+use App\Enums\UserRole;
 use App\Livewire\App\Subscriptions\SubscriptionShow;
 use App\Mail\DonationReceipt;
 use App\Models\Campaign;
@@ -793,4 +795,74 @@ it('skips installments for an app-controlled subscription from the admin panel',
     expect($subscription->status)->toBe(SubscriptionStatus::Paused)
         ->and($subscription->paused_until)->not->toBeNull()
         ->and($subscription->next_charge_at)->not->toBeNull();
+});
+
+it('syncs donor personal information changes to stripe', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create([
+        'stripe_customer_id' => 'cus_test_789',
+        'first_name' => 'Ali',
+        'last_name' => 'Abu',
+        'email' => 'ali@example.com',
+    ]);
+    $subscription = Subscription::factory()->for($donor)->for($campaign)->create([
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    $spy = Mockery::mock(SyncDonorDetailsToStripe::class);
+    $spy->shouldReceive('sync')
+        ->once()
+        ->withArgs(fn (Donor $d, Organization $o) => $d->is($donor) && $o->is($organization))
+        ->andReturn(true);
+    app()->instance(SyncDonorDetailsToStripe::class, $spy);
+
+    Livewire::actingAs($user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->call('openEditPersonalModal')
+        ->set('editFirstName', 'Siti')
+        ->set('editLastName', 'Aminah')
+        ->set('editEmail', 'siti@example.com')
+        ->call('savePersonalInformation')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    expect($donor->fresh())
+        ->name->toBe('Siti Aminah')
+        ->email->toBe('siti@example.com');
+});
+
+it('does not sync donor personal information to stripe when donor has no stripe customer id', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create([
+        'stripe_customer_id' => null,
+        'first_name' => 'Ali',
+        'last_name' => 'Abu',
+        'email' => 'ali@example.com',
+    ]);
+    $subscription = Subscription::factory()->for($donor)->for($campaign)->create([
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    $spy = Mockery::mock(SyncDonorDetailsToStripe::class);
+    $spy->shouldReceive('sync')
+        ->never();
+    app()->instance(SyncDonorDetailsToStripe::class, $spy);
+
+    Livewire::actingAs($user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->call('openEditPersonalModal')
+        ->set('editFirstName', 'Siti')
+        ->set('editLastName', 'Aminah')
+        ->set('editEmail', 'siti@example.com')
+        ->call('savePersonalInformation')
+        ->assertHasNoErrors()
+        ->assertDispatched('notify');
+
+    expect($donor->fresh())
+        ->name->toBe('Siti Aminah')
+        ->email->toBe('siti@example.com');
 });

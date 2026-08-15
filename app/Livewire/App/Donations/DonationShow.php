@@ -8,6 +8,7 @@ use App\Actions\Chip\RefundDonation as ChipRefundDonation;
 use App\Actions\DonorEmailLog\PreviewDonorEmail;
 use App\Actions\DonorEmailLog\ResendDonorEmail;
 use App\Actions\Stripe\RefundDonation as StripeRefundDonation;
+use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
@@ -494,6 +495,13 @@ class DonationShow extends Component
             'address_postal_code' => $this->editAddressPostalCode ?: null,
             'country' => $this->editCountry ?: null,
         ]);
+
+        if ($donor->stripe_customer_id) {
+            // Use the campaign organization (the Stripe Connect account owner) rather than
+            // the logged-in user's organization, so cross-organization users can't sync into
+            // the wrong Stripe account.
+            app(SyncDonorDetailsToStripe::class)->sync($donor, $this->donation->campaign->organization);
+        }
 
         $this->donation->update(['is_anonymous' => $this->editIsAnonymous]);
 

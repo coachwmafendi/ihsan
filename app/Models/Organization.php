@@ -146,6 +146,12 @@ class Organization extends Model
             }
         });
 
+        static::saving(function (Organization $organization) {
+            if ($organization->status === OrganizationStatus::Active && $organization->isDirty('status') && ! $organization->approved_at) {
+                $organization->approved_at = now();
+            }
+        });
+
         static::forceDeleting(function (Organization $organization) {
             if (filled($organization->logo_path)) {
                 Storage::disk('public')->delete($organization->logo_path);

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Enums\DonationStatus;
 use App\Enums\UserRole;
 use App\Livewire\App\Supporters\SupporterShow;
@@ -319,7 +320,6 @@ it('keeps the validated badge after the supporter email is updated', function ()
         ->set('firstName', 'Ali')
         ->set('lastName', 'Abu')
         ->set('email', 'new.email@example.com')
-        ->set('updateRecurringPlans', false)
         ->call('save')
         ->assertHasNoErrors();
 
@@ -357,7 +357,6 @@ it('opens the edit modal and saves the supporter details', function () {
     $component->set('firstName', 'Siti')
         ->set('lastName', 'Aminah')
         ->set('email', 'siti@example.com')
-        ->set('updateRecurringPlans', false)
         ->call('save');
 
     expect($donor->fresh())
@@ -365,6 +364,73 @@ it('opens the edit modal and saves the supporter details', function () {
         ->email->toBe('siti@example.com');
 
     $component->assertSet('editing', false);
+});
+
+it('syncs supporter details to stripe when stripe_customer_id exists', function () {
+    $organization = Organization::factory()->stripeConnected()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create([
+        'stripe_customer_id' => 'cus_test_123',
+        'first_name' => 'Ali',
+        'last_name' => 'Abu',
+        'email' => 'ali@example.com',
+    ]);
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    $spy = Mockery::mock(SyncDonorDetailsToStripe::class);
+    $spy->shouldReceive('sync')
+        ->once()
+        ->withArgs(fn (Donor $d, Organization $o) => $d->is($donor) && $o->is($organization))
+        ->andReturn(true);
+    app()->instance(SyncDonorDetailsToStripe::class, $spy);
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->call('openEditModal')
+        ->set('firstName', 'Siti')
+        ->set('lastName', 'Aminah')
+        ->set('email', 'siti@example.com')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($donor->fresh())
+        ->name->toBe('Siti Aminah')
+        ->email->toBe('siti@example.com');
+});
+
+it('does not sync to stripe when supporter has no stripe_customer_id', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create([
+        'stripe_customer_id' => null,
+        'first_name' => 'Ali',
+        'last_name' => 'Abu',
+        'email' => 'ali@example.com',
+    ]);
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    $spy = Mockery::mock(SyncDonorDetailsToStripe::class);
+    $spy->shouldReceive('sync')->never();
+    app()->instance(SyncDonorDetailsToStripe::class, $spy);
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->call('openEditModal')
+        ->set('firstName', 'Siti')
+        ->set('lastName', 'Aminah')
+        ->set('email', 'siti@example.com')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($donor->fresh())
+        ->name->toBe('Siti Aminah')
+        ->email->toBe('siti@example.com');
 });
 
 it('renders the emails section with sent emails for the donor', function () {
