@@ -1,8 +1,8 @@
 # Entity Relationship Diagram (ERD)
 ## Ihsan — MVP Database Design
 
-**Version:** 2.1
-**Tarikh:** 13 Jul 2026
+**Version:** 2.2
+**Tarikh:** 15 Ogos 2026
 **Database:** SQLite untuk local dev, MySQL 8/PostgreSQL untuk production
 **Framework:** Laravel 13
 
@@ -25,8 +25,9 @@ ERD ini menyokong MVP yang bermula dengan app untuk NGO admin:
 - `organizations`, `users`, dan `organization_documents` untuk onboarding dan approval NGO
 - `campaigns` dan `elements` untuk fundraising setup yang boleh diurus sendiri oleh NGO admin
 - `donors`, `donations`, dan `subscriptions` untuk supporter, transaksi, dan recurring revenue
-- `processing_fees`, `monthly_invoices`, dan `webhook_logs` untuk operasi pembayaran, rekonsiliasi, invois fee, dan audit
+- `processing_fees`, `monthly_invoices`, `payouts`, dan `webhook_logs` untuk operasi pembayaran, rekonsiliasi, invois fee, payout, dan audit
 - `donor_email_logs` untuk sejarah email, tracking, dan responsive preview
+- `activity_log` (disediakan oleh package `spatie/laravel-activitylog`, bukan entiti custom) menyokong halaman Audit Log — merekod perubahan model (organizations, campaigns, donations, dll) dan artisan command activity secara polymorphic (`subject_type`/`subject_id`, `causer_type`/`causer_id`). Tidak dimasukkan dalam Mermaid diagram di bawah kerana ia struktur generik vendor, bukan domain entity Ihsan
 
 Donor Portal menggunakan magic link tanpa password. MVP kini menyokong sejarah derma, download receipt, pembatalan subscription, pause/resume, tukar amount, dan update payment method. Fungsi lanjutan seperti preferences donor atau komunikasi segmentation boleh ditambah kemudian tanpa menukar struktur data utama.
 
@@ -79,8 +80,14 @@ erDiagram
         boolean tax_exempt
         enum status "pending|active|suspended|rejected"
         string stripe_account_id UK "nullable"
+        string chip_brand_id "nullable"
+        text chip_api_key "nullable - encrypted"
+        string chip_webhook_id "nullable"
+        text chip_webhook_public_key "nullable - encrypted"
         boolean stripe_onboarded
         timestamp stripe_onboarded_at "nullable"
+        boolean stripe_enabled "default true"
+        boolean chip_enabled "default true"
         string bank_account_name
         string bank_account_number
         string bank_name
@@ -153,6 +160,7 @@ erDiagram
         timestamp magic_token_expires_at "nullable"
         timestamp email_opt_out_at "nullable"
         timestamp email_bounced_at "nullable"
+        timestamp email_validated_at "nullable - disahkan melalui SES/SNS delivery webhook"
         string photo_path "nullable"
         string address_line1 "nullable"
         string address_line2 "nullable"
@@ -175,8 +183,12 @@ erDiagram
         string stripe_payment_intent_id UK "nullable"
         string stripe_charge_id "nullable"
         string stripe_invoice_id "nullable"
+        string chip_purchase_id "nullable"
+        string chip_recurring_token "nullable"
+        text chip_checkout_url "nullable"
         decimal gross_amount
         decimal stripe_fee
+        decimal chip_fee "default 0"
         decimal processing_fee
         decimal net_amount
         string base_currency "nullable"
@@ -191,6 +203,8 @@ erDiagram
         string payment_method_brand "nullable - visa|mastercard|fpx|etc"
         string payment_method_type "nullable - card|fpx|grabpay|wallet|etc"
         string payment_method_last4 "nullable"
+        tinyint payment_method_exp_month "nullable"
+        smallint payment_method_exp_year "nullable"
         string donor_country "nullable - card country ISO alpha-2"
         decimal donor_fee_covered "nullable"
         string invoice_number "nullable"
@@ -228,10 +242,12 @@ erDiagram
         string source "nullable - element|campaign_page|checkout_modal|virtual_terminal"
         string stripe_subscription_id UK
         string stripe_price_id "nullable"
+        string chip_recurring_token "nullable"
         decimal amount
         string currency "default myr"
         enum interval "weekly|monthly|yearly"
         enum status "active|paused|cancelled|past_due|incomplete"
+        text last_failure_message "nullable - Stripe/CHIP failure reason"
         tinyint retry_count "default 0 max 3"
         tinyint payment_count "default 0 - berapa kali dah bayar"
         timestamp current_period_start "nullable"
@@ -295,6 +311,23 @@ erDiagram
         timestamp paid_at "nullable"
         string stripe_invoice_url "nullable"
         string stripe_invoice_pdf "nullable"
+        timestamps created_at updated_at
+    }
+
+    PAYOUTS {
+        bigint id PK
+        bigint organization_id FK
+        string stripe_payout_id
+        integer amount
+        string currency
+        string status
+        date arrival_date
+        date paid_at "nullable"
+        string bank_name "nullable"
+        string bank_account_last4 "nullable"
+        string failure_code "nullable"
+        string failure_message "nullable"
+        json metadata "nullable"
         timestamps created_at updated_at
     }
 
@@ -416,6 +449,7 @@ erDiagram
     ORGANIZATIONS ||--o{ ELEMENTS : "has many"
     ORGANIZATIONS ||--o{ PROCESSING_FEES : "has many"
     ORGANIZATIONS ||--o{ MONTHLY_INVOICES : "has many"
+    ORGANIZATIONS ||--o{ PAYOUTS : "receives"
     CAMPAIGNS ||--o{ DONATIONS : "receives"
     CAMPAIGNS ||--o{ SUBSCRIPTIONS : "has many"
     CAMPAIGNS ||--o{ ELEMENTS : "has many (optional)"
@@ -467,14 +501,21 @@ Entiti utama yang mewakili NGO, masjid, atau badan amal yang berdaftar di Ihsan.
 | `stripe_account_id` | string | ID Stripe Connect Express account NGO |
 | `stripe_onboarded` | boolean | TRUE bila NGO dah selesai Stripe onboarding flow |
 | `stripe_onboarded_at` | timestamp nullable | Masa onboarding Stripe Connect selesai |
+| `stripe_enabled` | boolean, default TRUE | Toggle NGO admin untuk aktif/nyahaktifkan Stripe sebagai processor |
+| `chip_brand_id` | string nullable | Brand ID CHIP untuk organisasi |
+| `chip_api_key` | text nullable, encrypted | API key CHIP (disulitkan at-rest) |
+| `chip_webhook_id` / `chip_webhook_public_key` | string/text nullable | ID webhook CHIP dan public key untuk verifikasi signature (`chip_webhook_public_key` disulitkan) |
+| `chip_enabled` | boolean, default TRUE | Toggle NGO admin untuk aktif/nyahaktifkan CHIP sebagai processor |
 | `status` | enum | `pending` selepas daftar; `active` selepas approved oleh super_admin |
 | `settings` | json | Konfigurasi ringan organisasi: notification preferences, default currency, dll |
 | `processing_fee_override` | decimal nullable | Kadar processing fee khusus NGO, jika berbeza daripada default platform |
-| `fee_collection_method` | string nullable | Cara kutipan fee, contohnya application fee atau monthly invoice |
+| `fee_collection_method` | string, default `upfront` | Cara kutipan fee: `upfront` (default sejak Jul 2026) atau `invoice` (monthly invoice) |
 | `admin_notes` | text nullable | Nota dalaman platform owner |
 | `tax_exempt` | boolean | Flag untuk organisasi yang layak receipt tax-exempt |
 | `facebook_url` | string nullable | URL Facebook rasmi organisasi |
 | `address_line_1/2`, `city`, `state`, `postcode`, `country`, `sector` | string nullable | Alamat dan sektor organisasi |
+
+> **Nota:** `stripe_active` dan `chip_active` **bukan** kolum DB — ia computed attribute pada model (`stripe_onboarded && stripe_enabled`, dan `chip_onboarded && chip_enabled` di mana `chip_onboarded` = ada `chip_brand_id` dan `chip_api_key`). Digunakan untuk tentukan processor mana yang live semasa checkout.
 
 ---
 
@@ -521,6 +562,7 @@ Kempen fundraising yang dibuat oleh NGO. Satu NGO boleh ada berbilang kempen akt
 | `magic_token_expires_at` | timestamp | Token expired selepas 24 jam |
 | `email_opt_out_at` | timestamp nullable | Masa donor memilih opt-out daripada email |
 | `email_bounced_at` | timestamp nullable | Masa email donor ditandakan bounced |
+| `email_validated_at` | timestamp nullable | Masa email donor disahkan delivered oleh SES/SNS webhook; memaparkan badge "Validated" di UI |
 | `photo_path` | string nullable | Path foto profil di storage private |
 | `address_line1` | string nullable | Alamat baris 1 |
 | `address_line2` | string nullable | Alamat baris 2 |
@@ -544,14 +586,18 @@ Rekod setiap transaksi tunggal — sama ada one-time atau satu bayaran daripada 
 | `subscription_id` | FK nullable | NULL = one-time; ada nilai = dijana oleh subscription |
 | `source` | string nullable | Sumber transaksi: `element`, `campaign_page`, `checkout_modal`, `virtual_terminal` |
 | `stripe_invoice_id` | string nullable | ID invois Stripe untuk subscription payment |
+| `chip_purchase_id` / `chip_recurring_token` / `chip_checkout_url` | string/text nullable | ID purchase CHIP, token recurring CHIP, dan URL checkout hosted CHIP |
 | `type` | enum | `one_time` atau `recurring` |
 | `gross_amount` | decimal | Jumlah yang donor bayar |
 | `stripe_fee` | decimal | Fee Stripe yang sebenar dari BalanceTransaction |
+| `chip_fee` | decimal, default 0 | Fee CHIP yang sebenar apabila transaksi diproses melalui CHIP |
 | `processing_fee` | decimal | Fee Ihsan, default 2.5% daripada gross amount atau override organisasi |
-| `net_amount` | decimal | Yang masuk ke NGO (`gross - stripe_fee - processing_fee`) |
+| `net_amount` | decimal | Yang masuk ke NGO (`gross - stripe_fee/chip_fee - processing_fee`) |
 | `payment_method_brand` | string | Jenama kad: `visa`, `mastercard`, atau type method untuk non-card |
-| `payment_method_type` | string | Method type dari Stripe: `card`, `fpx`, `grabpay`, `wallet` |
+| `payment_method_type` | string | Method type dari Stripe/CHIP: `card`, `fpx`, `grabpay`, `wallet` |
+| `payment_method_exp_month` / `payment_method_exp_year` | integer nullable | Tarikh luput kad yang digunakan untuk derma; dipaparkan pada butiran resit |
 | `donor_country` | string nullable | Negara kad donor daripada PaymentMethod card country; digunakan untuk filter/analytics |
+| `geo_city` / `geo_region` | string nullable | Bandar/negeri donor daripada geolocation IP (MaxMind GeoLite2, fallback ip-api) |
 | `donor_fee_covered` | decimal nullable | Tambahan amount yang donor cover untuk estimated processing fee |
 | `base_currency` / `base_amount` / `exchange_rate` | mixed nullable | Snapshot conversion jika donation bukan dalam currency asas organisasi |
 | `receipt_sent_at` | timestamp nullable | Masa receipt email dihantar |
@@ -577,7 +623,9 @@ Rekod recurring subscription. Satu subscription = satu donor → satu campaign d
 | `public_id` | string unique | ID public-facing 8 aksara: `R` + 7 aksara rawak (A–Z, 1–9). Digunakan di donor portal untuk manage subscription |
 | `source` | string nullable | Sumber subscription: `element`, `campaign_page`, `checkout_modal`, `virtual_terminal` |
 | `stripe_subscription_id` | string unique | ID dari Stripe untuk sync status |
-| `status` | enum | Sync dengan Stripe Subscription status |
+| `chip_recurring_token` | string nullable | Token recurring CHIP untuk auto-charge berulang apabila subscription diproses melalui CHIP |
+| `status` | enum | Sync dengan Stripe/CHIP subscription status |
+| `last_failure_message` | text nullable | Sebab kegagalan bayaran terakhir dari Stripe/CHIP, dipaparkan sebagai tooltip retry pada UI |
 | `retry_count` | tinyint | Bilangan kali bayaran gagal dicuba (max 3, dunning logic) |
 | `payment_count` | tinyint | Bilangan kali bayaran berjaya — dikira dari `invoice.paid` webhook |
 | `paused_until` | timestamp | Set bila donor pause — resume otomatik selepas tarikh ini |
@@ -792,6 +840,26 @@ Log event tracking yang dihantar ke provider analytics/pixel — contohnya `Page
 
 ---
 
+### 2.19 `payouts`
+Rekod payout Stripe Connect ke akaun bank NGO. Disegerak daripada Stripe melalui command terjadual `app:sync-payouts` dan webhook payout (`payout.paid`, `payout.failed`). Halaman ini **read-only** untuk NGO admin — tiada tindakan tulis dari app panel.
+
+| Kolum | Jenis | Keterangan |
+|-------|-------|------------|
+| `stripe_payout_id` | string | ID payout daripada Stripe; unik bersama `organization_id` |
+| `amount` | integer | Jumlah payout dalam unit terkecil (sen) |
+| `currency` | string | Mata wang payout |
+| `status` | string | Status payout Stripe: `paid`, `pending`, `in_transit`, `failed`, `canceled`, dll |
+| `arrival_date` | date | Tarikh jangkaan/sebenar payout masuk bank |
+| `paid_at` | date nullable | Tarikh payout disahkan dibayar |
+| `bank_name` | string nullable | Nama bank destinasi |
+| `bank_account_last4` | string nullable | 4 digit terakhir akaun bank destinasi |
+| `failure_code` / `failure_message` | string nullable | Sebab kegagalan jika payout gagal |
+| `metadata` | json nullable | Data tambahan daripada Stripe |
+
+> **Nota:** `payouts` **tidak** menggunakan skema `public_id` — ia jadual internal yang di-scope oleh `organization_id`, tiada keperluan URL public-facing.
+
+---
+
 ## 3. Hubungan Penting
 
 ### 3.1 Global Donor → Multi-NGO (melalui campaigns)
@@ -880,6 +948,9 @@ Stripe memproses bayaran
 | `customer.subscription.updated` | Sync `amount`, `status`, `current_period_*` |
 | `charge.refunded` | Update `donations.status = refunded`, set `refunded_at`, decrement campaign collected amount, hantar refund notification |
 | `account.updated` | Update `stripe_onboarded = true` bila NGO selesai onboarding |
+| `payout.paid` / `payout.failed` | Upsert rekod dalam `payouts` (unik `organization_id` + `stripe_payout_id`) dengan status, tarikh, dan sebab kegagalan terkini |
+
+CHIP menghantar webhook berasingan ke `chip/webhook/{organization?}`, disahkan melalui `chip_webhook_public_key` per organisasi, untuk sync status purchase (`chip_purchase_id`) dan recurring token.
 
 ---
 
@@ -949,6 +1020,9 @@ CREATE INDEX idx_processing_fee_monthly_invoice ON processing_fees(monthly_invoi
 CREATE INDEX idx_monthly_invoice_org ON monthly_invoices(organization_id);
 CREATE INDEX idx_monthly_invoice_status ON monthly_invoices(stripe_status);
 CREATE INDEX idx_monthly_invoice_period ON monthly_invoices(period);
+
+-- payouts
+CREATE UNIQUE INDEX idx_payout_org_stripe_payout ON payouts(organization_id, stripe_payout_id);
 
 -- webhook_logs
 CREATE INDEX idx_webhook_event_id ON webhook_logs(stripe_event_id);
