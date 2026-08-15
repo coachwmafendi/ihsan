@@ -54,7 +54,7 @@ class DonorProfileController extends Controller
             'sync_stripe' => 'nullable|boolean',
         ]);
 
-        $syncStripe = (bool) ($data['sync_stripe'] ?? false);
+        $syncStripe = (bool) ($data['sync_stripe'] ?? true);
 
         if (request()->hasFile('photo')) {
             if ($donor->photo_path !== null) {
@@ -101,8 +101,13 @@ class DonorProfileController extends Controller
                             return;
                         }
 
+                        $stripeSubscription = StripeSubscription::retrieve($subscription->stripe_subscription_id, $stripeOptions);
+
                         StripeSubscription::update($subscription->stripe_subscription_id, [
-                            'metadata' => StripeMetadata::forDonorUpdate($donor),
+                            'metadata' => array_merge(
+                                $stripeSubscription->metadata?->toArray() ?? [],
+                                StripeMetadata::forDonorUpdate($donor),
+                            ),
                         ], $stripeOptions);
                     });
             } catch (\Exception $e) {

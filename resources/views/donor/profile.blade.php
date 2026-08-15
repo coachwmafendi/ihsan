@@ -269,6 +269,7 @@
                         </div>
                         <label class="flex cursor-pointer items-start gap-3">
                             <input type="checkbox" name="sync_stripe" value="1"
+                                   {{ old('sync_stripe', true) ? 'checked' : '' }}
                                    class="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
                             <span class="text-sm font-medium text-slate-700">Apply changes to all my recurring plans</span>
                         </label>
