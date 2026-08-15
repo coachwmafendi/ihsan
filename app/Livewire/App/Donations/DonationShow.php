@@ -8,6 +8,7 @@ use App\Actions\Chip\RefundDonation as ChipRefundDonation;
 use App\Actions\DonorEmailLog\PreviewDonorEmail;
 use App\Actions\DonorEmailLog\ResendDonorEmail;
 use App\Actions\Stripe\RefundDonation as StripeRefundDonation;
+use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
@@ -494,6 +495,8 @@ class DonationShow extends Component
             'address_postal_code' => $this->editAddressPostalCode ?: null,
             'country' => $this->editCountry ?: null,
         ]);
+
+        app(SyncDonorDetailsToStripe::class)->sync($donor, Auth::user()?->organization ?? $this->donation->campaign->organization);
 
         $this->donation->update(['is_anonymous' => $this->editIsAnonymous]);
 
