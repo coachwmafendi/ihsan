@@ -11,9 +11,9 @@ use App\Models\Subscription;
 use App\Services\StripeMetadata;
 use Illuminate\Database\Eloquent\Builder;
 use Stripe\Customer;
-use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 use Stripe\Subscription as StripeSubscription;
+use Throwable;
 
 final class SyncDonorDetailsToStripe
 {
@@ -30,6 +30,11 @@ final class SyncDonorDetailsToStripe
             : [];
 
         $successful = $this->updateStripeCustomer($donor, $stripeOptions);
+
+        // Do not attempt subscription updates if the customer update failed.
+        if (! $successful) {
+            return false;
+        }
 
         $subscriptions = $donor->subscriptions()
             ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Paused])
@@ -62,9 +67,7 @@ final class SyncDonorDetailsToStripe
             ], $stripeOptions);
 
             return true;
-        } catch (ApiErrorException $e) {
-            report($e);
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             report($e);
         }
 
@@ -77,14 +80,17 @@ final class SyncDonorDetailsToStripe
     private function updateStripeSubscription(Subscription $subscription, Donor $donor, array $stripeOptions): bool
     {
         try {
+            $currentSubscription = StripeSubscription::retrieve($subscription->stripe_subscription_id, $stripeOptions);
+
             StripeSubscription::update($subscription->stripe_subscription_id, [
-                'metadata' => StripeMetadata::forDonorUpdate($donor),
+                'metadata' => array_merge(
+                    $currentSubscription->metadata?->toArray() ?? [],
+                    StripeMetadata::forDonorUpdate($donor),
+                ),
             ], $stripeOptions);
 
             return true;
-        } catch (ApiErrorException $e) {
-            report($e);
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             report($e);
         }
 
