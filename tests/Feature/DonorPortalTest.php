@@ -17,6 +17,10 @@ use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
+use Stripe\ApiRequestor;
+use Stripe\HttpClient\ClientInterface;
+use Stripe\HttpClient\CurlClient;
+use Stripe\Stripe;
 
 it('resolves org-scoped donor portal login page', function () {
     $org = Organization::factory()->create();
@@ -642,6 +646,83 @@ it('updates donor profile with photo', function () {
         ->assertRedirect(route('donorportal.profile', $org));
 
     expect($donor->fresh()->photo_path)->not()->toBeNull();
+});
+
+it('syncs donor profile to stripe by default when stripe_customer_id exists', function () {
+    Stripe::setApiKey('sk_test_fake');
+
+    $org = Organization::factory()->stripeConnected()->create();
+    $donor = Donor::factory()->create([
+        'stripe_customer_id' => 'cus_profile_test',
+        'first_name' => 'Ali',
+        'last_name' => 'Abu',
+        'email' => 'ali@example.com',
+    ]);
+
+    $requests = [];
+    ApiRequestor::setHttpClient(new class($requests) implements ClientInterface
+    {
+        public function __construct(public array &$requests) {}
+
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $this->requests[] = $method.' '.$absUrl;
+
+            return [json_encode(['id' => 'cus_profile_test', 'object' => 'customer']), 200, []];
+        }
+    });
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.profile.update', $org), [
+            'first_name' => 'Updated',
+            'last_name' => 'Name',
+            'email' => 'new.email@example.com',
+        ])
+        ->assertRedirect(route('donorportal.profile', $org));
+
+    expect($donor->fresh()->name)->toBe('Updated Name');
+    expect(collect($requests)->contains(fn ($r) => str_contains($r, '/v1/customers/cus_profile_test')))->toBeTrue();
+
+    ApiRequestor::setHttpClient(CurlClient::instance());
+});
+
+it('does not sync donor profile to stripe when sync_stripe is unchecked', function () {
+    Stripe::setApiKey('sk_test_fake');
+
+    $org = Organization::factory()->stripeConnected()->create();
+    $donor = Donor::factory()->create([
+        'stripe_customer_id' => 'cus_profile_test',
+        'first_name' => 'Ali',
+        'last_name' => 'Abu',
+        'email' => 'ali@example.com',
+    ]);
+
+    $requests = [];
+    ApiRequestor::setHttpClient(new class($requests) implements ClientInterface
+    {
+        public function __construct(public array &$requests) {}
+
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $this->requests[] = $method.' '.$absUrl;
+
+            return [json_encode(['id' => 'cus_profile_test', 'object' => 'customer']), 200, []];
+        }
+    });
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->post(route('donorportal.profile.update', $org), [
+            'first_name' => 'Updated',
+            'last_name' => 'Name',
+            'email' => 'new.email@example.com',
+            'sync_stripe' => '0',
+        ])
+        ->assertRedirect(route('donorportal.profile', $org));
+
+    expect($donor->fresh()->name)->toBe('Updated Name');
+    expect(collect($requests)->contains(fn ($r) => str_contains($r, '/v1/customers/cus_profile_test')))->toBeFalse();
+
+    ApiRequestor::setHttpClient(CurlClient::instance());
 });
 
 it('submits report problem and redirects to dashboard', function () {
