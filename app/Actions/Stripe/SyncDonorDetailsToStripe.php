@@ -15,7 +15,7 @@ use Stripe\Stripe;
 use Stripe\Subscription as StripeSubscription;
 use Throwable;
 
-final class SyncDonorDetailsToStripe
+class SyncDonorDetailsToStripe
 {
     public function sync(Donor $donor, Organization $organization): bool
     {

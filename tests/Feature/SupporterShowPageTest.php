@@ -380,7 +380,7 @@ it('syncs supporter details to stripe when stripe_customer_id exists', function 
     ]);
     Donation::factory()->for($donor)->for($campaign)->create();
 
-    $spy = Mockery::mock(new SyncDonorDetailsToStripe);
+    $spy = Mockery::mock(SyncDonorDetailsToStripe::class);
     $spy->shouldReceive('sync')
         ->once()
         ->withArgs(fn (Donor $d, Organization $o) => $d->is($donor) && $o->is($organization))
