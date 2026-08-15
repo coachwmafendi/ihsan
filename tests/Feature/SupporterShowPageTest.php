@@ -401,6 +401,38 @@ it('syncs supporter details to stripe when stripe_customer_id exists', function 
         ->email->toBe('siti@example.com');
 });
 
+it('does not sync to stripe when supporter has no stripe_customer_id', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create([
+        'stripe_customer_id' => null,
+        'first_name' => 'Ali',
+        'last_name' => 'Abu',
+        'email' => 'ali@example.com',
+    ]);
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    $spy = Mockery::mock(SyncDonorDetailsToStripe::class);
+    $spy->shouldReceive('sync')->never();
+    app()->instance(SyncDonorDetailsToStripe::class, $spy);
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->call('openEditModal')
+        ->set('firstName', 'Siti')
+        ->set('lastName', 'Aminah')
+        ->set('email', 'siti@example.com')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($donor->fresh())
+        ->name->toBe('Siti Aminah')
+        ->email->toBe('siti@example.com');
+});
+
 it('renders the emails section with sent emails for the donor', function () {
     Mail::fake();
 
