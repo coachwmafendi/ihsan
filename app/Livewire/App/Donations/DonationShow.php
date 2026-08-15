@@ -496,7 +496,7 @@ class DonationShow extends Component
             'country' => $this->editCountry ?: null,
         ]);
 
-        app(SyncDonorDetailsToStripe::class)->sync($donor, Auth::user()?->organization ?? $this->donation->campaign->organization);
+        app(SyncDonorDetailsToStripe::class)->sync($donor, $this->donation->campaign->organization);
 
         $this->donation->update(['is_anonymous' => $this->editIsAnonymous]);
 
