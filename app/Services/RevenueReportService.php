@@ -151,6 +151,84 @@ class RevenueReportService
     }
 
     /**
+     * Aggregate revenue report across all organizations.
+     *
+     * @return array{
+     *     summary: array{
+     *         totalTransactions: int,
+     *         totalDonationVolume: float,
+     *         averageDonationSize: float,
+     *         totalProcessingFees: float,
+     *         averageFeePerTransaction: float,
+     *         effectiveFeeRate: float,
+     *     },
+     *     rows: array<int, array{
+     *         id: int,
+     *         public_id: string|null,
+     *         name: string,
+     *         donations: int,
+     *         volume_raw: float,
+     *         volume: string,
+     *         stripe_fees_raw: float,
+     *         stripe_fees: string,
+     *         fees_raw: float,
+     *         fees: string,
+     *         avg_donation_raw: float,
+     *         avg_donation: string,
+     *         effective_rate_raw: float,
+     *         effective_rate: string,
+     *     }>,
+     *     totals: array{
+     *         donations: int,
+     *         volume_raw: float,
+     *         stripe_fees_raw: float,
+     *         fees_raw: float,
+     *         avg_donation_raw: float,
+     *         effective_rate_raw: float,
+     *     },
+     * }
+     */
+    public function aggregateReport(string $period): array
+    {
+        [$from, $to] = $this->dateRange($period);
+
+        $succeeded = Donation::query()
+            ->where('donations.status', DonationStatus::Succeeded)
+            ->when($from, fn (Builder $q) => $q->whereDate('donations.created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->whereDate('donations.created_at', '<=', $to));
+
+        $totalDonationVolume = (float) (clone $succeeded)->sum('base_amount');
+        $totalTransactions = (int) (clone $succeeded)->count();
+
+        $totalProcessingFees = (float) ProcessingFee::query()
+            ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to))
+            ->sum('fee_amount');
+
+        $summary = [
+            'totalTransactions' => $totalTransactions,
+            'totalDonationVolume' => $totalDonationVolume,
+            'averageDonationSize' => $totalTransactions > 0 ? $totalDonationVolume / $totalTransactions : 0,
+            'totalProcessingFees' => $totalProcessingFees,
+            'averageFeePerTransaction' => $totalTransactions > 0 ? $totalProcessingFees / $totalTransactions : 0,
+            'effectiveFeeRate' => $totalDonationVolume > 0 ? ($totalProcessingFees / $totalDonationVolume) * 100 : 0,
+        ];
+
+        $rows = $this->organizationRows($period);
+
+        $totals = [
+            'donations' => (int) array_sum(array_column($rows, 'donations')),
+            'volume_raw' => (float) array_sum(array_column($rows, 'volume_raw')),
+            'stripe_fees_raw' => (float) array_sum(array_column($rows, 'stripe_fees_raw')),
+            'fees_raw' => (float) array_sum(array_column($rows, 'fees_raw')),
+        ];
+        $totals['avg_donation_raw'] = $totals['donations'] > 0 ? $totals['volume_raw'] / $totals['donations'] : 0;
+        $totals['effective_rate_raw'] = $totals['volume_raw'] > 0 ? ($totals['fees_raw'] / $totals['volume_raw']) * 100 : 0;
+
+        return compact('summary', 'rows', 'totals');
+    }
+
+    /**
      * @return array{0: ?string, 1: ?string}
      */
     public function dateRange(string $period): array

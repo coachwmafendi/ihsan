@@ -121,9 +121,34 @@
 
         <x-filament::section>
             <x-slot name="heading">
-                <div class="flex items-center gap-2">
-                    <x-heroicon-o-building-office-2 class="size-5 text-ihsan-terracotta dark:text-orange-300" />
-                    Revenue by Organization
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <x-heroicon-o-building-office-2 class="size-5 text-ihsan-terracotta dark:text-orange-300" />
+                        Revenue by Organization
+                    </div>
+
+                    <div class="flex items-center gap-1.5">
+                        <x-ui.tooltip text="Download CSV report for all organizations">
+                            <a
+                                href="{{ route('filament.admin.pages.revenue.report.all', ['format' => 'csv', 'period' => $period]) }}"
+                                aria-label="Download CSV report for all organizations"
+                                class="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2 py-1 text-xs font-medium text-stone-600 hover:bg-stone-50 hover:text-stone-800 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 dark:hover:text-stone-100"
+                            >
+                                <x-heroicon-o-table-cells class="size-4" />
+                                <span class="hidden sm:inline">CSV</span>
+                            </a>
+                        </x-ui.tooltip>
+                        <x-ui.tooltip text="Download PDF report for all organizations">
+                            <a
+                                href="{{ route('filament.admin.pages.revenue.report.all', ['format' => 'pdf', 'period' => $period]) }}"
+                                aria-label="Download PDF report for all organizations"
+                                class="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2 py-1 text-xs font-medium text-stone-600 hover:bg-stone-50 hover:text-stone-800 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 dark:hover:text-stone-100"
+                            >
+                                <x-heroicon-o-document-text class="size-4" />
+                                <span class="hidden sm:inline">PDF</span>
+                            </a>
+                        </x-ui.tooltip>
+                    </div>
                 </div>
             </x-slot>
 
