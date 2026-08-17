@@ -88,3 +88,34 @@ it('shows plain MYR amount for local currency donations', function () {
         ->assertSee('MYR 120.00')
         ->assertDontSee('≈');
 });
+
+it('shows failed foreign donations in original currency without myr prefix', function () {
+    $org = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 90.00,
+        'currency' => 'sgd',
+        'base_amount' => 286.94,
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::OneTime,
+    ]);
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 90.00,
+        'currency' => 'sgd',
+        'base_amount' => null,
+        'status' => DonationStatus::Failed,
+        'type' => DonationType::OneTime,
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+    $this->actingAs($user)
+        ->get('/admin/transactions')
+        ->assertSuccessful()
+        ->assertSee('≈ MYR 286.94')
+        ->assertSee('SGD 90.00')
+        ->assertDontSee('MYR 90.00');
+});

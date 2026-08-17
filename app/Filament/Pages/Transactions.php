@@ -204,22 +204,17 @@ class Transactions extends Page implements HasTable
                 TextColumn::make('gross_amount')
                     ->label('Amount')
                     ->formatStateUsing(function (string $state, Donation $record): string {
-                        if ($record->currency !== 'myr') {
-                            if ($record->base_amount !== null) {
-                                return '≈ MYR '.number_format((float) $record->base_amount, 2);
-                            }
+                        $display = $record->displayAmount((float) $state);
 
-                            return strtoupper($record->currency).' '.number_format((float) $state, 2);
+                        if (strtolower($record->currency) !== 'myr' && $record->base_amount !== null) {
+                            return '≈ MYR '.number_format((float) $record->base_amount, 2);
                         }
 
-                        return 'MYR '.number_format((float) $state, 2);
+                        return $display;
                     })
                     ->tooltip(function (string $state, Donation $record): ?string {
-                        if ($record->currency !== 'myr' && $record->base_amount !== null) {
-                            $gross = number_format((float) $state, 2);
-                            $currency = strtoupper($record->currency);
-
-                            return $currency.' '.$gross;
+                        if (strtolower($record->currency) !== 'myr' && $record->base_amount !== null) {
+                            return $record->displayAmount((float) $state);
                         }
 
                         return null;

@@ -38,6 +38,8 @@ class PlatformOverview extends Page
 
     public string $totalDonationsVolume = '0.00';
 
+    public bool $totalDonationsHasApproximation = false;
+
     public int $totalDonationsCount = 0;
 
     public string $totalProcessingFees = '0.00';
@@ -48,9 +50,15 @@ class PlatformOverview extends Page
 
     public string $estimatedMrr = '0.00';
 
+    public bool $estimatedMrrHasApproximation = false;
+
     public string $donationsThisMonth = '0.00';
 
+    public bool $donationsThisMonthHasApproximation = false;
+
     public string $donationsLastMonth = '0.00';
+
+    public bool $donationsLastMonthHasApproximation = false;
 
     public float $donationsMomChange = 0.0;
 
@@ -80,6 +88,8 @@ class PlatformOverview extends Page
      * @var array<int, array{name: string, total: string}>
      */
     public array $topOrganizations = [];
+
+    public bool $topOrganizationsHaveApproximation = false;
 
     public int $newDonorsThisMonth = 0;
 
@@ -130,6 +140,7 @@ class PlatformOverview extends Page
         $succeededDonations = Donation::query()->where('status', DonationStatus::Succeeded);
 
         $this->totalDonationsVolume = number_format((float) (clone $succeededDonations)->sum('base_amount'), 2, '.', '');
+        $this->totalDonationsHasApproximation = Donation::hasReportApproximations($succeededDonations);
         $this->totalDonationsCount = Donation::query()->count();
 
         $this->totalProcessingFees = number_format((float) ProcessingFee::query()
@@ -169,18 +180,24 @@ class PlatformOverview extends Page
             ])
             ->all();
 
+        $this->topOrganizationsHaveApproximation = Donation::hasReportApproximations(
+            Donation::query()->where('status', DonationStatus::Succeeded)
+        );
+
         $this->recentDonations = Donation::query()
             ->with(['campaign:id,title,organization_id', 'campaign.organization:id,name'])
             ->latest()
             ->limit(5)
             ->get()
             ->map(function (Donation $donation): array {
-                $amount = $donation->currency !== 'myr' && $donation->base_amount !== null
-                    ? '≈ MYR '.number_format((float) $donation->base_amount, 2, '.', '')
-                    : 'MYR '.number_format((float) $donation->gross_amount, 2, '.', '');
+                $originalAmount = $donation->displayAmount((float) $donation->gross_amount);
 
-                $original = $donation->currency !== 'myr' && $donation->base_amount !== null
-                    ? strtoupper($donation->currency).' '.number_format((float) $donation->gross_amount, 2, '.', '')
+                $amount = strtolower($donation->currency) !== 'myr' && $donation->base_amount !== null
+                    ? '≈ MYR '.number_format((float) $donation->base_amount, 2, '.', '')
+                    : $originalAmount;
+
+                $original = strtolower($donation->currency) !== 'myr' && $donation->base_amount !== null
+                    ? $originalAmount
                     : null;
 
                 return [
@@ -193,9 +210,11 @@ class PlatformOverview extends Page
             })
             ->all();
 
+        $activeSubscriptions = Subscription::query()
+            ->where('status', SubscriptionStatus::Active);
+
         $this->estimatedMrr = number_format(
-            (float) Subscription::query()
-                ->where('status', SubscriptionStatus::Active)
+            (float) (clone $activeSubscriptions)
                 ->selectRaw("SUM(CASE
                     WHEN interval = 'monthly' THEN amount
                     WHEN interval = 'weekly'  THEN amount * 4.33
@@ -206,22 +225,29 @@ class PlatformOverview extends Page
             2, '.', ''
         );
 
+        $this->estimatedMrrHasApproximation = (clone $activeSubscriptions)
+            ->where('currency', '!=', 'myr')
+            ->exists();
+
         $now = now();
         $thisMonth = [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()];
         $lastMonth = [$now->copy()->subMonthNoOverflow()->startOfMonth(), $now->copy()->subMonthNoOverflow()->endOfMonth()];
 
-        $donThisMonth = (float) Donation::query()
+        $donThisMonthQuery = Donation::query()
             ->where('status', DonationStatus::Succeeded)
-            ->whereBetween('created_at', $thisMonth)
-            ->sum('base_amount');
+            ->whereBetween('created_at', $thisMonth);
 
-        $donLastMonth = (float) Donation::query()
+        $donLastMonthQuery = Donation::query()
             ->where('status', DonationStatus::Succeeded)
-            ->whereBetween('created_at', $lastMonth)
-            ->sum('base_amount');
+            ->whereBetween('created_at', $lastMonth);
+
+        $donThisMonth = (float) (clone $donThisMonthQuery)->sum('base_amount');
+        $donLastMonth = (float) (clone $donLastMonthQuery)->sum('base_amount');
 
         $this->donationsThisMonth = number_format($donThisMonth, 2, '.', '');
+        $this->donationsThisMonthHasApproximation = Donation::hasReportApproximations($donThisMonthQuery);
         $this->donationsLastMonth = number_format($donLastMonth, 2, '.', '');
+        $this->donationsLastMonthHasApproximation = Donation::hasReportApproximations($donLastMonthQuery);
         $this->donationsMomChange = $this->momChange($donThisMonth, $donLastMonth);
 
         $feesThisMonth = (float) ProcessingFee::query()
