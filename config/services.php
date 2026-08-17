@@ -37,6 +37,10 @@ return [
         ],
     ],
 
+    'meta' => [
+        'api_version' => env('META_GRAPH_API_VERSION', 'v21.0'),
+    ],
+
     'stripe' => [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),

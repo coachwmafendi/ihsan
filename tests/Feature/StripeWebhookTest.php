@@ -27,6 +27,7 @@ use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\TrackingConfiguration;
 use App\Models\WebhookLog;
+use App\Services\RecurringPlanResolver;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Stripe\ApiRequestor;
@@ -1195,6 +1196,45 @@ it('dispatches conversion events for payment intent succeeded webhook', function
     Queue::assertPushed(SendMetaConversionEvent::class, fn (SendMetaConversionEvent $job) => $job->donation->is($donation));
     Queue::assertPushed(SendLinkedInConversionEvent::class, fn ($job) => $job->donation->is($donation));
     Queue::assertPushed(SendXAdsConversionEvent::class, fn ($job) => $job->donation->is($donation));
+    Queue::assertPushed(SendSnapchatConversionEvent::class, fn ($job) => $job->donation->is($donation));
+});
+
+it('dispatches conversion events when a first monthly payment creates a subscription', function () {
+    Queue::fake([
+        SendMetaConversionEvent::class,
+        SendLinkedInConversionEvent::class,
+        SendXAdsConversionEvent::class,
+        SendSnapchatConversionEvent::class,
+        SendDonationReceipt::class,
+        SendNewDonationNotification::class,
+        SendLargeDonationNotification::class,
+        SyncDonationStripeDetailsJob::class,
+    ]);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 50,
+        'net_amount' => 50,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::Recurring,
+        'subscription_id' => null,
+        'stripe_payment_intent_id' => 'pi_meta_new_sub_123',
+    ]);
+
+    TrackingConfiguration::factory()->for($organization)->meta()->create();
+
+    $this->mock(RecurringPlanResolver::class, function ($mock) use ($campaign, $donor): void {
+        $mock->shouldReceive('create')->andReturn(
+            Subscription::factory()->for($campaign)->for($donor)->create()
+        );
+    });
+
+    (new ProcessStripeWebhook(paymentIntentSucceededPayload($donation, 'evt_meta_new_sub_123')))->handle();
+
+    Queue::assertPushed(SendMetaConversionEvent::class, fn (SendMetaConversionEvent $job) => $job->donation->is($donation));
     Queue::assertPushed(SendSnapchatConversionEvent::class, fn ($job) => $job->donation->is($donation));
 });
 

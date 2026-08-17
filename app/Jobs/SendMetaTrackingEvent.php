@@ -36,6 +36,7 @@ class SendMetaTrackingEvent implements ShouldQueue
         public array $userData,
         public array $customData = [],
         public ?string $campaignName = null,
+        public ?string $eventId = null,
     ) {}
 
     public function handle(): void
@@ -70,7 +71,7 @@ class SendMetaTrackingEvent implements ShouldQueue
         $event = [
             'event_name' => $this->eventName,
             'event_time' => time(),
-            'event_id' => (string) Str::uuid(),
+            'event_id' => $this->eventId ?: (string) Str::uuid(),
             'action_source' => 'website',
             'event_source_url' => $this->eventSourceUrl,
             'user_data' => array_filter($this->userData),
@@ -80,7 +81,8 @@ class SendMetaTrackingEvent implements ShouldQueue
             $event['custom_data'] = $this->customData;
         }
 
-        $url = "https://graph.facebook.com/v18.0/{$pixelId}/events";
+        $apiVersion = config('services.meta.api_version');
+        $url = "https://graph.facebook.com/{$apiVersion}/{$pixelId}/events";
 
         try {
             $response = Http::withToken($accessToken)

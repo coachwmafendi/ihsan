@@ -76,11 +76,21 @@ class DonationForm extends Component
 
     public string $pageUrl = '';
 
+    /**
+     * The host page that embedded this form, forwarded by widget.js. Used only
+     * for ad-tracking attribution — never for redirects, to avoid open redirects.
+     */
+    public string $parentPageUrl = '';
+
     public string $currency = 'myr';
 
     public bool $coverFee = true;
 
     public ?string $donationPublicId = null;
+
+    public ?float $purchaseAmount = null;
+
+    public ?string $purchaseCurrency = null;
 
     public ?string $chipErrorMessage = null;
 
@@ -197,6 +207,7 @@ class DonationForm extends Component
         }
 
         $this->pageUrl = request()->fullUrl();
+        $this->parentPageUrl = $this->sanitizeParentPageUrl(request()->query('pu'));
 
         if ($element instanceof Element) {
             abort_if(
@@ -472,11 +483,14 @@ class DonationForm extends Component
                 }
 
                 SendLargeDonationNotification::dispatch($donation)->delay(now()->addMinutes(5));
-                SendMetaConversionEvent::dispatch($donation);
-                SendLinkedInConversionEvent::dispatch($donation);
-                SendXAdsConversionEvent::dispatch($donation);
-                SendSnapchatConversionEvent::dispatch($donation);
             }
+
+            // A first monthly payment is still a conversion — ad platforms must
+            // receive it, even though the donor receipt comes from the plan.
+            SendMetaConversionEvent::dispatch($donation);
+            SendLinkedInConversionEvent::dispatch($donation);
+            SendXAdsConversionEvent::dispatch($donation);
+            SendSnapchatConversionEvent::dispatch($donation);
 
             SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
         } catch (\Exception $e) {
@@ -546,6 +560,10 @@ class DonationForm extends Component
 
     private function syncDonorDetails(Donation $donation): void
     {
+        $useBase = $donation->base_amount !== null && filled($donation->base_currency);
+        $this->purchaseAmount = (float) ($useBase ? $donation->base_amount : $donation->gross_amount);
+        $this->purchaseCurrency = strtoupper((string) ($useBase ? $donation->base_currency : $donation->currency));
+
         $donor = $donation->donor;
 
         if ($donor === null) {
@@ -603,11 +621,7 @@ class DonationForm extends Component
 
         $campaignId = $this->element?->campaign_id ?? $this->campaign?->getKey();
 
-        $pageQuery = [];
-        if (filled($this->pageUrl)) {
-            $parsed = parse_url($this->pageUrl);
-            parse_str($parsed['query'] ?? '', $pageQuery);
-        }
+        $pageQuery = $this->trackingPageQuery();
 
         $source = $this->element ? 'element' : ($this->isPublicPage ? 'campaign_page' : 'checkout_modal');
 
@@ -635,8 +649,12 @@ class DonationForm extends Component
 
         $clientInfo = [
             ...ClientInfo::fromRequest(request()),
-            'page_url' => $this->pageUrl,
+            'page_url' => $this->trackingPageUrl(),
         ];
+
+        if (blank($clientInfo['fbc']) && filled($pageQuery['fbclid'] ?? null)) {
+            $clientInfo['fbc'] = 'fb.1.'.(now()->timestamp * 1000).'.'.$pageQuery['fbclid'];
+        }
 
         if (filled($this->deviceType)) {
             $clientInfo['device_type'] = $this->deviceType;
@@ -748,6 +766,62 @@ class DonationForm extends Component
     }
 
     /**
+     * Browser-supplied dedup keys are echoed straight back to the ad platforms,
+     * so keep them to a short opaque token.
+     */
+    private function sanitizeEventId(?string $eventId): ?string
+    {
+        if ($eventId === null || preg_match('/^[A-Za-z0-9_-]{8,64}$/', $eventId) !== 1) {
+            return null;
+        }
+
+        return $eventId;
+    }
+
+    /**
+     * Only absolute http(s) URLs are accepted, and the value is never used as a
+     * redirect target — it feeds ad-platform attribution fields only.
+     */
+    private function sanitizeParentPageUrl(mixed $url): string
+    {
+        if (! is_string($url) || $url === '' || mb_strlen($url) > 2048) {
+            return '';
+        }
+
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+
+        if (! in_array($scheme, ['http', 'https'], true) || blank(parse_url($url, PHP_URL_HOST))) {
+            return '';
+        }
+
+        return $url;
+    }
+
+    /**
+     * The page a donor actually saw. For embedded forms that is the host site,
+     * not the iframe, so click IDs and event_source_url line up with the pixel.
+     */
+    private function trackingPageUrl(): string
+    {
+        return $this->parentPageUrl ?: $this->pageUrl;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function trackingPageQuery(): array
+    {
+        $query = [];
+        $url = $this->trackingPageUrl();
+
+        if (filled($url)) {
+            parse_str(parse_url($url, PHP_URL_QUERY) ?? '', $query);
+        }
+
+        return $query;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function buildTrackingContext(): array
@@ -759,36 +833,37 @@ class DonationForm extends Component
             return [];
         }
 
-        $pageQuery = [];
-        if (filled($this->pageUrl)) {
-            $parsed = parse_url($this->pageUrl);
-            parse_str($parsed['query'] ?? '', $pageQuery);
-        }
+        $pageQuery = $this->trackingPageQuery();
+        $metaCookies = ClientInfo::metaClickCookies(request());
 
         $userData = [
             'client_ip_address' => request()->ip(),
             'client_user_agent' => request()->userAgent(),
-            'external_id' => hash('sha256', session()->getId() ?: Str::uuid()->toString()),
+            'external_id' => filled($this->email)
+                ? hash('sha256', strtolower(trim($this->email)))
+                : hash('sha256', session()->getId() ?: Str::uuid()->toString()),
+            'fbp' => $metaCookies['fbp'],
+            'fbc' => $metaCookies['fbc'],
         ];
 
         if (filled($this->email)) {
             $userData['em'] = hash('sha256', strtolower(trim($this->email)));
         }
 
-        if (filled($pageQuery['fbclid'] ?? null)) {
-            $userData['fbc'] = 'fb.1.'.time().'.'.$pageQuery['fbclid'];
+        if (blank($userData['fbc']) && filled($pageQuery['fbclid'] ?? null)) {
+            $userData['fbc'] = 'fb.1.'.(now()->timestamp * 1000).'.'.$pageQuery['fbclid'];
         }
 
         return [
             'organization_id' => $organization->id,
-            'event_source_url' => $this->pageUrl ?: request()->fullUrl(),
+            'event_source_url' => $this->trackingPageUrl() ?: request()->fullUrl(),
             'campaign_name' => $campaign?->title,
             'user_data' => array_filter($userData),
         ];
     }
 
     #[Renderless]
-    public function trackServerPageView(): void
+    public function trackServerPageView(?string $eventId = null): void
     {
         if (session()->get('ihsan.tracking.pageview.sent')) {
             return;
@@ -806,6 +881,7 @@ class DonationForm extends Component
             $context['user_data'],
             [],
             $context['campaign_name'],
+            $this->sanitizeEventId($eventId),
         );
 
         SendGa4TrackingEvent::dispatch(
@@ -821,7 +897,7 @@ class DonationForm extends Component
     }
 
     #[Renderless]
-    public function trackServerInitiateCheckout(): void
+    public function trackServerInitiateCheckout(?string $eventId = null): void
     {
         if (session()->get('ihsan.tracking.initiate.sent')) {
             return;
@@ -858,6 +934,7 @@ class DonationForm extends Component
             $context['user_data'],
             $metaCustomData,
             $context['campaign_name'],
+            $this->sanitizeEventId($eventId),
         );
 
         SendGa4TrackingEvent::dispatch(

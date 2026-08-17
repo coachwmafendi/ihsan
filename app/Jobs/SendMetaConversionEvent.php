@@ -63,7 +63,8 @@ class SendMetaConversionEvent implements ShouldQueue
             return;
         }
 
-        $url = "https://graph.facebook.com/v18.0/{$pixelId}/events";
+        $apiVersion = config('services.meta.api_version');
+        $url = "https://graph.facebook.com/{$apiVersion}/{$pixelId}/events";
 
         try {
             $response = Http::withToken($accessToken)
@@ -96,22 +97,58 @@ class SendMetaConversionEvent implements ShouldQueue
         $utmParams = $donation->utm_params ?? [];
 
         $eventTime = $donation->updated_at?->timestamp ?? now()->timestamp;
-        $amount = (float) ($donation->base_amount ?? $donation->gross_amount);
-        $currency = strtoupper($donation->currency);
+        // Value and currency must describe the same money — base_amount is
+        // stored in base_currency, not in the donation's charge currency.
+        $useBase = $donation->base_amount !== null && filled($donation->base_currency);
+        $amount = (float) ($useBase ? $donation->base_amount : $donation->gross_amount);
+        $currency = strtoupper((string) ($useBase ? $donation->base_currency : $donation->currency));
         $eventId = 'purchase_'.$donation->public_id;
 
         $userData = [
             'client_ip_address' => $donation->ip_address,
-            'client_user_agent' => $donation->browser,
+            'client_user_agent' => $donation->user_agent,
+            'fbp' => $donation->fbp,
+            'fbc' => $donation->fbc,
         ];
 
         if ($donor && filled($donor->email)) {
-            $userData['em'] = hash('sha256', strtolower(trim($donor->email)));
+            $userData['em'] = self::hashValue(strtolower(trim($donor->email)));
+            $userData['external_id'] = self::hashValue(strtolower(trim($donor->email)));
         }
 
-        if (filled($utmParams['fbclid'] ?? null)) {
+        if ($donor && filled($donor->phone)) {
+            $phone = preg_replace('/\D/', '', (string) $donor->phone) ?? '';
+
+            if ($phone !== '') {
+                $userData['ph'] = self::hashValue($phone);
+            }
+        }
+
+        if ($donor && filled($donor->first_name)) {
+            $userData['fn'] = self::hashValue(self::normalizeName($donor->first_name));
+        }
+
+        if ($donor && filled($donor->last_name)) {
+            $userData['ln'] = self::hashValue(self::normalizeName($donor->last_name));
+        }
+
+        $country = $donation->billing_country ?? $donation->donor_country;
+
+        if (filled($country)) {
+            $userData['country'] = self::hashValue(strtolower(trim((string) $country)));
+        }
+
+        if (filled($donation->billing_address_city)) {
+            $userData['ct'] = self::hashValue(self::normalizeName($donation->billing_address_city));
+        }
+
+        if (filled($donation->billing_address_postal_code)) {
+            $userData['zp'] = self::hashValue(strtolower(trim((string) $donation->billing_address_postal_code)));
+        }
+
+        if (blank($userData['fbc']) && filled($utmParams['fbclid'] ?? null)) {
             $clickId = $utmParams['fbclid'];
-            $timestamp = (string) ($donation->created_at?->timestamp ?? $eventTime);
+            $timestamp = (string) (($donation->created_at?->timestamp ?? $eventTime) * 1000);
             $userData['fbc'] = 'fb.1.'.$timestamp.'.'.$clickId;
         }
 
@@ -130,11 +167,24 @@ class SendMetaConversionEvent implements ShouldQueue
             'event_name' => 'Purchase',
             'event_time' => $eventTime,
             'event_id' => $eventId,
-            'event_source_url' => $donation->page_url,
+            'event_source_url' => $donation->page_url ?: config('app.url'),
             'action_source' => 'website',
             'user_data' => array_filter($userData),
             'custom_data' => $customData,
         ]);
+    }
+
+    private static function hashValue(string $value): string
+    {
+        return hash('sha256', $value);
+    }
+
+    /**
+     * Meta expects names lowercased with punctuation and whitespace removed.
+     */
+    private static function normalizeName(string $value): string
+    {
+        return preg_replace('/[^a-z0-9]/', '', strtolower(trim($value))) ?? '';
     }
 
     /**
