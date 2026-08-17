@@ -17,6 +17,16 @@
 @if ($hasTrackers)
     <script>
         window.__IHSAN_TRACKING__ = @js($tracking);
+
+        // Shared dedup keys: the browser pixel and the server-side Conversions
+        // API must send the same event_id or Meta counts the event twice.
+        window.IhsanEventId = function(prefix) {
+            var random = (window.crypto && window.crypto.randomUUID)
+                ? window.crypto.randomUUID().replace(/-/g, '')
+                : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+            return (prefix + '_' + random).slice(0, 64);
+        };
+        window.__IHSAN_PAGEVIEW_ID__ = window.IhsanEventId('pv');
     </script>
 
     @if ($meta)
@@ -33,7 +43,7 @@
             fbq('init', @js($meta['pixel_id']));
 
             @if ($meta['options']['track_page_views'] ?? true)
-                fbq('track', 'PageView');
+                fbq('track', 'PageView', {}, { eventID: window.__IHSAN_PAGEVIEW_ID__ });
             @endif
         </script>
 
@@ -283,5 +293,6 @@
     <script>
         window.__IHSAN_TRACKING__ = @js($tracking);
         window.IhsanTrack = function() {};
+        window.IhsanEventId = function() { return null; };
     </script>
 @endif

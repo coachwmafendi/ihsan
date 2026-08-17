@@ -27,6 +27,13 @@ return Application::configure(basePath: dirname(__DIR__))
             '/webhooks/ses/*',
         ]);
 
+        // Meta's pixel writes these first-party cookies; they must stay readable
+        // so the Conversions API can send matching fbp/fbc values.
+        $middleware->encryptCookies(except: [
+            '_fbp',
+            '_fbc',
+        ]);
+
         $middleware->trustProxies(at: env('TRUSTED_PROXIES'));
         $middleware->prepend(TrustCloudflare::class);
         $middleware->append(SecurityHeaders::class);

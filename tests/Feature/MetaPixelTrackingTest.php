@@ -14,6 +14,10 @@ use App\Models\Element;
 use App\Models\Organization;
 use App\Models\TrackingConfiguration;
 use App\Models\TrackingEvent;
+use App\Support\ClientInfo;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Stripe\PaymentIntent;
@@ -36,7 +40,7 @@ it('injects meta pixel base code when meta is configured', function () {
     $response->assertOk();
     $response->assertSee('https://connect.facebook.net/en_US/fbevents.js', false);
     $response->assertSee("fbq('init', '123456789012345')", false);
-    $response->assertSee("fbq('track', 'PageView')", false);
+    $response->assertSee("fbq('track', 'PageView', {}, { eventID: window.__IHSAN_PAGEVIEW_ID__ })", false);
     $response->assertSee('window.IhsanTrack = function', false);
     $response->assertSee('www.facebook.com/tr?id=123456789012345&ev=PageView&noscript=1', false);
 });
@@ -171,7 +175,7 @@ it('sends purchase event via meta conversion api', function () {
     (new SendMetaConversionEvent($donation))->handle();
 
     Http::assertSent(function ($request) {
-        return str_starts_with($request->url(), 'https://graph.facebook.com/v18.0/123456789012345/events');
+        return str_starts_with($request->url(), 'https://graph.facebook.com/'.config('services.meta.api_version').'/123456789012345/events');
     });
 
     $event = TrackingEvent::query()
@@ -446,4 +450,182 @@ it('captures attribution parameters in utm_params on donation creation', functio
         'fbclid' => 'abc123',
         'gclid' => 'xyz789',
     ]);
+});
+
+it('sends browser and click identifiers with the purchase conversion event', function () {
+    Http::fake([
+        'graph.facebook.com/*' => Http::response(['events_received' => 1], 200),
+    ]);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create([
+        'email' => 'Donor@Example.com',
+        'first_name' => "O'Brien",
+        'last_name' => 'Tan',
+        'phone' => '+60 12-345 6789',
+    ]);
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 100.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Succeeded,
+        'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        'browser' => 'Chrome',
+        'fbp' => 'fb.1.1700000000000.1234567890',
+        'fbc' => 'fb.1.1700000000000.IwAR-click',
+        'billing_country' => 'MY',
+    ]);
+
+    TrackingConfiguration::factory()->for($organization)->meta([
+        'pixel_id' => '123456789012345',
+        'access_token' => 'test-access-token',
+    ])->create();
+
+    (new SendMetaConversionEvent($donation))->handle();
+
+    $userData = TrackingEvent::query()
+        ->where('donation_id', $donation->id)
+        ->firstOrFail()
+        ->payload['user_data'];
+
+    expect($userData['client_user_agent'])->toBe('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36')
+        ->and($userData['fbp'])->toBe('fb.1.1700000000000.1234567890')
+        ->and($userData['fbc'])->toBe('fb.1.1700000000000.IwAR-click')
+        ->and($userData['em'])->toBe(hash('sha256', 'donor@example.com'))
+        ->and($userData['external_id'])->toBe(hash('sha256', 'donor@example.com'))
+        ->and($userData['ph'])->toBe(hash('sha256', '60123456789'))
+        ->and($userData['fn'])->toBe(hash('sha256', 'obrien'))
+        ->and($userData['ln'])->toBe(hash('sha256', 'tan'))
+        ->and($userData['country'])->toBe(hash('sha256', 'my'));
+});
+
+it('rebuilds fbc from fbclid using a millisecond timestamp', function () {
+    Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1], 200)]);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donation = Donation::factory()->for($campaign)->create([
+        'gross_amount' => 25.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Succeeded,
+        'fbc' => null,
+        'utm_params' => ['fbclid' => 'clickabc'],
+    ]);
+
+    TrackingConfiguration::factory()->for($organization)->meta([
+        'pixel_id' => '123456789012345',
+        'access_token' => 'token',
+    ])->create();
+
+    (new SendMetaConversionEvent($donation))->handle();
+
+    $fbc = TrackingEvent::query()->where('donation_id', $donation->id)->firstOrFail()->payload['user_data']['fbc'];
+
+    expect($fbc)->toBe('fb.1.'.($donation->created_at->timestamp * 1000).'.clickabc');
+});
+
+it('pairs the converted value with the base currency it is stored in', function () {
+    Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1], 200)]);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donation = Donation::factory()->for($campaign)->create([
+        'gross_amount' => 100.00,
+        'currency' => 'usd',
+        'base_amount' => 470.00,
+        'base_currency' => 'myr',
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    TrackingConfiguration::factory()->for($organization)->meta([
+        'pixel_id' => '123456789012345',
+        'access_token' => 'token',
+    ])->create();
+
+    (new SendMetaConversionEvent($donation))->handle();
+
+    $payload = TrackingEvent::query()->where('donation_id', $donation->id)->firstOrFail()->payload;
+
+    expect($payload['custom_data']['value'])->toEqual(470.0)
+        ->and($payload['custom_data']['currency'])->toBe('MYR');
+});
+
+it('reads the meta pixel cookies and the full user agent off the request', function () {
+    $request = Request::create('https://ihsan.test/donate/abc', 'GET', [], [
+        '_fbp' => 'fb.1.1700000000000.987654321',
+        '_fbc' => 'fb.1.1700000000000.IwAR-host-click',
+    ], [], ['HTTP_USER_AGENT' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)']);
+
+    $info = ClientInfo::fromRequest($request);
+
+    expect($info['fbp'])->toBe('fb.1.1700000000000.987654321')
+        ->and($info['fbc'])->toBe('fb.1.1700000000000.IwAR-host-click')
+        ->and($info['user_agent'])->toBe('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)')
+        ->and($info['browser'])->not->toBe($info['user_agent']);
+});
+
+it('keeps the meta cookies readable through the encrypt cookies middleware', function () {
+    expect(EncryptCookies::serialized('_fbp'))->toBeFalse();
+
+    $middleware = app(EncryptCookies::class);
+    $request = Request::create('/', 'GET', [], ['_fbp' => 'fb.1.1700000000000.987654321']);
+
+    $middleware->handle($request, function (Request $r) use (&$seen): Response {
+        $seen = $r->cookie('_fbp');
+
+        return new Response;
+    });
+
+    expect($seen)->toBe('fb.1.1700000000000.987654321');
+});
+
+it('attributes the donation to the host page when the widget forwards it', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'suggested_amounts' => [50, 100, 200],
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => ['default_amount' => 50, 'allow_monthly' => false],
+    ]);
+
+    $this->mock(CreatePaymentIntent::class, function ($mock): void {
+        $mock->shouldReceive('create')->once()->andReturn(PaymentIntent::constructFrom([
+            'id' => 'pi_host_page_test',
+            'client_secret' => 'pi_host_page_test_secret',
+        ]));
+    });
+
+    Livewire::withQueryParams(['pu' => 'https://donor-site.test/appeal?utm_source=facebook&fbclid=hostclick'])
+        ->test(DonationForm::class, ['element' => $element])
+        ->set('frequency', 'one_time')
+        ->set('amount', 50)
+        ->set('firstName', 'Host Donor')
+        ->set('email', 'host@example.com')
+        ->call('submit')
+        ->assertHasNoErrors();
+
+    $donation = Donation::query()->whereHas('donor', fn ($q) => $q->where('email', 'host@example.com'))->firstOrFail();
+
+    expect($donation->page_url)->toBe('https://donor-site.test/appeal?utm_source=facebook&fbclid=hostclick')
+        ->and($donation->utm_params['fbclid'])->toBe('hostclick')
+        ->and($donation->utm_params['utm_source'])->toBe('facebook')
+        ->and($donation->fbc)->toStartWith('fb.1.')
+        ->and($donation->fbc)->toEndWith('.hostclick');
+});
+
+it('ignores a host page url that is not an absolute http address', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create([
+        'suggested_amounts' => [50, 100, 200],
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'config' => ['default_amount' => 50, 'allow_monthly' => false],
+    ]);
+
+    $component = Livewire::withQueryParams(['pu' => 'javascript:alert(1)'])
+        ->test(DonationForm::class, ['element' => $element]);
+
+    $component->assertSet('parentPageUrl', '');
 });

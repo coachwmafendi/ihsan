@@ -58,6 +58,9 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $device_type
  * @property string|null $ip_address
  * @property string|null $browser
+ * @property string|null $user_agent
+ * @property string|null $fbp
+ * @property string|null $fbc
  * @property string|null $os
  * @property string|null $page_url
  * @property string|null $geo_city
@@ -159,7 +162,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['campaign_id', 'donor_id', 'subscription_id', 'source', 'public_id', 'receipt_token', 'stripe_payment_intent_id', 'chip_purchase_id', 'chip_recurring_token', 'chip_checkout_url', 'stripe_charge_id', 'stripe_invoice_id', 'payment_method_brand', 'payment_method_type', 'donor_country', 'gross_amount', 'stripe_fee', 'chip_fee', 'donor_fee_covered', 'processing_fee', 'stripe_fee_details', 'net_amount', 'currency', 'base_currency', 'base_amount', 'exchange_rate', 'status', 'type', 'donor_message', 'is_anonymous', 'utm_params', 'invoice_number', 'device_type', 'ip_address', 'browser', 'os', 'page_url', 'geo_city', 'geo_region', 'payment_method_last4', 'payment_method_exp_month', 'payment_method_exp_year', 'billing_address_line1', 'billing_address_line2', 'billing_address_city', 'billing_address_state', 'billing_address_postal_code', 'billing_country', 'receipt_sent_at', 'new_donation_notification_sent_at', 'large_donation_notification_sent_at', 'refunded_at', 'finalized_at', 'risk_score', 'risk_level', 'avs_result', 'cvc_result', 'fraud_status'])]
+#[Fillable(['campaign_id', 'donor_id', 'subscription_id', 'source', 'public_id', 'receipt_token', 'stripe_payment_intent_id', 'chip_purchase_id', 'chip_recurring_token', 'chip_checkout_url', 'stripe_charge_id', 'stripe_invoice_id', 'payment_method_brand', 'payment_method_type', 'donor_country', 'gross_amount', 'stripe_fee', 'chip_fee', 'donor_fee_covered', 'processing_fee', 'stripe_fee_details', 'net_amount', 'currency', 'base_currency', 'base_amount', 'exchange_rate', 'status', 'type', 'donor_message', 'is_anonymous', 'utm_params', 'invoice_number', 'device_type', 'ip_address', 'browser', 'user_agent', 'fbp', 'fbc', 'os', 'page_url', 'geo_city', 'geo_region', 'payment_method_last4', 'payment_method_exp_month', 'payment_method_exp_year', 'billing_address_line1', 'billing_address_line2', 'billing_address_city', 'billing_address_state', 'billing_address_postal_code', 'billing_country', 'receipt_sent_at', 'new_donation_notification_sent_at', 'large_donation_notification_sent_at', 'refunded_at', 'finalized_at', 'risk_score', 'risk_level', 'avs_result', 'cvc_result', 'fraud_status'])]
 class Donation extends Model
 {
     /** @use HasFactory<DonationFactory> */

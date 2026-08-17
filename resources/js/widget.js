@@ -70,7 +70,9 @@
 
   function checkoutUrl(el, asPopup) {
     var qs = asPopup ? "?popup=1" : "?embed=1";
-    return baseUrl + "/donate/" + el.token + qs;
+    // Forward the host page so ad-platform attribution (fbclid, utm_*,
+    // event_source_url) reflects where the donor actually was, not the iframe.
+    return baseUrl + "/donate/" + el.token + qs + "&pu=" + encodeURIComponent(window.location.href);
   }
 
   function handleClick(el) {
@@ -897,7 +899,7 @@
   }
 
   function renderForm(el) {
-    var formUrl = baseUrl + "/donate/" + el.token + "?embed=1";
+    var formUrl = checkoutUrl(el, false);
 
     var wrapper = document.createElement("div");
     wrapper.id = "ihsan-form-" + el.token;

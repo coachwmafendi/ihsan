@@ -165,6 +165,11 @@ class ProcessStripeWebhook implements ShouldQueue
             }
 
             SendLargeDonationNotification::dispatch($donation)->delay(now()->addMinutes(5));
+        }
+
+        if ($wasPending) {
+            // A first monthly payment is still a conversion — ad platforms must
+            // receive it, even though the donor receipt comes from the plan.
             SendMetaConversionEvent::dispatch($donation);
             SendLinkedInConversionEvent::dispatch($donation);
             SendXAdsConversionEvent::dispatch($donation);

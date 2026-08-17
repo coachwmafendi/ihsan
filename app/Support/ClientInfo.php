@@ -190,10 +190,36 @@ class ClientInfo
         return [
             'device_type' => self::detectDeviceType($agent),
             'browser' => self::detectBrowser($agent),
+            'user_agent' => $agent !== null ? mb_substr($agent, 0, 512) : null,
             'os' => self::detectOs($agent),
             'ip_address' => $ip,
             'page_url' => $request->fullUrl(),
+            ...self::metaClickCookies($request),
             ...self::lookupGeo($ip),
+        ];
+    }
+
+    /**
+     * Read the Meta pixel's first-party cookies so server-side Conversions API
+     * events carry the same browser and click identifiers as the pixel events.
+     *
+     * @return array{fbp: string|null, fbc: string|null}
+     */
+    public static function metaClickCookies(Request $request): array
+    {
+        $read = static function (string $name) use ($request): ?string {
+            $value = $request->cookie($name);
+
+            if (! is_string($value) || $value === '') {
+                return null;
+            }
+
+            return mb_substr($value, 0, 512);
+        };
+
+        return [
+            'fbp' => $read('_fbp'),
+            'fbc' => $read('_fbc'),
         ];
     }
 }

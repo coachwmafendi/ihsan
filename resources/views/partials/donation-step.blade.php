@@ -211,24 +211,28 @@
                         if (typeof window.IhsanTrack !== 'function') return;
                         const amountNumber = parseFloat(this.amount);
                         if (!Number.isFinite(amountNumber) || amountNumber <= 0) return;
+                        const eventId = typeof window.IhsanEventId === 'function' ? window.IhsanEventId('ic') : null;
                         window.IhsanTrack('InitiateCheckout', {
                             value: amountNumber,
                             currency: this.currency.toUpperCase(),
                             content_type: 'product',
                             contents: [{ id: 'donation', quantity: 1, item_price: amountNumber }],
-                        });
+                        }, eventId ? { eventID: eventId } : undefined);
                         if (this.$wire && typeof this.$wire.trackServerInitiateCheckout === 'function') {
-                            this.$wire.trackServerInitiateCheckout();
+                            this.$wire.trackServerInitiateCheckout(eventId);
                         }
                     },
                     trackPurchase() {
                         if (typeof window.IhsanTrack !== 'function') return;
                         if (!this.donationPublicId) return;
-                        const amountNumber = parseFloat(this.amount);
+                        // After a redirect-back (3DS, FPX, CHIP) the form state is
+                        // reset, so trust the server's finalized amount first.
+                        const amountNumber = parseFloat(this.$wire.purchaseAmount ?? this.amount);
                         if (!Number.isFinite(amountNumber) || amountNumber <= 0) return;
+                        const currency = (this.$wire.purchaseCurrency || this.currency).toUpperCase();
                         window.IhsanTrack('Purchase', {
                             value: amountNumber,
-                            currency: this.currency.toUpperCase(),
+                            currency: currency,
                             content_type: 'product',
                             contents: [{ id: 'donation', quantity: 1, item_price: amountNumber }],
                         }, { eventID: 'purchase_' + this.donationPublicId });
