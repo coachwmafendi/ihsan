@@ -303,6 +303,35 @@ it('calculates donor and subscription health metrics', function () {
         ->assertSet('netSubscriptionChange', 1);
 });
 
+it('shows failed foreign donations in original currency without myr prefix', function () {
+    $org = Organization::factory()->create(['status' => 'active']);
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+
+    $succeededDonation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 90.00,
+        'currency' => 'sgd',
+        'base_amount' => 286.94,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $failedDonation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 90.00,
+        'currency' => 'sgd',
+        'base_amount' => null,
+        'status' => DonationStatus::Failed,
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+    $this->actingAs($user);
+
+    Livewire::test(PlatformOverview::class)
+        ->assertOk()
+        ->assertSee('≈ MYR 286.94')
+        ->assertSee('SGD 90.00')
+        ->assertDontSee('MYR 90.00');
+});
+
 it('calculates recurring health metrics', function () {
     $org = Organization::factory()->create(['status' => 'active']);
     $donor = Donor::factory()->create();

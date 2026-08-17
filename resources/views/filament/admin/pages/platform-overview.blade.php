@@ -2,7 +2,7 @@
     <div class="ihsan-admin-page">
         {{-- Row 1: All-time platform totals --}}
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <x-admin.metric-card icon="heroicon-o-banknotes" label="Total donations" :value="'MYR '.$totalDonationsVolume" :note="'All time · '.$totalDonationsCount.' transactions'" />
+            <x-admin.metric-card icon="heroicon-o-banknotes" label="Total donations" :value="($totalDonationsHasApproximation ? '≈ ' : '').'MYR '.$totalDonationsVolume" :note="'All time · '.$totalDonationsCount.' transactions'" />
             <x-admin.metric-card icon="heroicon-o-receipt-percent" label="Processing fees" :value="'MYR '.$totalProcessingFees" note="All time · transferred to platform" />
             <x-admin.metric-card icon="heroicon-o-arrow-path" label="Active subscriptions" :value="$activeSubscriptions" note="Currently active" />
             <x-admin.metric-card icon="heroicon-o-users" label="Total donors" :value="$totalDonors" note="All time registered" />
@@ -13,13 +13,13 @@
             <x-admin.metric-card
                 icon="heroicon-o-chart-bar"
                 label="Estimated MRR"
-                :value="'MYR '.$estimatedMrr"
+                :value="($estimatedMrrHasApproximation ? '≈ ' : '').'MYR '.$estimatedMrr"
                 note="Active subscriptions normalized monthly"
             />
             <x-admin.metric-card
                 icon="heroicon-o-banknotes"
                 label="Donations this month"
-                :value="'MYR '.$donationsThisMonth"
+                :value="($donationsThisMonthHasApproximation ? '≈ ' : '').'MYR '.$donationsThisMonth"
                 :note="'This month · '.($donationsMomChange >= 0 ? '▲ ' : '▼ ').abs($donationsMomChange).'% vs last month'"
             />
             <x-admin.metric-card
@@ -103,7 +103,7 @@
                         @forelse ($topOrganizations as $org)
                             <div class="ihsan-admin-list-row">
                                 <span class="truncate text-sm font-medium text-ihsan-ink dark:text-white">{{ $org['name'] }}</span>
-                                <span class="shrink-0 text-sm font-semibold text-ihsan-ink dark:text-white">{{ $org['total'] }}</span>
+                                <span class="shrink-0 text-sm font-semibold text-ihsan-ink dark:text-white">{{ ($topOrganizationsHaveApproximation ? '≈ ' : '').$org['total'] }}</span>
                             </div>
                         @empty
                             <div class="py-3 text-sm text-ihsan-muted dark:text-stone-400">No data yet.</div>
