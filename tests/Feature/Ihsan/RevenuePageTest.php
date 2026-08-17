@@ -271,3 +271,37 @@ it('updates per organization download links when the period filter changes', fun
 
     expect($html)->toContain($expectedUrl);
 });
+
+it('shows all-organizations export links that reflect the selected period', function () {
+    $org = Organization::factory()->create(['status' => 'active']);
+    $campaign = Campaign::factory()->for($org)->create();
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 100.00,
+        'base_amount' => 100.00,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+    $component = Livewire::actingAs($user)
+        ->test(Revenue::class)
+        ->set('period', 'last_month');
+
+    $html = $component->html();
+    $csvUrl = route('filament.admin.pages.revenue.report.all', [
+        'format' => 'csv',
+        'period' => 'last_month',
+    ]);
+    $pdfUrl = route('filament.admin.pages.revenue.report.all', [
+        'format' => 'pdf',
+        'period' => 'last_month',
+    ]);
+
+    expect($html)
+        ->toContain($csvUrl)
+        ->toContain($pdfUrl)
+        ->toContain('Download CSV report for all organizations')
+        ->toContain('Download PDF report for all organizations');
+});

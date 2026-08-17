@@ -66,6 +66,11 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->routes(function () {
+                Route::get('/revenue/report/all/{format}/{period?}', [RevenueReportController::class, 'downloadAll'])
+                    ->whereIn('format', ['csv', 'pdf'])
+                    ->middleware([Authenticate::class])
+                    ->name('pages.revenue.report.all');
+
                 Route::get('/revenue/report/{organizationPublicId}/{format}/{period?}', [RevenueReportController::class, 'download'])
                     ->whereIn('format', ['csv', 'pdf'])
                     ->middleware([Authenticate::class])
