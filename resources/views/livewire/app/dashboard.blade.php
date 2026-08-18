@@ -634,6 +634,8 @@
                         renderChart() {
                             const data = @js($this->donationTrend);
                             const hasApprox = data.some((p) => p.has_approximation);
+                            const pointCount = data.length;
+                            const isSparse = pointCount <= 2;
 
                             const options = {
                                 series: [{
@@ -642,34 +644,56 @@
                                 }],
                                 chart: {
                                     type: 'area',
-                                    height: 220,
+                                    height: 280,
                                     toolbar: { show: false },
                                     animations: { enabled: true },
                                     fontFamily: 'inherit',
+                                    dropShadow: {
+                                        enabled: true,
+                                        top: 4,
+                                        left: 0,
+                                        blur: 6,
+                                        color: '#3b82f6',
+                                        opacity: 0.35,
+                                    },
                                 },
-                                colors: ['#3b82f6'],
+                                colors: ['#2563eb'],
                                 fill: {
                                     type: 'gradient',
                                     gradient: {
                                         shadeIntensity: 1,
-                                        opacityFrom: 0.16,
-                                        opacityTo: 0,
+                                        opacityFrom: 0.26,
+                                        opacityTo: 0.04,
                                         stops: [0, 100],
                                     },
                                 },
-                                stroke: { curve: 'straight', width: 3 },
+                                stroke: { curve: isSparse ? 'straight' : 'smooth', width: 3 },
                                 dataLabels: { enabled: false },
+                                markers: {
+                                    size: isSparse ? 6 : 4,
+                                    colors: ['#ffffff'],
+                                    strokeColors: ['#2563eb'],
+                                    strokeWidth: 2,
+                                    hover: { size: 7 },
+                                },
                                 grid: {
                                     borderColor: '#f1f5f9',
                                     strokeDashArray: 4,
                                     xaxis: { lines: { show: false } },
                                     yaxis: { lines: { show: true } },
+                                    padding: { left: 8, right: 8 },
                                 },
                                 xaxis: {
                                     tooltip: { enabled: false },
                                     axisBorder: { show: false },
                                     axisTicks: { show: false },
                                     crosshairs: { stroke: { color: '#cbd5e1', width: 1, dashArray: 4 } },
+                                    tickAmount: isSparse ? pointCount : (pointCount <= 7 ? pointCount : 10),
+                                    labels: {
+                                        rotate: pointCount > 14 ? 45 : 0,
+                                        rotateAlways: pointCount > 14,
+                                        hideOverlappingLabels: true,
+                                    },
                                 },
                                 yaxis: {
                                     tickAmount: 3,
@@ -679,6 +703,7 @@
                                 },
                                 tooltip: {
                                     theme: 'light',
+                                    x: { format: 'dd MMM' },
                                     y: {
                                         formatter: (value) => (hasApprox ? '≈ ' : '') + 'MYR ' + Number(value).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                                     },
