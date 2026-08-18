@@ -208,8 +208,17 @@ class ProcessStripeWebhook implements ShouldQueue
             return;
         }
 
+        $error = $paymentIntent->last_payment_error;
+        $stripeFeeDetails = $donation->stripe_fee_details ?? [];
+        $stripeFeeDetails['last_payment_error'] = [
+            'message' => $error?->message ?? null,
+            'decline_code' => $error?->decline_code ?? null,
+            'code' => $error?->code ?? null,
+        ];
+
         $donation->update([
             'status' => DonationStatus::Failed,
+            'stripe_fee_details' => $stripeFeeDetails,
         ]);
 
         $donation->loadMissing('subscription.donor', 'subscription.campaign.organization');

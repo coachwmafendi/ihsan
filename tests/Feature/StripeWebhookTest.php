@@ -110,6 +110,28 @@ it('marks a pending one time donation as succeeded from a payment intent webhook
     Queue::assertPushed(SyncDonationStripeDetailsJob::class);
 });
 
+it('stores stripe failure reason when a one time payment intent fails', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 50,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::OneTime,
+        'stripe_payment_intent_id' => 'pi_webhook_failed_123',
+    ]);
+
+    (new ProcessStripeWebhook(paymentIntentFailedPayload($donation, 'evt_webhook_failed_123')))->handle();
+
+    $donation->refresh();
+
+    expect($donation->status)->toBe(DonationStatus::Failed)
+        ->and($donation->stripe_fee_details['last_payment_error']['message'] ?? null)->toBe('Your card has insufficient funds.')
+        ->and($donation->stripe_fee_details['last_payment_error']['decline_code'] ?? null)->toBe('insufficient_funds')
+        ->and(WebhookLog::query()->where('stripe_event_id', 'evt_webhook_failed_123')->first()?->status)->toBe('completed');
+});
+
 it('does not process the same completed payment intent webhook twice', function () {
     Queue::fake([SendDonationReceipt::class, SyncDonationStripeDetailsJob::class, SendLargeDonationNotification::class]);
 
@@ -1294,6 +1316,32 @@ it('dispatches conversion events for recurring invoice paid webhook', function (
     Queue::assertPushed(SendXAdsConversionEvent::class, fn ($job) => $job->donation->is($donation));
     Queue::assertPushed(SendSnapchatConversionEvent::class, fn ($job) => $job->donation->is($donation));
 });
+
+function paymentIntentFailedPayload(Donation $donation, string $eventId): string
+{
+    return json_encode([
+        'id' => $eventId,
+        'object' => 'event',
+        'type' => 'payment_intent.payment_failed',
+        'data' => [
+            'object' => [
+                'id' => $donation->stripe_payment_intent_id,
+                'object' => 'payment_intent',
+                'metadata' => [
+                    'donation_id' => (string) $donation->getKey(),
+                    'donor_email' => $donation->donor?->email ?? '',
+                    'campaign_id' => (string) $donation->campaign_id,
+                    'organization_id' => (string) $donation->campaign?->organization_id,
+                ],
+                'last_payment_error' => [
+                    'message' => 'Your card has insufficient funds.',
+                    'decline_code' => 'insufficient_funds',
+                    'code' => 'card_declined',
+                ],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+}
 
 function paymentIntentSucceededPayload(Donation $donation, string $eventId): string
 {

@@ -255,6 +255,13 @@ class Transactions extends Page implements HasTable
                         DonationStatus::Refunded => 'info',
                     })
                     ->formatStateUsing(fn (DonationStatus $state): string => str($state->value)->headline()->toString())
+                    ->tooltip(function (Donation $record): ?string {
+                        if ($record->status !== DonationStatus::Failed) {
+                            return null;
+                        }
+
+                        return $record->stripe_fee_details['last_payment_error']['message'] ?? null;
+                    })
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->label('Date')
