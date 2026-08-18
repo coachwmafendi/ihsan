@@ -418,7 +418,19 @@ class DonationForm extends Component
             Stripe::setApiKey(config('services.stripe.secret'));
             $donation->loadMissing('campaign.organization');
             $stripeOptions = $this->stripeOptionsFor($donation);
-            $synced = app(SyncDonationStripeDetails::class)->sync($donation, $paymentIntent, $stripeOptions);
+
+            $resolvedPaymentIntent = $paymentIntent ?? StripePaymentIntent::retrieve([
+                'id' => $donation->stripe_payment_intent_id,
+                'expand' => ['latest_charge.balance_transaction'],
+            ], $stripeOptions);
+
+            if (in_array($resolvedPaymentIntent->status, ['requires_payment_method', 'requires_action', 'requires_confirmation', 'processing', 'canceled'], true)) {
+                $this->recordNonSuccessfulPaymentStatus($donation, $resolvedPaymentIntent);
+
+                return;
+            }
+
+            $synced = app(SyncDonationStripeDetails::class)->sync($donation, $resolvedPaymentIntent, $stripeOptions);
             $paymentIntent = $synced['payment_intent'];
 
             $finalizeResult = DB::transaction(function () use ($donation): array {
@@ -596,6 +608,25 @@ class DonationForm extends Component
     private function createRecurringPlan(Donation $donation, StripePaymentIntent $paymentIntent, array $stripeOptions): Subscription
     {
         return app(RecurringPlanResolver::class)->create($donation, $paymentIntent, $stripeOptions);
+    }
+
+    private function recordNonSuccessfulPaymentStatus(Donation $donation, StripePaymentIntent $paymentIntent): void
+    {
+        $stripeFeeDetails = $donation->stripe_fee_details ?? [];
+        $stripeFeeDetails['pending'] = [
+            'status' => $paymentIntent->status,
+            'message' => $paymentIntent->last_payment_error?->message ?? null,
+            'decline_code' => $paymentIntent->last_payment_error?->decline_code ?? null,
+            'code' => $paymentIntent->last_payment_error?->code ?? null,
+        ];
+
+        $isTerminalFailure = in_array($paymentIntent->status, ['canceled', 'requires_payment_method'], true)
+            && $paymentIntent->last_payment_error !== null;
+
+        $donation->update([
+            'status' => $isTerminalFailure ? DonationStatus::Failed : $donation->status,
+            'stripe_fee_details' => $stripeFeeDetails,
+        ]);
     }
 
     #[Renderless]

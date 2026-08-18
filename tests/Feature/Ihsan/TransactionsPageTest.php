@@ -116,6 +116,32 @@ it('shows failed payment reason tooltip on status badge', function () {
         ->assertSee('Your card has insufficient funds.');
 });
 
+it('shows pending payment status tooltip on status badge', function () {
+    $org = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 50.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::OneTime,
+        'stripe_fee_details' => [
+            'pending' => [
+                'status' => 'requires_action',
+                'message' => null,
+            ],
+        ],
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+    $this->actingAs($user)
+        ->get('/admin/transactions')
+        ->assertSuccessful()
+        ->assertSee('Awaiting payment completion');
+});
+
 it('shows failed foreign donations in original currency without myr prefix', function () {
     $org = Organization::factory()->create();
     $campaign = Campaign::factory()->for($org)->create();
