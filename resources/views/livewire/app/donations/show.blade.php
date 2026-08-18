@@ -398,14 +398,15 @@
                             <dt class="text-sm text-slate-500">Source</dt>
                             <dd class="text-sm font-medium text-slate-900">{{ $donation->source_label }}</dd>
                         </div>
-                        <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
+                        <div class="grid min-w-0 grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">URL</dt>
-                            <dd class="text-sm font-medium">
+                            <dd class="flex min-w-0 items-start gap-2 text-sm font-medium">
                                 @if ($donation->page_url)
-                                    <a href="{{ $donation->page_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700">
+                                    <a href="{{ $donation->page_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-w-0 items-start gap-1 break-all text-blue-600 hover:text-blue-700">
                                         {{ $donation->page_url }}
-                                        <x-heroicon-o-arrow-top-right-on-square class="size-4" />
+                                        <x-heroicon-o-arrow-top-right-on-square class="mt-0.5 size-4 shrink-0" />
                                     </a>
+                                    <x-ui.copy-button :value="$donation->page_url" size="sm" class="mt-0.5 shrink-0" />
                                 @else
                                     <span class="text-slate-500">—</span>
                                 @endif
