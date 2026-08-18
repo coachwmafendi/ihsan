@@ -64,6 +64,7 @@ it('shows the stripe failure reason tooltip on the donation show page', function
         'stripe_fee_details' => [
             'last_payment_error' => [
                 'message' => 'Your card has insufficient funds.',
+                'decline_code' => 'insufficient_funds',
             ],
         ],
     ]);
@@ -71,7 +72,7 @@ it('shows the stripe failure reason tooltip on the donation show page', function
     Livewire::actingAs($this->user)
         ->test(DonationShow::class, ['donation' => $donation])
         ->assertStatus(200)
-        ->assertSee('Your card has insufficient funds.');
+        ->assertSee('Your card has insufficient funds. (insufficient_funds)');
 });
 
 it('shows the pending status tooltip on the donations index page', function () {

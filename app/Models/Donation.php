@@ -466,9 +466,18 @@ class Donation extends Model
             }
 
             if ($this->status === DonationStatus::Failed) {
-                return $this->stripe_fee_details['last_payment_error']['message']
+                $message = $this->stripe_fee_details['last_payment_error']['message']
                     ?? $this->stripe_fee_details['pending']['message']
-                    ?? 'Payment failed';
+                    ?? null;
+                $declineCode = $this->stripe_fee_details['last_payment_error']['decline_code']
+                    ?? $this->stripe_fee_details['pending']['decline_code']
+                    ?? null;
+
+                if ($message !== null && $declineCode !== null) {
+                    return "{$message} ({$declineCode})";
+                }
+
+                return $message ?? 'Payment failed';
             }
 
             if ($this->status === DonationStatus::Pending) {

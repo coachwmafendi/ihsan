@@ -82,5 +82,5 @@ it('marks donation as failed when confirmPayment receives a terminal failure fro
     expect($donation->status)->toBe(DonationStatus::Failed)
         ->and($donation->stripe_fee_details['pending']['message'] ?? null)->toBe('Your card was declined.')
         ->and($donation->stripe_fee_details['pending']['decline_code'] ?? null)->toBe('generic_decline')
-        ->and($donation->status_tooltip)->toBe('Your card was declined.');
+        ->and($donation->status_tooltip)->toBe('Your card was declined. (generic_decline)');
 });
