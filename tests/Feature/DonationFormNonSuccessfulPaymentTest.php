@@ -43,7 +43,7 @@ it('records pending status details when confirmPayment receives a non-succeeded 
 
     expect($donation->status)->toBe(DonationStatus::Pending)
         ->and($donation->stripe_fee_details['pending']['status'] ?? null)->toBe('requires_action')
-        ->and($donation->status_tooltip)->toBe('Awaiting 3D Secure authentication');
+        ->and($donation->status_tooltip)->toBe('Awaiting 3D Secure authentication (requires_action)');
 });
 
 it('marks donation as failed when confirmPayment receives a terminal failure from Stripe', function () {
@@ -82,5 +82,5 @@ it('marks donation as failed when confirmPayment receives a terminal failure fro
     expect($donation->status)->toBe(DonationStatus::Failed)
         ->and($donation->stripe_fee_details['pending']['message'] ?? null)->toBe('Your card was declined.')
         ->and($donation->stripe_fee_details['pending']['decline_code'] ?? null)->toBe('generic_decline')
-        ->and($donation->status_tooltip)->toBe('Your card was declined. (generic_decline)');
+        ->and($donation->status_tooltip)->toBe('Your card was declined. The bank returned the decline code generic_decline.');
 });

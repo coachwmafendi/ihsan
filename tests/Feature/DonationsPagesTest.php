@@ -72,7 +72,7 @@ it('shows the stripe failure reason tooltip on the donation show page', function
     Livewire::actingAs($this->user)
         ->test(DonationShow::class, ['donation' => $donation])
         ->assertStatus(200)
-        ->assertSee('Your card has insufficient funds. (insufficient_funds)');
+        ->assertSee('Your card has insufficient funds. The bank returned the decline code insufficient_funds.');
 });
 
 it('shows the pending status tooltip on the donations index page', function () {
@@ -92,7 +92,7 @@ it('shows the pending status tooltip on the donations index page', function () {
     $this->actingAs($this->user)
         ->get(route('app.donations.index'))
         ->assertStatus(200)
-        ->assertSee('Awaiting 3D Secure authentication');
+        ->assertSee('Awaiting 3D Secure authentication (requires_action)');
 });
 
 it('shows the exact original currency amount in a tooltip for non-MYR receipts', function () {
