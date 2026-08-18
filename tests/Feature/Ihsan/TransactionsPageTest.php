@@ -113,7 +113,7 @@ it('shows failed payment reason tooltip on status badge', function () {
     $this->actingAs($user)
         ->get('/admin/transactions')
         ->assertSuccessful()
-        ->assertSee('Your card has insufficient funds. (insufficient_funds)');
+        ->assertSee('Your card has insufficient funds. The bank returned the decline code insufficient_funds.');
 });
 
 it('shows pending payment status tooltip on status badge', function () {
@@ -139,7 +139,7 @@ it('shows pending payment status tooltip on status badge', function () {
     $this->actingAs($user)
         ->get('/admin/transactions')
         ->assertSuccessful()
-        ->assertSee('Awaiting 3D Secure authentication');
+        ->assertSee('Awaiting 3D Secure authentication (requires_action)');
 });
 
 it('shows failed foreign donations in original currency without myr prefix', function () {

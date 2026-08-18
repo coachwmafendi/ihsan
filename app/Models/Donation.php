@@ -472,28 +472,36 @@ class Donation extends Model
                 $declineCode = $this->stripe_fee_details['last_payment_error']['decline_code']
                     ?? $this->stripe_fee_details['pending']['decline_code']
                     ?? null;
+                $cancellationReason = $this->stripe_fee_details['pending']['cancellation_reason'] ?? null;
 
                 if ($message !== null && $declineCode !== null) {
-                    return "{$message} ({$declineCode})";
+                    return "{$message} The bank returned the decline code {$declineCode}.";
                 }
 
-                return $message ?? 'Payment failed';
+                if ($declineCode !== null) {
+                    return "The bank returned the decline code {$declineCode}.";
+                }
+
+                return $message ?? ($cancellationReason !== null ? "Payment canceled: {$cancellationReason}" : 'Payment failed');
             }
 
             if ($this->status === DonationStatus::Pending) {
                 $pending = $this->stripe_fee_details['pending'] ?? null;
+                $status = $pending['status'] ?? null;
 
-                if (! empty($pending['message'])) {
-                    return $pending['message'];
-                }
-
-                return match ($pending['status'] ?? null) {
+                $label = match ($status) {
                     'requires_action' => 'Awaiting 3D Secure authentication',
                     'requires_confirmation' => 'Awaiting payment confirmation',
                     'requires_payment_method' => 'Payment method not provided',
                     'processing' => 'Payment is being processed',
                     default => 'Awaiting payment completion',
                 };
+
+                if ($status !== null && $status !== '') {
+                    return "{$label} ({$status})";
+                }
+
+                return $label;
             }
 
             if ($this->status === DonationStatus::Cancelled) {

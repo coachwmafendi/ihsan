@@ -129,7 +129,72 @@ it('stores stripe failure reason when a one time payment intent fails', function
     expect($donation->status)->toBe(DonationStatus::Failed)
         ->and($donation->stripe_fee_details['last_payment_error']['message'] ?? null)->toBe('Your card has insufficient funds.')
         ->and($donation->stripe_fee_details['last_payment_error']['decline_code'] ?? null)->toBe('insufficient_funds')
+        ->and($donation->status_tooltip)->toBe('Your card has insufficient funds. The bank returned the decline code insufficient_funds.')
         ->and(WebhookLog::query()->where('stripe_event_id', 'evt_webhook_failed_123')->first()?->status)->toBe('completed');
+});
+
+it('stores pending status when a payment intent is created', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 50,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::OneTime,
+        'stripe_payment_intent_id' => 'pi_webhook_created_123',
+    ]);
+
+    (new ProcessStripeWebhook(paymentIntentCreatedPayload($donation, 'evt_webhook_created_123')))->handle();
+
+    $donation->refresh();
+
+    expect($donation->status)->toBe(DonationStatus::Pending)
+        ->and($donation->stripe_fee_details['pending']['status'] ?? null)->toBe('requires_payment_method')
+        ->and($donation->status_tooltip)->toBe('Payment method not provided (requires_payment_method)');
+});
+
+it('stores requires_action status when a payment intent requires action', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 50,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::OneTime,
+        'stripe_payment_intent_id' => 'pi_webhook_requires_action_123',
+    ]);
+
+    (new ProcessStripeWebhook(paymentIntentRequiresActionPayload($donation, 'evt_webhook_requires_action_123')))->handle();
+
+    $donation->refresh();
+
+    expect($donation->status)->toBe(DonationStatus::Pending)
+        ->and($donation->stripe_fee_details['pending']['status'] ?? null)->toBe('requires_action')
+        ->and($donation->status_tooltip)->toBe('Awaiting 3D Secure authentication (requires_action)');
+});
+
+it('marks donation as failed when a payment intent is canceled', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 50,
+        'currency' => 'myr',
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::OneTime,
+        'stripe_payment_intent_id' => 'pi_webhook_canceled_123',
+    ]);
+
+    (new ProcessStripeWebhook(paymentIntentCanceledPayload($donation, 'evt_webhook_canceled_123')))->handle();
+
+    $donation->refresh();
+
+    expect($donation->status)->toBe(DonationStatus::Failed)
+        ->and($donation->stripe_fee_details['pending']['status'] ?? null)->toBe('canceled')
+        ->and($donation->stripe_fee_details['pending']['cancellation_reason'] ?? null)->toBe('abandoned')
+        ->and($donation->status_tooltip)->toBe('Payment canceled: abandoned');
 });
 
 it('does not process the same completed payment intent webhook twice', function () {
@@ -1316,6 +1381,73 @@ it('dispatches conversion events for recurring invoice paid webhook', function (
     Queue::assertPushed(SendXAdsConversionEvent::class, fn ($job) => $job->donation->is($donation));
     Queue::assertPushed(SendSnapchatConversionEvent::class, fn ($job) => $job->donation->is($donation));
 });
+
+function paymentIntentCreatedPayload(Donation $donation, string $eventId): string
+{
+    return json_encode([
+        'id' => $eventId,
+        'object' => 'event',
+        'type' => 'payment_intent.created',
+        'data' => [
+            'object' => [
+                'id' => $donation->stripe_payment_intent_id,
+                'object' => 'payment_intent',
+                'status' => 'requires_payment_method',
+                'metadata' => [
+                    'donation_id' => (string) $donation->getKey(),
+                    'donor_email' => $donation->donor?->email ?? '',
+                    'campaign_id' => (string) $donation->campaign_id,
+                    'organization_id' => (string) $donation->campaign?->organization_id,
+                ],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+}
+
+function paymentIntentRequiresActionPayload(Donation $donation, string $eventId): string
+{
+    return json_encode([
+        'id' => $eventId,
+        'object' => 'event',
+        'type' => 'payment_intent.requires_action',
+        'data' => [
+            'object' => [
+                'id' => $donation->stripe_payment_intent_id,
+                'object' => 'payment_intent',
+                'status' => 'requires_action',
+                'metadata' => [
+                    'donation_id' => (string) $donation->getKey(),
+                    'donor_email' => $donation->donor?->email ?? '',
+                    'campaign_id' => (string) $donation->campaign_id,
+                    'organization_id' => (string) $donation->campaign?->organization_id,
+                ],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+}
+
+function paymentIntentCanceledPayload(Donation $donation, string $eventId): string
+{
+    return json_encode([
+        'id' => $eventId,
+        'object' => 'event',
+        'type' => 'payment_intent.canceled',
+        'data' => [
+            'object' => [
+                'id' => $donation->stripe_payment_intent_id,
+                'object' => 'payment_intent',
+                'status' => 'canceled',
+                'cancellation_reason' => 'abandoned',
+                'metadata' => [
+                    'donation_id' => (string) $donation->getKey(),
+                    'donor_email' => $donation->donor?->email ?? '',
+                    'campaign_id' => (string) $donation->campaign_id,
+                    'organization_id' => (string) $donation->campaign?->organization_id,
+                ],
+            ],
+        ],
+    ], JSON_THROW_ON_ERROR);
+}
 
 function paymentIntentFailedPayload(Donation $donation, string $eventId): string
 {

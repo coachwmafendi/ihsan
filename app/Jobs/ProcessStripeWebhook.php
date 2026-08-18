@@ -65,7 +65,10 @@ class ProcessStripeWebhook implements ShouldQueue
 
         match ($event->type) {
             'payment_intent.succeeded' => $this->handlePaymentIntentSucceeded($event),
+            'payment_intent.created' => $this->handlePaymentIntentCreated($event),
+            'payment_intent.requires_action' => $this->handlePaymentIntentRequiresAction($event),
             'payment_intent.payment_failed' => $this->handlePaymentIntentFailed($event),
+            'payment_intent.canceled' => $this->handlePaymentIntentCanceled($event),
             'invoice.paid' => $this->handleInvoicePaid($event),
             'invoice.payment_failed' => $this->handleInvoicePaymentFailed($event),
             'customer.subscription.deleted' => $this->handleSubscriptionDeleted($event),
@@ -226,6 +229,99 @@ class ProcessStripeWebhook implements ShouldQueue
         if ($donation->subscription !== null) {
             SendFailedPaymentNotification::dispatch($donation->subscription, null, true);
         }
+    }
+
+    private function handlePaymentIntentCreated(StripeEvent $event): void
+    {
+        $paymentIntent = $event->data->object;
+        $donationId = $paymentIntent->metadata->{StripeMetadata::key('donation_id')}
+            ?? $paymentIntent->metadata->donation_id
+            ?? null;
+
+        if ($donationId === null) {
+            return;
+        }
+
+        $donation = Donation::query()->whereKey($donationId)->first();
+
+        if ($donation === null) {
+            return;
+        }
+
+        $stripeFeeDetails = $donation->stripe_fee_details ?? [];
+        $stripeFeeDetails['pending'] = [
+            'status' => 'requires_payment_method',
+            'message' => null,
+            'decline_code' => null,
+            'code' => null,
+        ];
+
+        $donation->update([
+            'stripe_fee_details' => $stripeFeeDetails,
+        ]);
+    }
+
+    private function handlePaymentIntentRequiresAction(StripeEvent $event): void
+    {
+        $paymentIntent = $event->data->object;
+        $donationId = $paymentIntent->metadata->{StripeMetadata::key('donation_id')}
+            ?? $paymentIntent->metadata->donation_id
+            ?? null;
+
+        if ($donationId === null) {
+            return;
+        }
+
+        $donation = Donation::query()->whereKey($donationId)->first();
+
+        if ($donation === null) {
+            return;
+        }
+
+        $stripeFeeDetails = $donation->stripe_fee_details ?? [];
+        $stripeFeeDetails['pending'] = [
+            'status' => 'requires_action',
+            'message' => null,
+            'decline_code' => null,
+            'code' => null,
+        ];
+
+        $donation->update([
+            'stripe_fee_details' => $stripeFeeDetails,
+        ]);
+    }
+
+    private function handlePaymentIntentCanceled(StripeEvent $event): void
+    {
+        $paymentIntent = $event->data->object;
+        $donationId = $paymentIntent->metadata->{StripeMetadata::key('donation_id')}
+            ?? $paymentIntent->metadata->donation_id
+            ?? null;
+
+        if ($donationId === null) {
+            return;
+        }
+
+        $donation = Donation::query()->whereKey($donationId)->first();
+
+        if ($donation === null) {
+            return;
+        }
+
+        $error = $paymentIntent->last_payment_error;
+        $stripeFeeDetails = $donation->stripe_fee_details ?? [];
+        $stripeFeeDetails['pending'] = [
+            'status' => 'canceled',
+            'message' => $error?->message ?? null,
+            'decline_code' => $error?->decline_code ?? null,
+            'code' => $error?->code ?? null,
+            'cancellation_reason' => $paymentIntent->cancellation_reason ?? null,
+        ];
+
+        $donation->update([
+            'status' => DonationStatus::Failed,
+            'stripe_fee_details' => $stripeFeeDetails,
+        ]);
     }
 
     private function handleDonorInvoicePaid(StripeEvent $event): void
