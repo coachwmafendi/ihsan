@@ -111,6 +111,11 @@ it('renders an interactive line chart with hover figures for the donation trend'
         ->assertSee('setDashArray', false)
         ->assertSee('onMove($event)', false)
         ->assertSee('points[active].amount', false)
+        // Improved visibility: thicker line, drop shadow, dotted gridlines, point markers.
+        ->assertSee('stroke-width="3"', false)
+        ->assertSee('feDropShadow', false)
+        ->assertSee('stroke-dasharray="2 2"', false)
+        ->assertSee('point-marker', false)
         // Fundraise Up-style axis + tooltip title.
         ->assertSee('MYR 250', false)
         ->assertSee('Total raised');
