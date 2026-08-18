@@ -55,6 +55,45 @@ it('renders the donation show page', function () {
         ->assertSee($this->campaign->title);
 });
 
+it('shows the stripe failure reason tooltip on the donation show page', function () {
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'gross_amount' => 150.00,
+        'status' => 'failed',
+        'stripe_fee_details' => [
+            'last_payment_error' => [
+                'message' => 'Your card has insufficient funds.',
+            ],
+        ],
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $donation])
+        ->assertStatus(200)
+        ->assertSee('Your card has insufficient funds.');
+});
+
+it('shows the pending status tooltip on the donations index page', function () {
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'gross_amount' => 150.00,
+        'status' => 'pending',
+        'stripe_fee_details' => [
+            'pending' => [
+                'status' => 'requires_action',
+                'message' => null,
+            ],
+        ],
+    ]);
+
+    $this->actingAs($this->user)
+        ->get(route('app.donations.index'))
+        ->assertStatus(200)
+        ->assertSee('Awaiting 3D Secure authentication');
+});
+
 it('shows the exact original currency amount in a tooltip for non-MYR receipts', function () {
     $donation = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,

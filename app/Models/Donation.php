@@ -472,8 +472,19 @@ class Donation extends Model
             }
 
             if ($this->status === DonationStatus::Pending) {
-                return $this->stripe_fee_details['pending']['message']
-                    ?? 'Awaiting payment completion';
+                $pending = $this->stripe_fee_details['pending'] ?? null;
+
+                if (! empty($pending['message'])) {
+                    return $pending['message'];
+                }
+
+                return match ($pending['status'] ?? null) {
+                    'requires_action' => 'Awaiting 3D Secure authentication',
+                    'requires_confirmation' => 'Awaiting payment confirmation',
+                    'requires_payment_method' => 'Payment method not provided',
+                    'processing' => 'Payment is being processed',
+                    default => 'Awaiting payment completion',
+                };
             }
 
             if ($this->status === DonationStatus::Cancelled) {
