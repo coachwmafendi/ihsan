@@ -145,11 +145,12 @@
                                             @endif
                                             @if ($campaign->has_target && $campaign->target_amount)
                                                     @php
+                                                        $totalRaised = (float) $campaign->total_raised_amount;
                                                         $pct = $campaign->target_amount > 0
-                                                            ? min(100, ($campaign->collected_amount / $campaign->target_amount) * 100)
+                                                            ? min(100, ($totalRaised / $campaign->target_amount) * 100)
                                                             : 0;
                                                         $approxPrefix = $campaign->has_non_myr_donations ? '≈ ' : '';
-                                                        $tooltipText = $approxPrefix . 'MYR ' . number_format((float) $campaign->collected_amount, 2) . ' of MYR ' . number_format((float) $campaign->target_amount, 2);
+                                                        $tooltipText = $approxPrefix . 'MYR ' . number_format($totalRaised, 2) . ' of MYR ' . number_format((float) $campaign->target_amount, 2);
                                                     @endphp
                                                 <div class="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
                                                     <x-ui.tooltip :text="$tooltipText">
@@ -169,7 +170,7 @@
                                     </x-ui.badge>
                                 </td>
                                 <td class="px-5 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                                    {{ $campaign->has_non_myr_donations ? '≈' : '' }} MYR {{ number_format((float) $campaign->collected_amount, 2) }}
+                                    {{ $campaign->has_non_myr_donations ? '≈' : '' }} MYR {{ number_format((float) $campaign->total_raised_amount, 2) }}
                                 </td>
                                 <td class="px-5 py-4 whitespace-nowrap text-sm text-slate-600">
                                     {{ number_format($campaign->donations_count) }}

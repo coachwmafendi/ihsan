@@ -78,3 +78,19 @@ it('shows approximation symbol when campaign has mixed myr and non-myr donations
         ->test(CampaignIndex::class)
         ->assertSee('≈ MYR 215.00');
 });
+
+it('computes total raised from succeeded donations and ignores drifted collected_amount', function () {
+    Donation::factory()->for($this->campaign)->for($this->donor)->create([
+        'status' => DonationStatus::Succeeded,
+        'currency' => 'myr',
+        'gross_amount' => 200.00,
+        'base_amount' => 200.00,
+    ]);
+
+    $this->campaign->update(['collected_amount' => 999.99]);
+
+    Livewire::actingAs($this->user)
+        ->test(CampaignIndex::class)
+        ->assertSee('MYR 200.00')
+        ->assertDontSee('MYR 999.99');
+});

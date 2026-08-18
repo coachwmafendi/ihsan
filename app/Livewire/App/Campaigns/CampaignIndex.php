@@ -8,6 +8,7 @@ use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
+use App\Models\Donation;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -88,6 +89,11 @@ class CampaignIndex extends Component
                 fn ($q) => $q->where('status', CampaignStatus::Archived),
                 fn ($q) => $q->where('status', '!=', CampaignStatus::Archived->value)
             )
+            ->addSelect([
+                'total_raised_amount' => Donation::selectRaw('COALESCE(SUM(COALESCE(base_amount, gross_amount)), 0)')
+                    ->whereColumn('donations.campaign_id', 'campaigns.id')
+                    ->where('status', DonationStatus::Succeeded),
+            ])
             ->withCount(['donations' => fn ($query) => $query->where('status', DonationStatus::Succeeded)])
             ->withExists(['donations as has_non_myr_donations' => fn ($query) => $query->where('status', DonationStatus::Succeeded)->where('currency', '!=', 'myr')])
             ->with(['latestDonation', 'subscriptions' => fn ($query) => $query->where('status', SubscriptionStatus::Active)->select('id', 'campaign_id', 'amount', 'currency', 'interval')]);
@@ -107,6 +113,9 @@ class CampaignIndex extends Component
         if ($this->sortField === 'status') {
             $dir = $direction === 'asc' ? 'ASC' : 'DESC';
             $query->orderByRaw("CASE status WHEN 'active' THEN 1 WHEN 'paused' THEN 2 WHEN 'draft' THEN 3 WHEN 'ended' THEN 4 WHEN 'archived' THEN 5 ELSE 6 END {$dir}");
+        } elseif ($this->sortField === 'collected_amount') {
+            // Sort by live-computed total raised, which is what the "Raised" column displays.
+            $query->orderBy('total_raised_amount', $direction);
         } else {
             $query->orderBy($field, $direction);
         }
