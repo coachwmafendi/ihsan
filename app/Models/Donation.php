@@ -458,6 +458,36 @@ class Donation extends Model
         return Attribute::get(fn () => $this->display_donation_amount);
     }
 
+    public function statusTooltip(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            if ($this->status === DonationStatus::Succeeded) {
+                return null;
+            }
+
+            if ($this->status === DonationStatus::Failed) {
+                return $this->stripe_fee_details['last_payment_error']['message']
+                    ?? $this->stripe_fee_details['pending']['message']
+                    ?? 'Payment failed';
+            }
+
+            if ($this->status === DonationStatus::Pending) {
+                return $this->stripe_fee_details['pending']['message']
+                    ?? 'Awaiting payment completion';
+            }
+
+            if ($this->status === DonationStatus::Cancelled) {
+                return 'Payment was cancelled';
+            }
+
+            if ($this->status === DonationStatus::Refunded) {
+                return 'Payment was refunded';
+            }
+
+            return null;
+        });
+    }
+
     public function reportAmount(): Attribute
     {
         return Attribute::get(function () {
