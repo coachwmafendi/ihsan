@@ -139,7 +139,7 @@ it('shows pending payment status tooltip on status badge', function () {
     $this->actingAs($user)
         ->get('/admin/transactions')
         ->assertSuccessful()
-        ->assertSee('Awaiting payment completion');
+        ->assertSee('Awaiting 3D Secure authentication');
 });
 
 it('shows failed foreign donations in original currency without myr prefix', function () {

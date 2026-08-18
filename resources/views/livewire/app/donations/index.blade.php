@@ -530,9 +530,11 @@
                                     @endif
                                 </td>
                                 <td class="px-5 py-4">
-                                    <x-ui.badge status="{{ $donation->status->value }}" size="sm">
-                                        {{ ucfirst($donation->status->value === 'succeeded' ? 'Succeeded' : $donation->status->value) }}
-                                    </x-ui.badge>
+                                    <x-ui.tooltip text="{{ $donation->status_tooltip }}" :disabled="! $donation->status_tooltip">
+                                        <x-ui.badge status="{{ $donation->status->value }}" size="sm">
+                                            {{ ucfirst($donation->status->value === 'succeeded' ? 'Succeeded' : $donation->status->value) }}
+                                        </x-ui.badge>
+                                    </x-ui.tooltip>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
                                     @if ($donation->campaign)

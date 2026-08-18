@@ -35,9 +35,11 @@
     <div>
         <div class="flex flex-wrap items-center gap-3">
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">{{ $this->formattedOriginalAmount() }} donation</h1>
-            <span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset {{ $this->statusBadgeClass() }}">
-                {{ $this->statusLabel() }}
-            </span>
+            <x-ui.tooltip text="{{ $donation->status_tooltip }}" :disabled="! $donation->status_tooltip">
+                <span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset {{ $this->statusBadgeClass() }}">
+                    {{ $this->statusLabel() }}
+                </span>
+            </x-ui.tooltip>
         </div>
         <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
             <span>ID {{ $donation->public_id }}</span>

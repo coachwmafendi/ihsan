@@ -43,7 +43,7 @@ it('records pending status details when confirmPayment receives a non-succeeded 
 
     expect($donation->status)->toBe(DonationStatus::Pending)
         ->and($donation->stripe_fee_details['pending']['status'] ?? null)->toBe('requires_action')
-        ->and($donation->status_tooltip)->toBe('Awaiting payment completion');
+        ->and($donation->status_tooltip)->toBe('Awaiting 3D Secure authentication');
 });
 
 it('marks donation as failed when confirmPayment receives a terminal failure from Stripe', function () {
