@@ -105,20 +105,12 @@ it('renders an interactive line chart with hover figures for the donation trend'
         ->get('https://app.example.test/dashboard')
         ->assertOk()
         ->assertSee('Donation Trend')
-        // Interactive chart scaffolding: SVG path + Alpine hover handlers.
-        ->assertSee('vector-effect="non-scaling-stroke"', false)
-        ->assertSee('x-ref="linePath"', false)
-        ->assertSee('setDashArray', false)
-        ->assertSee('onMove($event)', false)
-        ->assertSee('points[active].amount', false)
-        // Improved visibility: thicker line, drop shadow, dotted gridlines.
-        ->assertSee('stroke-width="3"', false)
-        ->assertSee('feDropShadow', false)
-        ->assertSee('stdDeviation="2"', false)
-        ->assertSee('stroke-dasharray="2 2"', false)
+        // Interactive chart scaffolding: ApexCharts area chart.
+        ->assertSee('ApexCharts', false)
+        ->assertSee('donationTrendChart', false)
+        ->assertSee('Total raised', false)
         // Fundraise Up-style axis + tooltip title.
-        ->assertSee('MYR 250', false)
-        ->assertSee('Total raised');
+        ->assertSee('MYR 250', false);
 });
 
 it('shows a status badge for each recent donation', function () {

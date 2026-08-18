@@ -12,6 +12,7 @@
         "@fontsource/plus-jakarta-sans": "^5.2.8",
         "@stripe/stripe-js": "^9.6.0",
         "@tailwindcss/vite": "^4.1.11",
+        "apexcharts": "^6.10.0",
         "autoprefixer": "^10.4.20",
         "chart.js": "^4.5.1",
         "concurrently": "^9.0.1",
