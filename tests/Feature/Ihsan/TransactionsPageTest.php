@@ -113,7 +113,7 @@ it('shows failed payment reason tooltip on status badge', function () {
     $this->actingAs($user)
         ->get('/admin/transactions')
         ->assertSuccessful()
-        ->assertSee('Your card has insufficient funds.');
+        ->assertSee('Your card has insufficient funds. (insufficient_funds)');
 });
 
 it('shows pending payment status tooltip on status badge', function () {
