@@ -79,15 +79,6 @@
     .line-chart.chart-visible .area-path {
         opacity: 1;
     }
-    .line-chart .point-marker {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.6);
-        transition: opacity 400ms ease-out 600ms, transform 400ms ease-out 600ms;
-    }
-    .line-chart.chart-visible .point-marker {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
 </style>
 
 <div
@@ -146,8 +137,8 @@
                         <stop offset="0%" stop-color="{{ $color }}" stop-opacity="0.12" />
                         <stop offset="100%" stop-color="{{ $color }}" stop-opacity="0" />
                     </linearGradient>
-                    <filter id="{{ $shadowId }}" x="-20%" y="-20%" width="140%" height="140%">
-                        <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="{{ $color }}" flood-opacity="0.35" />
+                    <filter id="{{ $shadowId }}" x="-30%" y="-30%" width="160%" height="160%">
+                        <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="{{ $color }}" flood-opacity="0.55" />
                     </filter>
                 </defs>
 
@@ -166,13 +157,6 @@
                     <line :x1="points[active].x" :x2="points[active].x" y1="0" y2="100" stroke="#94a3b8" stroke-width="1" vector-effect="non-scaling-stroke" opacity="0.6" />
                 </template>
             </svg>
-
-            {{-- Point markers --}}
-            @foreach($points as $point)
-                <div class="point-marker size-1.5 rounded-full border border-white bg-white pointer-events-none"
-                     style="left: {{ $point['x'] }}%; top: {{ $point['y'] }}%; box-shadow: 0 0 0 1.5px {{ $color }};"
-                ></div>
-            @endforeach
 
             {{-- Hover dot --}}
             <template x-if="active !== null">
