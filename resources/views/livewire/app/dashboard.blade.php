@@ -627,13 +627,79 @@
                     <div class="text-sm text-slate-500">Total in period</div>
                 </div>
 
-                <x-ui.line-chart
-                    wire:key="donation-trend-chart-{{ $period }}-{{ $customFrom }}-{{ $customTo }}"
-                    :data="$this->donationTrend"
-                    :height="220"
-                    color="#3b82f6"
-                    label="Total raised"
-                />
+                <div
+                    wire:key="donation-trend-apex-{{ $period }}-{{ $customFrom }}-{{ $customTo }}"
+                    x-data="{
+                        chart: null,
+                        renderChart() {
+                            const data = @js($this->donationTrend);
+                            const hasApprox = data.some((p) => p.has_approximation);
+
+                            const options = {
+                                series: [{
+                                    name: 'Total raised',
+                                    data: data.map((p) => ({ x: p.date, y: p.amount })),
+                                }],
+                                chart: {
+                                    type: 'area',
+                                    height: 220,
+                                    toolbar: { show: false },
+                                    animations: { enabled: true },
+                                    fontFamily: 'inherit',
+                                },
+                                colors: ['#3b82f6'],
+                                fill: {
+                                    type: 'gradient',
+                                    gradient: {
+                                        shadeIntensity: 1,
+                                        opacityFrom: 0.16,
+                                        opacityTo: 0,
+                                        stops: [0, 100],
+                                    },
+                                },
+                                stroke: { curve: 'straight', width: 3 },
+                                dataLabels: { enabled: false },
+                                grid: {
+                                    borderColor: '#f1f5f9',
+                                    strokeDashArray: 4,
+                                    xaxis: { lines: { show: false } },
+                                    yaxis: { lines: { show: true } },
+                                },
+                                xaxis: {
+                                    tooltip: { enabled: false },
+                                    axisBorder: { show: false },
+                                    axisTicks: { show: false },
+                                    crosshairs: { stroke: { color: '#cbd5e1', width: 1, dashArray: 4 } },
+                                },
+                                yaxis: {
+                                    tickAmount: 3,
+                                    labels: {
+                                        formatter: (value) => 'MYR ' + Number(value).toLocaleString('en-MY'),
+                                    },
+                                },
+                                tooltip: {
+                                    theme: 'light',
+                                    y: {
+                                        formatter: (value) => (hasApprox ? '≈ ' : '') + 'MYR ' + Number(value).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                                    },
+                                },
+                            };
+
+                            if (this.chart) {
+                                this.chart.destroy();
+                            }
+
+                            this.chart = new ApexCharts(this.$refs.donationTrendChart, options);
+                            this.chart.render();
+                        },
+                        init() {
+                            this.$nextTick(() => this.renderChart());
+                        },
+                    }"
+                    x-init="init()"
+                >
+                    <div x-ref="donationTrendChart"></div>
+                </div>
             @else
                 <div class="py-8 text-center text-sm text-slate-400">No donation data for this period</div>
             @endif
