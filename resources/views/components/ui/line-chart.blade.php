@@ -50,6 +50,7 @@
         : '';
 
     $gradientId = 'lineChartFill-'.uniqid();
+    $shadowId = 'lineChartShadow-'.uniqid();
     $first = $series->first();
     $last = $series->last();
 @endphp
@@ -77,6 +78,15 @@
     }
     .line-chart.chart-visible .area-path {
         opacity: 1;
+    }
+    .line-chart .point-marker {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.6);
+        transition: opacity 400ms ease-out 600ms, transform 400ms ease-out 600ms;
+    }
+    .line-chart.chart-visible .point-marker {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
     }
 </style>
 
@@ -133,26 +143,36 @@
             <svg class="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                 <defs>
                     <linearGradient id="{{ $gradientId }}" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="{{ $color }}" stop-opacity="0.16" />
+                        <stop offset="0%" stop-color="{{ $color }}" stop-opacity="0.12" />
                         <stop offset="100%" stop-color="{{ $color }}" stop-opacity="0" />
                     </linearGradient>
+                    <filter id="{{ $shadowId }}" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="{{ $color }}" flood-opacity="0.35" />
+                    </filter>
                 </defs>
 
                 {{-- Gridlines --}}
                 @foreach($ticks as $tick)
-                    <line x1="0" x2="100" y1="{{ $tick['y'] }}" y2="{{ $tick['y'] }}" stroke="#eef2f7" stroke-width="1" vector-effect="non-scaling-stroke" />
+                    <line x1="0" x2="100" y1="{{ $tick['y'] }}" y2="{{ $tick['y'] }}" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="2 2" vector-effect="non-scaling-stroke" />
                 @endforeach
 
                 @if($areaPath)
                     <path d="{{ $areaPath }}" fill="url(#{{ $gradientId }})" class="area-path" />
                 @endif
-                <path d="{{ $linePath }}" x-ref="linePath" fill="none" stroke="{{ $color }}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" class="line-path" />
+                <path d="{{ $linePath }}" x-ref="linePath" fill="none" stroke="{{ $color }}" stroke-width="3" filter="url(#{{ $shadowId }})" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" class="line-path" />
 
                 {{-- Hover guide line --}}
                 <template x-if="active !== null">
                     <line :x1="points[active].x" :x2="points[active].x" y1="0" y2="100" stroke="#94a3b8" stroke-width="1" vector-effect="non-scaling-stroke" opacity="0.6" />
                 </template>
             </svg>
+
+            {{-- Point markers --}}
+            @foreach($points as $point)
+                <div class="point-marker size-1.5 rounded-full border border-white bg-white pointer-events-none"
+                     style="left: {{ $point['x'] }}%; top: {{ $point['y'] }}%; box-shadow: 0 0 0 1.5px {{ $color }};"
+                ></div>
+            @endforeach
 
             {{-- Hover dot --}}
             <template x-if="active !== null">
