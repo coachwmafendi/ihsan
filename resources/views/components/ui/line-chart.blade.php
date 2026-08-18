@@ -65,7 +65,6 @@
         transform: translateY(0);
     }
     .line-chart .line-path {
-        stroke-dasharray: 1000;
         stroke-dashoffset: 1000;
         transition: stroke-dashoffset 1200ms ease-out;
     }
@@ -88,6 +87,11 @@
         active: null,
         prefix: @js($prefix),
         visible: false,
+        setDashArray() {
+            const path = this.$refs.linePath;
+            if (! path) return;
+            path.style.strokeDasharray = path.getTotalLength();
+        },
         onMove(event) {
             const rect = this.$refs.plot.getBoundingClientRect();
             if (rect.width === 0 || this.points.length === 0) return;
@@ -113,7 +117,7 @@
             observer.observe(this.$el);
         },
     }"
-    x-init="observe()"
+    x-init="$nextTick(() => { setDashArray(); observe(); })"
     :class="{ 'chart-visible': visible }"
 >
     <div class="relative pr-14" style="height: {{ $height }}px">
@@ -142,7 +146,7 @@
                 @if($areaPath)
                     <path d="{{ $areaPath }}" fill="url(#{{ $gradientId }})" class="area-path" />
                 @endif
-                <path d="{{ $linePath }}" fill="none" stroke="{{ $color }}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" class="line-path" />
+                <path d="{{ $linePath }}" x-ref="linePath" fill="none" stroke="{{ $color }}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" class="line-path" />
 
                 {{-- Hover guide line --}}
                 <template x-if="active !== null">
