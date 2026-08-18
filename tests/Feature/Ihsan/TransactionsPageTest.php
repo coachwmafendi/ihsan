@@ -89,6 +89,33 @@ it('shows plain MYR amount for local currency donations', function () {
         ->assertDontSee('≈');
 });
 
+it('shows failed payment reason tooltip on status badge', function () {
+    $org = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 50.00,
+        'currency' => 'myr',
+        'status' => DonationStatus::Failed,
+        'type' => DonationType::OneTime,
+        'stripe_fee_details' => [
+            'last_payment_error' => [
+                'message' => 'Your card has insufficient funds.',
+                'decline_code' => 'insufficient_funds',
+                'code' => 'card_declined',
+            ],
+        ],
+    ]);
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+    $this->actingAs($user)
+        ->get('/admin/transactions')
+        ->assertSuccessful()
+        ->assertSee('Your card has insufficient funds.');
+});
+
 it('shows failed foreign donations in original currency without myr prefix', function () {
     $org = Organization::factory()->create();
     $campaign = Campaign::factory()->for($org)->create();
