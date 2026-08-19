@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Stripe\ResolveDonorStripeCustomer;
 use App\Enums\SubscriptionStatus;
 use App\Models\Organization;
 use App\Models\Subscription;
@@ -70,15 +71,17 @@ class DonorProfileController extends Controller
 
         $donor->update($data);
 
-        if ($syncStripe && $donor->stripe_customer_id) {
+        $stripeCustomerId = $syncStripe
+            ? app(ResolveDonorStripeCustomer::class)->resolveWithoutCreating($donor, $organization)
+            : null;
+
+        if (filled($stripeCustomerId)) {
             try {
                 Stripe::setApiKey(config('services.stripe.secret'));
 
-                $stripeOptions = $organization->stripe_account_id
-                    ? ['stripe_account' => $organization->stripe_account_id]
-                    : [];
+                $stripeOptions = $organization->stripeOptions();
 
-                Customer::update($donor->stripe_customer_id, [
+                Customer::update($stripeCustomerId, [
                     'name' => $donor->name,
                     'email' => $data['email'],
                     'phone' => $data['phone'] ?? '',

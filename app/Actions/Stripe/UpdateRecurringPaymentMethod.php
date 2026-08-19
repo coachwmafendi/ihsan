@@ -15,15 +15,17 @@ class UpdateRecurringPaymentMethod
         $organization = $subscription->campaign?->organization;
         $donor = $subscription->donor;
 
-        if ($organization === null || $donor === null || blank($donor->stripe_customer_id)) {
+        if ($organization === null || $donor === null) {
             throw new \RuntimeException('Missing Stripe customer.');
         }
 
         Stripe::setApiKey(config('services.stripe.secret'));
-        $stripeOptions = ['stripe_account' => $organization->stripe_account_id];
+        $stripeOptions = $organization->stripeOptions();
+
+        $customerId = app(ResolveDonorStripeCustomer::class)->resolve($donor, $organization);
 
         $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
-        $paymentMethod->attach(['customer' => $donor->stripe_customer_id], $stripeOptions);
+        $paymentMethod->attach(['customer' => $customerId], $stripeOptions);
 
         if ($paymentMethod->type !== 'card' || $paymentMethod->card === null) {
             throw new \RuntimeException('Only card payment methods supported.');

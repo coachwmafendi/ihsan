@@ -228,6 +228,11 @@ class Organization extends Model
         return $this->hasMany(Element::class);
     }
 
+    public function donorStripeCustomers(): HasMany
+    {
+        return $this->hasMany(DonorStripeCustomer::class);
+    }
+
     public function processingFees(): HasMany
     {
         return $this->hasMany(ProcessingFee::class);
@@ -252,6 +257,24 @@ class Organization extends Model
         return Attribute::make(
             get: fn () => (bool) $this->stripe_onboarded && $this->stripe_enabled,
         );
+    }
+
+    /**
+     * Stripe request options targeting this organization's connected account.
+     *
+     * Returns an empty array when the organization is not fully onboarded, so
+     * callers fall back to the platform account rather than addressing an
+     * account that cannot accept the request.
+     *
+     * @return array{stripe_account?: string}
+     */
+    public function stripeOptions(): array
+    {
+        if (! $this->stripe_active || blank($this->stripe_account_id)) {
+            return [];
+        }
+
+        return ['stripe_account' => $this->stripe_account_id];
     }
 
     /**

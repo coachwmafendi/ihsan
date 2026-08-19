@@ -61,6 +61,15 @@ function fakeStripeClientForAppControlledPaymentMethod(string $paymentMethodId, 
                 ]), 200, []];
             }
 
+            // The resolver verifies a legacy customer id belongs to this account
+            // before adopting it.
+            if (str_contains($absUrl, '/v1/customers/') && $method === 'get') {
+                return [json_encode([
+                    'id' => $this->customerId,
+                    'object' => 'customer',
+                ]), 200, []];
+            }
+
             if (str_ends_with($absUrl, '/v1/setup_intents') && $method === 'post') {
                 return [json_encode([
                     'id' => 'seti_test',

@@ -153,6 +153,11 @@ class Donor extends Model
         return $this->hasMany(DonorPaymentMethod::class);
     }
 
+    public function stripeCustomers(): HasMany
+    {
+        return $this->hasMany(DonorStripeCustomer::class);
+    }
+
     public function emailLogs(): HasMany
     {
         return $this->hasMany(DonorEmailLog::class)->latest('sent_at');

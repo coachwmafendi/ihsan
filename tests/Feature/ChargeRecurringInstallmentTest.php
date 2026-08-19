@@ -19,6 +19,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\DonorPaymentMethod;
+use App\Models\DonorStripeCustomer;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Services\SubscriptionSchedule;
@@ -130,6 +131,12 @@ function createDueSubscription(): Subscription
     $donor = Donor::factory()->create([
         'stripe_customer_id' => 'cus_recurring_test',
         'country' => 'MY',
+    ]);
+
+    DonorStripeCustomer::create([
+        'donor_id' => $donor->getKey(),
+        'organization_id' => $organization->getKey(),
+        'stripe_customer_id' => 'cus_recurring_test',
     ]);
 
     $paymentMethod = DonorPaymentMethod::create([

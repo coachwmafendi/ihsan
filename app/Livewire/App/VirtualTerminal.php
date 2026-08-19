@@ -126,7 +126,7 @@ class VirtualTerminal extends Component
             ])
             ->all();
 
-        if ($this->savedCards === [] && $donor->stripe_customer_id && $this->organization) {
+        if ($this->savedCards === [] && $this->organization) {
             try {
                 $this->savedCards = app(LoadDonorSavedCards::class)->handle($donor, $this->organization);
             } catch (\Throwable $exception) {

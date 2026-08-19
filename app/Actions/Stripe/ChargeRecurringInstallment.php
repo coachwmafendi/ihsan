@@ -64,7 +64,7 @@ class ChargeRecurringInstallment
 
         $donor = $subscription->donor;
 
-        if ($donor === null || blank($donor->stripe_customer_id)) {
+        if ($donor === null) {
             $subscription->update(['status' => SubscriptionStatus::Failed, 'next_charge_at' => null]);
 
             return new ChargeResult('failed', errorCode: 'missing_customer');
@@ -78,7 +78,20 @@ class ChargeRecurringInstallment
             return new ChargeResult('failed', errorCode: 'missing_payment_method');
         }
 
-        $stripeOptions = ['stripe_account' => $organization->stripe_account_id];
+        $resolver = app(ResolveDonorStripeCustomer::class);
+
+        // The saved payment method identifies the customer on this account, so
+        // charges still work for subscriptions whose mapping predates it.
+        $customerId = $resolver->resolveExisting($donor, $organization)
+            ?? $resolver->adoptFromPaymentMethod($donor, $organization, $paymentMethod->stripe_payment_method_id);
+
+        if (blank($customerId)) {
+            $subscription->update(['status' => SubscriptionStatus::Failed, 'next_charge_at' => null]);
+
+            return new ChargeResult('failed', errorCode: 'missing_customer');
+        }
+
+        $stripeOptions = $organization->stripeOptions();
 
         $grossAmount = (float) $subscription->amount;
         $feeCoverAmount = $subscription->cover_fee ? (float) ($subscription->fee_cover_amount ?? 0) : 0.0;
@@ -87,7 +100,7 @@ class ChargeRecurringInstallment
         $params = [
             'amount' => $totalCents,
             'currency' => strtolower($subscription->currency),
-            'customer' => $donor->stripe_customer_id,
+            'customer' => $customerId,
             'payment_method' => $paymentMethod->stripe_payment_method_id,
             'off_session' => true,
             'confirm' => true,

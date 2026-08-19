@@ -7,18 +7,17 @@ use App\Actions\Stripe\CancelLocalRecurringPlan;
 use App\Actions\Stripe\ChangeRecurringAmount;
 use App\Actions\Stripe\ManageStripeSubscription;
 use App\Actions\Stripe\PauseLocalRecurringPlan;
+use App\Actions\Stripe\ResolveDonorStripeCustomer;
 use App\Actions\Stripe\ResumeLocalRecurringPlan;
 use App\Actions\Stripe\UpdateAppControlledPaymentMethod;
 use App\Jobs\SendSubscriptionAmountChangedNotification;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
-use App\Services\StripeMetadata;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
-use Stripe\Customer;
 use Stripe\SetupIntent;
 use Stripe\Stripe;
 
@@ -393,11 +392,9 @@ class DonorSubscriptionController extends Controller
         $organization = $subscription->campaign?->organization;
         $donor = request()->donor;
 
-        $stripeOptions = $organization !== null && $organization->stripe_active
-            ? ['stripe_account' => $organization->stripe_account_id]
-            : [];
+        $stripeOptions = $organization?->stripeOptions() ?? [];
 
-        $customerId = $this->ensureStripeCustomer($donor, $organization, $stripeOptions);
+        $customerId = $this->ensureStripeCustomer($donor, $organization);
 
         $setupIntent = SetupIntent::create([
             'customer' => $customerId,
@@ -408,56 +405,17 @@ class DonorSubscriptionController extends Controller
         return $setupIntent->client_secret;
     }
 
-    /**
-     * @param  array<string, string>  $stripeOptions
-     */
-    private function ensureStripeCustomer(?Donor $donor, ?Organization $organization, array $stripeOptions): string
+    private function ensureStripeCustomer(?Donor $donor, ?Organization $organization): string
     {
         if ($donor === null) {
             throw new \RuntimeException('Subscription is not linked to a donor.');
         }
 
-        if (filled($donor->stripe_customer_id)) {
-            return $donor->stripe_customer_id;
+        if ($organization === null) {
+            throw new \RuntimeException('Subscription is not linked to an organization.');
         }
 
-        if ($organization === null || blank($donor->email)) {
-            throw new \RuntimeException('Donor does not have a Stripe customer ID.');
-        }
-
-        $customerParams = [
-            'email' => $donor->email,
-            'metadata' => StripeMetadata::forDonorCustomer(
-                donor: $donor,
-                organization: $organization,
-                source: 'donor_portal_payment_method_update',
-            ),
-        ];
-
-        $customerName = trim(($donor->first_name ?? '').' '.($donor->last_name ?? ''));
-
-        if ($customerName !== '') {
-            $customerParams['name'] = $customerName;
-        }
-
-        if (filled($donor->phone)) {
-            $customerParams['phone'] = $donor->phone;
-        }
-
-        $address = StripeMetadata::customerAddress($donor);
-        if ($address !== null) {
-            $customerParams['address'] = $address;
-        }
-
-        $locale = StripeMetadata::customerLocale($donor);
-        if ($locale !== null) {
-            $customerParams['preferred_locales'] = $locale;
-        }
-
-        $customer = Customer::create($customerParams, $stripeOptions);
-
-        $donor->update(['stripe_customer_id' => $customer->id]);
-
-        return $customer->id;
+        return app(ResolveDonorStripeCustomer::class)
+            ->resolve($donor, $organization, 'donor_portal_payment_method_update');
     }
 }

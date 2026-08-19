@@ -19,17 +19,17 @@ class SyncDonorDetailsToStripe
 {
     public function sync(Donor $donor, Organization $organization): bool
     {
-        if (blank($donor->stripe_customer_id)) {
+        $customerId = app(ResolveDonorStripeCustomer::class)->resolveWithoutCreating($donor, $organization);
+
+        if (blank($customerId)) {
             return false;
         }
 
         Stripe::setApiKey(config('services.stripe.secret'));
 
-        $stripeOptions = $organization->stripe_account_id
-            ? ['stripe_account' => $organization->stripe_account_id]
-            : [];
+        $stripeOptions = $organization->stripeOptions();
 
-        $successful = $this->updateStripeCustomer($donor, $stripeOptions);
+        $successful = $this->updateStripeCustomer($donor, $customerId, $stripeOptions);
 
         // Do not attempt subscription updates if the customer update failed.
         if (! $successful) {
@@ -57,10 +57,10 @@ class SyncDonorDetailsToStripe
     /**
      * Update the Stripe Customer record for the donor.
      */
-    private function updateStripeCustomer(Donor $donor, array $stripeOptions): bool
+    private function updateStripeCustomer(Donor $donor, string $customerId, array $stripeOptions): bool
     {
         try {
-            Customer::update($donor->stripe_customer_id, [
+            Customer::update($customerId, [
                 'name' => $donor->name,
                 'email' => $donor->email,
                 'preferred_locales' => StripeMetadata::customerLocale($donor) ?? [],

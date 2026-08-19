@@ -21,6 +21,9 @@ class OrganizationFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'stripe_account_id' => 'acct_'.fake()->regexify('[A-Za-z0-9]{24}'),
             'stripe_onboarded' => true,
+            // Set explicitly rather than relying on the column default, so the
+            // returned instance reports stripe_active without a refresh.
+            'stripe_enabled' => true,
         ]);
     }
 
@@ -38,6 +41,7 @@ class OrganizationFactory extends Factory
             'status' => OrganizationStatus::Active,
             'stripe_account_id' => 'acct_'.fake()->regexify('[A-Za-z0-9]{24}'),
             'stripe_onboarded' => true,
+            'stripe_enabled' => true,
             'settings' => [
                 'primary_color' => '#0f766e',
                 'suggested_amounts' => [30, 50, 100],

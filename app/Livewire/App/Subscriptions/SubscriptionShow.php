@@ -811,11 +811,9 @@ class SubscriptionShow extends Component
             'country' => $this->editCountry ?: null,
         ]);
 
-        if ($donor->stripe_customer_id) {
-            // Use the campaign organization (the Stripe Connect account owner), not the
-            // logged-in user's organization, so the sync targets the correct Stripe account.
-            app(SyncDonorDetailsToStripe::class)->sync($donor, $this->subscription->campaign->organization);
-        }
+        // Use the campaign organization (the Stripe Connect account owner), not the
+        // logged-in user's organization, so the sync targets the correct Stripe account.
+        app(SyncDonorDetailsToStripe::class)->sync($donor, $this->subscription->campaign->organization);
 
         $this->subscription->refresh();
         $this->showEditPersonalModal = false;

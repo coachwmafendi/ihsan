@@ -15,18 +15,18 @@ class LoadDonorSavedCards
      */
     public function handle(Donor $donor, Organization $organization): array
     {
-        if (! $donor->stripe_customer_id) {
+        $customerId = app(ResolveDonorStripeCustomer::class)->resolveWithoutCreating($donor, $organization);
+
+        if (blank($customerId)) {
             return [];
         }
 
         Stripe::setApiKey(config('services.stripe.secret'));
 
-        $stripeOptions = $organization->stripe_account_id
-            ? ['stripe_account' => $organization->stripe_account_id]
-            : [];
+        $stripeOptions = $organization->stripeOptions();
 
         $paymentMethods = PaymentMethod::all([
-            'customer' => $donor->stripe_customer_id,
+            'customer' => $customerId,
             'type' => 'card',
         ], $stripeOptions);
 

@@ -8,13 +8,11 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\DonorPaymentMethod;
 use App\Models\Subscription;
-use App\Services\StripeMetadata;
 use App\Services\SubscriptionSchedule;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Stripe\Customer as StripeCustomer;
 use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\PaymentMethod;
 
@@ -123,52 +121,18 @@ class CreateAppControlledRecurringPlan
         $organization = $donation->campaign?->organization;
         $donor = $donation->donor;
 
-        if ($donor?->stripe_customer_id !== null) {
-            return $donor->stripe_customer_id;
+        if ($donor === null || $organization === null) {
+            throw new \RuntimeException('Donation is not linked to a donor and organization.');
         }
 
-        $donorEmail = $paymentIntent->metadata->{StripeMetadata::key('donor_email')}
-            ?? $paymentIntent->metadata->donor_email
-            ?? $donor?->email;
+        $customerId = app(ResolveDonorStripeCustomer::class)
+            ->resolve($donor, $organization, 'app_controlled_recurring');
 
-        if ($donorEmail === null) {
-            throw new \RuntimeException('Cannot create Stripe customer without email.');
+        if (($paymentIntent->customer ?? null) !== $customerId) {
+            StripePaymentIntent::update($paymentIntent->id, ['customer' => $customerId], $stripeOptions);
         }
 
-        $name = trim(($donor?->first_name ?? '').' '.($donor?->last_name ?? ''));
-
-        $customerParams = [
-            'email' => $donorEmail,
-            'metadata' => $organization !== null
-                ? StripeMetadata::forDonorCustomer($donor, $organization, 'app_controlled_recurring')
-                : [],
-        ];
-
-        if ($name !== '') {
-            $customerParams['name'] = $name;
-        }
-
-        if (filled($donor?->phone)) {
-            $customerParams['phone'] = $donor->phone;
-        }
-
-        $address = StripeMetadata::customerAddress($donor);
-        if ($address !== null) {
-            $customerParams['address'] = $address;
-        }
-
-        $locale = StripeMetadata::customerLocale($donor);
-        if ($locale !== null) {
-            $customerParams['preferred_locales'] = $locale;
-        }
-
-        $customer = StripeCustomer::create($customerParams, $stripeOptions);
-
-        $donor?->update(['stripe_customer_id' => $customer->id]);
-
-        StripePaymentIntent::update($paymentIntent->id, ['customer' => $customer->id], $stripeOptions);
-
-        return $customer->id;
+        return $customerId;
     }
 
     private function syncDonorPaymentMethod(Donor $donor, PaymentMethod $paymentMethod): DonorPaymentMethod

@@ -187,11 +187,9 @@ class SupporterShow extends Component
             $this->donor->markEmailValidated();
         }
 
-        if ($this->donor->stripe_customer_id) {
-            // mount() already verified this donor has donated to $org, and all subscription
-            // queries on this page are scoped to $org. Sync to that Stripe Connect account.
-            app(SyncDonorDetailsToStripe::class)->sync($this->donor, $org);
-        }
+        // mount() already verified this donor has donated to $org, and all subscription
+        // queries on this page are scoped to $org. Sync to that Stripe Connect account.
+        app(SyncDonorDetailsToStripe::class)->sync($this->donor, $org);
 
         $this->editing = false;
     }

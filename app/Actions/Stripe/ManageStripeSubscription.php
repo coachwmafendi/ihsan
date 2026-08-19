@@ -232,16 +232,7 @@ class ManageStripeSubscription
         $subscription->loadMissing('campaign.organization', 'donor');
         $stripeOptions = $this->stripeOptions($subscription);
 
-        $customerId = $subscription->donor?->stripe_customer_id;
-
-        if ($customerId === null) {
-            $stripeSubscription = StripeSubscription::retrieve(
-                $subscription->stripe_subscription_id,
-                $stripeOptions,
-            );
-            $customerId = $stripeSubscription->customer;
-            $subscription->donor?->update(['stripe_customer_id' => $customerId]);
-        }
+        $customerId = $this->resolveCustomerFromStripeSubscription($subscription, $stripeOptions);
 
         $setupIntent = SetupIntent::create([
             'customer' => $customerId,
@@ -263,14 +254,46 @@ class ManageStripeSubscription
             'default_payment_method' => $paymentMethodId,
         ], $stripeOptions);
 
+        $this->resolveCustomerFromStripeSubscription($subscription, $stripeOptions);
+    }
+
+    /**
+     * The Stripe subscription itself names the customer on the correct account,
+     * which makes it the authoritative source for the donor/organization map.
+     *
+     * @param  array<string, string>  $stripeOptions
+     */
+    private function resolveCustomerFromStripeSubscription(Subscription $subscription, array $stripeOptions): ?string
+    {
         $donor = $subscription->donor;
-        if ($donor && $donor->stripe_customer_id === null) {
-            $stripeSubscription = StripeSubscription::retrieve(
-                $subscription->stripe_subscription_id,
-                $stripeOptions,
-            );
-            $donor->update(['stripe_customer_id' => $stripeSubscription->customer]);
+        $organization = $subscription->campaign?->organization;
+
+        if ($donor === null || $organization === null) {
+            return null;
         }
+
+        $resolver = app(ResolveDonorStripeCustomer::class);
+        $customerId = $resolver->resolveExisting($donor, $organization);
+
+        if ($customerId !== null) {
+            return $customerId;
+        }
+
+        $stripeSubscription = StripeSubscription::retrieve(
+            $subscription->stripe_subscription_id,
+            $stripeOptions,
+        );
+
+        $customerId = $stripeSubscription->customer;
+        $customerId = is_string($customerId) ? $customerId : $customerId?->id;
+
+        if (blank($customerId)) {
+            return null;
+        }
+
+        $resolver->remember($donor, $organization, $customerId);
+
+        return $customerId;
     }
 
     /**

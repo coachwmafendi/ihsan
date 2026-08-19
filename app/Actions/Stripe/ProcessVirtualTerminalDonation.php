@@ -51,49 +51,24 @@ class ProcessVirtualTerminalDonation
 
         $donor = $this->resolveOrCreateDonor($firstName, $lastName, $email);
 
-        $stripeOptions = $organization->stripe_account_id
-            ? ['stripe_account' => $organization->stripe_account_id]
-            : [];
+        $stripeOptions = $organization->stripeOptions();
 
         try {
-            if (! $donor->stripe_customer_id) {
-                $customerParams = [
-                    'name' => trim(($donor->first_name ?? '').' '.($donor->last_name ?? '')),
-                    'email' => $donor->email,
-                    'metadata' => StripeMetadata::forDonorCustomer(
-                        donor: $donor,
-                        organization: $organization,
-                        source: 'virtual_terminal_donation',
-                    ),
-                ];
-
-                $address = StripeMetadata::customerAddress($donor);
-                if ($address !== null) {
-                    $customerParams['address'] = $address;
-                }
-
-                $locale = StripeMetadata::customerLocale($donor);
-                if ($locale !== null) {
-                    $customerParams['preferred_locales'] = $locale;
-                }
-
-                $customer = Customer::create($customerParams, $stripeOptions);
-
-                $donor->update(['stripe_customer_id' => $customer->id]);
-            }
+            $customerId = app(ResolveDonorStripeCustomer::class)
+                ->resolve($donor, $organization, 'virtual_terminal_donation');
 
             // Attach a freshly tokenised card to the customer before charging.
             // Stripe rejects re-using an unattached PaymentMethod, so an off-session
             // confirm needs the card attached first.
             if ($paymentMethodId) {
                 PaymentMethod::retrieve($paymentMethodId, $stripeOptions)
-                    ->attach(['customer' => $donor->stripe_customer_id], $stripeOptions);
+                    ->attach(['customer' => $customerId], $stripeOptions);
             }
 
             $params = [
                 'amount' => (int) round($chargedAmount * 100),
                 'currency' => strtolower($currency),
-                'customer' => $donor->stripe_customer_id,
+                'customer' => $customerId,
                 'description' => (string) str($campaign->title)->limit(200),
                 'metadata' => [
                     StripeMetadata::key('campaign_id') => (string) $campaign->getKey(),

@@ -816,7 +816,7 @@ it('syncs donor personal information changes to stripe', function () {
         ->email->toBe('siti@example.com');
 });
 
-it('does not sync donor personal information to stripe when donor has no customer id', function () {
+it('delegates the stripe sync decision to the sync action for a donor with no customer id', function () {
     $organization = Organization::factory()->stripeConnected()->create();
     $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
     $campaign = Campaign::factory()->for($organization)->create();
@@ -829,8 +829,11 @@ it('does not sync donor personal information to stripe when donor has no custome
     $donation = Donation::factory()->for($donor)->for($campaign)->create();
 
     $spy = Mockery::mock(SyncDonorDetailsToStripe::class);
+    // The action itself skips donors with no customer for this organization,
+    // so the page delegates unconditionally.
     $spy->shouldReceive('sync')
-        ->never();
+        ->once()
+        ->andReturnFalse();
     app()->instance(SyncDonorDetailsToStripe::class, $spy);
 
     Livewire::actingAs($user)

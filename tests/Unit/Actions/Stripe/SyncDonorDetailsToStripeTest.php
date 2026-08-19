@@ -43,6 +43,10 @@ function fakeStripeClientForDonorUpdate(array &$requests): object
             ];
 
             $response = match (true) {
+                str_contains($absUrl, '/v1/customers/') && $method === 'get' => [
+                    'id' => 'cus_test_123',
+                    'object' => 'customer',
+                ],
                 str_contains($absUrl, '/v1/customers/') && $method === 'post' => [
                     'id' => 'cus_test',
                     'object' => 'customer',
@@ -104,7 +108,8 @@ it('updates stripe customer with full name and email', function () {
 
     expect($result)->toBeTrue();
 
-    $customerRequest = collect($requests)->first(fn ($r) => str_contains($r['url'], '/v1/customers/cus_test_123'));
+    $customerRequest = collect($requests)
+        ->first(fn ($r) => str_contains($r['url'], '/v1/customers/cus_test_123') && $r['method'] === 'post');
 
     expect($customerRequest)->not->toBeNull()
         ->and($customerRequest['params']['name'] ?? null)->toBe('Siti Aminah')
@@ -296,6 +301,10 @@ it('continues updating remaining subscriptions when one subscription update fail
             }
 
             $response = match (true) {
+                str_contains($absUrl, '/v1/customers/') && $method === 'get' => [
+                    'id' => 'cus_test_123',
+                    'object' => 'customer',
+                ],
                 str_contains($absUrl, '/v1/customers/') && $method === 'post' => [
                     'id' => 'cus_test',
                     'object' => 'customer',

@@ -8,8 +8,6 @@ use App\Models\Donor;
 use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Models\Subscription;
-use App\Services\StripeMetadata;
-use Stripe\Customer;
 use Stripe\PaymentMethod as StripePaymentMethod;
 use Stripe\Stripe;
 
@@ -23,11 +21,9 @@ class UpdateAppControlledPaymentMethod
         $organization = $subscription->campaign?->organization;
         $donor = $subscription->donor;
 
-        $stripeOptions = $organization !== null && $organization->stripe_active
-            ? ['stripe_account' => $organization->stripe_account_id]
-            : [];
+        $stripeOptions = $organization?->stripeOptions() ?? [];
 
-        $customerId = $this->ensureStripeCustomer($donor, $organization, $stripeOptions);
+        $customerId = $this->ensureStripeCustomer($donor, $organization);
 
         $paymentMethod = StripePaymentMethod::retrieve($paymentMethodId, $stripeOptions);
         $paymentMethod->attach(['customer' => $customerId], $stripeOptions);
@@ -51,56 +47,17 @@ class UpdateAppControlledPaymentMethod
         return $donorPaymentMethod;
     }
 
-    /**
-     * @param  array<string, string>  $stripeOptions
-     */
-    private function ensureStripeCustomer(?Donor $donor, ?Organization $organization, array $stripeOptions): string
+    private function ensureStripeCustomer(?Donor $donor, ?Organization $organization): string
     {
         if (! $donor instanceof Donor) {
             throw new \RuntimeException('Subscription is not linked to a donor.');
         }
 
-        if (filled($donor->stripe_customer_id)) {
-            return $donor->stripe_customer_id;
+        if ($organization === null) {
+            throw new \RuntimeException('Subscription is not linked to an organization.');
         }
 
-        if ($organization === null || blank($donor->email)) {
-            throw new \RuntimeException('Donor does not have a Stripe customer ID.');
-        }
-
-        $customerParams = [
-            'email' => $donor->email,
-            'metadata' => StripeMetadata::forDonorCustomer(
-                donor: $donor,
-                organization: $organization,
-                source: 'donor_portal_payment_method_update',
-            ),
-        ];
-
-        $customerName = trim(($donor->first_name ?? '').' '.($donor->last_name ?? ''));
-
-        if ($customerName !== '') {
-            $customerParams['name'] = $customerName;
-        }
-
-        if (filled($donor->phone)) {
-            $customerParams['phone'] = $donor->phone;
-        }
-
-        $address = StripeMetadata::customerAddress($donor);
-        if ($address !== null) {
-            $customerParams['address'] = $address;
-        }
-
-        $locale = StripeMetadata::customerLocale($donor);
-        if ($locale !== null) {
-            $customerParams['preferred_locales'] = $locale;
-        }
-
-        $customer = Customer::create($customerParams, $stripeOptions);
-
-        $donor->update(['stripe_customer_id' => $customer->id]);
-
-        return $customer->id;
+        return app(ResolveDonorStripeCustomer::class)
+            ->resolve($donor, $organization, 'donor_portal_payment_method_update');
     }
 }

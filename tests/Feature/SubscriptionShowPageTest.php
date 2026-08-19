@@ -833,7 +833,7 @@ it('syncs donor personal information changes to stripe', function () {
         ->email->toBe('siti@example.com');
 });
 
-it('does not sync donor personal information to stripe when donor has no stripe customer id', function () {
+it('delegates the stripe sync decision to the sync action for a donor with no customer id', function () {
     $organization = Organization::factory()->stripeConnected()->create();
     $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
     $campaign = Campaign::factory()->for($organization)->create();
@@ -849,7 +849,8 @@ it('does not sync donor personal information to stripe when donor has no stripe 
 
     $spy = Mockery::mock(SyncDonorDetailsToStripe::class);
     $spy->shouldReceive('sync')
-        ->never();
+        ->once()
+        ->andReturnFalse();
     app()->instance(SyncDonorDetailsToStripe::class, $spy);
 
     Livewire::actingAs($user)

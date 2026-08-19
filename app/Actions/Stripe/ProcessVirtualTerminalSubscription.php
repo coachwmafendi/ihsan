@@ -17,7 +17,6 @@ use App\Models\Organization;
 use App\Models\Subscription;
 use App\Services\DonationFeeEstimator;
 use App\Services\StripeMetadata;
-use Stripe\Customer;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 use Stripe\Exception\InvalidRequestException;
@@ -53,36 +52,11 @@ class ProcessVirtualTerminalSubscription
 
         $donor = $this->resolveOrCreateDonor($firstName, $lastName, $email);
 
-        $stripeOptions = $organization->stripe_account_id
-            ? ['stripe_account' => $organization->stripe_account_id]
-            : [];
+        $stripeOptions = $organization->stripeOptions();
 
         try {
-            if (! $donor->stripe_customer_id) {
-                $customerParams = [
-                    'name' => trim(($donor->first_name ?? '').' '.($donor->last_name ?? '')),
-                    'email' => $donor->email,
-                    'metadata' => StripeMetadata::forDonorCustomer(
-                        donor: $donor,
-                        organization: $organization,
-                        source: 'virtual_terminal_subscription',
-                    ),
-                ];
-
-                $address = StripeMetadata::customerAddress($donor);
-                if ($address !== null) {
-                    $customerParams['address'] = $address;
-                }
-
-                $locale = StripeMetadata::customerLocale($donor);
-                if ($locale !== null) {
-                    $customerParams['preferred_locales'] = $locale;
-                }
-
-                $customer = Customer::create($customerParams, $stripeOptions);
-
-                $donor->update(['stripe_customer_id' => $customer->id]);
-            }
+            $customerId = app(ResolveDonorStripeCustomer::class)
+                ->resolve($donor, $organization, 'virtual_terminal_subscription');
 
             $unitAmount = (int) round($chargedAmount * 100);
 
@@ -117,11 +91,11 @@ class ProcessVirtualTerminalSubscription
 
             if ($paymentMethodId) {
                 $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
-                $paymentMethod->attach(['customer' => $donor->stripe_customer_id], $stripeOptions);
+                $paymentMethod->attach(['customer' => $customerId], $stripeOptions);
             }
 
             $subscriptionParams = [
-                'customer' => $donor->stripe_customer_id,
+                'customer' => $customerId,
                 'items' => [['price' => $price->id]],
                 'expand' => ['latest_invoice.payment_intent'],
                 'metadata' => StripeMetadata::forVirtualTerminalSubscription(
@@ -260,7 +234,7 @@ class ProcessVirtualTerminalSubscription
 
     private function syncPaymentMethod(Donor $donor, ?string $stripePaymentMethodId, array $stripeOptions): void
     {
-        if (! $stripePaymentMethodId || ! $donor->stripe_customer_id) {
+        if (! $stripePaymentMethodId) {
             return;
         }
 

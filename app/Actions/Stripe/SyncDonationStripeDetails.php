@@ -433,8 +433,15 @@ class SyncDonationStripeDetails
     private function syncCustomerCountry(Donation $donation, ?PaymentMethod $paymentMethod, array $stripeOptions): void
     {
         $donor = $donation->donor;
+        $organization = $donation->campaign?->organization;
 
-        if ($donor === null || ! filled($donor->stripe_customer_id)) {
+        if ($donor === null || $organization === null) {
+            return;
+        }
+
+        $customerId = app(ResolveDonorStripeCustomer::class)->resolveWithoutCreating($donor, $organization);
+
+        if (blank($customerId)) {
             return;
         }
 
@@ -461,7 +468,7 @@ class SyncDonationStripeDetails
                 $update['preferred_locales'] = $locale;
             }
 
-            Customer::update($donor->stripe_customer_id, $update, $stripeOptions);
+            Customer::update($customerId, $update, $stripeOptions);
 
             $donor->update(['country' => $country]);
         } catch (\Exception $e) {

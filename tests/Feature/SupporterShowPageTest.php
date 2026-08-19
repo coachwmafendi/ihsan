@@ -401,7 +401,7 @@ it('syncs supporter details to stripe when stripe_customer_id exists', function 
         ->email->toBe('siti@example.com');
 });
 
-it('does not sync to stripe when supporter has no stripe_customer_id', function () {
+it('delegates the stripe sync decision to the sync action for a supporter with no customer id', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([
         'role' => UserRole::NgoAdmin,
@@ -416,7 +416,8 @@ it('does not sync to stripe when supporter has no stripe_customer_id', function 
     Donation::factory()->for($donor)->for($campaign)->create();
 
     $spy = Mockery::mock(SyncDonorDetailsToStripe::class);
-    $spy->shouldReceive('sync')->never();
+    // The action itself skips supporters with no customer for this organization.
+    $spy->shouldReceive('sync')->once()->andReturnFalse();
     app()->instance(SyncDonorDetailsToStripe::class, $spy);
 
     Livewire::actingAs($user)
