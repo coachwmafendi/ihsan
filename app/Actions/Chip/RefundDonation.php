@@ -6,6 +6,7 @@ namespace App\Actions\Chip;
 
 use App\Enums\DonationStatus;
 use App\Models\Donation;
+use App\Services\DonationActivityLogger;
 use Chip\Exception\ChipApiException;
 use InvalidArgumentException;
 use RuntimeException;
@@ -48,5 +49,12 @@ final class RefundDonation
             'status' => DonationStatus::Refunded,
             'refunded_at' => now(),
         ]);
+
+        DonationActivityLogger::refunded(
+            $donation,
+            (float) $donation->gross_amount,
+            auth()->user(),
+            ['source' => 'manual']
+        );
     }
 }

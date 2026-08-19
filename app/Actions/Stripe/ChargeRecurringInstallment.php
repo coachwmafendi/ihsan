@@ -26,6 +26,7 @@ use App\Models\Organization;
 use App\Models\Subscription;
 use App\Services\ScheduleRetry;
 use App\Services\StripeMetadata;
+use App\Services\SubscriptionActivityLogger;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Stripe\Exception\CardException;
@@ -244,6 +245,16 @@ class ChargeRecurringInstallment
 
             return [$donation, $previousCollected];
         });
+
+        SubscriptionActivityLogger::installmentCreated($subscription, $donation, null, ['source' => 'system_automated']);
+        SubscriptionActivityLogger::installmentCharged(
+            $subscription,
+            $donation,
+            'stripe',
+            $paymentIntent->id,
+            null,
+            ['source' => 'system_automated']
+        );
 
         try {
             $this->syncDonationStripeDetails->sync($donation, $paymentIntent, $stripeOptions);

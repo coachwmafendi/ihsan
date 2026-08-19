@@ -22,6 +22,8 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Subscription;
 use App\Services\ChipApi;
+use App\Services\DonationActivityLogger;
+use App\Services\SubscriptionActivityLogger;
 use App\Services\SubscriptionSchedule;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +53,15 @@ class ConfirmPurchase
         }
 
         $this->applyPurchaseDetails($donation, $purchase);
+
+        DonationActivityLogger::transactionAttemptSucceeded(
+            $donation,
+            'chip',
+            (string) $donation->chip_purchase_id,
+            1,
+            null,
+            ['source' => 'webhook']
+        );
 
         $finalizeResult = DB::transaction(function () use ($donation): array {
             $lockedDonation = Donation::query()->whereKey($donation->getKey())->lockForUpdate()->firstOrFail();
@@ -109,6 +120,7 @@ class ConfirmPurchase
             $subscription = $this->createRecurringPlan($donation, $purchase);
 
             if ($subscription->wasRecentlyCreated) {
+                SubscriptionActivityLogger::created($subscription, null, ['source' => 'webhook']);
                 SendNewSubscriptionNotification::dispatch($donation);
                 SendDonorNewSubscriptionNotification::dispatch($donation);
             }

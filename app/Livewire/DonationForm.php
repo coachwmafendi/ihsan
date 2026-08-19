@@ -29,6 +29,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
 use App\Models\Subscription;
+use App\Services\DonationActivityLogger;
 use App\Services\DonationFeeEstimator;
 use App\Services\FraudDetectionService;
 use App\Services\RecurringPlanResolver;
@@ -735,6 +736,11 @@ class DonationForm extends Component
             ...$clientInfo,
         ]);
 
+        DonationActivityLogger::created($donation, null, [
+            'initiator' => 'donor',
+            'source' => 'donor_portal',
+        ]);
+
         $this->donationPublicId = $donation->public_id;
 
         // Send fraud notifications for flagged donations (blocked donations throw before this)
@@ -751,8 +757,8 @@ class DonationForm extends Component
 
         if ($isChip) {
             if (! $campaign->organization?->chip_active) {
-                $donation->update(['status' => DonationStatus::Failed]);
                 $this->chipErrorMessage = 'CHIP is not configured for this organization. Please choose another payment method or contact support.';
+                $this->markDonationFailed($donation, $this->chipErrorMessage);
 
                 return '';
             }
@@ -765,18 +771,30 @@ class DonationForm extends Component
                 if ($this->useChipDirectPost()) {
                     $this->chipDirectPostUrl = app(CreatePurchase::class)->createDirectPost($donation, $returnTo);
 
+                    DonationActivityLogger::processingInitiated($donation, 'chip', $donation->chip_purchase_id, null, [
+                        'initiator' => 'donor',
+                        'source' => 'donor_portal',
+                    ]);
+
                     return '';
                 }
 
-                return app(CreatePurchase::class)->create(
+                $checkoutUrl = app(CreatePurchase::class)->create(
                     $donation,
                     $returnTo,
                     $this->chipPaymentMethod,
                     $this->chipFpxBankCode,
                 );
+
+                DonationActivityLogger::processingInitiated($donation, 'chip', $donation->chip_purchase_id, null, [
+                    'initiator' => 'donor',
+                    'source' => 'donor_portal',
+                ]);
+
+                return $checkoutUrl;
             } catch (\Exception $e) {
-                $donation->update(['status' => DonationStatus::Failed]);
                 $this->chipErrorMessage = 'Unable to start CHIP payment. Please try again.';
+                $this->markDonationFailed($donation, $e->getMessage());
 
                 report($e);
 
@@ -788,12 +806,37 @@ class DonationForm extends Component
             $paymentIntent = app(CreatePaymentIntent::class)->create($donation);
             $donation->update(['stripe_payment_intent_id' => $paymentIntent->id]);
 
+            DonationActivityLogger::processingInitiated($donation, 'stripe', $paymentIntent->id, null, [
+                'initiator' => 'donor',
+                'source' => 'donor_portal',
+            ]);
+
             return $paymentIntent->client_secret;
         } catch (\Exception $e) {
-            $donation->update(['status' => DonationStatus::Failed]);
+            $this->markDonationFailed($donation, $e->getMessage());
 
             throw $e;
         }
+    }
+
+    private function markDonationFailed(Donation $donation, string $message): void
+    {
+        $stripeFeeDetails = $donation->stripe_fee_details ?? [];
+        $stripeFeeDetails['last_payment_error'] = [
+            'message' => $message,
+            'decline_code' => null,
+            'code' => null,
+        ];
+
+        $donation->update([
+            'status' => DonationStatus::Failed,
+            'stripe_fee_details' => $stripeFeeDetails,
+        ]);
+
+        DonationActivityLogger::failed($donation, $message, null, [
+            'initiator' => 'donor',
+            'source' => 'donor_portal',
+        ]);
     }
 
     /**

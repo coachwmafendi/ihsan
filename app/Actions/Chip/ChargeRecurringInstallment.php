@@ -7,6 +7,7 @@ namespace App\Actions\Chip;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Models\Subscription;
+use App\Services\SubscriptionActivityLogger;
 use Chip\Builder\PurchaseBuilder;
 use Chip\Exception\ChipApiException;
 use Illuminate\Support\Facades\Route;
@@ -77,6 +78,19 @@ final class ChargeRecurringInstallment
             'source' => $subscription->source ?? 'checkout_modal',
             'chip_purchase_id' => $result->id,
         ]);
+
+        SubscriptionActivityLogger::installmentCreated($subscription, $donation, null, ['source' => 'system_automated']);
+
+        if ($donation->status === DonationStatus::Succeeded) {
+            SubscriptionActivityLogger::installmentCharged(
+                $subscription,
+                $donation,
+                'chip',
+                $result->id,
+                null,
+                ['source' => 'system_automated']
+            );
+        }
 
         app(SyncDonationDetails::class)->sync($donation);
     }

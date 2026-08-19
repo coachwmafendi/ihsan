@@ -102,8 +102,9 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
             <button
                 type="button"
                 @click="$store.sidebar.toggle()"
-                class="hidden lg:flex p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none focus-visible:ring-0"
+                class="flex p-1.5 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none focus-visible:ring-0"
                 :title="$store.sidebar.collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+                :aria-label="$store.sidebar.collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
             >
                 <x-icon.sidebar-panel class="size-5" />
             </button>

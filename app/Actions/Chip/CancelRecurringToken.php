@@ -8,6 +8,7 @@ use App\Enums\SubscriptionStatus;
 use App\Jobs\SendDonorSubscriptionCancelledNotification;
 use App\Models\Subscription;
 use App\Services\ChipApi;
+use App\Services\SubscriptionActivityLogger;
 use Throwable;
 
 class CancelRecurringToken
@@ -34,6 +35,8 @@ class CancelRecurringToken
             'cancel_at_period_end' => false,
             'next_charge_at' => null,
         ]);
+
+        SubscriptionActivityLogger::cancelled($subscription, 'CHIP recurring token cancelled', auth()->user(), ['source' => 'manual']);
 
         SendDonorSubscriptionCancelledNotification::dispatch($subscription);
     }
