@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\RegisterStripePaymentMethodDomains;
 use App\Models\Organization;
 use App\Services\AuditLogLogger;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -66,19 +67,19 @@ class StripeConnectController extends Controller
 
         if (! $code || ! $state) {
             return redirect()->route('app.stripe-onboarding')
-                ->with('error', 'Incomplete parameters (code='.($code ? 'yes' : 'no').', state='.($state ? 'yes' : 'no').').');
+                ->with('error', 'Stripe did not return a complete response. Please try connecting again.');
         }
 
         if ($state !== session('stripe_connect_state')) {
             return redirect()->route('app.stripe-onboarding')
-                ->with('error', 'Invalid state parameter. Session state: '.(session('stripe_connect_state') ? 'present but mismatch' : 'missing').'.');
+                ->with('error', 'Your session does not match the Stripe response. Please start the connection again.');
         }
 
         $org = Organization::query()->find(session('stripe_connect_org_id'));
 
         if ($org === null) {
             return redirect()->route('app.stripe-onboarding')
-                ->with('error', 'Organization not found.');
+                ->with('error', 'Organization not found. Please sign in and try again.');
         }
 
         Stripe::setApiKey(config('services.stripe.secret'));
@@ -89,26 +90,52 @@ class StripeConnectController extends Controller
                 'code' => $code,
             ]);
         } catch (\Throwable $e) {
+            Log::warning('Stripe Connect OAuth token exchange failed', [
+                'organization_id' => $org->getKey(),
+                'exception' => $e->getMessage(),
+            ]);
+
             return redirect()->route('app.stripe-onboarding')
-                ->with('error', 'Failed to connect Stripe Connect account. Please try again.');
+                ->with('error', 'Stripe could not complete the connection. Please try again or contact support.');
         }
 
         $stripeUserId = $response->stripe_user_id;
 
         if (! $stripeUserId) {
             return redirect()->route('app.stripe-onboarding')
-                ->with('error', 'No stripe_user_id in OAuth response.');
+                ->with('error', 'Stripe did not return an account identifier. Please try again.');
         }
 
-        $org->update([
-            'stripe_account_id' => $stripeUserId,
-            'stripe_onboarded' => true,
-            'stripe_onboarded_at' => now(),
-        ]);
+        $existingOrg = Organization::query()
+            ->where('stripe_account_id', $stripeUserId)
+            ->whereKeyNot($org->getKey())
+            ->first();
 
-        AuditLogLogger::stripeConnected($org, auth()->user(), $stripeUserId);
+        if ($existingOrg !== null) {
+            return redirect()->route('app.stripe-onboarding')
+                ->with('error', 'This Stripe account is already connected to another Ihsan organization. Please use a different Stripe account or contact support.');
+        }
 
-        RegisterStripePaymentMethodDomains::dispatch($org->id);
+        try {
+            $org->update([
+                'stripe_account_id' => $stripeUserId,
+                'stripe_onboarded' => true,
+                'stripe_onboarded_at' => now(),
+            ]);
+
+            AuditLogLogger::stripeConnected($org, auth()->user(), $stripeUserId);
+
+            RegisterStripePaymentMethodDomains::dispatch($org->id);
+        } catch (QueryException $e) {
+            Log::error('Failed to save Stripe Connect account', [
+                'organization_id' => $org->getKey(),
+                'stripe_account_id' => $stripeUserId,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return redirect()->route('app.stripe-onboarding')
+                ->with('error', 'We could not save the Stripe connection. Please try again or contact support if the problem persists.');
+        }
 
         try {
             $account = Account::retrieve($stripeUserId);
