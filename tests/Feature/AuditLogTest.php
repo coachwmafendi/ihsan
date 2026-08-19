@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Services\AuditLogLogger;
 use App\Services\AuditLogQuery;
+use App\Services\DonationActivityLogger;
 use Spatie\Activitylog\Models\Activity;
 
 use function Pest\Laravel\actingAs;
@@ -118,7 +119,7 @@ it('renders the audit log page', function () {
     actingAs($this->user)
         ->get('https://app.example.test/audit-log')
         ->assertOk()
-        ->assertSee('Audit Log');
+        ->assertSee('Audit log');
 });
 
 it('lists organization audit log entries on the page', function () {
@@ -134,6 +135,25 @@ it('lists organization audit log entries on the page', function () {
         ->get('https://app.example.test/audit-log')
         ->assertOk()
         ->assertSee('Updated campaign');
+});
+
+it('shows donation activity in the audit log page', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->create([
+        'campaign_id' => $campaign->id,
+        'donor_id' => $donor->id,
+        'gross_amount' => 75.00,
+        'currency' => 'myr',
+    ]);
+
+    DonationActivityLogger::created($donation, null, ['initiator' => 'donor', 'source' => 'donor_portal']);
+
+    actingAs($this->user)
+        ->get('https://app.example.test/audit-log')
+        ->assertOk()
+        ->assertSee('donation')
+        ->assertSee($donation->public_id);
 });
 
 it('does not show other organizations activity entries', function () {

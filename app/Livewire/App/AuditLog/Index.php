@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Livewire\App\AuditLog;
 
+use App\Models\Campaign;
+use App\Models\Donation;
 use App\Models\Organization;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Services\AuditLogQuery;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -35,6 +38,9 @@ class Index extends Component
     #[Url(except: 'all_time')]
     public string $period = 'all_time';
 
+    #[Url(except: 'all')]
+    public string $initiatorFilter = 'all';
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -52,6 +58,21 @@ class Index extends Component
 
     public function updatedPeriod(): void
     {
+        $this->resetPage();
+    }
+
+    public function updatedInitiatorFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->eventFilter = '';
+        $this->subjectTypeFilter = '';
+        $this->period = 'all_time';
+        $this->initiatorFilter = 'all';
         $this->resetPage();
     }
 
@@ -75,6 +96,7 @@ class Index extends Component
             'event' => $this->eventFilter,
             'subject_type' => $this->subjectTypeFilter,
             'period' => $this->period,
+            'initiator' => $this->initiatorFilter,
         ])->paginate(25);
     }
 
@@ -83,6 +105,7 @@ class Index extends Component
         return view('livewire.app.audit-log.index', [
             'eventOptions' => AuditLogQuery::eventOptions(),
             'subjectTypeOptions' => AuditLogQuery::subjectTypeOptions(),
+            'initiatorOptions' => AuditLogQuery::initiatorOptions(),
         ]);
     }
 
@@ -93,6 +116,87 @@ class Index extends Component
         }
 
         return $activity->causer_type ? 'System user' : 'System';
+    }
+
+    public function initiatorName(Activity $activity): string
+    {
+        $initiator = $activity->properties?->get('initiator');
+
+        if ($initiator === 'donor') {
+            return 'Donor';
+        }
+
+        if ($activity->causer instanceof User) {
+            return $activity->causer->name;
+        }
+
+        if ($initiator === 'admin') {
+            return 'Admin';
+        }
+
+        return 'System';
+    }
+
+    public function eventSource(Activity $activity): string
+    {
+        $source = $activity->properties?->get('source');
+
+        return match ($source) {
+            'manual' => 'Manual',
+            'webhook' => 'Webhook',
+            'donor_portal' => 'Donor portal',
+            'system_automated' => 'System (automated)',
+            default => 'System (automated)',
+        };
+    }
+
+    /**
+     * @return array{from: string|null, to: string|null}|null
+     */
+    public function statusTransition(Activity $activity): ?array
+    {
+        $properties = $activity->properties ?? collect();
+
+        $to = $properties->get('to_status');
+        $from = $properties->get('from_status');
+
+        if ($to === null && $from === null) {
+            return null;
+        }
+
+        return [
+            'from' => $from,
+            'to' => $to,
+        ];
+    }
+
+    public function subjectUrl(Activity $activity): ?string
+    {
+        $subject = $activity->subject;
+
+        if ($subject instanceof Donation) {
+            return route('app.donations.show', $subject);
+        }
+
+        if ($subject instanceof Subscription) {
+            return route('app.subscriptions.show', $subject);
+        }
+
+        if ($subject instanceof Campaign) {
+            return route('app.campaigns.edit', $subject);
+        }
+
+        return null;
+    }
+
+    public function statusColor(string $status): string
+    {
+        return match ($status) {
+            'succeeded', 'active', 'paid' => 'success',
+            'pending', 'incomplete' => 'warning',
+            'failed', 'cancelled', 'refunded' => 'danger',
+            default => 'default',
+        };
     }
 
     public function subjectLabel(Activity $activity): string

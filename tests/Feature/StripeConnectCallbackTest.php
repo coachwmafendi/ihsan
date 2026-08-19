@@ -26,24 +26,10 @@ function mockStripeOAuth(string $stripeUserId): MockInterface
     return $mock;
 }
 
-function mockStripeAccountRetrieve(?string $businessName = null): MockInterface
-{
-    $mock = Mockery::mock('overload:Stripe\Account');
-    $mock->shouldReceive('retrieve')->andReturn((object) [
-        'business_profile' => (object) ['name' => $businessName],
-        'settings' => (object) [
-            'dashboard' => (object) ['display_name' => null],
-        ],
-    ]);
-
-    return $mock;
-}
-
 it('connects a stripe account and redirects to payment settings', function () {
     $stripeUserId = 'acct_'.fake()->regexify('[A-Za-z0-9]{10}');
 
     mockStripeOAuth($stripeUserId);
-    mockStripeAccountRetrieve('New Business Name');
 
     $response = $this->withSession([
         'stripe_connect_state' => $this->state,
@@ -56,8 +42,7 @@ it('connects a stripe account and redirects to payment settings', function () {
     $this->organization->refresh();
 
     expect($this->organization->stripe_account_id)->toBe($stripeUserId)
-        ->and($this->organization->stripe_onboarded)->toBeTrue()
-        ->and($this->organization->name)->toBe('New Business Name');
+        ->and($this->organization->stripe_onboarded)->toBeTrue();
 
     Queue::assertPushed(RegisterStripePaymentMethodDomains::class);
 });

@@ -57,12 +57,17 @@ class AuditLogQuery
             }
         }
 
+        if (! empty($filters['initiator']) && $filters['initiator'] !== 'all') {
+            self::applyInitiatorFilter($query, $filters['initiator']);
+        }
+
         if (! empty($filters['search'])) {
             $search = '%'.addcslashes($filters['search'], '%_\\').'%';
 
             $query->where(function (Builder $q) use ($search): void {
                 $q->where('description', 'like', $search)
                     ->orWhere('log_name', 'like', $search)
+                    ->orWhere('properties', 'like', $search)
                     ->orWhereHasMorph('causer', [User::class], function (Builder $q2) use ($search): void {
                         $q2->where('name', 'like', $search);
                     });
@@ -70,6 +75,25 @@ class AuditLogQuery
         }
 
         return $query->orderByDesc('activity_log.created_at');
+    }
+
+    private static function applyInitiatorFilter(Builder $query, string $initiator): void
+    {
+        match ($initiator) {
+            'system' => $query->where(function (Builder $q): void {
+                $q->whereNull('causer_id')
+                    ->where(function (Builder $q2): void {
+                        $q2->whereNull('properties->initiator')
+                            ->orWhere('properties->initiator', 'system');
+                    });
+            }),
+            'admin' => $query->where('causer_type', User::class),
+            'donor' => $query->where(function (Builder $q): void {
+                $q->whereNull('causer_id')
+                    ->where('properties->initiator', 'donor');
+            }),
+            default => null,
+        };
     }
 
     /**
@@ -93,12 +117,39 @@ class AuditLogQuery
      *
      * @return array<string, string>
      */
+    public static function initiatorOptions(): array
+    {
+        return [
+            'all' => 'All initiators',
+            'system' => 'System',
+            'admin' => 'Admin',
+            'donor' => 'Donor',
+        ];
+    }
+
     public static function eventOptions(): array
     {
         return [
             'created' => 'Created',
             'updated' => 'Updated',
             'deleted' => 'Deleted',
+            'donation.created' => 'Donation Created',
+            'payment_processing_initiated' => 'Payment Processing Initiated',
+            'transaction_attempt_initiated' => 'Transaction Attempt Initiated',
+            'transaction_attempt_succeeded' => 'Transaction Attempt Succeeded',
+            'transaction_attempt_failed' => 'Transaction Attempt Failed',
+            'donation.succeeded' => 'Donation Succeeded',
+            'donation.failed' => 'Donation Failed',
+            'donation.cancelled' => 'Donation Cancelled',
+            'donation.refunded' => 'Donation Refunded',
+            'subscription.created' => 'Subscription Created',
+            'subscription.updated' => 'Subscription Updated',
+            'subscription.cancelled' => 'Subscription Cancelled',
+            'subscription.paused' => 'Subscription Paused',
+            'subscription.resumed' => 'Subscription Resumed',
+            'installment.created' => 'Installment Created',
+            'installment.charged' => 'Installment Charged',
+            'installment.failed' => 'Installment Failed',
             'stripe_connected' => 'Stripe Connected',
             'stripe_disconnected' => 'Stripe Disconnected',
             'stripe_onboarding_completed' => 'Stripe Onboarding Completed',

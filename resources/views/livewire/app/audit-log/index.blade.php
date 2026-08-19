@@ -1,21 +1,12 @@
 {{-- resources/views/livewire/app/audit-log/index.blade.php --}}
 <div class="space-y-6">
     {{-- Page Header --}}
-    <x-ui.page-header title="Audit Log">
-        <x-slot:subtitle>
-            <nav class="flex" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 text-sm text-slate-500">
-                    <li>Organization</li>
-                    <li>
-                        <svg class="mx-1 h-4 w-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                        </svg>
-                    </li>
-                    <li class="font-medium text-slate-900">Audit Log</li>
-                </ol>
-            </nav>
-        </x-slot:subtitle>
-    </x-ui.page-header>
+    <div>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Audit log</h1>
+        <p class="mt-1 max-w-3xl text-sm text-slate-500">
+            See a comprehensive record of changes made across the platform. Click on an event to view detailed information.
+        </p>
+    </div>
 
     {{-- Filters --}}
     <div class="flex flex-wrap items-center gap-3 sm:flex-nowrap">
@@ -29,21 +20,7 @@
             />
         </div>
 
-        <x-ui.select wire:model.live="eventFilter" class="h-10 w-full sm:w-40">
-            <flux:select.option value="">All Events</flux:select.option>
-            @foreach ($eventOptions as $value => $label)
-                <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
-            @endforeach
-        </x-ui.select>
-
-        <x-ui.select wire:model.live="subjectTypeFilter" class="h-10 w-full sm:w-48">
-            <flux:select.option value="">All Subject Types</flux:select.option>
-            @foreach ($subjectTypeOptions as $value => $label)
-                <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
-            @endforeach
-        </x-ui.select>
-
-        <x-ui.select wire:model.live="period" class="h-10 w-full sm:w-44">
+        <x-ui.select wire:model.live="period" class="h-10 w-full sm:w-40">
             <flux:select.option value="all_time">All Time</flux:select.option>
             <flux:select.option value="today">Today</flux:select.option>
             <flux:select.option value="yesterday">Yesterday</flux:select.option>
@@ -52,65 +29,136 @@
             <flux:select.option value="90_days">Last 90 days</flux:select.option>
             <flux:select.option value="this_month">This month</flux:select.option>
         </x-ui.select>
+
+        <x-ui.select wire:model.live="eventFilter" class="h-10 w-full sm:w-48">
+            <flux:select.option value="">All Events</flux:select.option>
+            @foreach ($eventOptions as $value => $label)
+                <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
+            @endforeach
+        </x-ui.select>
+
+        <x-ui.select wire:model.live="initiatorFilter" class="h-10 w-full sm:w-40">
+            @foreach ($initiatorOptions as $value => $label)
+                <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
+            @endforeach
+        </x-ui.select>
+
+        <button
+            type="button"
+            wire:click="resetFilters"
+            class="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+        >
+            <x-heroicon-o-x-mark class="size-4" />
+            Reset filters
+        </button>
     </div>
 
-    {{-- Table --}}
-    <x-ui.card>
+    {{-- Activity List --}}
+    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         @if ($this->activities->isNotEmpty())
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200">
-                    <thead>
-                        <tr class="bg-slate-50">
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                Time
-                            </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                Actor
-                            </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                Event
-                            </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                Activity
-                            </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                Subject
-                            </th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                Changes
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 bg-white">
-                        @foreach ($this->activities as $activity)
-                            <tr class="hover:bg-slate-50">
-                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
-                                    {{ myrTime($activity->created_at) }}
-                                </td>
-                                <td class="px-5 py-4 text-sm text-slate-900">
-                                    <div class="flex items-center gap-2">
-                                        <div class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100">
-                                            <x-heroicon-o-user class="size-3.5 text-slate-500" />
-                                        </div>
-                                        {{ $this->actorName($activity) }}
+            <div class="divide-y divide-slate-100">
+                @foreach ($this->activities as $activity)
+                    <div
+                        x-data="{ open: false, copied: false }"
+                        class="group"
+                    >
+                        <button
+                            type="button"
+                            @click="open = ! open"
+                            class="flex w-full items-start justify-between gap-4 px-5 py-4 text-left hover:bg-slate-50"
+                        >
+                            <div class="flex items-start gap-3">
+                                <x-heroicon-o-chevron-down
+                                    class="mt-0.5 size-4 text-slate-400 transition-transform"
+                                    ::class="open ? 'rotate-180' : ''"
+                                />
+                                <div>
+                                    <p class="text-sm font-medium text-slate-900">
+                                        {{ $activity->description }}
+                                    </p>
+                                    <p class="mt-0.5 text-xs text-slate-500">
+                                        {{ class_basename($activity->subject_type ?: '') }}
+                                        @if ($activity->subject && $this->subjectUrl($activity))
+                                            <a
+                                                href="{{ $this->subjectUrl($activity) }}"
+                                                wire:navigate
+                                                class="ml-1 text-blue-600 hover:text-blue-700"
+                                                @click.stop
+                                            >
+                                                {{ $activity->subject->public_id ?? ('#'.$activity->subject->getKey()) }}
+                                            </a>
+                                        @elseif ($activity->subject)
+                                            <span class="ml-1">{{ $activity->subject->public_id ?? ('#'.$activity->subject->getKey()) }}</span>
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="whitespace-nowrap text-right">
+                                <p class="text-sm text-slate-500">{{ myrTime($activity->created_at) }}</p>
+                                <x-ui.badge
+                                    status="{{ $this->statusColor($activity->properties?->get('to_status') ?? $activity->event) }}"
+                                    size="sm"
+                                    class="mt-1"
+                                >
+                                    {{ str_replace('_', ' ', $activity->event ?? 'N/A') }}
+                                </x-ui.badge>
+                            </div>
+                        </button>
+
+                        {{-- Expanded Details --}}
+                        <div
+                            x-show="open"
+                            x-collapse
+                            class="border-t border-slate-100 bg-slate-50/60 px-5 py-4"
+                        >
+                            @php($transition = $this->statusTransition($activity))
+                            @if ($transition !== null && ($transition['from'] !== null || $transition['to'] !== null))
+                                <div class="mb-4 rounded-lg bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200">
+                                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-[160px_1fr]">
+                                        <dt class="text-sm font-medium text-slate-500">Status</dt>
+                                        <dd class="flex items-center gap-2 text-sm text-slate-900">
+                                            @if ($transition['from'] !== null)
+                                                <x-ui.badge status="{{ $this->statusColor($transition['from']) }}" size="sm">
+                                                    {{ Str::title(str_replace('_', ' ', $transition['from'])) }}
+                                                </x-ui.badge>
+                                                <x-heroicon-o-arrow-right class="size-4 text-slate-400" />
+                                            @endif
+                                            @if ($transition['to'] !== null)
+                                                <x-ui.badge status="{{ $this->statusColor($transition['to']) }}" size="sm">
+                                                    {{ Str::title(str_replace('_', ' ', $transition['to'])) }}
+                                                </x-ui.badge>
+                                            @endif
+                                        </dd>
                                     </div>
-                                </td>
-                                <td class="px-5 py-4">
-                                    <x-ui.badge status="{{ $activity->event === 'deleted' ? 'danger' : ($activity->event === 'created' ? 'success' : 'default') }}" size="sm">
-                                        {{ str_replace('_', ' ', $activity->event ?? 'N/A') }}
-                                    </x-ui.badge>
-                                </td>
-                                <td class="px-5 py-4 text-sm text-slate-700">
-                                    {{ $activity->description }}
-                                </td>
-                                <td class="px-5 py-4 text-sm text-slate-700">
-                                    {{ $this->subjectLabel($activity) }}
-                                </td>
-                                <td class="px-5 py-4 text-sm text-slate-600">
-                                    @php($changes = $this->changedAttributes($activity))
-                                    @if (count($changes))
+                                </div>
+                            @endif
+
+                            <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-[160px_1fr]">
+                                <dt class="text-sm font-medium text-slate-500">Initiator</dt>
+                                <dd class="text-sm text-slate-900">{{ $this->initiatorName($activity) }}</dd>
+
+                                <dt class="text-sm font-medium text-slate-500">Log ID</dt>
+                                <dd class="flex items-center gap-2 text-sm text-slate-900">
+                                    <span class="font-mono">{{ $activity->id }}</span>
+                                    <button
+                                        type="button"
+                                        @click="navigator.clipboard.writeText('{{ $activity->id }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                        class="inline-flex items-center rounded p-0.5 text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+                                    >
+                                        <x-heroicon-o-clipboard-document class="size-3.5" />
+                                    </button>
+                                    <span x-show="copied" x-transition class="text-xs text-emerald-600">Copied!</span>
+                                </dd>
+
+                                <dt class="text-sm font-medium text-slate-500">Event source</dt>
+                                <dd class="text-sm text-slate-900">{{ $this->eventSource($activity) }}</dd>
+
+                                @php($changes = $this->changedAttributes($activity))
+                                @if (count($changes))
+                                    <dt class="text-sm font-medium text-slate-500">Changes</dt>
+                                    <dd class="text-sm text-slate-900">
                                         <ul class="space-y-1">
-                                            @foreach (array_slice($changes, 0, 3) as $change)
+                                            @foreach ($changes as $change)
                                                 <li>
                                                     <span class="font-medium">{{ $change['field'] }}</span>
                                                     <span class="text-slate-400">→</span>
@@ -119,29 +167,26 @@
                                                     </x-ui.tooltip>
                                                 </li>
                                             @endforeach
-                                            @if (count($changes) > 3)
-                                                <li class="text-xs text-slate-400">+{{ count($changes) - 3 }} more</li>
-                                            @endif
                                         </ul>
-                                    @else
-                                        <span class="text-slate-400">—</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                    </dd>
+                                @endif
+                            </dl>
+                        </div>
+                    </div>
+                @endforeach
             </div>
 
             <div class="border-t border-slate-100 px-5 py-3">
                 {{ $this->activities->links() }}
             </div>
         @else
-            <x-ui.empty-state
-                icon="heroicon-o-clipboard-document-list"
-                title="No activity found"
-                description="Try adjusting your filters or search criteria."
-            />
+            <div class="p-8">
+                <x-ui.empty-state
+                    icon="heroicon-o-clipboard-document-list"
+                    title="No activity found"
+                    description="Try adjusting your filters or search criteria."
+                />
+            </div>
         @endif
-    </x-ui.card>
+    </div>
 </div>

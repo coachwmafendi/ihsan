@@ -4,6 +4,7 @@ namespace App\Actions\Stripe;
 
 use App\Enums\DonationStatus;
 use App\Models\Donation;
+use App\Services\DonationActivityLogger;
 use Stripe\Refund;
 use Stripe\Stripe;
 
@@ -33,5 +34,12 @@ class RefundDonation
             'status' => DonationStatus::Refunded,
             'refunded_at' => now(),
         ]);
+
+        DonationActivityLogger::refunded(
+            $donation,
+            (float) $donation->gross_amount,
+            auth()->user(),
+            ['source' => 'manual']
+        );
     }
 }

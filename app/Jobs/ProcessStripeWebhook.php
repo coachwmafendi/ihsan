@@ -19,9 +19,11 @@ use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\WebhookLog;
+use App\Services\DonationActivityLogger;
 use App\Services\FraudDetectionService;
 use App\Services\RecurringPlanResolver;
 use App\Services\StripeMetadata;
+use App\Services\SubscriptionActivityLogger;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -155,6 +157,7 @@ class ProcessStripeWebhook implements ShouldQueue
             $subscription = app(RecurringPlanResolver::class)->create($donation, $paymentIntent, $stripeOptions);
 
             if ($subscription->wasRecentlyCreated) {
+                SubscriptionActivityLogger::created($subscription, null, ['source' => 'webhook']);
                 SendNewSubscriptionNotification::dispatch($donation)->delay(now()->addMinutes(5));
                 SendDonorNewSubscriptionNotification::dispatch($donation);
             }
@@ -171,6 +174,15 @@ class ProcessStripeWebhook implements ShouldQueue
         }
 
         if ($wasPending) {
+            DonationActivityLogger::transactionAttemptSucceeded(
+                $donation,
+                'stripe',
+                $paymentIntent->id,
+                1,
+                null,
+                ['source' => 'webhook']
+            );
+
             // A first monthly payment is still a conversion — ad platforms must
             // receive it, even though the donor receipt comes from the plan.
             SendMetaConversionEvent::dispatch($donation);
@@ -224,6 +236,16 @@ class ProcessStripeWebhook implements ShouldQueue
             'stripe_fee_details' => $stripeFeeDetails,
         ]);
 
+        DonationActivityLogger::transactionAttemptFailed(
+            $donation,
+            'stripe',
+            $paymentIntent->id,
+            $error?->message ?? 'Payment failed',
+            null,
+            null,
+            ['source' => 'webhook']
+        );
+
         $donation->loadMissing('subscription.donor', 'subscription.campaign.organization');
 
         if ($donation->subscription !== null) {
@@ -259,6 +281,8 @@ class ProcessStripeWebhook implements ShouldQueue
         $donation->update([
             'stripe_fee_details' => $stripeFeeDetails,
         ]);
+
+        DonationActivityLogger::processingInitiated($donation, 'stripe', $paymentIntent->id, null, ['source' => 'webhook']);
     }
 
     private function handlePaymentIntentRequiresAction(StripeEvent $event): void
@@ -289,6 +313,8 @@ class ProcessStripeWebhook implements ShouldQueue
         $donation->update([
             'stripe_fee_details' => $stripeFeeDetails,
         ]);
+
+        DonationActivityLogger::transactionAttemptInitiated($donation, 'stripe', $paymentIntent->id, null, null, ['source' => 'webhook']);
     }
 
     private function handlePaymentIntentCanceled(StripeEvent $event): void
@@ -322,6 +348,13 @@ class ProcessStripeWebhook implements ShouldQueue
             'status' => DonationStatus::Failed,
             'stripe_fee_details' => $stripeFeeDetails,
         ]);
+
+        DonationActivityLogger::cancelled(
+            $donation,
+            $paymentIntent->cancellation_reason ?? ($error?->message ?? 'Payment canceled'),
+            null,
+            ['source' => 'webhook']
+        );
     }
 
     private function handleDonorInvoicePaid(StripeEvent $event): void
@@ -408,6 +441,8 @@ class ProcessStripeWebhook implements ShouldQueue
             'stripe_invoice_id' => $invoice->id,
         ]);
 
+        SubscriptionActivityLogger::installmentCreated($subscription, $donation, null, ['source' => 'webhook']);
+
         app(SyncDonationStripeDetails::class)->sync($donation, null, $stripeOptions);
 
         $donation->refresh();
@@ -451,6 +486,15 @@ class ProcessStripeWebhook implements ShouldQueue
         $incrementAmount = (float) ($donation->base_amount ?? $grossAmount);
         $campaign->increment('collected_amount', $incrementAmount);
         $campaign->refresh();
+
+        SubscriptionActivityLogger::installmentCharged(
+            $subscription,
+            $donation,
+            'stripe',
+            $invoice->payment_intent ?? $invoice->charge,
+            null,
+            ['source' => 'webhook']
+        );
 
         SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
 
@@ -574,6 +618,8 @@ class ProcessStripeWebhook implements ShouldQueue
             'cancelled_at' => now(),
         ]);
 
+        SubscriptionActivityLogger::cancelled($subscription, 'Stripe subscription cancelled', null, ['source' => 'webhook']);
+
         SendSubscriptionCancelledNotification::dispatch($subscription);
         SendDonorSubscriptionCancelledNotification::dispatch($subscription);
     }
@@ -602,6 +648,13 @@ class ProcessStripeWebhook implements ShouldQueue
             'status' => DonationStatus::Refunded,
             'refunded_at' => now(),
         ]);
+
+        DonationActivityLogger::refunded(
+            $donation,
+            (float) ($donation->base_amount ?? $donation->gross_amount),
+            null,
+            ['source' => 'webhook']
+        );
 
         if ($campaign !== null) {
             $decrementAmount = (float) ($donation->base_amount ?? $donation->gross_amount);
