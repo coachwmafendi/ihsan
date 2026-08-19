@@ -279,6 +279,22 @@ class Donation extends Model
         });
     }
 
+    public function utmParameters(): Attribute
+    {
+        return Attribute::get(function (): array {
+            $utm = $this->utm_params;
+            $utm = is_string($utm) ? json_decode($utm, true) ?? [] : ($utm ?? []);
+
+            return [
+                'source' => $utm['utm_source'] ?? null,
+                'medium' => $utm['utm_medium'] ?? null,
+                'campaign' => $utm['utm_campaign'] ?? null,
+                'term' => $utm['utm_term'] ?? null,
+                'content' => $utm['utm_content'] ?? null,
+            ];
+        });
+    }
+
     public function elementLabel(): Attribute
     {
         return Attribute::get(function () {
@@ -489,10 +505,13 @@ class Donation extends Model
                 $pending = $this->stripe_fee_details['pending'] ?? null;
                 $status = $pending['status'] ?? null;
 
+                if ($status === 'requires_payment_method') {
+                    return 'The customer has not entered their payment method.';
+                }
+
                 $label = match ($status) {
                     'requires_action' => 'Awaiting 3D Secure authentication',
                     'requires_confirmation' => 'Awaiting payment confirmation',
-                    'requires_payment_method' => 'Payment method not provided',
                     'processing' => 'Payment is being processed',
                     default => 'Awaiting payment completion',
                 };

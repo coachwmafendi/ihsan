@@ -52,11 +52,11 @@ enum TrackingProvider: string
         return match ($this) {
             self::Meta => [
                 ['key' => 'pixel_id', 'label' => 'Meta Pixel ID', 'type' => 'text', 'placeholder' => '123456789012345'],
-                ['key' => 'access_token', 'label' => 'Conversion API Access Token', 'type' => 'password', 'placeholder' => 'EAAGsbA1E4d6BA...'],
+                ['key' => 'access_token', 'label' => 'Conversion API Access Token', 'type' => 'text', 'placeholder' => 'EAAGsbA1E4d6BA...'],
             ],
             self::GoogleAnalytics4 => [
                 ['key' => 'measurement_id', 'label' => 'Measurement ID', 'type' => 'text', 'placeholder' => 'G-XXXXXXXXXX', 'hint' => 'Found in GA4 → Admin → Data Streams → your stream.'],
-                ['key' => 'api_secret', 'label' => 'Measurement Protocol API Secret', 'type' => 'password', 'placeholder' => '••••••••••••••••', 'hint' => 'Found in GA4 → Admin → Data Streams → your stream → Measurement Protocol API secrets.'],
+                ['key' => 'api_secret', 'label' => 'Measurement Protocol API Secret', 'type' => 'text', 'placeholder' => '••••••••••••••••', 'hint' => 'Found in GA4 → Admin → Data Streams → your stream → Measurement Protocol API secrets.'],
             ],
             self::GoogleAds => [
                 ['key' => 'conversion_id', 'label' => 'Conversion ID', 'type' => 'text', 'placeholder' => 'AW-XXXXXXXXXX'],
@@ -64,21 +64,21 @@ enum TrackingProvider: string
             ],
             self::TikTok => [
                 ['key' => 'pixel_id', 'label' => 'Pixel ID', 'type' => 'text', 'placeholder' => 'CXXXXXXXXXXXXXXXX'],
-                ['key' => 'access_token', 'label' => 'Access Token', 'type' => 'password', 'placeholder' => '••••••••••••••••'],
+                ['key' => 'access_token', 'label' => 'Access Token', 'type' => 'text', 'placeholder' => '••••••••••••••••'],
             ],
             self::LinkedIn => [
                 ['key' => 'partner_id', 'label' => 'Partner ID', 'type' => 'text', 'placeholder' => '1234567'],
                 ['key' => 'conversion_id', 'label' => 'Conversion ID', 'type' => 'text', 'placeholder' => '12345678'],
-                ['key' => 'access_token', 'label' => 'Conversion API Access Token', 'type' => 'password', 'placeholder' => '••••••••••••••••'],
+                ['key' => 'access_token', 'label' => 'Conversion API Access Token', 'type' => 'text', 'placeholder' => '••••••••••••••••'],
             ],
             self::XAds => [
                 ['key' => 'pixel_id', 'label' => 'Pixel ID', 'type' => 'text', 'placeholder' => 'o1234'],
                 ['key' => 'conversion_id', 'label' => 'Conversion Event ID', 'type' => 'text', 'placeholder' => 'tw-o1234-abcde'],
-                ['key' => 'access_token', 'label' => 'Conversion API Access Token', 'type' => 'password', 'placeholder' => '••••••••••••••••'],
+                ['key' => 'access_token', 'label' => 'Conversion API Access Token', 'type' => 'text', 'placeholder' => '••••••••••••••••'],
             ],
             self::Snapchat => [
                 ['key' => 'pixel_id', 'label' => 'Pixel ID', 'type' => 'text', 'placeholder' => 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'],
-                ['key' => 'access_token', 'label' => 'Conversion API Token', 'type' => 'password', 'placeholder' => '••••••••••••••••'],
+                ['key' => 'access_token', 'label' => 'Conversion API Token', 'type' => 'text', 'placeholder' => '••••••••••••••••'],
             ],
         };
     }
