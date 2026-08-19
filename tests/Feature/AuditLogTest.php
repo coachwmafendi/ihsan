@@ -90,6 +90,24 @@ it('filters audit log by search term', function () {
     expect($result)->toHaveCount(1);
 });
 
+it('filters audit log by subject public id', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->create([
+        'campaign_id' => $campaign->id,
+        'donor_id' => $donor->id,
+        'public_id' => 'D9BI3AGP',
+    ]);
+
+    $match = activity()->performedOn($donation)->event('updated')->log('Updated donation status');
+    $other = activity()->performedOn($campaign)->causedBy($this->user)->event('updated')->log('Updated campaign details');
+
+    $result = AuditLogQuery::forOrganization($this->organization, ['search' => 'D9BI3AGP'])->get();
+
+    expect($result->pluck('id'))->toContain($match->id);
+    expect($result->pluck('id'))->not->toContain($other->id);
+});
+
 it('scopes donation and subscription activities through their campaign', function () {
     $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
     $otherCampaign = Campaign::factory()->create(['organization_id' => $this->otherOrganization->id]);

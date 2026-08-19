@@ -69,7 +69,17 @@ class AuditLogQuery
                     ->orWhere('log_name', 'like', $search)
                     ->orWhere('properties', 'like', $search)
                     ->orWhereHasMorph('causer', [User::class], function (Builder $q2) use ($search): void {
-                        $q2->where('name', 'like', $search);
+                        $q2->where('name', 'like', $search)
+                            ->orWhere('email', 'like', $search);
+                    })
+                    ->orWhereHasMorph('subject', [
+                        Campaign::class,
+                        Donation::class,
+                        Element::class,
+                        Organization::class,
+                        Subscription::class,
+                    ], function (Builder $q2) use ($search): void {
+                        $q2->where('public_id', 'like', $search);
                     });
             });
         }
