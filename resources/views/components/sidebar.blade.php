@@ -91,8 +91,7 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
             :class="$store.sidebar.collapsed ? 'px-3 justify-center' : 'px-6 justify-between'"
         >
             <div
-                class="flex items-center overflow-hidden"
-                :class="$store.sidebar.collapsed ? '' : 'gap-2.5'"
+                class="flex items-center gap-2.5 overflow-hidden"
                 x-show="! $store.sidebar.collapsed"
                 x-cloak
             >
@@ -102,11 +101,22 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
             <button
                 type="button"
                 @click="$store.sidebar.toggle()"
-                class="flex p-1.5 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none focus-visible:ring-0"
+                class="group relative flex size-8 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-0"
                 :title="$store.sidebar.collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
                 :aria-label="$store.sidebar.collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
             >
-                <x-icon.sidebar-panel class="size-5" />
+                {{-- Collapsed: show the app logo, swapping to the panel toggle on hover/focus. --}}
+                <x-app-logo-icon
+                    class="absolute h-7 w-7 transition-opacity group-hover:opacity-0 group-focus-visible:opacity-0"
+                    x-show="$store.sidebar.collapsed"
+                    x-cloak
+                />
+                <span
+                    class="flex transition-opacity"
+                    :class="$store.sidebar.collapsed ? 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100' : 'opacity-100'"
+                >
+                    <x-icon.sidebar-panel class="size-5" />
+                </span>
             </button>
         </div>
 

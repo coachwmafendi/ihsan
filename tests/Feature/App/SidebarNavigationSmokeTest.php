@@ -59,3 +59,29 @@ it('does not use wire:navigate on external sidebar links', function () {
 
     expect($matches[0][0] ?? '')->not->toContain('wire:navigate');
 });
+
+it('shows the app logo in the collapsed sidebar toggle, swapping to the panel icon on hover', function () {
+    $html = $this->actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->getContent();
+
+    // Isolate the desktop sidebar header's collapse toggle button.
+    expect(preg_match(
+        '/<button\b(?:(?!<\/button>).)*?:aria-label="\$store\.sidebar\.collapsed \? \x27Expand sidebar\x27 : \x27Collapse sidebar\x27"(?:(?!<\/button>).)*?<\/button>/s',
+        $html,
+        $matches
+    ))->toBe(1, 'Expected the desktop sidebar collapse toggle button to be rendered.');
+
+    $button = $matches[0];
+
+    expect($button)
+        ->toContain('group')
+        // The logo only renders while collapsed, and fades out on hover/focus.
+        ->toContain('x-show="$store.sidebar.collapsed"')
+        ->toContain('group-hover:opacity-0')
+        ->toContain('group-focus-visible:opacity-0')
+        ->toContain('aria-label="Ihsan"')
+        // The panel icon is hidden while collapsed until the toggle is hovered/focused.
+        ->toContain("collapsed ? 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100' : 'opacity-100'");
+});
