@@ -102,7 +102,7 @@ class DonationExporter extends Exporter
                 ->formatStateUsing(fn ($state): string => strtoupper($state ?? '')),
             ExportColumn::make('device_type')
                 ->label('Device Type')
-                ->formatStateUsing(fn ($state): string => ucfirst($state ?? '')),
+                ->formatStateUsing(fn ($state): string => Donation::deviceLabelFor($state) ?? ''),
             ExportColumn::make('is_anonymous')
                 ->label('Anonymous')
                 ->formatStateUsing(fn ($state): string => $state ? 'Yes' : 'No'),

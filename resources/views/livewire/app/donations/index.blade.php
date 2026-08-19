@@ -514,7 +514,7 @@
                                         @if ($donation->device_type)
                                             @php $deviceCategory = $donation->deviceCategory(); @endphp
                                             <span data-device-category="{{ $deviceCategory }}" class="inline-flex">
-                                            <x-ui.tooltip :text="$donation->device_type.' donation'">
+                                            <x-ui.tooltip :text="$donation->deviceLabel().' donation'">
                                                 @if ($deviceCategory === 'mobile')
                                                     <x-heroicon-o-device-phone-mobile class="size-3.5 shrink-0 text-slate-400" />
                                                 @elseif ($deviceCategory === 'tablet')

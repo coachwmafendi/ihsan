@@ -78,3 +78,20 @@ it('returns no page url display when the donation has no page url', function () 
     expect($donation->page_url_display)->toBeNull()
         ->and($donation->page_url_query_count)->toBe(0);
 });
+
+it('capitalises legacy bucket device types for display', function () {
+    expect(Donation::factory()->make(['device_type' => 'mobile'])->deviceLabel())->toBe('Mobile')
+        ->and(Donation::factory()->make(['device_type' => 'tablet'])->deviceLabel())->toBe('Tablet')
+        ->and(Donation::factory()->make(['device_type' => 'desktop'])->deviceLabel())->toBe('Desktop');
+});
+
+it('leaves specific device types cased as they are stored', function () {
+    expect(Donation::factory()->make(['device_type' => 'iPhone'])->deviceLabel())->toBe('iPhone')
+        ->and(Donation::factory()->make(['device_type' => 'iPad'])->deviceLabel())->toBe('iPad')
+        ->and(Donation::factory()->make(['device_type' => 'Chrome OS'])->deviceLabel())->toBe('Chrome OS')
+        ->and(Donation::factory()->make(['device_type' => 'Android'])->deviceLabel())->toBe('Android');
+});
+
+it('has no device label when no device type was captured', function () {
+    expect(Donation::factory()->make(['device_type' => null])->deviceLabel())->toBeNull();
+});

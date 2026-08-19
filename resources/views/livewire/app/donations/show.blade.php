@@ -483,7 +483,7 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Device</dt>
-                            <dd class="text-sm font-medium text-slate-900">{{ $donation->device_type ?? '—' }}</dd>
+                            <dd class="text-sm font-medium text-slate-900">{{ $donation->deviceLabel() ?? '—' }}</dd>
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">OS</dt>

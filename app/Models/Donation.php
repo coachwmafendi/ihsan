@@ -296,6 +296,35 @@ class Donation extends Model
     }
 
     /**
+     * The stored device type, ready to show to a person.
+     */
+    public function deviceLabel(): ?string
+    {
+        return self::deviceLabelFor($this->device_type);
+    }
+
+    /**
+     * Capitalise the bucket names kept from before devices were named.
+     *
+     * Specific device types are already cased the way they are written
+     * ("iPhone", "Chrome OS"), so they must be left alone — ucfirst() would
+     * turn "iPhone" into "IPhone".
+     */
+    public static function deviceLabelFor(?string $deviceType): ?string
+    {
+        if (blank($deviceType)) {
+            return null;
+        }
+
+        return match ($deviceType) {
+            'mobile' => 'Mobile',
+            'tablet' => 'Tablet',
+            'desktop' => 'Desktop',
+            default => $deviceType,
+        };
+    }
+
+    /**
      * The page URL without its scheme or query string.
      *
      * Tracking query strings run to hundreds of characters and dominate the

@@ -851,7 +851,7 @@ it('delegates the stripe sync decision to the sync action for a donor with no cu
         ->email->toBe('siti@example.com');
 });
 
-it('shows a device icon on the donation list for specific device types', function (string $deviceType, string $expectedCategory) {
+it('shows a device icon on the donation list for specific device types', function (string $deviceType, string $expectedCategory, string $expectedLabel) {
     Donation::factory()->create([
         'campaign_id' => $this->campaign->id,
         'donor_id' => $this->donor->id,
@@ -861,16 +861,16 @@ it('shows a device icon on the donation list for specific device types', functio
     Livewire::actingAs($this->user)
         ->test(DonationIndex::class)
         ->assertSee('data-device-category="'.$expectedCategory.'"', false)
-        ->assertSee($deviceType.' donation');
+        ->assertSee($expectedLabel.' donation');
 })->with([
     // Specific labels written after the device detection refactor.
-    ['iPhone', 'mobile'],
-    ['Android', 'mobile'],
-    ['iPad', 'tablet'],
-    ['Windows', 'desktop'],
-    ['Mac', 'desktop'],
-    // Bucket names written before it must keep working.
-    ['mobile', 'mobile'],
-    ['tablet', 'tablet'],
-    ['desktop', 'desktop'],
+    ['iPhone', 'mobile', 'iPhone'],
+    ['Android', 'mobile', 'Android'],
+    ['iPad', 'tablet', 'iPad'],
+    ['Windows', 'desktop', 'Windows'],
+    ['Mac', 'desktop', 'Mac'],
+    // Bucket names written before it are capitalised for display.
+    ['mobile', 'mobile', 'Mobile'],
+    ['tablet', 'tablet', 'Tablet'],
+    ['desktop', 'desktop', 'Desktop'],
 ]);
