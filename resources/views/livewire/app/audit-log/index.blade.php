@@ -37,21 +37,39 @@
             @endforeach
         </x-ui.select>
 
+        <x-ui.select wire:model.live="subjectTypeFilter" class="h-10 w-full sm:w-40">
+            <flux:select.option value="">All Records</flux:select.option>
+            @foreach ($subjectTypeOptions as $value => $label)
+                <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
+            @endforeach
+        </x-ui.select>
+
         <x-ui.select wire:model.live="initiatorFilter" class="h-10 w-full sm:w-40">
             @foreach ($initiatorOptions as $value => $label)
                 <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
             @endforeach
         </x-ui.select>
 
-        <button
-            type="button"
-            wire:click="resetFilters"
-            class="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
-        >
-            <x-heroicon-o-x-mark class="size-4" />
-            Reset filters
-        </button>
+        @if ($this->hasActiveFilters)
+            <button
+                type="button"
+                wire:click="resetFilters"
+                class="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-700"
+            >
+                <x-heroicon-o-x-mark class="size-4" />
+                Reset filters
+            </button>
+        @endif
     </div>
+
+    {{-- Says whether the list is everything or only what the filters let through. --}}
+    <p class="-mt-3 text-sm text-slate-500">
+        {{ number_format($this->activities->total()) }}
+        {{ Str::plural('entry', $this->activities->total()) }}
+        @if ($this->hasActiveFilters)
+            matching the current filters
+        @endif
+    </p>
 
     {{-- Activity List --}}
     <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -77,7 +95,7 @@
                                         {{ $activity->description }}
                                     </p>
                                     <p class="mt-0.5 text-xs text-slate-500">
-                                        {{ class_basename($activity->subject_type ?: '') }}
+                                        {{ $this->subjectTypeLabel($activity) }}
                                         @if ($activity->subject && $this->subjectUrl($activity))
                                             <a
                                                 href="{{ $this->subjectUrl($activity) }}"
@@ -96,11 +114,11 @@
                             <div class="whitespace-nowrap text-right">
                                 <p class="text-sm text-slate-500">{{ myrTime($activity->created_at) }}</p>
                                 <x-ui.badge
-                                    status="{{ $this->statusColor($activity->properties?->get('to_status') ?? $activity->event) }}"
+                                    status="{{ $this->eventColor($activity) }}"
                                     size="sm"
                                     class="mt-1"
                                 >
-                                    {{ str_replace('_', ' ', $activity->event ?? 'N/A') }}
+                                    {{ $this->eventLabel($activity) }}
                                 </x-ui.badge>
                             </div>
                         </button>
@@ -150,21 +168,25 @@
                                     <span x-show="copied" x-transition class="text-xs text-emerald-600">Copied!</span>
                                 </dd>
 
-                                <dt class="text-sm font-medium text-slate-500">Event source</dt>
-                                <dd class="text-sm text-slate-900">{{ $this->eventSource($activity) }}</dd>
+                                @php($eventSource = $this->eventSource($activity))
+                                @if ($eventSource !== null)
+                                    <dt class="text-sm font-medium text-slate-500">Event source</dt>
+                                    <dd class="text-sm text-slate-900">{{ $eventSource }}</dd>
+                                @endif
 
                                 @php($changes = $this->changedAttributes($activity))
                                 @if (count($changes))
                                     <dt class="text-sm font-medium text-slate-500">Changes</dt>
                                     <dd class="text-sm text-slate-900">
-                                        <ul class="space-y-1">
+                                        {{-- Both values are shown: an audit trail that hides what
+                                             something used to be is only half a record. --}}
+                                        <ul class="space-y-1.5">
                                             @foreach ($changes as $change)
-                                                <li>
-                                                    <span class="font-medium">{{ $change['field'] }}</span>
-                                                    <span class="text-slate-400">→</span>
-                                                    <x-ui.tooltip :text="'Old: '.$change['old']">
-                                                        <span class="text-slate-500">{{ $change['new'] }}</span>
-                                                    </x-ui.tooltip>
+                                                <li class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                                                    <span class="font-medium">{{ str_replace('_', ' ', $change['field']) }}</span>
+                                                    <span class="break-all text-slate-400 line-through">{{ $change['old'] }}</span>
+                                                    <x-heroicon-o-arrow-right class="size-3.5 shrink-0 text-slate-400" />
+                                                    <span class="break-all font-medium text-slate-900">{{ $change['new'] }}</span>
                                                 </li>
                                             @endforeach
                                         </ul>
@@ -184,7 +206,9 @@
                 <x-ui.empty-state
                     icon="heroicon-o-clipboard-document-list"
                     title="No activity found"
-                    description="Try adjusting your filters or search criteria."
+                    :description="$this->hasActiveFilters
+                        ? 'Try adjusting your filters or search criteria.'
+                        : 'Activity across your campaigns, donations and supporters will appear here.'"
                 />
             </div>
         @endif

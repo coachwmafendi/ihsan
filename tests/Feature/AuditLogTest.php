@@ -257,3 +257,100 @@ it('shows stripe connect manual logs in audit log page', function () {
         ->assertOk()
         ->assertSee('Stripe Connect');
 });
+
+it('reaches donor activity through the donations they made to this organization', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    $otherCampaign = Campaign::factory()->create(['organization_id' => $this->otherOrganization->id]);
+
+    $ourDonor = Donor::factory()->create();
+    Donation::factory()->for($ourDonor)->for($campaign)->create();
+
+    $strangerDonor = Donor::factory()->create();
+    Donation::factory()->for($strangerDonor)->for($otherCampaign)->create();
+
+    AuditLogLogger::log($ourDonor, 'updated', 'Supporter details updated.');
+    AuditLogLogger::log($strangerDonor, 'updated', 'Stranger details updated.');
+
+    $descriptions = AuditLogQuery::forOrganization($this->organization)->pluck('description');
+
+    expect($descriptions)->toContain('Supporter details updated.')
+        ->and($descriptions)->not->toContain('Stranger details updated.');
+});
+
+it('offers supporters as a filterable record type', function () {
+    expect(AuditLogQuery::subjectTypeOptions())->toHaveKey(Donor::class);
+});
+
+it('does not claim an event was automated when no source was recorded', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    AuditLogLogger::log($campaign, 'updated', 'Campaign updated.');
+
+    actingAs($this->user)
+        ->get('https://app.example.test/audit-log')
+        ->assertOk()
+        ->assertDontSee('System (automated)');
+});
+
+it('names the real source of a donation made through an embedded element', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    $donation = Donation::factory()->for($campaign)->create(['source' => 'element']);
+
+    DonationActivityLogger::created($donation, null, [
+        'initiator' => 'donor',
+        'source' => $donation->source,
+    ]);
+
+    actingAs($this->user)
+        ->get('https://app.example.test/audit-log')
+        ->assertOk()
+        ->assertSee('Embedded element')
+        ->assertDontSee('Donor portal');
+});
+
+it('shows both the old and new value of a change', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+
+    AuditLogLogger::log($campaign, 'updated', 'Campaign updated.', [
+        'old' => ['title' => 'Old title'],
+        'attributes' => ['title' => 'New title'],
+    ]);
+
+    $html = actingAs($this->user)
+        ->get('https://app.example.test/audit-log')
+        ->assertOk()
+        ->getContent();
+
+    // The old value has to be rendered, not merely tucked into a tooltip
+    // attribute where it only shows on hover.
+    expect($html)->toMatch('/line-through[^>]*>\s*Old title/')
+        ->and($html)->toContain('New title');
+});
+
+it('lets an admin filter the log by record type', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    AuditLogLogger::log($campaign, 'updated', 'Campaign updated.');
+
+    actingAs($this->user)
+        ->get('https://app.example.test/audit-log')
+        ->assertOk()
+        ->assertSee('wire:model.live="subjectTypeFilter"', false)
+        ->assertSee('All Records');
+});
+
+it('calls donors supporters everywhere a person can see', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    AuditLogLogger::log($donor, 'updated', 'Supporter details updated.');
+
+    actingAs($this->user)
+        ->get('https://app.example.test/audit-log')
+        ->assertOk()
+        // The initiator filter, the record-type filter and the row subtitle.
+        ->assertSee('Supporter')
+        ->assertDontSee('>Donor<', false);
+
+    expect(AuditLogQuery::initiatorOptions()['donor'])->toBe('Supporter')
+        ->and(AuditLogQuery::subjectTypeOptions()[Donor::class])->toBe('Supporter');
+});

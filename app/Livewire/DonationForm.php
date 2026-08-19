@@ -738,7 +738,7 @@ class DonationForm extends Component
 
         DonationActivityLogger::created($donation, null, [
             'initiator' => 'donor',
-            'source' => 'donor_portal',
+            'source' => $donation->source,
         ]);
 
         $this->donationPublicId = $donation->public_id;
@@ -773,7 +773,7 @@ class DonationForm extends Component
 
                     DonationActivityLogger::processingInitiated($donation, 'chip', $donation->chip_purchase_id, null, [
                         'initiator' => 'donor',
-                        'source' => 'donor_portal',
+                        'source' => $donation->source,
                     ]);
 
                     return '';
@@ -788,7 +788,7 @@ class DonationForm extends Component
 
                 DonationActivityLogger::processingInitiated($donation, 'chip', $donation->chip_purchase_id, null, [
                     'initiator' => 'donor',
-                    'source' => 'donor_portal',
+                    'source' => $donation->source,
                 ]);
 
                 return $checkoutUrl;
@@ -808,7 +808,7 @@ class DonationForm extends Component
 
             DonationActivityLogger::processingInitiated($donation, 'stripe', $paymentIntent->id, null, [
                 'initiator' => 'donor',
-                'source' => 'donor_portal',
+                'source' => $donation->source,
             ]);
 
             return $paymentIntent->client_secret;
@@ -835,7 +835,7 @@ class DonationForm extends Component
 
         DonationActivityLogger::failed($donation, $message, null, [
             'initiator' => 'donor',
-            'source' => 'donor_portal',
+            'source' => $donation->source,
         ]);
     }
 

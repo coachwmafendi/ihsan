@@ -6,12 +6,14 @@ namespace App\Livewire\App\AuditLog;
 
 use App\Models\Campaign;
 use App\Models\Donation;
+use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\AuditLogQuery;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -83,6 +85,16 @@ class Index extends Component
     }
 
     #[Computed]
+    public function hasActiveFilters(): bool
+    {
+        return $this->search !== ''
+            || $this->eventFilter !== ''
+            || $this->subjectTypeFilter !== ''
+            || $this->period !== 'all_time'
+            || $this->initiatorFilter !== 'all';
+    }
+
+    #[Computed]
     public function activities()
     {
         $organization = $this->organization;
@@ -109,21 +121,12 @@ class Index extends Component
         ]);
     }
 
-    public function actorName(Activity $activity): string
-    {
-        if ($activity->causer instanceof User) {
-            return $activity->causer->name;
-        }
-
-        return $activity->causer_type ? 'System user' : 'System';
-    }
-
     public function initiatorName(Activity $activity): string
     {
         $initiator = $activity->properties?->get('initiator');
 
         if ($initiator === 'donor') {
-            return 'Donor';
+            return 'Supporter';
         }
 
         if ($activity->causer instanceof User) {
@@ -137,16 +140,27 @@ class Index extends Component
         return 'System';
     }
 
-    public function eventSource(Activity $activity): string
+    /**
+     * Where the event came from, or null when it was never recorded.
+     *
+     * Most entries carry no source at all, so claiming they were automated
+     * would put words in the log's mouth — an admin's own edit would read as
+     * something the system did.
+     */
+    public function eventSource(Activity $activity): ?string
     {
         $source = $activity->properties?->get('source');
 
         return match ($source) {
             'manual' => 'Manual',
             'webhook' => 'Webhook',
-            'donor_portal' => 'Donor portal',
             'system_automated' => 'System (automated)',
-            default => 'System (automated)',
+            'donor_portal' => 'Donor portal',
+            'virtual_terminal' => 'Virtual terminal',
+            'checkout_modal' => 'Checkout modal',
+            'campaign_page' => 'Campaign page',
+            'element' => 'Embedded element',
+            default => null,
         };
     }
 
@@ -186,6 +200,10 @@ class Index extends Component
             return route('app.campaigns.edit', $subject);
         }
 
+        if ($subject instanceof Donor) {
+            return route('app.supporters.show', $subject);
+        }
+
         return null;
     }
 
@@ -199,21 +217,59 @@ class Index extends Component
         };
     }
 
-    public function subjectLabel(Activity $activity): string
+    /**
+     * Colour for the event badge on a collapsed row.
+     *
+     * The status a row moved to is the strongest signal; failing that, the
+     * event name itself says whether something was created or went wrong.
+     */
+    public function eventColor(Activity $activity): string
     {
-        $subject = $activity->subject;
+        $toStatus = $activity->properties?->get('to_status');
 
-        if ($subject === null) {
-            return (string) ($activity->subject_type ? class_basename($activity->subject_type) : '—');
+        if (is_string($toStatus) && $toStatus !== '') {
+            return $this->statusColor($toStatus);
         }
 
-        $name = $subject->name
-            ?? $subject->title
-            ?? $subject->email
-            ?? $subject->public_id
-            ?? ('#'.$subject->getKey());
+        $event = (string) ($activity->event ?? '');
 
-        return class_basename($subject).' — '.(string) $name;
+        return match (true) {
+            str_contains($event, 'failed'), str_contains($event, 'cancelled'),
+            str_contains($event, 'refunded'), str_contains($event, 'disconnected'),
+            str_contains($event, 'deleted') => 'danger',
+            str_contains($event, 'succeeded'), str_contains($event, 'charged'),
+            str_contains($event, 'connected'), str_contains($event, 'completed') => 'success',
+            str_contains($event, 'paused'), str_contains($event, 'initiated') => 'warning',
+            default => 'default',
+        };
+    }
+
+    /**
+     * A human label for an event name such as "donation.succeeded".
+     */
+    public function eventLabel(Activity $activity): string
+    {
+        $event = (string) ($activity->event ?? '');
+
+        if ($event === '') {
+            return 'Unknown';
+        }
+
+        return AuditLogQuery::eventOptions()[$event]
+            ?? Str::of($event)->replace(['.', '_'], ' ')->title()->toString();
+    }
+
+    /**
+     * What to call the record an entry is about.
+     *
+     * Donors are called supporters everywhere a person can see, so the raw
+     * class name would be the only place the old word leaks through.
+     */
+    public function subjectTypeLabel(Activity $activity): string
+    {
+        $type = (string) ($activity->subject_type ?? '');
+
+        return AuditLogQuery::subjectTypeOptions()[$type] ?? class_basename($type);
     }
 
     /**

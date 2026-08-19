@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Campaign;
 use App\Models\Donation;
+use App\Models\Donor;
 use App\Models\Element;
 use App\Models\Organization;
 use App\Models\Subscription;
@@ -36,6 +37,13 @@ class AuditLogQuery
                     })
                     ->orWhereHasMorph('subject', [Donation::class, Subscription::class], function (Builder $q2) use ($organization): void {
                         $q2->whereHas('campaign', function (Builder $cq) use ($organization): void {
+                            $cq->where('organization_id', $organization->getKey());
+                        });
+                    })
+                    // A donor belongs to no single organization, so reach them
+                    // through the donations they made to this one.
+                    ->orWhereHasMorph('subject', [Donor::class], function (Builder $q2) use ($organization): void {
+                        $q2->whereHas('donations.campaign', function (Builder $cq) use ($organization): void {
                             $cq->where('organization_id', $organization->getKey());
                         });
                     });
@@ -75,6 +83,7 @@ class AuditLogQuery
                     ->orWhereHasMorph('subject', [
                         Campaign::class,
                         Donation::class,
+                        Donor::class,
                         Element::class,
                         Organization::class,
                         Subscription::class,
@@ -119,6 +128,7 @@ class AuditLogQuery
             Element::class => 'Element',
             Donation::class => 'Donation',
             Subscription::class => 'Subscription',
+            Donor::class => 'Supporter',
         ];
     }
 
@@ -133,7 +143,7 @@ class AuditLogQuery
             'all' => 'All initiators',
             'system' => 'System',
             'admin' => 'Admin',
-            'donor' => 'Donor',
+            'donor' => 'Supporter',
         ];
     }
 
