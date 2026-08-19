@@ -289,7 +289,7 @@ class ManageStripeSubscription
     {
         $organization = $subscription->campaign->organization;
 
-        if ($organization?->stripe_account_id && $organization->stripe_onboarded) {
+        if ($organization?->stripe_active) {
             return ['stripe_account' => $organization->stripe_account_id];
         }
 
