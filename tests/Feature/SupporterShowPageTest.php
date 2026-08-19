@@ -777,3 +777,27 @@ it('does not show non-succeeded donations in the receipts section', function (Do
     DonationStatus::Refunded,
     DonationStatus::Cancelled,
 ]);
+
+it('smooth scrolls the supporter section nav instead of jumping', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+    Subscription::factory()->for($donor)->for($campaign)->create();
+
+    $html = $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->getContent();
+
+    expect($html)->toContain("scrollIntoView({ behavior: 'smooth', block: 'start' })");
+
+    // Every nav entry has to route through the handler, or it falls back to the
+    // browser's instant jump.
+    foreach (['information', 'donations', 'recurring-plans', 'receipts', 'emails'] as $section) {
+        expect($html)
+            ->toContain('href="#'.$section.'"')
+            ->toContain('scrollToSection(\''.$section.'\')');
+    }
+});

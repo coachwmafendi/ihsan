@@ -42,7 +42,15 @@
 
     <div
         class="grid grid-cols-1 gap-6 lg:grid-cols-3"
-        x-data="{ active: 'information' }"
+        x-data="{
+            active: 'information',
+            scrollToSection(id) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            },
+        }"
         x-init="
             const observer = new IntersectionObserver(
                 (entries) => {
@@ -447,6 +455,7 @@
                 <nav class="rounded-xl border border-slate-200 bg-white p-1 shadow-sm" aria-label="Section navigation">
                     <a
                         href="#information"
+                        @click.prevent="scrollToSection('information')"
                         :class="active === 'information'
                             ? 'bg-slate-100 text-slate-900'
                             : 'text-slate-600 hover:bg-slate-50'"
@@ -457,6 +466,7 @@
                     </a>
                     <a
                         href="#donations"
+                        @click.prevent="scrollToSection('donations')"
                         :class="active === 'donations'
                             ? 'bg-slate-100 text-slate-900'
                             : 'text-slate-600 hover:bg-slate-50'"
@@ -468,6 +478,7 @@
                     @if ($this->hasSubscriptions)
                         <a
                             href="#recurring-plans"
+                            @click.prevent="scrollToSection('recurring-plans')"
                             :class="active === 'recurring-plans'
                                 ? 'bg-slate-100 text-slate-900'
                                 : 'text-slate-600 hover:bg-slate-50'"
@@ -479,6 +490,7 @@
                     @endif
                     <a
                         href="#receipts"
+                        @click.prevent="scrollToSection('receipts')"
                         :class="active === 'receipts'
                             ? 'bg-slate-100 text-slate-900'
                             : 'text-slate-600 hover:bg-slate-50'"
@@ -489,6 +501,7 @@
                     </a>
                     <a
                         href="#emails"
+                        @click.prevent="scrollToSection('emails')"
                         :class="active === 'emails'
                             ? 'bg-slate-100 text-slate-900'
                             : 'text-slate-600 hover:bg-slate-50'"
