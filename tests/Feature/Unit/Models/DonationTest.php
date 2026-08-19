@@ -47,3 +47,34 @@ it('returns null utm parameters when utm_params has none', function () {
         'content' => null,
     ]);
 });
+
+it('strips the scheme and query string from the displayed page url', function () {
+    $donation = Donation::factory()->make([
+        'page_url' => 'https://mtaqlaa.onpay.my/order/form/infaq-overseas?fbclid=IwcGRvZgF&utm_medium=paid&utm_source=fb',
+    ]);
+
+    expect($donation->page_url_display)->toBe('mtaqlaa.onpay.my/order/form/infaq-overseas')
+        ->and($donation->page_url_query_count)->toBe(3);
+});
+
+it('keeps a relative page url intact and reports no parameters', function () {
+    $donation = Donation::factory()->make([
+        'page_url' => '/ms/maahad-tahfiz-development-fund-ramadan-2026/',
+    ]);
+
+    expect($donation->page_url_display)->toBe('/ms/maahad-tahfiz-development-fund-ramadan-2026/')
+        ->and($donation->page_url_query_count)->toBe(0);
+});
+
+it('keeps the port when the page url carries one', function () {
+    $donation = Donation::factory()->make(['page_url' => 'http://app.ihsan.test:8090/donate/1ghM0J']);
+
+    expect($donation->page_url_display)->toBe('app.ihsan.test:8090/donate/1ghM0J');
+});
+
+it('returns no page url display when the donation has no page url', function () {
+    $donation = Donation::factory()->make(['page_url' => null]);
+
+    expect($donation->page_url_display)->toBeNull()
+        ->and($donation->page_url_query_count)->toBe(0);
+});

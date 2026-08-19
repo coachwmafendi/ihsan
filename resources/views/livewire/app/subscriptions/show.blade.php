@@ -353,12 +353,20 @@
                         </div>
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">URL</dt>
-                            <dd class="text-sm font-medium">
+                            <dd class="min-w-0 text-sm font-medium">
                                 @if ($firstDonation?->page_url)
-                                    <a href="{{ $firstDonation->page_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700">
-                                        {{ $firstDonation->page_url }}
-                                        <x-heroicon-o-arrow-top-right-on-square class="size-4" />
-                                    </a>
+                                    <div class="flex min-w-0 items-start gap-2">
+                                        <a href="{{ $firstDonation->page_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-w-0 items-start gap-1 break-all text-blue-600 hover:text-blue-700">
+                                            {{ $firstDonation->page_url_display }}
+                                            <x-heroicon-o-arrow-top-right-on-square class="mt-0.5 size-4 shrink-0" />
+                                        </a>
+                                        <x-ui.copy-button :value="$firstDonation->page_url" size="sm" class="mt-0.5 shrink-0" />
+                                    </div>
+                                    @if ($firstDonation->page_url_query_count > 0)
+                                        <p class="mt-1 text-xs text-slate-400">
+                                            · {{ $firstDonation->page_url_query_count }} {{ Str::plural('parameter', $firstDonation->page_url_query_count) }}
+                                        </p>
+                                    @endif
                                 @else
                                     <span class="text-slate-500">—</span>
                                 @endif

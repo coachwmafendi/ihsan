@@ -279,6 +279,61 @@ class Donation extends Model
         });
     }
 
+    /**
+     * The page URL without its scheme or query string.
+     *
+     * Tracking query strings run to hundreds of characters and dominate the
+     * card; the UTM values already have their own card, so the readable part is
+     * the host and path. The full URL stays on the link and the copy button.
+     */
+    public function pageUrlDisplay(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            if (blank($this->page_url)) {
+                return null;
+            }
+
+            $parts = parse_url($this->page_url);
+
+            if ($parts === false) {
+                return $this->page_url;
+            }
+
+            $host = $parts['host'] ?? '';
+
+            if ($host !== '' && isset($parts['port'])) {
+                $host .= ':'.$parts['port'];
+            }
+
+            $display = $host.($parts['path'] ?? '');
+
+            // A URL that is nothing but a query string still needs a label.
+            return $display === '' ? $this->page_url : $display;
+        });
+    }
+
+    /**
+     * How many query parameters were dropped from the displayed page URL.
+     */
+    public function pageUrlQueryCount(): Attribute
+    {
+        return Attribute::get(function (): int {
+            if (blank($this->page_url)) {
+                return 0;
+            }
+
+            $query = parse_url($this->page_url, PHP_URL_QUERY);
+
+            if (blank($query)) {
+                return 0;
+            }
+
+            parse_str($query, $parameters);
+
+            return count($parameters);
+        });
+    }
+
     public function utmParameters(): Attribute
     {
         return Attribute::get(function (): array {
