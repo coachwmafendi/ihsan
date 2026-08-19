@@ -337,13 +337,15 @@
                 </x-ui.card>
             </section>
 
+            @php
+                $firstDonation = $subscription->donations()->first();
+                $element = $firstDonation?->element;
+                $utmParameters = $firstDonation?->utm_parameters;
+            @endphp
+
             {{-- Source --}}
             <section id="section-source" data-section="section-source">
                 <x-ui.card title="Source" icon="heroicon-o-arrow-top-right-on-square">
-                    @php
-                        $firstDonation = $subscription->donations()->first();
-                        $element = $firstDonation?->element;
-                    @endphp
                     <dl class="space-y-5">
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Source</dt>
@@ -380,6 +382,26 @@
                                 @endif
                             </dd>
                         </div>
+                    </dl>
+                </x-ui.card>
+            </section>
+
+            {{-- UTM parameters --}}
+            <section id="section-utm" data-section="section-utm">
+                <x-ui.card title="UTM parameters" icon="heroicon-o-tag">
+                    <dl class="space-y-5">
+                        @foreach ([
+                            'Source' => $utmParameters['source'] ?? null,
+                            'Medium' => $utmParameters['medium'] ?? null,
+                            'Campaign' => $utmParameters['campaign'] ?? null,
+                            'Term' => $utmParameters['term'] ?? null,
+                            'Content' => $utmParameters['content'] ?? null,
+                        ] as $label => $value)
+                            <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
+                                <dt class="text-sm text-slate-500">{{ $label }}</dt>
+                                <dd class="text-sm font-medium text-slate-900">{{ $value ?: '—' }}</dd>
+                            </div>
+                        @endforeach
                     </dl>
                 </x-ui.card>
             </section>
@@ -675,6 +697,15 @@
                         >
                             <x-heroicon-o-arrow-top-right-on-square class="size-5" />
                             Source
+                        </button>
+                        <button
+                            type="button"
+                            @click="scrollToSection('section-utm')"
+                            :class="activeSection === 'section-utm' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'"
+                            class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold transition"
+                        >
+                            <x-heroicon-o-tag class="size-5" />
+                            UTM parameters
                         </button>
                         <button
                             type="button"

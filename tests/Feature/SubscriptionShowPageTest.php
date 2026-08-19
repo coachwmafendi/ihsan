@@ -867,3 +867,48 @@ it('delegates the stripe sync decision to the sync action for a donor with no cu
         ->name->toBe('Siti Aminah')
         ->email->toBe('siti@example.com');
 });
+
+it('shows the utm parameters card and section nav on the subscription show page', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    // The card reads the UTM values captured on the subscription's first donation.
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $subscription->id,
+        'utm_params' => [
+            'utm_source' => 'fb',
+            'utm_medium' => 'paid',
+            'utm_campaign' => '120250810002650199',
+            'utm_term' => '120250810002680199',
+            'utm_content' => '120250810002670199',
+        ],
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('UTM parameters')
+        ->assertSee("scrollToSection('section-utm')", false)
+        ->assertSee('fb')
+        ->assertSee('paid')
+        ->assertSee('120250810002650199')
+        ->assertSee('120250810002680199')
+        ->assertSee('120250810002670199');
+});
+
+it('shows placeholders in the utm card when the subscription has no utm parameters', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('UTM parameters')
+        ->assertSee("scrollToSection('section-utm')", false);
+});
