@@ -55,6 +55,30 @@ it('renders the donation show page', function () {
         ->assertSee($this->campaign->title);
 });
 
+it('shows the utm parameters card and its section nav item', function () {
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'utm_params' => [
+            'utm_source' => 'fb',
+            'utm_medium' => 'paid',
+            'utm_campaign' => '120250810002650199',
+            'utm_term' => '120250810002680199',
+            'utm_content' => '120250810002670199',
+        ],
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $donation])
+        ->assertSee('UTM parameters')
+        ->assertSee("scrollToSection('section-utm')", false)
+        ->assertSee('fb')
+        ->assertSee('paid')
+        ->assertSee('120250810002650199')
+        ->assertSee('120250810002680199')
+        ->assertSee('120250810002670199');
+});
+
 it('shows the stripe failure reason tooltip on the donation show page', function () {
     $donation = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,

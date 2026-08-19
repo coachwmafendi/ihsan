@@ -688,6 +688,15 @@
                         </button>
                         <button
                             type="button"
+                            @click="scrollToSection('section-utm')"
+                            :class="activeSection === 'section-utm' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'"
+                            class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold transition"
+                        >
+                            <x-heroicon-o-tag class="size-5" />
+                            UTM parameters
+                        </button>
+                        <button
+                            type="button"
                             @click="scrollToSection('section-insights')"
                             :class="activeSection === 'section-insights' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'"
                             class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold transition"
