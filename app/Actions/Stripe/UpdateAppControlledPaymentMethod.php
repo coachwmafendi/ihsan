@@ -23,7 +23,7 @@ class UpdateAppControlledPaymentMethod
         $organization = $subscription->campaign?->organization;
         $donor = $subscription->donor;
 
-        $stripeOptions = $organization !== null && filled($organization->stripe_account_id)
+        $stripeOptions = $organization !== null && $organization->stripe_active
             ? ['stripe_account' => $organization->stripe_account_id]
             : [];
 

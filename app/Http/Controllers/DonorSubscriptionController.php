@@ -393,7 +393,7 @@ class DonorSubscriptionController extends Controller
         $organization = $subscription->campaign?->organization;
         $donor = request()->donor;
 
-        $stripeOptions = $organization !== null && filled($organization->stripe_account_id)
+        $stripeOptions = $organization !== null && $organization->stripe_active
             ? ['stripe_account' => $organization->stripe_account_id]
             : [];
 
