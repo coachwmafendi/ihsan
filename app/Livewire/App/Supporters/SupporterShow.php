@@ -215,6 +215,20 @@ class SupporterShow extends Component
             ->get();
     }
 
+    /**
+     * Cards on file, with the ones closest to lapsing first.
+     *
+     * A card that expires before the next installment fails the charge, so the
+     * soonest expiry is the one worth acting on.
+     */
+    #[Computed]
+    public function paymentMethods()
+    {
+        return $this->donor->paymentMethods()
+            ->orderByRaw('exp_year is null, exp_year asc, exp_month asc')
+            ->get();
+    }
+
     #[Computed]
     public function emailLogs()
     {

@@ -65,4 +65,39 @@ class DonorPaymentMethod extends Model
     {
         return $this->belongsTo(Donor::class);
     }
+
+    /**
+     * The last moment this card can be charged.
+     *
+     * Cards stay valid through the whole of their expiry month.
+     */
+    public function expiresAt(): ?CarbonImmutable
+    {
+        if ($this->exp_month === null || $this->exp_year === null) {
+            return null;
+        }
+
+        return CarbonImmutable::create($this->exp_year, $this->exp_month, 1)->endOfMonth();
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expiresAt()?->isPast() ?? false;
+    }
+
+    /**
+     * Expires soon enough that the next monthly charge could fall after it.
+     */
+    public function expiresSoon(int $withinMonths = 2): bool
+    {
+        $expiresAt = $this->expiresAt();
+
+        if ($expiresAt === null || $expiresAt->isPast()) {
+            return false;
+        }
+
+        // Compare whole months: a card expiring late in a month is still due to
+        // lapse in that month, whatever day of the month it is today.
+        return $expiresAt->lessThanOrEqualTo(CarbonImmutable::now()->addMonths($withinMonths)->endOfMonth());
+    }
 }

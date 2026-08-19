@@ -11,6 +11,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\DonorEmailLog;
+use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
@@ -800,4 +801,97 @@ it('smooth scrolls the supporter section nav instead of jumping', function () {
             ->toContain('href="#'.$section.'"')
             ->toContain('scrollToSection(\''.$section.'\')');
     }
+});
+
+it('flags a supporter whose email bounced', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create(['email_bounced_at' => now()->subDay()]);
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Bounced')
+        ->assertDontSee('Validated');
+});
+
+it('flags a supporter who opted out of emails', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create(['email_opt_out_at' => now()->subDay()]);
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Opted out');
+});
+
+it('lists payment methods and warns about expiry', function () {
+    $this->travelTo('2026-08-19');
+
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    DonorPaymentMethod::create([
+        'donor_id' => $donor->getKey(),
+        'stripe_payment_method_id' => 'pm_expired',
+        'brand' => 'Visa',
+        'last4' => '4242',
+        'exp_month' => 1,
+        'exp_year' => 2026,
+    ]);
+
+    DonorPaymentMethod::create([
+        'donor_id' => $donor->getKey(),
+        'stripe_payment_method_id' => 'pm_soon',
+        'brand' => 'Mastercard',
+        'last4' => '4444',
+        'exp_month' => 9,
+        'exp_year' => 2026,
+    ]);
+
+    DonorPaymentMethod::create([
+        'donor_id' => $donor->getKey(),
+        'stripe_payment_method_id' => 'pm_healthy',
+        'brand' => 'Amex',
+        'last4' => '0005',
+        'exp_month' => 12,
+        'exp_year' => 2033,
+    ]);
+
+    $html = $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Payment Methods')
+        ->assertSee('•••• 4242')
+        ->assertSee('•••• 4444')
+        ->assertSee('•••• 0005')
+        ->assertSee('Expired')
+        ->assertSee('Expiring soon')
+        ->assertSee("scrollToSection('payment-methods')", false)
+        ->getContent();
+
+    // The card closest to lapsing has to lead, since that is the one to act on.
+    expect(strpos($html, '4242'))->toBeLessThan(strpos($html, '4444'))
+        ->and(strpos($html, '4444'))->toBeLessThan(strpos($html, '0005'));
+});
+
+it('shows an empty state when the supporter has no saved cards', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create(['role' => UserRole::NgoAdmin]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('No payment methods');
 });

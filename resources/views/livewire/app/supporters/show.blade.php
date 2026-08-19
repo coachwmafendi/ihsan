@@ -62,7 +62,7 @@
                 },
                 { rootMargin: '-20% 0px -60% 0px', threshold: 0 }
             );
-            ['information', 'donations', @js($this->hasSubscriptions ? 'recurring-plans' : null), 'receipts', 'emails']
+            ['information', 'donations', @js($this->hasSubscriptions ? 'recurring-plans' : null), 'payment-methods', 'receipts', 'emails']
                 .filter(Boolean)
                 .forEach((id) => {
                     const el = document.getElementById(id);
@@ -92,9 +92,19 @@
                         </div>
                         <div class="flex gap-4">
                             <dt class="w-36 text-sm text-slate-500">Email</dt>
-                            <dd class="flex flex-1 items-center gap-2 text-sm text-slate-900">
+                            <dd class="flex flex-1 flex-wrap items-center gap-2 text-sm text-slate-900">
                                 <span>{{ $donor->email }}</span>
-                                @if ($donor->hasValidatedEmail())
+                                {{-- Without these, an address that can no longer be reached looks
+                                     identical to a healthy one, and resending mail silently does nothing. --}}
+                                @if ($donor->hasBouncedEmail())
+                                    <x-ui.tooltip text="Mail to this address bounced on {{ myrTime($donor->email_bounced_at, withLabel: false, format: 'M d, Y') }}. Nothing further will be delivered.">
+                                        <x-ui.badge status="failed" size="sm">Bounced</x-ui.badge>
+                                    </x-ui.tooltip>
+                                @elseif ($donor->hasOptedOutOfEmails())
+                                    <x-ui.tooltip text="This supporter unsubscribed on {{ myrTime($donor->email_opt_out_at, withLabel: false, format: 'M d, Y') }}. Only receipts should still be sent.">
+                                        <x-ui.badge status="draft" size="sm">Opted out</x-ui.badge>
+                                    </x-ui.tooltip>
+                                @elseif ($donor->hasValidatedEmail())
                                     <x-ui.badge status="success" size="sm">Validated</x-ui.badge>
                                 @endif
                             </dd>
@@ -309,6 +319,53 @@
                 </section>
             @endif
 
+            {{-- Payment Methods --}}
+            <section id="payment-methods">
+                <x-ui.card title="Payment Methods" icon="heroicon-o-credit-card">
+                    @if ($this->paymentMethods->isNotEmpty())
+                        <ul class="divide-y divide-slate-200">
+                            @foreach ($this->paymentMethods as $paymentMethod)
+                                <li class="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                                    <div class="flex items-center gap-3">
+                                        <x-heroicon-o-credit-card class="size-5 shrink-0 text-slate-400" />
+                                        <div>
+                                            <p class="text-sm font-medium text-slate-900">
+                                                {{ $paymentMethod->brand }} •••• {{ $paymentMethod->last4 }}
+                                                @if ($paymentMethod->is_default)
+                                                    <span class="ml-1 text-xs font-normal text-slate-400">Default</span>
+                                                @endif
+                                            </p>
+                                            <p class="text-xs text-slate-500">
+                                                @if ($paymentMethod->exp_month && $paymentMethod->exp_year)
+                                                    Expires {{ str_pad((string) $paymentMethod->exp_month, 2, '0', STR_PAD_LEFT) }}/{{ $paymentMethod->exp_year }}
+                                                @else
+                                                    Expiry not on record
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                    @if ($paymentMethod->isExpired())
+                                        <x-ui.tooltip text="Recurring charges on this card will fail. Ask the supporter to update it.">
+                                            <x-ui.badge status="failed" size="sm">Expired</x-ui.badge>
+                                        </x-ui.tooltip>
+                                    @elseif ($paymentMethod->expiresSoon())
+                                        <x-ui.tooltip text="This card lapses before an upcoming installment. Reach out before the charge fails.">
+                                            <x-ui.badge status="warning" size="sm">Expiring soon</x-ui.badge>
+                                        </x-ui.tooltip>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <x-ui.empty-state
+                            icon="heroicon-o-credit-card"
+                            title="No payment methods"
+                            description="Cards saved by this supporter will appear here."
+                        />
+                    @endif
+                </x-ui.card>
+            </section>
+
             {{-- Receipts --}}
             <section id="receipts">
                 <x-ui.card title="Receipts" icon="heroicon-o-receipt-percent">
@@ -488,6 +545,17 @@
                             Recurring Plans
                         </a>
                     @endif
+                    <a
+                        href="#payment-methods"
+                        @click.prevent="scrollToSection('payment-methods')"
+                        :class="active === 'payment-methods'
+                            ? 'bg-slate-100 text-slate-900'
+                            : 'text-slate-600 hover:bg-slate-50'"
+                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition"
+                    >
+                        <x-heroicon-o-credit-card class="size-5 text-slate-400" />
+                        Payment Methods
+                    </a>
                     <a
                         href="#receipts"
                         @click.prevent="scrollToSection('receipts')"
