@@ -511,18 +511,19 @@
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-1.5">
                                         <span class="text-sm font-medium text-slate-900">{{ $donation->donor?->name ?? 'Anonymous' }}</span>
-                                        @if ($donation->device_type === 'mobile')
-                                            <x-ui.tooltip text="Mobile donation">
-                                                <x-heroicon-o-device-phone-mobile class="size-3.5 shrink-0 text-slate-400" />
+                                        @if ($donation->device_type)
+                                            @php $deviceCategory = $donation->deviceCategory(); @endphp
+                                            <span data-device-category="{{ $deviceCategory }}" class="inline-flex">
+                                            <x-ui.tooltip :text="$donation->device_type.' donation'">
+                                                @if ($deviceCategory === 'mobile')
+                                                    <x-heroicon-o-device-phone-mobile class="size-3.5 shrink-0 text-slate-400" />
+                                                @elseif ($deviceCategory === 'tablet')
+                                                    <x-heroicon-o-device-tablet class="size-3.5 shrink-0 text-slate-400" />
+                                                @else
+                                                    <x-heroicon-o-computer-desktop class="size-3.5 shrink-0 text-slate-400" />
+                                                @endif
                                             </x-ui.tooltip>
-                                        @elseif ($donation->device_type === 'tablet')
-                                            <x-ui.tooltip text="Tablet donation">
-                                                <x-heroicon-o-device-tablet class="size-3.5 shrink-0 text-slate-400" />
-                                            </x-ui.tooltip>
-                                        @elseif ($donation->device_type === 'desktop')
-                                            <x-ui.tooltip text="Desktop donation">
-                                                <x-heroicon-o-computer-desktop class="size-3.5 shrink-0 text-slate-400" />
-                                            </x-ui.tooltip>
+                                            </span>
                                         @endif
                                     </div>
                                     @if ($donation->donor?->email)

@@ -874,18 +874,31 @@
 
     <div class="sr-only" aria-hidden="true" x-data x-init="
         if (! $wire.deviceType) {
+            // Mirrors ClientInfo::detectDeviceType, but keeps the iPadOS fix the
+            // server cannot make: iPadOS reports itself as macOS, and only the
+            // touch-point count gives it away.
             const ua = navigator.userAgent.toLowerCase();
             const platform = (navigator.platform || '').toLowerCase();
             const isTouch = (navigator.maxTouchPoints || 0) > 0;
             let type = 'desktop';
 
             if (/ipad/.test(ua) || (platform === 'macintel' && isTouch)) {
-                type = 'tablet';
-            } else if (/iphone|ipod/.test(ua)) {
-                type = 'mobile';
+                type = 'iPad';
+            } else if (/ipod/.test(ua)) {
+                type = 'iPod';
+            } else if (/iphone/.test(ua)) {
+                type = 'iPhone';
             } else if (/android/.test(ua)) {
-                type = /mobile/.test(ua) ? 'mobile' : 'tablet';
-            } else if (/tablet/.test(ua)) {
+                type = 'Android';
+            } else if (/cros/.test(ua)) {
+                type = 'Chrome OS';
+            } else if (/macintosh|mac os x/.test(ua)) {
+                type = 'Mac';
+            } else if (/windows/.test(ua)) {
+                type = 'Windows';
+            } else if (/linux|x11/.test(ua)) {
+                type = 'Linux';
+            } else if (/tablet|silk/.test(ua)) {
                 type = 'tablet';
             } else if (/mobile/.test(ua)) {
                 type = 'mobile';

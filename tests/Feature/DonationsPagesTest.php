@@ -850,3 +850,27 @@ it('delegates the stripe sync decision to the sync action for a donor with no cu
         ->name->toBe('Siti Aminah')
         ->email->toBe('siti@example.com');
 });
+
+it('shows a device icon on the donation list for specific device types', function (string $deviceType, string $expectedCategory) {
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'device_type' => $deviceType,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->assertSee('data-device-category="'.$expectedCategory.'"', false)
+        ->assertSee($deviceType.' donation');
+})->with([
+    // Specific labels written after the device detection refactor.
+    ['iPhone', 'mobile'],
+    ['Android', 'mobile'],
+    ['iPad', 'tablet'],
+    ['Windows', 'desktop'],
+    ['Mac', 'desktop'],
+    // Bucket names written before it must keep working.
+    ['mobile', 'mobile'],
+    ['tablet', 'tablet'],
+    ['desktop', 'desktop'],
+]);

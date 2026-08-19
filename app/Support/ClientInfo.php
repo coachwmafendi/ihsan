@@ -8,18 +8,44 @@ use Illuminate\Support\Facades\Http;
 
 class ClientInfo
 {
+    /**
+     * The specific device behind a user agent, e.g. "iPhone" or "Windows".
+     *
+     * Order matters: an iPod reports "iPhone OS", an iPad and an iPhone both
+     * report "Mac OS X", and Android reports "Linux", so the more specific
+     * patterns have to be tested first. Use Donation::deviceCategory() when the
+     * coarse mobile/tablet/desktop bucket is what you need.
+     */
     public static function detectDeviceType(?string $agent): string
     {
         if ($agent === null) {
             return 'desktop';
         }
 
-        if (preg_match('/Mobile|Android|iPhone|iP(hone|od)|webOS|BlackBerry|IEMobile|Opera Mini/i', $agent)) {
-            return 'mobile';
+        $devices = [
+            'iPad' => '/iPad/i',
+            'iPod' => '/iPod/i',
+            'iPhone' => '/iPhone/i',
+            'Android' => '/Android/i',
+            'Chrome OS' => '/CrOS/i',
+            'Mac' => '/Macintosh|Mac OS X/i',
+            'Windows' => '/Windows/i',
+            'Linux' => '/Linux|X11/i',
+        ];
+
+        foreach ($devices as $device => $pattern) {
+            if (preg_match($pattern, $agent)) {
+                return $device;
+            }
         }
 
-        if (preg_match('/iPad|Tablet|Silk|Android(?!.*Mobile)/i', $agent)) {
+        // Unbranded agents still tell us the form factor.
+        if (preg_match('/Tablet|Silk/i', $agent)) {
             return 'tablet';
+        }
+
+        if (preg_match('/Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i', $agent)) {
+            return 'mobile';
         }
 
         return 'desktop';

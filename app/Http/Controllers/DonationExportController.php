@@ -243,7 +243,8 @@ class DonationExportController extends Controller
             'donor_fee_covered' => number_format((float) $donation->donor_fee_covered, 2),
             'payment_method_type' => ucfirst($donation->payment_method_type ?? ''),
             'payment_method_brand' => $donation->payment_method_brand ? ucfirst($donation->payment_method_brand) : '',
-            'device_type' => ucfirst($donation->device_type ?? ''),
+            // Already cased for display ("iPhone", "Chrome OS"), so leave it be.
+            'device_type' => $donation->device_type ?? '',
             'is_anonymous' => $donation->is_anonymous ? 'Yes' : 'No',
             'donor_message' => $donation->donor_message ?? '',
             default => data_get($donation, $field) ?? '',

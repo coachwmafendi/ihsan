@@ -280,6 +280,22 @@ class Donation extends Model
     }
 
     /**
+     * The coarse form factor behind the stored device type.
+     *
+     * device_type holds a specific device such as "iPhone" or "Windows", while
+     * icons and reporting only care about the bucket. Rows written before that
+     * change already hold a bucket name, so those map to themselves.
+     */
+    public function deviceCategory(): string
+    {
+        return match ($this->device_type) {
+            'iPhone', 'iPod', 'Android', 'mobile' => 'mobile',
+            'iPad', 'tablet' => 'tablet',
+            default => 'desktop',
+        };
+    }
+
+    /**
      * The page URL without its scheme or query string.
      *
      * Tracking query strings run to hundreds of characters and dominate the

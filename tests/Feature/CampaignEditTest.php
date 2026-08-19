@@ -329,7 +329,9 @@ it('hides the phone field when show_phone is disabled', function () {
 
     Livewire::test(DonationForm::class, ['campaign' => $campaign])
         ->assertSee('Email')
-        ->assertDontSee('Phone');
+        // Target the input itself: the page also carries device labels such as
+        // "iPhone", which a bare "Phone" substring check would trip over.
+        ->assertDontSee('wire:model="phone"', false);
 });
 
 it('hides the comment field when show_comment is disabled', function () {
