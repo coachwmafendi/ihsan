@@ -436,6 +436,26 @@
                 </x-ui.card>
             </section>
 
+            {{-- UTM parameters --}}
+            <section id="section-utm" data-section="section-utm">
+                <x-ui.card title="UTM parameters" icon="heroicon-o-tag">
+                    <dl class="space-y-5">
+                        @foreach ([
+                            'Source' => $donation->utm_parameters['source'],
+                            'Medium' => $donation->utm_parameters['medium'],
+                            'Campaign' => $donation->utm_parameters['campaign'],
+                            'Term' => $donation->utm_parameters['term'],
+                            'Content' => $donation->utm_parameters['content'],
+                        ] as $label => $value)
+                            <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
+                                <dt class="text-sm text-slate-500">{{ $label }}</dt>
+                                <dd class="text-sm font-medium text-slate-900">{{ $value ?: '—' }}</dd>
+                            </div>
+                        @endforeach
+                    </dl>
+                </x-ui.card>
+            </section>
+
             {{-- Insights --}}
             <section id="section-insights" data-section="section-insights">
                 <x-ui.card title="Insights" icon="heroicon-o-arrow-trending-up">

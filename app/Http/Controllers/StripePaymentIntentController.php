@@ -67,7 +67,17 @@ class StripePaymentIntentController extends Controller
                 'donation_id' => $donation->getKey(),
             ]);
         } catch (\Exception $e) {
-            $donation->update(['status' => DonationStatus::Failed]);
+            $stripeFeeDetails = $donation->stripe_fee_details ?? [];
+            $stripeFeeDetails['last_payment_error'] = [
+                'message' => $e->getMessage(),
+                'decline_code' => null,
+                'code' => null,
+            ];
+
+            $donation->update([
+                'status' => DonationStatus::Failed,
+                'stripe_fee_details' => $stripeFeeDetails,
+            ]);
 
             throw ValidationException::withMessages([
                 'payment' => ['Payment could not be processed. Please try again.'],

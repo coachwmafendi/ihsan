@@ -207,7 +207,9 @@ it('fails the donation when the organization is not chip onboarded', function ()
     $donation = Donation::query()->latest()->first();
 
     expect($donation)->not->toBeNull()
-        ->and($donation->status)->toBe(DonationStatus::Failed);
+        ->and($donation->status)->toBe(DonationStatus::Failed)
+        ->and($donation->stripe_fee_details['last_payment_error']['message'] ?? null)->toContain('CHIP is not configured')
+        ->and($donation->status_tooltip)->toContain('CHIP is not configured');
 });
 
 it('fails the donation when chip is onboarded but disabled', function () {
@@ -238,7 +240,8 @@ it('fails the donation when chip is onboarded but disabled', function () {
     $donation = Donation::query()->latest()->first();
 
     expect($donation)->not->toBeNull()
-        ->and($donation->status)->toBe(DonationStatus::Failed);
+        ->and($donation->status)->toBe(DonationStatus::Failed)
+        ->and($donation->stripe_fee_details['last_payment_error']['message'] ?? null)->toContain('CHIP is not configured');
 });
 
 it('renders a chip public donation page', function () {

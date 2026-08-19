@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Stripe\CreatePaymentIntent;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\ElementType;
@@ -83,4 +84,28 @@ it('marks donation as failed when confirmPayment receives a terminal failure fro
         ->and($donation->stripe_fee_details['pending']['message'] ?? null)->toBe('Your card was declined.')
         ->and($donation->stripe_fee_details['pending']['decline_code'] ?? null)->toBe('generic_decline')
         ->and($donation->status_tooltip)->toBe('Your card was declined. The bank returned the decline code generic_decline.');
+});
+
+it('records the stripe error message when payment intent creation throws', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+    ]);
+
+    $this->mock(CreatePaymentIntent::class, function ($mock): void {
+        $mock->shouldReceive('create')->once()->andThrow(new RuntimeException('No such customer.'));
+    });
+
+    expect(fn () => Livewire::test(DonationForm::class, ['element' => $element])
+        ->set('amount', 50)
+        ->set('firstName', 'Ahmad')
+        ->set('email', 'ahmad@example.com')
+        ->call('submit'))->toThrow(RuntimeException::class, 'No such customer.');
+
+    $donation = Donation::query()->latest()->firstOrFail();
+
+    expect($donation->status)->toBe(DonationStatus::Failed)
+        ->and($donation->stripe_fee_details['last_payment_error']['message'] ?? null)->toBe('No such customer.')
+        ->and($donation->status_tooltip)->toBe('No such customer.');
 });

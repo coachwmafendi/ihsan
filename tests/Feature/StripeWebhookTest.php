@@ -151,7 +151,7 @@ it('stores pending status when a payment intent is created', function () {
 
     expect($donation->status)->toBe(DonationStatus::Pending)
         ->and($donation->stripe_fee_details['pending']['status'] ?? null)->toBe('requires_payment_method')
-        ->and($donation->status_tooltip)->toBe('Payment method not provided (requires_payment_method)');
+        ->and($donation->status_tooltip)->toBe('The customer has not entered their payment method.');
 });
 
 it('stores requires_action status when a payment intent requires action', function () {
