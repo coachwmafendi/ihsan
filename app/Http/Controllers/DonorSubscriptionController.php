@@ -13,9 +13,12 @@ use App\Jobs\SendSubscriptionAmountChangedNotification;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Services\StripeMetadata;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
+use Stripe\Customer;
 use Stripe\SetupIntent;
 use Stripe\Stripe;
 
@@ -338,6 +341,16 @@ class DonorSubscriptionController extends Controller
         } catch (\Exception $e) {
             report($e);
 
+            Log::warning('Donor portal payment method client secret failed', [
+                'organization_id' => $organization->getKey(),
+                'subscription_id' => $subscription->getKey(),
+                'subscription_public_id' => $subscription->public_id,
+                'donor_id' => $subscription->donor_id,
+                'stripe_subscription_id' => $subscription->stripe_subscription_id,
+                'error' => $e->getMessage(),
+                'class' => get_class($e),
+            ]);
+
             return response()->json(['error' => 'Unable to process payment method update.'], 500);
         }
     }
@@ -380,20 +393,71 @@ class DonorSubscriptionController extends Controller
         $organization = $subscription->campaign?->organization;
         $donor = request()->donor;
 
-        if (blank($donor?->stripe_customer_id)) {
-            throw new \RuntimeException('Donor does not have a Stripe customer ID.');
-        }
-
         $stripeOptions = $organization !== null && filled($organization->stripe_account_id)
             ? ['stripe_account' => $organization->stripe_account_id]
             : [];
 
+        $customerId = $this->ensureStripeCustomer($donor, $organization, $stripeOptions);
+
         $setupIntent = SetupIntent::create([
-            'customer' => $donor->stripe_customer_id,
+            'customer' => $customerId,
             'usage' => 'off_session',
             'payment_method_types' => ['card'],
         ], $stripeOptions);
 
         return $setupIntent->client_secret;
+    }
+
+    /**
+     * @param  array<string, string>  $stripeOptions
+     */
+    private function ensureStripeCustomer(?Donor $donor, ?Organization $organization, array $stripeOptions): string
+    {
+        if ($donor === null) {
+            throw new \RuntimeException('Subscription is not linked to a donor.');
+        }
+
+        if (filled($donor->stripe_customer_id)) {
+            return $donor->stripe_customer_id;
+        }
+
+        if ($organization === null || blank($donor->email)) {
+            throw new \RuntimeException('Donor does not have a Stripe customer ID.');
+        }
+
+        $customerParams = [
+            'email' => $donor->email,
+            'metadata' => StripeMetadata::forDonorCustomer(
+                donor: $donor,
+                organization: $organization,
+                source: 'donor_portal_payment_method_update',
+            ),
+        ];
+
+        $customerName = trim(($donor->first_name ?? '').' '.($donor->last_name ?? ''));
+
+        if ($customerName !== '') {
+            $customerParams['name'] = $customerName;
+        }
+
+        if (filled($donor->phone)) {
+            $customerParams['phone'] = $donor->phone;
+        }
+
+        $address = StripeMetadata::customerAddress($donor);
+        if ($address !== null) {
+            $customerParams['address'] = $address;
+        }
+
+        $locale = StripeMetadata::customerLocale($donor);
+        if ($locale !== null) {
+            $customerParams['preferred_locales'] = $locale;
+        }
+
+        $customer = Customer::create($customerParams, $stripeOptions);
+
+        $donor->update(['stripe_customer_id' => $customer->id]);
+
+        return $customer->id;
     }
 }

@@ -43,14 +43,24 @@ afterEach(function (): void {
     ApiRequestor::setHttpClient(CurlClient::instance());
 });
 
-function fakeStripeClientForAppControlledPaymentMethod(string $paymentMethodId): ClientInterface
+function fakeStripeClientForAppControlledPaymentMethod(string $paymentMethodId, ?string $customerId = 'cus_test'): ClientInterface
 {
-    return new class($paymentMethodId) implements ClientInterface
+    return new class($paymentMethodId, $customerId) implements ClientInterface
     {
-        public function __construct(private string $paymentMethodId) {}
+        public function __construct(
+            private string $paymentMethodId,
+            private ?string $customerId,
+        ) {}
 
         public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
         {
+            if (str_ends_with($absUrl, '/v1/customers') && $method === 'post') {
+                return [json_encode([
+                    'id' => $this->customerId,
+                    'object' => 'customer',
+                ]), 200, []];
+            }
+
             if (str_ends_with($absUrl, '/v1/setup_intents') && $method === 'post') {
                 return [json_encode([
                     'id' => 'seti_test',
@@ -71,7 +81,7 @@ function fakeStripeClientForAppControlledPaymentMethod(string $paymentMethodId):
                         'exp_year' => 2030,
                         'country' => 'MY',
                     ],
-                    'customer' => 'cus_test',
+                    'customer' => $this->customerId,
                 ]), 200, []];
             }
 
@@ -79,7 +89,7 @@ function fakeStripeClientForAppControlledPaymentMethod(string $paymentMethodId):
                 return [json_encode([
                     'id' => $this->paymentMethodId,
                     'object' => 'payment_method',
-                    'customer' => 'cus_test',
+                    'customer' => $this->customerId,
                 ]), 200, []];
             }
 
@@ -167,9 +177,11 @@ it('updates payment method for app-controlled subscription', function () {
         ->and($subscription->donorPaymentMethod->stripe_payment_method_id)->toBe('pm_test_123');
 });
 
-it('rejects client secret request for app-controlled subscription without stripe customer', function () {
+it('creates a stripe customer and returns client secret for app-controlled subscription without stored customer', function () {
     $donor = Donor::factory()->create(['stripe_customer_id' => null]);
     $subscription = ($this->createSubscription)($donor);
+
+    ApiRequestor::setHttpClient(fakeStripeClientForAppControlledPaymentMethod('pm_test_123', 'cus_new'));
 
     ($this->authenticateAsDonor)($donor);
 
@@ -177,10 +189,41 @@ it('rejects client secret request for app-controlled subscription without stripe
         'organization' => $this->organization,
         'subscription' => $subscription,
     ]))
-        ->assertStatus(500)
+        ->assertOk()
         ->assertJson([
-            'error' => 'Unable to process payment method update.',
+            'client_secret' => 'seti_test_secret',
         ]);
+
+    $donor->refresh();
+
+    expect($donor->stripe_customer_id)->toBe('cus_new');
+});
+
+it('creates a stripe customer when updating payment method for app-controlled subscription without stored customer', function () {
+    $donor = Donor::factory()->create(['stripe_customer_id' => null]);
+    $subscription = ($this->createSubscription)($donor);
+
+    ApiRequestor::setHttpClient(fakeStripeClientForAppControlledPaymentMethod('pm_test_123', 'cus_new'));
+
+    ($this->authenticateAsDonor)($donor);
+
+    $this->postJson(route('donorportal.subscriptions.payment-method.update', [
+        'organization' => $this->organization,
+        'subscription' => $subscription,
+    ]), [
+        'payment_method_id' => 'pm_test_123',
+    ])
+        ->assertOk()
+        ->assertJson([
+            'status' => 'ok',
+        ]);
+
+    $donor->refresh();
+    $subscription->refresh();
+
+    expect($donor->stripe_customer_id)->toBe('cus_new')
+        ->and($subscription->donorPaymentMethod)->not->toBeNull()
+        ->and($subscription->donorPaymentMethod->stripe_payment_method_id)->toBe('pm_test_123');
 });
 
 it('hides update card button for chip subscription on subscriptions page', function () {
