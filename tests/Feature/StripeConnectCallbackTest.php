@@ -2,8 +2,10 @@
 
 use App\Jobs\RegisterStripePaymentMethodDomains;
 use App\Models\Organization;
+use App\Services\StripeOAuthClient;
 use Illuminate\Support\Facades\Queue;
 use Mockery\MockInterface;
+use Stripe\StripeObject;
 
 beforeEach(function () {
     Queue::fake();
@@ -18,12 +20,11 @@ afterEach(function () {
 
 function mockStripeOAuth(string $stripeUserId): MockInterface
 {
-    $mock = Mockery::mock('overload:Stripe\OAuth');
-    $mock->shouldReceive('token')->andReturn((object) [
-        'stripe_user_id' => $stripeUserId,
-    ]);
-
-    return $mock;
+    return test()->mock(StripeOAuthClient::class, function (MockInterface $mock) use ($stripeUserId): void {
+        $mock->shouldReceive('token')->andReturn(StripeObject::constructFrom([
+            'stripe_user_id' => $stripeUserId,
+        ]));
+    });
 }
 
 it('connects a stripe account and redirects to payment settings', function () {
@@ -81,8 +82,9 @@ it('redirects with an error when organization is not found', function () {
 });
 
 it('redirects with an error when stripe oauth token exchange fails', function () {
-    $oauthMock = Mockery::mock('overload:Stripe\OAuth');
-    $oauthMock->shouldReceive('token')->andThrow(new Exception('Stripe API error'));
+    $this->mock(StripeOAuthClient::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('token')->andThrow(new Exception('Stripe API error'));
+    });
 
     $response = $this->withSession([
         'stripe_connect_state' => $this->state,
@@ -94,8 +96,9 @@ it('redirects with an error when stripe oauth token exchange fails', function ()
 });
 
 it('redirects with an error when stripe does not return an account identifier', function () {
-    $oauthMock = Mockery::mock('overload:Stripe\OAuth');
-    $oauthMock->shouldReceive('token')->andReturn((object) ['stripe_user_id' => null]);
+    $this->mock(StripeOAuthClient::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('token')->andReturn(StripeObject::constructFrom(['stripe_user_id' => null]));
+    });
 
     $response = $this->withSession([
         'stripe_connect_state' => $this->state,

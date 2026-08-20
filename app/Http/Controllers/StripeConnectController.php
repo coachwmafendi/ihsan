@@ -5,17 +5,19 @@ namespace App\Http\Controllers;
 use App\Jobs\RegisterStripePaymentMethodDomains;
 use App\Models\Organization;
 use App\Services\AuditLogLogger;
+use App\Services\StripeOAuthClient;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Stripe\Account;
-use Stripe\OAuth;
 use Stripe\Stripe;
 
 class StripeConnectController extends Controller
 {
+    public function __construct(private readonly StripeOAuthClient $stripeOAuth) {}
+
     public function redirect(): RedirectResponse
     {
         $org = auth()->user()?->organization;
@@ -35,7 +37,7 @@ class StripeConnectController extends Controller
         session(['stripe_connect_state' => $state]);
         session(['stripe_connect_org_id' => $org->getKey()]);
 
-        $authorizeUrl = OAuth::authorizeUrl([
+        $authorizeUrl = $this->stripeOAuth->authorizeUrl([
             'client_id' => $clientId,
             'scope' => 'read_write',
             'state' => $state,
@@ -85,7 +87,7 @@ class StripeConnectController extends Controller
         Stripe::setApiKey(config('services.stripe.secret'));
 
         try {
-            $response = OAuth::token([
+            $response = $this->stripeOAuth->token([
                 'grant_type' => 'authorization_code',
                 'code' => $code,
             ]);
