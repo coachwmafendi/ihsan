@@ -14,6 +14,7 @@ use App\Jobs\SendSubscriptionAmountChangedNotification;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Services\SubscriptionActivityLogger;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
@@ -42,6 +43,22 @@ class DonorSubscriptionController extends Controller
     private function isChipBacked(Subscription $subscription): bool
     {
         return filled($subscription->chip_recurring_token);
+    }
+
+    /**
+     * Context marking an entry as something the supporter did themselves.
+     *
+     * There is no causer to attach: donors authenticate by magic link, not as
+     * users, so the initiator has to be carried in the properties.
+     *
+     * @return array<string, string>
+     */
+    private function donorPortalContext(): array
+    {
+        return [
+            'initiator' => 'donor',
+            'source' => 'donor_portal',
+        ];
     }
 
     private function handleSubscriptionAction(
@@ -98,6 +115,13 @@ class DonorSubscriptionController extends Controller
                 } else {
                     app(CancelLocalRecurringPlan::class)->cancel($subscription);
                 }
+
+                SubscriptionActivityLogger::cancelled(
+                    $subscription->refresh(),
+                    'Cancelled by the supporter from the donor portal.',
+                    null,
+                    $this->donorPortalContext(),
+                );
             },
             $successMessage,
             'Unable to cancel subscription. Please try again later.',
@@ -112,9 +136,13 @@ class DonorSubscriptionController extends Controller
         return $this->handleSubscriptionAction(
             $organization,
             $subscription,
-            fn () => $this->isStripeBacked($subscription)
-                ? app(ManageStripeSubscription::class)->pause($subscription)
-                : app(PauseLocalRecurringPlan::class)->pause($subscription),
+            function () use ($subscription) {
+                $this->isStripeBacked($subscription)
+                    ? app(ManageStripeSubscription::class)->pause($subscription)
+                    : app(PauseLocalRecurringPlan::class)->pause($subscription);
+
+                SubscriptionActivityLogger::paused($subscription->refresh(), null, $this->donorPortalContext());
+            },
             'Subscription paused.',
             'Unable to pause subscription. Please try again later.',
         );
@@ -128,9 +156,13 @@ class DonorSubscriptionController extends Controller
         return $this->handleSubscriptionAction(
             $organization,
             $subscription,
-            fn () => $this->isStripeBacked($subscription)
-                ? app(ManageStripeSubscription::class)->resume($subscription)
-                : app(ResumeLocalRecurringPlan::class)->resume($subscription),
+            function () use ($subscription) {
+                $this->isStripeBacked($subscription)
+                    ? app(ManageStripeSubscription::class)->resume($subscription)
+                    : app(ResumeLocalRecurringPlan::class)->resume($subscription);
+
+                SubscriptionActivityLogger::resumed($subscription->refresh(), null, $this->donorPortalContext());
+            },
             'Subscription resumed.',
             'Unable to resume subscription. Please try again later.',
         );
@@ -167,6 +199,13 @@ class DonorSubscriptionController extends Controller
             return redirect()->route('donorportal.subscriptions', $organization)
                 ->with('error', 'Unable to update subscription amount. Please try again later.');
         }
+
+        SubscriptionActivityLogger::updated(
+            $subscription->refresh(),
+            'Installment amount changed from '.number_format($previousAmount, 2).' to '.number_format((float) $data['new_amount'], 2).'.',
+            null,
+            $this->donorPortalContext(),
+        );
 
         dispatch(new SendSubscriptionAmountChangedNotification($subscription, $previousAmount));
 
@@ -375,6 +414,13 @@ class DonorSubscriptionController extends Controller
             } else {
                 app(UpdateAppControlledPaymentMethod::class)->update($subscription, $data['payment_method_id']);
             }
+
+            SubscriptionActivityLogger::updated(
+                $subscription->refresh(),
+                'Payment method updated by the supporter.',
+                null,
+                $this->donorPortalContext(),
+            );
 
             return response()->json(['status' => 'ok']);
         } catch (\Exception $e) {

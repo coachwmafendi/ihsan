@@ -38,6 +38,12 @@ if (! in_array($cacheDriver, ['file', 'database', 'array', null], true)) {
 Schedule::command('queue:retry all')->everySixHours();
 Schedule::command('queue:prune-failed --hours=168')->weeklyOn(1, '02:00');
 
+// Retention is set by activitylog.clean_after_days; without this the command
+// exists but never runs, so nothing is ever pruned.
+Schedule::command('activitylog:clean')
+    ->weeklyOn(1, '02:30')
+    ->timezone('Asia/Kuala_Lumpur');
+
 Schedule::command('app:cloudflare-update-ips')
     ->weeklyOn(0, '03:00')
     ->timezone('Asia/Kuala_Lumpur');
