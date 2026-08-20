@@ -92,6 +92,23 @@ it('leaves specific device types cased as they are stored', function () {
         ->and(Donation::factory()->make(['device_type' => 'Android'])->deviceLabel())->toBe('Android');
 });
 
+it('names the operating system when only a bucket device type was captured', function () {
+    expect(Donation::factory()->make(['device_type' => 'desktop', 'os' => 'macOS'])->deviceLabel())->toBe('macOS')
+        ->and(Donation::factory()->make(['device_type' => 'desktop', 'os' => 'Windows'])->deviceLabel())->toBe('Windows')
+        ->and(Donation::factory()->make(['device_type' => 'desktop', 'os' => 'Linux'])->deviceLabel())->toBe('Linux')
+        ->and(Donation::factory()->make(['device_type' => 'mobile', 'os' => 'Android'])->deviceLabel())->toBe('Android');
+});
+
+it('keeps the bucket label when the operating system was not recognised', function () {
+    expect(Donation::factory()->make(['device_type' => 'desktop', 'os' => 'Unknown'])->deviceLabel())->toBe('Desktop')
+        ->and(Donation::factory()->make(['device_type' => 'desktop', 'os' => null])->deviceLabel())->toBe('Desktop');
+});
+
+it('spells a mac device type the way the operating system is named', function () {
+    expect(Donation::factory()->make(['device_type' => 'Mac'])->deviceLabel())->toBe('macOS');
+});
+
 it('has no device label when no device type was captured', function () {
-    expect(Donation::factory()->make(['device_type' => null])->deviceLabel())->toBeNull();
+    expect(Donation::factory()->make(['device_type' => null])->deviceLabel())->toBeNull()
+        ->and(Donation::factory()->make(['device_type' => null, 'os' => 'macOS'])->deviceLabel())->toBeNull();
 });

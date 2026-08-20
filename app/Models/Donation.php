@@ -300,28 +300,50 @@ class Donation extends Model
      */
     public function deviceLabel(): ?string
     {
-        return self::deviceLabelFor($this->device_type);
+        return self::deviceLabelFor($this->device_type, $this->os);
     }
 
     /**
-     * Capitalise the bucket names kept from before devices were named.
+     * Name the device as precisely as the stored columns allow.
      *
-     * Specific device types are already cased the way they are written
-     * ("iPhone", "Chrome OS"), so they must be left alone — ucfirst() would
-     * turn "iPhone" into "IPhone".
+     * Rows written before devices were named only hold a bucket, but they still
+     * carry the operating system, so "desktop" reads as "macOS" or "Windows"
+     * rather than the vaguer bucket. Specific device types are already cased the
+     * way they are written ("iPhone", "Chrome OS") and are left alone — ucfirst()
+     * would turn "iPhone" into "IPhone".
      */
-    public static function deviceLabelFor(?string $deviceType): ?string
+    public static function deviceLabelFor(?string $deviceType, ?string $os = null): ?string
     {
         if (blank($deviceType)) {
             return null;
         }
 
-        return match ($deviceType) {
+        $bucket = match ($deviceType) {
             'mobile' => 'Mobile',
             'tablet' => 'Tablet',
             'desktop' => 'Desktop',
-            default => $deviceType,
+            default => null,
         };
+
+        if ($bucket !== null) {
+            return self::osLabelFor($os) ?? $bucket;
+        }
+
+        // detectDeviceType() writes "Mac" while detectOs() writes "macOS"; show
+        // the one people recognise so both columns read the same way.
+        return $deviceType === 'Mac' ? 'macOS' : $deviceType;
+    }
+
+    /**
+     * The stored operating system, or null when it could not be recognised.
+     */
+    private static function osLabelFor(?string $os): ?string
+    {
+        if (blank($os) || $os === 'Unknown') {
+            return null;
+        }
+
+        return $os;
     }
 
     /**

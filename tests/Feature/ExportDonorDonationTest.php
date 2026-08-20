@@ -53,6 +53,8 @@ it('exports donation data with correct formatting', function () {
             'stripe_fee' => 4.50,
             'processing_fee' => 2.50,
             'net_amount' => 143.00,
+            'device_type' => 'desktop',
+            'os' => 'macOS',
         ]);
 
     $columnMap = collect(DonationExporter::getColumns())
@@ -70,6 +72,7 @@ it('exports donation data with correct formatting', function () {
     expect($data[array_search('status', $map)])->toBe('Succeeded');
     expect($data[array_search('donor.name', $map)])->toBe('Ahmad Ali');
     expect($data[array_search('campaign.title', $map)])->toBe($campaign->title);
+    expect($data[array_search('device_type', $map)])->toBe('macOS');
 });
 
 it('exports donor data with correct formatting', function () {

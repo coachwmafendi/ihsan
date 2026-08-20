@@ -851,11 +851,12 @@ it('delegates the stripe sync decision to the sync action for a donor with no cu
         ->email->toBe('siti@example.com');
 });
 
-it('shows a device icon on the donation list for specific device types', function (string $deviceType, string $expectedCategory, string $expectedLabel) {
+it('shows a device icon on the donation list for specific device types', function (string $deviceType, ?string $os, string $expectedCategory, string $expectedLabel) {
     Donation::factory()->create([
         'campaign_id' => $this->campaign->id,
         'donor_id' => $this->donor->id,
         'device_type' => $deviceType,
+        'os' => $os,
     ]);
 
     Livewire::actingAs($this->user)
@@ -864,13 +865,19 @@ it('shows a device icon on the donation list for specific device types', functio
         ->assertSee($expectedLabel.' donation');
 })->with([
     // Specific labels written after the device detection refactor.
-    ['iPhone', 'mobile', 'iPhone'],
-    ['Android', 'mobile', 'Android'],
-    ['iPad', 'tablet', 'iPad'],
-    ['Windows', 'desktop', 'Windows'],
-    ['Mac', 'desktop', 'Mac'],
-    // Bucket names written before it are capitalised for display.
-    ['mobile', 'mobile', 'Mobile'],
-    ['tablet', 'tablet', 'Tablet'],
-    ['desktop', 'desktop', 'Desktop'],
+    ['iPhone', 'iOS', 'mobile', 'iPhone'],
+    ['Android', 'Android', 'mobile', 'Android'],
+    ['iPad', 'iOS', 'tablet', 'iPad'],
+    ['Windows', 'Windows', 'desktop', 'Windows'],
+    ['Mac', 'macOS', 'desktop', 'macOS'],
+    // Bucket names written before it fall back to the operating system.
+    ['desktop', 'macOS', 'desktop', 'macOS'],
+    ['desktop', 'Windows', 'desktop', 'Windows'],
+    ['desktop', 'Linux', 'desktop', 'Linux'],
+    ['mobile', 'Android', 'mobile', 'Android'],
+    // With no operating system to name, the bucket is capitalised for display.
+    ['mobile', null, 'mobile', 'Mobile'],
+    ['tablet', null, 'tablet', 'Tablet'],
+    ['desktop', 'Unknown', 'desktop', 'Desktop'],
+    ['desktop', null, 'desktop', 'Desktop'],
 ]);
