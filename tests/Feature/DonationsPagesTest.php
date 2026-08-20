@@ -851,6 +851,26 @@ it('delegates the stripe sync decision to the sync action for a donor with no cu
         ->email->toBe('siti@example.com');
 });
 
+it('names the device by its operating system on the donation show page', function () {
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'device_type' => 'desktop',
+        'os' => 'macOS',
+        'browser' => 'Firefox',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $donation])
+        ->assertSee('>Device</dt>', false)
+        ->assertSeeText('macOS')
+        ->assertSeeText('Firefox')
+        // The device row now carries the operating system, so the separate row
+        // that repeated it is gone. Match the label markup rather than the text,
+        // since "macOS" contains "OS".
+        ->assertDontSee('>OS</dt>', false);
+});
+
 it('shows a device icon on the donation list for specific device types', function (string $deviceType, ?string $os, string $expectedCategory, string $expectedLabel) {
     Donation::factory()->create([
         'campaign_id' => $this->campaign->id,
