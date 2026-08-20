@@ -91,6 +91,36 @@
                         <input type="checkbox" wire:model.live="notifySubscriptionCancelled" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
                         <span class="text-sm text-slate-700">Subscription cancelled</span>
                     </label>
+
+                    <label class="flex cursor-pointer items-center gap-3">
+                        <input type="checkbox" wire:model.live="notifySubscriptionAmountChanged" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                        <span class="text-sm text-slate-700">Subscription amount changed</span>
+                    </label>
+
+                    <label class="flex cursor-pointer items-center gap-3">
+                        <input type="checkbox" wire:model.live="notifySupporterSubscriptionAmountChanged" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                        <span class="text-sm text-slate-700">Supporter: subscription amount changed</span>
+                    </label>
+
+                    <label class="flex cursor-pointer items-center gap-3">
+                        <input type="checkbox" wire:model.live="notifyPaymentMethodChanged" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                        <span class="text-sm text-slate-700">Payment method changed</span>
+                    </label>
+
+                    <label class="flex cursor-pointer items-center gap-3">
+                        <input type="checkbox" wire:model.live="notifySupporterPaymentMethodChanged" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                        <span class="text-sm text-slate-700">Supporter: payment method changed</span>
+                    </label>
+
+                    <label class="flex cursor-pointer items-center gap-3">
+                        <input type="checkbox" wire:model.live="notifySubscriptionFailed" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                        <span class="text-sm text-slate-700">Subscription failed (terminal)</span>
+                    </label>
+
+                    <label class="flex cursor-pointer items-center gap-3">
+                        <input type="checkbox" wire:model.live="notifySupporterSubscriptionFailed" class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                        <span class="text-sm text-slate-700">Supporter: subscription failed (terminal)</span>
+                    </label>
                 </div>
             </div>
 

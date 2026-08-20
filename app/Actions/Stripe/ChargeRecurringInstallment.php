@@ -11,6 +11,7 @@ use App\Enums\SubscriptionStatus;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonorDunningNotification;
 use App\Jobs\SendDonorRecurringPaymentNotification;
+use App\Jobs\SendDonorSubscriptionFailedNotification;
 use App\Jobs\SendFailedPaymentNotification;
 use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendLinkedInConversionEvent;
@@ -331,6 +332,10 @@ class ChargeRecurringInstallment
     private function dispatchFailureNotifications(Subscription $subscription, ?string $errorMessage, int $oldRetryCount, bool $sendDunning): void
     {
         SendFailedPaymentNotification::dispatch($subscription, $errorMessage);
+
+        if ($subscription->status === SubscriptionStatus::Failed) {
+            SendDonorSubscriptionFailedNotification::dispatch($subscription);
+        }
 
         if ($sendDunning && $subscription->donor?->canReceiveEmails()) {
             $isFinalAttempt = $subscription->status === SubscriptionStatus::Failed;

@@ -10,8 +10,11 @@ use App\Actions\Stripe\PauseLocalRecurringPlan;
 use App\Actions\Stripe\ResolveDonorStripeCustomer;
 use App\Actions\Stripe\ResumeLocalRecurringPlan;
 use App\Actions\Stripe\UpdateAppControlledPaymentMethod;
+use App\Jobs\SendDonorPaymentMethodChangedNotification;
+use App\Jobs\SendPaymentMethodChangedNotification;
 use App\Jobs\SendSubscriptionAmountChangedNotification;
 use App\Models\Donor;
+use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Services\SubscriptionActivityLogger;
@@ -19,6 +22,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
+use Stripe\PaymentMethod;
 use Stripe\SetupIntent;
 use Stripe\Stripe;
 
@@ -409,10 +413,13 @@ class DonorSubscriptionController extends Controller
         ]);
 
         try {
+            $oldPaymentMethod = $subscription->donorPaymentMethod;
+
             if ($this->isStripeBacked($subscription)) {
                 app(ManageStripeSubscription::class)->updatePaymentMethod($subscription, $data['payment_method_id']);
+                $newPaymentMethod = $this->syncPaymentMethodForSubscription($subscription, $data['payment_method_id']);
             } else {
-                app(UpdateAppControlledPaymentMethod::class)->update($subscription, $data['payment_method_id']);
+                $newPaymentMethod = app(UpdateAppControlledPaymentMethod::class)->update($subscription, $data['payment_method_id']);
             }
 
             SubscriptionActivityLogger::updated(
@@ -422,12 +429,56 @@ class DonorSubscriptionController extends Controller
                 $this->donorPortalContext(),
             );
 
+            if ($newPaymentMethod !== null) {
+                SendDonorPaymentMethodChangedNotification::dispatch($subscription->refresh(), $oldPaymentMethod, $newPaymentMethod);
+                SendPaymentMethodChangedNotification::dispatch($subscription->refresh(), $oldPaymentMethod, $newPaymentMethod);
+            }
+
             return response()->json(['status' => 'ok']);
         } catch (\Exception $e) {
             report($e);
 
             return response()->json(['error' => 'Unable to update payment method.'], 500);
         }
+    }
+
+    private function syncPaymentMethodForSubscription(Subscription $subscription, string $paymentMethodId): ?DonorPaymentMethod
+    {
+        $subscription->loadMissing(['campaign.organization', 'donor']);
+        $organization = $subscription->campaign?->organization;
+        $donor = $subscription->donor;
+
+        if ($organization === null || $donor === null) {
+            return null;
+        }
+
+        Stripe::setApiKey(config('services.stripe.secret'));
+        $stripeOptions = $organization->stripeOptions();
+
+        $paymentMethod = PaymentMethod::retrieve($paymentMethodId, $stripeOptions);
+
+        if ($paymentMethod->type !== 'card' || $paymentMethod->card === null) {
+            throw new \RuntimeException('Only card payment methods supported.');
+        }
+
+        $donorPaymentMethod = DonorPaymentMethod::updateOrCreate(
+            [
+                'donor_id' => $donor->getKey(),
+                'stripe_payment_method_id' => $paymentMethodId,
+            ],
+            [
+                'brand' => ucfirst((string) $paymentMethod->card->brand),
+                'last4' => $paymentMethod->card->last4,
+                'exp_month' => $paymentMethod->card->exp_month,
+                'exp_year' => $paymentMethod->card->exp_year,
+                'country' => $paymentMethod->card->country ?? null,
+                'is_default' => true,
+            ],
+        );
+
+        $subscription->update(['donor_payment_method_id' => $donorPaymentMethod->getKey()]);
+
+        return $donorPaymentMethod;
     }
 
     private function createAppControlledSetupIntent(Subscription $subscription): string

@@ -23,6 +23,18 @@ class Notifications extends Component
 
     public bool $notifySubscriptionCancelled = true;
 
+    public bool $notifySubscriptionAmountChanged = true;
+
+    public bool $notifySupporterSubscriptionAmountChanged = true;
+
+    public bool $notifyPaymentMethodChanged = true;
+
+    public bool $notifySupporterPaymentMethodChanged = true;
+
+    public bool $notifySubscriptionFailed = true;
+
+    public bool $notifySupporterSubscriptionFailed = true;
+
     public bool $notifyLargeDonation = false;
 
     public int $largeDonationThreshold = 1000;
@@ -44,6 +56,12 @@ class Notifications extends Component
         $this->failedPaymentNotification = (bool) ($settings['failed_payment_notification'] ?? true);
         $this->notifyNewSubscription = (bool) ($settings['notify_new_subscription'] ?? true);
         $this->notifySubscriptionCancelled = (bool) ($settings['notify_subscription_cancelled'] ?? true);
+        $this->notifySubscriptionAmountChanged = (bool) ($settings['notify_subscription_amount_changed'] ?? true);
+        $this->notifySupporterSubscriptionAmountChanged = (bool) ($settings['notify_supporter_subscription_amount_changed'] ?? true);
+        $this->notifyPaymentMethodChanged = (bool) ($settings['notify_payment_method_changed'] ?? true);
+        $this->notifySupporterPaymentMethodChanged = (bool) ($settings['notify_supporter_payment_method_changed'] ?? true);
+        $this->notifySubscriptionFailed = (bool) ($settings['notify_subscription_failed'] ?? true);
+        $this->notifySupporterSubscriptionFailed = (bool) ($settings['notify_supporter_subscription_failed'] ?? true);
         $this->notifyLargeDonation = (bool) ($settings['notify_large_donation'] ?? false);
         $this->largeDonationThreshold = (int) ($settings['large_donation_threshold'] ?? 1000);
         $this->notifyRefund = (bool) ($settings['notify_refund'] ?? true);
@@ -80,6 +98,12 @@ class Notifications extends Component
             'failed_payment_notification' => $this->failedPaymentNotification,
             'notify_new_subscription' => $this->notifyNewSubscription,
             'notify_subscription_cancelled' => $this->notifySubscriptionCancelled,
+            'notify_subscription_amount_changed' => $this->notifySubscriptionAmountChanged,
+            'notify_supporter_subscription_amount_changed' => $this->notifySupporterSubscriptionAmountChanged,
+            'notify_payment_method_changed' => $this->notifyPaymentMethodChanged,
+            'notify_supporter_payment_method_changed' => $this->notifySupporterPaymentMethodChanged,
+            'notify_subscription_failed' => $this->notifySubscriptionFailed,
+            'notify_supporter_subscription_failed' => $this->notifySupporterSubscriptionFailed,
             'notify_large_donation' => $this->notifyLargeDonation,
             'large_donation_threshold' => $this->largeDonationThreshold,
             'notify_refund' => $this->notifyRefund,

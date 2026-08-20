@@ -187,6 +187,37 @@ return [
         'reason' => 'You are receiving this because you have an active recurring donation using this card.',
     ],
 
+    'donor_payment_method_changed' => [
+        'subject' => 'Your payment method has been updated — :organization',
+        'title' => 'Payment Method Updated',
+        'preheader' => 'Your payment method for :campaign has been updated.',
+        'intro' => 'Your payment method for your recurring donation to :campaign has been updated.',
+        'cta' => 'View my subscriptions',
+        'sign_off' => 'Your friends at :organization',
+        'previous_card_label' => 'Previous card',
+        'new_card_label' => 'New card',
+        'campaign_label' => 'Campaign',
+        'amount_label' => 'Amount',
+        'frequency_label' => 'Frequency',
+        'reason' => 'You are receiving this because your payment method for a recurring donation was updated.',
+    ],
+
+    'donor_subscription_failed' => [
+        'subject' => 'Your recurring donation could not be continued — :organization',
+        'title' => 'Recurring Donation Ended',
+        'preheader' => 'We were unable to continue your recurring donation for :campaign.',
+        'intro' => 'We were unable to process your recurring donation for :campaign after several attempts. No further charges will be attempted.',
+        'body' => 'Your support has made a meaningful difference. If you would like to continue supporting this campaign, you can start a new recurring donation at any time.',
+        'cta' => 'Start a new recurring donation',
+        'sign_off' => 'Your friends at :organization',
+        'campaign_label' => 'Campaign',
+        'amount_label' => 'Amount',
+        'frequency_label' => 'Frequency',
+        'total_payments_label' => 'Total payments made',
+        'failed_at_label' => 'Ended on',
+        'reason' => 'You are receiving this because you have a recurring donation that could not be continued.',
+    ],
+
     'campaign_completed' => [
         'subject' => 'Target Reached — :campaign',
         'title' => 'Target Reached!',

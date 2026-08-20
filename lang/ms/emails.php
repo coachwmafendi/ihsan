@@ -166,6 +166,37 @@ return [
         'reason' => 'Anda menerima email ini kerana mempunyai derma berulang aktif menggunakan kad ini.',
     ],
 
+    'donor_payment_method_changed' => [
+        'subject' => 'Kaedah pembayaran anda telah dikemas kini — :organization',
+        'title' => 'Kaedah Pembayaran Dikemas Kini',
+        'preheader' => 'Kaedah pembayaran anda bagi :campaign telah dikemas kini.',
+        'intro' => 'Kaedah pembayaran anda untuk derma berulang kepada :campaign telah dikemas kini.',
+        'cta' => 'Lihat langganan saya',
+        'sign_off' => 'Rakan-rakan anda di :organization',
+        'previous_card_label' => 'Kad sebelumnya',
+        'new_card_label' => 'Kad baharu',
+        'campaign_label' => 'Kempen',
+        'amount_label' => 'Jumlah',
+        'frequency_label' => 'Kekerapan',
+        'reason' => 'Anda menerima email ini kerana kaedah pembayaran untuk derma berulang anda telah dikemas kini.',
+    ],
+
+    'donor_subscription_failed' => [
+        'subject' => 'Derma berulang anda tidak dapat diteruskan — :organization',
+        'title' => 'Derma Berulang Tamat',
+        'preheader' => 'Kami tidak dapat meneruskan derma berulang anda bagi :campaign.',
+        'intro' => 'Kami tidak dapat memproses derma berulang anda bagi :campaign selepas beberapa percubaan. Tiada caj lanjut akan dikenakan.',
+        'body' => 'Sokongan anda telah memberi kesan yang besar. Sekiranya anda ingin terus menyokong kempen ini, anda boleh memulakan derma berulang baharu pada bila-bila masa.',
+        'cta' => 'Mulakan derma berulang baharu',
+        'sign_off' => 'Rakan-rakan anda di :organization',
+        'campaign_label' => 'Kempen',
+        'amount_label' => 'Jumlah',
+        'frequency_label' => 'Kekerapan',
+        'total_payments_label' => 'Jumlah pembayaran yang dibuat',
+        'failed_at_label' => 'Tamat pada',
+        'reason' => 'Anda menerima email ini kerana mempunyai derma berulang yang tidak dapat diteruskan.',
+    ],
+
     'campaign_completed' => [
         'subject' => 'Sasaran Tercapai — :campaign',
         'title' => 'Sasaran Tercapai!',

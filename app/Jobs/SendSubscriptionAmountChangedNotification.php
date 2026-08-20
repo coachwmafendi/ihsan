@@ -40,9 +40,14 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
         }
 
         $amountDisplay = $subscription->displayAmount();
+        $settings = $org->settings ?? [];
 
         // Notify supporter
-        if (filled($subscription->donor?->email) && $subscription->donor->canReceiveEmails()) {
+        if (
+            filled($subscription->donor?->email)
+            && $subscription->donor->canReceiveEmails()
+            && ($settings['notify_supporter_subscription_amount_changed'] ?? true)
+        ) {
             $messageId = Str::uuid()->toString();
             $donorMail = new SupporterSubscriptionAmountChangedNotification(
                 $subscription,
@@ -64,6 +69,10 @@ class SendSubscriptionAmountChangedNotification implements ShouldQueue
 
             Mail::to($subscription->donor->email)
                 ->queue($donorMail);
+        }
+
+        if (! ($settings['notify_subscription_amount_changed'] ?? true)) {
+            return;
         }
 
         // Notify org admins

@@ -8,15 +8,18 @@ use App\Mail\CampaignCompletedDonorNotification;
 use App\Mail\DonationReceipt;
 use App\Mail\DonorDunningNotification;
 use App\Mail\DonorNewSubscriptionNotification;
+use App\Mail\DonorPaymentMethodChangedNotification;
 use App\Mail\DonorPaymentMethodExpiringNotification;
 use App\Mail\DonorRecurringPaymentNotification;
 use App\Mail\DonorRefundNotification;
 use App\Mail\DonorSubscriptionCancelledNotification;
+use App\Mail\DonorSubscriptionFailedNotification;
 use App\Mail\SubscriptionAmountChangedNotification;
 use App\Mail\SupporterSubscriptionAmountChangedNotification;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
+use App\Models\DonorPaymentMethod;
 use App\Models\Subscription;
 use App\Support\Currency;
 use Illuminate\Mail\Mailable;
@@ -74,6 +77,8 @@ class ResendDonorEmail
             DonorRefundNotification::class => $this->recreateDonorRefund($log, $messageId),
             DonorSubscriptionCancelledNotification::class => $this->recreateDonorSubscriptionCancelled($log, $messageId),
             DonorPaymentMethodExpiringNotification::class => $this->recreateDonorPaymentMethodExpiring($log, $messageId),
+            DonorPaymentMethodChangedNotification::class => $this->recreateDonorPaymentMethodChanged($log, $messageId),
+            DonorSubscriptionFailedNotification::class => $this->recreateDonorSubscriptionFailed($log, $messageId),
             default => null,
         };
     }
@@ -196,6 +201,45 @@ class ResendDonorEmail
         }
 
         return new DonorPaymentMethodExpiringNotification($subscriptions, $daysRemaining, $messageId);
+    }
+
+    private function recreateDonorPaymentMethodChanged(DonorEmailLog $log, string $messageId): ?Mailable
+    {
+        if ($log->subscription === null) {
+            return null;
+        }
+
+        $metadata = $log->metadata ?? [];
+        $newPaymentMethodId = $metadata['new_payment_method_id'] ?? null;
+        $previousPaymentMethodId = $metadata['previous_payment_method_id'] ?? null;
+
+        $newPaymentMethod = $newPaymentMethodId
+            ? DonorPaymentMethod::query()->find($newPaymentMethodId)
+            : $log->subscription->donorPaymentMethod;
+
+        $previousPaymentMethod = $previousPaymentMethodId
+            ? DonorPaymentMethod::query()->find($previousPaymentMethodId)
+            : null;
+
+        if ($newPaymentMethod === null) {
+            return null;
+        }
+
+        return new DonorPaymentMethodChangedNotification(
+            $log->subscription,
+            $previousPaymentMethod,
+            $newPaymentMethod,
+            $messageId,
+        );
+    }
+
+    private function recreateDonorSubscriptionFailed(DonorEmailLog $log, string $messageId): ?Mailable
+    {
+        if ($log->subscription === null) {
+            return null;
+        }
+
+        return new DonorSubscriptionFailedNotification($log->subscription, $messageId);
     }
 
     private function formatAmount(Donation $donation): string
