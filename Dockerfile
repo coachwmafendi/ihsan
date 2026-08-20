@@ -85,6 +85,12 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# phpredis rather than predis: a C extension keeps Redis off the composer
+# dependency list and is materially faster on the hot cache path.
+RUN pecl install redis \
+    && docker-php-ext-enable redis \
+    && rm -rf /tmp/pear
+
 # Enable Apache rewrite module and set document root
 RUN a2enmod rewrite
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
