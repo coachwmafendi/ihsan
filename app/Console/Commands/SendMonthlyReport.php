@@ -32,6 +32,7 @@ class SendMonthlyReport extends Command
         $organizations = Organization::query()
             ->where('settings->monthly_report', true)
             ->whereNotNull('settings')
+            ->whereNull('deleted_at')
             ->get();
 
         foreach ($organizations as $org) {

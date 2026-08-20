@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\UserRole;
+use App\Models\Organization;
 use App\Models\User;
 use App\Notifications\AdminToOrgAdminNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,7 +26,12 @@ class SendAdminNotificationToOrgs implements ShouldQueue
 
     public function handle(): void
     {
-        foreach ($this->organizationIds as $organizationId) {
+        $organizationIds = Organization::query()
+            ->whereKey($this->organizationIds)
+            ->whereNull('deleted_at')
+            ->pluck('id');
+
+        foreach ($organizationIds as $organizationId) {
             $orgAdmins = User::query()
                 ->where('organization_id', $organizationId)
                 ->where('role', UserRole::NgoAdmin)

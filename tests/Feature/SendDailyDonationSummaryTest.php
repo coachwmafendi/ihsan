@@ -63,3 +63,31 @@ it('does not queue daily donation summary when disabled', function () {
 
     Mail::assertNothingQueued();
 });
+
+it('does not queue daily donation summary for soft-deleted organizations', function () {
+    Mail::fake();
+    now()->setTestNow(now()->parse('2026-06-22 08:00:00'));
+
+    $organization = Organization::factory()->create([
+        'settings' => ['daily_donation_summary' => true],
+    ]);
+    User::factory()->create([
+        'organization_id' => $organization->getKey(),
+        'email' => 'admin@example.test',
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $organization->getKey(),
+    ]);
+    Donation::factory()->create([
+        'campaign_id' => $campaign->getKey(),
+        'gross_amount' => 50.00,
+        'created_at' => now()->subDay(),
+    ]);
+
+    $organization->delete();
+
+    Artisan::call('ihsan:send-daily-summary');
+
+    Mail::assertNothingQueued();
+});

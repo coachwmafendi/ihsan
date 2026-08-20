@@ -22,6 +22,10 @@ class SendDonorProblemReport implements ShouldQueue
 
     public function handle(): void
     {
+        if ($this->organization->trashed()) {
+            return;
+        }
+
         $admins = User::query()
             ->where('organization_id', $this->organization->getKey())
             ->where('role', UserRole::NgoAdmin)

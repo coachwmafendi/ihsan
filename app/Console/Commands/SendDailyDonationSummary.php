@@ -25,6 +25,7 @@ class SendDailyDonationSummary extends Command
         $organizations = Organization::query()
             ->where('settings->daily_donation_summary', true)
             ->whereNotNull('settings')
+            ->whereNull('deleted_at')
             ->get();
 
         $reportDate = today('Asia/Kuala_Lumpur')->subDay();

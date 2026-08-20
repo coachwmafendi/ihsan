@@ -31,6 +31,7 @@ class SendWeeklyDonationSummary extends Command
         $organizations = Organization::query()
             ->where('settings->weekly_report', true)
             ->whereNotNull('settings')
+            ->whereNull('deleted_at')
             ->get();
 
         foreach ($organizations as $org) {

@@ -88,3 +88,32 @@ it('does not queue monthly report when disabled', function () {
 
     Mail::assertNothingQueued();
 });
+
+it('does not queue monthly report for soft-deleted organizations', function () {
+    Mail::fake();
+    now()->setTestNow(now()->parse('2026-06-01 08:00:00'));
+
+    $organization = Organization::factory()->create([
+        'settings' => ['monthly_report' => true],
+    ]);
+    User::factory()->create([
+        'organization_id' => $organization->getKey(),
+        'email' => 'admin@example.test',
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $organization->getKey(),
+    ]);
+    Donation::factory()->create([
+        'campaign_id' => $campaign->getKey(),
+        'gross_amount' => 150.00,
+        'created_at' => now()->parse('2026-05-15 12:00:00'),
+    ]);
+
+    $organization->delete();
+
+    Artisan::call('ihsan:send-monthly-report');
+
+    Mail::assertNothingQueued();
+    expect($organization->refresh()->settings['monthly_report_last_sent'] ?? null)->toBeNull();
+});
