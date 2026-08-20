@@ -19,6 +19,7 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_NAME" value="Ihsan"/>
         <env name="APP_PANEL_DOMAIN" value="app.example.test"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
@@ -31,6 +32,9 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="MAIL_RATE_LIMIT_ENABLED" value="false"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <env name="STRIPE_KEY" value="pk_test_fake"/>
+        <env name="STRIPE_SECRET" value="sk_test_fake"/>
+        <env name="STRIPE_CONNECT_CLIENT_ID" value="ca_test_fake"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

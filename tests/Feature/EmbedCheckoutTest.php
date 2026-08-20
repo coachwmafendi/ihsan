@@ -66,6 +66,8 @@ it('does not render inactive elements from the widget fallback', function () {
 it('renders element embed snippets from the first-party widget route', function () {
     config(['app.url' => 'https://ihsan.test']);
     URL::forceRootUrl('https://ihsan.test');
+    // forceRootUrl keeps the incoming request's scheme, which follows APP_URL.
+    URL::forceScheme('https');
 
     $organization = Organization::factory()->create();
     $campaign = Campaign::factory()->for($organization)->create();

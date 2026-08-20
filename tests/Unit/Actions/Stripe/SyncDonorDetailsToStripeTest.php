@@ -21,6 +21,7 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    config(['services.stripe.secret' => 'sk_test_fake']);
     Stripe::setApiKey('sk_test_fake');
 });
 
