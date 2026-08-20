@@ -65,6 +65,15 @@ return [
         'database_path' => env('MAXMIND_DATABASE_PATH', storage_path('app/maxmind/GeoLite2-City.mmdb')),
     ],
 
+    'google' => [
+        /*
+         * Ihsan's own Google Tag Manager container. Deliberately absent from
+         * donor-facing pages: donation forms already carry each NGO's own
+         * pixels, and those donors belong to the NGO, not to us.
+         */
+        'gtm_id' => env('GOOGLE_TAG_MANAGER_ID'),
+    ],
+
     'recurring' => [
         'use_app_controlled' => filter_var(env('RECURRING_USE_APP_CONTROLLED', true), FILTER_VALIDATE_BOOLEAN),
         'retry_intervals_days' => [1, 3, 7, 7],

@@ -2,8 +2,10 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
+        @include('partials.google-tag-manager')
     </head>
     <body class="min-h-screen bg-white antialiased">
+        @include('partials.google-tag-manager-noscript')
         <div class="grid min-h-screen lg:grid-cols-2">
             {{-- Left: Form --}}
             <div class="flex flex-col px-12 py-16 sm:px-20">

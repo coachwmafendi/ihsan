@@ -15,8 +15,10 @@
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+    @include('partials.google-tag-manager')
 </head>
 <body class="min-h-screen bg-[#f7f7fb] font-sans text-slate-900 antialiased">
+    @include('partials.google-tag-manager-noscript')
     <main class="mx-auto min-h-screen max-w-7xl p-6 md:p-8">
         {{ $slot }}
     </main>
