@@ -509,11 +509,8 @@
                                     </div>
                                 </td>
                                 <td class="px-5 py-4">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="text-sm font-medium text-slate-900">{{ $donation->donor?->name ?? 'Anonymous' }}</span>
-                                        @if ($donation->device_type)
-                                            @php $deviceCategory = $donation->deviceCategory(); @endphp
-                                            <span data-device-category="{{ $deviceCategory }}" class="inline-flex">
+                                    <div class="text-sm font-medium text-slate-900">
+                                        {{ $donation->donor?->name ?? 'Anonymous' }}@if ($donation->device_type)@php $deviceCategory = $donation->deviceCategory(); @endphp<span data-device-category="{{ $deviceCategory }}" class="ml-1.5 inline-flex align-middle">
                                             <x-ui.tooltip :text="$donation->deviceLabel().' donation'">
                                                 @if ($deviceCategory === 'mobile')
                                                     <x-heroicon-o-device-phone-mobile class="size-3.5 shrink-0 text-slate-400" />
@@ -523,8 +520,7 @@
                                                     <x-heroicon-o-computer-desktop class="size-3.5 shrink-0 text-slate-400" />
                                                 @endif
                                             </x-ui.tooltip>
-                                            </span>
-                                        @endif
+                                            </span>@endif
                                     </div>
                                     @if ($donation->donor?->email)
                                         <p class="mt-0.5 text-xs text-slate-500">{{ $donation->donor->email }}</p>
