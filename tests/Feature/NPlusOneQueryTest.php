@@ -64,7 +64,9 @@ it('does not trigger N+1 queries on the platform overview page', function () {
         $this->get(route('filament.admin.pages.platform-overview'))->assertOk();
     });
 
-    expect($queryCount)->toBeLessThanOrEqual(44);
+    // Includes the two constant eager-load queries (campaigns, organizations)
+    // that back the recent donations list, which only run when donations exist.
+    expect($queryCount)->toBeLessThanOrEqual(46);
 });
 
 function countQueries(callable $callback): int
