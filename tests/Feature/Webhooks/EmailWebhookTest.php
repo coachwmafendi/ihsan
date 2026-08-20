@@ -273,6 +273,33 @@ it('does not flag donor on transient ses bounce', function () {
     expect($log->donor->fresh()->hasBouncedEmail())->toBeFalse();
 });
 
+it('suppresses a donor on a ses complaint event', function () {
+    config(['services.ses.webhook_token' => 'ses-secret-token']);
+
+    $log = DonorEmailLog::factory()->create([
+        'provider_message_id' => 'ses-complaint-id-123',
+        'delivery_status' => 'sent',
+    ]);
+
+    $this->postJson(route('webhooks.ses', ['token' => 'ses-secret-token']), [
+        'eventType' => 'Complaint',
+        'complaint' => [
+            'complaintFeedbackType' => 'abuse',
+        ],
+        'mail' => [
+            'messageId' => 'ses-complaint-id-123',
+        ],
+    ])->assertOk();
+
+    expect($log->fresh())
+        ->delivery_status->toBe('complained')
+        ->complained_at->not->toBeNull();
+
+    expect($log->donor->fresh())
+        ->hasComplainedEmail()->toBeTrue()
+        ->canReceiveEmails()->toBeFalse();
+});
+
 it('rejects direct ses event with invalid token', function () {
     config(['services.ses.webhook_token' => 'ses-secret-token']);
 

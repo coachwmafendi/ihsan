@@ -132,6 +132,10 @@ class EmailWebhookService
                     'delivery_status' => 'complained',
                     'complained_at' => now(),
                 ]);
+
+                if (! $log->donor->hasComplainedEmail()) {
+                    $log->donor->markEmailComplained();
+                }
                 break;
 
             case 'open':
@@ -285,6 +289,10 @@ class EmailWebhookService
                     'delivery_status' => 'complained',
                     'complained_at' => now(),
                 ]);
+
+                if (! $log->donor->hasComplainedEmail()) {
+                    $log->donor->markEmailComplained();
+                }
                 break;
 
             case 'open':
