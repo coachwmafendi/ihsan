@@ -6,6 +6,7 @@ use App\Enums\OrganizationStatus;
 use App\Filament\Resources\Organizations\OrganizationResource;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Width;
@@ -84,6 +85,13 @@ class EditOrganization extends EditRecord
                 ])),
 
             DeleteAction::make(),
+
+            ForceDeleteAction::make()
+                ->requiresConfirmation()
+                ->modalHeading('Force delete organization')
+                ->modalDescription('This will permanently delete this organization and all related admin accounts, including their emails. This action cannot be undone.')
+                ->modalIcon('heroicon-o-exclamation-triangle')
+                ->color('danger'),
         ];
     }
 
