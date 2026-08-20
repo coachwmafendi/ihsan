@@ -39,7 +39,7 @@
         </table>
 
         <p style="margin: 24px 0; text-align: center;">
-            <a class="email-button" href="{{ appPanelRoute('app.subscriptions.show', $subscription) }}" style="display: inline-block; background-color: #0f766e; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
+            <a class="email-button" href="{{ appPanelRoute('app.subscriptions.show', $subscription) }}" style="display: inline-block; background-color: #228B22; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">View in {{ config('app.name') }}</a>
         </p>
 
         @include('emails.partials.admin-footer', ['organization' => $subscription->campaign->organization])

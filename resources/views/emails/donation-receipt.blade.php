@@ -43,7 +43,7 @@
 
     @if ($downloadUrl)
         <p style="margin: 24px 0;">
-            <a href="{{ $downloadUrl }}" style="display: inline-block; background-color: #0f766e; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">{{ $t('emails.receipt.download_receipt') }}</a>
+            <a href="{{ $downloadUrl }}" style="display: inline-block; background-color: #228B22; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">{{ $t('emails.receipt.download_receipt') }}</a>
         </p>
     @endif
 

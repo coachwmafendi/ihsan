@@ -16,7 +16,7 @@
     <p>{{ $t('emails.magic_link.intro') }}</p>
 
     <a href="{{ route('donorportal.magic-login', ['organization' => $organization, 'token' => $token]) }}"
-       style="display: inline-block; padding: 12px 24px; background-color: #0f766e; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0;">
+       style="display: inline-block; padding: 12px 24px; background-color: #228B22; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0;">
         {{ $t('emails.magic_link.button') }}
     </a>
 

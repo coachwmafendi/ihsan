@@ -19,7 +19,7 @@
 
         @if ($invoice->stripe_invoice_pdf)
             <p>
-                <a href="{{ $invoice->stripe_invoice_pdf }}" style="display: inline-block; padding: 12px 24px; background-color: #0f766e; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600;">
+                <a href="{{ $invoice->stripe_invoice_pdf }}" style="display: inline-block; padding: 12px 24px; background-color: #228B22; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600;">
                     Download Invoice PDF (Stripe)
                 </a>
             </p>
