@@ -87,7 +87,7 @@
 
     @if ($loginUrl)
         <p style="text-align: center; margin: 28px 0;">
-            <a href="{{ $loginUrl }}" style="display: inline-block; background-color: #0f766e; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 18px; font-weight: 600;">
+            <a href="{{ $loginUrl }}" style="display: inline-block; background-color: #228B22; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 18px; font-weight: 600;">
                 {{ $t('emails.donor_payment_method_expiring.cta') }}
             </a>
         </p>
