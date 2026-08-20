@@ -42,6 +42,18 @@ it('grants the payment permission to widget iframes for wallet payments', functi
         ->assertSee('payment *; clipboard-write; autoplay', false);
 });
 
+it('forwards the parent page url when continuing from the embedded step to the checkout modal', function () {
+    // Embedded step-1 forms open a step-2 modal with the donor's selections; without
+    // `pu=`, attribution falls back to the iframe's own /donate URL instead of the host page.
+    $script = $this->get(route('widget.script'))->getContent();
+
+    expect($script)->toContain('"pu=" + encodeURIComponent(window.location.href)');
+
+    $stepContinueBlock = strstr(strstr($script, 'ihsan:step-continue'), 'showCheckoutModal(el, baseUrl', true);
+
+    expect($stepContinueBlock)->toContain('pu=');
+});
+
 it('does not render inactive elements from the widget fallback', function () {
     $script = $this->get(route('widget.script'))->getContent();
 
