@@ -28,6 +28,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property CarbonImmutable|null $magic_token_expires_at
  * @property CarbonImmutable|null $email_opt_out_at
  * @property CarbonImmutable|null $email_bounced_at
+ * @property CarbonImmutable|null $email_complained_at
  * @property CarbonImmutable|null $email_validated_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
@@ -81,7 +82,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['public_id', 'name', 'first_name', 'last_name', 'email', 'phone', 'title', 'occupation', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'email_opt_out_at', 'email_bounced_at', 'email_validated_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale', 'photo_path'])]
+#[Fillable(['public_id', 'name', 'first_name', 'last_name', 'email', 'phone', 'title', 'occupation', 'stripe_customer_id', 'magic_token', 'magic_token_expires_at', 'email_opt_out_at', 'email_bounced_at', 'email_complained_at', 'email_validated_at', 'address_line1', 'address_line2', 'address_city', 'address_state', 'address_postal_code', 'country', 'locale', 'photo_path'])]
 class Donor extends Model
 {
     /** @use HasFactory<DonorFactory> */
@@ -187,6 +188,7 @@ class Donor extends Model
             'magic_token_expires_at' => 'datetime',
             'email_opt_out_at' => 'datetime',
             'email_bounced_at' => 'datetime',
+            'email_complained_at' => 'datetime',
             'email_validated_at' => 'datetime',
         ];
     }
@@ -201,9 +203,16 @@ class Donor extends Model
         return $this->email_bounced_at !== null;
     }
 
+    public function hasComplainedEmail(): bool
+    {
+        return $this->email_complained_at !== null;
+    }
+
     public function canReceiveEmails(): bool
     {
-        return ! $this->hasOptedOutOfEmails() && ! $this->hasBouncedEmail();
+        return ! $this->hasOptedOutOfEmails()
+            && ! $this->hasBouncedEmail()
+            && ! $this->hasComplainedEmail();
     }
 
     /**
@@ -242,6 +251,14 @@ class Donor extends Model
     {
         $this->update([
             'email_bounced_at' => now(),
+            'email_validated_at' => null,
+        ]);
+    }
+
+    public function markEmailComplained(): void
+    {
+        $this->update([
+            'email_complained_at' => now(),
             'email_validated_at' => null,
         ]);
     }

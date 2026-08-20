@@ -39,6 +39,10 @@ class SendDonationReceipt implements ShouldQueue
             return;
         }
 
+        if ($donation->donor === null || ! $donation->donor->canReceiveEmails()) {
+            return;
+        }
+
         if (! $this->force && $donation->receipt_sent_at !== null) {
             return;
         }
