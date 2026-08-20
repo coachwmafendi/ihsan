@@ -203,16 +203,21 @@
                 downloadChartPng(canvas, filename);
             }
 
+            function failChartDownload(message) {
+                document.dispatchEvent(new CustomEvent('notify', {
+                    detail: { message, variant: 'danger' },
+                }));
+            }
+
             function downloadTrendPng(title, description, points, totalLabel, filename) {
                 if (! points.length) {
                     return;
                 }
 
                 const width = 720;
-                const chartHeight = 220;
-                const labelHeight = 24;
+                const chartHeight = 280;
                 const totalHeight = 34;
-                const { canvas, ctx, offsetY } = chartExportCanvas(width, totalHeight + chartHeight + labelHeight, title, description);
+                const { canvas, ctx, offsetY } = chartExportCanvas(width, totalHeight + chartHeight, title, description);
 
                 ctx.font = 'bold 16px ui-sans-serif, system-ui, sans-serif';
                 ctx.fillStyle = '#0f172a';
@@ -220,34 +225,32 @@
                 ctx.fillText(totalLabel, 16, offsetY + 16);
 
                 const chartTop = offsetY + totalHeight;
-                const maxAmount = Math.max(...points.map(p => Number(p.amount) || 0), 1);
-                const gap = 2;
-                const barWidth = (width - 32 - gap * (points.length - 1)) / points.length;
 
-                points.forEach((point, i) => {
-                    const value = Number(point.amount) || 0;
-                    const barHeight = Math.max((value / maxAmount) * chartHeight, 3);
-                    const x = 16 + i * (barWidth + gap);
+                // Export the chart that is actually on screen rather than
+                // redrawing it, so the download matches what was seen.
+                const chart = ApexCharts.getChartByID('donation-trend');
 
-                    ctx.fillStyle = 'rgba(59, 130, 246, 0.35)';
-                    ctx.beginPath();
-                    ctx.roundRect(x, chartTop + chartHeight - barHeight, barWidth, barHeight, [3, 3, 0, 0]);
-                    ctx.fill();
-                });
+                if (! chart) {
+                    failChartDownload('The chart is still loading. Try again in a moment.');
 
-                const labelStep = Math.max(1, Math.ceil(points.length / 7));
-                ctx.font = '11px ui-sans-serif, system-ui, sans-serif';
-                ctx.fillStyle = '#94a3b8';
-                ctx.textAlign = 'center';
+                    return;
+                }
 
-                points.forEach((point, i) => {
-                    if (i % labelStep === 0) {
-                        const x = 16 + i * (barWidth + gap) + barWidth / 2;
-                        ctx.fillText(point.date, x, chartTop + chartHeight + 16);
-                    }
-                });
-
-                downloadChartPng(canvas, filename);
+                chart.dataURI({ scale: 2 })
+                    .then(({ imgURI }) => new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = () => resolve(img);
+                        img.onerror = () => reject(new Error('The chart image could not be read.'));
+                        img.src = imgURI;
+                    }))
+                    .then((img) => {
+                        ctx.drawImage(img, 16, chartTop, width - 32, chartHeight);
+                        downloadChartPng(canvas, filename);
+                    })
+                    .catch((error) => {
+                        failChartDownload('The chart could not be exported.');
+                        console.error(error);
+                    });
             }
 
             function renderStackedBarChart(el, data, description, title) {
@@ -643,6 +646,7 @@
                                     data: data.map((p) => ({ x: p.date, y: p.amount })),
                                 }],
                                 chart: {
+                                    id: 'donation-trend',
                                     type: 'area',
                                     height: 280,
                                     toolbar: { show: false },
