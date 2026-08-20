@@ -65,6 +65,15 @@ return [
         'database_path' => env('MAXMIND_DATABASE_PATH', storage_path('app/maxmind/GeoLite2-City.mmdb')),
     ],
 
+    'cloudflare' => [
+        /*
+         * Cloudflare Web Analytics sets no cookies and cannot identify anyone,
+         * so unlike our tag manager it is safe to run on donor-facing pages —
+         * it tells us whether donation forms are slow or erroring.
+         */
+        'analytics_token' => env('CLOUDFLARE_ANALYTICS_TOKEN'),
+    ],
+
     'google' => [
         /*
          * Ihsan's own Google Tag Manager container. Deliberately absent from

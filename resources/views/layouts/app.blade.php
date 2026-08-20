@@ -28,6 +28,7 @@
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     @include('partials.google-tag-manager')
+    @include('partials.cloudflare-analytics')
 </head>
 <body class="font-sans antialiased">
     @include('partials.google-tag-manager-noscript')

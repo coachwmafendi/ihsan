@@ -9,6 +9,7 @@
         <x-tracking-scripts :organization="$organization ?? null" :configs="$trackingConfigs ?? null" />
         <link rel="preconnect" href="https://js.stripe.com" crossorigin>
         <script src="https://js.stripe.com/v3/"></script>
+        @include('partials.cloudflare-analytics')
         @livewireStyles
     </head>
     <body class="bg-transparent text-slate-950 antialiased">

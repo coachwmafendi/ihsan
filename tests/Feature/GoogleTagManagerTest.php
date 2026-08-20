@@ -79,3 +79,41 @@ it('renders nothing at all when no container is configured', function () {
         ->assertOk()
         ->assertDontSee('googletagmanager.com', false);
 });
+
+/**
+ * Cloudflare Web Analytics sets no cookies and cannot identify anyone, so it
+ * runs everywhere — including the donor-facing pages the tag manager avoids.
+ */
+it('loads cloudflare analytics on our own pages', function () {
+    config(['services.cloudflare.analytics_token' => 'cf-test-token']);
+
+    $this->get('https://example.test/')
+        ->assertOk()
+        ->assertSee('static.cloudflareinsights.com/beacon.min.js', false)
+        ->assertSee('cf-test-token', false);
+});
+
+it('loads cloudflare analytics on the donation form too', function () {
+    config(['services.cloudflare.analytics_token' => 'cf-test-token']);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create(['status' => CampaignStatus::Active]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'type' => ElementType::Form,
+        'is_active' => true,
+    ]);
+
+    $this->get(route('donations.show', $element))
+        ->assertOk()
+        ->assertSee('static.cloudflareinsights.com/beacon.min.js', false)
+        // Still no tag manager there, though.
+        ->assertDontSee('googletagmanager.com/gtm.js', false);
+});
+
+it('renders no cloudflare beacon without a token', function () {
+    config(['services.cloudflare.analytics_token' => null]);
+
+    $this->get('https://example.test/')
+        ->assertOk()
+        ->assertDontSee('cloudflareinsights.com', false);
+});

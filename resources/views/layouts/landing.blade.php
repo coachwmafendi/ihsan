@@ -16,6 +16,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     @include('partials.google-tag-manager')
+    @include('partials.cloudflare-analytics')
 </head>
 <body class="{{ $bodyClass ?? 'bg-[#0f172a] text-[#e2e8f0]' }} font-sans antialiased">
 @include('partials.google-tag-manager-noscript')
