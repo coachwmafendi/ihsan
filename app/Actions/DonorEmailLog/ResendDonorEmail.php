@@ -8,6 +8,7 @@ use App\Mail\CampaignCompletedDonorNotification;
 use App\Mail\DonationReceipt;
 use App\Mail\DonorDunningNotification;
 use App\Mail\DonorNewSubscriptionNotification;
+use App\Mail\DonorPaymentMethodExpiringNotification;
 use App\Mail\DonorRecurringPaymentNotification;
 use App\Mail\DonorRefundNotification;
 use App\Mail\DonorSubscriptionCancelledNotification;
@@ -16,6 +17,7 @@ use App\Mail\SupporterSubscriptionAmountChangedNotification;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
+use App\Models\Subscription;
 use App\Support\Currency;
 use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Mail;
@@ -71,6 +73,7 @@ class ResendDonorEmail
             DonorRecurringPaymentNotification::class => $this->recreateDonorRecurringPayment($log, $messageId),
             DonorRefundNotification::class => $this->recreateDonorRefund($log, $messageId),
             DonorSubscriptionCancelledNotification::class => $this->recreateDonorSubscriptionCancelled($log, $messageId),
+            DonorPaymentMethodExpiringNotification::class => $this->recreateDonorPaymentMethodExpiring($log, $messageId),
             default => null,
         };
     }
@@ -174,6 +177,25 @@ class ResendDonorEmail
         }
 
         return new DonorSubscriptionCancelledNotification($log->subscription, $messageId);
+    }
+
+    private function recreateDonorPaymentMethodExpiring(DonorEmailLog $log, string $messageId): ?Mailable
+    {
+        $metadata = $log->metadata ?? [];
+        $daysRemaining = (int) ($metadata['days_remaining'] ?? 7);
+        $subscriptionIds = (array) ($metadata['subscription_ids'] ?? []);
+
+        if ($log->subscription !== null && empty($subscriptionIds)) {
+            $subscriptionIds = [$log->subscription->getKey()];
+        }
+
+        $subscriptions = Subscription::query()->whereKey($subscriptionIds)->get();
+
+        if ($subscriptions->isEmpty()) {
+            return null;
+        }
+
+        return new DonorPaymentMethodExpiringNotification($subscriptions, $daysRemaining, $messageId);
     }
 
     private function formatAmount(Donation $donation): string

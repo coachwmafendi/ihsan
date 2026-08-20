@@ -146,6 +146,26 @@ return [
         'reason' => 'Anda menerima email ini kerana mempunyai derma berulang aktif atau lalu dengan kempen ini.',
     ],
 
+    'donor_payment_method_expiring' => [
+        'subject' => 'Tindakan diperlukan: kad anda tamat tempoh dalam :days hari — :organization',
+        'title' => 'Kad Anda Akan Tamat Tempoh',
+        'preheader' => 'Kad anda berakhiran :last4 akan tamat tempoh dalam :days hari. Kemas kini untuk mengekalkan derma berulang anda.',
+        'intro' => 'Kad berakhiran :last4 yang anda gunakan untuk derma berulang anda akan tamat tempoh dalam :days hari pada :expiry_date.',
+        'body' => 'Untuk mengelakkan gangguan, sila kemas kini kad anda sebelum tamat tempoh.',
+        'cta' => 'Kemas kini kad saya',
+        'footer_note' => 'Sekiranya anda telah mengemas kini kad anda, tiada tindakan lanjut diperlukan.',
+        'sign_off' => 'Rakan-rakan anda di :organization',
+        'subscription_count_singular' => 'Anda mempunyai :count derma berulang menggunakan kad ini:',
+        'subscription_count_plural' => 'Anda mempunyai :count derma berulang menggunakan kad ini:',
+        'campaign_label' => 'Kempen',
+        'organization_label' => 'Organisasi',
+        'amount_label' => 'Jumlah',
+        'frequency_label' => 'Kekerapan',
+        'card_label' => 'Kad',
+        'expiry_label' => 'Tamat tempoh pada',
+        'reason' => 'Anda menerima email ini kerana mempunyai derma berulang aktif menggunakan kad ini.',
+    ],
+
     'campaign_completed' => [
         'subject' => 'Sasaran Tercapai — :campaign',
         'title' => 'Sasaran Tercapai!',

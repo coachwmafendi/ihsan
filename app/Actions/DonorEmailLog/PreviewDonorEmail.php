@@ -8,6 +8,7 @@ use App\Mail\CampaignCompletedDonorNotification;
 use App\Mail\DonationReceipt;
 use App\Mail\DonorDunningNotification;
 use App\Mail\DonorNewSubscriptionNotification;
+use App\Mail\DonorPaymentMethodExpiringNotification;
 use App\Mail\DonorRecurringPaymentNotification;
 use App\Mail\DonorRefundNotification;
 use App\Mail\DonorSubscriptionCancelledNotification;
@@ -16,6 +17,7 @@ use App\Mail\SupporterSubscriptionAmountChangedNotification;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
+use App\Models\Subscription;
 use App\Support\Currency;
 use Illuminate\Mail\Mailable;
 
@@ -50,6 +52,7 @@ class PreviewDonorEmail
             DonorRecurringPaymentNotification::class => $this->recreateDonorRecurringPayment($log),
             DonorRefundNotification::class => $this->recreateDonorRefund($log),
             DonorSubscriptionCancelledNotification::class => $this->recreateDonorSubscriptionCancelled($log),
+            DonorPaymentMethodExpiringNotification::class => $this->recreateDonorPaymentMethodExpiring($log),
             default => null,
         };
     }
@@ -151,6 +154,25 @@ class PreviewDonorEmail
         }
 
         return new DonorSubscriptionCancelledNotification($log->subscription);
+    }
+
+    private function recreateDonorPaymentMethodExpiring(DonorEmailLog $log): ?Mailable
+    {
+        $metadata = $log->metadata ?? [];
+        $daysRemaining = (int) ($metadata['days_remaining'] ?? 7);
+        $subscriptionIds = (array) ($metadata['subscription_ids'] ?? []);
+
+        if ($log->subscription !== null && empty($subscriptionIds)) {
+            $subscriptionIds = [$log->subscription->getKey()];
+        }
+
+        $subscriptions = Subscription::query()->whereKey($subscriptionIds)->get();
+
+        if ($subscriptions->isEmpty()) {
+            return null;
+        }
+
+        return new DonorPaymentMethodExpiringNotification($subscriptions, $daysRemaining);
     }
 
     private function formatAmount(Donation $donation): string

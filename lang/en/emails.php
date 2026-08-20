@@ -167,6 +167,26 @@ return [
         'reason' => 'You are receiving this because you have an active or past recurring donation with this campaign.',
     ],
 
+    'donor_payment_method_expiring' => [
+        'subject' => 'Action required: your card expires in :days days — :organization',
+        'title' => 'Your Card Is Expiring Soon',
+        'preheader' => 'Your card ending in :last4 expires in :days days. Update it to keep your recurring donations active.',
+        'intro' => 'The card ending in :last4 that you use for your recurring donations expires in :days days on :expiry_date.',
+        'body' => 'To avoid interruption, please update your card before it expires.',
+        'cta' => 'Update my card',
+        'footer_note' => 'If you have already updated your card, no further action is needed.',
+        'sign_off' => 'Your friends at :organization',
+        'subscription_count_singular' => 'You have :count recurring donation using this card:',
+        'subscription_count_plural' => 'You have :count recurring donations using this card:',
+        'campaign_label' => 'Campaign',
+        'organization_label' => 'Organization',
+        'amount_label' => 'Amount',
+        'frequency_label' => 'Frequency',
+        'card_label' => 'Card',
+        'expiry_label' => 'Expires on',
+        'reason' => 'You are receiving this because you have an active recurring donation using this card.',
+    ],
+
     'campaign_completed' => [
         'subject' => 'Target Reached — :campaign',
         'title' => 'Target Reached!',
