@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Enums\UserRole;
 use App\Models\Organization;
 use App\Models\OrganizationDocument;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -62,4 +64,18 @@ it('removes logo and document files when an organization is force deleted', func
     expect(Organization::withTrashed()->where('id', $organization->id)->exists())->toBeFalse();
     Storage::disk('public')->assertMissing($logoPath);
     Storage::disk('public')->assertMissing($documentPath);
+});
+
+it('removes organization admin users when an organization is force deleted', function () {
+    $organization = Organization::factory()->create();
+
+    $admin = User::factory()->create([
+        'organization_id' => $organization->id,
+        'role' => UserRole::NgoAdmin,
+    ]);
+
+    $organization->forceDelete();
+
+    expect(User::where('id', $admin->id)->exists())->toBeFalse();
+    expect(Organization::withTrashed()->where('id', $organization->id)->exists())->toBeFalse();
 });

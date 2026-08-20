@@ -96,7 +96,12 @@ class OrganizationsTable
                 EditAction::make(),
                 DeleteAction::make(),
                 RestoreAction::make(),
-                ForceDeleteAction::make(),
+                ForceDeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading('Force delete organization')
+                    ->modalDescription('This will permanently delete this organization and all related admin accounts, including their emails. This action cannot be undone.')
+                    ->modalIcon('heroicon-o-exclamation-triangle')
+                    ->color('danger'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
