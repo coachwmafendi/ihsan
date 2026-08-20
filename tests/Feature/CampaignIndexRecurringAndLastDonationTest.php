@@ -19,6 +19,9 @@ use Livewire\Livewire;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    // The table renders dates in MYT, so freeze the clock past MYT midnight to
+    // keep the UTC and MYT calendar dates apart.
+    $this->travelTo('2026-08-20 17:00:00');
     $this->organization = Organization::factory()->create();
     $this->user = User::factory()->for($this->organization)->create([
         'role' => UserRole::NgoAdmin,
@@ -105,7 +108,7 @@ it('shows the latest donation date in the last donation column', function () {
     Livewire::actingAs($this->user)
         ->test(CampaignIndex::class)
         ->assertSee('Last Donation')
-        ->assertSeeText(now()->subDay()->format('M d, Y'));
+        ->assertSeeText(myrTime(now()->subDay(), withLabel: false, format: 'M d, Y'));
 });
 
 it('shows dash when campaign has no donations', function () {
@@ -128,6 +131,6 @@ it('ignores non-succeeded donations when determining last donation', function ()
 
     Livewire::actingAs($this->user)
         ->test(CampaignIndex::class)
-        ->assertDontSeeText(now()->subDay()->format('M d, Y'))
-        ->assertSeeText(now()->subDays(3)->format('M d, Y'));
+        ->assertDontSeeText(myrTime(now()->subDay(), withLabel: false, format: 'M d, Y'))
+        ->assertSeeText(myrTime(now()->subDays(3), withLabel: false, format: 'M d, Y'));
 });
