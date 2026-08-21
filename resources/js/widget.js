@@ -1266,7 +1266,7 @@
         return;
       }
       if (autoTrigger) {
-        window.location.replace(baseUrl + "/donate/" + encodeURIComponent(token) + "?popup=1");
+        window.location.replace(baseUrl + "/donate/" + encodeURIComponent(token) + "?popup=1&pu=" + encodeURIComponent(window.location.href));
         return;
       }
 
@@ -1275,7 +1275,9 @@
         type: script.getAttribute("data-type") || "",
         token: token,
         is_active: true,
-        campaign_url: script.getAttribute("data-campaign-url") || baseUrl + "/donate/" + token + "?popup=1",
+        // A site's own data-campaign-url is left untouched; only our fallback
+        // carries the host page.
+        campaign_url: script.getAttribute("data-campaign-url") || baseUrl + "/donate/" + token + "?popup=1&pu=" + encodeURIComponent(window.location.href),
         campaign_form_parameter: script.getAttribute("data-campaign-form-parameter") || "",
         settings: {
           text: script.getAttribute("data-text") || "Derma Sekarang",

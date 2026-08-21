@@ -222,14 +222,18 @@ class EmbedCheckoutController extends Controller
                 return;
             }
 
+            // Forward the host page so attribution reports where the donor was,
+            // not the checkout the script opens.
+            var hostPage = '&pu=' + encodeURIComponent(window.location.href);
+
             if (isMobile()) {
-                window.location.href = donateBaseUrl + '/' + encodeURIComponent(form) + '?popup=1';
+                window.location.href = donateBaseUrl + '/' + encodeURIComponent(form) + '?popup=1' + hostPage;
                 return;
             }
 
             var modal = ensureModal();
             var frame = modal.querySelector('[data-ihsan-frame]');
-            frame.src = checkoutBaseUrl + '/' + encodeURIComponent(form) + '?popup=1';
+            frame.src = checkoutBaseUrl + '/' + encodeURIComponent(form) + '?popup=1' + hostPage;
             modal.style.display = 'flex';
             document.documentElement.style.overflow = 'hidden';
         },
@@ -320,6 +324,12 @@ JS;
         $params = ['embed' => 1];
         if ($request->has('popup')) {
             $params['popup'] = $request->input('popup');
+        }
+
+        // The donation form reads the host page from `pu`; dropping it here
+        // would leave the redirect target attributing the donation to itself.
+        if (filled($request->query('pu'))) {
+            $params['pu'] = $request->query('pu');
         }
 
         if ($element) {

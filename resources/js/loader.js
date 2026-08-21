@@ -37,7 +37,9 @@
     var isMobile = w.innerWidth <= 768;
     var url;
 
-    url = base + "/donate/" + elData.token + "?popup=1";
+    // Forward the host page so attribution reflects where the donor actually
+    // was, not the iframe this modal opens.
+    url = base + "/donate/" + elData.token + "?popup=1&pu=" + encodeURIComponent(w.location.href);
 
     var overlay = d.createElement("div");
     overlay.setAttribute("role", "dialog");

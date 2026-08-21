@@ -101,6 +101,58 @@ it('serves the codex embed smoke test page', function () {
         ->toContain('https://ihsan.test/donate/codex-qa-form-token?embed=1');
 });
 
+it('forwards the host page url from every donate url the widget builds', function () {
+    // page_url drives Meta's event_source_url, so a checkout opened from any
+    // path has to report the host page rather than the iframe it runs in.
+    $script = $this->get(route('widget.script'))->assertOk()->getContent();
+
+    $donateUrls = substr_count($script, '"/donate/"');
+
+    expect($donateUrls)->toBeGreaterThan(0)
+        ->and(substr_count($script, 'encodeURIComponent(window.location.href)'))->toBe($donateUrls)
+        // The step-continue modal builds its query as a list, so it carries the
+        // host page without sitting next to the "/donate/" it is joined to.
+        ->and($script)->toContain('"pu=" + encodeURIComponent(window.location.href)');
+});
+
+it('forwards the host page url from the loader modal', function () {
+    $this->get(route('loader.script'))
+        ->assertOk()
+        ->assertSee('&pu=" + encodeURIComponent(w.location.href)', false);
+});
+
+it('forwards the host page url from the legacy embed script', function () {
+    $script = $this->get(route('embed.script'))->assertOk()->getContent();
+
+    expect($script)->toContain("'&pu=' + encodeURIComponent(window.location.href)")
+        // Both the mobile redirect and the desktop iframe carry it.
+        ->and(substr_count($script, "'?popup=1' + hostPage"))->toBe(2);
+});
+
+it('keeps the host page url when the embed checkout redirects to the donation form', function () {
+    $organization = Organization::factory()->create([
+        'settings' => ['allowed_domains' => ['mumzatuttaqwa.com']],
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create([
+        'form_parameter' => 'RAMADAN2026',
+        'checkout_modal_enabled' => true,
+    ]);
+    $element = Element::factory()->for($organization)->for($campaign)->create([
+        'token' => 'form-token-456',
+        'is_active' => true,
+    ]);
+
+    $hostPage = 'https://mumzatuttaqwa.com/ms/?form=RAMADAN2026';
+
+    $this->withHeader('referer', $hostPage)
+        ->get(route('checkout.form', ['form' => 'RAMADAN2026', 'embed' => 1, 'pu' => $hostPage]))
+        ->assertRedirect(route('donations.show', [
+            'element' => $element->token,
+            'embed' => 1,
+            'pu' => $hostPage,
+        ]));
+});
+
 it('redirects an allowed embed checkout request to the hosted donation form', function () {
     $organization = Organization::factory()->create([
         'settings' => ['allowed_domains' => ['mumzatuttaqwa.com']],
