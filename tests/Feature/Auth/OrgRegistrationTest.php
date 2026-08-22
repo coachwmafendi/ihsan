@@ -2,8 +2,34 @@
 
 use App\Enums\OrganizationStatus;
 use App\Livewire\Auth\RegisterOrganization;
+use App\Mail\NewOrganizationRegistered;
 use App\Models\Organization;
+use Illuminate\Support\Facades\Mail;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+
+/**
+ * Register an organization with the fields the form requires.
+ */
+function registerOrganization(array $overrides = []): Testable
+{
+    $fields = array_merge([
+        'name' => 'Masjid Al-Falah',
+        'registration_type' => 'ROS',
+        'ros_rob_number' => 'PPM-001-10-01012020',
+        'sector' => 'religion',
+        'contact_email' => 'admin@alfalah.org',
+        'website_url' => 'https://alfalah.org',
+    ], $overrides);
+
+    $component = Livewire::test(RegisterOrganization::class);
+
+    foreach ($fields as $field => $value) {
+        $component->set($field, $value);
+    }
+
+    return $component->call('submit');
+}
 
 test('organizations table has facebook_url column', function () {
     expect(Schema::hasColumn('organizations', 'facebook_url'))->toBeTrue();
@@ -112,4 +138,49 @@ test('org registration defaults fee collection method to the configured default'
 
     expect(config('services.billing.default_fee_collection_method'))->toBe('upfront')
         ->and(Organization::first()->fee_collection_method)->toBe('upfront');
+});
+
+test('org registration emails the platform admin', function () {
+    Mail::fake();
+    config(['app.admin_email' => 'admin@getihsan.my']);
+
+    registerOrganization(['name' => 'Masjid An-Nur'])->assertSet('submitted', true);
+
+    Mail::assertQueued(NewOrganizationRegistered::class, function (NewOrganizationRegistered $mail) {
+        return $mail->hasTo('admin@getihsan.my')
+            && $mail->organization->name === 'Masjid An-Nur';
+    });
+});
+
+test('org registration email names the organization and links the admin panel', function () {
+    config(['app.admin_email' => 'admin@getihsan.my']);
+
+    registerOrganization(['name' => 'Persatuan Kebajikan', 'contact_email' => 'info@persatuan.org']);
+
+    $organization = Organization::first();
+    $rendered = (new NewOrganizationRegistered($organization))->render();
+
+    expect($rendered)
+        ->toContain('Persatuan Kebajikan')
+        ->toContain('info@persatuan.org')
+        ->toContain($organization->ros_rob_number);
+});
+
+test('org registration sends no admin email when no admin address is configured', function () {
+    Mail::fake();
+    config(['app.admin_email' => null]);
+
+    registerOrganization()->assertSet('submitted', true);
+
+    Mail::assertNothingQueued();
+    expect(Organization::count())->toBe(1);
+});
+
+test('a failing admin email does not lose the registration', function () {
+    config(['app.admin_email' => 'admin@getihsan.my']);
+    Mail::shouldReceive('to')->andThrow(new RuntimeException('SES is down'));
+
+    registerOrganization()->assertSet('submitted', true);
+
+    expect(Organization::count())->toBe(1);
 });

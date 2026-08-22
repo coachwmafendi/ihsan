@@ -58,6 +58,13 @@ return [
 
     'admin_panel_domain' => env('ADMIN_PANEL_DOMAIN'),
 
+    /*
+    | Where platform-wide alerts go: new organization registrations and the
+    | fraud alerts raised by FraudDetectionService. Leave it unset and those
+    | alerts are simply not sent.
+    */
+    'admin_email' => env('ADMIN_EMAIL'),
+
     'version' => env('APP_VERSION', '1.0.0'),
 
     /*

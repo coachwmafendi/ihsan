@@ -32,3 +32,23 @@ it('sends fraud alert notification to admins', function () {
         return $mail->hasTo('admin@example.com');
     });
 });
+
+it('also sends the fraud alert to the platform admin', function () {
+    Mail::fake();
+    config(['app.admin_email' => 'platform@getihsan.my']);
+
+    $organization = Organization::factory()->create([
+        'contact_email' => 'admin@example.com',
+    ]);
+    $campaign = Campaign::factory()->create(['organization_id' => $organization->id]);
+    $donation = Donation::factory()->create([
+        'campaign_id' => $campaign->id,
+        'risk_score' => 85,
+        'fraud_status' => 'blocked',
+    ]);
+
+    FraudDetectionService::notifyAdmins($donation, 'Stripe Radar high risk score', 'blocked');
+
+    Mail::assertQueued(FraudAlertNotification::class, fn ($mail) => $mail->hasTo('platform@getihsan.my'));
+    Mail::assertQueued(FraudAlertNotification::class, fn ($mail) => $mail->hasTo('admin@example.com'));
+});

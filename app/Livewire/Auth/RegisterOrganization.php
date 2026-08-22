@@ -3,9 +3,12 @@
 namespace App\Livewire\Auth;
 
 use App\Enums\OrganizationStatus;
+use App\Mail\NewOrganizationRegistered;
 use App\Models\Organization;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Rule;
 use Livewire\Component;
+use Throwable;
 
 class RegisterOrganization extends Component
 {
@@ -59,7 +62,31 @@ class RegisterOrganization extends Component
             ]);
         }
 
+        $this->notifyPlatformAdmin($org);
+
         $this->submitted = true;
+    }
+
+    /**
+     * Tell the platform admin an organization is waiting for approval.
+     *
+     * Nothing else surfaces a pending registration, so without this the only
+     * way to notice one is to open the admin panel and look. A mail failure
+     * must not cost the applicant their registration, which is already saved.
+     */
+    private function notifyPlatformAdmin(Organization $organization): void
+    {
+        $adminEmail = config('app.admin_email');
+
+        if (blank($adminEmail)) {
+            return;
+        }
+
+        try {
+            Mail::to($adminEmail)->queue(new NewOrganizationRegistered($organization));
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     public function render()
