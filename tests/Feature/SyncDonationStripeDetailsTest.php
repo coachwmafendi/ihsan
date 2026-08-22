@@ -9,9 +9,13 @@ use App\Models\Organization;
 use Stripe\ApiRequestor;
 use Stripe\HttpClient\ClientInterface;
 use Stripe\HttpClient\CurlClient;
+use Stripe\Stripe;
 
 beforeEach(function () {
     config(['services.stripe.secret' => 'sk_test_fake']);
+    // The SDK key is global state; without setting it here a test only passes
+    // when some earlier test happened to set it first.
+    Stripe::setApiKey('sk_test_fake');
 });
 
 it('saves donor payment method after syncing donation stripe details', function () {
@@ -276,4 +280,64 @@ it('skips donor payment method sync when payment method is missing', function ()
     }
 
     expect(DonorPaymentMethod::count())->toBe(0);
+});
+
+it('stores the longest card check result Stripe reports', function () {
+    // Stripe reports checks as pass / fail / unchecked / unavailable. The last
+    // is 11 characters and overflowed the original varchar(10) column, which
+    // failed the whole update and dropped the webhook on Postgres. SQLite does
+    // not enforce varchar length, so this test guards the write path and the
+    // migration guards the column.
+    $stripeClient = new class implements ClientInterface
+    {
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $response = match (true) {
+                str_contains($absUrl, '/v1/payment_intents/') => [
+                    'id' => 'pi_test_checks',
+                    'object' => 'payment_intent',
+                    'status' => 'succeeded',
+                    'latest_charge' => [
+                        'id' => 'ch_test_checks',
+                        'object' => 'charge',
+                        'outcome' => [
+                            'risk_score' => 12,
+                            'risk_level' => 'normal',
+                        ],
+                        'payment_method_details' => [
+                            'card' => [
+                                'checks' => [
+                                    'address_line1_check' => 'unavailable',
+                                    'cvc_check' => 'unavailable',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+                default => throw new RuntimeException('Unexpected Stripe request: '.$absUrl),
+            };
+
+            return [json_encode($response), 200, []];
+        }
+    };
+
+    ApiRequestor::setHttpClient($stripeClient);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donation = Donation::factory()->for($campaign)->create([
+        'stripe_payment_intent_id' => 'pi_test_checks',
+    ]);
+
+    try {
+        app(SyncDonationStripeDetails::class)->sync($donation);
+    } finally {
+        ApiRequestor::setHttpClient(CurlClient::instance());
+    }
+
+    $this->assertDatabaseHas('donations', [
+        'id' => $donation->id,
+        'avs_result' => 'unavailable',
+        'cvc_result' => 'unavailable',
+    ]);
 });
