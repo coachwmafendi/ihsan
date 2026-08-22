@@ -37,8 +37,10 @@ it('sends a thank you email to a supporter for subsequent recurring payments', f
 
         return $mail->donation->is($donation)
             && str_contains($html, 'We sincerely appreciate your continued support.')
-            && str_contains($html, 'On behalf of everyone at '.$organization->name)
-            && str_contains($html, 'Your friends at '.$organization->name)
+            // Blade escapes the name, and roughly one faker company name in
+            // thirty carries an apostrophe, so compare the escaped form.
+            && str_contains($html, 'On behalf of everyone at '.e($organization->name))
+            && str_contains($html, 'Your friends at '.e($organization->name))
             && str_contains($html, 'Download Receipt')
             && str_contains($html, route('donorportal.dashboard', $organization))
             && str_contains($html, 'Don’t send me these emails anymore');
