@@ -8,7 +8,7 @@ use App\Models\Organization;
 function numbered_words(int $count): string
 {
     return collect(range(1, $count))
-        ->map(fn (int $n) => 'word_' . str_pad((string) $n, 3, '0', STR_PAD_LEFT))
+        ->map(fn (int $n) => 'word_'.str_pad((string) $n, 3, '0', STR_PAD_LEFT))
         ->implode(' ');
 }
 
