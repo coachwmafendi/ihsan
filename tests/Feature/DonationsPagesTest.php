@@ -42,7 +42,9 @@ it('renders the donations index page', function () {
 
     $response->assertStatus(200);
     $response->assertSee('Donations');
-    $response->assertSee($this->donor->name);
+    // The supporter name is split around the device icon to keep the icon on
+    // the last word's line, so match the text rather than the markup.
+    $response->assertSeeText($this->donor->name);
     $response->assertSee($this->campaign->title);
 });
 
@@ -869,6 +871,28 @@ it('names the device by its operating system on the donation show page', functio
         // that repeated it is gone. Match the label markup rather than the text,
         // since "macOS" contains "OS".
         ->assertDontSee('>OS</dt>', false);
+});
+
+it('keeps the device icon on the same line as the last word of a long name', function () {
+    // The icon is an atomic inline box, so it can break onto its own line and
+    // sit orphaned under a name that fills the column. Only the final word has
+    // to travel with it.
+    $donor = Donor::factory()->create(['name' => 'Kamarulzaman khan Abd Rahman']);
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $donor->id,
+        'device_type' => 'mobile',
+        'os' => 'Android',
+    ]);
+
+    // Livewire writes `<!--[if BLOCK]>` markers around @if, which say nothing
+    // about layout.
+    $html = preg_replace('/<!--.*?-->/s', '', Livewire::actingAs($this->user)->test(DonationIndex::class)->html());
+
+    expect($html)->toContain('<span class="whitespace-nowrap">Rahman<span data-device-category="mobile"')
+        // The rest of the name stays outside, free to wrap as it needs to.
+        ->and($html)->toContain('Kamarulzaman khan Abd <span class="whitespace-nowrap">');
 });
 
 it('shows a device icon on the donation list for specific device types', function (string $deviceType, ?string $os, string $expectedCategory, string $expectedLabel) {

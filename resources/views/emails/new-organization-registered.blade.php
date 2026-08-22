@@ -3,7 +3,7 @@
 
 **{{ $organization->name }}** has registered and is waiting for approval.
 
-| Field | Value |
+| | |
 |-------|-------|
 | **Organization** | {{ $organization->name }} |
 | **Registration** | {{ $organization->registration_type }} — {{ $organization->ros_rob_number }} |

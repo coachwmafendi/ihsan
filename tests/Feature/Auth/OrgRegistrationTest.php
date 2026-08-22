@@ -184,3 +184,14 @@ test('a failing admin email does not lose the registration', function () {
 
     expect(Organization::count())->toBe(1);
 });
+
+test('org registration email has no field and value header row', function () {
+    registerOrganization();
+
+    $rendered = (new NewOrganizationRegistered(Organization::first()))->render();
+
+    // The details table is a plain label/value grid; a "Field | Value" header
+    // adds a row of noise and names nothing the reader does not already see.
+    expect($rendered)->not->toContain('>Field<')
+        ->and($rendered)->not->toContain('>Value<');
+});

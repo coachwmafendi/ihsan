@@ -509,8 +509,18 @@
                                     </div>
                                 </td>
                                 <td class="px-5 py-4">
+                                    @php
+                                        $supporterName = $donation->donor?->name ?? 'Anonymous';
+                                        $deviceCategory = $donation->device_type ? $donation->deviceCategory() : null;
+                                        // The icon is an atomic inline box, so the line may break right
+                                        // before it and leave it stranded under a name that fills the
+                                        // column. Tie it to the final word and let the rest wrap freely.
+                                        $lastSpace = mb_strrpos($supporterName, ' ');
+                                        $nameHead = $lastSpace === false ? '' : mb_substr($supporterName, 0, $lastSpace + 1);
+                                        $nameTail = $lastSpace === false ? $supporterName : mb_substr($supporterName, $lastSpace + 1);
+                                    @endphp
                                     <div class="text-sm font-medium text-slate-900">
-                                        {{ $donation->donor?->name ?? 'Anonymous' }}@if ($donation->device_type)@php $deviceCategory = $donation->deviceCategory(); @endphp<span data-device-category="{{ $deviceCategory }}" class="ml-1.5 inline-flex align-middle">
+                                        {{ $nameHead }}<span class="whitespace-nowrap">{{ $nameTail }}@if ($deviceCategory)<span data-device-category="{{ $deviceCategory }}" class="ml-1.5 inline-flex align-middle">
                                             <x-ui.tooltip :text="$donation->deviceLabel().' donation'">
                                                 @if ($deviceCategory === 'mobile')
                                                     <x-heroicon-o-device-phone-mobile class="size-3.5 shrink-0 text-slate-400" />
@@ -520,7 +530,7 @@
                                                     <x-heroicon-o-computer-desktop class="size-3.5 shrink-0 text-slate-400" />
                                                 @endif
                                             </x-ui.tooltip>
-                                            </span>@endif
+                                            </span>@endif</span>
                                     </div>
                                     @if ($donation->donor?->email)
                                         <p class="mt-0.5 text-xs text-slate-500">{{ $donation->donor->email }}</p>
