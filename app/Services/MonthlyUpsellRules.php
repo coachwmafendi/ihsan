@@ -85,27 +85,60 @@ class MonthlyUpsellRules
             $errors[] = 'At most '.self::MAX_TIERS.' tiers are allowed.';
         }
 
-        foreach (array_values($tiers) as $index => $tier) {
-            $label = 'Tier '.($index + 1);
-            $min = (float) ($tier['min'] ?? 0);
-            $max = ($tier['max'] ?? null) === '' ? null : $tier['max'] ?? null;
+        $slicedTiers = array_slice(array_values($tiers), 0, self::MAX_TIERS);
 
-            if ($min <= 0) {
-                $errors[] = $label.': the minimum must be greater than zero.';
+        foreach ($slicedTiers as $index => $tier) {
+            $label = 'Tier '.($index + 1);
+
+            if (! is_array($tier)) {
+                $errors[] = $label.' is not configured correctly.';
+
+                continue;
             }
 
-            if ($max !== null && (float) $max <= $min) {
-                $errors[] = $label.': the maximum must be greater than the minimum.';
+            $rawMin = $tier['min'] ?? null;
+            $minIsNumeric = is_numeric($rawMin);
+
+            if (! $minIsNumeric) {
+                $errors[] = $label.': the minimum must be a number.';
+            } else {
+                $min = (float) $rawMin;
+
+                if ($min <= 0) {
+                    $errors[] = $label.': the minimum must be greater than zero.';
+                }
+            }
+
+            $rawMax = $tier['max'] ?? null;
+            $maxIsBlank = $rawMax === null || $rawMax === '';
+
+            if (! $maxIsBlank && ! is_numeric($rawMax)) {
+                $errors[] = $label.': the maximum must be a number.';
+            } elseif ($minIsNumeric) {
+                $max = $this->tierMax($tier);
+
+                if ($max !== null && $max <= $min) {
+                    $errors[] = $label.': the maximum must be greater than the minimum.';
+                }
             }
 
             $offers = is_array($tier['offers'] ?? null) ? $tier['offers'] : [];
 
-            if ($offers === [] || count($offers) > self::MAX_OFFERS_PER_TIER) {
-                $errors[] = $label.': add one or two offers.';
+            if ($offers === []) {
+                $errors[] = $label.': add at least one offer.';
+            } elseif (count($offers) > self::MAX_OFFERS_PER_TIER) {
+                $errors[] = $label.': add at most '.self::MAX_OFFERS_PER_TIER.' offers.';
             }
 
             foreach (array_values($offers) as $offerIndex => $offer) {
                 $offerLabel = $label.', offer '.($offerIndex + 1);
+
+                if (! is_array($offer)) {
+                    $errors[] = $offerLabel.' is not configured correctly.';
+
+                    continue;
+                }
+
                 $type = $offer['type'] ?? 'percent';
 
                 if (! in_array($type, ['percent', 'fixed'], true)) {
@@ -114,7 +147,15 @@ class MonthlyUpsellRules
                     continue;
                 }
 
-                $value = (float) ($offer['value'] ?? 0);
+                $rawValue = $offer['value'] ?? null;
+
+                if (! is_numeric($rawValue)) {
+                    $errors[] = $offerLabel.': the value must be a number.';
+
+                    continue;
+                }
+
+                $value = (float) $rawValue;
 
                 if ($type === 'fixed') {
                     if ($value <= 0) {
@@ -129,14 +170,16 @@ class MonthlyUpsellRules
                 }
             }
 
-            foreach (array_slice(array_values($tiers), 0, $index) as $earlierIndex => $earlier) {
-                if ($this->tiersOverlap($earlier, $tier)) {
-                    $errors[] = $label.' overlaps tier '.($earlierIndex + 1).'.';
+            foreach (array_slice($slicedTiers, 0, $index) as $earlierIndex => $earlier) {
+                if (! is_array($earlier) || ! $this->tiersOverlap($earlier, $tier)) {
+                    continue;
                 }
+
+                $errors[] = $label.' overlaps tier '.($earlierIndex + 1).'.';
             }
         }
 
-        return array_values(array_unique($errors));
+        return $errors;
     }
 
     /**
@@ -147,10 +190,26 @@ class MonthlyUpsellRules
     {
         $aMin = (float) ($a['min'] ?? 0);
         $bMin = (float) ($b['min'] ?? 0);
-        $aMax = ($a['max'] ?? null) === null || ($a['max'] ?? null) === '' ? INF : (float) $a['max'];
-        $bMax = ($b['max'] ?? null) === null || ($b['max'] ?? null) === '' ? INF : (float) $b['max'];
+        $aMax = $this->tierMax($a) ?? INF;
+        $bMax = $this->tierMax($b) ?? INF;
 
         return $aMin <= $bMax && $bMin <= $aMax;
+    }
+
+    /**
+     * Resolve a tier's upper bound, treating a null or blank value as unbounded.
+     *
+     * @param  array<string, mixed>  $tier
+     */
+    private function tierMax(array $tier): ?float
+    {
+        $max = $tier['max'] ?? null;
+
+        if ($max === null || $max === '') {
+            return null;
+        }
+
+        return (float) $max;
     }
 
     /**
@@ -181,13 +240,13 @@ class MonthlyUpsellRules
             }
 
             $min = (float) $tier['min'];
-            $max = $tier['max'] ?? null;
+            $max = $this->tierMax($tier);
 
             if ($amount < $min) {
                 continue;
             }
 
-            if ($max !== null && $max !== '' && $amount > (float) $max) {
+            if ($max !== null && $amount > $max) {
                 continue;
             }
 

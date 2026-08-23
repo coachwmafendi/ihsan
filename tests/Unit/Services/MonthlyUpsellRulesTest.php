@@ -371,7 +371,19 @@ it('rejects a tier with no offers', function () {
         ['min' => 50, 'max' => null, 'offers' => []],
     ]);
 
-    expect($errors)->toContain('Tier 1: add one or two offers.');
+    expect($errors)->toContain('Tier 1: add at least one offer.');
+});
+
+it('rejects a tier with more than the maximum offers', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 50, 'max' => null, 'offers' => [
+            ['type' => 'percent', 'value' => 10],
+            ['type' => 'percent', 'value' => 20],
+            ['type' => 'percent', 'value' => 30],
+        ]],
+    ]);
+
+    expect($errors)->toContain('Tier 1: add at most 2 offers.');
 });
 
 it('rejects more than six tiers', function () {
@@ -396,4 +408,48 @@ it('validates an offer with no type as a percentage', function () {
     ]);
 
     expect($errors)->toBe([]);
+});
+
+it('rejects a non-array tier instead of throwing', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        'garbage',
+        ['min' => 50, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 33]]],
+    ]);
+
+    expect($errors)->toContain('Tier 1 is not configured correctly.');
+});
+
+it('treats an empty string max as unbounded', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 50, 'max' => '', 'offers' => [['type' => 'percent', 'value' => 33]]],
+        ['min' => 200, 'max' => '', 'offers' => [['type' => 'percent', 'value' => 20]]],
+    ]);
+
+    expect($errors)
+        ->not->toContain('Tier 1: the maximum must be greater than the minimum.')
+        ->and($errors)->toContain('Tier 2 overlaps tier 1.');
+});
+
+it('rejects a non-numeric minimum', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => '50abc', 'max' => null, 'offers' => [['type' => 'percent', 'value' => 33]]],
+    ]);
+
+    expect($errors)->toContain('Tier 1: the minimum must be a number.');
+});
+
+it('rejects a non-numeric maximum', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 50, 'max' => '200abc', 'offers' => [['type' => 'percent', 'value' => 33]]],
+    ]);
+
+    expect($errors)->toContain('Tier 1: the maximum must be a number.');
+});
+
+it('rejects a non-numeric offer value', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 50, 'max' => null, 'offers' => [['type' => 'percent', 'value' => '33abc']]],
+    ]);
+
+    expect($errors)->toContain('Tier 1, offer 1: the value must be a number.');
 });
