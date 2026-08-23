@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PaymentGateway;
 use App\Models\Campaign;
 use App\Models\Organization;
 use App\Services\MonthlyUpsellRules;
@@ -57,7 +58,8 @@ it('matches a tier on its exact lower bound', function () {
 it('matches a tier on its exact upper bound', function () {
     $offer = (new MonthlyUpsellRules)->resolve(upsellCampaign(), 199.0, 'myr');
 
-    expect($offer)->not->toBeNull();
+    expect($offer)->not->toBeNull()
+        ->and($offer->offers)->toBe([65.0, 100.0]);
 });
 
 it('returns null when no tier matches the amount', function () {
@@ -231,4 +233,81 @@ it('uses the campaign copy overrides when present', function () {
 
     expect($offer->heading)->toBe('Jadi penyokong bulanan')
         ->and($offer->body)->toBe('Tukar sumbangan RM 120.00 anda kepada bulanan?');
+});
+
+it('falls back to the default heading when the override is an empty string', function () {
+    $campaign = upsellCampaign(['heading' => '']);
+
+    $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
+
+    expect($offer->heading)->toBe('Become a monthly supporter');
+});
+
+it('skips an offer with an unrecognised type', function () {
+    $campaign = upsellCampaign([
+        'tiers' => [
+            ['min' => 50, 'max' => null, 'offers' => [['type' => 'Fixed', 'value' => 30]]],
+        ],
+    ]);
+
+    $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
+
+    expect($offer)->toBeNull();
+});
+
+it('returns null for a chip campaign whose organization only enables fpx', function () {
+    $organization = Organization::factory()->create([
+        'settings' => ['chip_payment_methods' => ['fpx']],
+    ]);
+
+    $campaign = Campaign::factory()->for($organization)->create([
+        'allow_recurring' => true,
+        'payment_gateway' => PaymentGateway::Chip,
+        'config' => ['monthly_upsell' => [
+            'enabled' => true,
+            'cooldown_days' => 30,
+            'tiers' => [
+                ['min' => 50, 'max' => null, 'offers' => [['type' => 'fixed', 'value' => 30]]],
+            ],
+        ]],
+    ])->load('organization');
+
+    expect((new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr'))->toBeNull();
+});
+
+it('returns an offer for a chip campaign whose organization enables card and fpx', function () {
+    $organization = Organization::factory()->create([
+        'settings' => ['chip_payment_methods' => ['card', 'fpx']],
+    ]);
+
+    $campaign = Campaign::factory()->for($organization)->create([
+        'allow_recurring' => true,
+        'payment_gateway' => PaymentGateway::Chip,
+        'config' => ['monthly_upsell' => [
+            'enabled' => true,
+            'cooldown_days' => 30,
+            'tiers' => [
+                ['min' => 50, 'max' => null, 'offers' => [['type' => 'fixed', 'value' => 30]]],
+            ],
+        ]],
+    ])->load('organization');
+
+    $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
+
+    expect($offer)->not->toBeNull()
+        ->and($offer->offers)->toBe([30.0]);
+});
+
+it('does not let a malformed tier shadow a valid tier that follows it', function () {
+    $campaign = upsellCampaign([
+        'tiers' => [
+            ['offers' => [['type' => 'fixed', 'value' => 999]]],
+            ['min' => 50, 'max' => null, 'offers' => [['type' => 'fixed', 'value' => 30]]],
+        ],
+    ]);
+
+    $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
+
+    expect($offer)->not->toBeNull()
+        ->and($offer->offers)->toBe([30.0]);
 });
