@@ -311,3 +311,73 @@ it('does not let a malformed tier shadow a valid tier that follows it', function
     expect($offer)->not->toBeNull()
         ->and($offer->offers)->toBe([30.0]);
 });
+
+it('accepts a well-formed tier config', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 50, 'max' => 199, 'offers' => [['type' => 'percent', 'value' => 33]]],
+        ['min' => 200, 'max' => null, 'offers' => [['type' => 'fixed', 'value' => 100]]],
+    ]);
+
+    expect($errors)->toBe([]);
+});
+
+it('rejects a tier with no minimum', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 0, 'max' => 199, 'offers' => [['type' => 'percent', 'value' => 33]]],
+    ]);
+
+    expect($errors)->toContain('Tier 1: the minimum must be greater than zero.');
+});
+
+it('rejects a tier whose maximum is not above its minimum', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 200, 'max' => 100, 'offers' => [['type' => 'percent', 'value' => 33]]],
+    ]);
+
+    expect($errors)->toContain('Tier 1: the maximum must be greater than the minimum.');
+});
+
+it('rejects overlapping tiers', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 50, 'max' => 199, 'offers' => [['type' => 'percent', 'value' => 33]]],
+        ['min' => 150, 'max' => 400, 'offers' => [['type' => 'percent', 'value' => 20]]],
+    ]);
+
+    expect($errors)->toContain('Tier 2 overlaps tier 1.');
+});
+
+it('rejects a percent offer of zero or one hundred', function () {
+    $rules = new MonthlyUpsellRules;
+
+    expect($rules->validateConfig([
+        ['min' => 50, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 0]]],
+    ]))->toContain('Tier 1, offer 1: a percentage must be between 1 and 99.');
+
+    expect($rules->validateConfig([
+        ['min' => 50, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 100]]],
+    ]))->toContain('Tier 1, offer 1: a percentage must be between 1 and 99.');
+});
+
+it('rejects a fixed offer of zero', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 50, 'max' => null, 'offers' => [['type' => 'fixed', 'value' => 0]]],
+    ]);
+
+    expect($errors)->toContain('Tier 1, offer 1: the amount must be greater than zero.');
+});
+
+it('rejects a tier with no offers', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 50, 'max' => null, 'offers' => []],
+    ]);
+
+    expect($errors)->toContain('Tier 1: add one or two offers.');
+});
+
+it('rejects more than six tiers', function () {
+    $tier = ['min' => 50, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 33]]];
+
+    $errors = (new MonthlyUpsellRules)->validateConfig(array_fill(0, 7, $tier));
+
+    expect($errors)->toContain('At most 6 tiers are allowed.');
+});

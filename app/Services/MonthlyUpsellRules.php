@@ -26,6 +26,10 @@ class MonthlyUpsellRules
      */
     private const int ROUNDING_STEP = 5;
 
+    private const int MAX_TIERS = 6;
+
+    private const int MAX_OFFERS_PER_TIER = 2;
+
     public function resolve(Campaign $campaign, float $amount, string $currency): ?MonthlyUpsellOffer
     {
         $config = $campaign->config['monthly_upsell'] ?? null;
@@ -65,6 +69,80 @@ class MonthlyUpsellRules
             declineLabel: str_replace(':amount', $formattedAmount, self::DEFAULT_DECLINE_LABEL),
             cooldownDays: (int) ($config['cooldown_days'] ?? self::DEFAULT_COOLDOWN_DAYS),
         );
+    }
+
+    /**
+     * Validate admin-supplied tier rules, returning human-readable errors.
+     *
+     * @param  array<int, array<string, mixed>>  $tiers
+     * @return array<int, string>
+     */
+    public function validateConfig(array $tiers): array
+    {
+        $errors = [];
+
+        if (count($tiers) > self::MAX_TIERS) {
+            $errors[] = 'At most '.self::MAX_TIERS.' tiers are allowed.';
+        }
+
+        foreach (array_values($tiers) as $index => $tier) {
+            $label = 'Tier '.($index + 1);
+            $min = (float) ($tier['min'] ?? 0);
+            $max = ($tier['max'] ?? null) === '' ? null : $tier['max'] ?? null;
+
+            if ($min <= 0) {
+                $errors[] = $label.': the minimum must be greater than zero.';
+            }
+
+            if ($max !== null && (float) $max <= $min) {
+                $errors[] = $label.': the maximum must be greater than the minimum.';
+            }
+
+            $offers = is_array($tier['offers'] ?? null) ? $tier['offers'] : [];
+
+            if ($offers === [] || count($offers) > self::MAX_OFFERS_PER_TIER) {
+                $errors[] = $label.': add one or two offers.';
+            }
+
+            foreach (array_values($offers) as $offerIndex => $offer) {
+                $offerLabel = $label.', offer '.($offerIndex + 1);
+                $value = (float) ($offer['value'] ?? 0);
+
+                if (($offer['type'] ?? 'percent') === 'fixed') {
+                    if ($value <= 0) {
+                        $errors[] = $offerLabel.': the amount must be greater than zero.';
+                    }
+
+                    continue;
+                }
+
+                if ($value < 1 || $value > 99) {
+                    $errors[] = $offerLabel.': a percentage must be between 1 and 99.';
+                }
+            }
+
+            foreach (array_slice(array_values($tiers), 0, $index) as $earlierIndex => $earlier) {
+                if ($this->tiersOverlap($earlier, $tier)) {
+                    $errors[] = $label.' overlaps tier '.($earlierIndex + 1).'.';
+                }
+            }
+        }
+
+        return array_values(array_unique($errors));
+    }
+
+    /**
+     * @param  array<string, mixed>  $a
+     * @param  array<string, mixed>  $b
+     */
+    private function tiersOverlap(array $a, array $b): bool
+    {
+        $aMin = (float) ($a['min'] ?? 0);
+        $bMin = (float) ($b['min'] ?? 0);
+        $aMax = ($a['max'] ?? null) === null || ($a['max'] ?? null) === '' ? INF : (float) $a['max'];
+        $bMax = ($b['max'] ?? null) === null || ($b['max'] ?? null) === '' ? INF : (float) $b['max'];
+
+        return $aMin <= $bMax && $bMin <= $aMax;
     }
 
     /**
