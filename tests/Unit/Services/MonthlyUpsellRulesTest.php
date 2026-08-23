@@ -381,3 +381,19 @@ it('rejects more than six tiers', function () {
 
     expect($errors)->toContain('At most 6 tiers are allowed.');
 });
+
+it('rejects an offer whose type is not percent or fixed', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 50, 'max' => null, 'offers' => [['type' => 'Fixed', 'value' => 30]]],
+    ]);
+
+    expect($errors)->toContain('Tier 1, offer 1: choose either a percentage or a fixed amount.');
+});
+
+it('validates an offer with no type as a percentage', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([
+        ['min' => 50, 'max' => null, 'offers' => [['value' => 33]]],
+    ]);
+
+    expect($errors)->toBe([]);
+});

@@ -106,9 +106,17 @@ class MonthlyUpsellRules
 
             foreach (array_values($offers) as $offerIndex => $offer) {
                 $offerLabel = $label.', offer '.($offerIndex + 1);
+                $type = $offer['type'] ?? 'percent';
+
+                if (! in_array($type, ['percent', 'fixed'], true)) {
+                    $errors[] = $offerLabel.': choose either a percentage or a fixed amount.';
+
+                    continue;
+                }
+
                 $value = (float) ($offer['value'] ?? 0);
 
-                if (($offer['type'] ?? 'percent') === 'fixed') {
+                if ($type === 'fixed') {
                     if ($value <= 0) {
                         $errors[] = $offerLabel.': the amount must be greater than zero.';
                     }
