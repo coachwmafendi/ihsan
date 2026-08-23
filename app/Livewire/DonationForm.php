@@ -42,6 +42,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 use Stripe\PaymentIntent as StripePaymentIntent;
@@ -117,6 +118,7 @@ class DonationForm extends Component
      * query string, so this can't be read from request() in the computed
      * property itself.
      */
+    #[Locked]
     public bool $upsellSuppressedByEmbed = false;
 
     public float $campaignCollectedAmount = 0.0;

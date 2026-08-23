@@ -4,6 +4,7 @@ use App\Enums\CampaignStatus;
 use App\Livewire\DonationForm;
 use App\Models\Campaign;
 use App\Models\Organization;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
 /**
@@ -103,3 +104,8 @@ it('still offers when the embed reports it has not shown one', function () {
 
     expect($component->instance()->monthlyUpsell())->not->toBeNull();
 });
+
+it('rejects a client attempt to overwrite the embed-suppression flag', function () {
+    Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign()])
+        ->set('upsellSuppressedByEmbed', true);
+})->throws(CannotUpdateLockedPropertyException::class);
