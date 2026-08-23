@@ -628,6 +628,38 @@
                     @endif
                 </x-ui.card>
             </section>
+
+            {{-- Activity --}}
+            <section id="section-activity" data-section="section-activity">
+                <x-ui.card title="Activity" icon="heroicon-o-clock" :padded="false">
+                    <x-slot:actions>
+                        <button
+                            type="button"
+                            wire:click="toggleInstallmentEvents"
+                            class="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        >
+                            {{ $showInstallmentEvents ? 'Hide installment events' : 'Show installment events' }}
+                        </button>
+                    </x-slot:actions>
+
+                    <x-ui.activity-timeline
+                        :activities="$this->activities"
+                        empty-description="Changes to this recurring plan — paused, resumed, amount changed, cancelled — will appear here."
+                    >
+                        @if ($this->hasMoreActivity)
+                            <div class="border-t border-slate-100 px-5 py-3 text-right">
+                                <a
+                                    href="{{ route('app.audit-log.index', ['search' => $subscription->public_id]) }}"
+                                    wire:navigate
+                                    class="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                >
+                                    View full history in Audit Log →
+                                </a>
+                            </div>
+                        @endif
+                    </x-ui.activity-timeline>
+                </x-ui.card>
+            </section>
         </div>
 
         {{-- Right Column / Floating Menu --}}
@@ -741,6 +773,15 @@
                         >
                             <x-heroicon-o-envelope class="size-5" />
                             Emails
+                        </button>
+                        <button
+                            type="button"
+                            @click="scrollToSection('section-activity')"
+                            :class="activeSection === 'section-activity' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'"
+                            class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-semibold transition"
+                        >
+                            <x-heroicon-o-clock class="size-5" />
+                            Activity
                         </button>
                     </nav>
                 </div>

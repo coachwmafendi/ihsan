@@ -3,6 +3,8 @@
     'description' => null,
     'actions' => null,
     'icon' => null,
+    {{-- Lists that draw their own full-width rows supply their own padding. --}}
+    'padded' => true,
 ])
 
 <div {{ $attributes->merge(['class' => 'rounded-xl border border-slate-200 bg-white']) }}>
@@ -27,7 +29,7 @@
         </div>
     @endif
 
-    <div class="p-5">
+    <div @class(['p-5' => $padded])>
         {{ $slot }}
     </div>
 

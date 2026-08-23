@@ -96,6 +96,45 @@ class AuditLogQuery
         return $query->orderByDesc('activity_log.created_at');
     }
 
+    /**
+     * Every entry recorded against one record, newest first.
+     *
+     * Scoping is left to the caller: a record page has already decided the
+     * viewer may see the record, and its own history says nothing more.
+     */
+    public static function forSubject(Model $subject): Builder
+    {
+        return Activity::query()
+            ->with('causer')
+            ->where('subject_type', $subject->getMorphClass())
+            ->where('subject_id', $subject->getKey())
+            ->orderByDesc('activity_log.created_at')
+            ->orderByDesc('activity_log.id');
+    }
+
+    /**
+     * A recurring plan's history together with its installment entries.
+     *
+     * Installments are logged against the installment donation rather than the
+     * plan, so they only join the plan's timeline when someone asks for them.
+     */
+    public static function forSubjectWithInstallments(Subscription $subscription): Builder
+    {
+        return Activity::query()
+            ->with('causer')
+            ->where(function (Builder $query) use ($subscription): void {
+                $query->where(function (Builder $q) use ($subscription): void {
+                    $q->where('subject_type', $subscription->getMorphClass())
+                        ->where('subject_id', $subscription->getKey());
+                })->orWhere(function (Builder $q) use ($subscription): void {
+                    $q->where('subject_type', (new Donation)->getMorphClass())
+                        ->whereIn('subject_id', $subscription->donations()->select('id'));
+                });
+            })
+            ->orderByDesc('activity_log.created_at')
+            ->orderByDesc('activity_log.id');
+    }
+
     private static function applyInitiatorFilter(Builder $query, string $initiator): void
     {
         match ($initiator) {

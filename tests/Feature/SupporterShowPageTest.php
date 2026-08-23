@@ -895,3 +895,19 @@ it('shows an empty state when the supporter has no saved cards', function () {
         ->assertOk()
         ->assertSee('No payment methods');
 });
+
+it('shows when a supporter joined and links to their audit log entries', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Supporter since')
+        ->assertSee(route('app.audit-log.index', ['search' => $donor->public_id]), false);
+});

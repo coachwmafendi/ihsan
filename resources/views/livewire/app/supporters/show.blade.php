@@ -121,6 +121,21 @@
                             <dt class="w-36 text-sm text-slate-500">Mailing Address</dt>
                             <dd class="flex-1 text-sm text-slate-900">{{ $this->fullAddress ?? '—' }}</dd>
                         </div>
+                        {{-- A supporter's own history is one line for most of their life, so it
+                             sits here rather than in a card of its own. --}}
+                        <div class="flex gap-4">
+                            <dt class="w-36 text-sm text-slate-500">Supporter since</dt>
+                            <dd class="flex flex-1 flex-wrap items-center gap-2 text-sm text-slate-900">
+                                <span>{{ myrTime($donor->created_at) }}</span>
+                                <a
+                                    href="{{ route('app.audit-log.index', ['search' => $donor->public_id]) }}"
+                                    wire:navigate
+                                    class="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                >
+                                    View activity →
+                                </a>
+                            </dd>
+                        </div>
                     </dl>
                 </x-ui.card>
             </section>

@@ -10,20 +10,26 @@ use App\Actions\DonorEmailLog\ResendDonorEmail;
 use App\Actions\Stripe\RefundDonation as StripeRefundDonation;
 use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Enums\DonationStatus;
+use App\Livewire\Concerns\ShowsActivityTimeline;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
 use App\Models\Organization;
+use App\Services\AuditLogQuery;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Spatie\Activitylog\Models\Activity;
 
 #[Layout('layouts.app')]
 #[Title('Donation')]
 class DonationShow extends Component
 {
+    use ShowsActivityTimeline;
+
     public Donation $donation;
 
     public bool $showRefundModal = false;
@@ -505,6 +511,21 @@ class DonationShow extends Component
 
         $this->showEditPersonalModal = false;
         $this->dispatch('notify', message: 'Personal information updated.', variant: 'success');
+    }
+
+    /**
+     * @return Collection<int, Activity>
+     */
+    #[Computed]
+    public function activities(): Collection
+    {
+        return $this->activityTimeline(AuditLogQuery::forSubject($this->donation));
+    }
+
+    #[Computed]
+    public function hasMoreActivity(): bool
+    {
+        return $this->activityTimelineHasMore(AuditLogQuery::forSubject($this->donation));
     }
 
     #[Computed]

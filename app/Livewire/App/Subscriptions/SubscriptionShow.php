@@ -14,11 +14,13 @@ use App\Actions\Stripe\PauseLocalRecurringPlan;
 use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Actions\Stripe\UpdateAppControlledPaymentMethod;
 use App\Enums\SubscriptionStatus;
+use App\Livewire\Concerns\ShowsActivityTimeline;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Services\AuditLogQuery;
 use App\Services\DonationFeeEstimator;
 use App\Services\SubscriptionSchedule;
 use Carbon\CarbonImmutable;
@@ -31,6 +33,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Spatie\Activitylog\Models\Activity;
 use Stripe\Invoice as StripeInvoice;
 use Stripe\Stripe;
 
@@ -38,7 +41,11 @@ use Stripe\Stripe;
 #[Title('Recurring Plan')]
 class SubscriptionShow extends Component
 {
+    use ShowsActivityTimeline;
+
     public Subscription $subscription;
+
+    public bool $showInstallmentEvents = false;
 
     public bool $showUpgradeModal = false;
 
@@ -818,6 +825,44 @@ class SubscriptionShow extends Component
         $this->subscription->refresh();
         $this->showEditPersonalModal = false;
         $this->dispatch('notify', type: 'success', message: 'Personal information updated.');
+    }
+
+    /**
+     * The plan's own history: created, changed, paused, cancelled.
+     *
+     * Installment entries are logged against the installment donation, and the
+     * Installments card above already lists every charge — repeating them here
+     * would bury the handful of events that describe the plan itself.
+     *
+     * @return Collection<int, Activity>
+     */
+    #[Computed]
+    public function activities(): Collection
+    {
+        return $this->activityTimeline($this->activityQuery());
+    }
+
+    #[Computed]
+    public function hasMoreActivity(): bool
+    {
+        return $this->activityTimelineHasMore($this->activityQuery());
+    }
+
+    public function toggleInstallmentEvents(): void
+    {
+        $this->showInstallmentEvents = ! $this->showInstallmentEvents;
+
+        unset($this->activities, $this->hasMoreActivity);
+    }
+
+    /**
+     * @return Builder<Activity>
+     */
+    private function activityQuery(): Builder
+    {
+        return $this->showInstallmentEvents
+            ? AuditLogQuery::forSubjectWithInstallments($this->subscription)
+            : AuditLogQuery::forSubject($this->subscription);
     }
 
     #[Computed]
