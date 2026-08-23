@@ -73,7 +73,7 @@ No migration. Rules live under `campaign.config['monthly_upsell']`:
 
 ### Rules service
 
-`app/Services/MonthlyUpsellRules.php`. No database access, no request access, no framework state — a pure function of its arguments.
+`app/Services/MonthlyUpsellRules.php`. No request access and no framework state — a function of its arguments. It reads `$campaign->organization->chipPaymentMethods()` for the CHIP check below; the organization relation is already eager-loaded by `DonationForm::mount()`, so this adds no query on the donation path.
 
 ```php
 public function resolve(Campaign $campaign, float $amount, string $currency): ?MonthlyUpsellOffer
@@ -104,7 +104,7 @@ Blade, Alpine, and the tests all consume the same shape, so a change to the tier
 
 ### Config validation
 
-`MonthlyUpsellRules::validateConfig(array $config): array` returns a list of error messages. The campaign edit component uses it for its validation rules. Rules:
+`MonthlyUpsellRules::validateConfig(array $tiers): array` returns a list of error messages. The campaign edit component uses it for its validation rules. Rules:
 
 - `min` is required and greater than zero.
 - When `max` is present, `max > min`.
@@ -179,10 +179,10 @@ The panel reuses the existing secure-donation shell rather than introducing a ne
 
 ### Admin UI
 
-A "Monthly Upsell" card on the campaign edit page, placed after the "Configuration" card, following the existing card-plus-edit-modal pattern.
+The campaign edit page has no modals: read-only summary cards switch `activeTab`, and the fields live in the `settings` and `checkout` tab sections. The upsell follows the same split.
 
-- View mode: an Enabled/Disabled badge, a one-line summary per tier (`RM 50–199 → 33% & 50%`), and the cooldown.
-- Edit modal: the enable toggle, cooldown days, a tier repeater (min, max, and up to two offers each with a percent/fixed selector), and two textareas for the heading and body overrides.
+- A "Monthly Upsell" summary card after the "Configuration" card: an Enabled/Disabled badge, a one-line summary per tier (`RM 50–199 → 33% & 50%`), and the cooldown. Its action button switches to the `checkout` tab.
+- The editor lives at the end of the `checkout` tab section: the enable toggle, cooldown days, a tier repeater (min, max, and up to two offers each with a percent/fixed selector), and the heading and body overrides. It copies the suggested-amounts repeater already in that section.
 
 Component state: `upsell_enabled`, `upsell_cooldown_days`, `upsell_heading`, `upsell_body`, `upsell_tiers`, plus `addUpsellTier()` and `removeUpsellTier(int $index)`, mirroring the existing `addOneTimeSuggested()` / `removeOneTimeSuggested()` methods.
 
@@ -225,12 +225,16 @@ These properties are analytics-only. They never influence pricing, subscription 
 - Declining creates a one-time donation with `upsell_shown` true and `upsell_accepted` false.
 - The `upsell=1` query parameter forces `monthlyUpsell()` to `null`.
 
-### Browser — Pest 4
+### Manual verification
 
-Two paths only, since browser tests are expensive:
+The project has no Pest browser-testing plugin installed, and adding a dependency is out of scope for this change. The Alpine layer is therefore verified by hand against local campaigns, with a written checklist in the implementation plan:
 
 - Select RM 120 one-time, continue, see the panel, take an offer, and confirm step 2 shows RM 40/month.
 - Select RM 120 one-time, continue, decline, and confirm step 2 shows the one-time RM 120.
+- The back chevron returns to step 1 and the panel does not fire a second time.
+- Inline embed mode hands off to the checkout modal with the accepted monthly amount.
+
+If browser coverage is wanted later, installing `pestphp/pest-plugin-browser` is a separate, approved change.
 
 ### Regression
 
