@@ -4,7 +4,7 @@
     document.addEventListener('alpine:init', () => {
         if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
             Alpine._donationStepRegistered = true;
-            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe', initialChipPaymentMethods = [], initialChipPaymentMethod = 'card', initialFpxBanks = [], initialUpsell = null) => {
+            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe', initialChipPaymentMethods = [], initialChipPaymentMethod = 'card', initialFpxBanks = []) => {
                 let stripe = null;
                 let elements = null;
                 let paymentElement = null;
@@ -47,7 +47,7 @@
                     stepErrors: {},
                     cardError: '',
                     stripeInitError: '',
-                    upsell: initialUpsell,
+                    upsell: null,
                     upsellShown: false,
                     upsellAccepted: false,
                     upsellOriginal: null,
@@ -197,19 +197,19 @@
                             report?.(e);
                         }
                     },
-                    nextStep() {
+                    async nextStep() {
                         if (this.currentStep === 1 && !this.validateStep1()) return;
                         if (this.currentStep === 2 && !this.validateStep2()) return;
                         if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
 
-                        if (this.currentStep === 1 && this.shouldShowUpsell()) {
-                            this.upsellOriginal = this.amountNumber();
-                            this.upsellShown = true;
-                            this.currentStep = 'upsell';
-                            return;
-                        }
-
                         if (this.currentStep === 1) {
+                            if (await this.shouldShowUpsell()) {
+                                this.upsellOriginal = this.amountNumber();
+                                this.upsellShown = true;
+                                this.currentStep = 'upsell';
+                                return;
+                            }
+
                             this.resumeAfterStepOne();
                             return;
                         }
@@ -217,13 +217,25 @@
                         this.currentStep++;
                         if (this.currentStep === 3 && this.paymentGateway === 'stripe') this.$nextTick(() => this.mountPaymentElement());
                     },
-                    shouldShowUpsell() {
+                    // The donor's amount and frequency only exist on the client
+                    // until this point, so the offer has to be resolved now
+                    // rather than baked in at render time.
+                    async shouldShowUpsell() {
+                        if (this.frequency !== 'one_time' || this.upsellShown || this.declinedRecently()) return false;
+
+                        const amount = this.amountNumber();
+                        if (amount === null || amount <= 0) return false;
+
+                        try {
+                            this.upsell = await this.$wire.resolveMonthlyUpsell(amount, this.frequency);
+                        } catch (e) {
+                            // A failed lookup must never block the donation.
+                            this.upsell = null;
+                        }
+
                         return this.upsell !== null
                             && Array.isArray(this.upsell.offers)
-                            && this.upsell.offers.length > 0
-                            && this.frequency === 'one_time'
-                            && !this.upsellShown
-                            && !this.declinedRecently();
+                            && this.upsell.offers.length > 0;
                     },
                     resumeAfterStepOne() {
                         if (this.isEmbed && ! this.isPublicPage) {

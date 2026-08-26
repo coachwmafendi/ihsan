@@ -39,28 +39,31 @@ function upsellFormCampaign(array $upsell = [], array $attributes = []): Campaig
         ]);
 }
 
-it('exposes the resolved offer for an eligible campaign', function () {
-    $component = Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign()])
-        ->set('frequency', 'one_time')
-        ->set('amount', 120);
+it('resolves the offer for the amount the donor actually picked', function () {
+    // The donor picks the amount inside Alpine, so it never reaches a server
+    // property before the offer has to be made.
+    $component = Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign()]);
 
-    expect($component->instance()->monthlyUpsell()['offers'])->toBe([40.0, 60.0]);
+    expect($component->instance()->resolveMonthlyUpsell(120.0)['offers'])->toBe([40.0, 60.0]);
+});
+
+it('resolves a different offer as the picked amount changes', function () {
+    $component = Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign()]);
+
+    expect($component->instance()->resolveMonthlyUpsell(300.0)['offers'])->toBe([100.0, 150.0])
+        ->and($component->instance()->resolveMonthlyUpsell(20.0))->toBeNull();
 });
 
 it('exposes no offer when the campaign has the upsell disabled', function () {
-    $component = Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign(['enabled' => false])])
-        ->set('frequency', 'one_time')
-        ->set('amount', 120);
+    $component = Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign(['enabled' => false])]);
 
-    expect($component->instance()->monthlyUpsell())->toBeNull();
+    expect($component->instance()->resolveMonthlyUpsell(120.0))->toBeNull();
 });
 
 it('exposes no offer when the donor is already giving monthly', function () {
-    $component = Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign()])
-        ->set('amount', 120)
-        ->set('frequency', 'monthly');
+    $component = Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign()]);
 
-    expect($component->instance()->monthlyUpsell())->toBeNull();
+    expect($component->instance()->resolveMonthlyUpsell(120.0, 'monthly'))->toBeNull();
 });
 
 it('defaults the upsell tracking properties to a not-shown state', function () {
@@ -89,20 +92,16 @@ it('carries the upsell outcome into the tracking params', function () {
 
 it('suppresses the offer when the embed reports it already showed one', function () {
     $component = Livewire::withQueryParams(['upsell' => '1'])
-        ->test(DonationForm::class, ['campaign' => upsellFormCampaign()])
-        ->set('frequency', 'one_time')
-        ->set('amount', 120);
+        ->test(DonationForm::class, ['campaign' => upsellFormCampaign()]);
 
-    expect($component->instance()->monthlyUpsell())->toBeNull();
+    expect($component->instance()->resolveMonthlyUpsell(120.0))->toBeNull();
 });
 
 it('still offers when the embed reports it has not shown one', function () {
     $component = Livewire::withQueryParams(['upsell' => '0'])
-        ->test(DonationForm::class, ['campaign' => upsellFormCampaign()])
-        ->set('frequency', 'one_time')
-        ->set('amount', 120);
+        ->test(DonationForm::class, ['campaign' => upsellFormCampaign()]);
 
-    expect($component->instance()->monthlyUpsell())->not->toBeNull();
+    expect($component->instance()->resolveMonthlyUpsell(120.0))->not->toBeNull();
 });
 
 it('rejects a client attempt to overwrite the embed-suppression flag', function () {

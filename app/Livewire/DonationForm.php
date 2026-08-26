@@ -1185,15 +1185,18 @@ class DonationForm extends Component
     }
 
     /**
-     * The monthly upsell offer for the current one-time amount, or null when
-     * the campaign, amount, or context makes an offer inappropriate.
+     * The monthly upsell offer for a one-time amount, or null when the
+     * campaign, amount, or context makes an offer inappropriate.
+     *
+     * The donor picks their amount and frequency entirely inside Alpine, so
+     * neither is known at render time. The form calls this from the step 1
+     * Continue handler with whatever the donor actually chose.
      *
      * @return array{offers: array<int, float>, heading: string, body: string, declineLabel: string, cooldownDays: int}|null
      */
-    #[Computed]
-    public function monthlyUpsell(): ?array
+    public function resolveMonthlyUpsell(float $amount, string $frequency = 'one_time'): ?array
     {
-        if ($this->frequency !== 'one_time') {
+        if ($frequency !== 'one_time') {
             return null;
         }
 
@@ -1209,7 +1212,7 @@ class DonationForm extends Component
         }
 
         return (new MonthlyUpsellRules)
-            ->resolve($campaign, (float) $this->amount, $this->currency)
+            ->resolve($campaign, $amount, $this->currency)
             ?->toArray();
     }
 
