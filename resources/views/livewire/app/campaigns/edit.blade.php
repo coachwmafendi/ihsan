@@ -221,6 +221,49 @@
                     </dl>
                 </x-ui.card>
 
+                <x-ui.card title="Monthly Upsell" description="Offer one-time donors a monthly plan">
+                    <x-slot:actions>
+                        <button type="button" wire:click="editMonthlyUpsell" class="text-sm font-medium text-teal-600 hover:text-teal-700">
+                            Edit
+                        </button>
+                    </x-slot:actions>
+
+                    <dl class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Status</dt>
+                            <dd>
+                                <x-ui.badge status="{{ $upsell_enabled ? 'success' : 'default' }}" size="sm">
+                                    {{ $upsell_enabled ? 'Enabled' : 'Disabled' }}
+                                </x-ui.badge>
+                            </dd>
+                        </div>
+
+                        @if ($upsell_enabled)
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Tiers</dt>
+                                <dd class="mt-2 space-y-1.5">
+                                    @forelse ($upsell_tiers as $tier)
+                                        <div class="text-sm text-slate-700">
+                                            {{ $default_currency }} {{ (int) $tier['min'] }}&ndash;{{ ($tier['max'] ?? null) === null ? 'no limit' : (int) $tier['max'] }}
+                                            &rarr;
+                                            {{ collect($tier['offers'] ?? [])->map(fn (array $offer): string => ($offer['type'] ?? 'percent') === 'fixed'
+                                                ? $default_currency.' '.(int) $offer['value']
+                                                : (int) $offer['value'].'%')->join(' & ') }}
+                                        </div>
+                                    @empty
+                                        <div class="text-sm text-slate-500">No tiers configured yet.</div>
+                                    @endforelse
+                                </dd>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Decline cooldown</dt>
+                                <dd class="text-sm text-slate-700">{{ $upsell_cooldown_days }} days</dd>
+                            </div>
+                        @endif
+                    </dl>
+                </x-ui.card>
+
                 <x-ui.card title="Recent Donations" description="Last 10 donations to this campaign">
                     @php $recent = $campaign->donations()->with('donor')->latest()->limit(10)->get(); @endphp
                     @if ($recent->isNotEmpty())
@@ -707,6 +750,13 @@
                                 Processing Fee
                             </button>
                             <button type="button"
+                                wire:click="$set('checkoutPanel', 'upsell')"
+                                class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $checkoutPanel === 'upsell' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                            >
+                                <x-heroicon-o-arrow-trending-up class="size-5" />
+                                Monthly Upsell
+                            </button>
+                            <button type="button"
                                 wire:click="$set('checkoutPanel', 'comment')"
                                 class="inline-flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {{ $checkoutPanel === 'comment' ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
                             >
@@ -938,6 +988,128 @@
                                     <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
                                 </div>
                             </div>
+                        @endif
+
+                        @if ($checkoutPanel === 'upsell')
+                            <div class="space-y-4">
+                                <label class="flex items-start gap-3">
+                                    <input type="checkbox" wire:model.live="upsell_enabled" class="mt-0.5 size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600">
+                                    <span>
+                                        <span class="block text-sm font-medium text-slate-700">Offer a monthly plan to one-time donors</span>
+                                        <span class="block text-sm text-slate-500">Shown after the donor picks an amount, before they enter their details.</span>
+                                    </span>
+                                </label>
+
+                                @if ($upsell_enabled)
+                                    <div class="max-w-xs">
+                                        <label for="upsell_cooldown_days" class="block text-sm font-medium text-slate-700">Decline cooldown (days)</label>
+                                        <input
+                                            type="text"
+                                            inputmode="numeric"
+                                            maxlength="3"
+                                            pattern="[0-9]*"
+                                            id="upsell_cooldown_days"
+                                            wire:model="upsell_cooldown_days"
+                                            x-on:input="$event.target.value = $event.target.value.replace(/\D/g, '').substring(0, 3)"
+                                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                            placeholder="30"
+                                        />
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        <span class="text-base font-medium text-slate-700">Tiers</span>
+
+                                        @foreach ($upsell_tiers as $index => $tier)
+                                            <div class="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-sm font-semibold text-slate-700">Tier {{ $index + 1 }}</span>
+                                                    <button type="button" wire:click="removeUpsellTier({{ $index }})" class="text-sm font-medium text-red-600 hover:text-red-700">
+                                                        Remove
+                                                    </button>
+                                                </div>
+
+                                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-slate-600">One-time from ({{ $default_currency }})</label>
+                                                        <input
+                                                            type="text"
+                                                            inputmode="numeric"
+                                                            wire:model.blur="upsell_tiers.{{ $index }}.min"
+                                                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-slate-600">One-time up to ({{ $default_currency }})</label>
+                                                        <input
+                                                            type="text"
+                                                            inputmode="numeric"
+                                                            wire:model.blur="upsell_tiers.{{ $index }}.max"
+                                                            placeholder="No limit"
+                                                            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                    @foreach ($tier['offers'] ?? [] as $offerIndex => $offer)
+                                                        <div class="flex items-end gap-2">
+                                                            <div class="flex-1">
+                                                                <label class="block text-xs font-medium text-slate-600">Offer {{ $offerIndex + 1 }}</label>
+                                                                <input
+                                                                    type="text"
+                                                                    inputmode="numeric"
+                                                                    wire:model.blur="upsell_tiers.{{ $index }}.offers.{{ $offerIndex }}.value"
+                                                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                                                />
+                                                            </div>
+                                                            <x-ui.select wire:model.live="upsell_tiers.{{ $index }}.offers.{{ $offerIndex }}.type" class="w-28">
+                                                                <flux:select.option value="percent">% of gift</flux:select.option>
+                                                                <flux:select.option value="fixed">{{ $default_currency }} fixed</flux:select.option>
+                                                            </x-ui.select>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endforeach
+
+                                        @error('upsell_tiers')
+                                            <p class="text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+
+                                        @if (count($upsell_tiers) < 6)
+                                            <x-ui.button type="button" wire:click="addUpsellTier" variant="ghost">Add tier</x-ui.button>
+                                            @endif
+                                        </div>
+
+                                        <div class="grid grid-cols-1 gap-3">
+                                            <div>
+                                                <label for="upsell_heading" class="block text-sm font-medium text-slate-700">Heading override</label>
+                                                <input
+                                                    type="text"
+                                                    id="upsell_heading"
+                                                    wire:model="upsell_heading"
+                                                    placeholder="Become a monthly supporter"
+                                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label for="upsell_body" class="block text-sm font-medium text-slate-700">Message override</label>
+                                                <textarea
+                                                    id="upsell_body"
+                                                    wire:model="upsell_body"
+                                                    rows="3"
+                                                    placeholder="Use :amount for the one-time amount."
+                                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                                ></textarea>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                                    <x-ui.button href="{{ route('app.campaigns.index') }}" variant="ghost">Cancel</x-ui.button>
+                                    <x-ui.button type="button" wire:click="save" variant="primary">Save Changes</x-ui.button>
+                                </div>
                         @endif
 
                         @if ($checkoutPanel === 'comment')

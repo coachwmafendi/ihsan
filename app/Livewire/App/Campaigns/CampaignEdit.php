@@ -487,6 +487,15 @@ class CampaignEdit extends Component
         );
     }
 
+    /**
+     * Jump straight from the overview summary card to the upsell editor.
+     */
+    public function editMonthlyUpsell(): void
+    {
+        $this->activeTab = 'checkout';
+        $this->checkoutPanel = 'upsell';
+    }
+
     public function addUpsellTier(): void
     {
         if (count($this->upsell_tiers) >= self::MaxUpsellTiers) {

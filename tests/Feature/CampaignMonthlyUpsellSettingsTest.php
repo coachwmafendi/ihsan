@@ -81,6 +81,25 @@ it('adds and removes tiers', function () {
     expect($component->get('upsell_tiers'))->toHaveCount(0);
 });
 
+it('renders the tier editor and summary card when the upsell is enabled', function () {
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->call('editMonthlyUpsell')
+        ->assertSet('activeTab', 'checkout')
+        ->assertSet('checkoutPanel', 'upsell')
+        ->set('upsell_enabled', true)
+        ->set('upsell_tiers', [
+            ['min' => 50, 'max' => 199, 'offers' => [['type' => 'percent', 'value' => 33]]],
+            ['min' => 200, 'max' => null, 'offers' => [['type' => 'fixed', 'value' => 100]]],
+        ])
+        ->assertSee('Offer a monthly plan to one-time donors')
+        ->assertSee('Decline cooldown (days)')
+        ->assertSee('Add tier')
+        // The summary card renders each tier, including the open-ended one.
+        ->assertSee('MYR 50&ndash;199', false)
+        ->assertSee('MYR 200&ndash;no limit', false);
+});
+
 it('loads existing tiers when mounting', function () {
     $this->campaign->update(['config' => ['monthly_upsell' => [
         'enabled' => true,
