@@ -56,6 +56,12 @@ Schedule::command('app:sync-payouts --days=7')
     ->dailyAt('05:00')
     ->timezone('Asia/Kuala_Lumpur');
 
+// Hard-delete organizations that were soft-deleted, never touched Stripe and
+// hold no campaigns or fees. Real orgs keep their soft-delete tombstone.
+Schedule::command('app:prune-empty-organizations')
+    ->weeklyOn(1, '04:00')
+    ->timezone('Asia/Kuala_Lumpur');
+
 // Every scheduled command here either moves money, issues invoices or emails
 // supporters, so none of them may run twice when there is more than one
 // container. onOneServer() can only promise that once the mutex is shared.
