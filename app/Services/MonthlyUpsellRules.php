@@ -81,6 +81,12 @@ class MonthlyUpsellRules
     {
         $errors = [];
 
+        // An enabled upsell with no tiers matches no amount, so the campaign
+        // would save as "on" and then never make an offer.
+        if ($tiers === []) {
+            return ['Add at least one tier.'];
+        }
+
         if (count($tiers) > self::MAX_TIERS) {
             $errors[] = 'At most '.self::MAX_TIERS.' tiers are allowed.';
         }

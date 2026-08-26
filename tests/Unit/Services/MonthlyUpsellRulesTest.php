@@ -366,6 +366,12 @@ it('rejects a fixed offer of zero', function () {
     expect($errors)->toContain('Tier 1, offer 1: the amount must be greater than zero.');
 });
 
+it('rejects a config with no tiers at all', function () {
+    $errors = (new MonthlyUpsellRules)->validateConfig([]);
+
+    expect($errors)->toContain('Add at least one tier.');
+});
+
 it('rejects a tier with no offers', function () {
     $errors = (new MonthlyUpsellRules)->validateConfig([
         ['min' => 50, 'max' => null, 'offers' => []],

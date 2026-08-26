@@ -68,6 +68,39 @@ it('skips tier validation when the upsell is disabled', function () {
         ->assertHasNoErrors();
 });
 
+it('seeds a starter tier when the upsell is switched on', function () {
+    $component = Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->set('upsell_enabled', true);
+
+    expect($component->get('upsell_tiers'))->toHaveCount(1)
+        ->and($component->get('upsell_tiers')[0]['min'])->toBe(50.0)
+        ->and($component->get('upsell_tiers')[0]['max'])->toBeNull()
+        ->and($component->get('upsell_tiers')[0]['offers'])->toHaveCount(2);
+});
+
+it('leaves configured tiers alone when the upsell is switched back on', function () {
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->set('upsell_tiers', [
+            ['min' => 100, 'max' => null, 'offers' => [['type' => 'fixed', 'value' => 30]]],
+        ])
+        ->set('upsell_enabled', true)
+        ->assertCount('upsell_tiers', 1)
+        ->assertSet('upsell_tiers.0.min', 100);
+});
+
+it('rejects an enabled upsell that has no tiers', function () {
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->set('upsell_enabled', true)
+        ->set('upsell_tiers', [])
+        ->call('save')
+        ->assertHasErrors('upsell_tiers');
+
+    expect($this->campaign->fresh()->config)->not->toHaveKey('monthly_upsell');
+});
+
 it('adds and removes tiers', function () {
     $component = Livewire::actingAs($this->user)
         ->test(CampaignEdit::class, ['campaign' => $this->campaign])

@@ -488,6 +488,17 @@ class CampaignEdit extends Component
     }
 
     /**
+     * Switching the upsell on with no tiers configured would save a campaign
+     * that is "enabled" but silent, so seed a starter tier the NGO can adjust.
+     */
+    public function updatedUpsellEnabled(bool $value): void
+    {
+        if ($value && $this->upsell_tiers === []) {
+            $this->addUpsellTier();
+        }
+    }
+
+    /**
      * Jump straight from the overview summary card to the upsell editor.
      */
     public function editMonthlyUpsell(): void
