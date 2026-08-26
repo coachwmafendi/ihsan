@@ -256,3 +256,17 @@ it('shows preview amounts with the currency symbol donors see', function () {
         ->assertSee('RM 125 one-time')
         ->assertDontSee('MYR 125 one-time');
 });
+
+it('binds tier fields live so the worked example tracks what is typed', function () {
+    // wire:model.blur syncs the value to the server without re-rendering, which
+    // left the preview showing figures for the previous percentage.
+    $html = Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->call('editMonthlyUpsell')
+        ->set('upsell_enabled', true)
+        ->html();
+
+    expect($html)->toContain('wire:model.live.debounce.400ms="upsell_tiers.0.min"')
+        ->and($html)->toContain('wire:model.live.debounce.400ms="upsell_tiers.0.max"')
+        ->and($html)->toContain('wire:model.live.debounce.400ms="upsell_tiers.0.offers.0.value"');
+});

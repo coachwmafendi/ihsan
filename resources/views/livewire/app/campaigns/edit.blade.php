@@ -1058,7 +1058,7 @@
                                                         <input
                                                             type="text"
                                                             inputmode="numeric"
-                                                            wire:model.blur="upsell_tiers.{{ $index }}.min"
+                                                            wire:model.live.debounce.400ms="upsell_tiers.{{ $index }}.min"
                                                             class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                                         />
                                                         <p class="mt-1 text-xs text-slate-500">Smallest one-time gift this tier covers.</p>
@@ -1068,7 +1068,7 @@
                                                         <input
                                                             type="text"
                                                             inputmode="numeric"
-                                                            wire:model.blur="upsell_tiers.{{ $index }}.max"
+                                                            wire:model.live.debounce.400ms="upsell_tiers.{{ $index }}.max"
                                                             placeholder="No limit"
                                                             class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                                         />
@@ -1084,7 +1084,7 @@
                                                                 <input
                                                                     type="text"
                                                                     inputmode="numeric"
-                                                                    wire:model.blur="upsell_tiers.{{ $index }}.offers.{{ $offerIndex }}.value"
+                                                                    wire:model.live.debounce.400ms="upsell_tiers.{{ $index }}.offers.{{ $offerIndex }}.value"
                                                                     class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                                                 />
                                                             </div>
