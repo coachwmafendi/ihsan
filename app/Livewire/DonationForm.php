@@ -32,6 +32,7 @@ use App\Models\Subscription;
 use App\Services\DonationActivityLogger;
 use App\Services\DonationFeeEstimator;
 use App\Services\FraudDetectionService;
+use App\Services\MonthlyUpsellRules;
 use App\Services\RecurringPlanResolver;
 use App\Services\TrackingScriptService;
 use App\Support\ChipFpxBanks;
@@ -41,6 +42,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 use Stripe\PaymentIntent as StripePaymentIntent;
@@ -102,6 +104,22 @@ class DonationForm extends Component
     public ?string $chipFpxBankCode = null;
 
     public ?string $deviceType = null;
+
+    public bool $upsellShown = false;
+
+    public bool $upsellAccepted = false;
+
+    public ?float $upsellOriginalAmount = null;
+
+    /**
+     * True when the embed widget already made the monthly upsell offer
+     * before handing off to this checkout modal. Captured once at mount
+     * because later Livewire update requests don't carry the original
+     * query string, so this can't be read from request() in the computed
+     * property itself.
+     */
+    #[Locked]
+    public bool $upsellSuppressedByEmbed = false;
 
     public float $campaignCollectedAmount = 0.0;
 
@@ -209,6 +227,7 @@ class DonationForm extends Component
 
         $this->pageUrl = request()->fullUrl();
         $this->parentPageUrl = $this->sanitizeParentPageUrl(request()->query('pu'));
+        $this->upsellSuppressedByEmbed = request()->query('upsell') === '1';
 
         if ($element instanceof Element) {
             abort_if(
@@ -661,6 +680,7 @@ class DonationForm extends Component
             'frequency' => $validated['frequency'],
             'dedicate' => (bool) ($validated['dedicate'] ?? false),
             'source' => $source,
+            ...$this->buildUpsellTrackingParams(),
             'utm_source' => $pageQuery['utm_source'] ?? null,
             'utm_medium' => $pageQuery['utm_medium'] ?? null,
             'utm_campaign' => $pageQuery['utm_campaign'] ?? null,
@@ -893,6 +913,18 @@ class DonationForm extends Component
         }
 
         return $query;
+    }
+
+    /**
+     * @return array{upsell_shown: bool, upsell_accepted: bool, upsell_original_amount: float|null}
+     */
+    private function buildUpsellTrackingParams(): array
+    {
+        return [
+            'upsell_shown' => $this->upsellShown,
+            'upsell_accepted' => $this->upsellAccepted,
+            'upsell_original_amount' => $this->upsellOriginalAmount,
+        ];
     }
 
     /**
@@ -1150,6 +1182,38 @@ class DonationForm extends Component
             $this->currency,
             $gateway
         );
+    }
+
+    /**
+     * The monthly upsell offer for a one-time amount, or null when the
+     * campaign, amount, or context makes an offer inappropriate.
+     *
+     * The donor picks their amount and frequency entirely inside Alpine, so
+     * neither is known at render time. The form calls this from the step 1
+     * Continue handler with whatever the donor actually chose.
+     *
+     * @return array{offers: array<int, float>, heading: string, body: string, declineLabel: string, cooldownDays: int}|null
+     */
+    public function resolveMonthlyUpsell(float $amount, string $frequency = 'one_time'): ?array
+    {
+        if ($frequency !== 'one_time') {
+            return null;
+        }
+
+        // The embed already made the offer before handing off to the modal.
+        if ($this->upsellSuppressedByEmbed) {
+            return null;
+        }
+
+        $campaign = $this->element?->campaign ?? $this->campaign;
+
+        if ($campaign === null) {
+            return null;
+        }
+
+        return (new MonthlyUpsellRules)
+            ->resolve($campaign, $amount, $this->currency)
+            ?->toArray();
     }
 
     public function render()

@@ -948,6 +948,7 @@
         "frequency=" + encodeURIComponent(d.frequency || "one_time"),
         "currency=" + encodeURIComponent(d.currency || ""),
         "cover_fee=" + (d.coverFee ? "1" : "0"),
+        "upsell=" + (d.upsell ? "1" : "0"),
         "pu=" + encodeURIComponent(window.location.href),
       ].join("&");
       showCheckoutModal(el, baseUrl + "/donate/" + el.token + "?" + qs);

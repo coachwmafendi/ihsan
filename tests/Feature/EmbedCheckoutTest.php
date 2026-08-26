@@ -54,6 +54,16 @@ it('forwards the parent page url when continuing from the embedded step to the c
     expect($stepContinueBlock)->toContain('pu=');
 });
 
+it('forwards the monthly upsell flag when continuing from the embedded step', function () {
+    // Without `upsell=1`, the checkout modal offers the monthly upsell a second
+    // time to a donor who already answered it inside the embedded form.
+    $script = $this->get(route('widget.script'))->getContent();
+
+    $stepContinueBlock = strstr(strstr($script, 'ihsan:step-continue'), 'showCheckoutModal(el, baseUrl', true);
+
+    expect($stepContinueBlock)->toContain('"upsell=" + (d.upsell ? "1" : "0")');
+});
+
 it('does not render inactive elements from the widget fallback', function () {
     $script = $this->get(route('widget.script'))->getContent();
 

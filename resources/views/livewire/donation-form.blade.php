@@ -436,6 +436,62 @@
                              </button>
                          </div>{{-- end Step 1 --}}
 
+                        {{-- Upsell: offer to convert a one-time gift into a monthly plan --}}
+                        <div
+                            x-show="currentStep === 'upsell'"
+                            x-cloak
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 translate-y-2"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            class="{{ $usesSecureDonationShell ? 'space-y-3.5' : 'space-y-4' }}"
+                        >
+                            <div class="flex items-center gap-2 border-b border-slate-200 pb-3">
+                                <button
+                                    type="button"
+                                    x-on:click="currentStep = 1"
+                                    class="rounded p-1 text-slate-400 transition hover:text-slate-700"
+                                    aria-label="Back to amount"
+                                >
+                                    <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                </button>
+                                <h2 class="flex-1 pr-7 text-center text-base font-bold text-slate-900" x-text="upsell?.heading"></h2>
+                            </div>
+
+                            {{-- Rendered from segments rather than markup, so the
+                                 campaign's own copy can never inject HTML. --}}
+                            <p class="px-2 py-6 text-center text-base leading-relaxed text-slate-700">
+                                <template x-for="(segment, segmentIndex) in (upsell?.bodySegments ?? [])" :key="segmentIndex">
+                                    <span>
+                                        <span x-text="segment"></span><strong
+                                            x-show="segmentIndex < (upsell?.bodySegments?.length ?? 0) - 1"
+                                            class="font-bold text-slate-900"
+                                            x-text="upsell?.amountLabel"
+                                        ></strong>
+                                    </span>
+                                </template>
+                            </p>
+
+                            <div class="space-y-2.5">
+                                <template x-for="(offer, index) in (upsell?.offers ?? [])" :key="offer">
+                                    <button
+                                        type="button"
+                                        x-on:click="acceptUpsell(offer)"
+                                        class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98]"
+                                        :class="index === 0 ? 'bg-rose-600 hover:bg-rose-700' : 'bg-blue-600 hover:bg-blue-700'"
+                                    >
+                                        <span x-text="`Donate ${currencySymbol} ${formatCompactAmount(offer)}/month`"></span>
+                                    </button>
+                                </template>
+                            </div>
+
+                            <button
+                                type="button"
+                                x-on:click="declineUpsell()"
+                                class="w-full pt-1 text-center text-sm font-medium text-slate-600 underline underline-offset-2 transition hover:text-slate-900"
+                                x-text="upsell?.declineLabel"
+                            ></button>
+                        </div>
+
                          {{-- Step 2: Donor Details --}}
                          <div
                              x-show="currentStep === 2"
