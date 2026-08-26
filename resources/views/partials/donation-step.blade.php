@@ -228,7 +228,7 @@
                     // rather than baked in at render time.
                     async shouldShowUpsell() {
                         if (this.frequency !== 'one_time' || this.upsellShown) return false;
-                        if (this.declinedRecently() || this.alreadyGivesMonthly()) return false;
+                        if (this.alreadyGivesMonthly()) return false;
 
                         const amount = this.amountNumber();
                         if (amount === null || amount <= 0) return false;
@@ -239,6 +239,11 @@
                             // A failed lookup must never block the donation.
                             this.upsell = null;
                         }
+
+                        // The cooldown check has to come after the offer is
+                        // fetched: its length lives on the campaign, so testing
+                        // it any earlier would silently fall back to the default.
+                        if (this.declinedRecently()) return false;
 
                         return this.upsell !== null
                             && Array.isArray(this.upsell.offers)
@@ -290,7 +295,12 @@
                     // plans started on this device instead.
                     alreadyGivesMonthly() {
                         try {
-                            return window.localStorage.getItem(this.monthlyDonorKey()) !== null;
+                            const stored = window.localStorage.getItem(this.monthlyDonorKey());
+                            if (!stored) return false;
+                            // A plan started this long ago says nothing about
+                            // today, and the donor may well have cancelled, so
+                            // the marker stops suppressing after a year.
+                            return (Date.now() - Number(stored)) < 365 * 86400000;
                         } catch (e) {
                             return false;
                         }

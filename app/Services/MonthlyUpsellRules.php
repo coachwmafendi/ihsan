@@ -53,11 +53,6 @@ class MonthlyUpsellRules
         }
 
         $offers = $this->buildOffers($tier, $amount, (float) ($campaign->minimum_amount ?? 0));
-
-        if ($offers === []) {
-            return null;
-        }
-
         $formattedAmount = Currency::formatCompact($currency, $amount);
         $heading = filled($config['heading'] ?? null) ? (string) $config['heading'] : self::DEFAULT_HEADING;
         $body = filled($config['body'] ?? null) ? (string) $config['body'] : self::DEFAULT_BODY;
@@ -104,10 +99,22 @@ class MonthlyUpsellRules
         }
 
         $rawMax = $tier['max'] ?? null;
-        $max = is_numeric($rawMax) ? (float) $rawMax : null;
+        $maxIsBlank = $rawMax === null || $rawMax === '';
+
+        if (! $maxIsBlank && ! is_numeric($rawMax)) {
+            return [];
+        }
+
+        $max = $maxIsBlank ? null : (float) $rawMax;
+
+        // A range validateConfig would reject has no honest preview: sampling
+        // it would advertise amounts matchTier() could never match.
+        if ($max !== null && $max <= $min) {
+            return [];
+        }
 
         // An open-ended tier has no top, so step up from the minimum instead.
-        $amounts = $max === null || $max <= $min
+        $amounts = $max === null
             ? [$min, $min * 2, $min * 5]
             : [$min, floor(($min + $max) / 2), $max];
 

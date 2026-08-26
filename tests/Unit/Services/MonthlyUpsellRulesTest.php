@@ -495,10 +495,10 @@ it('steps up from the minimum when previewing an open-ended tier', function () {
     expect($amounts)->toBe([100.0, 200.0, 500.0]);
 });
 
-it('collapses duplicate preview samples on a one-amount tier', function () {
-    $amounts = (new MonthlyUpsellRules)->previewAmountsFor(['min' => 50, 'max' => 50]);
+it('has nothing to preview when the tier maximum is not a number', function () {
+    $amounts = (new MonthlyUpsellRules)->previewAmountsFor(['min' => 50, 'max' => 'lots']);
 
-    expect($amounts)->toBe([50.0, 100.0, 250.0]);
+    expect($amounts)->toBe([]);
 });
 
 it('has nothing to preview when the tier minimum is not set', function () {
@@ -546,4 +546,20 @@ it('falls back to the default decline label when the override is blank', functio
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
 
     expect($offer->declineLabel)->toBe('No, keep my one-time RM 120 gift');
+});
+
+it('has nothing to preview while the tier range is still invalid', function () {
+    $rules = new MonthlyUpsellRules;
+
+    // Both shapes are rejected by validateConfig, so previewing them would
+    // advertise amounts the tier could never match.
+    expect($rules->previewAmountsFor(['min' => 200, 'max' => 100]))->toBe([])
+        ->and($rules->previewAmountsFor(['min' => 50, 'max' => 50]))->toBe([]);
+});
+
+it('still previews an open-ended tier by stepping up from the minimum', function () {
+    $rules = new MonthlyUpsellRules;
+
+    expect($rules->previewAmountsFor(['min' => 100, 'max' => null]))->toBe([100.0, 200.0, 500.0])
+        ->and($rules->previewAmountsFor(['min' => 100, 'max' => '']))->toBe([100.0, 200.0, 500.0]);
 });

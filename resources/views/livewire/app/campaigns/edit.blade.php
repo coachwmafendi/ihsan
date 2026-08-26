@@ -1111,10 +1111,10 @@
                                                         <dl class="mt-2 space-y-1">
                                                             @foreach ($tierPreview as $row)
                                                                 <div class="flex flex-wrap items-baseline gap-x-2 text-sm">
-                                                                    <dt class="text-slate-500">{{ $default_currency }} {{ \App\Support\Currency::compactNumber($row['amount']) }} one-time</dt>
+                                                                    <dt class="text-slate-500">{{ \App\Support\Currency::formatCompact($default_currency, $row['amount']) }} one-time</dt>
                                                                     <dd class="font-medium text-slate-800">
                                                                         &rarr;
-                                                                        {{ collect($row['offers'])->map(fn (float $value): string => $default_currency.' '.\App\Support\Currency::compactNumber($value).'/month')->join(' or ') }}
+                                                                        {{ collect($row['offers'])->map(fn (float $value): string => \App\Support\Currency::formatCompact($default_currency, $value).'/month')->join(' or ') }}
                                                                         @if (count($row['offers']) < 2)
                                                                             <span class="font-normal text-slate-500">only</span>
                                                                         @endif

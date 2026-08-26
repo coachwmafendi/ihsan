@@ -474,20 +474,28 @@ class CampaignEdit extends Component
         $this->upsell_heading = $upsell['heading'] ?? null;
         $this->upsell_body = $upsell['body'] ?? null;
         $this->upsell_decline_label = $upsell['decline_label'] ?? null;
-        $this->upsell_tiers = array_map(
-            fn (array $tier): array => [
-                'min' => (float) ($tier['min'] ?? 0),
-                'max' => isset($tier['max']) ? (float) $tier['max'] : null,
-                'offers' => array_map(
-                    fn (array $offer): array => [
-                        'type' => $offer['type'] ?? 'percent',
-                        'value' => (float) ($offer['value'] ?? 0),
-                    ],
-                    is_array($tier['offers'] ?? null) ? $tier['offers'] : [],
-                ),
-            ],
-            is_array($upsell['tiers'] ?? null) ? $upsell['tiers'] : [],
-        );
+        $storedTiers = is_array($upsell['tiers'] ?? null) ? $upsell['tiers'] : [];
+
+        // A malformed entry must not take the page down: this editor is the
+        // only place an admin could repair the config that broke it.
+        $this->upsell_tiers = array_values(array_map(
+            function (array $tier): array {
+                $storedOffers = is_array($tier['offers'] ?? null) ? $tier['offers'] : [];
+
+                return [
+                    'min' => (float) ($tier['min'] ?? 0),
+                    'max' => isset($tier['max']) && $tier['max'] !== '' ? (float) $tier['max'] : null,
+                    'offers' => array_values(array_map(
+                        fn (array $offer): array => [
+                            'type' => $offer['type'] ?? 'percent',
+                            'value' => (float) ($offer['value'] ?? 0),
+                        ],
+                        array_filter($storedOffers, is_array(...)),
+                    )),
+                ];
+            },
+            array_filter($storedTiers, is_array(...)),
+        ));
     }
 
     /**
@@ -550,6 +558,33 @@ class CampaignEdit extends Component
             'offers' => [
                 ['type' => 'percent', 'value' => 33.0],
                 ['type' => 'percent', 'value' => 50.0],
+            ],
+        ];
+    }
+
+    /**
+     * The monthly_upsell block to persist, or nothing at all for a campaign
+     * that has never touched the feature - writing a disabled block into every
+     * campaign on save would make "who configured this?" unanswerable.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function monthlyUpsellConfig(): array
+    {
+        $alreadyConfigured = array_key_exists('monthly_upsell', $this->campaign->config ?? []);
+
+        if (! $this->upsell_enabled && $this->upsell_tiers === [] && ! $alreadyConfigured) {
+            return [];
+        }
+
+        return [
+            'monthly_upsell' => [
+                'enabled' => $this->upsell_enabled,
+                'cooldown_days' => $this->upsell_cooldown_days,
+                'heading' => $this->upsell_heading ?: null,
+                'body' => $this->upsell_body ?: null,
+                'decline_label' => $this->upsell_decline_label ?: null,
+                'tiers' => array_values($this->upsell_tiers),
             ],
         ];
     }
@@ -765,14 +800,7 @@ class CampaignEdit extends Component
             'show_total_raised' => $this->show_total_raised,
             'content_title' => $this->contentTitle ?: null,
             'content_message' => $this->contentMessage ?: null,
-            'monthly_upsell' => [
-                'enabled' => $this->upsell_enabled,
-                'cooldown_days' => $this->upsell_cooldown_days,
-                'heading' => $this->upsell_heading ?: null,
-                'body' => $this->upsell_body ?: null,
-                'decline_label' => $this->upsell_decline_label ?: null,
-                'tiers' => array_values($this->upsell_tiers),
-            ],
+            ...$this->monthlyUpsellConfig(),
         ]);
 
         $this->campaign->update([

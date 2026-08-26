@@ -142,9 +142,9 @@ it('shows a worked example of what each tier would offer', function () {
             ['min' => 50, 'max' => 200, 'offers' => [['type' => 'percent', 'value' => 50]]],
         ])
         ->assertSee('What donors would see')
-        ->assertSee('MYR 125 one-time')
+        ->assertSee('RM 125 one-time')
         // 50% of 125 is 62.50, which rounds up to the nearest 5.
-        ->assertSee('MYR 125/month or MYR 65/month');
+        ->assertSee('RM 125/month or RM 65/month');
 });
 
 it('warns when a tier leaves donors without a lighter option', function () {
@@ -201,4 +201,58 @@ it('saves and reloads the decline label override', function () {
         ->test(CampaignEdit::class, ['campaign' => $this->campaign->fresh()]);
 
     expect($component->get('upsell_decline_label'))->toBe('Tidak, kekalkan derma :amount sekali sahaja');
+});
+
+it('survives a malformed tier stored in the campaign config', function () {
+    $this->campaign->update(['config' => ['monthly_upsell' => [
+        'enabled' => true,
+        'tiers' => ['not-an-array', ['min' => 50, 'max' => null, 'offers' => ['bogus', ['type' => 'percent', 'value' => 33]]]],
+    ]]]);
+
+    $component = Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign->fresh()])
+        ->assertOk();
+
+    // The unusable entries are dropped rather than taking the page down.
+    expect($component->get('upsell_tiers'))->toHaveCount(1)
+        ->and($component->get('upsell_tiers')[0]['offers'])->toHaveCount(1);
+});
+
+it('leaves config alone for a campaign that never opened the upsell panel', function () {
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->set('title', 'Renamed campaign')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($this->campaign->fresh()->config)->not->toHaveKey('monthly_upsell');
+});
+
+it('keeps writing the block once a campaign has one', function () {
+    $this->campaign->update(['config' => ['monthly_upsell' => [
+        'enabled' => true,
+        'cooldown_days' => 30,
+        'tiers' => [['min' => 50, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 33]]]],
+    ]]]);
+
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign->fresh()])
+        ->set('upsell_enabled', false)
+        ->set('upsell_tiers', [])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($this->campaign->fresh()->config['monthly_upsell']['enabled'])->toBeFalse();
+});
+
+it('shows preview amounts with the currency symbol donors see', function () {
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->call('editMonthlyUpsell')
+        ->set('upsell_enabled', true)
+        ->set('upsell_tiers', [
+            ['min' => 50, 'max' => 200, 'offers' => [['type' => 'percent', 'value' => 50]]],
+        ])
+        ->assertSee('RM 125 one-time')
+        ->assertDontSee('MYR 125 one-time');
 });
