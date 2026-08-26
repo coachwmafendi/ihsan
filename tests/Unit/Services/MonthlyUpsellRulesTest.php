@@ -218,7 +218,7 @@ it('builds copy with the one-time amount substituted', function () {
     $offer = (new MonthlyUpsellRules)->resolve(upsellCampaign(), 120.0, 'myr');
 
     expect($offer->heading)->toBe('Become a monthly supporter')
-        ->and($offer->body)->toContain('RM 120.00')
+        ->and($offer->body)->toBe('Would you consider making your RM 120.00 contribution a monthly donation? Your ongoing support helps us continue our work and make a lasting impact.')
         ->and($offer->declineLabel)->toBe('No, keep my one-time RM 120.00 gift')
         ->and($offer->cooldownDays)->toBe(30);
 });

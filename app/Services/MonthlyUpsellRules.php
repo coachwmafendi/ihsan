@@ -15,7 +15,7 @@ class MonthlyUpsellRules
 {
     private const string DEFAULT_HEADING = 'Become a monthly supporter';
 
-    private const string DEFAULT_BODY = 'Will you convert your :amount contribution into a monthly donation? Your ongoing support can help us focus better on our work.';
+    private const string DEFAULT_BODY = 'Would you consider making your :amount contribution a monthly donation? Your ongoing support helps us continue our work and make a lasting impact.';
 
     private const string DEFAULT_DECLINE_LABEL = 'No, keep my one-time :amount gift';
 
