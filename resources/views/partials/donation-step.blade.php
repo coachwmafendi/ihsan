@@ -4,7 +4,7 @@
     document.addEventListener('alpine:init', () => {
         if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
             Alpine._donationStepRegistered = true;
-            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe', initialChipPaymentMethods = [], initialChipPaymentMethod = 'card', initialFpxBanks = []) => {
+            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe', initialChipPaymentMethods = [], initialChipPaymentMethod = 'card', initialFpxBanks = [], initialUpsell = null) => {
                 let stripe = null;
                 let elements = null;
                 let paymentElement = null;
@@ -47,6 +47,10 @@
                     stepErrors: {},
                     cardError: '',
                     stripeInitError: '',
+                    upsell: initialUpsell,
+                    upsellShown: false,
+                    upsellAccepted: false,
+                    upsellOriginal: null,
 
                     get feeRate() { return this.feeConfig[this.currency]?.percent ?? 0.055; },
                     get fixedFee() { return this.feeConfig[this.currency]?.fixed ?? 1.00; },
@@ -197,13 +201,86 @@
                         if (this.currentStep === 1 && !this.validateStep1()) return;
                         if (this.currentStep === 2 && !this.validateStep2()) return;
                         if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
-                        if (this.isEmbed && ! this.isPublicPage && this.currentStep === 1) {
-                            window.parent.postMessage({ type: 'ihsan:step-continue', amount: this.amount, frequency: this.frequency, currency: this.currency, coverFee: this.coverFee ? 1 : 0 }, '*');
+
+                        if (this.currentStep === 1 && this.shouldShowUpsell()) {
+                            this.upsellOriginal = this.amountNumber();
+                            this.upsellShown = true;
+                            this.currentStep = 'upsell';
                             return;
                         }
+
+                        if (this.currentStep === 1) {
+                            this.resumeAfterStepOne();
+                            return;
+                        }
+
                         this.currentStep++;
-                        if (this.currentStep === 2) this.trackInitiateCheckout();
                         if (this.currentStep === 3 && this.paymentGateway === 'stripe') this.$nextTick(() => this.mountPaymentElement());
+                    },
+                    shouldShowUpsell() {
+                        return this.upsell !== null
+                            && Array.isArray(this.upsell.offers)
+                            && this.upsell.offers.length > 0
+                            && this.frequency === 'one_time'
+                            && !this.upsellShown
+                            && !this.declinedRecently();
+                    },
+                    resumeAfterStepOne() {
+                        if (this.isEmbed && ! this.isPublicPage) {
+                            window.parent.postMessage({
+                                type: 'ihsan:step-continue',
+                                amount: this.amount,
+                                frequency: this.frequency,
+                                currency: this.currency,
+                                coverFee: this.coverFee ? 1 : 0,
+                                upsell: this.upsellShown ? 1 : 0,
+                            }, '*');
+                            return;
+                        }
+
+                        this.currentStep = 2;
+                        this.trackInitiateCheckout();
+                    },
+                    acceptUpsell(offer) {
+                        this.frequency = 'monthly';
+                        this.setAmount(offer);
+                        this.upsellAccepted = true;
+
+                        // CHIP recurring donations can only be charged to cards.
+                        if (this.paymentGateway === 'chip' && this.chipPaymentMethod === 'fpx') {
+                            this.chipPaymentMethod = 'card';
+                            this.chipFpxBankCode = '';
+                        }
+
+                        this.resumeAfterStepOne();
+                    },
+                    declineUpsell() {
+                        this.upsellAccepted = false;
+                        this.rememberUpsellDecline();
+                        this.resumeAfterStepOne();
+                    },
+                    upsellCooldownKey() {
+                        return 'ihsan_upsell_declined_' + (this.campaignPublicId || 'default');
+                    },
+                    // localStorage throws in sandboxed iframes and in Safari
+                    // private mode. An uncaught throw here would take down the
+                    // whole donation form, so every access is guarded.
+                    declinedRecently() {
+                        try {
+                            const stored = window.localStorage.getItem(this.upsellCooldownKey());
+                            if (!stored) return false;
+                            const days = Number(this.upsell?.cooldownDays ?? 30);
+                            return (Date.now() - Number(stored)) < days * 86400000;
+                        } catch (e) {
+                            return false;
+                        }
+                    },
+                    rememberUpsellDecline() {
+                        try {
+                            window.localStorage.setItem(this.upsellCooldownKey(), String(Date.now()));
+                        } catch (e) {
+                            // Ignore: the donor simply sees the offer again next visit.
+                        }
                     },
                     trackInitiateCheckout() {
                         if (this._initiateSent) return;
@@ -589,6 +666,9 @@
                         this.$wire.$set('phone', this.donorPhone, false);
                         this.$wire.$set('chipPaymentMethod', this.chipPaymentMethod, false);
                         this.$wire.$set('chipFpxBankCode', this.chipFpxBankCode || null, false);
+                        this.$wire.$set('upsellShown', this.upsellShown, false);
+                        this.$wire.$set('upsellAccepted', this.upsellAccepted, false);
+                        this.$wire.$set('upsellOriginalAmount', this.upsellOriginal, false);
 
                         let submitResponse;
                         try { submitResponse = await this.$wire.submit(); } catch (e) { this.processing = false; this.currentStep = 'error'; this.cardError = 'Unable to start payment. Please try again.'; return; }
