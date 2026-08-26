@@ -58,17 +58,60 @@ class MonthlyUpsellRules
             return null;
         }
 
-        $formattedAmount = Currency::symbol($currency).' '.number_format($amount, 2);
+        $formattedAmount = Currency::formatCompact($currency, $amount);
         $heading = filled($config['heading'] ?? null) ? (string) $config['heading'] : self::DEFAULT_HEADING;
         $body = filled($config['body'] ?? null) ? (string) $config['body'] : self::DEFAULT_BODY;
+        $bodySegments = explode(':amount', $body);
 
         return new MonthlyUpsellOffer(
             offers: $offers,
             heading: $heading,
-            body: str_replace(':amount', $formattedAmount, $body),
+            body: implode($formattedAmount, $bodySegments),
+            bodySegments: $bodySegments,
+            amountLabel: $formattedAmount,
             declineLabel: str_replace(':amount', $formattedAmount, self::DEFAULT_DECLINE_LABEL),
             cooldownDays: (int) ($config['cooldown_days'] ?? self::DEFAULT_COOLDOWN_DAYS),
         );
+    }
+
+    /**
+     * Work out what a single tier would offer for a sample one-time amount, so
+     * the campaign editor can show an admin the result of their own settings.
+     *
+     * @param  array<string, mixed>  $tier
+     * @return array<int, float>
+     */
+    public function previewTier(array $tier, float $amount, float $campaignMinimum = 0.0): array
+    {
+        return $this->buildOffers($tier, $amount, $campaignMinimum);
+    }
+
+    /**
+     * Sample one-time amounts that show how a tier behaves across its range.
+     *
+     * @param  array<string, mixed>  $tier
+     * @return array<int, float>
+     */
+    public function previewAmountsFor(array $tier): array
+    {
+        $min = is_numeric($tier['min'] ?? null) ? (float) $tier['min'] : 0.0;
+
+        if ($min <= 0) {
+            return [];
+        }
+
+        $rawMax = $tier['max'] ?? null;
+        $max = is_numeric($rawMax) ? (float) $rawMax : null;
+
+        // An open-ended tier has no top, so step up from the minimum instead.
+        $amounts = $max === null || $max <= $min
+            ? [$min, $min * 2, $min * 5]
+            : [$min, floor(($min + $max) / 2), $max];
+
+        return array_values(array_unique(array_map(
+            static fn (float $amount): float => (float) round($amount, 2),
+            $amounts,
+        ), SORT_NUMERIC));
     }
 
     /**

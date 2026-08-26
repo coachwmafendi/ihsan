@@ -457,7 +457,19 @@
                                 <h2 class="flex-1 pr-7 text-center text-base font-bold text-slate-900" x-text="upsell?.heading"></h2>
                             </div>
 
-                            <p class="px-2 py-6 text-center text-base leading-relaxed text-slate-700" x-text="upsell?.body"></p>
+                            {{-- Rendered from segments rather than markup, so the
+                                 campaign's own copy can never inject HTML. --}}
+                            <p class="px-2 py-6 text-center text-base leading-relaxed text-slate-700">
+                                <template x-for="(segment, segmentIndex) in (upsell?.bodySegments ?? [])" :key="segmentIndex">
+                                    <span>
+                                        <span x-text="segment"></span><strong
+                                            x-show="segmentIndex < (upsell?.bodySegments?.length ?? 0) - 1"
+                                            class="font-bold text-slate-900"
+                                            x-text="upsell?.amountLabel"
+                                        ></strong>
+                                    </span>
+                                </template>
+                            </p>
 
                             <div class="space-y-2.5">
                                 <template x-for="(offer, index) in (upsell?.offers ?? [])" :key="offer">
@@ -467,7 +479,7 @@
                                         class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98]"
                                         :class="index === 0 ? 'bg-rose-600 hover:bg-rose-700' : 'bg-blue-600 hover:bg-blue-700'"
                                     >
-                                        <span x-text="`Donate ${currencySymbol} ${formatCurrency(offer)}/month`"></span>
+                                        <span x-text="`Donate ${currencySymbol} ${formatCompactAmount(offer)}/month`"></span>
                                     </button>
                                 </template>
                             </div>

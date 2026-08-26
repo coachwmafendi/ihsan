@@ -488,6 +488,32 @@ class CampaignEdit extends Component
     }
 
     /**
+     * Worked examples of what a tier would offer donors, so an admin can see
+     * the effect of their own percentages without guessing at the rounding.
+     *
+     * @return array<int, array{amount: float, offers: array<int, float>}>
+     */
+    public function upsellTierPreview(int $index): array
+    {
+        $tier = $this->upsell_tiers[$index] ?? null;
+
+        if (! is_array($tier)) {
+            return [];
+        }
+
+        $rules = new MonthlyUpsellRules;
+        $minimum = (float) ($this->minimum_amount ?? 0);
+
+        return array_map(
+            fn (float $amount): array => [
+                'amount' => $amount,
+                'offers' => $rules->previewTier($tier, $amount, $minimum),
+            ],
+            $rules->previewAmountsFor($tier),
+        );
+    }
+
+    /**
      * Switching the upsell on with no tiers configured would save a campaign
      * that is "enabled" but silent, so seed a starter tier the NGO can adjust.
      */

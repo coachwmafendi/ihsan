@@ -69,6 +69,12 @@
                         return `${this.donorFirstName || ''} ${this.donorLastName || ''}`.trim() || 'Friend';
                     },
                     formatCurrency(value) { return Number(value || 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
+                    // Upsell amounts read better without trailing zero cents.
+                    formatCompactAmount(value) {
+                        const number = Number(value || 0);
+                        const decimals = Number.isInteger(number) ? 0 : 2;
+                        return number.toLocaleString('en', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+                    },
 
                     amountNumber(value = this.amount) {
                         const parsed = parseFloat(value);

@@ -992,6 +992,23 @@
 
                         @if ($checkoutPanel === 'upsell')
                             <div class="space-y-4">
+                                <div class="rounded-lg bg-slate-50 p-4">
+                                    <div class="flex items-start gap-2 text-sm text-slate-700">
+                                        <x-heroicon-o-information-circle class="mt-0.5 size-5 shrink-0 text-slate-400" />
+                                        <div class="space-y-2">
+                                            <p>
+                                                After a donor picks a one-time amount and taps Continue, they see one extra screen
+                                                asking whether they would like to give that amount every month instead.
+                                            </p>
+                                            <p>
+                                                They always get two choices: <strong>their own amount monthly</strong>, and a lighter
+                                                amount you set below. Declining takes them straight to checkout with the one-time
+                                                gift they already chose &mdash; nothing is lost.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <label class="flex items-start gap-3">
                                     <input type="checkbox" wire:model.live="upsell_enabled" class="mt-0.5 size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600">
                                     <span>
@@ -1014,10 +1031,17 @@
                                             class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                             placeholder="30"
                                         />
+                                        <p class="mt-1 text-xs text-slate-500">If a donor declines, we will not ask again on that device for this many days.</p>
                                     </div>
 
                                     <div class="space-y-3">
-                                        <span class="text-base font-medium text-slate-700">Tiers</span>
+                                        <div>
+                                            <span class="text-base font-medium text-slate-700">Tiers</span>
+                                            <p class="text-xs text-slate-500">
+                                                Each tier covers a range of one-time amounts and sets the lighter monthly option
+                                                shown beside the donor's own amount. Ranges cannot overlap.
+                                            </p>
+                                        </div>
 
                                         @foreach ($upsell_tiers as $index => $tier)
                                             <div class="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -1037,6 +1061,7 @@
                                                             wire:model.blur="upsell_tiers.{{ $index }}.min"
                                                             class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                                         />
+                                                        <p class="mt-1 text-xs text-slate-500">Smallest one-time gift this tier covers.</p>
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs font-medium text-slate-600">One-time up to ({{ $default_currency }})</label>
@@ -1047,6 +1072,7 @@
                                                             placeholder="No limit"
                                                             class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                                         />
+                                                        <p class="mt-1 text-xs text-slate-500">Leave empty for no upper limit.</p>
                                                     </div>
                                                 </div>
 
@@ -1069,6 +1095,42 @@
                                                         </div>
                                                     @endforeach
                                                 </div>
+
+                                                <p class="text-xs text-slate-500">
+                                                    <strong>% of gift</strong> takes a share of what the donor was about to give.
+                                                    <strong>{{ $default_currency }} fixed</strong> is the same amount every time.
+                                                    Either way the result is rounded to the nearest 5, and the highest one that
+                                                    lands below the donor's own amount becomes their lighter option.
+                                                </p>
+
+                                                @php $tierPreview = $this->upsellTierPreview($index); @endphp
+
+                                                @if ($tierPreview !== [])
+                                                    <div class="rounded-lg border border-slate-200 bg-white p-3">
+                                                        <p class="text-xs font-medium uppercase tracking-wide text-slate-500">What donors would see</p>
+                                                        <dl class="mt-2 space-y-1">
+                                                            @foreach ($tierPreview as $row)
+                                                                <div class="flex flex-wrap items-baseline gap-x-2 text-sm">
+                                                                    <dt class="text-slate-500">{{ $default_currency }} {{ \App\Support\Currency::compactNumber($row['amount']) }} one-time</dt>
+                                                                    <dd class="font-medium text-slate-800">
+                                                                        &rarr;
+                                                                        {{ collect($row['offers'])->map(fn (float $value): string => $default_currency.' '.\App\Support\Currency::compactNumber($value).'/month')->join(' or ') }}
+                                                                        @if (count($row['offers']) < 2)
+                                                                            <span class="font-normal text-slate-500">only</span>
+                                                                        @endif
+                                                                    </dd>
+                                                                </div>
+                                                            @endforeach
+                                                        </dl>
+
+                                                        @if (collect($tierPreview)->contains(fn (array $row): bool => count($row['offers']) < 2))
+                                                            <p class="mt-2 text-xs text-amber-700">
+                                                                Some amounts get no lighter option, so those donors see one button only.
+                                                                Raise the offer value, or lower the campaign minimum amount.
+                                                            </p>
+                                                        @endif
+                                                    </div>
+                                                @endif
                                             </div>
                                         @endforeach
 
@@ -1101,6 +1163,7 @@
                                                     placeholder="Use :amount for the one-time amount."
                                                     class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                                 ></textarea>
+                                                <p class="mt-1 text-xs text-slate-500">Leave both empty to use the default wording. Write <code>:amount</code> where the donor's one-time amount should appear.</p>
                                             </div>
                                         </div>
                                     @endif

@@ -54,7 +54,7 @@ it('offers the donor own amount exactly, without rounding it', function () {
     $offer = (new MonthlyUpsellRules)->resolve(upsellCampaign(), 123.0, 'myr');
 
     expect($offer->offers[0])->toBe(123.0)
-        ->and($offer->body)->toContain('RM 123.00');
+        ->and($offer->body)->toContain('RM 123');
 });
 
 it('offers only the donor own amount when the tier yields nothing usable', function () {
@@ -227,8 +227,8 @@ it('builds copy with the one-time amount substituted', function () {
     $offer = (new MonthlyUpsellRules)->resolve(upsellCampaign(), 120.0, 'myr');
 
     expect($offer->heading)->toBe('Become a monthly supporter')
-        ->and($offer->body)->toBe('Would you consider making your RM 120.00 contribution a monthly donation? Your ongoing support helps us continue our work and make a lasting impact.')
-        ->and($offer->declineLabel)->toBe('No, keep my one-time RM 120.00 gift')
+        ->and($offer->body)->toBe('Would you consider making your RM 120 contribution a monthly donation? Your ongoing support helps us continue our work and make a lasting impact.')
+        ->and($offer->declineLabel)->toBe('No, keep my one-time RM 120 gift')
         ->and($offer->cooldownDays)->toBe(30);
 });
 
@@ -241,7 +241,7 @@ it('uses the campaign copy overrides when present', function () {
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
 
     expect($offer->heading)->toBe('Jadi penyokong bulanan')
-        ->and($offer->body)->toBe('Tukar sumbangan RM 120.00 anda kepada bulanan?');
+        ->and($offer->body)->toBe('Tukar sumbangan RM 120 anda kepada bulanan?');
 });
 
 it('falls back to the default heading when the override is an empty string', function () {
@@ -469,4 +469,65 @@ it('rejects a non-numeric offer value', function () {
     ]);
 
     expect($errors)->toContain('Tier 1, offer 1: the value must be a number.');
+});
+
+it('previews what a tier would offer for a sample amount', function () {
+    $tier = ['min' => 50, 'max' => 199, 'offers' => [
+        ['type' => 'percent', 'value' => 33],
+        ['type' => 'percent', 'value' => 50],
+    ]];
+
+    $rules = new MonthlyUpsellRules;
+
+    expect($rules->previewTier($tier, 120.0))->toBe([120.0, 60.0])
+        ->and($rules->previewTier($tier, 50.0))->toBe([50.0, 25.0]);
+});
+
+it('samples a bounded tier at its ends and midpoint', function () {
+    $amounts = (new MonthlyUpsellRules)->previewAmountsFor(['min' => 50, 'max' => 200]);
+
+    expect($amounts)->toBe([50.0, 125.0, 200.0]);
+});
+
+it('steps up from the minimum when previewing an open-ended tier', function () {
+    $amounts = (new MonthlyUpsellRules)->previewAmountsFor(['min' => 100, 'max' => null]);
+
+    expect($amounts)->toBe([100.0, 200.0, 500.0]);
+});
+
+it('collapses duplicate preview samples on a one-amount tier', function () {
+    $amounts = (new MonthlyUpsellRules)->previewAmountsFor(['min' => 50, 'max' => 50]);
+
+    expect($amounts)->toBe([50.0, 100.0, 250.0]);
+});
+
+it('has nothing to preview when the tier minimum is not set', function () {
+    expect((new MonthlyUpsellRules)->previewAmountsFor(['min' => 0, 'max' => 100]))->toBe([]);
+});
+
+it('splits the message so the form can bold the amount without markup', function () {
+    $offer = (new MonthlyUpsellRules)->resolve(upsellCampaign(), 120.0, 'myr');
+
+    expect($offer->amountLabel)->toBe('RM 120')
+        ->and($offer->bodySegments)->toBe([
+            'Would you consider making your ',
+            ' contribution a monthly donation? Your ongoing support helps us continue our work and make a lasting impact.',
+        ])
+        ->and(implode($offer->amountLabel, $offer->bodySegments))->toBe($offer->body);
+});
+
+it('keeps the cents on an amount that has them', function () {
+    $offer = (new MonthlyUpsellRules)->resolve(upsellCampaign(), 120.5, 'myr');
+
+    expect($offer->amountLabel)->toBe('RM 120.50')
+        ->and($offer->declineLabel)->toBe('No, keep my one-time RM 120.50 gift');
+});
+
+it('leaves a message without the placeholder as a single segment', function () {
+    $campaign = upsellCampaign(['body' => 'Sokong kami setiap bulan.']);
+
+    $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
+
+    expect($offer->bodySegments)->toBe(['Sokong kami setiap bulan.'])
+        ->and($offer->body)->toBe('Sokong kami setiap bulan.');
 });

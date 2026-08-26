@@ -133,6 +133,42 @@ it('renders the tier editor and summary card when the upsell is enabled', functi
         ->assertSee('MYR 200&ndash;no limit', false);
 });
 
+it('shows a worked example of what each tier would offer', function () {
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->call('editMonthlyUpsell')
+        ->set('upsell_enabled', true)
+        ->set('upsell_tiers', [
+            ['min' => 50, 'max' => 200, 'offers' => [['type' => 'percent', 'value' => 50]]],
+        ])
+        ->assertSee('What donors would see')
+        ->assertSee('MYR 125 one-time')
+        // 50% of 125 is 62.50, which rounds up to the nearest 5.
+        ->assertSee('MYR 125/month or MYR 65/month');
+});
+
+it('warns when a tier leaves donors without a lighter option', function () {
+    $this->campaign->update(['minimum_amount' => 60]);
+
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign->fresh()])
+        ->call('editMonthlyUpsell')
+        ->set('upsell_enabled', true)
+        ->set('upsell_tiers', [
+            // 10% of every sampled amount lands under the campaign minimum.
+            ['min' => 50, 'max' => 200, 'offers' => [['type' => 'percent', 'value' => 10]]],
+        ])
+        ->assertSee('Some amounts get no lighter option');
+});
+
+it('explains the feature before any tier is configured', function () {
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->call('editMonthlyUpsell')
+        ->assertSee('asking whether they would like to give that amount every month instead')
+        ->assertSee('Declining takes them straight to checkout');
+});
+
 it('loads existing tiers when mounting', function () {
     $this->campaign->update(['config' => ['monthly_upsell' => [
         'enabled' => true,
