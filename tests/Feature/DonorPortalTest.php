@@ -1038,13 +1038,15 @@ it('sends amount change notification to donor and org admins', function () {
     $adminMail = Mail::queued(SubscriptionAmountChangedNotification::class)->first();
     $html = $adminMail->render();
 
+    // Faker names carry apostrophes often enough that comparing raw values
+    // against rendered HTML fails at random: "O'Hara" arrives as "O&#039;Hara".
     expect($html)
-        ->toContain('Hi '.$admin->name)
+        ->toContain('Hi '.e($admin->name))
         ->toContain('Recurring plan has been changed')
         ->toContain($subscription->public_id)
-        ->toContain($campaign->title)
-        ->toContain($donor->name)
-        ->toContain($donor->email)
+        ->toContain(e($campaign->title))
+        ->toContain(e($donor->name))
+        ->toContain(e($donor->email))
         ->toContain('MYR 50.00')
         ->toContain('Total amount');
 });
