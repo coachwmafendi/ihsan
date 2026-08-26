@@ -227,7 +227,8 @@
                     // until this point, so the offer has to be resolved now
                     // rather than baked in at render time.
                     async shouldShowUpsell() {
-                        if (this.frequency !== 'one_time' || this.upsellShown || this.declinedRecently()) return false;
+                        if (this.frequency !== 'one_time' || this.upsellShown) return false;
+                        if (this.declinedRecently() || this.alreadyGivesMonthly()) return false;
 
                         const amount = this.amountNumber();
                         if (amount === null || amount <= 0) return false;
@@ -279,6 +280,27 @@
                     },
                     upsellCooldownKey() {
                         return 'ihsan_upsell_declined_' + (this.campaignPublicId || 'default');
+                    },
+                    monthlyDonorKey() {
+                        return 'ihsan_monthly_donor_' + (this.campaignPublicId || 'default');
+                    },
+                    // Asking an existing monthly supporter to "become a monthly
+                    // supporter" reads badly. The donor's email only arrives at
+                    // step 2, after the offer has to fire, so this remembers the
+                    // plans started on this device instead.
+                    alreadyGivesMonthly() {
+                        try {
+                            return window.localStorage.getItem(this.monthlyDonorKey()) !== null;
+                        } catch (e) {
+                            return false;
+                        }
+                    },
+                    rememberMonthlyDonor() {
+                        try {
+                            window.localStorage.setItem(this.monthlyDonorKey(), String(Date.now()));
+                        } catch (e) {
+                            // Ignore: the donor may be offered again next visit.
+                        }
                     },
                     // localStorage throws in sandboxed iframes and in Safari
                     // private mode. An uncaught throw here would take down the
@@ -416,6 +438,10 @@
                         this.stopChipDirectPostPoll();
                         this.processing = false;
                         this.trackPurchase();
+
+                        if (this.frequency === 'monthly') {
+                            this.rememberMonthlyDonor();
+                        }
 
                         if (this.$wire.campaignCollectedAmount !== undefined) {
                             this.raisedAmount = parseFloat(this.$wire.campaignCollectedAmount) || 0;

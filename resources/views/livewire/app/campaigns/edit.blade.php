@@ -1163,7 +1163,18 @@
                                                     placeholder="Use :amount for the one-time amount."
                                                     class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                                                 ></textarea>
-                                                <p class="mt-1 text-xs text-slate-500">Leave both empty to use the default wording. Write <code>:amount</code> where the donor's one-time amount should appear.</p>
+                                                <p class="mt-1 text-xs text-slate-500">Leave empty to use the default wording. Write <code>:amount</code> where the donor's one-time amount should appear.</p>
+                                            </div>
+                                            <div>
+                                                <label for="upsell_decline_label" class="block text-sm font-medium text-slate-700">Decline link override</label>
+                                                <input
+                                                    type="text"
+                                                    id="upsell_decline_label"
+                                                    wire:model="upsell_decline_label"
+                                                    placeholder="No, keep my one-time :amount gift"
+                                                    class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                                />
+                                                <p class="mt-1 text-xs text-slate-500">The wording donors tap to keep their one-time gift. <code>:amount</code> works here too.</p>
                                             </div>
                                         </div>
                                     @endif

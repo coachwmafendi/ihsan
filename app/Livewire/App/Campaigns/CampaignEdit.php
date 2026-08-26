@@ -93,6 +93,8 @@ class CampaignEdit extends Component
 
     public ?string $upsell_body = null;
 
+    public ?string $upsell_decline_label = null;
+
     /** @var array<int, array{min: float, max: float|null, offers: array<int, array{type: string, value: float}>}> */
     public array $upsell_tiers = [];
 
@@ -471,6 +473,7 @@ class CampaignEdit extends Component
         $this->upsell_cooldown_days = (int) ($upsell['cooldown_days'] ?? 30);
         $this->upsell_heading = $upsell['heading'] ?? null;
         $this->upsell_body = $upsell['body'] ?? null;
+        $this->upsell_decline_label = $upsell['decline_label'] ?? null;
         $this->upsell_tiers = array_map(
             fn (array $tier): array => [
                 'min' => (float) ($tier['min'] ?? 0),
@@ -767,6 +770,7 @@ class CampaignEdit extends Component
                 'cooldown_days' => $this->upsell_cooldown_days,
                 'heading' => $this->upsell_heading ?: null,
                 'body' => $this->upsell_body ?: null,
+                'decline_label' => $this->upsell_decline_label ?: null,
                 'tiers' => array_values($this->upsell_tiers),
             ],
         ]);

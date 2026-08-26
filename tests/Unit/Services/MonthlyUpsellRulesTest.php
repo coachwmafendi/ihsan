@@ -531,3 +531,19 @@ it('leaves a message without the placeholder as a single segment', function () {
     expect($offer->bodySegments)->toBe(['Sokong kami setiap bulan.'])
         ->and($offer->body)->toBe('Sokong kami setiap bulan.');
 });
+
+it('uses the campaign decline label override when present', function () {
+    $campaign = upsellCampaign(['decline_label' => 'Tidak, kekalkan derma :amount sekali sahaja']);
+
+    $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
+
+    expect($offer->declineLabel)->toBe('Tidak, kekalkan derma RM 120 sekali sahaja');
+});
+
+it('falls back to the default decline label when the override is blank', function () {
+    $campaign = upsellCampaign(['decline_label' => '   ']);
+
+    $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
+
+    expect($offer->declineLabel)->toBe('No, keep my one-time RM 120 gift');
+});

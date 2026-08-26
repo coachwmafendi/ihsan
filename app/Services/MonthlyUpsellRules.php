@@ -62,6 +62,9 @@ class MonthlyUpsellRules
         $heading = filled($config['heading'] ?? null) ? (string) $config['heading'] : self::DEFAULT_HEADING;
         $body = filled($config['body'] ?? null) ? (string) $config['body'] : self::DEFAULT_BODY;
         $bodySegments = explode(':amount', $body);
+        $declineLabel = filled($config['decline_label'] ?? null)
+            ? (string) $config['decline_label']
+            : self::DEFAULT_DECLINE_LABEL;
 
         return new MonthlyUpsellOffer(
             offers: $offers,
@@ -69,7 +72,7 @@ class MonthlyUpsellRules
             body: implode($formattedAmount, $bodySegments),
             bodySegments: $bodySegments,
             amountLabel: $formattedAmount,
-            declineLabel: str_replace(':amount', $formattedAmount, self::DEFAULT_DECLINE_LABEL),
+            declineLabel: str_replace(':amount', $formattedAmount, $declineLabel),
             cooldownDays: (int) ($config['cooldown_days'] ?? self::DEFAULT_COOLDOWN_DAYS),
         );
     }

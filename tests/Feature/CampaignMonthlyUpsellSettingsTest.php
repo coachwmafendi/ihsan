@@ -185,3 +185,20 @@ it('loads existing tiers when mounting', function () {
         ->and($component->get('upsell_heading'))->toBe('Jadi penyokong bulanan')
         ->and($component->get('upsell_tiers'))->toHaveCount(1);
 });
+
+it('saves and reloads the decline label override', function () {
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->set('upsell_enabled', true)
+        ->set('upsell_decline_label', 'Tidak, kekalkan derma :amount sekali sahaja')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($this->campaign->fresh()->config['monthly_upsell']['decline_label'])
+        ->toBe('Tidak, kekalkan derma :amount sekali sahaja');
+
+    $component = Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign->fresh()]);
+
+    expect($component->get('upsell_decline_label'))->toBe('Tidak, kekalkan derma :amount sekali sahaja');
+});
