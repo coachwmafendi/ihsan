@@ -36,7 +36,10 @@ test('reset password screen can be rendered', function () {
         $response = $this->get(route('password.reset', $notification->token));
 
         $response->assertOk();
-        $response->assertSee('!border-slate-300');
+        $response->assertSee('readonly');
+        $response->assertSee('id="email"', false);
+        $response->assertSee('id="password"', false);
+        $response->assertSee('id="password_confirmation"', false);
 
         return true;
     });
@@ -63,4 +66,18 @@ test('password can be reset with valid token', function () {
 
         return true;
     });
+});
+
+test('reset password screen displays validation errors', function () {
+    $user = User::factory()->create();
+
+    $this->get(route('password.reset', 'invalid-token'));
+    $response = $this->post(route('password.update'), [
+        'token' => 'invalid-token',
+        'email' => $user->email,
+        'password' => 'short',
+        'password_confirmation' => 'different',
+    ]);
+
+    $response->assertSessionHasErrors();
 });
