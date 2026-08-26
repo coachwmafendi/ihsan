@@ -268,7 +268,7 @@ class MonthlyUpsellRules
      */
     private function buildOffers(array $tier, float $amount, float $campaignMinimum): array
     {
-        $offers = [];
+        $lighter = [];
 
         foreach ((is_array($tier['offers'] ?? null) ? $tier['offers'] : []) as $offer) {
             if (! is_array($offer)) {
@@ -293,12 +293,19 @@ class MonthlyUpsellRules
                 continue;
             }
 
-            $offers[] = (float) $rounded;
+            $lighter[] = (float) $rounded;
         }
 
-        $offers = array_values(array_unique($offers, SORT_NUMERIC));
-        sort($offers, SORT_NUMERIC);
+        // The copy asks the donor to make *their* contribution monthly, so the
+        // first button is their own amount, unrounded, to match it. The tier's
+        // highest surviving offer follows as an easier alternative; two buttons
+        // keep the choice quick.
+        $offers = [$amount];
 
-        return array_slice($offers, 0, 2);
+        if ($lighter !== []) {
+            $offers[] = max($lighter);
+        }
+
+        return $offers;
     }
 }

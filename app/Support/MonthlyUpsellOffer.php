@@ -8,7 +8,8 @@ namespace App\Support;
 final readonly class MonthlyUpsellOffer
 {
     /**
-     * @param  array<int, float>  $offers  One or two monthly amounts, ascending.
+     * @param  array<int, float>  $offers  The donor's own amount first, then an
+     *                                     optional lighter alternative.
      */
     public function __construct(
         public array $offers,

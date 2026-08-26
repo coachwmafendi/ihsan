@@ -41,25 +41,47 @@ function upsellCampaign(array $upsell = [], array $attributes = []): Campaign
     return $campaign->load('organization');
 }
 
-it('offers two amounts derived from the matching tier', function () {
+it('leads with the donor own amount and follows with a lighter tier offer', function () {
     $offer = (new MonthlyUpsellRules)->resolve(upsellCampaign(), 120.0, 'myr');
 
     expect($offer)->not->toBeNull()
-        ->and($offer->offers)->toBe([40.0, 60.0]);
+        ->and($offer->offers)->toBe([120.0, 60.0]);
+});
+
+it('offers the donor own amount exactly, without rounding it', function () {
+    // The first button has to match the amount named in the copy, so it is the
+    // donor's own figure rather than a rounded one.
+    $offer = (new MonthlyUpsellRules)->resolve(upsellCampaign(), 123.0, 'myr');
+
+    expect($offer->offers[0])->toBe(123.0)
+        ->and($offer->body)->toContain('RM 123.00');
+});
+
+it('offers only the donor own amount when the tier yields nothing usable', function () {
+    $campaign = upsellCampaign(
+        ['tiers' => [['min' => 50, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 10]]]]],
+        ['minimum_amount' => 40],
+    );
+
+    // 10% of 60 rounds to 5, below the campaign minimum of 40.
+    $offer = (new MonthlyUpsellRules)->resolve($campaign, 60.0, 'myr');
+
+    expect($offer)->not->toBeNull()
+        ->and($offer->offers)->toBe([60.0]);
 });
 
 it('matches a tier on its exact lower bound', function () {
     $offer = (new MonthlyUpsellRules)->resolve(upsellCampaign(), 50.0, 'myr');
 
     expect($offer)->not->toBeNull()
-        ->and($offer->offers)->toBe([15.0, 25.0]);
+        ->and($offer->offers)->toBe([50.0, 25.0]);
 });
 
 it('matches a tier on its exact upper bound', function () {
     $offer = (new MonthlyUpsellRules)->resolve(upsellCampaign(), 199.0, 'myr');
 
     expect($offer)->not->toBeNull()
-        ->and($offer->offers)->toBe([65.0, 100.0]);
+        ->and($offer->offers)->toBe([199.0, 100.0]);
 });
 
 it('returns null when no tier matches the amount', function () {
@@ -78,7 +100,7 @@ it('treats a null max as an open-ended tier', function () {
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 5000.0, 'myr');
 
     expect($offer)->not->toBeNull()
-        ->and($offer->offers)->toBe([1000.0]);
+        ->and($offer->offers)->toBe([5000.0, 1000.0]);
 });
 
 it('uses the first matching tier when several could apply', function () {
@@ -91,7 +113,7 @@ it('uses the first matching tier when several could apply', function () {
 
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
 
-    expect($offer->offers)->toBe([25.0]);
+    expect($offer->offers)->toBe([120.0, 25.0]);
 });
 
 it('supports fixed offers', function () {
@@ -103,7 +125,7 @@ it('supports fixed offers', function () {
 
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
 
-    expect($offer->offers)->toBe([30.0, 45.0]);
+    expect($offer->offers)->toBe([120.0, 45.0]);
 });
 
 it('rounds computed offers to the nearest multiple of five', function () {
@@ -116,7 +138,7 @@ it('rounds computed offers to the nearest multiple of five', function () {
     // 27% of 130 is 35.1, which rounds to 35.
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 130.0, 'myr');
 
-    expect($offer->offers)->toBe([35.0]);
+    expect($offer->offers)->toBe([130.0, 35.0]);
 });
 
 it('drops offers below the campaign minimum amount', function () {
@@ -132,22 +154,7 @@ it('drops offers below the campaign minimum amount', function () {
     // 10% of 60 rounds to 5, below the minimum of 20. 50% is 30 and survives.
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 60.0, 'myr');
 
-    expect($offer->offers)->toBe([30.0]);
-});
-
-it('returns null when every offer falls below the minimum', function () {
-    $campaign = upsellCampaign(
-        [
-            'tiers' => [
-                ['min' => 50, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 10]]],
-            ],
-        ],
-        ['minimum_amount' => 40],
-    );
-
-    $offer = (new MonthlyUpsellRules)->resolve($campaign, 60.0, 'myr');
-
-    expect($offer)->toBeNull();
+    expect($offer->offers)->toBe([60.0, 30.0]);
 });
 
 it('drops offers that reach or exceed the one-time amount', function () {
@@ -159,7 +166,7 @@ it('drops offers that reach or exceed the one-time amount', function () {
 
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 100.0, 'myr');
 
-    expect($offer->offers)->toBe([50.0]);
+    expect($offer->offers)->toBe([100.0, 50.0]);
 });
 
 it('collapses offers that are identical after rounding', function () {
@@ -172,19 +179,21 @@ it('collapses offers that are identical after rounding', function () {
     // 33% and 34% of 120 are 39.6 and 40.8, both rounding to 40.
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
 
-    expect($offer->offers)->toBe([40.0]);
+    expect($offer->offers)->toBe([120.0, 40.0]);
 });
 
-it('sorts offers ascending regardless of config order', function () {
+it('picks the largest tier offer as the lighter alternative', function () {
+    // Two buttons keep the decision simple, so only the highest configured
+    // offer below the donor's amount is shown alongside it.
     $campaign = upsellCampaign([
         'tiers' => [
-            ['min' => 50, 'max' => null, 'offers' => [['type' => 'fixed', 'value' => 60], ['type' => 'fixed', 'value' => 40]]],
+            ['min' => 50, 'max' => null, 'offers' => [['type' => 'fixed', 'value' => 40], ['type' => 'fixed', 'value' => 60]]],
         ],
     ]);
 
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
 
-    expect($offer->offers)->toBe([40.0, 60.0]);
+    expect($offer->offers)->toBe([120.0, 60.0]);
 });
 
 it('returns null when the upsell is disabled', function () {
@@ -252,7 +261,9 @@ it('skips an offer with an unrecognised type', function () {
 
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
 
-    expect($offer)->toBeNull();
+    // The type is skipped, leaving only the donor's own amount to offer.
+    expect($offer)->not->toBeNull()
+        ->and($offer->offers)->toBe([120.0]);
 });
 
 it('returns null for a chip campaign whose organization only enables fpx', function () {
@@ -295,7 +306,7 @@ it('returns an offer for a chip campaign whose organization enables card and fpx
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
 
     expect($offer)->not->toBeNull()
-        ->and($offer->offers)->toBe([30.0]);
+        ->and($offer->offers)->toBe([120.0, 30.0]);
 });
 
 it('does not let a malformed tier shadow a valid tier that follows it', function () {
@@ -309,7 +320,7 @@ it('does not let a malformed tier shadow a valid tier that follows it', function
     $offer = (new MonthlyUpsellRules)->resolve($campaign, 120.0, 'myr');
 
     expect($offer)->not->toBeNull()
-        ->and($offer->offers)->toBe([30.0]);
+        ->and($offer->offers)->toBe([120.0, 30.0]);
 });
 
 it('accepts a well-formed tier config', function () {

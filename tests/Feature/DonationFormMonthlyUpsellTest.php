@@ -44,13 +44,13 @@ it('resolves the offer for the amount the donor actually picked', function () {
     // property before the offer has to be made.
     $component = Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign()]);
 
-    expect($component->instance()->resolveMonthlyUpsell(120.0)['offers'])->toBe([40.0, 60.0]);
+    expect($component->instance()->resolveMonthlyUpsell(120.0)['offers'])->toBe([120.0, 60.0]);
 });
 
 it('resolves a different offer as the picked amount changes', function () {
     $component = Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign()]);
 
-    expect($component->instance()->resolveMonthlyUpsell(300.0)['offers'])->toBe([100.0, 150.0])
+    expect($component->instance()->resolveMonthlyUpsell(300.0)['offers'])->toBe([300.0, 150.0])
         ->and($component->instance()->resolveMonthlyUpsell(20.0))->toBeNull();
 });
 
