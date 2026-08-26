@@ -9,6 +9,7 @@ use App\Enums\DonationStatus;
 use App\Enums\PaymentGateway;
 use App\Models\Campaign;
 use App\Models\Donation;
+use App\Services\MonthlyUpsellRules;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -26,6 +27,8 @@ class CampaignEdit extends Component
     private const MaxAmount = 99999;
 
     private const MaxTargetAmount = 9999999;
+
+    private const MaxUpsellTiers = 6;
 
     #[Locked]
     public Campaign $campaign;
@@ -81,6 +84,19 @@ class CampaignEdit extends Component
     public ?string $end_date = null;
 
     public bool $allow_recurring = true;
+
+    public bool $upsell_enabled = false;
+
+    public int $upsell_cooldown_days = 30;
+
+    public ?string $upsell_heading = null;
+
+    public ?string $upsell_body = null;
+
+    public ?string $upsell_decline_label = null;
+
+    /** @var array<int, array{min: float, max: float|null, offers: array<int, array{type: string, value: float}>}> */
+    public array $upsell_tiers = [];
 
     public bool $allow_custom_amount = true;
 
@@ -154,6 +170,7 @@ class CampaignEdit extends Component
         $this->has_end_date = $campaign->has_end_date ?? false;
         $this->end_date = $campaign->end_date?->format('Y-m-d');
         $this->allow_recurring = $campaign->allow_recurring ?? false;
+        $this->hydrateMonthlyUpsell($campaign);
         $this->allow_custom_amount = $campaign->allow_custom_amount ?? false;
         $this->allow_cover_fee = $campaign->config['allow_cover_fee'] ?? true;
         $this->minimum_amount = $this->sanitizeOptionalAmount($campaign->minimum_amount);
@@ -441,6 +458,143 @@ class CampaignEdit extends Component
         $this->newMonthlyValue = null;
     }
 
+    /**
+     * Load the campaign's stored monthly upsell config into the editor state.
+     */
+    private function hydrateMonthlyUpsell(Campaign $campaign): void
+    {
+        $upsell = $campaign->config['monthly_upsell'] ?? [];
+
+        if (! is_array($upsell)) {
+            $upsell = [];
+        }
+
+        $this->upsell_enabled = (bool) ($upsell['enabled'] ?? false);
+        $this->upsell_cooldown_days = (int) ($upsell['cooldown_days'] ?? 30);
+        $this->upsell_heading = $upsell['heading'] ?? null;
+        $this->upsell_body = $upsell['body'] ?? null;
+        $this->upsell_decline_label = $upsell['decline_label'] ?? null;
+        $storedTiers = is_array($upsell['tiers'] ?? null) ? $upsell['tiers'] : [];
+
+        // A malformed entry must not take the page down: this editor is the
+        // only place an admin could repair the config that broke it.
+        $this->upsell_tiers = array_values(array_map(
+            function (array $tier): array {
+                $storedOffers = is_array($tier['offers'] ?? null) ? $tier['offers'] : [];
+
+                return [
+                    'min' => (float) ($tier['min'] ?? 0),
+                    'max' => isset($tier['max']) && $tier['max'] !== '' ? (float) $tier['max'] : null,
+                    'offers' => array_values(array_map(
+                        fn (array $offer): array => [
+                            'type' => $offer['type'] ?? 'percent',
+                            'value' => (float) ($offer['value'] ?? 0),
+                        ],
+                        array_filter($storedOffers, is_array(...)),
+                    )),
+                ];
+            },
+            array_filter($storedTiers, is_array(...)),
+        ));
+    }
+
+    /**
+     * Worked examples of what a tier would offer donors, so an admin can see
+     * the effect of their own percentages without guessing at the rounding.
+     *
+     * @return array<int, array{amount: float, offers: array<int, float>}>
+     */
+    public function upsellTierPreview(int $index): array
+    {
+        $tier = $this->upsell_tiers[$index] ?? null;
+
+        if (! is_array($tier)) {
+            return [];
+        }
+
+        $rules = new MonthlyUpsellRules;
+        $minimum = (float) ($this->minimum_amount ?? 0);
+
+        return array_map(
+            fn (float $amount): array => [
+                'amount' => $amount,
+                'offers' => $rules->previewTier($tier, $amount, $minimum),
+            ],
+            $rules->previewAmountsFor($tier),
+        );
+    }
+
+    /**
+     * Switching the upsell on with no tiers configured would save a campaign
+     * that is "enabled" but silent, so seed a starter tier the NGO can adjust.
+     */
+    public function updatedUpsellEnabled(bool $value): void
+    {
+        if ($value && $this->upsell_tiers === []) {
+            $this->addUpsellTier();
+        }
+    }
+
+    /**
+     * Jump straight from the overview summary card to the upsell editor.
+     */
+    public function editMonthlyUpsell(): void
+    {
+        $this->activeTab = 'checkout';
+        $this->checkoutPanel = 'upsell';
+    }
+
+    public function addUpsellTier(): void
+    {
+        if (count($this->upsell_tiers) >= self::MaxUpsellTiers) {
+            $this->dispatch('notify', message: 'Maximum '.self::MaxUpsellTiers.' tiers allowed.', variant: 'danger');
+
+            return;
+        }
+
+        $this->upsell_tiers[] = [
+            'min' => 50.0,
+            'max' => null,
+            'offers' => [
+                ['type' => 'percent', 'value' => 33.0],
+                ['type' => 'percent', 'value' => 50.0],
+            ],
+        ];
+    }
+
+    /**
+     * The monthly_upsell block to persist, or nothing at all for a campaign
+     * that has never touched the feature - writing a disabled block into every
+     * campaign on save would make "who configured this?" unanswerable.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function monthlyUpsellConfig(): array
+    {
+        $alreadyConfigured = array_key_exists('monthly_upsell', $this->campaign->config ?? []);
+
+        if (! $this->upsell_enabled && $this->upsell_tiers === [] && ! $alreadyConfigured) {
+            return [];
+        }
+
+        return [
+            'monthly_upsell' => [
+                'enabled' => $this->upsell_enabled,
+                'cooldown_days' => $this->upsell_cooldown_days,
+                'heading' => $this->upsell_heading ?: null,
+                'body' => $this->upsell_body ?: null,
+                'decline_label' => $this->upsell_decline_label ?: null,
+                'tiers' => array_values($this->upsell_tiers),
+            ],
+        ];
+    }
+
+    public function removeUpsellTier(int $index): void
+    {
+        unset($this->upsell_tiers[$index]);
+        $this->upsell_tiers = array_values($this->upsell_tiers);
+    }
+
     public function removeMonthlySuggested(int $index): void
     {
         if (count($this->suggestedMonthly) <= 1) {
@@ -571,6 +725,16 @@ class CampaignEdit extends Component
             return;
         }
 
+        if ($this->upsell_enabled) {
+            $upsellErrors = (new MonthlyUpsellRules)->validateConfig($this->upsell_tiers);
+
+            if ($upsellErrors !== []) {
+                $this->addError('upsell_tiers', implode(' ', $upsellErrors));
+
+                return;
+            }
+        }
+
         $validated = $this->validate();
 
         $org = Auth::user()?->organization;
@@ -636,6 +800,7 @@ class CampaignEdit extends Component
             'show_total_raised' => $this->show_total_raised,
             'content_title' => $this->contentTitle ?: null,
             'content_message' => $this->contentMessage ?: null,
+            ...$this->monthlyUpsellConfig(),
         ]);
 
         $this->campaign->update([
