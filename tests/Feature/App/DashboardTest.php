@@ -136,6 +136,68 @@ it('shows a status badge for each recent donation', function () {
         ->assertSee('Failed', false);
 });
 
+it('downloads chart exports through a blob url rather than a data url', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    Donation::factory()->for($campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now(),
+    ]);
+
+    actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->assertSee('canvas.toBlob(', false)
+        ->assertSee('URL.createObjectURL(blob)', false)
+        ->assertDontSee("a.href = canvas.toDataURL('image/png')", false);
+});
+
+it('retries a zero width chart export before giving up', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    Donation::factory()->for($campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now(),
+    ]);
+
+    actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->assertSee('function trendChartImageUri(chart)', false)
+        ->assertSee('The chart is still loading. Try again in a moment.', false);
+});
+
+it('explains failed and pending recent donations with a status tooltip', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    $donor = Donor::factory()->create();
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Failed,
+        'created_at' => now(),
+        'stripe_fee_details' => [
+            'last_payment_error' => [
+                'message' => 'Your card has insufficient funds.',
+                'decline_code' => 'insufficient_funds',
+            ],
+        ],
+    ]);
+
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Pending,
+        'created_at' => now(),
+        'stripe_fee_details' => [
+            'pending' => [
+                'status' => 'requires_action',
+                'message' => null,
+            ],
+        ],
+    ]);
+
+    actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->assertSee('Your card has insufficient funds. The bank returned the decline code insufficient_funds.')
+        ->assertSee('Awaiting 3D Secure authentication (requires_action)');
+});
+
 it('calculates donations by frequency for the selected period', function () {
     $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
     $donor = Donor::factory()->create();
