@@ -260,6 +260,42 @@
                                 <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Decline cooldown</dt>
                                 <dd class="text-sm text-slate-700">{{ $upsell_cooldown_days }} days</dd>
                             </div>
+
+                            @php $upsellStats = $this->upsellStats(); @endphp
+
+                            <div class="border-t border-slate-100 pt-4">
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Results</dt>
+
+                                @if ($upsellStats['offers_shown'] === 0)
+                                    <dd class="mt-2 text-sm text-slate-500">No offers shown yet.</dd>
+                                @else
+                                    <dd class="mt-3 grid grid-cols-2 gap-3">
+                                        <div>
+                                            <div class="text-lg font-semibold text-slate-900">{{ $upsellStats['offers_shown'] }}</div>
+                                            <div class="text-xs text-slate-500">Offers shown</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-lg font-semibold text-slate-900">
+                                                {{ $upsellStats['accepted'] }}@if ($upsellStats['shows_rate'])<span class="ml-1 text-sm font-normal text-slate-500">({{ round($upsellStats['accepted'] / $upsellStats['offers_shown'] * 100) }}%)</span>@endif
+                                            </div>
+                                            <div class="text-xs text-slate-500">Accepted</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-lg font-semibold text-slate-900">{{ $upsellStats['plans_started'] }}</div>
+                                            <div class="text-xs text-slate-500">Plans started</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-lg font-semibold text-slate-900">
+                                                {{ $upsellStats['is_approximate'] ? '≈ ' : '' }}MYR {{ number_format($upsellStats['added_monthly_value'], 2) }}
+                                            </div>
+                                            <div class="text-xs text-slate-500">Added per month</div>
+                                        </div>
+                                    </dd>
+                                    <dd class="mt-3 text-xs text-slate-400">
+                                        Counts donors who saw the offer and went on to pay. Donors who left before paying are not recorded.
+                                    </dd>
+                                @endif
+                            </div>
                         @endif
                     </dl>
                 </x-ui.card>

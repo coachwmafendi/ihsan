@@ -285,3 +285,36 @@ it('exposes the upsell results for the campaign', function () {
 
     expect($component->instance()->upsellStats()['offers_shown'])->toBe(1);
 });
+
+it('renders the upsell results on the summary card', function () {
+    $this->campaign->update([
+        'config' => ['monthly_upsell' => [
+            'enabled' => true,
+            'tiers' => [['min' => 10, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 20]]]],
+        ]],
+    ]);
+
+    Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'utm_params' => ['upsell_shown' => true, 'upsell_accepted' => false],
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->assertSee('Offers shown')
+        ->assertSee('Plans started')
+        ->assertDontSee('No offers shown yet');
+});
+
+it('shows an empty results state when nobody has seen the offer', function () {
+    $this->campaign->update([
+        'config' => ['monthly_upsell' => [
+            'enabled' => true,
+            'tiers' => [['min' => 10, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 20]]]],
+        ]],
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->assertSee('No offers shown yet');
+});
