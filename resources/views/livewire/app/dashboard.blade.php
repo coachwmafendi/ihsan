@@ -412,7 +412,9 @@
                 }
 
                 const ctx = canvas.getContext('2d');
-                const colors = ['#2563eb', '#3b82f6', '#14b8a6', '#f59e0b', '#f43f5e', '#6366f1', '#10b981', '#06b6d4', '#f97316', '#a855f7'];
+                // Hues ordered so neighbours stay apart for colourblind readers;
+                // blue-500 next to blue-600 read as one colour in a two-slice chart.
+                const colors = ['#2563eb', '#f59e0b', '#14b8a6', '#f43f5e', '#a855f7', '#10b981', '#f97316', '#06b6d4', '#6366f1', '#84cc16'];
                 const backgroundColor = data.map((_, i) => colors[i % colors.length]);
                 const total = data.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
 
