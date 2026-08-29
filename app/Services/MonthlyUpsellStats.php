@@ -30,9 +30,14 @@ class MonthlyUpsellStats
             ->distinct()
             ->count('donor_id');
 
+        $accepted = $campaign->donations()
+            ->where('utm_params->upsell_accepted', true)
+            ->distinct()
+            ->count('donor_id');
+
         return [
             'offers_shown' => $offersShown,
-            'accepted' => 0,
+            'accepted' => $accepted,
             'plans_started' => 0,
             'added_monthly_value' => 0.0,
             'is_approximate' => false,

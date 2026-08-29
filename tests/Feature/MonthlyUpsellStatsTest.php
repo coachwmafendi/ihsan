@@ -59,3 +59,27 @@ it('ignores donations belonging to another campaign', function () {
 
     expect($this->stats->forCampaign($this->campaign)['offers_shown'])->toBe(0);
 });
+
+it('counts a donor who accepted the offer', function () {
+    Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'utm_params' => ['upsell_shown' => true, 'upsell_accepted' => true],
+    ]);
+
+    $result = $this->stats->forCampaign($this->campaign);
+
+    expect($result['offers_shown'])->toBe(1)
+        ->and($result['accepted'])->toBe(1);
+});
+
+it('counts an acceptance whose payment then failed', function () {
+    Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Failed,
+        'utm_params' => ['upsell_shown' => true, 'upsell_accepted' => true],
+    ]);
+
+    $result = $this->stats->forCampaign($this->campaign);
+
+    expect($result['accepted'])->toBe(1)
+        ->and($result['plans_started'])->toBe(0);
+});
