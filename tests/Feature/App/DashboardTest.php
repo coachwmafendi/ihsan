@@ -136,6 +136,20 @@ it('shows a status badge for each recent donation', function () {
         ->assertSee('Failed', false);
 });
 
+it('keeps the two nearest blues apart in the categorical chart palette', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    Donation::factory()->for($campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now(),
+    ]);
+
+    actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->assertSee("'#2563eb', '#f59e0b'", false)
+        ->assertDontSee("'#2563eb', '#3b82f6'", false);
+});
+
 it('downloads chart exports through a blob url rather than a data url', function () {
     $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
     Donation::factory()->for($campaign)->for(Donor::factory())->create([
