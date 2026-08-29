@@ -540,7 +540,11 @@ class CampaignEdit extends Component
             return [];
         }
 
-        return (new MonthlyUpsellRules)->unusedOfferLabels($tier, $this->default_currency);
+        return (new MonthlyUpsellRules)->unusedOfferLabels(
+            $tier,
+            $this->default_currency,
+            (float) ($this->minimum_amount ?? 0),
+        );
     }
 
     /**

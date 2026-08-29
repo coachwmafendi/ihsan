@@ -591,3 +591,26 @@ it('reports nothing when both offers win at some amount', function () {
 
     expect((new MonthlyUpsellRules)->unusedOfferLabels($tier, 'MYR'))->toBe([]);
 });
+
+it('handles a tier whose minimum is not a whole number', function () {
+    $tier = ['min' => 12.5, 'max' => 99, 'offers' => [
+        ['type' => 'fixed', 'value' => 10],
+        ['type' => 'percent', 'value' => 20],
+    ]];
+
+    // A fractional sample amount must not be used as an array key: PHP would
+    // truncate 12.5 to 12 and look up the wrong row.
+    expect((new MonthlyUpsellRules)->unusedOfferLabels($tier, 'MYR'))->toBe([]);
+});
+
+it('counts an offer the campaign minimum filters out as unused', function () {
+    $tier = ['min' => 50, 'max' => 199, 'offers' => [
+        ['type' => 'fixed', 'value' => 40],
+        ['type' => 'fixed', 'value' => 45],
+    ]];
+
+    $rules = new MonthlyUpsellRules;
+
+    expect($rules->unusedOfferLabels($tier, 'MYR', 60.0))
+        ->toHaveCount(2);
+});

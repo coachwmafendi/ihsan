@@ -95,7 +95,7 @@ class MonthlyUpsellRules
      * @param  array<string, mixed>  $tier
      * @return array<int, string>
      */
-    public function unusedOfferLabels(array $tier, string $currency): array
+    public function unusedOfferLabels(array $tier, string $currency, float $campaignMinimum = 0.0): array
     {
         $offers = is_array($tier['offers'] ?? null) ? array_values($tier['offers']) : [];
 
@@ -109,17 +109,15 @@ class MonthlyUpsellRules
             return [];
         }
 
-        $winners = [];
-
-        foreach ($amounts as $amount) {
-            $built = $this->buildOffers($tier, $amount, 0.0);
+        // Sample amounts can be fractional, so these stay parallel lists:
+        // a float array key would truncate 12.5 to 12 and collide.
+        $winners = array_map(function (float $amount) use ($tier, $campaignMinimum): ?float {
+            $built = $this->buildOffers($tier, $amount, $campaignMinimum);
 
             // buildOffers() puts the donor's own amount first; the lighter
             // option, when there is one, follows it.
-            if (count($built) > 1) {
-                $winners[$amount] = $built[1];
-            }
-        }
+            return count($built) > 1 ? $built[1] : null;
+        }, $amounts);
 
         $unused = [];
 
@@ -130,12 +128,12 @@ class MonthlyUpsellRules
 
             $everWins = false;
 
-            foreach ($amounts as $amount) {
-                if (! array_key_exists($amount, $winners)) {
+            foreach ($amounts as $position => $amount) {
+                if ($winners[$position] === null) {
                     continue;
                 }
 
-                if ($this->offerValueFor($offer, $amount) === $winners[$amount]) {
+                if ($this->offerValueFor($offer, $amount) === $winners[$position]) {
                     $everWins = true;
 
                     break;
