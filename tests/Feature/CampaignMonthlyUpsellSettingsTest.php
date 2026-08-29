@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Enums\DonationStatus;
 use App\Enums\UserRole;
 use App\Livewire\App\Campaigns\CampaignEdit;
 use App\Models\Campaign;
+use App\Models\Donation;
+use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\User;
 use Livewire\Livewire;
@@ -269,4 +272,16 @@ it('binds tier fields live so the worked example tracks what is typed', function
     expect($html)->toContain('wire:model.live.debounce.400ms="upsell_tiers.0.min"')
         ->and($html)->toContain('wire:model.live.debounce.400ms="upsell_tiers.0.max"')
         ->and($html)->toContain('wire:model.live.debounce.400ms="upsell_tiers.0.offers.0.value"');
+});
+
+it('exposes the upsell results for the campaign', function () {
+    Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'utm_params' => ['upsell_shown' => true, 'upsell_accepted' => false],
+    ]);
+
+    $component = Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign]);
+
+    expect($component->instance()->upsellStats()['offers_shown'])->toBe(1);
 });
