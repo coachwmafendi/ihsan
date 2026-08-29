@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\DonationStatus;
 use App\Models\Campaign;
 
 /**
@@ -35,12 +36,31 @@ class MonthlyUpsellStats
             ->distinct()
             ->count('donor_id');
 
+        // An acceptance only becomes revenue once the payment clears and a
+        // plan exists, so these are counted separately from the acceptances.
+        $plans = $campaign->donations()
+            ->where('utm_params->upsell_accepted', true)
+            ->where('status', DonationStatus::Succeeded)
+            ->whereNotNull('subscription_id')
+            ->get(['currency', 'base_amount', 'gross_amount']);
+
+        $addedMonthlyValue = 0.0;
+        $isApproximate = false;
+
+        foreach ($plans as $plan) {
+            $addedMonthlyValue += (float) ($plan->base_amount ?? $plan->gross_amount);
+
+            if (strtolower($plan->currency ?? '') !== 'myr') {
+                $isApproximate = true;
+            }
+        }
+
         return [
             'offers_shown' => $offersShown,
             'accepted' => $accepted,
-            'plans_started' => 0,
-            'added_monthly_value' => 0.0,
-            'is_approximate' => false,
+            'plans_started' => $plans->count(),
+            'added_monthly_value' => $addedMonthlyValue,
+            'is_approximate' => $isApproximate,
             'shows_rate' => false,
         ];
     }

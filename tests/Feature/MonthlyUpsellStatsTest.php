@@ -7,6 +7,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
+use App\Models\Subscription;
 use App\Services\MonthlyUpsellStats;
 
 beforeEach(function () {
@@ -82,4 +83,59 @@ it('counts an acceptance whose payment then failed', function () {
 
     expect($result['accepted'])->toBe(1)
         ->and($result['plans_started'])->toBe(0);
+});
+
+it('counts a started plan and the monthly value it adds', function () {
+    $donor = Donor::factory()->create();
+    $subscription = Subscription::factory()->for($this->campaign)->for($donor)->create();
+
+    Donation::factory()->for($this->campaign)->for($donor)->create([
+        'subscription_id' => $subscription->id,
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 60.00,
+        'base_amount' => 60.00,
+        'currency' => 'myr',
+        'utm_params' => ['upsell_shown' => true, 'upsell_accepted' => true],
+    ]);
+
+    $result = $this->stats->forCampaign($this->campaign);
+
+    expect($result['plans_started'])->toBe(1)
+        ->and($result['added_monthly_value'])->toBe(60.0)
+        ->and($result['is_approximate'])->toBeFalse();
+});
+
+it('flags the added value as approximate when a plan is not in myr', function () {
+    $donor = Donor::factory()->create();
+    $subscription = Subscription::factory()->for($this->campaign)->for($donor)->create();
+
+    Donation::factory()->for($this->campaign)->for($donor)->create([
+        'subscription_id' => $subscription->id,
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 20.00,
+        'base_amount' => 94.50,
+        'currency' => 'usd',
+        'utm_params' => ['upsell_shown' => true, 'upsell_accepted' => true],
+    ]);
+
+    $result = $this->stats->forCampaign($this->campaign);
+
+    expect($result['added_monthly_value'])->toBe(94.5)
+        ->and($result['is_approximate'])->toBeTrue();
+});
+
+it('falls back to the gross amount when no base amount was stored', function () {
+    $donor = Donor::factory()->create();
+    $subscription = Subscription::factory()->for($this->campaign)->for($donor)->create();
+
+    Donation::factory()->for($this->campaign)->for($donor)->create([
+        'subscription_id' => $subscription->id,
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 45.00,
+        'base_amount' => null,
+        'currency' => 'myr',
+        'utm_params' => ['upsell_shown' => true, 'upsell_accepted' => true],
+    ]);
+
+    expect($this->stats->forCampaign($this->campaign)['added_monthly_value'])->toBe(45.0);
 });
