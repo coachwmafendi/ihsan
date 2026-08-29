@@ -222,6 +222,19 @@
             }
 
             /**
+             * The live trend chart, read off the node it was rendered into.
+             * Livewire replaces that node on every filter change, and
+             * ApexCharts.getChartByID() keeps returning the detached instance
+             * from the render before it — which measures zero and exports an
+             * empty image.
+             */
+            function currentTrendChart() {
+                const el = document.querySelector('[data-donation-trend-chart]');
+
+                return el && el._chart ? el._chart : null;
+            }
+
+            /**
              * ApexCharts exports whatever width the chart currently occupies.
              * When the card is still laid out at zero width — the dashboard
              * skeleton, a Livewire morph — that export is an empty `data:,`
@@ -269,7 +282,7 @@
 
                 // Export the chart that is actually on screen rather than
                 // redrawing it, so the download matches what was seen.
-                const chart = ApexCharts.getChartByID('donation-trend');
+                const chart = currentTrendChart();
 
                 if (! chart) {
                     failChartDownload('The chart is still loading. Try again in a moment.');
@@ -765,6 +778,12 @@
 
                             this.chart = new ApexCharts(this.$refs.donationTrendChart, options);
                             this.chart.render();
+
+                            // The export reads the chart back off this node.
+                            // ApexCharts.getChartByID() cannot be trusted here:
+                            // its registry keeps handing out the instance from
+                            // the previous render once Livewire swaps the DOM.
+                            this.$refs.donationTrendChart._chart = this.chart;
                         },
                         init() {
                             this.$nextTick(() => this.renderChart());
@@ -772,7 +791,7 @@
                     }"
                     x-init="init()"
                 >
-                    <div x-ref="donationTrendChart"></div>
+                    <div x-ref="donationTrendChart" data-donation-trend-chart></div>
                 </div>
             @else
                 <div class="py-8 text-center text-sm text-slate-400">No donation data for this period</div>
