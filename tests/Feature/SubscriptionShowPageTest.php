@@ -912,3 +912,30 @@ it('shows placeholders in the utm card when the subscription has no utm paramete
         ->assertSee('UTM parameters')
         ->assertSee("scrollToSection('section-utm')", false);
 });
+
+it('lists only settled installments in the receipts table', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    $succeeded = Donation::factory()->create([
+        'subscription_id' => $subscription->id,
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $failed = Donation::factory()->create([
+        'subscription_id' => $subscription->id,
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => DonationStatus::Failed,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee($succeeded->invoice_number)
+        ->assertDontSee($failed->invoice_number);
+});

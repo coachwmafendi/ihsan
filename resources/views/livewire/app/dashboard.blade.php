@@ -97,12 +97,24 @@
     <div class="space-y-8">
         <script>
             function downloadChartPng(canvas, filename) {
-                const a = document.createElement('a');
-                a.href = canvas.toDataURL('image/png');
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
+                // A blob URL, not a data URL: Safari refuses to download
+                // `data:` hrefs and large ones are unreliable in Chrome.
+                canvas.toBlob((blob) => {
+                    if (! blob) {
+                        failChartDownload('The chart could not be exported.');
+
+                        return;
+                    }
+
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }, 'image/png');
             }
 
             function chartExportCanvas(width, contentHeight, title, description) {
@@ -209,6 +221,35 @@
                 }));
             }
 
+            /**
+             * ApexCharts exports whatever width the chart currently occupies.
+             * When the card is still laid out at zero width — the dashboard
+             * skeleton, a Livewire morph — that export is an empty `data:,`
+             * URI, so nudge the chart to re-measure and ask once more.
+             */
+            function trendChartImageUri(chart) {
+                const isEmpty = (uri) => ! uri || uri.length < 32;
+
+                return chart.dataURI({ scale: 2 })
+                    .then(({ imgURI }) => {
+                        if (! isEmpty(imgURI)) {
+                            return imgURI;
+                        }
+
+                        window.dispatchEvent(new Event('resize'));
+
+                        return new Promise((resolve) => setTimeout(resolve, 350))
+                            .then(() => chart.dataURI({ scale: 2 }))
+                            .then(({ imgURI: retried }) => {
+                                if (isEmpty(retried)) {
+                                    throw new Error('The chart is not on screen yet.');
+                                }
+
+                                return retried;
+                            });
+                    });
+            }
+
             function downloadTrendPng(title, description, points, totalLabel, filename) {
                 if (! points.length) {
                     return;
@@ -236,8 +277,8 @@
                     return;
                 }
 
-                chart.dataURI({ scale: 2 })
-                    .then(({ imgURI }) => new Promise((resolve, reject) => {
+                trendChartImageUri(chart)
+                    .then((imgURI) => new Promise((resolve, reject) => {
                         const img = new Image();
                         img.onload = () => resolve(img);
                         img.onerror = () => reject(new Error('The chart image could not be read.'));
@@ -248,7 +289,9 @@
                         downloadChartPng(canvas, filename);
                     })
                     .catch((error) => {
-                        failChartDownload('The chart could not be exported.');
+                        failChartDownload(error.message === 'The chart is not on screen yet.'
+                            ? 'The chart is still loading. Try again in a moment.'
+                            : 'The chart could not be exported.');
                         console.error(error);
                     });
             }
@@ -966,9 +1009,11 @@
                                     {{ $donation->campaign?->title ?? '—' }}
                                 </td>
                                 <td class="px-5 py-3">
-                                    <x-ui.badge status="{{ $donation->status->value }}" size="sm">
-                                        {{ ucfirst($donation->status->value) }}
-                                    </x-ui.badge>
+                                    <x-ui.tooltip text="{{ $donation->status_tooltip }}" :disabled="! $donation->status_tooltip">
+                                        <x-ui.badge status="{{ $donation->status->value }}" size="sm">
+                                            {{ ucfirst($donation->status->value) }}
+                                        </x-ui.badge>
+                                    </x-ui.tooltip>
                                 </td>
                                 <td class="px-5 py-3 text-sm text-slate-500">
                                     {{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}

@@ -13,6 +13,7 @@ use App\Actions\Stripe\ManageStripeSubscription;
 use App\Actions\Stripe\PauseLocalRecurringPlan;
 use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Actions\Stripe\UpdateAppControlledPaymentMethod;
+use App\Enums\DonationStatus;
 use App\Enums\SubscriptionStatus;
 use App\Livewire\Concerns\ShowsActivityTimeline;
 use App\Models\Campaign;
@@ -138,6 +139,7 @@ class SubscriptionShow extends Component
     public function receiptDonations()
     {
         return $this->subscription->donations()
+            ->whereIn('status', [DonationStatus::Succeeded, DonationStatus::Refunded])
             ->latest()
             ->get();
     }
