@@ -121,6 +121,29 @@ it('shows the pending status tooltip on the donations index page', function () {
         ->assertSee('Awaiting 3D Secure authentication (requires_action)');
 });
 
+it('does not present a receipt for a donation that never succeeded', function (string $status) {
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'gross_amount' => 150.00,
+        'status' => $status,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $donation])
+        ->assertStatus(200)
+        ->assertDontSee($donation->invoice_number)
+        ->assertSee('No receipt issued');
+})->with(['failed', 'pending']);
+
+it('presents the receipt for a succeeded donation', function () {
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertStatus(200)
+        ->assertSee($this->donation->invoice_number)
+        ->assertDontSee('No receipt issued');
+});
+
 it('shows the exact original currency amount in a tooltip for non-MYR receipts', function () {
     $donation = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,

@@ -494,6 +494,11 @@
             {{-- Receipts --}}
             <section id="section-receipts" data-section="section-receipts">
                 <x-ui.card title="Receipts" icon="heroicon-o-receipt-percent">
+                    @if (! in_array($donation->status->value, ['succeeded', 'refunded'], true))
+                        <div class="py-6 text-center text-sm text-slate-500">
+                            No receipt issued — this payment has not been completed.
+                        </div>
+                    @else
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-left text-sm">
                             <thead>
@@ -551,6 +556,7 @@
                             </tbody>
                         </table>
                     </div>
+                    @endif
                 </x-ui.card>
             </section>
 
