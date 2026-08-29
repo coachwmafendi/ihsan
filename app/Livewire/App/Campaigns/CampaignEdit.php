@@ -10,7 +10,9 @@ use App\Enums\PaymentGateway;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Services\MonthlyUpsellRules;
+use App\Services\MonthlyUpsellStats;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -666,6 +668,24 @@ class CampaignEdit extends Component
      *
      * @return array<string, array{amount: float, approximate: bool}>
      */
+    /**
+     * How the monthly upsell has performed on this campaign.
+     *
+     * @return array{
+     *     offers_shown: int,
+     *     accepted: int,
+     *     plans_started: int,
+     *     added_monthly_value: float,
+     *     is_approximate: bool,
+     *     shows_rate: bool,
+     * }
+     */
+    #[Computed]
+    public function upsellStats(): array
+    {
+        return app(MonthlyUpsellStats::class)->forCampaign($this->campaign);
+    }
+
     public function donationAmountsBySource(): array
     {
         $buckets = [
