@@ -1159,6 +1159,16 @@
                                                             @endforeach
                                                         </dl>
 
+                                                        @php $unusedOffers = $this->upsellUnusedOffers($index); @endphp
+
+                                                        @if ($unusedOffers !== [])
+                                                            <p class="mt-2 text-xs text-amber-700">
+                                                                {{ collect($unusedOffers)->join(' and ') }} {{ count($unusedOffers) > 1 ? 'are' : 'is' }} never used:
+                                                                only the highest offer below the donor's own amount becomes the lighter button,
+                                                                so the larger value always wins. Remove it, or split the values across separate tiers.
+                                                            </p>
+                                                        @endif
+
                                                         @if (collect($tierPreview)->contains(fn (array $row): bool => count($row['offers']) < 2))
                                                             <p class="mt-2 text-xs text-amber-700">
                                                                 Some amounts get no lighter option, so those donors see one button only.

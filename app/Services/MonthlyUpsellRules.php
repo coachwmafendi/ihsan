@@ -85,6 +85,95 @@ class MonthlyUpsellRules
     }
 
     /**
+     * Offers in this tier that no donor will ever be shown.
+     *
+     * Only the highest surviving offer becomes the lighter button, so a
+     * smaller one sitting beside a larger one is dead configuration. The
+     * editor lets an admin enter two values, and without this it looks as
+     * though both are in play.
+     *
+     * @param  array<string, mixed>  $tier
+     * @return array<int, string>
+     */
+    public function unusedOfferLabels(array $tier, string $currency, float $campaignMinimum = 0.0): array
+    {
+        $offers = is_array($tier['offers'] ?? null) ? array_values($tier['offers']) : [];
+
+        if (count($offers) < 2) {
+            return [];
+        }
+
+        $amounts = $this->previewAmountsFor($tier);
+
+        if ($amounts === []) {
+            return [];
+        }
+
+        // Sample amounts can be fractional, so these stay parallel lists:
+        // a float array key would truncate 12.5 to 12 and collide.
+        $winners = array_map(function (float $amount) use ($tier, $campaignMinimum): ?float {
+            $built = $this->buildOffers($tier, $amount, $campaignMinimum);
+
+            // buildOffers() puts the donor's own amount first; the lighter
+            // option, when there is one, follows it.
+            return count($built) > 1 ? $built[1] : null;
+        }, $amounts);
+
+        $unused = [];
+
+        foreach ($offers as $offer) {
+            if (! is_array($offer)) {
+                continue;
+            }
+
+            $everWins = false;
+
+            foreach ($amounts as $position => $amount) {
+                if ($winners[$position] === null) {
+                    continue;
+                }
+
+                if ($this->offerValueFor($offer, $amount) === $winners[$position]) {
+                    $everWins = true;
+
+                    break;
+                }
+            }
+
+            if (! $everWins) {
+                $unused[] = ($offer['type'] ?? 'percent') === 'fixed'
+                    ? Currency::formatCompact($currency, (float) ($offer['value'] ?? 0))
+                    : (int) ($offer['value'] ?? 0).'%';
+            }
+        }
+
+        return $unused;
+    }
+
+    /**
+     * The monthly figure a single offer produces for a one-time amount, after
+     * rounding — or null when the offer is malformed.
+     *
+     * @param  array<string, mixed>  $offer
+     */
+    private function offerValueFor(array $offer, float $amount): ?float
+    {
+        $value = (float) ($offer['value'] ?? 0);
+
+        $computed = match ($offer['type'] ?? 'percent') {
+            'fixed' => $value,
+            'percent' => $amount * ($value / 100),
+            default => null,
+        };
+
+        if ($computed === null) {
+            return null;
+        }
+
+        return (float) (round($computed / self::ROUNDING_STEP) * self::ROUNDING_STEP);
+    }
+
+    /**
      * Sample one-time amounts that show how a tier behaves across its range.
      *
      * @param  array<string, mixed>  $tier
