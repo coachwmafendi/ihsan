@@ -527,6 +527,23 @@ class CampaignEdit extends Component
     }
 
     /**
+     * Offers in a tier that no donor will ever see, because a larger one in
+     * the same tier always becomes the lighter button.
+     *
+     * @return array<int, string>
+     */
+    public function upsellUnusedOffers(int $index): array
+    {
+        $tier = $this->upsell_tiers[$index] ?? null;
+
+        if (! is_array($tier)) {
+            return [];
+        }
+
+        return (new MonthlyUpsellRules)->unusedOfferLabels($tier, $this->default_currency);
+    }
+
+    /**
      * Switching the upsell on with no tiers configured would save a campaign
      * that is "enabled" but silent, so seed a starter tier the NGO can adjust.
      */

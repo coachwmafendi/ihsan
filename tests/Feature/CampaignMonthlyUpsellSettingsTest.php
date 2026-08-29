@@ -318,3 +318,35 @@ it('shows an empty results state when nobody has seen the offer', function () {
         ->test(CampaignEdit::class, ['campaign' => $this->campaign])
         ->assertSee('No offers shown yet');
 });
+
+it('warns when a configured offer can never reach a donor', function () {
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->set('activeTab', 'checkout')
+        ->set('checkoutPanel', 'upsell')
+        ->set('upsell_enabled', true)
+        ->set('upsell_tiers', [[
+            'min' => 50,
+            'max' => 199,
+            'offers' => [
+                ['type' => 'percent', 'value' => 33],
+                ['type' => 'percent', 'value' => 50],
+            ],
+        ]])
+        ->assertSee('33% is never used')
+        ->assertSee('the larger value always wins');
+});
+
+it('does not warn when every configured offer can reach a donor', function () {
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->set('activeTab', 'checkout')
+        ->set('checkoutPanel', 'upsell')
+        ->set('upsell_enabled', true)
+        ->set('upsell_tiers', [[
+            'min' => 50,
+            'max' => 199,
+            'offers' => [['type' => 'percent', 'value' => 50]],
+        ]])
+        ->assertDontSee('is never used');
+});

@@ -563,3 +563,31 @@ it('still previews an open-ended tier by stepping up from the minimum', function
     expect($rules->previewAmountsFor(['min' => 100, 'max' => null]))->toBe([100.0, 200.0, 500.0])
         ->and($rules->previewAmountsFor(['min' => 100, 'max' => '']))->toBe([100.0, 200.0, 500.0]);
 });
+
+it('reports an offer that the higher one always beats', function () {
+    $tier = ['min' => 50, 'max' => 199, 'offers' => [
+        ['type' => 'percent', 'value' => 33],
+        ['type' => 'percent', 'value' => 50],
+    ]];
+
+    $rules = new MonthlyUpsellRules;
+
+    expect($rules->unusedOfferLabels($tier, 'MYR'))->toBe(['33%']);
+});
+
+it('reports nothing when a tier offers a single value', function () {
+    $tier = ['min' => 50, 'max' => 199, 'offers' => [
+        ['type' => 'percent', 'value' => 50],
+    ]];
+
+    expect((new MonthlyUpsellRules)->unusedOfferLabels($tier, 'MYR'))->toBe([]);
+});
+
+it('reports nothing when both offers win at some amount', function () {
+    $tier = ['min' => 50, 'max' => 400, 'offers' => [
+        ['type' => 'fixed', 'value' => 30],
+        ['type' => 'percent', 'value' => 10],
+    ]];
+
+    expect((new MonthlyUpsellRules)->unusedOfferLabels($tier, 'MYR'))->toBe([]);
+});
