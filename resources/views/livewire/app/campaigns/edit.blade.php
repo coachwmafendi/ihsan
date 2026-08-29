@@ -293,6 +293,9 @@
                                     </dd>
                                     <dd class="mt-3 text-xs text-slate-400">
                                         Counts donors who saw the offer and went on to pay. Donors who left before paying are not recorded.
+                                        @if (strtoupper($default_currency) !== 'MYR')
+                                            Plans are charged in {{ strtoupper($default_currency) }}; totals shown in MYR at capture-time rates.
+                                        @endif
                                     </dd>
                                 @endif
                             </div>

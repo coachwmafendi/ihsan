@@ -350,3 +350,46 @@ it('does not warn when every configured offer can reach a donor', function () {
         ]])
         ->assertDontSee('is never used');
 });
+
+it('says which currency plans are charged in when it is not myr', function () {
+    $this->campaign->update([
+        'config' => [
+            'default_currency' => 'SGD',
+            'monthly_upsell' => [
+                'enabled' => true,
+                'tiers' => [['min' => 10, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 20]]]],
+            ],
+        ],
+    ]);
+
+    Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'utm_params' => ['upsell_shown' => true],
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->assertSee('charged in SGD')
+        ->assertSee('totals shown in MYR');
+});
+
+it('stays quiet about currency on a myr campaign', function () {
+    $this->campaign->update([
+        'config' => [
+            'default_currency' => 'MYR',
+            'monthly_upsell' => [
+                'enabled' => true,
+                'tiers' => [['min' => 10, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 20]]]],
+            ],
+        ],
+    ]);
+
+    Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'utm_params' => ['upsell_shown' => true],
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->assertDontSee('totals shown in MYR');
+});
