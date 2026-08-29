@@ -139,3 +139,23 @@ it('falls back to the gross amount when no base amount was stored', function () 
 
     expect($this->stats->forCampaign($this->campaign)['added_monthly_value'])->toBe(45.0);
 });
+
+it('withholds the rate until thirty donors have seen the offer', function () {
+    foreach (range(1, 29) as $i) {
+        Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+            'utm_params' => ['upsell_shown' => true],
+        ]);
+    }
+
+    expect($this->stats->forCampaign($this->campaign)['shows_rate'])->toBeFalse();
+});
+
+it('reports the rate once thirty donors have seen the offer', function () {
+    foreach (range(1, 30) as $i) {
+        Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+            'utm_params' => ['upsell_shown' => true],
+        ]);
+    }
+
+    expect($this->stats->forCampaign($this->campaign)['shows_rate'])->toBeTrue();
+});

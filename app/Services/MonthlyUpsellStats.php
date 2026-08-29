@@ -15,6 +15,12 @@ use App\Models\Campaign;
 class MonthlyUpsellStats
 {
     /**
+     * Offers shown before a conversion rate means anything. Under this, a
+     * single acceptance would swing the percentage wildly.
+     */
+    private const int RATE_THRESHOLD = 30;
+
+    /**
      * @return array{
      *     offers_shown: int,
      *     accepted: int,
@@ -61,7 +67,7 @@ class MonthlyUpsellStats
             'plans_started' => $plans->count(),
             'added_monthly_value' => $addedMonthlyValue,
             'is_approximate' => $isApproximate,
-            'shows_rate' => false,
+            'shows_rate' => $offersShown >= self::RATE_THRESHOLD,
         ];
     }
 }
