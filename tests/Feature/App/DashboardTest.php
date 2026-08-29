@@ -165,6 +165,22 @@ it('downloads chart exports through a blob url rather than a data url', function
         ->assertDontSee("a.href = canvas.toDataURL('image/png')", false);
 });
 
+it('reads the trend chart off the dom instead of the apexcharts registry', function () {
+    $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
+    Donation::factory()->for($campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now(),
+    ]);
+
+    actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->assertSee('data-donation-trend-chart', false)
+        ->assertSee('function currentTrendChart()', false)
+        ->assertSee('const chart = currentTrendChart();', false)
+        ->assertDontSee("ApexCharts.getChartByID('donation-trend')", false);
+});
+
 it('retries a zero width chart export before giving up', function () {
     $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
     Donation::factory()->for($campaign)->for(Donor::factory())->create([
