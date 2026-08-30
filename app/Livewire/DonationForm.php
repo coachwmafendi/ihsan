@@ -680,7 +680,7 @@ class DonationForm extends Component
             'frequency' => $validated['frequency'],
             'dedicate' => (bool) ($validated['dedicate'] ?? false),
             'source' => $source,
-            ...$this->buildUpsellTrackingParams(),
+            ...$this->buildUpsellTrackingParams($validated['frequency']),
             'utm_source' => $pageQuery['utm_source'] ?? null,
             'utm_medium' => $pageQuery['utm_medium'] ?? null,
             'utm_campaign' => $pageQuery['utm_campaign'] ?? null,
@@ -916,15 +916,81 @@ class DonationForm extends Component
     }
 
     /**
-     * @return array{upsell_shown: bool, upsell_accepted: bool, upsell_original_amount: float|null}
+     * The upsell flags the client reports, reconciled against what the server
+     * can actually verify.
+     *
+     * Alpine sets $upsellShown, $upsellAccepted and $upsellOriginalAmount over
+     * the wire, so they are donor-controlled input. They drive the campaign's
+     * only measure of the feature, so an accepted offer has to agree with the
+     * frequency being submitted, and the offer amounts are rebuilt here from
+     * the campaign's own rules rather than trusted from the browser.
+     *
+     * @return array{
+     *     upsell_shown: bool,
+     *     upsell_accepted: bool,
+     *     upsell_original_amount: float|null,
+     *     upsell_offers: array<int, float>|null,
+     *     upsell_offer_taken: string|null,
+     * }
      */
-    private function buildUpsellTrackingParams(): array
+    private function buildUpsellTrackingParams(string $frequency): array
     {
+        $shown = $this->upsellShown;
+        $originalAmount = $shown && $this->upsellOriginalAmount > 0
+            ? (float) $this->upsellOriginalAmount
+            : null;
+
+        // The offer only converts a one-time gift into a plan, so an
+        // acceptance that did not end up monthly never happened.
+        $accepted = $shown && $this->upsellAccepted && $frequency === 'monthly';
+
+        // Resolved straight from the rules rather than through
+        // resolveMonthlyUpsell(): in the embed-to-modal flow the offer was
+        // already made upstream, and that helper returns null there.
+        $campaign = $this->element?->campaign ?? $this->campaign;
+
+        $offers = $originalAmount === null || $campaign === null
+            ? null
+            : app(MonthlyUpsellRules::class)
+                ->resolve($campaign, $originalAmount, $this->currency)
+                ?->offers;
+
         return [
-            'upsell_shown' => $this->upsellShown,
-            'upsell_accepted' => $this->upsellAccepted,
-            'upsell_original_amount' => $this->upsellOriginalAmount,
+            'upsell_shown' => $shown,
+            'upsell_accepted' => $accepted,
+            'upsell_original_amount' => $originalAmount,
+            'upsell_offers' => $offers,
+            'upsell_offer_taken' => $accepted ? $this->upsellOfferTaken($offers) : null,
         ];
+    }
+
+    /**
+     * Which of the two buttons the donor pressed.
+     *
+     * buildOffers() puts the donor's own amount first and the lighter
+     * alternative second, so the submitted amount identifies the choice. This
+     * is what tells an admin whether the lighter option is carrying the
+     * conversions or is dead weight.
+     *
+     * @param  array<int, float>|null  $offers
+     */
+    private function upsellOfferTaken(?array $offers): ?string
+    {
+        if ($offers === null || $offers === []) {
+            return null;
+        }
+
+        $amount = (float) $this->amount;
+
+        foreach ($offers as $index => $offer) {
+            if (abs($offer - $amount) < 0.005) {
+                return $index === 0 ? 'own_amount' : 'lighter';
+            }
+        }
+
+        // The donor edited the amount after accepting, so neither button
+        // describes what they gave.
+        return 'other';
     }
 
     /**
@@ -1211,7 +1277,7 @@ class DonationForm extends Component
             return null;
         }
 
-        return (new MonthlyUpsellRules)
+        return app(MonthlyUpsellRules::class)
             ->resolve($campaign, $amount, $this->currency)
             ?->toArray();
     }

@@ -43,6 +43,9 @@ class CampaignEdit extends Component
 
     public string $checkoutPanel = 'currency';
 
+    /** Window for the monthly upsell results: '30', '90' or 'all'. */
+    public string $upsellStatsPeriod = 'all';
+
     /** @var string[] */
     public array $acceptedCurrencies = ['MYR'];
 
@@ -690,7 +693,10 @@ class CampaignEdit extends Component
      * @return array<string, array{amount: float, approximate: bool}>
      */
     /**
-     * How the monthly upsell has performed on this campaign.
+     * How the monthly upsell has performed on this campaign, over the window
+     * the admin selected. Lifetime figures pool a tier or copy change with
+     * everything that came before it, so the window is what makes a change
+     * measurable.
      *
      * @return array{
      *     offers_shown: int,
@@ -699,12 +705,26 @@ class CampaignEdit extends Component
      *     added_monthly_value: float,
      *     is_approximate: bool,
      *     shows_rate: bool,
+     *     took_own_amount: int,
+     *     took_lighter: int,
      * }
      */
     #[Computed]
     public function upsellStats(): array
     {
-        return app(MonthlyUpsellStats::class)->forCampaign($this->campaign);
+        return app(MonthlyUpsellStats::class)->forCampaign($this->campaign, $this->upsellStatsDays());
+    }
+
+    /**
+     * The selected window in days, or null for the whole history.
+     */
+    private function upsellStatsDays(): ?int
+    {
+        return match ($this->upsellStatsPeriod) {
+            '30' => 30,
+            '90' => 90,
+            default => null,
+        };
     }
 
     public function donationAmountsBySource(): array

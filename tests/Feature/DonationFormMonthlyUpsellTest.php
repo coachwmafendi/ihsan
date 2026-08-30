@@ -74,20 +74,103 @@ it('defaults the upsell tracking properties to a not-shown state', function () {
         ->and($component->get('upsellOriginalAmount'))->toBeNull();
 });
 
-it('carries the upsell outcome into the tracking params', function () {
-    $component = Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign()])
-        ->set('upsellShown', true)
-        ->set('upsellAccepted', true)
-        ->set('upsellOriginalAmount', 120.0);
+/**
+ * @param  array<string, mixed>  $state
+ * @return array<string, mixed>
+ */
+function upsellTrackingParams(Campaign $campaign, array $state, string $frequency = 'monthly'): array
+{
+    $component = Livewire::test(DonationForm::class, ['campaign' => $campaign]);
+
+    foreach ($state as $property => $value) {
+        $component->set($property, $value);
+    }
 
     $method = new ReflectionMethod(DonationForm::class, 'buildUpsellTrackingParams');
     $method->setAccessible(true);
 
-    expect($method->invoke($component->instance()))->toBe([
+    return $method->invoke($component->instance(), $frequency);
+}
+
+it('carries the upsell outcome into the tracking params', function () {
+    $params = upsellTrackingParams(upsellFormCampaign(), [
+        'upsellShown' => true,
+        'upsellAccepted' => true,
+        'upsellOriginalAmount' => 120.0,
+        'amount' => '120',
+    ]);
+
+    expect($params)->toBe([
         'upsell_shown' => true,
         'upsell_accepted' => true,
         'upsell_original_amount' => 120.0,
+        'upsell_offers' => [120.0, 60.0],
+        'upsell_offer_taken' => 'own_amount',
     ]);
+});
+
+it('records when the donor took the lighter offer', function () {
+    $params = upsellTrackingParams(upsellFormCampaign(), [
+        'upsellShown' => true,
+        'upsellAccepted' => true,
+        'upsellOriginalAmount' => 120.0,
+        'amount' => '60',
+    ]);
+
+    expect($params['upsell_offer_taken'])->toBe('lighter')
+        ->and($params['upsell_offers'])->toBe([120.0, 60.0]);
+});
+
+it('records neither offer when the donor edited the amount after accepting', function () {
+    $params = upsellTrackingParams(upsellFormCampaign(), [
+        'upsellShown' => true,
+        'upsellAccepted' => true,
+        'upsellOriginalAmount' => 120.0,
+        'amount' => '85',
+    ]);
+
+    expect($params['upsell_offer_taken'])->toBe('other');
+});
+
+it('refuses an acceptance that is not being submitted as monthly', function () {
+    // The flags arrive from the browser, so an acceptance has to agree with
+    // the frequency actually being charged.
+    $params = upsellTrackingParams(upsellFormCampaign(), [
+        'upsellShown' => true,
+        'upsellAccepted' => true,
+        'upsellOriginalAmount' => 120.0,
+        'amount' => '120',
+    ], frequency: 'one_time');
+
+    expect($params['upsell_accepted'])->toBeFalse()
+        ->and($params['upsell_offer_taken'])->toBeNull();
+});
+
+it('refuses an acceptance the donor was never shown', function () {
+    $params = upsellTrackingParams(upsellFormCampaign(), [
+        'upsellShown' => false,
+        'upsellAccepted' => true,
+        'upsellOriginalAmount' => 120.0,
+        'amount' => '120',
+    ]);
+
+    expect($params['upsell_accepted'])->toBeFalse()
+        ->and($params['upsell_original_amount'])->toBeNull()
+        ->and($params['upsell_offers'])->toBeNull();
+});
+
+it('rebuilds the offers from the campaign rather than trusting the client', function () {
+    // A client reporting an amount the tier does not cover gets no offers,
+    // so a crafted payload cannot invent conversions.
+    $params = upsellTrackingParams(upsellFormCampaign(), [
+        'upsellShown' => true,
+        'upsellAccepted' => true,
+        'upsellOriginalAmount' => 5.0,
+        'amount' => '5',
+    ]);
+
+    expect($params['upsell_offers'])->toBeNull()
+        ->and($params['upsell_offer_taken'])->toBeNull();
 });
 
 it('suppresses the offer when the embed reports it already showed one', function () {
