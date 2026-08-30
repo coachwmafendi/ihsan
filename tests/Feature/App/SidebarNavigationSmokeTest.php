@@ -85,3 +85,43 @@ it('shows the app logo in the collapsed sidebar toggle, swapping to the panel ic
         // The panel icon is hidden while collapsed until the toggle is hovered/focused.
         ->toContain("collapsed ? 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100' : 'opacity-100'");
 });
+
+it('animates the desktop sidebar width and content offset when collapsing', function () {
+    $html = $this->actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->getContent();
+
+    expect(preg_match('/<div\b[^>]*id="app-sidebar-desktop"[^>]*>/', $html, $sidebar))
+        ->toBe(1, 'Expected the desktop sidebar to be rendered.');
+
+    expect($sidebar[0])
+        ->toContain('transition-[width]')
+        ->toContain('duration-300')
+        ->toContain('motion-reduce:transition-none');
+
+    expect(preg_match('/<div\b[^>]*id="app-content"[^>]*>/', $html, $content))
+        ->toBe(1, 'Expected the app content wrapper to be rendered.');
+
+    expect($content[0])
+        ->toContain('transition-[padding]')
+        ->toContain('motion-reduce:transition-none');
+});
+
+it('fades sidebar item labels instead of popping them in', function () {
+    $html = $this->actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->getContent();
+
+    expect(preg_match(
+        '/<span\b(?:(?!<\/span>).)*?x-show="! \$store\.sidebar\.collapsed"(?:(?!<\/span>).)*?>Campaigns<\/span>/s',
+        $html,
+        $matches
+    ))->toBe(1, 'Expected the Campaigns sidebar label to be rendered.');
+
+    expect($matches[0])
+        ->toContain('x-transition:enter="transition-opacity ease-out duration-200 delay-150')
+        ->toContain('x-transition:enter-start="opacity-0"')
+        ->toContain('x-transition:leave="transition-opacity ease-in duration-100');
+});
