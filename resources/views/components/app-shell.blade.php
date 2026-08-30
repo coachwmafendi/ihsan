@@ -5,6 +5,13 @@
             collapsed: JSON.parse(localStorage.getItem('sidebarCollapsed') ?? 'false'),
 
             toggle() {
+                // Only a real toggle animates. See the .sidebar-animating rules in app.css.
+                const root = document.documentElement;
+
+                root.classList.add('sidebar-animating');
+                clearTimeout(this.animationTimeout);
+                this.animationTimeout = setTimeout(() => root.classList.remove('sidebar-animating'), 350);
+
                 this.collapsed = ! this.collapsed;
                 localStorage.setItem('sidebarCollapsed', JSON.stringify(this.collapsed));
             },
@@ -31,14 +38,8 @@
     <x-sidebar />
     <div
         id="app-content"
-        {{-- Arm the padding transition only after hydration, so the prehydrate handoff does not animate. --}}
-        x-data="{ animate: false }"
-        x-init="requestAnimationFrame(function () { requestAnimationFrame(function () { animate = true }) })"
         class="flex-1 flex flex-col min-w-0"
-        :class="[
-            $store.sidebar.collapsed ? 'lg:pl-16' : 'lg:pl-64',
-            animate ? 'transition-[padding] duration-300 ease-in-out motion-reduce:transition-none' : '',
-        ]"
+        :class="$store.sidebar.collapsed ? 'lg:pl-16' : 'lg:pl-64'"
     >
         <livewire:app.topbar />
         <main class="flex-1 p-6 md:p-8">

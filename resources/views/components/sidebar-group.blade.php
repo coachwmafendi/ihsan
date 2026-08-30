@@ -1,7 +1,7 @@
 {{-- resources/views/components/sidebar-group.blade.php --}}
 @props(['label'])
 
-<div class="px-3 py-2 transition-[padding] duration-300 ease-in-out motion-reduce:transition-none"
+<div class="px-3 py-2"
      :class="$store.sidebar.collapsed ? 'px-2' : 'px-3'">
     <div
         class="px-3 py-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap overflow-hidden"
