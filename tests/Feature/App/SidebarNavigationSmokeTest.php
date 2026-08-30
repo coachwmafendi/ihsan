@@ -98,14 +98,20 @@ it('animates the desktop sidebar width and content offset when collapsing', func
     expect($sidebar[0])
         ->toContain('transition-[width]')
         ->toContain('duration-300')
-        ->toContain('motion-reduce:transition-none');
+        ->toContain('motion-reduce:transition-none')
+        // The transition is armed only after hydration, so a wire:navigate visit
+        // does not animate the prehydrate width handoff.
+        ->toContain('x-data="{ animate: false }"')
+        ->toContain("animate ? 'transition-[width]");
 
     expect(preg_match('/<div\b[^>]*id="app-content"[^>]*>/', $html, $content))
         ->toBe(1, 'Expected the app content wrapper to be rendered.');
 
     expect($content[0])
         ->toContain('transition-[padding]')
-        ->toContain('motion-reduce:transition-none');
+        ->toContain('motion-reduce:transition-none')
+        ->toContain('x-data="{ animate: false }"')
+        ->toContain("animate ? 'transition-[padding]");
 });
 
 it('fades sidebar item labels instead of popping them in', function () {
@@ -125,3 +131,29 @@ it('fades sidebar item labels instead of popping them in', function () {
         ->toContain('x-transition:enter-start="opacity-0"')
         ->toContain('x-transition:leave="transition-opacity ease-in duration-100');
 });
+
+it('arms the sidebar transitions on every app page, not just the dashboard', function (string $path) {
+    $html = $this->actingAs($this->user)
+        ->get('https://app.example.test'.$path)
+        ->assertOk()
+        ->getContent();
+
+    expect($html)
+        ->toContain('id="app-sidebar-desktop"')
+        ->toContain("animate ? 'transition-[width]")
+        ->toContain("animate ? 'transition-[padding]");
+})->with([
+    '/dashboard',
+    '/campaigns',
+    '/elements',
+    '/donations',
+    '/recurring-plans',
+    '/supporters',
+    '/payouts',
+    '/audit-log',
+    '/reports/monthly-donations',
+    '/settings/organization',
+    '/settings/account',
+    '/settings/notifications',
+    '/notifications',
+]);
