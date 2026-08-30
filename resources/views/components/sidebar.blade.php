@@ -83,8 +83,14 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
     {{-- Desktop sidebar --}}
     <div
         id="app-sidebar-desktop"
-        class="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 overflow-hidden bg-white border-r border-slate-200 transition-[width] duration-300 ease-in-out motion-reduce:transition-none"
-        :class="$store.sidebar.collapsed ? 'lg:w-16' : 'lg:w-64'"
+        {{-- Arm the width transition only after hydration, so the prehydrate handoff does not animate. --}}
+        x-data="{ animate: false }"
+        x-init="requestAnimationFrame(function () { requestAnimationFrame(function () { animate = true }) })"
+        class="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 overflow-hidden bg-white border-r border-slate-200"
+        :class="[
+            $store.sidebar.collapsed ? 'lg:w-16' : 'lg:w-64',
+            animate ? 'transition-[width] duration-300 ease-in-out motion-reduce:transition-none' : '',
+        ]"
     >
         <div
             class="h-16 flex items-center border-b border-slate-200 shrink-0 transition-[padding] duration-300 ease-in-out motion-reduce:transition-none"

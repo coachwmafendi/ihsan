@@ -31,8 +31,14 @@
     <x-sidebar />
     <div
         id="app-content"
-        class="flex-1 flex flex-col min-w-0 transition-[padding] duration-300 ease-in-out motion-reduce:transition-none"
-        :class="$store.sidebar.collapsed ? 'lg:pl-16' : 'lg:pl-64'"
+        {{-- Arm the padding transition only after hydration, so the prehydrate handoff does not animate. --}}
+        x-data="{ animate: false }"
+        x-init="requestAnimationFrame(function () { requestAnimationFrame(function () { animate = true }) })"
+        class="flex-1 flex flex-col min-w-0"
+        :class="[
+            $store.sidebar.collapsed ? 'lg:pl-16' : 'lg:pl-64',
+            animate ? 'transition-[padding] duration-300 ease-in-out motion-reduce:transition-none' : '',
+        ]"
     >
         <livewire:app.topbar />
         <main class="flex-1 p-6 md:p-8">
