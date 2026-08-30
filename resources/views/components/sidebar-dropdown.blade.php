@@ -17,10 +17,10 @@ $iconName = 'heroicon-o-' . $icon;
     <x-sidebar-tooltip :text="$label">
         <button
             @click="dropdownOpen = ! dropdownOpen"
-            class="flex w-full items-center rounded-lg py-2 text-sm font-medium transition-[color,background-color,padding] duration-300 ease-in-out motion-reduce:transition-none {{ $active ? 'bg-slate-100 text-blue-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}"
+            class="flex w-full items-center rounded-lg py-2 text-sm font-medium transition-colors duration-150 {{ $active ? 'bg-slate-100 text-blue-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}"
             :class="$store.sidebar.collapsed ? 'justify-center px-2' : 'justify-between px-3'"
         >
-            <div class="flex items-center transition-[gap] duration-300 ease-in-out motion-reduce:transition-none"
+            <div class="flex items-center"
                  :class="$store.sidebar.collapsed ? '' : 'gap-3'">
                 <x-dynamic-component :component="$iconName" class="size-5 flex-shrink-0" />
                 <span

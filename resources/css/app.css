@@ -115,3 +115,28 @@ select:focus[data-flux-control] {
 .donor-skeleton { position: absolute; inset: 0; z-index: 1; background: #f8fafc; }
 .donor-card { border: 1.5px solid #e2e8f0; }
 .donor-card-skeleton { border: 1.5px solid transparent; }
+
+/*
+ * Sidebar collapse animation.
+ *
+ * The transitions are scoped to `html.sidebar-animating`, which the sidebar
+ * store adds only for the duration of a toggle. Applying them unconditionally
+ * makes every wire:navigate visit replay the collapse animation, because the
+ * layout's #sidebar-prehydrate style hands the width over to Alpine's :class
+ * binding a frame after the swap.
+ */
+@media (prefers-reduced-motion: no-preference) {
+    .sidebar-animating #app-sidebar-desktop {
+        transition: width 300ms ease-in-out;
+    }
+
+    .sidebar-animating #app-content {
+        transition: padding-left 300ms ease-in-out;
+    }
+
+    .sidebar-animating #app-sidebar-desktop a,
+    .sidebar-animating #app-sidebar-desktop button,
+    .sidebar-animating #app-sidebar-desktop nav > div {
+        transition: padding 300ms ease-in-out, gap 300ms ease-in-out;
+    }
+}

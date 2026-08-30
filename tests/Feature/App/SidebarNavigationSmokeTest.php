@@ -86,32 +86,43 @@ it('shows the app logo in the collapsed sidebar toggle, swapping to the panel ic
         ->toContain("collapsed ? 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100' : 'opacity-100'");
 });
 
-it('animates the desktop sidebar width and content offset when collapsing', function () {
+it('animates the sidebar only while a toggle is running', function () {
     $html = $this->actingAs($this->user)
         ->get('https://app.example.test/dashboard')
         ->assertOk()
         ->getContent();
 
+    // The store flags the toggle, and app.css scopes every layout transition
+    // to .sidebar-animating so a wire:navigate visit cannot replay them.
+    expect($html)
+        ->toContain("root.classList.add('sidebar-animating')")
+        ->toContain("root.classList.remove('sidebar-animating')");
+
     expect(preg_match('/<div\b[^>]*id="app-sidebar-desktop"[^>]*>/', $html, $sidebar))
         ->toBe(1, 'Expected the desktop sidebar to be rendered.');
-
-    expect($sidebar[0])
-        ->toContain('transition-[width]')
-        ->toContain('duration-300')
-        ->toContain('motion-reduce:transition-none')
-        // The transition is armed only after hydration, so a wire:navigate visit
-        // does not animate the prehydrate width handoff.
-        ->toContain('x-data="{ animate: false }"')
-        ->toContain("animate ? 'transition-[width]");
 
     expect(preg_match('/<div\b[^>]*id="app-content"[^>]*>/', $html, $content))
         ->toBe(1, 'Expected the app content wrapper to be rendered.');
 
-    expect($content[0])
-        ->toContain('transition-[padding]')
-        ->toContain('motion-reduce:transition-none')
-        ->toContain('x-data="{ animate: false }"')
-        ->toContain("animate ? 'transition-[padding]");
+    // No unscoped layout transition may survive on the shell, or every
+    // navigation animates again.
+    expect($sidebar[0])->not->toContain('transition-[width]');
+    expect($content[0])->not->toContain('transition-[padding]');
+});
+
+it('keeps layout transitions out of the sidebar markup', function () {
+    $html = $this->actingAs($this->user)
+        ->get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->getContent();
+
+    expect(preg_match('/<div\b[^>]*id="app-sidebar-desktop".*?<\/nav>/s', $html, $sidebar))
+        ->toBe(1, 'Expected the desktop sidebar nav to be rendered.');
+
+    expect($sidebar[0])
+        ->not->toContain('transition-[padding]')
+        ->not->toContain('transition-[gap]')
+        ->not->toContain('transition-[color,background-color,padding,gap]');
 });
 
 it('fades sidebar item labels instead of popping them in', function () {
@@ -140,8 +151,8 @@ it('arms the sidebar transitions on every app page, not just the dashboard', fun
 
     expect($html)
         ->toContain('id="app-sidebar-desktop"')
-        ->toContain("animate ? 'transition-[width]")
-        ->toContain("animate ? 'transition-[padding]");
+        ->toContain("root.classList.add('sidebar-animating')")
+        ->not->toContain("animate ? 'transition-[width]");
 })->with([
     '/dashboard',
     '/campaigns',
