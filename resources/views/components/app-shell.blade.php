@@ -31,7 +31,7 @@
     <x-sidebar />
     <div
         id="app-content"
-        class="flex-1 flex flex-col min-w-0"
+        class="flex-1 flex flex-col min-w-0 transition-[padding] duration-300 ease-in-out motion-reduce:transition-none"
         :class="$store.sidebar.collapsed ? 'lg:pl-16' : 'lg:pl-64'"
     >
         <livewire:app.topbar />

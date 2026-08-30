@@ -83,16 +83,22 @@ $isActive = fn (string $path): bool => request()->is(trim($path, '/')) || reques
     {{-- Desktop sidebar --}}
     <div
         id="app-sidebar-desktop"
-        class="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 bg-white border-r border-slate-200"
+        class="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 overflow-hidden bg-white border-r border-slate-200 transition-[width] duration-300 ease-in-out motion-reduce:transition-none"
         :class="$store.sidebar.collapsed ? 'lg:w-16' : 'lg:w-64'"
     >
         <div
-            class="h-16 flex items-center border-b border-slate-200 shrink-0"
+            class="h-16 flex items-center border-b border-slate-200 shrink-0 transition-[padding] duration-300 ease-in-out motion-reduce:transition-none"
             :class="$store.sidebar.collapsed ? 'px-3 justify-center' : 'px-6 justify-between'"
         >
             <div
                 class="flex items-center gap-2.5 overflow-hidden"
                 x-show="! $store.sidebar.collapsed"
+                x-transition:enter="transition-opacity ease-out duration-200 delay-150 motion-reduce:transition-none"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition-opacity ease-in duration-100 motion-reduce:transition-none"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
                 x-cloak
             >
                 <x-app-logo-icon class="h-7 w-7 shrink-0" />
