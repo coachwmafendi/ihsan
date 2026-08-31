@@ -573,6 +573,10 @@
                     >
                 </div>
             @endif
+
+            <p class="text-xs text-slate-400 sm:text-right">
+                Dates and totals follow Malaysia time (MYT, UTC+8).
+            </p>
         </div>
     </div>
 

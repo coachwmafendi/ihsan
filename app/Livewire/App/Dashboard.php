@@ -26,6 +26,13 @@ use Livewire\Component;
 #[Title('Dashboard')]
 class Dashboard extends Component
 {
+    /**
+     * Timestamps are stored in UTC, but every organization on the platform
+     * reads them in Malaysian time. Without this, "today" ran from 8am to 8am
+     * local and a donation taken at 7am was reported as yesterday's.
+     */
+    public const DisplayTimezone = 'Asia/Kuala_Lumpur';
+
     public string $period = 'today';
 
     public ?string $customFrom = null;
@@ -41,33 +48,85 @@ class Dashboard extends Component
     public function updatedPeriod(string $value): void
     {
         if ($value === 'custom' && ($this->customFrom === null || $this->customTo === null)) {
-            $this->customFrom = now()->subDays(29)->format('Y-m-d');
-            $this->customTo = now()->format('Y-m-d');
+            $this->customFrom = $this->localNow()->subDays(29)->format('Y-m-d');
+            $this->customTo = $this->localNow()->format('Y-m-d');
         }
     }
 
-    #[Computed]
-    public function dateRange(): array
+    /**
+     * Now, in the timezone the figures are read in.
+     */
+    private function localNow(): CarbonImmutable
     {
+        return CarbonImmutable::now(self::DisplayTimezone);
+    }
+
+    /**
+     * The selected period as local day boundaries. Labels and day buckets are
+     * built from these; queries use dateRange(), which is the same instants
+     * expressed in UTC.
+     *
+     * @return array{0: ?CarbonImmutable, 1: ?CarbonImmutable}
+     */
+    #[Computed]
+    public function dateRangeLocal(): array
+    {
+        $now = $this->localNow();
+
         return match ($this->period) {
-            'today' => [now()->startOfDay(), now()->endOfDay()],
-            'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
-            '7_days' => [now()->subDays(6)->startOfDay(), now()->endOfDay()],
-            '30_days' => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
-            '90_days' => [now()->subDays(89)->startOfDay(), now()->endOfDay()],
-            'this_month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'today' => [$now->startOfDay(), $now->endOfDay()],
+            'yesterday' => [$now->subDay()->startOfDay(), $now->subDay()->endOfDay()],
+            '7_days' => [$now->subDays(6)->startOfDay(), $now->endOfDay()],
+            '30_days' => [$now->subDays(29)->startOfDay(), $now->endOfDay()],
+            '90_days' => [$now->subDays(89)->startOfDay(), $now->endOfDay()],
+            'this_month' => [$now->startOfMonth(), $now->endOfMonth()],
             'custom' => $this->customDateRange(),
             default => [null, null],
         };
     }
 
     /**
+     * The selected period as UTC instants, ready to compare against stored
+     * timestamps.
+     *
      * @return array{0: ?Carbon, 1: ?Carbon}
+     */
+    #[Computed]
+    public function dateRange(): array
+    {
+        [$from, $to] = $this->dateRangeLocal;
+
+        return [
+            $from === null ? null : Carbon::instance($from->utc()),
+            $to === null ? null : Carbon::instance($to->utc()),
+        ];
+    }
+
+    /**
+     * A local day as the UTC instants that bound it.
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function localDayInUtc(CarbonInterface $localDay): array
+    {
+        return [
+            Carbon::instance($localDay->toImmutable()->startOfDay()->utc()),
+            Carbon::instance($localDay->toImmutable()->endOfDay()->utc()),
+        ];
+    }
+
+    /**
+     * @return array{0: ?CarbonImmutable, 1: ?CarbonImmutable}
      */
     private function customDateRange(): array
     {
-        $from = $this->customFrom ? now()->parse($this->customFrom)->startOfDay() : now()->subDays(29)->startOfDay();
-        $to = $this->customTo ? now()->parse($this->customTo)->endOfDay() : now()->endOfDay();
+        $from = $this->customFrom
+            ? CarbonImmutable::parse($this->customFrom, self::DisplayTimezone)->startOfDay()
+            : $this->localNow()->subDays(29)->startOfDay();
+
+        $to = $this->customTo
+            ? CarbonImmutable::parse($this->customTo, self::DisplayTimezone)->endOfDay()
+            : $this->localNow()->endOfDay();
 
         if ($from->isAfter($to)) {
             [$from, $to] = [$to->startOfDay(), $from->endOfDay()];
@@ -87,10 +146,13 @@ class Dashboard extends Component
 
         [$from, $to] = $this->dateRange;
 
+        // Compared as instants, not with whereDate: the boundaries are local
+        // midnights expressed in UTC, and whereDate would discard the time and
+        // widen "today" across two UTC dates.
         $donationsQuery = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->where('status', DonationStatus::Succeeded)
-            ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to));
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('created_at', '<=', $to));
 
         $totalAmount = (float) (clone $donationsQuery)->sum(Donation::reportAmountColumn());
         $totalCount = (clone $donationsQuery)->count();
@@ -100,7 +162,7 @@ class Dashboard extends Component
             'total_count' => $totalCount,
             'has_approximation' => Donation::hasReportApproximations(clone $donationsQuery),
             'total_donors' => Donor::whereHas('donations.campaign', fn ($q) => $q->where('organization_id', $org->id))
-                ->when($from, fn ($q) => $q->whereHas('donations', fn ($dq) => $dq->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to)))
+                ->when($from, fn ($q) => $q->whereHas('donations', fn ($dq) => $dq->where('created_at', '>=', $from)->where('created_at', '<=', $to)))
                 ->distinct()
                 ->count('donors.id'),
             'active_campaigns' => Campaign::where('organization_id', $org->id)
@@ -193,21 +255,21 @@ class Dashboard extends Component
             return [];
         }
 
-        [$from, $to] = $this->dateRange;
+        [$from, $to] = $this->dateRangeLocal;
 
         if ($from === null || $to === null) {
-            $from = now()->subDays(29)->startOfDay();
-            $to = now()->endOfDay();
+            $from = $this->localNow()->subDays(29)->startOfDay();
+            $to = $this->localNow()->endOfDay();
         }
 
         $days = max(1, (int) $from->diffInDays($to) + 1);
 
         $data = [];
         for ($i = 0; $i < $days; $i++) {
-            $date = $from->copy()->addDays($i)->startOfDay();
+            $date = $from->addDays($i)->startOfDay();
             $query = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
                 ->where('status', DonationStatus::Succeeded)
-                ->whereDate('created_at', $date);
+                ->whereBetween('created_at', $this->localDayInUtc($date));
             $amount = $query->sum(Donation::reportAmountColumn());
             $data[] = [
                 'date' => $date->format('j M'),
@@ -245,20 +307,35 @@ class Dashboard extends Component
             ];
         }
 
-        [$from, $to] = $this->dateRange;
+        [$from, $to] = $this->dateRangeLocal;
 
         if ($from === null || $to === null) {
-            $from = now()->subDays(6)->startOfDay();
-            $to = now()->endOfDay();
+            $from = $this->localNow()->subDays(6)->startOfDay();
+            $to = $this->localNow()->endOfDay();
         }
 
+        // Grouped in PHP rather than with DATE(created_at): the stored value is
+        // UTC, so the database would bucket a 7am local donation into the
+        // previous day. Shifting it in SQL would need a dialect-specific
+        // expression, and the row counts here are small.
         $counts = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->where('status', DonationStatus::Succeeded)
-            ->whereBetween('created_at', [$from, $to])
-            ->selectRaw('DATE(created_at) as donation_date, type, COUNT(*) as count')
-            ->groupByRaw('DATE(created_at), type')
-            ->get()
-            ->groupBy('donation_date');
+            ->whereBetween('created_at', [
+                Carbon::instance($from->utc()),
+                Carbon::instance($to->utc()),
+            ])
+            ->get(['created_at', 'type'])
+            // Read from the raw stored value: the hydrated attribute carries
+            // whatever timezone Carbon was configured with, which is not
+            // necessarily the UTC the column actually holds.
+            ->groupBy(fn (Donation $donation): string => CarbonImmutable::parse(
+                $donation->getRawOriginal('created_at'),
+                'UTC',
+            )->setTimezone(self::DisplayTimezone)->format('Y-m-d'))
+            ->map(fn ($rows) => $rows->groupBy('type')->map(fn ($typeRows) => (object) [
+                'type' => $typeRows->first()->type,
+                'count' => $typeRows->count(),
+            ])->values());
 
         $data = [];
         $oneTimeTotal = 0;
@@ -523,10 +600,10 @@ class Dashboard extends Component
 
         $data = [];
         for ($i = 13; $i >= 0; $i--) {
-            $date = now()->subDays($i)->startOfDay();
+            $date = $this->localNow()->subDays($i)->startOfDay();
             $amount = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
                 ->where('status', DonationStatus::Succeeded)
-                ->whereDate('created_at', $date)
+                ->whereBetween('created_at', $this->localDayInUtc($date))
                 ->sum(Donation::reportAmountColumn());
             $data[] = (int) $amount;
         }
