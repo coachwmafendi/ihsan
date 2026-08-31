@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\SubscriptionInterval;
@@ -14,6 +15,7 @@ use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Livewire\Livewire;
 
 use function Pest\Laravel\actingAs;
@@ -593,4 +595,99 @@ it('displays recurring revenue health stat cards', function () {
         ->assertSee('MRR')
         ->assertSee('At-risk Subscriptions')
         ->assertSee('Expected (30 days)');
+});
+
+it('counts an early-morning donation as today in Malaysian time', function () {
+    // The exact production report: a donation taken at 07:04 MYT on 31 Aug is
+    // stored as 23:04 UTC on 30 Aug, and "today" measured in UTC excluded it.
+    $this->travelTo(CarbonImmutable::parse('2026-08-31 08:41:00', 'Asia/Kuala_Lumpur'));
+
+    $campaign = Campaign::factory()->for($this->organization)->create();
+
+    Donation::factory()->for($campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 50.00,
+        'base_amount' => 50.00,
+        'created_at' => CarbonImmutable::parse('2026-08-31 07:04:45', 'Asia/Kuala_Lumpur')->utc(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->assertSet('period', 'today')
+        ->assertSet('stats.total_count', 1)
+        ->assertSet('stats.total_amount', 50.00);
+});
+
+it('keeps a late-evening donation out of today in Malaysian time', function () {
+    // 30 Aug 23:30 MYT is 15:30 UTC the same day, so a UTC "today" would have
+    // wrongly claimed it.
+    $this->travelTo(CarbonImmutable::parse('2026-08-31 08:41:00', 'Asia/Kuala_Lumpur'));
+
+    $campaign = Campaign::factory()->for($this->organization)->create();
+
+    Donation::factory()->for($campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 90.00,
+        'base_amount' => 90.00,
+        'created_at' => CarbonImmutable::parse('2026-08-30 23:30:00', 'Asia/Kuala_Lumpur')->utc(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->assertSet('stats.total_count', 0);
+
+    Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->set('period', 'yesterday')
+        ->assertSet('stats.total_count', 1);
+});
+
+it('buckets the frequency chart by Malaysian days', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-08-31 08:41:00', 'Asia/Kuala_Lumpur'));
+
+    $campaign = Campaign::factory()->for($this->organization)->create();
+
+    Donation::factory()->for($campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'type' => DonationType::OneTime,
+        'created_at' => CarbonImmutable::parse('2026-08-31 07:04:45', 'Asia/Kuala_Lumpur')->utc(),
+    ]);
+
+    $chart = Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->set('period', '7_days')
+        ->instance()
+        ->donationsByFrequency();
+
+    $today = collect($chart['days'])->firstWhere('date_from_key', '2026-08-31');
+
+    expect($today['one_time'])->toBe(1)
+        ->and($chart['one_time_total'])->toBe(1);
+});
+
+it('keeps every dashboard card on the same Malaysian day as the headline stats', function () {
+    // The cards used whereDate against UTC instants, which discarded the time
+    // and stretched "today" across two UTC dates, so they disagreed with the
+    // totals above them.
+    $this->travelTo(CarbonImmutable::parse('2026-08-31 08:41:00', 'Asia/Kuala_Lumpur'));
+
+    $campaign = Campaign::factory()->for($this->organization)->create([
+        'status' => CampaignStatus::Active,
+    ]);
+
+    // 23:30 MYT yesterday: inside the UTC day, outside the Malaysian one.
+    Donation::factory()->for($campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 90.00,
+        'base_amount' => 90.00,
+        'created_at' => CarbonImmutable::parse('2026-08-30 23:30:00', 'Asia/Kuala_Lumpur')->utc(),
+    ]);
+
+    $component = Livewire::actingAs($this->user)->test(Dashboard::class);
+    $instance = $component->instance();
+
+    expect($component->get('stats')['total_count'])->toBe(0)
+        ->and($instance->recentDonations())->toHaveCount(0)
+        ->and(collect($instance->campaignsBreakdown())->sum('donations_count'))->toBe(0)
+        ->and($instance->donationSizes()['under_50'] ?? 0)->toBe(0);
 });

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Actions\Chip\PaymentMethodWhitelistMapper;
 use App\Enums\OrganizationStatus;
 use App\Services\PublicIdGenerator;
+use App\Support\ReportingPeriod;
 use Carbon\CarbonImmutable;
 use Database\Factories\OrganizationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -58,6 +59,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $state
  * @property string|null $postcode
  * @property string|null $country
+ * @property string $timezone
  * @property string|null $sector
  * @property bool $tax_exempt
  * @property CarbonImmutable|null $stripe_onboarded_at
@@ -119,7 +121,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['public_id', 'name', 'code', 'ros_rob_number', 'registration_type', 'description', 'logo_path', 'website_url', 'facebook_url', 'contact_email', 'contact_phone', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'sector', 'tax_exempt', 'processing_fee_override', 'admin_notes', 'status', 'stripe_account_id', 'chip_brand_id', 'chip_api_key', 'chip_webhook_id', 'chip_webhook_public_key', 'stripe_onboarded', 'stripe_onboarded_at', 'stripe_enabled', 'chip_enabled', 'bank_account_name', 'bank_account_number', 'bank_name', 'settings', 'fee_collection_method', 'approved_at', 'approved_by'])]
+#[Fillable(['public_id', 'name', 'code', 'ros_rob_number', 'registration_type', 'description', 'logo_path', 'website_url', 'facebook_url', 'contact_email', 'contact_phone', 'address_line_1', 'address_line_2', 'city', 'state', 'postcode', 'country', 'timezone', 'sector', 'tax_exempt', 'processing_fee_override', 'admin_notes', 'status', 'stripe_account_id', 'chip_brand_id', 'chip_api_key', 'chip_webhook_id', 'chip_webhook_public_key', 'stripe_onboarded', 'stripe_onboarded_at', 'stripe_enabled', 'chip_enabled', 'bank_account_name', 'bank_account_number', 'bank_name', 'settings', 'fee_collection_method', 'approved_at', 'approved_by'])]
 class Organization extends Model
 {
     /** @use HasFactory<OrganizationFactory> */
@@ -293,6 +295,23 @@ class Organization extends Model
     public function trackingEvents(): HasMany
     {
         return $this->hasMany(TrackingEvent::class);
+    }
+
+    /**
+     * The clock this organization's figures are reported in.
+     *
+     * Stored timestamps are UTC, so every day boundary — "today", a month, a
+     * custom range — has to be measured here first. An unrecognised value
+     * falls back to the platform default rather than throwing while someone
+     * is reading a report.
+     */
+    public function reportingTimezone(): string
+    {
+        $timezone = (string) ($this->timezone ?? '');
+
+        return in_array($timezone, timezone_identifiers_list(), true)
+            ? $timezone
+            : ReportingPeriod::DefaultTimezone;
     }
 
     protected function casts(): array

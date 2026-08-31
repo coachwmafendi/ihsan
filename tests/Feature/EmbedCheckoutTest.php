@@ -300,3 +300,16 @@ it('locks host page scrolling and sizes the close button for mobile in the widge
         ->assertSee('safe-area-inset-top', false)
         ->assertSee('closeBtnSize = isMobileView ? 44 : 36', false);
 });
+
+it('forwards the upsell outcome, not just the suppression flag, to the modal', function () {
+    // The modal is a fresh component. Carrying only `upsell=1` suppresses a
+    // second offer but records the donation as though no offer ever happened,
+    // which loses every acceptance made inside the embed.
+    $script = $this->get(route('widget.script'))->getContent();
+
+    $stepContinueBlock = strstr(strstr($script, 'ihsan:step-continue'), 'showCheckoutModal(el, baseUrl', true);
+
+    expect($stepContinueBlock)
+        ->toContain('"upsell_accepted=" + (d.upsellAccepted ? "1" : "0")')
+        ->toContain('"upsell_amount=" + encodeURIComponent(d.upsellOriginal || "")');
+});

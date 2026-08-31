@@ -13,6 +13,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Subscription;
+use App\Support\ReportingPeriod;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
@@ -41,33 +42,62 @@ class Dashboard extends Component
     public function updatedPeriod(string $value): void
     {
         if ($value === 'custom' && ($this->customFrom === null || $this->customTo === null)) {
-            $this->customFrom = now()->subDays(29)->format('Y-m-d');
-            $this->customTo = now()->format('Y-m-d');
+            $this->customFrom = $this->reportingPeriod()->localNow()->subDays(29)->format('Y-m-d');
+            $this->customTo = $this->reportingPeriod()->localNow()->format('Y-m-d');
         }
     }
 
+    /**
+     * The selected period as local day boundaries. Labels and day buckets are
+     * built from these; queries use dateRange(), which is the same instants
+     * expressed in UTC.
+     *
+     * @return array{0: ?CarbonImmutable, 1: ?CarbonImmutable}
+     */
     #[Computed]
-    public function dateRange(): array
+    public function dateRangeLocal(): array
     {
-        return match ($this->period) {
-            'today' => [now()->startOfDay(), now()->endOfDay()],
-            'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
-            '7_days' => [now()->subDays(6)->startOfDay(), now()->endOfDay()],
-            '30_days' => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
-            '90_days' => [now()->subDays(89)->startOfDay(), now()->endOfDay()],
-            'this_month' => [now()->startOfMonth(), now()->endOfMonth()],
-            'custom' => $this->customDateRange(),
-            default => [null, null],
-        };
+        if ($this->period === 'custom') {
+            return $this->customDateRange();
+        }
+
+        return $this->reportingPeriod()->local($this->period);
     }
 
     /**
+     * The selected period as UTC instants, ready to compare against stored
+     * timestamps.
+     *
      * @return array{0: ?Carbon, 1: ?Carbon}
+     */
+    #[Computed]
+    public function dateRange(): array
+    {
+        return $this->reportingPeriod()->toUtc($this->dateRangeLocal);
+    }
+
+    /**
+     * A local day as the UTC instants that bound it.
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function localDayInUtc(CarbonInterface $localDay): array
+    {
+        return $this->reportingPeriod()->dayInUtc($localDay->toImmutable());
+    }
+
+    /**
+     * @return array{0: ?CarbonImmutable, 1: ?CarbonImmutable}
      */
     private function customDateRange(): array
     {
-        $from = $this->customFrom ? now()->parse($this->customFrom)->startOfDay() : now()->subDays(29)->startOfDay();
-        $to = $this->customTo ? now()->parse($this->customTo)->endOfDay() : now()->endOfDay();
+        $from = $this->customFrom
+            ? $this->reportingPeriod()->parseLocalDate($this->customFrom)->startOfDay()
+            : $this->reportingPeriod()->localNow()->subDays(29)->startOfDay();
+
+        $to = $this->customTo
+            ? $this->reportingPeriod()->parseLocalDate($this->customTo)->endOfDay()
+            : $this->reportingPeriod()->localNow()->endOfDay();
 
         if ($from->isAfter($to)) {
             [$from, $to] = [$to->startOfDay(), $from->endOfDay()];
@@ -87,10 +117,13 @@ class Dashboard extends Component
 
         [$from, $to] = $this->dateRange;
 
+        // Compared as instants, not with whereDate: the boundaries are local
+        // midnights expressed in UTC, and whereDate would discard the time and
+        // widen "today" across two UTC dates.
         $donationsQuery = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->where('status', DonationStatus::Succeeded)
-            ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to));
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('created_at', '<=', $to));
 
         $totalAmount = (float) (clone $donationsQuery)->sum(Donation::reportAmountColumn());
         $totalCount = (clone $donationsQuery)->count();
@@ -100,7 +133,7 @@ class Dashboard extends Component
             'total_count' => $totalCount,
             'has_approximation' => Donation::hasReportApproximations(clone $donationsQuery),
             'total_donors' => Donor::whereHas('donations.campaign', fn ($q) => $q->where('organization_id', $org->id))
-                ->when($from, fn ($q) => $q->whereHas('donations', fn ($dq) => $dq->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to)))
+                ->when($from, fn ($q) => $q->whereHas('donations', fn ($dq) => $dq->where('created_at', '>=', $from)->where('created_at', '<=', $to)))
                 ->distinct()
                 ->count('donors.id'),
             'active_campaigns' => Campaign::where('organization_id', $org->id)
@@ -193,21 +226,21 @@ class Dashboard extends Component
             return [];
         }
 
-        [$from, $to] = $this->dateRange;
+        [$from, $to] = $this->dateRangeLocal;
 
         if ($from === null || $to === null) {
-            $from = now()->subDays(29)->startOfDay();
-            $to = now()->endOfDay();
+            $from = $this->reportingPeriod()->localNow()->subDays(29)->startOfDay();
+            $to = $this->reportingPeriod()->localNow()->endOfDay();
         }
 
         $days = max(1, (int) $from->diffInDays($to) + 1);
 
         $data = [];
         for ($i = 0; $i < $days; $i++) {
-            $date = $from->copy()->addDays($i)->startOfDay();
+            $date = $from->addDays($i)->startOfDay();
             $query = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
                 ->where('status', DonationStatus::Succeeded)
-                ->whereDate('created_at', $date);
+                ->whereBetween('created_at', $this->localDayInUtc($date));
             $amount = $query->sum(Donation::reportAmountColumn());
             $data[] = [
                 'date' => $date->format('j M'),
@@ -245,20 +278,35 @@ class Dashboard extends Component
             ];
         }
 
-        [$from, $to] = $this->dateRange;
+        [$from, $to] = $this->dateRangeLocal;
 
         if ($from === null || $to === null) {
-            $from = now()->subDays(6)->startOfDay();
-            $to = now()->endOfDay();
+            $from = $this->reportingPeriod()->localNow()->subDays(6)->startOfDay();
+            $to = $this->reportingPeriod()->localNow()->endOfDay();
         }
 
+        // Grouped in PHP rather than with DATE(created_at): the stored value is
+        // UTC, so the database would bucket a 7am local donation into the
+        // previous day. Shifting it in SQL would need a dialect-specific
+        // expression, and the row counts here are small.
         $counts = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->where('status', DonationStatus::Succeeded)
-            ->whereBetween('created_at', [$from, $to])
-            ->selectRaw('DATE(created_at) as donation_date, type, COUNT(*) as count')
-            ->groupByRaw('DATE(created_at), type')
-            ->get()
-            ->groupBy('donation_date');
+            ->whereBetween('created_at', [
+                Carbon::instance($from->utc()),
+                Carbon::instance($to->utc()),
+            ])
+            ->get(['created_at', 'type'])
+            // Read from the raw stored value: the hydrated attribute carries
+            // whatever timezone Carbon was configured with, which is not
+            // necessarily the UTC the column actually holds.
+            ->groupBy(fn (Donation $donation): string => CarbonImmutable::parse(
+                $donation->getRawOriginal('created_at'),
+                'UTC',
+            )->setTimezone($this->reportingPeriod()->timezone)->format('Y-m-d'))
+            ->map(fn ($rows) => $rows->groupBy('type')->map(fn ($typeRows) => (object) [
+                'type' => $typeRows->first()->type,
+                'count' => $typeRows->count(),
+            ])->values());
 
         $data = [];
         $oneTimeTotal = 0;
@@ -383,13 +431,13 @@ class Dashboard extends Component
 
         return Campaign::where('organization_id', $org->id)
             ->select('campaigns.*')
-            ->withCount(['donations' => fn ($q) => $q->where('status', DonationStatus::Succeeded)->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))])
+            ->withCount(['donations' => fn ($q) => $q->where('status', DonationStatus::Succeeded)->when($from, fn ($q) => $q->where('created_at', '>=', $from))->when($to, fn ($q) => $q->where('created_at', '<=', $to))])
             ->selectSub(
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.campaign_id', 'campaigns.id')
                     ->where('donations.status', DonationStatus::Succeeded)
-                    ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
-                    ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
+                    ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+                    ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to))
                     ->select(Donation::reportSumColumn()),
                 'report_amount'
             )
@@ -397,8 +445,8 @@ class Dashboard extends Component
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.campaign_id', 'campaigns.id')
                     ->where('donations.status', DonationStatus::Succeeded)
-                    ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
-                    ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
+                    ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+                    ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to))
                     ->where('donations.currency', '!=', 'myr')
                     ->whereNotNull('donations.base_amount')
                     ->selectRaw('COUNT(*) > 0'),
@@ -430,8 +478,8 @@ class Dashboard extends Component
 
         $baseQuery = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->where('status', DonationStatus::Succeeded)
-            ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to));
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('created_at', '<=', $to));
 
         $reportColumn = Donation::reportAmountSql();
 
@@ -463,8 +511,8 @@ class Dashboard extends Component
 
         $methods = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->where('status', DonationStatus::Succeeded)
-            ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('created_at', '<=', $to))
             ->selectRaw('payment_method_type, COUNT(*) as count, SUM('.Donation::reportAmountSql().') as total_amount')
             ->groupBy('payment_method_type')
             ->orderByDesc('total_amount')
@@ -505,8 +553,8 @@ class Dashboard extends Component
 
         return Donation::with(['campaign', 'donor'])
             ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
-            ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
+            ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to))
             ->orderByDesc('created_at')
             ->limit(10)
             ->get();
@@ -523,10 +571,10 @@ class Dashboard extends Component
 
         $data = [];
         for ($i = 13; $i >= 0; $i--) {
-            $date = now()->subDays($i)->startOfDay();
+            $date = $this->reportingPeriod()->localNow()->subDays($i)->startOfDay();
             $amount = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
                 ->where('status', DonationStatus::Succeeded)
-                ->whereDate('created_at', $date)
+                ->whereBetween('created_at', $this->localDayInUtc($date))
                 ->sum(Donation::reportAmountColumn());
             $data[] = (int) $amount;
         }
@@ -542,5 +590,22 @@ class Dashboard extends Component
     public function render()
     {
         return view('livewire.app.dashboard');
+    }
+
+    /**
+     * Days are measured on this organization's clock; see ReportingPeriod.
+     */
+    private function reportingPeriod(): ReportingPeriod
+    {
+        return ReportingPeriod::for($this->organization);
+    }
+
+    /**
+     * How the reporting clock is named on the page.
+     */
+    #[Computed]
+    public function timezoneLabel(): string
+    {
+        return $this->reportingPeriod()->label();
     }
 }

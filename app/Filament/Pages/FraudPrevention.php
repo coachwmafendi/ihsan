@@ -6,6 +6,7 @@ use App\Models\Donation;
 use App\Models\Fraud\BlockedDonation;
 use App\Models\Fraud\FraudAttempt;
 use App\Models\Fraud\FraudRule;
+use App\Support\ReportingPeriod;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -32,8 +33,8 @@ class FraudPrevention extends Page implements HasTable
         [$from, $to] = $this->dateRange();
 
         $donations = Donation::query()
-            ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to));
+            ->when($from, fn (Builder $q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('created_at', '<=', $to));
 
         $total = (clone $donations)->count();
         $blocked = (clone $donations)->where('fraud_status', 'blocked')->count();
@@ -159,13 +160,11 @@ class FraudPrevention extends Page implements HasTable
      */
     private function dateRange(): array
     {
-        return match ($this->period) {
-            'today' => [today()->toDateString(), today()->toDateString()],
-            'yesterday' => [today()->subDay()->toDateString(), today()->subDay()->toDateString()],
-            'last_7_days' => [today()->subDays(6)->toDateString(), today()->toDateString()],
-            'last_30_days' => [today()->subDays(29)->toDateString(), today()->toDateString()],
-            'this_month' => [today()->startOfMonth()->toDateString(), today()->endOfMonth()->toDateString()],
-            default => [null, null],
-        };
+        // Malaysian days, handed to the query as UTC instants.
+        return ReportingPeriod::platform()->utc(match ($this->period) {
+            'last_7_days' => '7_days',
+            'last_30_days' => '30_days',
+            default => $this->period,
+        });
     }
 }

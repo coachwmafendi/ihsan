@@ -6,7 +6,9 @@ use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
+use App\Support\ReportingPeriod;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 class RevenueReportService
 {
@@ -30,22 +32,22 @@ class RevenueReportService
      */
     public function organizationRows(string $period): array
     {
-        [$from, $to] = $this->dateRange($period);
+        [$from, $to] = $this->queryRange($period);
 
         $succeededDonations = Donation::query()
             ->selectRaw('campaigns.organization_id, COUNT(*) as donation_count, SUM(base_amount) as volume, AVG(base_amount) as avg_donation, SUM(stripe_fee) as stripe_fees')
             ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
             ->where('donations.status', DonationStatus::Succeeded)
-            ->when($from, fn (Builder $q) => $q->whereDate('donations.created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('donations.created_at', '<=', $to))
+            ->when($from, fn (Builder $q) => $q->where('donations.created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('donations.created_at', '<=', $to))
             ->groupBy('campaigns.organization_id')
             ->get()
             ->keyBy('organization_id');
 
         $feesByOrg = ProcessingFee::query()
             ->selectRaw('organization_id, SUM(fee_amount) as total_fees')
-            ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to))
+            ->when($from, fn (Builder $q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('created_at', '<=', $to))
             ->groupBy('organization_id')
             ->get()
             ->keyBy('organization_id');
@@ -99,15 +101,15 @@ class RevenueReportService
 
     public function organizationRowFor(Organization $organization, string $period): ?array
     {
-        [$from, $to] = $this->dateRange($period);
+        [$from, $to] = $this->queryRange($period);
 
         $orgDonations = Donation::query()
             ->selectRaw('campaigns.organization_id, COUNT(*) as donation_count, SUM(base_amount) as volume, AVG(base_amount) as avg_donation, SUM(stripe_fee) as stripe_fees')
             ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
             ->where('campaigns.organization_id', $organization->id)
             ->where('donations.status', DonationStatus::Succeeded)
-            ->when($from, fn (Builder $q) => $q->whereDate('donations.created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('donations.created_at', '<=', $to))
+            ->when($from, fn (Builder $q) => $q->where('donations.created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('donations.created_at', '<=', $to))
             ->groupBy('campaigns.organization_id')
             ->first();
 
@@ -117,8 +119,8 @@ class RevenueReportService
 
         $fees = (float) ProcessingFee::query()
             ->where('organization_id', $organization->id)
-            ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to))
+            ->when($from, fn (Builder $q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('created_at', '<=', $to))
             ->sum('fee_amount');
 
         $volume = (float) ($orgDonations?->volume ?? 0);
@@ -190,19 +192,19 @@ class RevenueReportService
      */
     public function aggregateReport(string $period): array
     {
-        [$from, $to] = $this->dateRange($period);
+        [$from, $to] = $this->queryRange($period);
 
         $succeeded = Donation::query()
             ->where('donations.status', DonationStatus::Succeeded)
-            ->when($from, fn (Builder $q) => $q->whereDate('donations.created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('donations.created_at', '<=', $to));
+            ->when($from, fn (Builder $q) => $q->where('donations.created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('donations.created_at', '<=', $to));
 
         $totalDonationVolume = (float) (clone $succeeded)->sum('base_amount');
         $totalTransactions = (int) (clone $succeeded)->count();
 
         $totalProcessingFees = (float) ProcessingFee::query()
-            ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to))
+            ->when($from, fn (Builder $q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('created_at', '<=', $to))
             ->sum('fee_amount');
 
         $summary = [
@@ -231,21 +233,42 @@ class RevenueReportService
     /**
      * @return array{0: ?string, 1: ?string}
      */
+    /**
+     * The period as UTC instants, for comparing against stored timestamps.
+     * dateRange() returns the local calendar dates, which are what the labels
+     * and exports quote.
+     *
+     * @return array{0: ?Carbon, 1: ?Carbon}
+     */
+    public function queryRange(string $period): array
+    {
+        [$from, $to] = $this->dateRange($period);
+
+        if ($from === null || $to === null) {
+            return [null, null];
+        }
+
+        return ReportingPeriod::platform()->toUtc([
+            ReportingPeriod::platform()->parseLocalDate($from)->startOfDay(),
+            ReportingPeriod::platform()->parseLocalDate($to)->endOfDay(),
+        ]);
+    }
+
     public function dateRange(string $period): array
     {
         return match ($period) {
-            'today' => [today()->toDateString(), today()->toDateString()],
-            'yesterday' => [today()->subDay()->toDateString(), today()->subDay()->toDateString()],
-            'last_7_days' => [today()->subDays(6)->toDateString(), today()->toDateString()],
-            'last_30_days' => [today()->subDays(29)->toDateString(), today()->toDateString()],
-            'last_90_days' => [today()->subDays(89)->toDateString(), today()->toDateString()],
-            'last_week' => [today()->subWeek()->startOfWeek()->toDateString(), today()->subWeek()->endOfWeek()->toDateString()],
-            'last_month' => [today()->subMonth()->startOfMonth()->toDateString(), today()->subMonth()->endOfMonth()->toDateString()],
-            'last_6_months' => [today()->subMonths(6)->startOfMonth()->toDateString(), today()->subMonth()->endOfMonth()->toDateString()],
-            'last_year' => [today()->subYear()->startOfYear()->toDateString(), today()->subYear()->endOfYear()->toDateString()],
-            'this_week' => [today()->startOfWeek()->toDateString(), today()->endOfWeek()->toDateString()],
-            'this_month' => [today()->startOfMonth()->toDateString(), today()->endOfMonth()->toDateString()],
-            'this_year' => [today()->startOfYear()->toDateString(), today()->endOfYear()->toDateString()],
+            'today' => [ReportingPeriod::platform()->localNow()->toDateString(), ReportingPeriod::platform()->localNow()->toDateString()],
+            'yesterday' => [ReportingPeriod::platform()->localNow()->subDay()->toDateString(), ReportingPeriod::platform()->localNow()->subDay()->toDateString()],
+            'last_7_days' => [ReportingPeriod::platform()->localNow()->subDays(6)->toDateString(), ReportingPeriod::platform()->localNow()->toDateString()],
+            'last_30_days' => [ReportingPeriod::platform()->localNow()->subDays(29)->toDateString(), ReportingPeriod::platform()->localNow()->toDateString()],
+            'last_90_days' => [ReportingPeriod::platform()->localNow()->subDays(89)->toDateString(), ReportingPeriod::platform()->localNow()->toDateString()],
+            'last_week' => [ReportingPeriod::platform()->localNow()->subWeek()->startOfWeek()->toDateString(), ReportingPeriod::platform()->localNow()->subWeek()->endOfWeek()->toDateString()],
+            'last_month' => [ReportingPeriod::platform()->localNow()->subMonth()->startOfMonth()->toDateString(), ReportingPeriod::platform()->localNow()->subMonth()->endOfMonth()->toDateString()],
+            'last_6_months' => [ReportingPeriod::platform()->localNow()->subMonths(6)->startOfMonth()->toDateString(), ReportingPeriod::platform()->localNow()->subMonth()->endOfMonth()->toDateString()],
+            'last_year' => [ReportingPeriod::platform()->localNow()->subYear()->startOfYear()->toDateString(), ReportingPeriod::platform()->localNow()->subYear()->endOfYear()->toDateString()],
+            'this_week' => [ReportingPeriod::platform()->localNow()->startOfWeek()->toDateString(), ReportingPeriod::platform()->localNow()->endOfWeek()->toDateString()],
+            'this_month' => [ReportingPeriod::platform()->localNow()->startOfMonth()->toDateString(), ReportingPeriod::platform()->localNow()->endOfMonth()->toDateString()],
+            'this_year' => [ReportingPeriod::platform()->localNow()->startOfYear()->toDateString(), ReportingPeriod::platform()->localNow()->endOfYear()->toDateString()],
             default => [null, null],
         };
     }

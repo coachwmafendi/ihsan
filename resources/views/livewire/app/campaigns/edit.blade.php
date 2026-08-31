@@ -264,10 +264,24 @@
                             @php $upsellStats = $this->upsellStats(); @endphp
 
                             <div class="border-t border-slate-100 pt-4">
-                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Results</dt>
+                                <div class="flex items-center justify-between gap-3">
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Results</dt>
+
+                                    <select
+                                        wire:model.live="upsellStatsPeriod"
+                                        aria-label="Results period"
+                                        class="rounded-md border-slate-200 py-1 pl-2 pr-7 text-xs text-slate-600 focus:border-slate-300 focus:ring-0"
+                                    >
+                                        <option value="30">Last 30 days</option>
+                                        <option value="90">Last 90 days</option>
+                                        <option value="all">All time</option>
+                                    </select>
+                                </div>
 
                                 @if ($upsellStats['offers_shown'] === 0)
-                                    <dd class="mt-2 text-sm text-slate-500">No offers shown yet.</dd>
+                                    <dd class="mt-2 text-sm text-slate-500">
+                                        {{ $upsellStatsPeriod === 'all' ? 'No offers shown yet.' : 'No offers shown in this period.' }}
+                                    </dd>
                                 @else
                                     <dd class="mt-3 grid grid-cols-2 gap-3">
                                         <div>
@@ -291,8 +305,24 @@
                                             <div class="text-xs text-slate-500">Added per month</div>
                                         </div>
                                     </dd>
+                                    @if ($upsellStats['took_own_amount'] + $upsellStats['took_lighter'] > 0)
+                                        <dd class="mt-3 border-t border-slate-100 pt-3">
+                                            <div class="text-xs font-medium uppercase tracking-wide text-slate-500">Which offer they took</div>
+                                            <div class="mt-2 flex gap-6">
+                                                <div>
+                                                    <div class="text-sm font-semibold text-slate-900">{{ $upsellStats['took_own_amount'] }}</div>
+                                                    <div class="text-xs text-slate-500">Their own amount</div>
+                                                </div>
+                                                <div>
+                                                    <div class="text-sm font-semibold text-slate-900">{{ $upsellStats['took_lighter'] }}</div>
+                                                    <div class="text-xs text-slate-500">Lighter offer</div>
+                                                </div>
+                                            </div>
+                                        </dd>
+                                    @endif
+
                                     <dd class="mt-3 text-xs text-slate-400">
-                                        Counts donors who saw the offer and went on to pay. Donors who left before paying are not recorded.
+                                        Every figure counts donors, not donations. Counts donors who saw the offer and went on to pay; donors who left before paying are not recorded.
                                         @if (strtoupper($default_currency) !== 'MYR')
                                             Plans are charged in {{ strtoupper($default_currency) }}; totals shown in MYR at capture-time rates.
                                         @endif

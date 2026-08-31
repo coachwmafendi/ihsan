@@ -949,6 +949,8 @@
         "currency=" + encodeURIComponent(d.currency || ""),
         "cover_fee=" + (d.coverFee ? "1" : "0"),
         "upsell=" + (d.upsell ? "1" : "0"),
+        "upsell_accepted=" + (d.upsellAccepted ? "1" : "0"),
+        "upsell_amount=" + encodeURIComponent(d.upsellOriginal || ""),
         "pu=" + encodeURIComponent(window.location.href),
       ].join("&");
       showCheckoutModal(el, baseUrl + "/donate/" + el.token + "?" + qs);

@@ -42,6 +42,7 @@
     </div>
 
     {{-- Filter chips --}}
+    <p class="text-xs text-slate-400">Dates follow {{ $this->timezoneLabel }}.</p>
     @php $dateActive = $period !== 'all_time'; $dateLabel = $this->dateChipLabel; @endphp
     <div class="flex flex-wrap items-center gap-2">
 

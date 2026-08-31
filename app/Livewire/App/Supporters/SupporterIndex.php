@@ -9,6 +9,7 @@ use App\Http\Controllers\SupporterExportController;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
+use App\Support\ReportingPeriod;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -149,28 +150,9 @@ class SupporterIndex extends Component
      */
     public function periodRange(): array
     {
-        if ($this->period === 'custom') {
-            return [
-                $this->dateFrom ? Carbon::parse($this->dateFrom)->startOfDay() : null,
-                $this->dateTo ? Carbon::parse($this->dateTo)->endOfDay() : null,
-            ];
-        }
-
-        return match ($this->period) {
-            'today' => [now()->startOfDay(), now()->endOfDay()],
-            'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
-            '7_days' => [now()->subDays(6)->startOfDay(), now()->endOfDay()],
-            '14_days' => [now()->subDays(13)->startOfDay(), now()->endOfDay()],
-            '30_days' => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
-            '90_days' => [now()->subDays(89)->startOfDay(), now()->endOfDay()],
-            'this_week' => [now()->startOfWeek(), now()->endOfWeek()],
-            'this_month' => [now()->startOfMonth(), now()->endOfMonth()],
-            'this_year' => [now()->startOfYear(), now()->endOfYear()],
-            'last_week' => [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()],
-            'last_month' => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
-            'last_year' => [now()->subYear()->startOfYear(), now()->subYear()->endOfYear()],
-            default => [null, null],
-        };
+        // Days are measured in Malaysian time and handed to the query as UTC
+        // instants; see ReportingPeriod.
+        return $this->reportingPeriod()->utc($this->period, $this->dateFrom, $this->dateTo);
     }
 
     /**
@@ -356,5 +338,22 @@ class SupporterIndex extends Component
         return view('livewire.app.supporters.index', [
             'exactAmounts' => $exactAmounts,
         ]);
+    }
+
+    /**
+     * Days are measured on this organization's clock; see ReportingPeriod.
+     */
+    private function reportingPeriod(): ReportingPeriod
+    {
+        return ReportingPeriod::for($this->organization);
+    }
+
+    /**
+     * How the reporting clock is named on the page.
+     */
+    #[Computed]
+    public function timezoneLabel(): string
+    {
+        return $this->reportingPeriod()->label();
     }
 }

@@ -5,6 +5,7 @@
         <div>
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">Report</h1>
             <p class="mt-1 text-sm text-slate-500">Review donation collections for your organization</p>
+            <p class="mt-1 text-xs text-slate-400">Months and totals follow {{ $this->timezoneLabel }}.</p>
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('app.reports.monthly-donations.download', ['format' => 'csv', 'dateFrom' => $dateFrom, 'dateTo' => $dateTo]) }}" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">

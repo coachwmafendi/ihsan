@@ -393,3 +393,44 @@ it('stays quiet about currency on a myr campaign', function () {
         ->test(CampaignEdit::class, ['campaign' => $this->campaign])
         ->assertDontSee('totals shown in MYR');
 });
+
+it('narrows the upsell results to the selected period', function () {
+    Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+        'created_at' => now()->subDays(3),
+        'utm_params' => ['upsell_shown' => true],
+    ]);
+
+    Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+        'created_at' => now()->subDays(200),
+        'utm_params' => ['upsell_shown' => true],
+    ]);
+
+    $component = Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign]);
+
+    expect($component->instance()->upsellStats()['offers_shown'])->toBe(2);
+
+    $component->set('upsellStatsPeriod', '30');
+
+    expect($component->instance()->upsellStats()['offers_shown'])->toBe(1);
+});
+
+it('shows which offer donors took on the summary card', function () {
+    $this->campaign->update([
+        'config' => ['monthly_upsell' => [
+            'enabled' => true,
+            'tiers' => [['min' => 10, 'max' => null, 'offers' => [['type' => 'percent', 'value' => 20]]]],
+        ]],
+    ]);
+
+    Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'utm_params' => ['upsell_shown' => true, 'upsell_accepted' => true, 'upsell_offer_taken' => 'lighter'],
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(CampaignEdit::class, ['campaign' => $this->campaign])
+        ->assertSee('Which offer they took')
+        ->assertSee('Lighter offer')
+        ->assertSee('Their own amount');
+});
