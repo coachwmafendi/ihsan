@@ -39,6 +39,13 @@ class SendDailyDonationSummary extends Command
                 ->whereBetween('created_at', [$start, $end])
                 ->get();
 
+            // A total that mixes currencies is converted at each donation's
+            // settled rate, so it is an estimate rather than a figure the
+            // organization can reconcile to the cent.
+            $hasApproximation = $donations->contains(
+                fn (Donation $donation): bool => strtolower($donation->currency ?? '') !== 'myr'
+            );
+
             $donationsByCampaign = $donations->groupBy('campaign_id');
 
             $activeCampaigns = Campaign::query()
@@ -56,7 +63,7 @@ class SendDailyDonationSummary extends Command
                 return [
                     'title' => $campaign->title,
                     'count' => $items->count(),
-                    'total' => number_format($items->sum('gross_amount'), 2),
+                    'total' => number_format($items->sum('report_amount'), 2),
                 ];
             })->values()->toArray();
 
@@ -73,12 +80,13 @@ class SendDailyDonationSummary extends Command
                     new DailyDonationSummary(
                         organization: $org,
                         donationCount: $donations->count(),
-                        totalAmount: number_format($donations->sum('gross_amount'), 2),
+                        totalAmount: number_format($donations->sum('report_amount'), 2),
                         oneTimeCount: $oneTime->count(),
-                        oneTimeTotal: number_format($oneTime->sum('gross_amount'), 2),
+                        oneTimeTotal: number_format($oneTime->sum('report_amount'), 2),
                         recurringCount: $recurring->count(),
-                        recurringTotal: number_format($recurring->sum('gross_amount'), 2),
+                        recurringTotal: number_format($recurring->sum('report_amount'), 2),
                         campaigns: $campaigns,
+                        hasApproximation: $hasApproximation,
                     )
                 );
             }

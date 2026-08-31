@@ -22,7 +22,7 @@
             </div>
             <div style="flex: 1; padding: 20px; min-width: 140px; box-sizing: border-box;">
                 <div class="email-label" style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Total Amount</div>
-                <div class="email-metric" style="font-size: 20px; font-weight: 700; color: #0f766e;">MYR {{ $totalAmount }}</div>
+                <div class="email-metric" style="font-size: 20px; font-weight: 700; color: #0f766e;">{{ $hasApproximation ? "≈ MYR" : "MYR" }} {{ $totalAmount }}</div>
             </div>
         </div>
 
@@ -37,7 +37,7 @@
                         <div class="email-value" style="font-size: 15px; font-weight: 500; color: #1a1a2e; margin-bottom: 6px; line-height: 1.4;">{{ $campaign['title'] }}</div>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span class="email-small" style="font-size: 13px; color: #64748b; flex-shrink: 0;">{{ $campaign['count'] }} {{ Str::plural('donation', $campaign['count']) }}</span>
-                            <span class="email-value" style="font-size: 15px; font-weight: 600; color: #0f766e; text-align: right; margin-left: 12px;">MYR {{ $campaign['total'] }}</span>
+                            <span class="email-value" style="font-size: 15px; font-weight: 600; color: #0f766e; text-align: right; margin-left: 12px;">{{ $hasApproximation ? "≈ MYR" : "MYR" }} {{ $campaign['total'] }}</span>
                         </div>
                     </div>
                 @endforeach
@@ -46,6 +46,11 @@
 
         {{-- Footer --}}
         <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+            @if ($hasApproximation)
+                <p class="email-small" style="margin: 0 0 4px; font-size: 12px; color: #94a3b8;">
+                    Totals include donations taken in other currencies, converted to MYR at each donation's settled exchange rate.
+                </p>
+            @endif
             <p class="email-small" style="margin: 0 0 4px; font-size: 12px; color: #94a3b8;">
                 You are receiving this because your organization has weekly donation summary enabled.
             </p>

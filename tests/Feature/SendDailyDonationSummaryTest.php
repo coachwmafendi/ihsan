@@ -33,6 +33,7 @@ it('queues daily donation summary for organization admins when enabled', functio
     Donation::factory()->create([
         'campaign_id' => $campaign->getKey(),
         'gross_amount' => 100.00,
+        'base_amount' => 100.00,
         'created_at' => now()->subDay(),
     ]);
 
@@ -82,6 +83,7 @@ it('does not queue daily donation summary for soft-deleted organizations', funct
     Donation::factory()->create([
         'campaign_id' => $campaign->getKey(),
         'gross_amount' => 50.00,
+        'base_amount' => 50.00,
         'created_at' => now()->subDay(),
     ]);
 

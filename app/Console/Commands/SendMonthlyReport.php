@@ -54,9 +54,16 @@ class SendMonthlyReport extends Command
                 return [
                     'title' => $campaign->title,
                     'count' => $items->count(),
-                    'total' => number_format($items->sum('gross_amount'), 2),
+                    'total' => number_format($items->sum('report_amount'), 2),
                 ];
             })->values()->toArray();
+
+            // A total that mixes currencies is converted at each donation's
+            // settled rate, so it is an estimate rather than a figure the
+            // organization can reconcile to the cent.
+            $hasApproximation = $donations->contains(
+                fn (Donation $donation): bool => strtolower($donation->currency ?? '') !== 'myr'
+            );
 
             $admins = User::query()
                 ->where('organization_id', $org->getKey())
@@ -68,9 +75,10 @@ class SendMonthlyReport extends Command
                     new MonthlyReport(
                         organization: $org,
                         donationCount: $donations->count(),
-                        totalAmount: number_format($donations->sum('gross_amount'), 2),
+                        totalAmount: number_format($donations->sum('report_amount'), 2),
                         campaigns: $campaigns,
                         period: $periodLabel,
+                        hasApproximation: $hasApproximation,
                     )
                 );
             }
