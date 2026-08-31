@@ -191,3 +191,68 @@ it('rejects a client attempt to overwrite the embed-suppression flag', function 
     Livewire::test(DonationForm::class, ['campaign' => upsellFormCampaign()])
         ->set('upsellSuppressedByEmbed', true);
 })->throws(CannotUpdateLockedPropertyException::class);
+
+it('records the offer the embed already made when the modal takes over', function () {
+    $component = Livewire::withQueryParams([
+        'upsell' => '1',
+        'upsell_accepted' => '1',
+        'upsell_amount' => '120',
+    ])->test(DonationForm::class, ['campaign' => upsellFormCampaign()]);
+
+    expect($component->get('upsellShown'))->toBeTrue()
+        ->and($component->get('upsellAccepted'))->toBeTrue()
+        ->and($component->get('upsellOriginalAmount'))->toBe(120.0);
+});
+
+it('records an offer the embed showed and the donor declined', function () {
+    $component = Livewire::withQueryParams([
+        'upsell' => '1',
+        'upsell_accepted' => '0',
+        'upsell_amount' => '120',
+    ])->test(DonationForm::class, ['campaign' => upsellFormCampaign()]);
+
+    expect($component->get('upsellShown'))->toBeTrue()
+        ->and($component->get('upsellAccepted'))->toBeFalse()
+        ->and($component->get('upsellOriginalAmount'))->toBe(120.0);
+});
+
+it('leaves the upsell state empty when the embed made no offer', function () {
+    $component = Livewire::withQueryParams(['upsell' => '0'])
+        ->test(DonationForm::class, ['campaign' => upsellFormCampaign()]);
+
+    expect($component->get('upsellShown'))->toBeFalse()
+        ->and($component->get('upsellOriginalAmount'))->toBeNull();
+});
+
+it('ignores a malformed original amount from the handoff', function () {
+    $component = Livewire::withQueryParams([
+        'upsell' => '1',
+        'upsell_accepted' => '1',
+        'upsell_amount' => 'not-a-number',
+    ])->test(DonationForm::class, ['campaign' => upsellFormCampaign()]);
+
+    expect($component->get('upsellShown'))->toBeTrue()
+        ->and($component->get('upsellOriginalAmount'))->toBeNull();
+});
+
+it('counts an embed acceptance in the tracking params', function () {
+    // The regression this covers: the modal reported upsell_accepted false for
+    // every donor who accepted inside the embed.
+    $component = Livewire::withQueryParams([
+        'upsell' => '1',
+        'upsell_accepted' => '1',
+        'upsell_amount' => '120',
+    ])->test(DonationForm::class, ['campaign' => upsellFormCampaign()])
+        ->set('amount', '60');
+
+    $method = new ReflectionMethod(DonationForm::class, 'buildUpsellTrackingParams');
+    $method->setAccessible(true);
+
+    expect($method->invoke($component->instance(), 'monthly'))->toBe([
+        'upsell_shown' => true,
+        'upsell_accepted' => true,
+        'upsell_original_amount' => 120.0,
+        'upsell_offers' => [120.0, 60.0],
+        'upsell_offer_taken' => 'lighter',
+    ]);
+});

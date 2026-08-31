@@ -258,6 +258,10 @@
                                 currency: this.currency,
                                 coverFee: this.coverFee ? 1 : 0,
                                 upsell: this.upsellShown ? 1 : 0,
+                                // The modal is a fresh form, so the outcome of the
+                                // offer travels with the handoff or it is lost.
+                                upsellAccepted: this.upsellAccepted ? 1 : 0,
+                                upsellOriginal: this.upsellOriginal,
                             }, '*');
                             return;
                         }
@@ -382,6 +386,13 @@
                         this.campaignPublicId = this.$el.dataset.campaignPublicId || '';
                         this.raisedAmount = parseFloat(this.$wire.campaignCollectedAmount) || 0;
                         this.targetAmount = parseFloat(this.$wire.campaignTargetAmount) || 0;
+
+                        // In the embed-to-modal flow the offer was made upstream and
+                        // the server seeded these from the handoff. Submitting would
+                        // otherwise push this form's own empty state back over them.
+                        this.upsellShown = !! this.$wire.upsellShown;
+                        this.upsellAccepted = !! this.$wire.upsellAccepted;
+                        this.upsellOriginal = this.$wire.upsellOriginalAmount ?? null;
 
                         this.handleChipReturnFromQueryParams();
 

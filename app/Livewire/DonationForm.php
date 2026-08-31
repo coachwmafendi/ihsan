@@ -229,6 +229,21 @@ class DonationForm extends Component
         $this->parentPageUrl = $this->sanitizeParentPageUrl(request()->query('pu'));
         $this->upsellSuppressedByEmbed = request()->query('upsell') === '1';
 
+        // The embed made the offer in its own form and then handed the donor to
+        // this modal, which is a fresh component. Without carrying the outcome
+        // across, the donation records that no offer was ever made — and an
+        // acceptance made in the embed is lost entirely.
+        if ($this->upsellSuppressedByEmbed) {
+            $this->upsellShown = true;
+            $this->upsellAccepted = request()->query('upsell_accepted') === '1';
+
+            $originalAmount = request()->query('upsell_amount');
+
+            $this->upsellOriginalAmount = is_numeric($originalAmount) && (float) $originalAmount > 0
+                ? (float) $originalAmount
+                : null;
+        }
+
         if ($element instanceof Element) {
             abort_if(
                 ! $element->is_active
