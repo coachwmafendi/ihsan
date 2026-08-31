@@ -18,6 +18,7 @@ class WeeklyDonationSummary extends Mailable
         public string $totalAmount,
         public array $campaigns,
         public string $period,
+        public bool $hasApproximation = false,
     ) {}
 
     public function envelope(): Envelope

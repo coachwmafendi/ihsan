@@ -43,11 +43,13 @@ it('queues previous month report for organization admins when monthly reports ar
     Donation::factory()->create([
         'campaign_id' => $campaign->getKey(),
         'gross_amount' => 150.00,
+        'base_amount' => 150.00,
         'created_at' => now()->parse('2026-05-15 12:00:00'),
     ]);
     Donation::factory()->create([
         'campaign_id' => $campaign->getKey(),
         'gross_amount' => 75.00,
+        'base_amount' => 75.00,
         'created_at' => now()->parse('2026-06-01 00:00:00'),
     ]);
 
@@ -107,6 +109,7 @@ it('does not queue monthly report for soft-deleted organizations', function () {
     Donation::factory()->create([
         'campaign_id' => $campaign->getKey(),
         'gross_amount' => 150.00,
+        'base_amount' => 150.00,
         'created_at' => now()->parse('2026-05-15 12:00:00'),
     ]);
 

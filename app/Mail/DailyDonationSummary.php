@@ -21,6 +21,7 @@ class DailyDonationSummary extends Mailable
         public int $recurringCount,
         public string $recurringTotal,
         public array $campaigns,
+        public bool $hasApproximation = false,
     ) {}
 
     public function envelope(): Envelope
