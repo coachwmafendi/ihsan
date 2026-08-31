@@ -227,3 +227,15 @@ it('clears all filters', function () {
         ->call('clearFilters')
         ->assertSeeHtml('100.00</td>');
 });
+
+it('renders its filters with the shared chip component', function () {
+    // The page used to hand-roll rounded-full teal pills, which looked nothing
+    // like the chips on every other list page.
+    $html = Livewire::actingAs($this->user)
+        ->test(PayoutsPage::class)
+        ->html();
+
+    expect(substr_count($html, 'rounded-md border px-2.5 py-1.5 text-xs'))->toBeGreaterThanOrEqual(3)
+        ->and($html)->not->toContain('rounded-full border px-3 py-1.5 text-sm font-medium')
+        ->and($html)->toContain('Reset filters');
+});

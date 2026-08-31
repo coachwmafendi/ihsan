@@ -28,7 +28,7 @@
     </div>
 
     <x-ui.card title="Payout History">
-        <div class="mb-6 flex flex-wrap items-center gap-3">
+        <div class="mb-6 flex flex-wrap items-center gap-2">
             {{-- Date filter chip --}}
             <div
                 class="relative"
@@ -47,27 +47,13 @@
                 }"
                 @click.outside="open = false"
             >
-                <button
-                    type="button"
-                    @click="open = !open"
-                    @class([
-                        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
-                        'border-teal-300 bg-teal-50 text-teal-700 hover:bg-teal-100' => $this->hasDateFilter(),
-                        'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' => ! $this->hasDateFilter(),
-                    ])
-                >
-                    @if ($this->hasDateFilter())
-                        <x-heroicon-o-x-mark
-                            class="size-3.5"
-                            wire:click.stop="clearDateFilter"
-                        />
-                        <span>Date | {{ $this->dateChipLabel() }}</span>
-                        <x-heroicon-o-chevron-down class="size-3.5" />
-                    @else
-                        <x-heroicon-o-plus class="size-3.5" />
-                        <span>Date</span>
-                    @endif
-                </button>
+                <x-ui.filter-chip
+                    x-on:click="open = !open"
+                    icon="calendar-days"
+                    label="Date"
+                    :value="$this->hasDateFilter() ? $this->dateChipLabel() : null"
+                    clear="clearDateFilter"
+                />
 
                 <div
                     x-show="open"
@@ -145,27 +131,12 @@
                 }"
                 @click.outside="open = false"
             >
-                <button
-                    type="button"
-                    @click="open = !open"
-                    @class([
-                        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
-                        'border-teal-300 bg-teal-50 text-teal-700 hover:bg-teal-100' => $this->hasAmountFilter(),
-                        'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' => ! $this->hasAmountFilter(),
-                    ])
-                >
-                    @if ($this->hasAmountFilter())
-                        <x-heroicon-o-x-mark
-                            class="size-3.5"
-                            wire:click.stop="clearAmountFilter"
-                        />
-                        <span>Amount | {{ $this->amountChipLabel() }}</span>
-                        <x-heroicon-o-chevron-down class="size-3.5" />
-                    @else
-                        <x-heroicon-o-plus class="size-3.5" />
-                        <span>Amount</span>
-                    @endif
-                </button>
+                <x-ui.filter-chip
+                    x-on:click="open = !open"
+                    label="Amount"
+                    :value="$this->hasAmountFilter() ? $this->amountChipLabel() : null"
+                    clear="clearAmountFilter"
+                />
 
                 <div
                     x-show="open"
@@ -219,27 +190,12 @@
                 }"
                 @click.outside="open = false"
             >
-                <button
-                    type="button"
-                    @click="open = !open"
-                    @class([
-                        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
-                        'border-teal-300 bg-teal-50 text-teal-700 hover:bg-teal-100' => $this->hasStatusFilter(),
-                        'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' => ! $this->hasStatusFilter(),
-                    ])
-                >
-                    @if ($this->hasStatusFilter())
-                        <x-heroicon-o-x-mark
-                            class="size-3.5"
-                            wire:click.stop="clearStatusFilter"
-                        />
-                        <span>Status | {{ $this->statusChipLabel() }}</span>
-                        <x-heroicon-o-chevron-down class="size-3.5" />
-                    @else
-                        <x-heroicon-o-plus class="size-3.5" />
-                        <span>Status</span>
-                    @endif
-                </button>
+                <x-ui.filter-chip
+                    x-on:click="open = !open"
+                    label="Status"
+                    :value="$this->hasStatusFilter() ? $this->statusChipLabel() : null"
+                    clear="clearStatusFilter"
+                />
 
                 <div
                     x-show="open"
@@ -268,12 +224,16 @@
                 </div>
             </div>
 
+            {{-- Reset all filters --}}
             @if ($this->hasAnyFilter())
                 <button
                     type="button"
                     wire:click="clearFilters"
-                    class="text-sm font-medium text-teal-600 hover:text-teal-700"
-                >Clear filters</button>
+                    class="inline-flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-blue-600 transition-colors hover:text-blue-800"
+                >
+                    <x-heroicon-o-backspace class="size-3.5" />
+                    Reset filters
+                </button>
             @endif
         </div>
 
