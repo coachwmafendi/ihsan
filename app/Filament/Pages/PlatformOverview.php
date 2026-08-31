@@ -145,8 +145,11 @@ class PlatformOverview extends Page
         $this->totalDonationsHasApproximation = Donation::hasReportApproximations($succeededDonations);
         $this->totalDonationsCount = Donation::query()->count();
 
+        // Every status counts. Fees are written as 'collected' when the
+        // organization pays upfront and 'pending' when they are invoiced
+        // later; 'paid' is only ever set by hand on the Processing Fees page,
+        // so filtering to it reported zero while fees were being earned.
         $this->totalProcessingFees = number_format((float) ProcessingFee::query()
-            ->where('status', 'paid')
             ->sum('fee_amount'), 2, '.', '');
 
         $this->activeSubscriptions = Subscription::query()
@@ -252,12 +255,10 @@ class PlatformOverview extends Page
         $this->donationsMomChange = $this->momChange($donThisMonth, $donLastMonth);
 
         $feesThisMonth = (float) ProcessingFee::query()
-            ->where('status', 'paid')
             ->whereBetween('created_at', $thisMonth)
             ->sum('fee_amount');
 
         $feesLastMonth = (float) ProcessingFee::query()
-            ->where('status', 'paid')
             ->whereBetween('created_at', $lastMonth)
             ->sum('fee_amount');
 
