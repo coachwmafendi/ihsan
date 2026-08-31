@@ -10,6 +10,7 @@ use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Livewire\Livewire;
 
 it('defaults to this month period to match per organization report downloads', function () {
@@ -107,6 +108,8 @@ it('displays fee breakdown by status', function () {
 });
 
 it('filters revenue by period', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-08-15 12:00:00', 'Asia/Kuala_Lumpur'));
+
     $org = Organization::factory()->create();
     $campaign = Campaign::factory()->for($org)->create();
     $donor = Donor::factory()->create();

@@ -277,6 +277,8 @@ it('calculates donations by frequency for the selected period', function () {
 });
 
 it('aggregates donations by frequency into weekly buckets for long periods', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-08-15 12:00:00', 'Asia/Kuala_Lumpur'));
+
     $campaign = Campaign::factory()->create(['organization_id' => $this->organization->id]);
     $donor = Donor::factory()->create();
 

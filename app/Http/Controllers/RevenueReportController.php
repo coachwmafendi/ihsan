@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\RevenueReportService;
+use App\Support\ReportingPeriod;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -66,7 +67,7 @@ class RevenueReportController extends Controller
         $sanitizedName = Str::limit(Str::slug($organization->name, '-'), 50, '');
         $dateRangeLabel = $this->reportService->periodDateRangeLabel($period);
         $periodSlug = str_replace(' ', '-', $dateRangeLabel);
-        $date = now()->format('Y-m-d');
+        $date = ReportingPeriod::platform()->localNow()->format('Y-m-d');
         $filename = "ihsan-{$organization->public_id}-{$sanitizedName}-revenue-{$periodSlug}-{$date}.{$format}";
 
         return match ($format) {
@@ -95,7 +96,7 @@ class RevenueReportController extends Controller
         $report = $this->reportService->aggregateReport($period);
         $dateRangeLabel = $this->reportService->periodDateRangeLabel($period);
         $periodSlug = str_replace(' ', '-', $dateRangeLabel);
-        $date = now()->format('Y-m-d');
+        $date = ReportingPeriod::platform()->localNow()->format('Y-m-d');
         $filename = "ihsan-platform-revenue-{$periodSlug}-{$date}.{$format}";
 
         return match ($format) {

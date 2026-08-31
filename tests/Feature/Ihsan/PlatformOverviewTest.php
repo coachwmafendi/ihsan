@@ -13,6 +13,7 @@ use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\Subscription;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 
@@ -138,6 +139,8 @@ it('calculates MRR from active subscriptions', function () {
 });
 
 it('calculates MTD donation volume with MoM change', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-08-15 12:00:00', 'Asia/Kuala_Lumpur'));
+
     $org = Organization::factory()->create(['status' => 'active']);
     $donor = Donor::factory()->create();
     $campaign = Campaign::factory()->for($org)->create();
@@ -171,6 +174,8 @@ it('calculates MTD donation volume with MoM change', function () {
 });
 
 it('calculates MTD processing fees with MoM change', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-08-15 12:00:00', 'Asia/Kuala_Lumpur'));
+
     $org = Organization::factory()->create(['status' => 'active']);
     $donor = Donor::factory()->create();
     $campaign = Campaign::factory()->for($org)->create();
@@ -255,6 +260,8 @@ it('displays time period labels for metrics', function () {
 });
 
 it('calculates donor and subscription health metrics', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-08-15 12:00:00', 'Asia/Kuala_Lumpur'));
+
     $org = Organization::factory()->create(['status' => 'active']);
     $campaign = Campaign::factory()->for($org)->create();
 
