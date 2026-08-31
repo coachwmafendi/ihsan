@@ -13,6 +13,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Subscription;
+use App\Support\ReportingPeriod;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
@@ -26,13 +27,6 @@ use Livewire\Component;
 #[Title('Dashboard')]
 class Dashboard extends Component
 {
-    /**
-     * Timestamps are stored in UTC, but every organization on the platform
-     * reads them in Malaysian time. Without this, "today" ran from 8am to 8am
-     * local and a donation taken at 7am was reported as yesterday's.
-     */
-    public const DisplayTimezone = 'Asia/Kuala_Lumpur';
-
     public string $period = 'today';
 
     public ?string $customFrom = null;
@@ -48,17 +42,9 @@ class Dashboard extends Component
     public function updatedPeriod(string $value): void
     {
         if ($value === 'custom' && ($this->customFrom === null || $this->customTo === null)) {
-            $this->customFrom = $this->localNow()->subDays(29)->format('Y-m-d');
-            $this->customTo = $this->localNow()->format('Y-m-d');
+            $this->customFrom = ReportingPeriod::localNow()->subDays(29)->format('Y-m-d');
+            $this->customTo = ReportingPeriod::localNow()->format('Y-m-d');
         }
-    }
-
-    /**
-     * Now, in the timezone the figures are read in.
-     */
-    private function localNow(): CarbonImmutable
-    {
-        return CarbonImmutable::now(self::DisplayTimezone);
     }
 
     /**
@@ -71,18 +57,11 @@ class Dashboard extends Component
     #[Computed]
     public function dateRangeLocal(): array
     {
-        $now = $this->localNow();
+        if ($this->period === 'custom') {
+            return $this->customDateRange();
+        }
 
-        return match ($this->period) {
-            'today' => [$now->startOfDay(), $now->endOfDay()],
-            'yesterday' => [$now->subDay()->startOfDay(), $now->subDay()->endOfDay()],
-            '7_days' => [$now->subDays(6)->startOfDay(), $now->endOfDay()],
-            '30_days' => [$now->subDays(29)->startOfDay(), $now->endOfDay()],
-            '90_days' => [$now->subDays(89)->startOfDay(), $now->endOfDay()],
-            'this_month' => [$now->startOfMonth(), $now->endOfMonth()],
-            'custom' => $this->customDateRange(),
-            default => [null, null],
-        };
+        return ReportingPeriod::local($this->period);
     }
 
     /**
@@ -94,12 +73,7 @@ class Dashboard extends Component
     #[Computed]
     public function dateRange(): array
     {
-        [$from, $to] = $this->dateRangeLocal;
-
-        return [
-            $from === null ? null : Carbon::instance($from->utc()),
-            $to === null ? null : Carbon::instance($to->utc()),
-        ];
+        return ReportingPeriod::toUtc($this->dateRangeLocal);
     }
 
     /**
@@ -109,10 +83,7 @@ class Dashboard extends Component
      */
     private function localDayInUtc(CarbonInterface $localDay): array
     {
-        return [
-            Carbon::instance($localDay->toImmutable()->startOfDay()->utc()),
-            Carbon::instance($localDay->toImmutable()->endOfDay()->utc()),
-        ];
+        return ReportingPeriod::dayInUtc($localDay->toImmutable());
     }
 
     /**
@@ -121,12 +92,12 @@ class Dashboard extends Component
     private function customDateRange(): array
     {
         $from = $this->customFrom
-            ? CarbonImmutable::parse($this->customFrom, self::DisplayTimezone)->startOfDay()
-            : $this->localNow()->subDays(29)->startOfDay();
+            ? ReportingPeriod::parseLocalDate($this->customFrom)->startOfDay()
+            : ReportingPeriod::localNow()->subDays(29)->startOfDay();
 
         $to = $this->customTo
-            ? CarbonImmutable::parse($this->customTo, self::DisplayTimezone)->endOfDay()
-            : $this->localNow()->endOfDay();
+            ? ReportingPeriod::parseLocalDate($this->customTo)->endOfDay()
+            : ReportingPeriod::localNow()->endOfDay();
 
         if ($from->isAfter($to)) {
             [$from, $to] = [$to->startOfDay(), $from->endOfDay()];
@@ -258,8 +229,8 @@ class Dashboard extends Component
         [$from, $to] = $this->dateRangeLocal;
 
         if ($from === null || $to === null) {
-            $from = $this->localNow()->subDays(29)->startOfDay();
-            $to = $this->localNow()->endOfDay();
+            $from = ReportingPeriod::localNow()->subDays(29)->startOfDay();
+            $to = ReportingPeriod::localNow()->endOfDay();
         }
 
         $days = max(1, (int) $from->diffInDays($to) + 1);
@@ -310,8 +281,8 @@ class Dashboard extends Component
         [$from, $to] = $this->dateRangeLocal;
 
         if ($from === null || $to === null) {
-            $from = $this->localNow()->subDays(6)->startOfDay();
-            $to = $this->localNow()->endOfDay();
+            $from = ReportingPeriod::localNow()->subDays(6)->startOfDay();
+            $to = ReportingPeriod::localNow()->endOfDay();
         }
 
         // Grouped in PHP rather than with DATE(created_at): the stored value is
@@ -331,7 +302,7 @@ class Dashboard extends Component
             ->groupBy(fn (Donation $donation): string => CarbonImmutable::parse(
                 $donation->getRawOriginal('created_at'),
                 'UTC',
-            )->setTimezone(self::DisplayTimezone)->format('Y-m-d'))
+            )->setTimezone(ReportingPeriod::DisplayTimezone)->format('Y-m-d'))
             ->map(fn ($rows) => $rows->groupBy('type')->map(fn ($typeRows) => (object) [
                 'type' => $typeRows->first()->type,
                 'count' => $typeRows->count(),
@@ -600,7 +571,7 @@ class Dashboard extends Component
 
         $data = [];
         for ($i = 13; $i >= 0; $i--) {
-            $date = $this->localNow()->subDays($i)->startOfDay();
+            $date = ReportingPeriod::localNow()->subDays($i)->startOfDay();
             $amount = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
                 ->where('status', DonationStatus::Succeeded)
                 ->whereBetween('created_at', $this->localDayInUtc($date))
