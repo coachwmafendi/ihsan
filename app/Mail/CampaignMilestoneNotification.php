@@ -18,6 +18,7 @@ class CampaignMilestoneNotification extends Mailable
         public string $percent,
         public string $collected,
         public string $target,
+        public string $currency = 'MYR',
     ) {}
 
     public function envelope(): Envelope

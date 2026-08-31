@@ -5,6 +5,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Mail;
 use Stripe\ApiRequestor;
 use Stripe\HttpClient\ClientInterface;
@@ -92,4 +93,29 @@ it('generates monthly invoices and queues email to organization', function () {
     Mail::assertQueued(PlatformInvoiceCreated::class, function (PlatformInvoiceCreated $mailable) use ($organization) {
         return $mailable->invoice->organization_id === $organization->id;
     });
+});
+
+it('reads a hand-passed period as a Malaysian month', function () {
+    // A fee recorded at 07:00 MYT on 1 August is stored as 23:00 UTC on
+    // 31 July. Parsing --period in UTC put it in the July invoice.
+    config(['services.stripe.secret' => 'sk_test_fake']);
+
+    $organization = Organization::factory()->create(['fee_collection_method' => 'invoice']);
+    $campaign = Campaign::factory()->for($organization)->create();
+
+    $earlyAugust = CarbonImmutable::parse('2026-08-01 07:00:00', 'Asia/Kuala_Lumpur')->utc();
+
+    $donation = Donation::factory()->for($campaign)->create(['created_at' => $earlyAugust]);
+
+    ProcessingFee::factory()->create([
+        'donation_id' => $donation->getKey(),
+        'organization_id' => $organization->getKey(),
+        'fee_amount' => 5.00,
+        'status' => 'pending',
+        'created_at' => $earlyAugust,
+    ]);
+
+    $this->artisan('ihsan:generate-monthly-invoices', ['--period' => '2026-07'])
+        ->expectsOutputToContain('No pending fees found for this period.')
+        ->assertExitCode(0);
 });

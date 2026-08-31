@@ -7,7 +7,7 @@
 @section('preheader', $t('emails.campaign_completed.preheader', [
     'campaign' => $campaign->title,
     'organization' => $campaign->organization->name,
-    'amount' => 'MYR '.number_format((float) $campaign->target_amount, 2),
+    'amount' => $campaign->defaultCurrency().' '.number_format((float) $campaign->target_amount, 2),
 ]))
 
 @section('title', $t('emails.campaign_completed.title'))
@@ -21,7 +21,7 @@
         {{ $t('emails.campaign_completed.intro', [
             'campaign' => $campaign->title,
             'organization' => $campaign->organization->name,
-            'amount' => 'MYR '.number_format((float) $campaign->target_amount, 2),
+            'amount' => $campaign->defaultCurrency().' '.number_format((float) $campaign->target_amount, 2),
         ]) }}
     </p>
 
