@@ -64,7 +64,8 @@
         </div>
 
         <div class="mb-3 flex flex-wrap items-center gap-2">
-            <select x-model="period" class="rounded-lg border border-stone-200 bg-white px-3 py-2 pr-8 text-sm text-stone-700 shadow-sm transition-colors focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-stone-500 dark:focus:ring-stone-700">
+            <div class="relative">
+                <select x-model="period" class="w-full appearance-none rounded-lg border border-stone-200 bg-white py-2 pl-3 pr-10 text-sm text-stone-700 shadow-sm transition-colors focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-stone-500 dark:focus:ring-stone-700">
                 <option value="">Period: All time</option>
                 <option value="today">Today</option>
                 <option value="yesterday">Yesterday</option>
@@ -74,25 +75,132 @@
                 <option value="this_month">This month</option>
                 <option value="last_month">Last month</option>
             </select>
+                <x-dynamic-component
+                    component="heroicon-m-chevron-down"
+                    class="pointer-events-none absolute inset-y-0 right-3 my-auto size-4 text-stone-400"
+                />
+            </div>
 
-            <select x-model="status" class="rounded-lg border border-stone-200 bg-white px-3 py-2 pr-8 text-sm text-stone-700 shadow-sm transition-colors focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-stone-500 dark:focus:ring-stone-700">
+            <div class="relative">
+                <select x-model="status" class="w-full appearance-none rounded-lg border border-stone-200 bg-white py-2 pl-3 pr-10 text-sm text-stone-700 shadow-sm transition-colors focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-stone-500 dark:focus:ring-stone-700">
                 <option value="">Status: All</option>
                 @foreach (App\Enums\DonationStatus::cases() as $case)
                     <option value="{{ $case->value }}">{{ str($case->value)->headline()->toString() }}</option>
                 @endforeach
             </select>
+                <x-dynamic-component
+                    component="heroicon-m-chevron-down"
+                    class="pointer-events-none absolute inset-y-0 right-3 my-auto size-4 text-stone-400"
+                />
+            </div>
 
-            <select x-model="type" class="rounded-lg border border-stone-200 bg-white px-3 py-2 pr-8 text-sm text-stone-700 shadow-sm transition-colors focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-stone-500 dark:focus:ring-stone-700">
+            <div class="relative">
+                <select x-model="type" class="w-full appearance-none rounded-lg border border-stone-200 bg-white py-2 pl-3 pr-10 text-sm text-stone-700 shadow-sm transition-colors focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-stone-500 dark:focus:ring-stone-700">
                 <option value="">Type: All</option>
                 @foreach (App\Enums\DonationType::cases() as $case)
                     <option value="{{ $case->value }}">{{ str($case->value)->headline()->toString() }}</option>
                 @endforeach
             </select>
+                <x-dynamic-component
+                    component="heroicon-m-chevron-down"
+                    class="pointer-events-none absolute inset-y-0 right-3 my-auto size-4 text-stone-400"
+                />
+            </div>
+
+
+<script>
+    // A plain global, not Alpine.data(): registering on alpine:init raced
+    // Filament's own Alpine boot, and when it lost, nothing on the element
+    // initialised and the dropdown rendered as an empty white box.
+    window.organizationCombobox = function (options) {
+        return {
+        selected: '',
+        search: '',
+        isOpen: false,
+        highlighted: 0,
+
+        // {id: name} from the server, as a list the template can walk.
+        all: Object.entries(options).map(([id, name]) => ({ id: String(id), name })),
+
+        init() {
+            this.search = this.selectedName;
+        },
+
+        get matches() {
+            const term = this.search.trim().toLowerCase();
+
+            if (term === '') {
+                return this.all;
+            }
+
+            return this.all.filter((option) => option.name.toLowerCase().includes(term));
+        },
+
+        get selectedName() {
+            return this.all.find((option) => option.id === this.selected)?.name ?? '';
+        },
+
+        open() {
+            this.isOpen = true;
+            this.highlighted = 0;
+        },
+
+        close() {
+            this.isOpen = false;
+            // Typing without choosing leaves the box showing whatever
+            // is actually filtering the table.
+            this.search = this.selectedName;
+        },
+
+        move(step) {
+            if (! this.isOpen) {
+                this.open();
+
+                return;
+            }
+
+            const count = this.matches.length;
+
+            if (count === 0) {
+                return;
+            }
+
+            this.highlighted = (this.highlighted + step + count) % count;
+        },
+
+        choose(option) {
+            if (! option) {
+                return;
+            }
+
+            this.selected = option.id;
+            this.search = option.name;
+            this.isOpen = false;
+            this.$dispatch('organization-selected', option.id);
+        },
+
+        clearSelection() {
+            this.reset();
+            this.$dispatch('organization-selected', '');
+            this.$refs.input.focus();
+        },
+
+        // Also called when the page clears every filter at once.
+        reset() {
+            this.selected = '';
+            this.search = '';
+            this.isOpen = false;
+        },
+        };
+    };
+</script>
+
 
             {{-- Typeable organization picker: the list grows with every NGO
                  onboarded, so scrolling a plain select stops scaling. --}}
             <div
                 class="relative"
+                wire:ignore
                 x-data="organizationCombobox(@js($this->organizationOptions))"
                 @organization-selected="organization = $event.detail"
                 @filters-cleared.window="reset()"
@@ -116,27 +224,24 @@
                     aria-controls="organization-combobox-list"
                     :aria-expanded="isOpen ? 'true' : 'false'"
                     aria-label="Filter by organization"
-                    class="w-56 rounded-lg border border-stone-200 bg-white px-3 py-2 pr-8 text-sm text-stone-700 shadow-sm transition-colors focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-stone-500 dark:focus:ring-stone-700"
+                    class="w-56 rounded-lg border border-stone-200 bg-white py-2 pl-3 pr-10 text-sm text-stone-700 shadow-sm transition-colors focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-stone-500 dark:focus:ring-stone-700"
                 >
 
                 <button
                     type="button"
-                    x-show="selected !== '' || search !== ''"
-                    x-cloak
+                    :class="{ 'hidden': selected === '' && search === '' }"
                     @click="clearSelection()"
                     aria-label="Clear organization filter"
-                    class="absolute inset-y-0 right-0 flex items-center px-2 text-stone-400 transition-colors hover:text-stone-600 dark:hover:text-stone-200"
+                    class="hidden absolute inset-y-0 right-2 flex items-center text-stone-400 transition-colors hover:text-stone-600 dark:hover:text-stone-200"
                 >
                     <x-dynamic-component component="heroicon-o-x-mark" class="size-4" />
                 </button>
 
                 <ul
-                    x-show="isOpen"
-                    x-cloak
-                    x-transition.opacity.duration.100ms
+                    :class="{ 'hidden': ! isOpen }"
                     id="organization-combobox-list"
                     role="listbox"
-                    class="absolute z-20 mt-1 max-h-64 w-72 overflow-y-auto rounded-lg border border-stone-200 bg-white py-1 shadow-lg dark:border-stone-700 dark:bg-stone-800"
+                    class="hidden absolute z-20 mt-1 max-h-64 w-72 overflow-y-auto rounded-lg border border-stone-200 bg-white py-1 shadow-lg dark:border-stone-700 dark:bg-stone-800"
                 >
                     <template x-for="(option, index) in matches" :key="option.id">
                         <li
@@ -274,89 +379,4 @@
         {{ $this->table }}
     </div>
 
-    <script>
-        // Registered on alpine:init so the component exists before Filament
-        // initialises the page's own Alpine tree.
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('organizationCombobox', (options) => ({
-                selected: '',
-                search: '',
-                isOpen: false,
-                highlighted: 0,
-
-                // {id: name} from the server, as a list the template can walk.
-                all: Object.entries(options).map(([id, name]) => ({ id: String(id), name })),
-
-                init() {
-                    this.search = this.selectedName;
-                },
-
-                get matches() {
-                    const term = this.search.trim().toLowerCase();
-
-                    if (term === '') {
-                        return this.all;
-                    }
-
-                    return this.all.filter((option) => option.name.toLowerCase().includes(term));
-                },
-
-                get selectedName() {
-                    return this.all.find((option) => option.id === this.selected)?.name ?? '';
-                },
-
-                open() {
-                    this.isOpen = true;
-                    this.highlighted = 0;
-                },
-
-                close() {
-                    this.isOpen = false;
-                    // Typing without choosing leaves the box showing whatever
-                    // is actually filtering the table.
-                    this.search = this.selectedName;
-                },
-
-                move(step) {
-                    if (! this.isOpen) {
-                        this.open();
-
-                        return;
-                    }
-
-                    const count = this.matches.length;
-
-                    if (count === 0) {
-                        return;
-                    }
-
-                    this.highlighted = (this.highlighted + step + count) % count;
-                },
-
-                choose(option) {
-                    if (! option) {
-                        return;
-                    }
-
-                    this.selected = option.id;
-                    this.search = option.name;
-                    this.isOpen = false;
-                    this.$dispatch('organization-selected', option.id);
-                },
-
-                clearSelection() {
-                    this.reset();
-                    this.$dispatch('organization-selected', '');
-                    this.$refs.input.focus();
-                },
-
-                // Also called when the page clears every filter at once.
-                reset() {
-                    this.selected = '';
-                    this.search = '';
-                    this.isOpen = false;
-                },
-            }));
-        });
-    </script>
 </x-filament-panels::page>
