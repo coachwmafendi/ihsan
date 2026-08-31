@@ -76,7 +76,7 @@ it('calculates correct platform-wide metrics', function () {
         'donation_id' => $donation->id,
         'organization_id' => $org->id,
         'fee_amount' => 3.00,
-        'status' => 'paid',
+        'status' => 'collected',
     ]);
 
     Subscription::factory()->for($campaign)->for($donor)->create([
@@ -189,14 +189,14 @@ it('calculates MTD processing fees with MoM change', function () {
         'donation_id' => $donation->id,
         'organization_id' => $org->id,
         'fee_amount' => 6.00,
-        'status' => 'paid',
+        'status' => 'collected',
         'created_at' => now()->startOfMonth()->addDays(1),
     ]);
     ProcessingFee::factory()->create([
         'donation_id' => $donationLast->id,
         'organization_id' => $org->id,
         'fee_amount' => 3.00,
-        'status' => 'paid',
+        'status' => 'collected',
         'created_at' => now()->subMonth()->startOfMonth()->addDays(1),
     ]);
 
@@ -378,4 +378,35 @@ it('calculates recurring health metrics', function () {
         ->assertSee('Recurring Health')
         ->assertSee('Last process')
         ->assertSee('Retrying');
+});
+
+it('counts processing fees whatever status they carry', function () {
+    // Fees are written as 'collected' when an organization pays upfront and
+    // 'pending' when invoiced later. 'paid' is only ever set by hand on the
+    // Processing Fees page, so counting it alone reported MYR 0.00 while the
+    // platform was earning fees.
+    $org = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+    $donor = Donor::factory()->create();
+
+    foreach (['collected' => 5.00, 'pending' => 3.00, 'paid' => 2.00, 'invoiced' => 1.00] as $status => $amount) {
+        $donation = Donation::factory()->for($campaign)->for($donor)->create([
+            'status' => DonationStatus::Succeeded,
+        ]);
+
+        ProcessingFee::factory()->create([
+            'donation_id' => $donation->id,
+            'organization_id' => $org->id,
+            'fee_amount' => $amount,
+            'status' => $status,
+            'created_at' => now(),
+        ]);
+    }
+
+    $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+    Livewire::actingAs($user)
+        ->test(PlatformOverview::class)
+        ->assertSet('totalProcessingFees', '11.00')
+        ->assertSet('processingFeesThisMonth', '11.00');
 });

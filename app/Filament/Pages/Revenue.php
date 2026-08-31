@@ -6,6 +6,7 @@ use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\ProcessingFee;
 use App\Services\RevenueReportService;
+use Carbon\CarbonInterface;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -125,7 +126,7 @@ class Revenue extends Page
         return (float) config('services.stripe.processing_fee_percent', 2.5);
     }
 
-    private function sumFeesByStatus(string $status, ?string $from, ?string $to): string
+    private function sumFeesByStatus(string $status, ?CarbonInterface $from, ?CarbonInterface $to): string
     {
         $sum = (float) ProcessingFee::query()
             ->where('status', $status)
