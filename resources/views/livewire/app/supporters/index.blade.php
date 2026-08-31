@@ -42,6 +42,7 @@
     </div>
 
     {{-- Filters --}}
+    <p class="text-xs text-slate-400">Dates follow Malaysia time (MYT, UTC+8).</p>
     <div class="flex flex-wrap items-center gap-3">
         <div class="relative">
             <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />

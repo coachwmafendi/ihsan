@@ -42,6 +42,7 @@
     </div>
 
     {{-- Filter chips --}}
+    <p class="text-xs text-slate-400">Dates follow Malaysia time (MYT, UTC+8).</p>
     @php $dateActive = $period !== 'all_time'; $dateLabel = $this->dateChipLabel; @endphp
     <div class="flex flex-wrap items-center gap-2">
 
