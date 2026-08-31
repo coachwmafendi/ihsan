@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Organization;
 use App\Models\ProcessingFee;
+use App\Support\ReportingPeriod;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Pages\Page;
@@ -137,8 +138,8 @@ class ProcessingFees extends Page implements HasTable
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['date_from'] ?? null, fn (Builder $q, $d): Builder => $q->whereDate('created_at', '>=', $d))
-                            ->when($data['date_to'] ?? null, fn (Builder $q, $d): Builder => $q->whereDate('created_at', '<=', $d));
+                            ->when($data['date_from'] ?? null, fn (Builder $q, $d): Builder => $q->where('created_at', '>=', ReportingPeriod::parseLocalDate((string) $d)->startOfDay()->utc()))
+                            ->when($data['date_to'] ?? null, fn (Builder $q, $d): Builder => $q->where('created_at', '<=', ReportingPeriod::parseLocalDate((string) $d)->endOfDay()->utc()));
                     }),
             ])
             ->defaultSort('created_at', 'desc')

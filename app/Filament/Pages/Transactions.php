@@ -6,6 +6,7 @@ use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Models\Donation;
 use App\Models\Organization;
+use App\Support\ReportingPeriod;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -134,12 +135,13 @@ class Transactions extends Page implements HasTable
                     return $query;
                 }
 
+                // Dates are entered as Malaysian ones; the column is UTC.
                 if ($this->advancedDateFrom) {
-                    $query->whereDate('created_at', '>=', $this->advancedDateFrom);
+                    $query->where('created_at', '>=', ReportingPeriod::parseLocalDate($this->advancedDateFrom)->startOfDay()->utc());
                 }
 
                 if ($this->advancedDateTo) {
-                    $query->whereDate('created_at', '<=', $this->advancedDateTo);
+                    $query->where('created_at', '<=', ReportingPeriod::parseLocalDate($this->advancedDateTo)->endOfDay()->utc());
                 }
 
                 if ($this->advancedMinAmount !== '') {
@@ -159,16 +161,16 @@ class Transactions extends Page implements HasTable
                 }
 
                 if ($this->quickPeriod) {
-                    $query = match ($this->quickPeriod) {
-                        'today' => $query->whereDate('created_at', today()),
-                        'yesterday' => $query->whereDate('created_at', today()->subDay()),
-                        '7_days' => $query->whereDate('created_at', '>=', today()->subDays(7)),
-                        '14_days' => $query->whereDate('created_at', '>=', today()->subDays(14)),
-                        '30_days' => $query->whereDate('created_at', '>=', today()->subDays(30)),
-                        'this_month' => $query->whereMonth('created_at', today()->month)->whereYear('created_at', today()->year),
-                        'last_month' => $query->whereMonth('created_at', today()->subMonth()->month)->whereYear('created_at', today()->subMonth()->year),
-                        default => $query,
-                    };
+                    [$periodFrom, $periodTo] = ReportingPeriod::utc(match ($this->quickPeriod) {
+                        '7_days' => '7_days',
+                        '14_days' => '14_days',
+                        '30_days' => '30_days',
+                        default => $this->quickPeriod,
+                    });
+
+                    $query
+                        ->when($periodFrom, fn (Builder $q): Builder => $q->where('created_at', '>=', $periodFrom))
+                        ->when($periodTo, fn (Builder $q): Builder => $q->where('created_at', '<=', $periodTo));
                 }
 
                 if ($this->quickStatus) {

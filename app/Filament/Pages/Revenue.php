@@ -83,12 +83,12 @@ class Revenue extends Page
     {
         $this->reportService ??= app(RevenueReportService::class);
 
-        [$from, $to] = $this->reportService->dateRange($this->period);
+        [$from, $to] = $this->reportService->queryRange($this->period);
 
         $succeeded = Donation::query()
             ->where('status', DonationStatus::Succeeded)
-            ->when($from, fn (Builder $q) => $q->whereDate('donations.created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('donations.created_at', '<=', $to));
+            ->when($from, fn (Builder $q) => $q->where('donations.created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('donations.created_at', '<=', $to));
 
         $totalVolume = (float) (clone $succeeded)->sum('base_amount');
         $this->totalDonationVolume = number_format($totalVolume, 2, '.', '');
@@ -98,8 +98,8 @@ class Revenue extends Page
             : '0.00';
 
         $totalFeeAmount = (float) ProcessingFee::query()
-            ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to))
+            ->when($from, fn (Builder $q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('created_at', '<=', $to))
             ->sum('fee_amount');
         $this->totalProcessingFees = number_format($totalFeeAmount, 2, '.', '');
 
@@ -129,8 +129,8 @@ class Revenue extends Page
     {
         $sum = (float) ProcessingFee::query()
             ->where('status', $status)
-            ->when($from, fn (Builder $q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn (Builder $q) => $q->whereDate('created_at', '<=', $to))
+            ->when($from, fn (Builder $q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->where('created_at', '<=', $to))
             ->sum('fee_amount');
 
         return number_format($sum, 2, '.', '');

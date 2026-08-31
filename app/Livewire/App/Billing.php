@@ -7,7 +7,7 @@ namespace App\Livewire\App;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\Setting;
-use Carbon\Carbon;
+use App\Support\ReportingPeriod;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -60,8 +60,8 @@ class Billing extends Component
         $donations = Donation::query()
             ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->where('status', DonationStatus::Succeeded)
-            ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to));
+            ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to));
 
         $this->totalTransactions = (clone $donations)->count();
         $this->amountProcessed = (float) (clone $donations)->sum('base_amount');
@@ -76,16 +76,20 @@ class Billing extends Component
         if (blank($this->selectedMonth)) {
             return [null, null];
         }
-        $date = Carbon::createFromFormat('Y-m', $this->selectedMonth);
+        // The month is a Malaysian one; the query compares UTC instants.
+        $date = ReportingPeriod::parseLocalDate($this->selectedMonth.'-01');
 
-        return [$date->copy()->startOfMonth()->toDateString(), $date->copy()->endOfMonth()->toDateString()];
+        return ReportingPeriod::toUtc([
+            $date->startOfMonth(),
+            $date->endOfMonth(),
+        ]);
     }
 
     private function buildMonthOptions(): void
     {
         $months = [];
         for ($i = 0; $i < 12; $i++) {
-            $date = today()->copy()->subMonths($i);
+            $date = ReportingPeriod::localNow()->subMonths($i);
             $months[$date->format('Y-m')] = $date->format('F Y');
         }
         $this->availableMonths = $months;

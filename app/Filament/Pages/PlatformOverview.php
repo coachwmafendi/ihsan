@@ -10,6 +10,7 @@ use App\Models\Fraud\BlockedDonation;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\Subscription;
+use App\Support\ReportingPeriod;
 use Carbon\Carbon;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Cache;
@@ -130,8 +131,9 @@ class PlatformOverview extends Page
         $this->pendingOrganizations = Organization::query()->where('status', 'pending')->count();
         $this->activeOrganizations = Organization::query()->where('status', 'active')->count();
         $this->suspendedOrganizations = Organization::query()->where('status', 'suspended')->count();
+        // Months are Malaysian ones; see ReportingPeriod.
         $this->newOrganizationsThisMonth = Organization::query()
-            ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
+            ->whereBetween('created_at', ReportingPeriod::utc('this_month'))
             ->count();
         $this->stripeOnboardedOrganizations = Organization::query()
             ->where('stripe_onboarded', true)
@@ -229,9 +231,8 @@ class PlatformOverview extends Page
             ->where('currency', '!=', 'myr')
             ->exists();
 
-        $now = now();
-        $thisMonth = [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()];
-        $lastMonth = [$now->copy()->subMonthNoOverflow()->startOfMonth(), $now->copy()->subMonthNoOverflow()->endOfMonth()];
+        $thisMonth = ReportingPeriod::utc('this_month');
+        $lastMonth = ReportingPeriod::utc('last_month');
 
         $donThisMonthQuery = Donation::query()
             ->where('status', DonationStatus::Succeeded)
@@ -320,12 +321,14 @@ class PlatformOverview extends Page
             $this->recurringHealthLastProcess = $lastRun->diffForHumans();
         }
 
-        $today = now();
+        // Due by the end of today in Malaysian time, which is what an operator
+        // reading this page means by "today".
+        [, $endOfToday] = ReportingPeriod::utc('today');
 
         $this->recurringHealthDueToday = Subscription::query()
             ->where('status', SubscriptionStatus::Active)
             ->whereNotNull('next_charge_at')
-            ->whereDate('next_charge_at', '<=', $today->toDateString())
+            ->where('next_charge_at', '<=', $endOfToday)
             ->where(function ($query): void {
                 $query->whereNull('paused_until')
                     ->orWhere('paused_until', '<=', now());
@@ -339,7 +342,7 @@ class PlatformOverview extends Page
         $this->recurringHealthSuccessToday = Donation::query()
             ->whereNotNull('subscription_id')
             ->where('status', DonationStatus::Succeeded)
-            ->whereDate('created_at', $today->toDateString())
+            ->whereBetween('created_at', ReportingPeriod::utc('today'))
             ->count();
 
         $this->recurringHealthRetrying = Subscription::query()

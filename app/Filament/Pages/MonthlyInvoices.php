@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Jobs\GenerateMonthlyInvoices;
 use App\Models\MonthlyInvoice;
 use App\Models\Organization;
+use App\Support\ReportingPeriod;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
@@ -46,7 +47,7 @@ class MonthlyInvoices extends Page implements HasTable
             ->sum('total_fees'), 2, '.', '');
 
         $this->invoicesSent = MonthlyInvoice::query()
-            ->where('created_at', '>=', now()->startOfMonth())
+            ->where('created_at', '>=', ReportingPeriod::utc('this_month')[0])
             ->count();
     }
 
