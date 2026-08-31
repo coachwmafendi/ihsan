@@ -460,13 +460,13 @@ class Dashboard extends Component
 
         return Campaign::where('organization_id', $org->id)
             ->select('campaigns.*')
-            ->withCount(['donations' => fn ($q) => $q->where('status', DonationStatus::Succeeded)->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))])
+            ->withCount(['donations' => fn ($q) => $q->where('status', DonationStatus::Succeeded)->when($from, fn ($q) => $q->where('created_at', '>=', $from))->when($to, fn ($q) => $q->where('created_at', '<=', $to))])
             ->selectSub(
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.campaign_id', 'campaigns.id')
                     ->where('donations.status', DonationStatus::Succeeded)
-                    ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
-                    ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
+                    ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+                    ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to))
                     ->select(Donation::reportSumColumn()),
                 'report_amount'
             )
@@ -474,8 +474,8 @@ class Dashboard extends Component
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.campaign_id', 'campaigns.id')
                     ->where('donations.status', DonationStatus::Succeeded)
-                    ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
-                    ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
+                    ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+                    ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to))
                     ->where('donations.currency', '!=', 'myr')
                     ->whereNotNull('donations.base_amount')
                     ->selectRaw('COUNT(*) > 0'),
@@ -507,8 +507,8 @@ class Dashboard extends Component
 
         $baseQuery = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->where('status', DonationStatus::Succeeded)
-            ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to));
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('created_at', '<=', $to));
 
         $reportColumn = Donation::reportAmountSql();
 
@@ -540,8 +540,8 @@ class Dashboard extends Component
 
         $methods = Donation::whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
             ->where('status', DonationStatus::Succeeded)
-            ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('created_at', '<=', $to))
             ->selectRaw('payment_method_type, COUNT(*) as count, SUM('.Donation::reportAmountSql().') as total_amount')
             ->groupBy('payment_method_type')
             ->orderByDesc('total_amount')
@@ -582,8 +582,8 @@ class Dashboard extends Component
 
         return Donation::with(['campaign', 'donor'])
             ->whereHas('campaign', fn ($q) => $q->where('organization_id', $org->id))
-            ->when($from, fn ($q) => $q->whereDate('donations.created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('donations.created_at', '<=', $to))
+            ->when($from, fn ($q) => $q->where('donations.created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('donations.created_at', '<=', $to))
             ->orderByDesc('created_at')
             ->limit(10)
             ->get();

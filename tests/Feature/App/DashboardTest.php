@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\CampaignStatus;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Enums\SubscriptionInterval;
@@ -662,4 +663,31 @@ it('buckets the frequency chart by Malaysian days', function () {
 
     expect($today['one_time'])->toBe(1)
         ->and($chart['one_time_total'])->toBe(1);
+});
+
+it('keeps every dashboard card on the same Malaysian day as the headline stats', function () {
+    // The cards used whereDate against UTC instants, which discarded the time
+    // and stretched "today" across two UTC dates, so they disagreed with the
+    // totals above them.
+    $this->travelTo(CarbonImmutable::parse('2026-08-31 08:41:00', 'Asia/Kuala_Lumpur'));
+
+    $campaign = Campaign::factory()->for($this->organization)->create([
+        'status' => CampaignStatus::Active,
+    ]);
+
+    // 23:30 MYT yesterday: inside the UTC day, outside the Malaysian one.
+    Donation::factory()->for($campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 90.00,
+        'base_amount' => 90.00,
+        'created_at' => CarbonImmutable::parse('2026-08-30 23:30:00', 'Asia/Kuala_Lumpur')->utc(),
+    ]);
+
+    $component = Livewire::actingAs($this->user)->test(Dashboard::class);
+    $instance = $component->instance();
+
+    expect($component->get('stats')['total_count'])->toBe(0)
+        ->and($instance->recentDonations())->toHaveCount(0)
+        ->and(collect($instance->campaignsBreakdown())->sum('donations_count'))->toBe(0)
+        ->and($instance->donationSizes()['under_50'] ?? 0)->toBe(0);
 });
