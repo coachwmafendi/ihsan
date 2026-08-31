@@ -194,6 +194,19 @@
                             <flux:select.option value="Other">Other</flux:select.option>
                         </x-ui.select>
                     </div>
+
+                    <div>
+                        <label for="timezone" class="block text-sm font-medium text-slate-700">Reporting timezone</label>
+                        <x-ui.select id="timezone" wire:model="timezone" class="mt-1 block w-full">
+                            @foreach ($this->timezoneOptions() as $value => $label)
+                                <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
+                            @endforeach
+                        </x-ui.select>
+                        <p class="mt-1 text-xs text-slate-500">
+                            Decides where a day starts and ends on your dashboard, reports and exports.
+                        </p>
+                        @error('timezone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
                 </div>
             </x-ui.card>
         </div>

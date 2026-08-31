@@ -7,6 +7,7 @@ use App\Enums\DonationType;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
+use App\Support\ReportingPeriod;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -134,9 +135,11 @@ class DonorDonationController extends Controller
     {
         $donor = $request->donor;
 
-        $year = (int) $request->query('year', now()->timezone('Asia/Kuala_Lumpur')->year);
+        $period = ReportingPeriod::for($organization);
 
-        [$start, $end] = $this->malaysianYearBounds($year);
+        $year = (int) $request->query('year', $period->localNow()->year);
+
+        [$start, $end] = $this->yearBounds($year, $period);
 
         $donations = $this->scopeToOrg($donor->donations(), $organization)
             ->where('status', DonationStatus::Succeeded)
@@ -163,16 +166,19 @@ class DonorDonationController extends Controller
     }
 
     /**
-     * Descending list of calendar years (MYT) that have succeeded donations.
+     * Descending list of calendar years, on the organization's own clock, that
+     * have succeeded donations.
      *
      * @return array<int, int>
      */
     private function availableStatementYears(Donor $donor, Organization $organization): array
     {
+        $timezone = ReportingPeriod::for($organization)->timezone;
+
         return $this->scopeToOrg($donor->donations(), $organization)
             ->where('status', DonationStatus::Succeeded)
             ->pluck('created_at')
-            ->map(fn ($createdAt) => (int) $createdAt->timezone('Asia/Kuala_Lumpur')->year)
+            ->map(fn ($createdAt) => (int) $createdAt->timezone($timezone)->year)
             ->unique()
             ->sortDesc()
             ->values()
@@ -180,13 +186,15 @@ class DonorDonationController extends Controller
     }
 
     /**
-     * UTC boundaries for a calendar year expressed in Malaysian time.
+     * UTC boundaries for a calendar year on the organization's own clock. A
+     * statement has to cover the donor's year, not a UTC one, or January's
+     * first hours land in the previous year's PDF.
      *
      * @return array{0: CarbonImmutable, 1: CarbonImmutable}
      */
-    private function malaysianYearBounds(int $year): array
+    private function yearBounds(int $year, ReportingPeriod $period): array
     {
-        $start = CarbonImmutable::create($year, 1, 1, 0, 0, 0, 'Asia/Kuala_Lumpur')->utc();
+        $start = CarbonImmutable::create($year, 1, 1, 0, 0, 0, $period->timezone)->utc();
         $end = $start->addYear()->subSecond();
 
         return [$start, $end];

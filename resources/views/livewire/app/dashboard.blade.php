@@ -575,7 +575,7 @@
             @endif
 
             <p class="text-xs text-slate-400 sm:text-right">
-                Dates and totals follow Malaysia time (MYT, UTC+8).
+                Dates and totals follow {{ $this->timezoneLabel }}.
             </p>
         </div>
     </div>

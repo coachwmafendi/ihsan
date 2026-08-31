@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\App\Settings;
 
 use App\Models\Organization as OrganizationModel;
+use App\Support\ReportingPeriod;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -50,6 +51,37 @@ class Organization extends Component
 
     public ?string $country = 'Malaysia';
 
+    /** The clock this organization's reports are measured on. */
+    public string $timezone = ReportingPeriod::DefaultTimezone;
+
+    /**
+     * The timezones an organization can report in.
+     *
+     * Kept to the region the platform serves rather than the full IANA list,
+     * which is several hundred entries and unusable in a select.
+     *
+     * @return array<string, string>
+     */
+    public function timezoneOptions(): array
+    {
+        return [
+            'Asia/Kuala_Lumpur' => 'Kuala Lumpur (UTC+8)',
+            'Asia/Singapore' => 'Singapore (UTC+8)',
+            'Asia/Brunei' => 'Brunei (UTC+8)',
+            'Asia/Jakarta' => 'Jakarta (UTC+7)',
+            'Asia/Bangkok' => 'Bangkok (UTC+7)',
+            'Asia/Ho_Chi_Minh' => 'Ho Chi Minh City (UTC+7)',
+            'Asia/Manila' => 'Manila (UTC+8)',
+            'Asia/Hong_Kong' => 'Hong Kong (UTC+8)',
+            'Asia/Tokyo' => 'Tokyo (UTC+9)',
+            'Asia/Dubai' => 'Dubai (UTC+4)',
+            'Asia/Riyadh' => 'Riyadh (UTC+3)',
+            'Australia/Sydney' => 'Sydney (UTC+10/+11)',
+            'Europe/London' => 'London (UTC+0/+1)',
+            'UTC' => 'UTC',
+        ];
+    }
+
     // Social links (displayed on the public donor portal)
     public ?string $social_facebook = null;
 
@@ -89,6 +121,7 @@ class Organization extends Component
         $this->state = $org->state;
         $this->postcode = $org->postcode;
         $this->country = $org->country ?? 'Malaysia';
+        $this->timezone = $org->reportingTimezone();
 
         /** @var array<string, mixed> $settings */
         $settings = $org->settings ?? [];
@@ -112,6 +145,7 @@ class Organization extends Component
             'state' => ['nullable', 'string', 'max:255'],
             'postcode' => ['nullable', 'string', 'max:20'],
             'country' => ['nullable', 'string', 'max:255'],
+            'timezone' => ['required', 'string', 'timezone'],
         ]);
 
         /** @var OrganizationModel|null $org */
@@ -145,6 +179,7 @@ class Organization extends Component
             'state' => $this->state,
             'postcode' => $this->postcode,
             'country' => $this->country,
+            'timezone' => $this->timezone,
             'settings' => $settings,
         ];
 

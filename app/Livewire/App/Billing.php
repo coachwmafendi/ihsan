@@ -77,9 +77,9 @@ class Billing extends Component
             return [null, null];
         }
         // The month is a Malaysian one; the query compares UTC instants.
-        $date = ReportingPeriod::parseLocalDate($this->selectedMonth.'-01');
+        $date = $this->reportingPeriod()->parseLocalDate($this->selectedMonth.'-01');
 
-        return ReportingPeriod::toUtc([
+        return $this->reportingPeriod()->toUtc([
             $date->startOfMonth(),
             $date->endOfMonth(),
         ]);
@@ -89,7 +89,7 @@ class Billing extends Component
     {
         $months = [];
         for ($i = 0; $i < 12; $i++) {
-            $date = ReportingPeriod::localNow()->subMonths($i);
+            $date = $this->reportingPeriod()->localNow()->subMonths($i);
             $months[$date->format('Y-m')] = $date->format('F Y');
         }
         $this->availableMonths = $months;
@@ -98,5 +98,13 @@ class Billing extends Component
     public function render()
     {
         return view('livewire.app.billing');
+    }
+
+    /**
+     * Days are measured on this organization's clock; see ReportingPeriod.
+     */
+    private function reportingPeriod(): ReportingPeriod
+    {
+        return ReportingPeriod::for(Auth::user()?->organization);
     }
 }

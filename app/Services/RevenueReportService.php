@@ -248,27 +248,27 @@ class RevenueReportService
             return [null, null];
         }
 
-        return ReportingPeriod::toUtc([
-            ReportingPeriod::parseLocalDate($from)->startOfDay(),
-            ReportingPeriod::parseLocalDate($to)->endOfDay(),
+        return ReportingPeriod::platform()->toUtc([
+            ReportingPeriod::platform()->parseLocalDate($from)->startOfDay(),
+            ReportingPeriod::platform()->parseLocalDate($to)->endOfDay(),
         ]);
     }
 
     public function dateRange(string $period): array
     {
         return match ($period) {
-            'today' => [ReportingPeriod::localNow()->toDateString(), ReportingPeriod::localNow()->toDateString()],
-            'yesterday' => [ReportingPeriod::localNow()->subDay()->toDateString(), ReportingPeriod::localNow()->subDay()->toDateString()],
-            'last_7_days' => [ReportingPeriod::localNow()->subDays(6)->toDateString(), ReportingPeriod::localNow()->toDateString()],
-            'last_30_days' => [ReportingPeriod::localNow()->subDays(29)->toDateString(), ReportingPeriod::localNow()->toDateString()],
-            'last_90_days' => [ReportingPeriod::localNow()->subDays(89)->toDateString(), ReportingPeriod::localNow()->toDateString()],
-            'last_week' => [ReportingPeriod::localNow()->subWeek()->startOfWeek()->toDateString(), ReportingPeriod::localNow()->subWeek()->endOfWeek()->toDateString()],
-            'last_month' => [ReportingPeriod::localNow()->subMonth()->startOfMonth()->toDateString(), ReportingPeriod::localNow()->subMonth()->endOfMonth()->toDateString()],
-            'last_6_months' => [ReportingPeriod::localNow()->subMonths(6)->startOfMonth()->toDateString(), ReportingPeriod::localNow()->subMonth()->endOfMonth()->toDateString()],
-            'last_year' => [ReportingPeriod::localNow()->subYear()->startOfYear()->toDateString(), ReportingPeriod::localNow()->subYear()->endOfYear()->toDateString()],
-            'this_week' => [ReportingPeriod::localNow()->startOfWeek()->toDateString(), ReportingPeriod::localNow()->endOfWeek()->toDateString()],
-            'this_month' => [ReportingPeriod::localNow()->startOfMonth()->toDateString(), ReportingPeriod::localNow()->endOfMonth()->toDateString()],
-            'this_year' => [ReportingPeriod::localNow()->startOfYear()->toDateString(), ReportingPeriod::localNow()->endOfYear()->toDateString()],
+            'today' => [ReportingPeriod::platform()->localNow()->toDateString(), ReportingPeriod::platform()->localNow()->toDateString()],
+            'yesterday' => [ReportingPeriod::platform()->localNow()->subDay()->toDateString(), ReportingPeriod::platform()->localNow()->subDay()->toDateString()],
+            'last_7_days' => [ReportingPeriod::platform()->localNow()->subDays(6)->toDateString(), ReportingPeriod::platform()->localNow()->toDateString()],
+            'last_30_days' => [ReportingPeriod::platform()->localNow()->subDays(29)->toDateString(), ReportingPeriod::platform()->localNow()->toDateString()],
+            'last_90_days' => [ReportingPeriod::platform()->localNow()->subDays(89)->toDateString(), ReportingPeriod::platform()->localNow()->toDateString()],
+            'last_week' => [ReportingPeriod::platform()->localNow()->subWeek()->startOfWeek()->toDateString(), ReportingPeriod::platform()->localNow()->subWeek()->endOfWeek()->toDateString()],
+            'last_month' => [ReportingPeriod::platform()->localNow()->subMonth()->startOfMonth()->toDateString(), ReportingPeriod::platform()->localNow()->subMonth()->endOfMonth()->toDateString()],
+            'last_6_months' => [ReportingPeriod::platform()->localNow()->subMonths(6)->startOfMonth()->toDateString(), ReportingPeriod::platform()->localNow()->subMonth()->endOfMonth()->toDateString()],
+            'last_year' => [ReportingPeriod::platform()->localNow()->subYear()->startOfYear()->toDateString(), ReportingPeriod::platform()->localNow()->subYear()->endOfYear()->toDateString()],
+            'this_week' => [ReportingPeriod::platform()->localNow()->startOfWeek()->toDateString(), ReportingPeriod::platform()->localNow()->endOfWeek()->toDateString()],
+            'this_month' => [ReportingPeriod::platform()->localNow()->startOfMonth()->toDateString(), ReportingPeriod::platform()->localNow()->endOfMonth()->toDateString()],
+            'this_year' => [ReportingPeriod::platform()->localNow()->startOfYear()->toDateString(), ReportingPeriod::platform()->localNow()->endOfYear()->toDateString()],
             default => [null, null],
         };
     }

@@ -152,7 +152,7 @@ class SupporterIndex extends Component
     {
         // Days are measured in Malaysian time and handed to the query as UTC
         // instants; see ReportingPeriod.
-        return ReportingPeriod::utc($this->period, $this->dateFrom, $this->dateTo);
+        return $this->reportingPeriod()->utc($this->period, $this->dateFrom, $this->dateTo);
     }
 
     /**
@@ -338,5 +338,22 @@ class SupporterIndex extends Component
         return view('livewire.app.supporters.index', [
             'exactAmounts' => $exactAmounts,
         ]);
+    }
+
+    /**
+     * Days are measured on this organization's clock; see ReportingPeriod.
+     */
+    private function reportingPeriod(): ReportingPeriod
+    {
+        return ReportingPeriod::for($this->organization);
+    }
+
+    /**
+     * How the reporting clock is named on the page.
+     */
+    #[Computed]
+    public function timezoneLabel(): string
+    {
+        return $this->reportingPeriod()->label();
     }
 }

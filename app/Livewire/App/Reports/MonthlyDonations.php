@@ -33,7 +33,7 @@ class MonthlyDonations extends Component
 
     public function mount(): void
     {
-        $this->selectedMonth = ReportingPeriod::localNow()->format('Y-m');
+        $this->selectedMonth = $this->reportingPeriod()->localNow()->format('Y-m');
         $this->setDateRangeFromMonth();
     }
 
@@ -52,7 +52,7 @@ class MonthlyDonations extends Component
     private function setDateRangeFromMonth(): void
     {
         if (! Carbon::canBeCreatedFromFormat('Y-m', $this->selectedMonth)) {
-            $this->selectedMonth = ReportingPeriod::localNow()->format('Y-m');
+            $this->selectedMonth = $this->reportingPeriod()->localNow()->format('Y-m');
         }
 
         $date = Carbon::createFromFormat('Y-m', $this->selectedMonth);
@@ -75,16 +75,16 @@ class MonthlyDonations extends Component
     {
         // The month is chosen in Malaysian time; the query compares UTC
         // instants. See ReportingPeriod.
-        $localToday = ReportingPeriod::localNow()->toDateString();
+        $localToday = $this->reportingPeriod()->localNow()->toDateString();
 
-        $from = ReportingPeriod::parseLocalDate($this->dateFrom ?: $localToday)->startOfDay();
-        $to = ReportingPeriod::parseLocalDate($this->dateTo ?: $localToday)->endOfDay();
+        $from = $this->reportingPeriod()->parseLocalDate($this->dateFrom ?: $localToday)->startOfDay();
+        $to = $this->reportingPeriod()->parseLocalDate($this->dateTo ?: $localToday)->endOfDay();
 
         if ($from->gt($to)) {
             [$from, $to] = [$to->startOfDay(), $from->endOfDay()];
         }
 
-        return ReportingPeriod::toUtc([$from, $to]);
+        return $this->reportingPeriod()->toUtc([$from, $to]);
     }
 
     /**
@@ -108,11 +108,11 @@ class MonthlyDonations extends Component
         // the figures themselves are grouped by.
         $start = $firstDonationDate !== null
             ? CarbonImmutable::parse($firstDonationDate, 'UTC')
-                ->setTimezone(ReportingPeriod::DisplayTimezone)
+                ->setTimezone($this->reportingPeriod()->timezone)
                 ->startOfMonth()
-            : ReportingPeriod::localNow()->subMonths(11)->startOfMonth();
+            : $this->reportingPeriod()->localNow()->subMonths(11)->startOfMonth();
 
-        $end = ReportingPeriod::localNow()->startOfMonth();
+        $end = $this->reportingPeriod()->localNow()->startOfMonth();
         $months = [];
 
         while ($start->lte($end)) {
@@ -242,5 +242,22 @@ class MonthlyDonations extends Component
     public function render(): View
     {
         return view('livewire.app.reports.monthly-donations');
+    }
+
+    /**
+     * Days are measured on this organization's clock; see ReportingPeriod.
+     */
+    private function reportingPeriod(): ReportingPeriod
+    {
+        return ReportingPeriod::for($this->organization);
+    }
+
+    /**
+     * How the reporting clock is named on the page.
+     */
+    #[Computed]
+    public function timezoneLabel(): string
+    {
+        return $this->reportingPeriod()->label();
     }
 }

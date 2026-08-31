@@ -133,7 +133,7 @@ class PlatformOverview extends Page
         $this->suspendedOrganizations = Organization::query()->where('status', 'suspended')->count();
         // Months are Malaysian ones; see ReportingPeriod.
         $this->newOrganizationsThisMonth = Organization::query()
-            ->whereBetween('created_at', ReportingPeriod::utc('this_month'))
+            ->whereBetween('created_at', ReportingPeriod::platform()->utc('this_month'))
             ->count();
         $this->stripeOnboardedOrganizations = Organization::query()
             ->where('stripe_onboarded', true)
@@ -231,8 +231,8 @@ class PlatformOverview extends Page
             ->where('currency', '!=', 'myr')
             ->exists();
 
-        $thisMonth = ReportingPeriod::utc('this_month');
-        $lastMonth = ReportingPeriod::utc('last_month');
+        $thisMonth = ReportingPeriod::platform()->utc('this_month');
+        $lastMonth = ReportingPeriod::platform()->utc('last_month');
 
         $donThisMonthQuery = Donation::query()
             ->where('status', DonationStatus::Succeeded)
@@ -323,7 +323,7 @@ class PlatformOverview extends Page
 
         // Due by the end of today in Malaysian time, which is what an operator
         // reading this page means by "today".
-        [, $endOfToday] = ReportingPeriod::utc('today');
+        [, $endOfToday] = ReportingPeriod::platform()->utc('today');
 
         $this->recurringHealthDueToday = Subscription::query()
             ->where('status', SubscriptionStatus::Active)
@@ -342,7 +342,7 @@ class PlatformOverview extends Page
         $this->recurringHealthSuccessToday = Donation::query()
             ->whereNotNull('subscription_id')
             ->where('status', DonationStatus::Succeeded)
-            ->whereBetween('created_at', ReportingPeriod::utc('today'))
+            ->whereBetween('created_at', ReportingPeriod::platform()->utc('today'))
             ->count();
 
         $this->recurringHealthRetrying = Subscription::query()

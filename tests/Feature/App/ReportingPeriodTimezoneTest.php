@@ -35,8 +35,8 @@ beforeEach(function () {
     $this->lateYesterday = CarbonImmutable::parse('2026-08-30 23:30:00', 'Asia/Kuala_Lumpur')->utc();
 });
 
-it('resolves today as the Malaysian day, expressed in UTC', function () {
-    [$from, $to] = ReportingPeriod::utc('today');
+it('resolves today on the organization clock, expressed in UTC', function () {
+    [$from, $to] = ReportingPeriod::for($this->organization)->utc('today');
 
     expect($from->toDateTimeString())->toBe('2026-08-30 16:00:00')
         ->and($to->toDateTimeString())->toBe('2026-08-31 15:59:59');
@@ -118,4 +118,83 @@ it('counts an early-morning donation in the month it was made locally', function
 
     expect($component->get('selectedMonth'))->toBe('2026-09')
         ->and($component->instance()->summary()['total_donations'])->toBe(1);
+});
+
+it('measures the day on the organization own clock', function () {
+    // 07:04 MYT on 31 Aug is 06:04 in Jakarta, still the same day there; but
+    // 00:30 MYT is 23:30 the previous day in Jakarta.
+    $jakarta = Organization::factory()->create(['timezone' => 'Asia/Jakarta']);
+
+    [$from, $to] = ReportingPeriod::for($jakarta)->utc('today');
+
+    expect($from->toDateTimeString())->toBe('2026-08-30 17:00:00')
+        ->and($to->toDateTimeString())->toBe('2026-08-31 16:59:59');
+});
+
+it('gives a Jakarta organization a different today from a Malaysian one', function () {
+    $jakarta = Organization::factory()->create(['timezone' => 'Asia/Jakarta']);
+    $jakartaCampaign = Campaign::factory()->for($jakarta)->create();
+    $jakartaUser = User::factory()->create(['organization_id' => $jakarta->id]);
+
+    // 00:30 on 31 Aug in Malaysia is still 30 Aug in Jakarta.
+    $justAfterMalaysianMidnight = CarbonImmutable::parse('2026-08-31 00:30:00', 'Asia/Kuala_Lumpur')->utc();
+
+    Donation::factory()->for($jakartaCampaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'created_at' => $justAfterMalaysianMidnight,
+    ]);
+
+    Donation::factory()->for($this->campaign)->for(Donor::factory())->create([
+        'status' => DonationStatus::Succeeded,
+        'created_at' => $justAfterMalaysianMidnight,
+    ]);
+
+    $jakartaToday = Livewire::actingAs($jakartaUser)
+        ->test(DonationIndex::class)
+        ->set('period', 'today')
+        ->instance()
+        ->donations();
+
+    $malaysianToday = Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->set('period', 'today')
+        ->instance()
+        ->donations();
+
+    expect($jakartaToday->total())->toBe(0)
+        ->and($malaysianToday->total())->toBe(1);
+});
+
+it('falls back to the platform default when the stored timezone is unusable', function () {
+    $organization = Organization::factory()->create(['timezone' => 'Mars/Olympus_Mons']);
+
+    expect($organization->reportingTimezone())->toBe(ReportingPeriod::DefaultTimezone);
+});
+
+it('names the clock the figures are read on', function () {
+    expect(ReportingPeriod::for($this->organization)->label())->toBe('Kuala Lumpur (UTC+8)')
+        ->and((new ReportingPeriod('Asia/Jakarta'))->label())->toBe('Jakarta (UTC+7)')
+        ->and((new ReportingPeriod('Asia/Kolkata'))->label())->toBe('Kolkata (UTC+5:30)')
+        ->and((new ReportingPeriod('UTC'))->label())->toBe('UTC');
+});
+
+it('lets an organization admin change the reporting timezone', function () {
+    Livewire::actingAs($this->user)
+        ->test(App\Livewire\App\Settings\Organization::class)
+        ->assertSet('timezone', 'Asia/Kuala_Lumpur')
+        ->set('timezone', 'Asia/Jakarta')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($this->organization->fresh()->reportingTimezone())->toBe('Asia/Jakarta');
+});
+
+it('rejects a timezone the server does not recognise', function () {
+    Livewire::actingAs($this->user)
+        ->test(App\Livewire\App\Settings\Organization::class)
+        ->set('timezone', 'Mars/Olympus_Mons')
+        ->call('save')
+        ->assertHasErrors(['timezone']);
+
+    expect($this->organization->fresh()->reportingTimezone())->toBe('Asia/Kuala_Lumpur');
 });

@@ -47,7 +47,7 @@ class MonthlyInvoices extends Page implements HasTable
             ->sum('total_fees'), 2, '.', '');
 
         $this->invoicesSent = MonthlyInvoice::query()
-            ->where('created_at', '>=', ReportingPeriod::utc('this_month')[0])
+            ->where('created_at', '>=', ReportingPeriod::platform()->utc('this_month')[0])
             ->count();
     }
 

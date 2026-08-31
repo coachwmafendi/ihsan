@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Organizations\Schemas;
 
+use App\Support\ReportingPeriod;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
@@ -183,6 +184,17 @@ class OrganizationForm
                                         'United States' => 'United States',
                                         'Other' => 'Other',
                                     ])
+                                    ->searchable(),
+                                Select::make('timezone')
+                                    ->label('Reporting timezone')
+                                    ->helperText('Decides where a day starts and ends in this organization\'s dashboard, reports and exports.')
+                                    ->default(ReportingPeriod::DefaultTimezone)
+                                    ->required()
+                                    ->options(collect(timezone_identifiers_list())
+                                        ->mapWithKeys(fn (string $timezone): array => [
+                                            $timezone => (new ReportingPeriod($timezone))->label(),
+                                        ])
+                                        ->all())
                                     ->searchable(),
                             ]),
 

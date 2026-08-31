@@ -161,7 +161,7 @@ class FraudPrevention extends Page implements HasTable
     private function dateRange(): array
     {
         // Malaysian days, handed to the query as UTC instants.
-        return ReportingPeriod::utc(match ($this->period) {
+        return ReportingPeriod::platform()->utc(match ($this->period) {
             'last_7_days' => '7_days',
             'last_30_days' => '30_days',
             default => $this->period,

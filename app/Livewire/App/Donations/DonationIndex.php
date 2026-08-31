@@ -238,7 +238,7 @@ class DonationIndex extends Component
     {
         // Days are measured in Malaysian time and handed to the query as UTC
         // instants; see ReportingPeriod.
-        return ReportingPeriod::utc($this->period, $this->dateFrom, $this->dateTo);
+        return $this->reportingPeriod()->utc($this->period, $this->dateFrom, $this->dateTo);
     }
 
     private function baseQuery(): Builder
@@ -387,5 +387,22 @@ class DonationIndex extends Component
     public function render()
     {
         return view('livewire.app.donations.index');
+    }
+
+    /**
+     * Days are measured on this organization's clock; see ReportingPeriod.
+     */
+    private function reportingPeriod(): ReportingPeriod
+    {
+        return ReportingPeriod::for($this->organization);
+    }
+
+    /**
+     * How the reporting clock is named on the page.
+     */
+    #[Computed]
+    public function timezoneLabel(): string
+    {
+        return $this->reportingPeriod()->label();
     }
 }

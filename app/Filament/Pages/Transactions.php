@@ -137,11 +137,11 @@ class Transactions extends Page implements HasTable
 
                 // Dates are entered as Malaysian ones; the column is UTC.
                 if ($this->advancedDateFrom) {
-                    $query->where('created_at', '>=', ReportingPeriod::parseLocalDate($this->advancedDateFrom)->startOfDay()->utc());
+                    $query->where('created_at', '>=', ReportingPeriod::platform()->parseLocalDate($this->advancedDateFrom)->startOfDay()->utc());
                 }
 
                 if ($this->advancedDateTo) {
-                    $query->where('created_at', '<=', ReportingPeriod::parseLocalDate($this->advancedDateTo)->endOfDay()->utc());
+                    $query->where('created_at', '<=', ReportingPeriod::platform()->parseLocalDate($this->advancedDateTo)->endOfDay()->utc());
                 }
 
                 if ($this->advancedMinAmount !== '') {
@@ -161,7 +161,7 @@ class Transactions extends Page implements HasTable
                 }
 
                 if ($this->quickPeriod) {
-                    [$periodFrom, $periodTo] = ReportingPeriod::utc(match ($this->quickPeriod) {
+                    [$periodFrom, $periodTo] = ReportingPeriod::platform()->utc(match ($this->quickPeriod) {
                         '7_days' => '7_days',
                         '14_days' => '14_days',
                         '30_days' => '30_days',
