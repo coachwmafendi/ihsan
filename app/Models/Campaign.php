@@ -160,6 +160,22 @@ class Campaign extends Model
         return $this->belongsTo(Organization::class);
     }
 
+    /**
+     * The currency this campaign's own figures are denominated in.
+     *
+     * target_amount, minimum_amount and collected_amount are all stored in it,
+     * so anything quoting them has to say which currency it means rather than
+     * assuming MYR.
+     */
+    public function defaultCurrency(): string
+    {
+        $currency = $this->config['default_currency']
+            ?? $this->organization?->settings['default_currency']
+            ?? 'MYR';
+
+        return strtoupper((string) $currency);
+    }
+
     public function donations(): HasMany
     {
         return $this->hasMany(Donation::class);

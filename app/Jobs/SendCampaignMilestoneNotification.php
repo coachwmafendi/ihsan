@@ -87,6 +87,7 @@ class SendCampaignMilestoneNotification implements ShouldQueue
                         percent: number_format($currentPct, 1),
                         collected: number_format($current, 2),
                         target: number_format($target, 2),
+                        currency: $this->campaign->defaultCurrency(),
                     )
                 );
         }

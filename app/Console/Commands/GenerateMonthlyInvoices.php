@@ -25,8 +25,11 @@ class GenerateMonthlyInvoices extends Command
     {
         Stripe::setApiKey(config('services.stripe.secret'));
 
+        // A hand-passed period names a Malaysian month, same as the scheduled
+        // run. Parsing it in UTC shifted both bounds eight hours and pulled a
+        // slice of the neighbouring month into the invoice.
         $period = $this->option('period')
-            ? Carbon::parse($this->option('period'))->startOfMonth()
+            ? Carbon::parse($this->option('period'), 'Asia/Kuala_Lumpur')->startOfMonth()
             : now('Asia/Kuala_Lumpur')->subMonth()->startOfMonth();
 
         $startUtc = $period->copy()->utc();
