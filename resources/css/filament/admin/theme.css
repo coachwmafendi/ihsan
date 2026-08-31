@@ -346,3 +346,13 @@
 .ihsan-org-tabs .fi-tabs-content {
     @apply p-6;
 }
+
+/*
+ * The admin panel loads this theme instead of app.css, which is where the
+ * project's x-cloak rule lives. Without it, anything waiting on Alpine renders
+ * before Alpine can hide it — an empty dropdown panel sat on the Transactions
+ * page looking like a broken input.
+ */
+[x-cloak] {
+    display: none !important;
+}
