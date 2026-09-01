@@ -65,20 +65,26 @@
                 >
                     <div class="text-sm font-semibold text-slate-900">Filter by: Date</div>
 
-                    <select x-model="op" class="mt-3 block w-full rounded-lg border-slate-300 bg-white py-2 pl-3 pr-10 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                        <option value="last">is in the last</option>
-                        <option value="equal">is equal to</option>
-                        <option value="between">is between</option>
-                        <option value="on_or_after">is on or after</option>
-                        <option value="before_or_on">is before or on</option>
-                    </select>
+                    <div class="relative mt-3">
+                        <select x-model="op" class="block appearance-none w-full rounded-lg border-slate-300 bg-white py-2 pl-3 pr-10 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            <option value="last">is in the last</option>
+                            <option value="equal">is equal to</option>
+                            <option value="between">is between</option>
+                            <option value="on_or_after">is on or after</option>
+                            <option value="before_or_on">is before or on</option>
+                        </select>
+                        <x-dynamic-component component="heroicon-m-chevron-down" class="pointer-events-none absolute inset-y-0 right-3 my-auto size-4 text-slate-400" />
+                    </div>
 
                     <div x-show="op === 'last'" class="mt-3 flex items-center gap-2">
                         <input x-model.number="value" type="number" min="1" class="block w-20 rounded-lg border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                        <select x-model="unit" class="block rounded-lg border-slate-300 bg-white py-2 pl-3 pr-8 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                            <option value="days">days</option>
-                            <option value="months">months</option>
-                        </select>
+                        <div class="relative">
+                            <select x-model="unit" class="block appearance-none rounded-lg border-slate-300 bg-white py-2 pl-3 pr-10 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                <option value="days">days</option>
+                                <option value="months">months</option>
+                            </select>
+                            <x-dynamic-component component="heroicon-m-chevron-down" class="pointer-events-none absolute inset-y-0 right-3 my-auto size-4 text-slate-400" />
+                        </div>
                     </div>
 
                     <div x-show="op === 'equal'" class="mt-3">
@@ -148,12 +154,15 @@
                 >
                     <div class="text-sm font-semibold text-slate-900">Filter by: Amount</div>
 
-                    <select x-model="op" class="mt-3 block w-full rounded-lg border-slate-300 bg-white py-2 pl-3 pr-10 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                        <option value="equal">is equal to</option>
-                        <option value="between">is between</option>
-                        <option value="greater_than">is greater than</option>
-                        <option value="less_than">is less than</option>
-                    </select>
+                    <div class="relative mt-3">
+                        <select x-model="op" class="block appearance-none w-full rounded-lg border-slate-300 bg-white py-2 pl-3 pr-10 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            <option value="equal">is equal to</option>
+                            <option value="between">is between</option>
+                            <option value="greater_than">is greater than</option>
+                            <option value="less_than">is less than</option>
+                        </select>
+                        <x-dynamic-component component="heroicon-m-chevron-down" class="pointer-events-none absolute inset-y-0 right-3 my-auto size-4 text-slate-400" />
+                    </div>
 
                     <div x-show="op === 'equal'" class="mt-3">
                         <input x-model.number="value" type="number" step="0.01" min="0" placeholder="MYR 0.00" class="block w-full rounded-lg border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
@@ -207,14 +216,17 @@
                 >
                     <div class="text-sm font-semibold text-slate-900">Filter by: Status</div>
 
-                    <select x-model="status" class="mt-3 block w-full rounded-lg border-slate-300 bg-white py-2 pl-3 pr-10 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
-                        <option value="">All statuses</option>
-                        <option value="paid">Paid</option>
-                        <option value="pending">Pending</option>
-                        <option value="in_transit">In transit</option>
-                        <option value="failed">Failed</option>
-                        <option value="canceled">Canceled</option>
-                    </select>
+                    <div class="relative mt-3">
+                        <select x-model="status" class="block appearance-none w-full rounded-lg border-slate-300 bg-white py-2 pl-3 pr-10 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                            <option value="">All statuses</option>
+                            <option value="paid">Paid</option>
+                            <option value="pending">Pending</option>
+                            <option value="in_transit">In transit</option>
+                            <option value="failed">Failed</option>
+                            <option value="canceled">Canceled</option>
+                        </select>
+                        <x-dynamic-component component="heroicon-m-chevron-down" class="pointer-events-none absolute inset-y-0 right-3 my-auto size-4 text-slate-400" />
+                    </div>
 
                     <button
                         type="button"

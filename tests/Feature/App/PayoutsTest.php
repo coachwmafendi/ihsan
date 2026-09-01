@@ -237,5 +237,9 @@ it('renders its filters with the shared chip component', function () {
 
     expect(substr_count($html, 'rounded-md border px-2.5 py-1.5 text-xs'))->toBeGreaterThanOrEqual(3)
         ->and($html)->not->toContain('rounded-full border px-3 py-1.5 text-sm font-medium')
-        ->and($html)->toContain('Reset filters');
+        ->and($html)->toContain('Reset filters')
+        // Native selects draw their arrow against the border whatever the
+        // padding says, so the panels draw their own with room to breathe.
+        ->and(substr_count($html, 'appearance-none'))->toBe(4)
+        ->and(substr_count($html, 'right-3 my-auto size-4'))->toBe(4);
 });
