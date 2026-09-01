@@ -13,6 +13,7 @@ use App\Models\Element;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
@@ -714,6 +715,8 @@ it('does not display expiry date when card expiry is missing', function () {
 });
 
 it('filters donations by frequency and custom date range from query string', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-08-15 12:00:00', 'Asia/Kuala_Lumpur'));
+
     $oneTimeToday = Donation::factory()->create([
         'campaign_id' => $this->campaign->id,
         'donor_id' => $this->donor->id,

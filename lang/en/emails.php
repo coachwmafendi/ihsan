@@ -151,6 +151,17 @@ return [
         'reason' => 'You are receiving this because you made a donation to this campaign.',
     ],
 
+    'donor_problem_report' => [
+        'subject' => 'We received your report — :organization',
+        'title' => 'We Received Your Report',
+        'preheader' => 'Thank you for telling us about the problem. Our team is looking into it.',
+        'intro' => 'Thank you for reporting a problem with the donor portal. Our team has received your message and will look into it.',
+        'body' => 'There is nothing more you need to do. If we need any further detail, we will reply to this address.',
+        'message_label' => 'Your message',
+        'sign_off' => 'Your friends at :organization',
+        'reason' => 'You are receiving this because you reported a problem from the donor portal.',
+    ],
+
     'donor_subscription_cancelled' => [
         'subject' => 'Your recurring donation has been cancelled — :organization',
         'title' => 'Recurring Donation Cancelled',

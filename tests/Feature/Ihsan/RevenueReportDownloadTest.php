@@ -9,6 +9,17 @@ use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\User;
+use Carbon\CarbonImmutable;
+
+/**
+ * The reports name Malaysian months, so the expectations have to be built on
+ * the same clock. Between midnight and 8am they differ from UTC by a day, and
+ * on the first of a month by a whole month.
+ */
+function reportNow(): CarbonImmutable
+{
+    return CarbonImmutable::now('Asia/Kuala_Lumpur');
+}
 
 it('downloads a CSV revenue report for an organization', function () {
     $org = Organization::factory()->create(['status' => 'active', 'name' => 'Test Org']);
@@ -32,8 +43,8 @@ it('downloads a CSV revenue report for an organization', function () {
 
     $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
     $period = 'this_month';
-    $periodSlug = now()->startOfMonth()->toDateString().'-to-'.now()->endOfMonth()->toDateString();
-    $expectedFilename = "ihsan-{$org->public_id}-test-org-revenue-{$periodSlug}-".now()->format('Y-m-d').'.csv';
+    $periodSlug = reportNow()->startOfMonth()->toDateString().'-to-'.reportNow()->endOfMonth()->toDateString();
+    $expectedFilename = "ihsan-{$org->public_id}-test-org-revenue-{$periodSlug}-".reportNow()->format('Y-m-d').'.csv';
 
     $response = $this->actingAs($user)
         ->get(route('filament.admin.pages.revenue.report', [
@@ -61,7 +72,7 @@ it('downloads a PDF revenue report for an organization', function () {
     $campaign = Campaign::factory()->for($org)->create();
     $donor = Donor::factory()->create();
 
-    $lastMonth = now()->subMonth()->day(15);
+    $lastMonth = reportNow()->subMonth()->day(15)->utc();
 
     Donation::factory()->for($campaign)->for($donor)->create([
         'gross_amount' => 500.00,
@@ -82,9 +93,9 @@ it('downloads a PDF revenue report for an organization', function () {
 
     $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
     $period = 'last_month';
-    $lastMonth = now()->subMonth();
+    $lastMonth = reportNow()->subMonth();
     $periodSlug = $lastMonth->startOfMonth()->toDateString().'-to-'.$lastMonth->endOfMonth()->toDateString();
-    $expectedFilename = "ihsan-{$org->public_id}-another-org-revenue-{$periodSlug}-".now()->format('Y-m-d').'.pdf';
+    $expectedFilename = "ihsan-{$org->public_id}-another-org-revenue-{$periodSlug}-".reportNow()->format('Y-m-d').'.pdf';
 
     $response = $this->actingAs($user)
         ->get(route('filament.admin.pages.revenue.report', [
@@ -178,9 +189,9 @@ it('downloads a CSV revenue report for all organizations', function () {
 
     $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
     $period = 'this_month';
-    $dateRange = now()->startOfMonth()->toDateString().' to '.now()->endOfMonth()->toDateString();
+    $dateRange = reportNow()->startOfMonth()->toDateString().' to '.reportNow()->endOfMonth()->toDateString();
     $periodSlug = str_replace(' ', '-', $dateRange);
-    $expectedFilename = "ihsan-platform-revenue-{$periodSlug}-".now()->format('Y-m-d').'.csv';
+    $expectedFilename = "ihsan-platform-revenue-{$periodSlug}-".reportNow()->format('Y-m-d').'.csv';
 
     $response = $this->actingAs($user)
         ->get(route('filament.admin.pages.revenue.report.all', [
@@ -227,9 +238,9 @@ it('downloads a PDF revenue report for all organizations', function () {
 
     $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
     $period = 'this_month';
-    $dateRange = now()->startOfMonth()->toDateString().' to '.now()->endOfMonth()->toDateString();
+    $dateRange = reportNow()->startOfMonth()->toDateString().' to '.reportNow()->endOfMonth()->toDateString();
     $periodSlug = str_replace(' ', '-', $dateRange);
-    $expectedFilename = "ihsan-platform-revenue-{$periodSlug}-".now()->format('Y-m-d').'.pdf';
+    $expectedFilename = "ihsan-platform-revenue-{$periodSlug}-".reportNow()->format('Y-m-d').'.pdf';
 
     $response = $this->actingAs($user)
         ->get(route('filament.admin.pages.revenue.report.all', [

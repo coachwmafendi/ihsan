@@ -9,12 +9,18 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
 
 beforeEach(function () {
+    // The report opens on the current Malaysian month, so a fixture created at
+    // "now" has to land inside it. Left free-running, these tests fail every
+    // month between midnight and 8am on the first.
+    $this->travelTo(CarbonImmutable::parse('2026-08-15 12:00:00', 'Asia/Kuala_Lumpur'));
+
     $this->organization = Organization::factory()->stripeConnected()->create();
     $this->user = User::factory()->for($this->organization)->create();
     $this->campaign = Campaign::factory()->for($this->organization)->create(['title' => 'Qurban 2026']);
