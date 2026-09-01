@@ -17,6 +17,7 @@ use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
@@ -130,6 +131,10 @@ it('projects the next installment date when current period end is stale', functi
 });
 
 it('projects the next installment date for non-monthly intervals', function () {
+    // Frozen on the app's own clock: a test-now carrying another timezone
+    // leaks into model hydration, and myrTime() then has nothing to convert.
+    $this->travelTo(CarbonImmutable::parse('2026-08-15 04:00:00', 'UTC'));
+
     $staleDate = now()->subDay()->startOfDay();
     $expectedDate = $staleDate->copy()->addMonths(3);
 

@@ -130,6 +130,17 @@ return [
         'reason' => 'Anda menerima email ini kerana telah menderma kepada kempen ini.',
     ],
 
+    'donor_problem_report' => [
+        'subject' => 'Kami telah menerima laporan anda — :organization',
+        'title' => 'Laporan Anda Diterima',
+        'preheader' => 'Terima kasih kerana memaklumkan masalah ini. Pasukan kami sedang menyemaknya.',
+        'intro' => 'Terima kasih kerana melaporkan masalah pada portal penderma. Pasukan kami telah menerima mesej anda dan akan menyemaknya.',
+        'body' => 'Tiada tindakan lanjut diperlukan daripada anda. Jika kami memerlukan maklumat tambahan, kami akan membalas ke alamat ini.',
+        'message_label' => 'Mesej anda',
+        'sign_off' => 'Rakan anda di :organization',
+        'reason' => 'Anda menerima email ini kerana anda melaporkan masalah dari portal penderma.',
+    ],
+
     'donor_subscription_cancelled' => [
         'subject' => 'Derma berulang anda telah dibatalkan — :organization',
         'title' => 'Derma Berulang Dibatalkan',
