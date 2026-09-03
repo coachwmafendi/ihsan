@@ -1,4 +1,4 @@
-<x-layouts::auth :title="__('Log in')">
+<x-layouts::auth :title="__('Sign in')">
     <div class="flex flex-col gap-7">
         <x-auth-header :title="__('Sign in to') . ' ' . config('app.name')" />
 
@@ -81,7 +81,7 @@
                 data-test="login-button"
                 class="w-full rounded-lg bg-neutral-900 px-4 py-3 text-[15px] font-medium text-white transition hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2"
             >
-                {{ __('Continue') }}
+                {{ __('Sign in') }}
             </button>
         </form>
 
