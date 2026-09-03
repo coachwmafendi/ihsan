@@ -25,6 +25,13 @@ it('serves the landing page on hosts without a domain-scoped route', function ()
     $this->get('/')->assertOk()->assertViewIs('welcome');
 });
 
+it('labels the landing page auth link "Sign in" to match the auth screens', function () {
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('Sign in')
+        ->assertDontSee('Log In');
+});
+
 it('loads a single Alpine instance on the landing page', function () {
     // Livewire tracks asset injection in a static that survives across tests in the
     // same process, so reset it to model a fresh request to the landing page.
