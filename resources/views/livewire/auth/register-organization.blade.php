@@ -205,7 +205,7 @@
 
                 <p class="mt-6 text-center text-sm text-slate-500">
                     Already have an account?
-                    <a href="{{ route('login') }}" class="font-medium text-teal-600 hover:text-teal-700 transition-colors">Log in</a>
+                    <a href="{{ route('login') }}" class="font-medium text-teal-600 hover:text-teal-700 transition-colors">Sign in</a>
                 </p>
             @endif
         </div>

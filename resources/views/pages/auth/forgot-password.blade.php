@@ -37,7 +37,7 @@
 
         <p class="text-center text-sm text-neutral-500">
             <span>{{ __('Or, return to') }}</span>
-            <a href="{{ route('login') }}" class="font-medium text-neutral-900 hover:underline" wire:navigate>{{ __('log in') }}</a>
+            <a href="{{ route('login') }}" class="font-medium text-neutral-900 hover:underline" wire:navigate>{{ __('sign in') }}</a>
         </p>
     </div>
 </x-layouts::auth>
