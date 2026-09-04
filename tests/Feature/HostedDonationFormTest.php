@@ -145,7 +145,9 @@ it('uses the saved secure donation template for popup elements', function () {
         ->assertSee('imageLoaded', false)
         ->assertSee('fetchpriority="high"', false)
         ->assertSee('waitForReadyPaint', false)
-        ->assertSee('ihsan:donation-ready', false);
+        ->assertSee('ihsan:donation-ready', false)
+        ->assertSee('h-auto max-h-[34vh] w-full object-contain', false)
+        ->assertDontSee('h-48 w-full object-cover', false);
 
     Livewire::test(DonationForm::class, ['element' => $element])
         ->assertSet('isPopup', true)

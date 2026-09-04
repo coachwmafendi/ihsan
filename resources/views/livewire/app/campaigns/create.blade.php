@@ -60,6 +60,7 @@
                         class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100"
                     />
                     <p class="mt-1 text-xs text-slate-500">Allowed: JPG, PNG, GIF, WebP, AVIF. Max 5 MB.</p>
+                    <x-campaign-image-guidance class="mt-1" />
                     @error('image') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
 
                     @if ($image)

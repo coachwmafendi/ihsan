@@ -209,7 +209,7 @@
                             x-on:load="imageLoaded = true"
                             x-on:error="imageLoaded = true"
                             x-bind:class="imageLoaded ? 'opacity-100' : 'opacity-0'"
-                            class="relative h-48 w-full object-cover transition-opacity duration-200"
+                            class="relative h-auto max-h-[34vh] w-full object-contain transition-opacity duration-200"
                         />
                         </div>
                     </div>
