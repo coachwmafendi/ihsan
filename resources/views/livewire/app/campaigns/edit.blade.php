@@ -638,6 +638,7 @@
                                     class="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100"
                                 />
                                 <p class="text-xs text-slate-500">Allowed: JPG, PNG, GIF, WebP, AVIF. Max 5 MB.</p>
+                                <x-campaign-image-guidance />
                                 @if ($existing_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($existing_image))
                                     <button type="button" wire:click="removeImage" class="self-start text-xs text-slate-500 hover:text-red-700 hover:underline">Remove image</button>
                                 @endif
@@ -1518,6 +1519,7 @@
                                     <div class="flex-1">
                                         <input type="file" id="content_logo" wire:model="contentLogo" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp,image/avif" class="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100">
                                         <p class="mt-1 text-xs text-slate-500">Leave empty to use the organization logo. Allowed: JPG, PNG, GIF, WebP, AVIF. Max 5 MB.</p>
+                                        <x-campaign-image-guidance variant="logo" class="mt-1" />
                                         <div wire:loading wire:target="contentLogo" class="mt-2 text-sm text-slate-500">Uploading...</div>
                                         @error('contentLogo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                     </div>
@@ -1538,6 +1540,7 @@
                                     <div class="flex-1">
                                         <input type="file" id="content_image" wire:model="contentImage" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp,image/avif" class="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-teal-700 hover:file:bg-teal-100">
                                         <p class="mt-1 text-xs text-slate-500">Leave empty to use the main campaign image. Allowed: JPG, PNG, GIF, WebP, AVIF. Max 5 MB.</p>
+                                        <x-campaign-image-guidance variant="content" class="mt-1" />
                                         <div wire:loading wire:target="contentImage" class="mt-2 text-sm text-slate-500">Uploading...</div>
                                         @error('contentImage') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                                     </div>
