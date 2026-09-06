@@ -54,6 +54,16 @@ return [
     ],
 
     'chip' => [
+        /*
+         * CHIP's fee rates in DonationFeeEstimator were carried over as
+         * estimates and never measured against a settled transaction, because
+         * no donation has run through CHIP yet. Until they are confirmed
+         * against CHIP's contracted rates, campaigns cannot be moved onto it:
+         * the donor fee cover would be wrong from the first donation. Existing
+         * CHIP campaigns, if any, keep working.
+         */
+        'donations_enabled' => (bool) env('CHIP_DONATIONS_ENABLED', false),
+
         'processing_fee_percent' => (float) env('CHIP_PROCESSING_FEE_PERCENT', 2.5),
         'fpx_processing_fee_percent' => (float) env('CHIP_FPX_PLATFORM_FEE_PERCENT', 1.5),
         'fpx_fee_type' => env('CHIP_FPX_FEE_TYPE', 'fixed'),

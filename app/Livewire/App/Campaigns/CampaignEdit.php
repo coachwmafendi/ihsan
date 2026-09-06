@@ -825,6 +825,16 @@ class CampaignEdit extends Component
 
         $org = Auth::user()?->organization;
 
+        // Only block a move onto CHIP; a campaign already on it keeps working.
+        $movingToChip = $this->payment_gateway === PaymentGateway::Chip->value
+            && $this->campaign->payment_gateway !== PaymentGateway::Chip;
+
+        if ($movingToChip && ! config('services.chip.donations_enabled')) {
+            $this->addError('payment_gateway', 'CHIP is not available for campaigns yet.');
+
+            return;
+        }
+
         if ($this->payment_gateway === PaymentGateway::Chip->value && ! ($org?->chip_active)) {
             $this->addError('payment_gateway', 'CHIP is not configured for this organization.');
 

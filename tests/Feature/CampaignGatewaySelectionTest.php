@@ -35,6 +35,9 @@ it('creates a campaign with stripe gateway by default', function () {
 });
 
 it('creates a campaign with chip gateway when organization is onboarded', function () {
+    // CHIP selection is gated until its fee rates are confirmed.
+    config(['services.chip.donations_enabled' => true]);
+
     $organization = Organization::factory()->create([
         'chip_brand_id' => 'BRAND123',
         'chip_api_key' => 'secret',
@@ -74,6 +77,9 @@ it('rejects chip gateway when organization is not onboarded on create', function
 });
 
 it('updates a campaign to chip gateway when organization is onboarded', function () {
+    // CHIP selection is gated until its fee rates are confirmed.
+    config(['services.chip.donations_enabled' => true]);
+
     $organization = Organization::factory()->create([
         'chip_brand_id' => 'BRAND123',
         'chip_api_key' => 'secret',
