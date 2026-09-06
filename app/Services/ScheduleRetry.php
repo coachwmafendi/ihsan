@@ -20,14 +20,16 @@ class ScheduleRetry
      */
     public function afterFailure(Subscription $subscription): array
     {
-        $retryCount = $subscription->retry_count + 1;
+        // A model that was never refreshed after insert carries no value for
+        // counters the database defaulted, so read them as integers.
+        $retryCount = (int) $subscription->retry_count + 1;
         $intervals = $this->retryIntervalsDays ?? config('services.recurring.retry_intervals_days', [1, 3, 7, 7]);
         $index = min($retryCount - 1, count($intervals) - 1);
         $delayDays = $intervals[$index];
 
         $nextChargeAt = CarbonImmutable::now()->addDays($delayDays);
 
-        $failedInstallmentCount = $subscription->failed_installment_count;
+        $failedInstallmentCount = (int) $subscription->failed_installment_count;
         $status = 'past_due';
         $maxRetries = count($intervals);
 
