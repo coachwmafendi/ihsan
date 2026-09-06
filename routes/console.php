@@ -9,9 +9,12 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// Pending fees are only marked invoiced once their Stripe invoice exists, so a
+// second run starting before the first finishes would bill the same fees twice.
 Schedule::command('ihsan:generate-monthly-invoices')
     ->monthlyOn(1, '08:00')
-    ->timezone('Asia/Kuala_Lumpur');
+    ->timezone('Asia/Kuala_Lumpur')
+    ->withoutOverlapping();
 
 Schedule::command('ihsan:send-daily-summary')
     ->dailyAt('00:00')

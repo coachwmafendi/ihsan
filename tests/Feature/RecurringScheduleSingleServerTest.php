@@ -43,5 +43,15 @@ it('guards the recurring charge against overlapping itself regardless of store',
         ->first(fn ($event): bool => str_contains((string) $event->command, 'ihsan:charge-recurring-plans'));
 
     expect($event)->not->toBeNull()
-        ->and($event->expiresAt)->not->toBeNull();
+        ->and($event->withoutOverlapping)->toBeTrue();
+});
+
+it('guards the monthly invoice run against overlapping itself', function () {
+    // It creates Stripe invoices from pending fees, so a second run that starts
+    // before the first has marked them invoiced would bill the org twice.
+    $event = collect(Schedule::events())
+        ->first(fn ($event): bool => str_contains((string) $event->command, 'ihsan:generate-monthly-invoices'));
+
+    expect($event)->not->toBeNull()
+        ->and($event->withoutOverlapping)->toBeTrue();
 });
