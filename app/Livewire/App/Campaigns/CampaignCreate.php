@@ -8,6 +8,7 @@ use App\Enums\ElementType;
 use App\Enums\PaymentGateway;
 use App\Models\Campaign;
 use App\Models\Element;
+use App\Rules\UniqueNameWithinOrganization;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
@@ -22,7 +23,6 @@ class CampaignCreate extends Component
 {
     use WithFileUploads;
 
-    #[Validate('required|string|max:255')]
     public string $title = '';
 
     #[Validate('required|string|in:active,draft')]
@@ -90,6 +90,16 @@ class CampaignCreate extends Component
     public function toggleAllowCustomAmount(): void
     {
         $this->allow_custom_amount = ! $this->allow_custom_amount;
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    protected function rules(): array
+    {
+        return [
+            'title' => ['required', 'string', 'max:255', UniqueNameWithinOrganization::forCampaignTitle(Auth::user()?->organization?->id)],
+        ];
     }
 
     public function save(): void

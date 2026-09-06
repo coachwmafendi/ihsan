@@ -9,9 +9,11 @@ use App\Enums\DonationStatus;
 use App\Enums\PaymentGateway;
 use App\Models\Campaign;
 use App\Models\Donation;
+use App\Rules\UniqueNameWithinOrganization;
 use App\Services\MonthlyUpsellRules;
 use App\Services\MonthlyUpsellStats;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -64,7 +66,6 @@ class CampaignEdit extends Component
     /** @var array<int, array{value: float, label: string}> */
     public array $suggestedMonthly = [];
 
-    #[Validate('required|string|max:255')]
     public string $title = '';
 
     #[Validate('required|string|in:active,draft,paused,ended,archived')]
@@ -776,6 +777,30 @@ class CampaignEdit extends Component
             'one_time' => $this->backfillSuggestedDefaults($stored['one_time'] ?? [], $defaults['one_time']),
             'monthly' => $this->backfillSuggestedDefaults($stored['monthly'] ?? [], $defaults['monthly']),
         ];
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    protected function rules(): array
+    {
+        $rules = ['required', 'string', 'max:255'];
+
+        // Titles that were already duplicated before this rule existed stay
+        // saveable, so an unrelated edit is not held hostage by an old clash.
+        if ($this->titleChanged()) {
+            $rules[] = UniqueNameWithinOrganization::forCampaignTitle(
+                $this->campaign->organization_id,
+                $this->campaign->getKey(),
+            );
+        }
+
+        return ['title' => $rules];
+    }
+
+    private function titleChanged(): bool
+    {
+        return Str::lower(trim($this->title)) !== Str::lower(trim((string) $this->campaign->title));
     }
 
     public function save(): void
