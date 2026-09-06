@@ -147,3 +147,62 @@ it('processes chip webhook and syncs donation', function () {
     expect($donation->status)->toBe(DonationStatus::Succeeded)
         ->and($donation->payment_method_brand)->toBe('fpx');
 });
+
+it('does not dispatch the processor twice for a repeated chip event', function () {
+    Queue::fake([ProcessChipWebhook::class]);
+
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'chip_purchase_id' => 'PURCHASE_REPLAY',
+        'status' => DonationStatus::Pending,
+    ]);
+
+    ChipApiFactory::fake(publicKey: 'chip-public-key', verifyWebhook: true);
+
+    $payload = [
+        'id' => 'PURCHASE_REPLAY',
+        'event_type' => 'purchase.paid',
+    ];
+
+    $this->postJson(route('chip.webhook'), $payload, ['X-Signature' => 'valid-signature'])->assertOk();
+    $this->postJson(route('chip.webhook'), $payload, ['X-Signature' => 'valid-signature'])->assertOk();
+
+    Queue::assertPushed(ProcessChipWebhook::class, 1);
+});
+
+it('still processes a later event type for the same chip purchase', function () {
+    Queue::fake([ProcessChipWebhook::class]);
+
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($campaign)->for($donor)->create([
+        'chip_purchase_id' => 'PURCHASE_PROGRESSION',
+        'status' => DonationStatus::Pending,
+    ]);
+
+    ChipApiFactory::fake(publicKey: 'chip-public-key', verifyWebhook: true);
+
+    $this->postJson(
+        route('chip.webhook'),
+        ['id' => 'PURCHASE_PROGRESSION', 'event_type' => 'purchase.created'],
+        ['X-Signature' => 'valid-signature'],
+    )->assertOk();
+
+    $this->postJson(
+        route('chip.webhook'),
+        ['id' => 'PURCHASE_PROGRESSION', 'event_type' => 'purchase.paid'],
+        ['X-Signature' => 'valid-signature'],
+    )->assertOk();
+
+    Queue::assertPushed(ProcessChipWebhook::class, 2);
+    expect(WebhookLog::where('stripe_event_id', 'PURCHASE_PROGRESSION')->count())->toBe(1);
+});

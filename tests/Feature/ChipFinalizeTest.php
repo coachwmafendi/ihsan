@@ -5,6 +5,9 @@ use App\Actions\Chip\FinalizeDonation;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Jobs\ProcessChipWebhook;
+use App\Jobs\SendDonationReceipt;
+use App\Jobs\SendMetaConversionEvent;
+use App\Jobs\SendNewDonationNotification;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Organization;
@@ -13,6 +16,7 @@ use Chip\ChipApi;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use Illuminate\Support\Facades\Queue;
 
 beforeEach(fn () => ChipApiFactory::resetFake());
 
@@ -176,4 +180,30 @@ it('finalizes a donation from a chip webhook', function () {
     expect($donation->status)->toBe(DonationStatus::Succeeded)
         ->and($donation->finalized_at)->not->toBeNull()
         ->and((float) $campaign->collected_amount)->toBe(40.00);
+});
+
+it('does not queue the receipt again when finalizing an already finalized donation', function () {
+    Queue::fake();
+
+    $organization = Organization::factory()->create([
+        'chip_brand_id' => 'BRAND123',
+        'chip_api_key' => 'secret',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create(['collected_amount' => 0]);
+    $donation = Donation::factory()->for($campaign)->create([
+        'status' => DonationStatus::Pending,
+        'gross_amount' => 40.00,
+        'base_amount' => 40.00,
+        'chip_purchase_id' => 'PURCHASE_SIDE_EFFECTS',
+    ]);
+
+    ChipApiFactory::fake(make: fn () => fakeChipPurchaseResponse('PURCHASE_SIDE_EFFECTS'));
+    app(FinalizeDonation::class)->finalize($donation);
+
+    ChipApiFactory::fake(make: fn () => fakeChipPurchaseResponse('PURCHASE_SIDE_EFFECTS'));
+    app(FinalizeDonation::class)->finalize($donation->fresh());
+
+    Queue::assertPushed(SendDonationReceipt::class, 1);
+    Queue::assertPushed(SendNewDonationNotification::class, 1);
+    Queue::assertPushed(SendMetaConversionEvent::class, 1);
 });

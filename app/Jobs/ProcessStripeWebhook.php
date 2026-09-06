@@ -46,7 +46,10 @@ class ProcessStripeWebhook implements ShouldQueue
 
         $event = StripeEvent::constructFrom(json_decode($this->payload, true));
 
+        // Match the (gateway, stripe_event_id) unique index, so the lookup and
+        // the constraint agree on what counts as the same event.
         $log = WebhookLog::query()->firstOrCreate([
+            'gateway' => 'stripe',
             'stripe_event_id' => $event->id,
         ], [
             'event_type' => $event->type,
