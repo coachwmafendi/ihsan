@@ -90,7 +90,7 @@ class SyncDonationStripeDetails
                     [
                         'organization_id' => $organizationId,
                         'fee_amount' => $processingFee,
-                        'fee_percentage' => $this->processingFeePercent(),
+                        'fee_percentage' => $this->processingFeePercent($donation),
                         'status' => $status,
                     ],
                 );
@@ -299,7 +299,7 @@ class SyncDonationStripeDetails
         // Mirror the charge: the platform fee applies to the donation, not to
         // the fee cover the donor added to pay for the fees.
         $processingFeeBase = (float) ($baseAmount ?? $donation->gross_amount);
-        $processingFee = round($processingFeeBase * $this->processingFeePercent() / 100, 2);
+        $processingFee = round($processingFeeBase * $this->processingFeePercent($donation) / 100, 2);
         $stripeFee = 0.0;
         $feeDetails = null;
         $balanceTransaction = is_string($charge) ? null : ($charge->balance_transaction ?? null);
@@ -473,8 +473,13 @@ class SyncDonationStripeDetails
         }
     }
 
-    private function processingFeePercent(): float
+    /**
+     * The rate an organization is billed at, honouring a negotiated override.
+     */
+    private function processingFeePercent(?Donation $donation = null): float
     {
-        return (float) config('services.stripe.processing_fee_percent', 2.5);
+        $override = $donation?->campaign?->organization?->processing_fee_override;
+
+        return (float) ($override ?? config('services.stripe.processing_fee_percent', 2.5));
     }
 }

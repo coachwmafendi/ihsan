@@ -114,7 +114,7 @@ class ProcessVirtualTerminalSubscription
             }
 
             if ($organization->stripe_account_id && $organization->fee_collection_method === 'upfront') {
-                $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
+                $feePercent = (float) ($organization->processing_fee_override ?? config('services.stripe.processing_fee_percent', 2.5));
 
                 // Stripe applies this percentage to the whole invoice, which
                 // includes the fee cover. Scale it back down so the fee still

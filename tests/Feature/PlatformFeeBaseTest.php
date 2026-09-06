@@ -114,3 +114,34 @@ it('charges the platform fee on the full amount when the donor covers nothing', 
     expect($intentRequest['params']['amount'])->toBe(10000)
         ->and($intentRequest['params']['application_fee_amount'])->toBe(250);
 });
+
+it('honours a negotiated fee rate set on the organization', function () {
+    config(['services.stripe.processing_fee_percent' => 2.5]);
+
+    $organization = Organization::factory()->create([
+        'stripe_account_id' => 'acct_fee_override',
+        'stripe_onboarded' => true,
+        'stripe_enabled' => true,
+        'fee_collection_method' => 'upfront',
+        'processing_fee_override' => 1.5,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Pending,
+        'gross_amount' => 100.00,
+        'donor_fee_covered' => 0,
+        'currency' => 'myr',
+    ]);
+
+    $requests = [];
+    ApiRequestor::setHttpClient(fakeStripeIntentClient($requests));
+
+    app(CreatePaymentIntent::class)->create($donation);
+
+    $intentRequest = collect($requests)
+        ->first(fn (array $request): bool => str_contains($request['url'], '/v1/payment_intents'));
+
+    // The admin set 1.5% for this organization, not the platform default.
+    expect($intentRequest['params']['application_fee_amount'])->toBe(150);
+});
