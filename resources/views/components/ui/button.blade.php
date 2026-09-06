@@ -6,6 +6,7 @@
     'wireClick' => null,
     'disabled' => false,
     'target' => null,
+    'loadingTarget' => null,
 ])
 
 @php
@@ -37,7 +38,17 @@ $classes .= ($sizes[$size] ?? $sizes['md']);
         {{ $slot }}
     </button>
 @else
-    <button type="{{ $type }}" {{ $attributes->merge(['class' => $classes]) }} @disabled($disabled)>
+    {{-- A submit button that stays live during the save invites a second click,
+         and a second click creates a second record. --}}
+    <button
+        type="{{ $type }}"
+        @if($type === 'submit')
+            wire:loading.attr="disabled"
+            @if($loadingTarget) wire:target="{{ $loadingTarget }}" @endif
+        @endif
+        {{ $attributes->merge(['class' => $classes]) }}
+        @disabled($disabled)
+    >
         {{ $slot }}
     </button>
 @endif
