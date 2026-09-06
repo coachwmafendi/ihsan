@@ -70,3 +70,32 @@ it('exposes the processor and platform rates for the checkout script', function 
         ->and($rates['myr']['fixed'])->toBe(1.00)
         ->and($rates['myr']['platform'])->toBe(0.025);
 });
+
+/**
+ * A donation presented in SGD or USD on a Malaysian account is always an
+ * international card settling through a currency conversion, which production
+ * balance transactions confirm as 6% + RM1.00 rather than the domestic 3%.
+ */
+it('covers the international and conversion surcharges on foreign currencies', function (string $currency, float $fixedInCurrency) {
+    config(['services.stripe.processing_fee_percent' => 2.5]);
+
+    $donation = 100.0;
+    $cover = DonationFeeEstimator::estimate($donation, $currency, 'stripe');
+    $total = $donation + $cover;
+
+    $processorFee = $total * 0.06 + $fixedInCurrency;
+    $platformFee = $donation * 0.025;
+
+    expect($total - $processorFee - $platformFee)->toBeGreaterThanOrEqual($donation);
+})->with([
+    // RM1.00 converted at roughly the rates production settles at.
+    ['sgd', 0.32],
+    ['usd', 0.25],
+]);
+
+it('quotes the foreign currency processor rate that production settles at', function () {
+    $rates = DonationFeeEstimator::rates('stripe');
+
+    expect($rates['sgd']['percent'])->toBe(0.06)
+        ->and($rates['usd']['percent'])->toBe(0.06);
+});

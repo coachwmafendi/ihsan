@@ -27,17 +27,20 @@ final class DonationFeeEstimator
     /**
      * Processor fees by gateway and currency, excluding the platform fee.
      *
-     * Stripe Malaysia charges 3% + RM1.00 on domestic cards and FPX; the
-     * foreign-currency rates carry its international card and conversion
-     * surcharges. CHIP card fees run lower.
+     * Stripe Malaysia charges 3% + RM1.00 on domestic cards and FPX. A donation
+     * presented in another currency is always an international card settling
+     * through a conversion, which adds 1% and 2%: production balance
+     * transactions settle those at 6% + RM1.00 to the cent. The fixed part is
+     * that RM1.00 expressed in the presentment currency, rounded up so a moving
+     * exchange rate doesn't eat into the donation. CHIP card fees run lower.
      *
      * @var array<string, array<string, array{percent: float, fixed: float}>>
      */
     private const PROCESSOR_RATES = [
         'stripe' => [
             'myr' => ['percent' => 0.030, 'fixed' => 1.00],
-            'usd' => ['percent' => 0.044, 'fixed' => 0.30],
-            'sgd' => ['percent' => 0.049, 'fixed' => 0.50],
+            'usd' => ['percent' => 0.060, 'fixed' => 0.30],
+            'sgd' => ['percent' => 0.060, 'fixed' => 0.40],
         ],
         'chip' => [
             'myr' => ['percent' => 0.025, 'fixed' => 1.00],
