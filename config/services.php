@@ -47,6 +47,13 @@ return [
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
         'connect_client_id' => env('STRIPE_CONNECT_CLIENT_ID'),
         'processing_fee_percent' => (float) env('PAYMENT_PROCESSING_FEE_PERCENT', 2.5),
+
+        /*
+         * Where the platform's Stripe account is registered. A card issued in
+         * this country is domestic; anywhere else carries Stripe's
+         * international surcharge.
+         */
+        'account_country' => env('STRIPE_ACCOUNT_COUNTRY', 'MY'),
     ],
 
     'billing' => [
