@@ -38,6 +38,13 @@ Schedule::command('ihsan:send-payment-method-expiry-notifications')
     ->timezone('Asia/Kuala_Lumpur')
     ->withoutOverlapping();
 
+// Nothing compared the fee we quote against the fee Stripe charged, which is
+// how a wrong foreign-currency rate went unnoticed for months.
+Schedule::command('ihsan:check-fee-drift')
+    ->weeklyOn(1, '07:00')
+    ->timezone('Asia/Kuala_Lumpur')
+    ->withoutOverlapping();
+
 Schedule::command('queue:retry all')->everySixHours();
 Schedule::command('queue:prune-failed --hours=168')->weeklyOn(1, '02:00');
 
