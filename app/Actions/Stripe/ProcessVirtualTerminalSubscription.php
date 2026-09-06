@@ -42,7 +42,14 @@ class ProcessVirtualTerminalSubscription
     ): Subscription {
         Stripe::setApiKey(config('services.stripe.secret'));
 
-        $feeCoverAmount = $coverFee ? DonationFeeEstimator::estimate($amount, $currency, 'stripe') : 0.0;
+        $feeCoverAmount = $coverFee
+            ? DonationFeeEstimator::estimate(
+                $amount,
+                $currency,
+                'stripe',
+                $organization->processing_fee_override !== null ? (float) $organization->processing_fee_override : null,
+            )
+            : 0.0;
         $chargedAmount = $amount + $feeCoverAmount;
 
         $campaign = Campaign::query()
@@ -114,7 +121,16 @@ class ProcessVirtualTerminalSubscription
             }
 
             if ($organization->stripe_account_id && $organization->fee_collection_method === 'upfront') {
-                $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
+                $feePercent = (float) ($organization->processing_fee_override ?? config('services.stripe.processing_fee_percent', 2.5));
+
+                // Stripe applies this percentage to the whole invoice, which
+                // includes the fee cover. Scale it back down so the fee still
+                // works out to our rate on the donation alone. Stripe accepts
+                // at most two decimal places, so this lands within a cent.
+                if ($chargedAmount > 0 && $feeCoverAmount > 0) {
+                    $feePercent = round($feePercent * $amount / $chargedAmount, 2);
+                }
+
                 $subscriptionParams['application_fee_percent'] = $feePercent;
             }
 

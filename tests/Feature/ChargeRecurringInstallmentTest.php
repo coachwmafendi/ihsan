@@ -332,3 +332,48 @@ it('pauses schedule for authentication when a charge requires action', function 
 
     Queue::assertNothingPushed();
 });
+
+it('bases the platform fee on the pledge, not on the donor fee cover', function (): void {
+    Queue::fake();
+    config([
+        'services.stripe.processing_fee_percent' => 2.5,
+    ]);
+
+    $subscription = createDueSubscription();
+    $subscription->update([
+        'cover_fee' => true,
+        'fee_cover_amount' => 3.75,
+    ]);
+    $subscription->refresh();
+
+    $capturedParams = [];
+    ApiRequestor::setHttpClient(new class($capturedParams) implements ClientInterface
+    {
+        /**
+         * @param  array<string, mixed>  $capturedParams
+         */
+        public function __construct(private array &$capturedParams) {}
+
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null)
+        {
+            if (str_contains($absUrl, '/v1/payment_intents') && $method === 'post') {
+                $this->capturedParams = $params;
+            }
+
+            return [json_encode([
+                'id' => 'pi_fee_base_recurring',
+                'object' => 'payment_intent',
+                'status' => 'succeeded',
+                'amount' => $params['amount'] ?? 0,
+                'currency' => 'myr',
+                'latest_charge' => null,
+            ]), 200, []];
+        }
+    });
+
+    app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    // Donor is charged RM53.75, but our 2.5% applies to the RM50 pledge.
+    expect($capturedParams['amount'])->toBe(5375)
+        ->and($capturedParams['application_fee_amount'])->toBe(125);
+});

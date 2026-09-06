@@ -56,8 +56,12 @@ class CreatePaymentIntent
             $stripeOptions = $organization->stripeOptions();
 
             if ($organization->fee_collection_method === 'upfront') {
-                $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
-                $params['application_fee_amount'] = (int) round($params['amount'] * $feePercent / 100);
+                $feePercent = (float) ($organization->processing_fee_override ?? config('services.stripe.processing_fee_percent', 2.5));
+                // Charge the fee on the donation, not on the fee cover: that
+                // top-up exists to pay the fees, and the checkout promises the
+                // organization receives 100% of the donation itself.
+                $feeBaseCents = (int) round((float) $donation->gross_amount * 100);
+                $params['application_fee_amount'] = (int) round($feeBaseCents * $feePercent / 100);
             }
 
             $params['metadata'][StripeMetadata::key('platform_fee_amount')] = (string) ($params['application_fee_amount'] ?? 0);

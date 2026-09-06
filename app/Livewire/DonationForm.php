@@ -1261,7 +1261,10 @@ class DonationForm extends Component
         return DonationFeeEstimator::estimate(
             (float) $this->amount,
             $this->currency,
-            $gateway
+            $gateway,
+            $campaign?->organization?->processing_fee_override !== null
+                ? (float) $campaign->organization->processing_fee_override
+                : null,
         );
     }
 

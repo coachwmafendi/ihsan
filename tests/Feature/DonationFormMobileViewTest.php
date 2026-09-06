@@ -80,7 +80,7 @@ it('renders the fee cover tooltip through the shared viewport-clamped component'
     $response = $this->get(route('donations.show', $element->token))->assertOk();
 
     expect($response->getContent())
-        ->toContain('you help cover essential software and payment processing fees')
+        ->toContain('pays the card processing and platform costs for your donation')
         ->toContain('uiTooltip(')
         ->not->toContain('style="right: -0.75rem;"');
 });
