@@ -51,6 +51,15 @@ use Stripe\Stripe;
 #[Title('Donation Form')]
 class DonationForm extends Component
 {
+    /**
+     * How long a pending attempt stays available for the donor to carry on
+     * with. Long enough to cover a slow response or a moment's hesitation,
+     * short enough that a later visit starts a clean attempt.
+     */
+    private const ReusablePendingMinutes = 30;
+
+    private ?string $reusableClientSecret = null;
+
     public ?Element $element = null;
 
     public ?Campaign $campaign = null;
@@ -752,6 +761,14 @@ class DonationForm extends Component
             default => 'clean',
         };
 
+        $reusable = $this->reusablePendingDonation($campaignId, $donor->getKey(), (float) $validated['amount'], $validated['frequency']);
+
+        if ($reusable !== null) {
+            $this->donationPublicId = $reusable->public_id;
+
+            return (string) $this->reusableClientSecret;
+        }
+
         $donation = Donation::query()->create([
             'campaign_id' => $campaignId,
             'donor_id' => $donor->getKey(),
@@ -851,6 +868,76 @@ class DonationForm extends Component
             $this->markDonationFailed($donation, $e->getMessage());
 
             throw $e;
+        }
+    }
+
+    /**
+     * A pending attempt this same donor can carry on with.
+     *
+     * A double-click, or a retry after a slow response, used to leave a second
+     * pending donation and a second PaymentIntent behind. Reuse the first one
+     * when nothing about the request has changed and its intent can still be
+     * paid; anything else starts fresh.
+     */
+    private function reusablePendingDonation(?int $campaignId, int $donorId, float $amount, string $frequency): ?Donation
+    {
+        if ($campaignId === null) {
+            return null;
+        }
+
+        $donation = Donation::query()
+            ->where('campaign_id', $campaignId)
+            ->where('donor_id', $donorId)
+            ->where('status', DonationStatus::Pending)
+            ->where('currency', $this->currency)
+            ->where('type', $frequency === 'monthly' ? DonationType::Recurring : DonationType::OneTime)
+            ->whereNotNull('stripe_payment_intent_id')
+            ->where('created_at', '>=', now()->subMinutes(self::ReusablePendingMinutes))
+            ->latest('id')
+            ->first();
+
+        if ($donation === null) {
+            return null;
+        }
+
+        if (abs((float) $donation->gross_amount - $amount) > 0.001
+            || abs((float) $donation->donor_fee_covered - $this->estimatedFee) > 0.001) {
+            return null;
+        }
+
+        $this->reusableClientSecret = $this->payableClientSecret($donation);
+
+        return $this->reusableClientSecret === null ? null : $donation;
+    }
+
+    /**
+     * The client secret of an intent the donor can still pay, or null once
+     * Stripe has moved it on.
+     */
+    private function payableClientSecret(Donation $donation): ?string
+    {
+        try {
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            $donation->loadMissing('campaign.organization');
+            $organization = $donation->campaign?->organization;
+
+            $intent = StripePaymentIntent::retrieve(
+                $donation->stripe_payment_intent_id,
+                $organization?->stripeOptions() ?? [],
+            );
+
+            $payable = in_array($intent->status, [
+                'requires_payment_method',
+                'requires_confirmation',
+                'requires_action',
+            ], true);
+
+            return $payable ? $intent->client_secret : null;
+        } catch (\Throwable $e) {
+            report($e);
+
+            return null;
         }
     }
 

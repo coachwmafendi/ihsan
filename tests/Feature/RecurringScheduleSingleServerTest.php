@@ -55,3 +55,11 @@ it('guards the monthly invoice run against overlapping itself', function () {
     expect($event)->not->toBeNull()
         ->and($event->withoutOverlapping)->toBeTrue();
 });
+
+it('checks the fee drift every week', function () {
+    $event = collect(Schedule::events())
+        ->first(fn ($event): bool => str_contains((string) $event->command, 'ihsan:check-fee-drift'));
+
+    expect($event)->not->toBeNull()
+        ->and($event->withoutOverlapping)->toBeTrue();
+});
