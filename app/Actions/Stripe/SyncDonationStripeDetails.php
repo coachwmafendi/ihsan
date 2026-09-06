@@ -296,12 +296,9 @@ class SyncDonationStripeDetails
 
         $baseAmount = $baseAmount > 0 ? $baseAmount : null;
 
-        $donorFeeCoveredBase = (float) ($donation->donor_fee_covered ?? 0);
-        if ($exchangeRate !== null) {
-            $donorFeeCoveredBase = round($donorFeeCoveredBase * $exchangeRate, 2);
-        }
-
-        $processingFeeBase = ((float) ($baseAmount ?? $donation->gross_amount)) + $donorFeeCoveredBase;
+        // Mirror the charge: the platform fee applies to the donation, not to
+        // the fee cover the donor added to pay for the fees.
+        $processingFeeBase = (float) ($baseAmount ?? $donation->gross_amount);
         $processingFee = round($processingFeeBase * $this->processingFeePercent() / 100, 2);
         $stripeFee = 0.0;
         $feeDetails = null;

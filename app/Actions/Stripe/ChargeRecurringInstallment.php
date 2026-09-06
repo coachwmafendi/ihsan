@@ -115,7 +115,8 @@ class ChargeRecurringInstallment
 
         if ($organization->fee_collection_method === 'upfront') {
             $feePercent = (float) config('services.stripe.processing_fee_percent', 2.5);
-            $params['application_fee_amount'] = (int) round($totalCents * $feePercent / 100);
+            // The fee cover pays the fees; it isn't part of the donation.
+            $params['application_fee_amount'] = (int) round($grossAmount * 100 * $feePercent / 100);
             $params['metadata'][StripeMetadata::key('platform_fee_amount')] = (string) $params['application_fee_amount'];
         }
 
