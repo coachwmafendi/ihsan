@@ -16,7 +16,7 @@ pest()->extend(TestCase::class);
 it('grosses up the cover so the organization nets the donation', function (float $donation) {
     config(['services.stripe.processing_fee_percent' => 2.5]);
 
-    $cover = DonationFeeEstimator::estimate($donation, 'myr', 'stripe');
+    $cover = DonationFeeEstimator::estimate($donation, 'myr', 'stripe', null, 'MY');
     $total = $donation + $cover;
 
     // Stripe Malaysia domestic cards and FPX: 3% + RM1.00.
@@ -26,10 +26,10 @@ it('grosses up the cover so the organization nets the donation', function (float
     expect($total - $processorFee - $platformFee)->toBeGreaterThanOrEqual($donation);
 })->with([10.0, 25.0, 50.0, 100.0, 500.0, 1000.0]);
 
-it('produces the documented cover amounts for MYR', function (float $donation, float $expectedCover) {
+it('produces the documented cover amounts for a Malaysian donor paying MYR', function (float $donation, float $expectedCover) {
     config(['services.stripe.processing_fee_percent' => 2.5]);
 
-    expect(DonationFeeEstimator::estimate($donation, 'myr', 'stripe'))->toBe($expectedCover);
+    expect(DonationFeeEstimator::estimate($donation, 'myr', 'stripe', null, 'MY'))->toBe($expectedCover);
 })->with([
     [10.0, 1.60],
     [50.0, 3.87],
@@ -40,7 +40,7 @@ it('produces the documented cover amounts for MYR', function (float $donation, f
 it('rounds the cover up so rounding never shortchanges the organization', function () {
     config(['services.stripe.processing_fee_percent' => 2.5]);
 
-    $cover = DonationFeeEstimator::estimate(33.33, 'myr', 'stripe');
+    $cover = DonationFeeEstimator::estimate(33.33, 'myr', 'stripe', null, 'MY');
 
     expect($cover)->toBe(round($cover, 2))
         ->and($cover * 100)->toBe((float) ceil($cover * 100));
@@ -53,8 +53,8 @@ it('charges no cover for a zero donation', function () {
 it('uses a negotiated platform rate when one is given', function () {
     config(['services.stripe.processing_fee_percent' => 2.5]);
 
-    $standard = DonationFeeEstimator::estimate(100.0, 'myr', 'stripe');
-    $negotiated = DonationFeeEstimator::estimate(100.0, 'myr', 'stripe', 1.5);
+    $standard = DonationFeeEstimator::estimate(100.0, 'myr', 'stripe', null, 'MY');
+    $negotiated = DonationFeeEstimator::estimate(100.0, 'myr', 'stripe', 1.5, 'MY');
 
     expect($negotiated)->toBeLessThan($standard);
 });
@@ -62,7 +62,7 @@ it('uses a negotiated platform rate when one is given', function () {
 it('exposes the processor and platform rates for the checkout script', function () {
     config(['services.stripe.processing_fee_percent' => 2.5]);
 
-    $rates = DonationFeeEstimator::rates('stripe');
+    $rates = DonationFeeEstimator::rates('stripe', null, 'MY');
 
     expect($rates['myr'])
         ->toHaveKeys(['percent', 'fixed', 'platform'])
@@ -98,4 +98,55 @@ it('quotes the foreign currency processor rate that production settles at', func
 
     expect($rates['sgd']['percent'])->toBe(0.06)
         ->and($rates['usd']['percent'])->toBe(0.06);
+});
+
+/**
+ * Stripe charges 3% on a Malaysian card, +1% when the card is foreign and +2%
+ * when the charge converts. Production settlements confirm every combination to
+ * within 0.03%, so the cover has to know where the card is from - not just
+ * which currency the donor picked.
+ */
+it('adds the international surcharge when the donor is abroad', function (string $currency, ?string $country, float $expectedPercent) {
+    config(['services.stripe.processing_fee_percent' => 2.5]);
+
+    $rates = DonationFeeEstimator::rates('stripe', null, $country);
+
+    expect($rates[$currency]['percent'])->toBe($expectedPercent);
+})->with([
+    'MYR from Malaysia' => ['myr', 'MY', 0.03],
+    'MYR from abroad' => ['myr', 'SG', 0.04],
+    'SGD from Malaysia' => ['sgd', 'MY', 0.05],
+    'SGD from abroad' => ['sgd', 'SG', 0.06],
+    'USD from Malaysia' => ['usd', 'MY', 0.05],
+    'USD from abroad' => ['usd', 'US', 0.06],
+]);
+
+it('assumes a foreign card when the country is unknown', function () {
+    config(['services.stripe.processing_fee_percent' => 2.5]);
+
+    // Guessing domestic would leave the organization short; guessing foreign
+    // only costs a local donor whose IP could not be resolved a little extra.
+    expect(DonationFeeEstimator::rates('stripe', null, null)['myr']['percent'])->toBe(0.04);
+});
+
+it('covers a foreign card paying in ringgit', function () {
+    config(['services.stripe.processing_fee_percent' => 2.5]);
+
+    $donation = 100.0;
+    $cover = DonationFeeEstimator::estimate($donation, 'myr', 'stripe', null, 'SG');
+    $total = $donation + $cover;
+
+    // Measured: MYR charges on a foreign card settle at 4% + RM1.00.
+    $processorFee = $total * 0.04 + 1.00;
+
+    expect($total - $processorFee - $donation * 0.025)->toBeGreaterThanOrEqual($donation);
+});
+
+it('does not overcharge a Malaysian donor paying in ringgit', function () {
+    config(['services.stripe.processing_fee_percent' => 2.5]);
+
+    $local = DonationFeeEstimator::estimate(100.0, 'myr', 'stripe', null, 'MY');
+    $foreign = DonationFeeEstimator::estimate(100.0, 'myr', 'stripe', null, 'SG');
+
+    expect($local)->toBeLessThan($foreign);
 });

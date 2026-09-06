@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Services\GeoLocation\MaxMindGeoIp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class ClientInfo
@@ -145,7 +146,11 @@ class ClientInfo
             return $maxMind;
         }
 
-        return self::lookupGeoFromIpApi($ip);
+        return Cache::remember(
+            'geo:place:'.$ip,
+            self::resolvedTtl(),
+            fn (): array => self::lookupGeoFromIpApi($ip),
+        );
     }
 
     /**
@@ -166,7 +171,35 @@ class ClientInfo
             return null;
         }
 
-        return self::countryCodeFromIpApi($ip);
+        // ip-api is a remote call on a three second timeout, and the checkout
+        // asks for this twice per render. An address keeps its country for far
+        // longer than a day, so cache the answer; cache a failure only briefly,
+        // so an outage is not hammered but recovers on its own.
+        $cached = Cache::get('geo:country:'.$ip);
+
+        if ($cached !== null) {
+            return $cached === '' ? null : $cached;
+        }
+
+        $country = self::countryCodeFromIpApi($ip);
+
+        Cache::put(
+            'geo:country:'.$ip,
+            $country ?? '',
+            $country !== null ? self::resolvedTtl() : self::unresolvedTtl(),
+        );
+
+        return $country;
+    }
+
+    private static function resolvedTtl(): int
+    {
+        return 60 * 60 * 24;
+    }
+
+    private static function unresolvedTtl(): int
+    {
+        return 60 * 10;
     }
 
     private static function countryCodeFromIpApi(string $ip): ?string

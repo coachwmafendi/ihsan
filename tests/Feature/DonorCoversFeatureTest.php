@@ -50,15 +50,16 @@ it('calculates estimated fee correctly', function () {
     $component = Livewire::test(DonationForm::class, ['element' => $this->element]);
 
     // The cover is solved for, not added up: the processor takes its cut of
-    // the grossed-up total, so RM100 needs RM6.71 rather than RM6.50.
+    // the grossed-up total. The test client has no resolvable IP, so the card
+    // counts as foreign and carries Stripe's 4% rather than the domestic 3%.
     $component->set('amount', 100);
-    expect($component->get('estimatedFee'))->toBe(6.71);
+    expect($component->get('estimatedFee'))->toBe(7.82);
 
     $component->set('amount', 200);
-    expect($component->get('estimatedFee'))->toBe(12.38);
+    expect($component->get('estimatedFee'))->toBe(14.59);
 
     $component->set('amount', 1);
-    expect($component->get('estimatedFee'))->toBe(1.09);
+    expect($component->get('estimatedFee'))->toBe(1.11);
 });
 
 it('estimated fee is zero when cover fee is unchecked', function () {
@@ -90,7 +91,7 @@ it('charges gross_amount plus fee to stripe when donor covers fee', function () 
         ->once()
         ->withArgs(function (Donation $donation) {
             return $donation->gross_amount === '200.00'
-                && $donation->donor_fee_covered === '12.38';
+                && $donation->donor_fee_covered === '14.59';
         })
         ->andReturn($mockPaymentIntent);
 
@@ -104,7 +105,7 @@ it('charges gross_amount plus fee to stripe when donor covers fee', function () 
 
     $donation = Donation::latest()->first();
     expect($donation->gross_amount)->toBe('200.00');
-    expect($donation->donor_fee_covered)->toBe('12.38');
+    expect($donation->donor_fee_covered)->toBe('14.59');
 });
 
 it('stores zero donor_fee_covered when donor opts out', function () {
