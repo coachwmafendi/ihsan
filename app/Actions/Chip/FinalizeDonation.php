@@ -49,11 +49,11 @@ final class FinalizeDonation
             throw new RuntimeException('CHIP purchase is not completed.');
         }
 
-        DB::transaction(function () use ($donation): void {
+        $wasAlreadyFinalized = DB::transaction(function () use ($donation): bool {
             $lockedDonation = Donation::query()->whereKey($donation->getKey())->lockForUpdate()->firstOrFail();
 
             if ($lockedDonation->finalized_at !== null) {
-                return;
+                return true;
             }
 
             $lockedDonation->update(['finalized_at' => now()]);
@@ -63,7 +63,16 @@ final class FinalizeDonation
             if ($campaign !== null) {
                 $campaign->increment('collected_amount', (float) ($lockedDonation->base_amount ?? $lockedDonation->gross_amount));
             }
+
+            return false;
         });
+
+        // The donor's browser, the return URL and the webhook all finalize the
+        // same donation, so stop here rather than queueing the receipt, the
+        // notifications and the conversion events a second time.
+        if ($wasAlreadyFinalized) {
+            return;
+        }
 
         $donation->refresh();
 

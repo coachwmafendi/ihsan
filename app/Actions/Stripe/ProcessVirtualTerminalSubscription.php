@@ -238,11 +238,6 @@ class ProcessVirtualTerminalSubscription
             return;
         }
 
-        // Skip if already cached
-        if (DonorPaymentMethod::where('stripe_payment_method_id', $stripePaymentMethodId)->exists()) {
-            return;
-        }
-
         try {
             $pm = PaymentMethod::retrieve($stripePaymentMethodId, $stripeOptions);
 
@@ -250,15 +245,20 @@ class ProcessVirtualTerminalSubscription
                 return;
             }
 
-            DonorPaymentMethod::create([
-                'donor_id' => $donor->getKey(),
-                'stripe_payment_method_id' => $pm->id,
-                'brand' => ucfirst($pm->card->brand),
-                'last4' => $pm->card->last4,
-                'exp_month' => $pm->card->exp_month,
-                'exp_year' => $pm->card->exp_year,
-                'country' => $pm->card->country ?? null,
-            ]);
+            // Refresh rather than skip: Stripe's card updater rewrites the
+            // expiry on the same payment method when a bank reissues a card,
+            // and the expiry notices read these columns, not Stripe.
+            DonorPaymentMethod::updateOrCreate(
+                ['stripe_payment_method_id' => $pm->id],
+                [
+                    'donor_id' => $donor->getKey(),
+                    'brand' => ucfirst($pm->card->brand),
+                    'last4' => $pm->card->last4,
+                    'exp_month' => $pm->card->exp_month,
+                    'exp_year' => $pm->card->exp_year,
+                    'country' => $pm->card->country ?? null,
+                ]
+            );
         } catch (\Throwable $e) {
             report($e);
         }

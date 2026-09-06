@@ -7,6 +7,7 @@ namespace App\Livewire\App\Elements;
 use App\Enums\ElementType;
 use App\Models\Campaign;
 use App\Models\Element;
+use App\Rules\UniqueNameWithinOrganization;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -123,7 +124,7 @@ class ElementIndex extends Component
     {
         $this->validate([
             'newType' => 'required|string',
-            'newName' => 'required|string|max:255',
+            'newName' => ['required', 'string', 'max:255', UniqueNameWithinOrganization::forElementName($this->organization?->id)],
             'newCampaignId' => 'required|exists:campaigns,id',
         ]);
 

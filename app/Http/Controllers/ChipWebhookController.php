@@ -37,7 +37,7 @@ final class ChipWebhookController extends Controller
             return response()->json(['error' => 'Missing event ID'], 400);
         }
 
-        WebhookLog::firstOrCreate(
+        $log = WebhookLog::firstOrCreate(
             [
                 'gateway' => 'chip',
                 'stripe_event_id' => $eventId,
@@ -48,6 +48,21 @@ final class ChipWebhookController extends Controller
                 'status' => 'received',
             ]
         );
+
+        // CHIP identifies an event by its purchase ID, so the log row is shared
+        // by every event for that purchase. A replay repeats the type already
+        // stored; a progression (created -> paid) carries a new one and must
+        // still be processed.
+        if (! $log->wasRecentlyCreated) {
+            if ($log->event_type === $eventType) {
+                return response()->json(['received' => true, 'duplicate' => true]);
+            }
+
+            $log->update([
+                'event_type' => $eventType,
+                'payload' => $event,
+            ]);
+        }
 
         if (str_starts_with($eventType, 'purchase.')) {
             ProcessChipWebhook::dispatch($event);

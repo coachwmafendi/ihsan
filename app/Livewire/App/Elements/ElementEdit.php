@@ -7,7 +7,9 @@ namespace App\Livewire\App\Elements;
 use App\Enums\ElementType;
 use App\Models\Campaign;
 use App\Models\Element;
+use App\Rules\UniqueNameWithinOrganization;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -25,7 +27,6 @@ class ElementEdit extends Component
     #[Validate('required|exists:campaigns,id')]
     public ?int $campaign_id = null;
 
-    #[Validate('required|string|max:255')]
     public string $name = '';
 
     public bool $is_active = true;
@@ -145,6 +146,23 @@ class ElementEdit extends Component
         $this->config_layout = $config['layout'] ?? 'simple';
         $this->config_image_url = $config['image_url'] ?? 'https://images.unsplash.com/photo-1629273229664-11fabc0becc0?q=80&w=2062';
         $this->config_color = $config['color'] ?? 'campaign';
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    protected function rules(): array
+    {
+        $rules = ['required', 'string', 'max:255'];
+
+        if (Str::lower(trim($this->name)) !== Str::lower(trim((string) $this->element->name))) {
+            $rules[] = UniqueNameWithinOrganization::forElementName(
+                $this->element->organization_id,
+                $this->element->getKey(),
+            );
+        }
+
+        return ['name' => $rules];
     }
 
     public function save(): void

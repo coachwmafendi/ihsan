@@ -6,6 +6,7 @@ namespace App\Livewire\App\Elements;
 
 use App\Models\Campaign;
 use App\Models\Element;
+use App\Rules\UniqueNameWithinOrganization;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
@@ -24,7 +25,6 @@ class ElementCreate extends Component
     #[Validate('required|string|in:button,floating_button,form,popup,link,sticky_button,qr_code')]
     public string $type = 'button';
 
-    #[Validate('required|string|max:255')]
     public string $name = '';
 
     public bool $is_active = true;
@@ -91,6 +91,16 @@ class ElementCreate extends Component
     public function toggleIsActive(): void
     {
         $this->is_active = ! $this->is_active;
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    protected function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255', UniqueNameWithinOrganization::forElementName($this->organization?->id)],
+        ];
     }
 
     public function save(): void
