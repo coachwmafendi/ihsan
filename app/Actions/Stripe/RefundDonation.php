@@ -26,8 +26,13 @@ class RefundDonation
             $stripeOptions = ['stripe_account' => $organization->stripe_account_id];
         }
 
+        // Stripe leaves the application fee with the platform unless the refund
+        // asks for it back, which would leave the organization paying our fee
+        // on a donation that no longer exists. Partial refunds return a
+        // proportional share of the fee.
         Refund::create([
             'charge' => $donation->stripe_charge_id,
+            'refund_application_fee' => true,
         ], $stripeOptions);
 
         $donation->update([
