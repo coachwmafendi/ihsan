@@ -41,7 +41,14 @@ class ProcessVirtualTerminalDonation
     ): Donation {
         Stripe::setApiKey(config('services.stripe.secret'));
 
-        $feeCoverAmount = $coverFee ? DonationFeeEstimator::estimate($amount, $currency, 'stripe') : 0.0;
+        $feeCoverAmount = $coverFee
+            ? DonationFeeEstimator::estimate(
+                $amount,
+                $currency,
+                'stripe',
+                $organization->processing_fee_override !== null ? (float) $organization->processing_fee_override : null,
+            )
+            : 0.0;
         $chargedAmount = $amount + $feeCoverAmount;
 
         $campaign = Campaign::query()

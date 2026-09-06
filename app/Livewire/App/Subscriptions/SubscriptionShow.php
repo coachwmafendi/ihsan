@@ -375,10 +375,15 @@ class SubscriptionShow extends Component
     {
         $gateway = $this->subscription->campaign?->payment_gateway?->value ?? 'stripe';
 
+        $organization = $this->subscription->campaign?->organization;
+
         return DonationFeeEstimator::estimate(
             (float) $this->editAmount,
             $this->subscription->currency,
-            $gateway
+            $gateway,
+            $organization?->processing_fee_override !== null
+                ? (float) $organization->processing_fee_override
+                : null,
         );
     }
 

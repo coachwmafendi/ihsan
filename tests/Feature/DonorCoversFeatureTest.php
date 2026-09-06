@@ -31,7 +31,11 @@ beforeEach(function () {
 it('shows cover fee checkbox when allow_cover_fee is true', function () {
     $this->get(route('donations.show', $this->element))
         ->assertOk()
-        ->assertSee("I'll cover the transaction fees", false);
+        ->assertSee("I'll cover the transaction costs", false)
+        // The cover is an estimate: the real processor fee depends on the card.
+        ->assertSee('≈ +', false)
+        ->assertSee('so this is an estimate', false)
+        ->assertDontSee('100% of your donation', false);
 });
 
 it('hides cover fee checkbox when allow_cover_fee is false', function () {
@@ -45,14 +49,16 @@ it('hides cover fee checkbox when allow_cover_fee is false', function () {
 it('calculates estimated fee correctly', function () {
     $component = Livewire::test(DonationForm::class, ['element' => $this->element]);
 
+    // The cover is solved for, not added up: the processor takes its cut of
+    // the grossed-up total, so RM100 needs RM6.71 rather than RM6.50.
     $component->set('amount', 100);
-    expect($component->get('estimatedFee'))->toBe(6.5);
+    expect($component->get('estimatedFee'))->toBe(6.71);
 
     $component->set('amount', 200);
-    expect($component->get('estimatedFee'))->toBe(12.0);
+    expect($component->get('estimatedFee'))->toBe(12.38);
 
     $component->set('amount', 1);
-    expect($component->get('estimatedFee'))->toBe(1.06);
+    expect($component->get('estimatedFee'))->toBe(1.09);
 });
 
 it('estimated fee is zero when cover fee is unchecked', function () {
@@ -84,7 +90,7 @@ it('charges gross_amount plus fee to stripe when donor covers fee', function () 
         ->once()
         ->withArgs(function (Donation $donation) {
             return $donation->gross_amount === '200.00'
-                && $donation->donor_fee_covered === '12.00';
+                && $donation->donor_fee_covered === '12.38';
         })
         ->andReturn($mockPaymentIntent);
 
@@ -98,7 +104,7 @@ it('charges gross_amount plus fee to stripe when donor covers fee', function () 
 
     $donation = Donation::latest()->first();
     expect($donation->gross_amount)->toBe('200.00');
-    expect($donation->donor_fee_covered)->toBe('12.00');
+    expect($donation->donor_fee_covered)->toBe('12.38');
 });
 
 it('stores zero donor_fee_covered when donor opts out', function () {

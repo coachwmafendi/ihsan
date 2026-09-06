@@ -261,7 +261,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates($campaign->payment_gateway?->value ?? 'stripe')), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'), @js($this->chipPaymentMethods()), @js($this->chipPaymentMethod), @js(\App\Support\ChipFpxBanks::b2c()))"
+                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates($campaign->payment_gateway?->value ?? 'stripe', $organization->processing_fee_override !== null ? (float) $organization->processing_fee_override : null)), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'), @js($this->chipPaymentMethods()), @js($this->chipPaymentMethod), @js(\App\Support\ChipFpxBanks::b2c()))"
                         data-campaign-public-id="{{ $campaign->public_id }}"
                         x-init="$wire.trackServerPageView(window.__IHSAN_PAGEVIEW_ID__ ?? null)"
                         class="relative"
@@ -403,10 +403,10 @@
                                             </span>
                                             <span class="flex flex-col gap-0.5">
                                                 <span class="text-sm font-medium text-slate-700">
-                                                    I'll cover the transaction fees
-                                                    <span class="whitespace-nowrap"><span class="text-teal-700" x-text="`(+${currencySymbol}${estimatedFeeAmount})`"></span>
+                                                    I'll cover the transaction costs
+                                                    <span class="whitespace-nowrap"><span class="text-teal-700" x-text="`(≈ +${currencySymbol}${estimatedFeeAmount})`"></span>
                                                     <x-ui.tooltip
-                                                        text="By adding the fee amount, you help cover essential software and payment processing fees"
+                                                        text="Covering this amount pays the card processing and platform costs for your donation. The exact cost depends on the card used, so this is an estimate."
                                                         position="top"
                                                         align="end"
                                                         class="relative -top-0.5 ml-0.5 cursor-help"
@@ -414,11 +414,11 @@
                                                     >
                                                         <x-heroicon-o-information-circle class="size-4 text-slate-400" />
                                                         <x-slot:tip>
-                                                            <span x-text="'By adding ' + currencySymbol + ' ' + estimatedFeeAmount + ', you help cover essential software and payment processing fees'"></span>
+                                                            <span x-text="'Covering ' + currencySymbol + ' ' + estimatedFeeAmount + ' pays the card processing and platform costs for your donation. The exact cost depends on the card used, so this is an estimate.'"></span>
                                                         </x-slot:tip>
                                                     </x-ui.tooltip></span>
                                                 </span>
-                                                <span class="text-xs text-slate-400">Help ensure 100% of your donation reaches us.</span>
+                                                <span class="text-xs text-slate-400">Estimated card processing and platform costs. Covering them keeps your full donation with us.</span>
                                             </span>
                                         </label>
                                     @endif

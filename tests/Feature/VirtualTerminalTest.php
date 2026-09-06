@@ -271,8 +271,8 @@ test('transaction costs are estimated and shown in summary when cover fee is ena
         ->set('formData.amount', '50.00')
         ->set('formData.currency', 'myr')
         ->set('formData.cover_fee', true)
-        ->assertSee('MYR 53.75')
-        ->assertSee('MYR 3.75');
+        ->assertSee('MYR 53.87')
+        ->assertSee('MYR 3.87');
 });
 
 test('transaction costs are not added when cover fee is disabled', function () {

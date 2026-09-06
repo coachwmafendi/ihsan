@@ -253,7 +253,14 @@ class VirtualTerminal extends Component
             return 0.0;
         }
 
-        return DonationFeeEstimator::estimate($amount, $this->formData['currency'], 'stripe');
+        return DonationFeeEstimator::estimate(
+            $amount,
+            $this->formData['currency'],
+            'stripe',
+            $this->organization?->processing_fee_override !== null
+                ? (float) $this->organization->processing_fee_override
+                : null,
+        );
     }
 
     public function getProcessingFeeEstimate(): string

@@ -52,12 +52,17 @@
                     upsellAccepted: false,
                     upsellOriginal: null,
 
-                    get feeRate() { return this.feeConfig[this.currency]?.percent ?? 0.055; },
+                    get feeRate() { return this.feeConfig[this.currency]?.percent ?? 0.030; },
                     get fixedFee() { return this.feeConfig[this.currency]?.fixed ?? 1.00; },
+                    get platformRate() { return this.feeConfig[this.currency]?.platform ?? 0.025; },
                     get estimatedFeeAmount() {
                         const amount = parseFloat(this.amount) || 0;
                         if (amount <= 0) return '0.00';
-                        return (amount * this.feeRate + this.fixedFee).toFixed(2);
+                        // Mirrors DonationFeeEstimator: the processor charges its
+                        // percentage on the grossed-up total, so solve for the
+                        // total rather than adding the percentages to the donation.
+                        const total = (amount + this.fixedFee + this.platformRate * amount) / (1 - this.feeRate);
+                        return (Math.ceil((total - amount) * 100) / 100).toFixed(2);
                     },
                     get currentAmounts() { return this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts; },
                     get progressWidth() {
