@@ -354,31 +354,71 @@
                                             class="min-w-0 flex-1 border-0 bg-transparent px-2 text-3xl/none font-bold text-slate-950 outline-none placeholder:text-slate-300 sm:px-3"
                                         />
                                         @if (count($this->getAcceptedCurrencies()) > 1)
-                                            @php $currencyDropdownLabels = ['myr' => 'RM', 'usd' => '$', 'sgd' => 'S$']; @endphp
-                                            <div x-data="{ open: false }" class="relative flex items-center">
+                                            @php
+                                                $currencyDropdownLabels = ['myr' => 'RM', 'usd' => '$', 'sgd' => 'S$'];
+                                                $acceptedCurrencies = array_values($this->getAcceptedCurrencies());
+                                            @endphp
+                                            {{-- The symbol and the fee estimate change the moment a currency is
+                                                 picked; the server only has to catch up with the suggested
+                                                 amounts, which it sends back on currency-updated. --}}
+                                            <div
+                                                x-data="{
+                                                    open: false,
+                                                    toggle() { this.open ? this.close() : this.openList(); },
+                                                    openList() { this.open = true; this.$nextTick(() => this.focusOption(this.selectedIndex())); },
+                                                    close() { this.open = false; this.$refs.trigger?.focus(); },
+                                                    selectedIndex() { return {{ json_encode($acceptedCurrencies) }}.indexOf(currency); },
+                                                    focusOption(index) {
+                                                        const options = [...this.$refs.list.querySelectorAll('[role=option]')];
+                                                        if (options.length === 0) return;
+                                                        const target = (index + options.length) % options.length;
+                                                        options[target].focus();
+                                                    },
+                                                    choose(code, symbol) {
+                                                        currency = code;
+                                                        currencySymbol = symbol;
+                                                        this.close();
+                                                        $wire.selectCurrency(code);
+                                                    },
+                                                }"
+                                                x-on:keydown.escape.stop="close()"
+                                                class="relative flex items-center"
+                                            >
                                                 <button
                                                     type="button"
-                                                    x-on:click.stop="open = !open"
-                                                    class="flex cursor-pointer select-none items-center gap-1.5"
+                                                    x-ref="trigger"
+                                                    x-on:click.stop="toggle()"
+                                                    x-on:keydown.down.prevent="openList()"
+                                                    x-bind:aria-expanded="open ? 'true' : 'false'"
+                                                    x-bind:aria-label="'Currency: ' + currency.toUpperCase() + '. Change currency'"
+                                                    aria-haspopup="listbox"
+                                                    class="flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-lg px-2 transition hover:bg-slate-100"
                                                 >
                                                     <x-currency-flag :currency="$this->currency" style="width:20px;height:14px"/>
-                                                    <span class="text-sm font-medium text-slate-500">{{ strtoupper($this->currency) }}</span>
+                                                    <span class="text-sm font-medium text-slate-500" x-text="currency.toUpperCase()">{{ strtoupper($this->currency) }}</span>
                                                     <svg class="mt-0.5 size-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                                                     </svg>
                                                 </button>
                                                 <div
+                                                    x-ref="list"
                                                     x-show="open"
                                                     x-cloak
                                                     x-on:click.outside="open = false"
-                                                    class="absolute bottom-full right-0 z-20 mb-2 min-w-[90px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+                                                    role="listbox"
+                                                    aria-label="Currency"
+                                                    class="absolute bottom-full right-0 z-20 mb-2 min-w-[120px] overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
                                                 >
-                                                    @foreach ($this->getAcceptedCurrencies() as $code)
+                                                    @foreach ($acceptedCurrencies as $index => $code)
                                                         <button
                                                             type="button"
-                                                            wire:click="selectCurrency('{{ $code }}')"
-                                                            x-on:click="open = false"
-                                                            class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-semibold transition hover:bg-slate-50 {{ $this->currency === $code ? 'text-teal-700' : 'text-slate-700' }}"
+                                                            role="option"
+                                                            x-bind:aria-selected="currency === '{{ $code }}' ? 'true' : 'false'"
+                                                            x-on:click="choose('{{ $code }}', @js($currencyDropdownLabels[$code] ?? strtoupper($code)))"
+                                                            x-on:keydown.down.prevent="focusOption({{ $index + 1 }})"
+                                                            x-on:keydown.up.prevent="focusOption({{ $index - 1 }})"
+                                                            x-bind:class="currency === '{{ $code }}' ? 'text-teal-700' : 'text-slate-700'"
+                                                            class="flex min-h-11 w-full items-center gap-2 px-3 text-left text-sm font-semibold transition hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
                                                         >
                                                             <x-currency-flag :currency="$code" style="width:20px;height:14px"/>
                                                             <span>{{ $currencyDropdownLabels[$code] ?? strtoupper($code) }}</span>
