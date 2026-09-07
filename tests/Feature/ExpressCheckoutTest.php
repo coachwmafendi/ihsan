@@ -132,11 +132,16 @@ it('still charges the fee cover the donor agreed to', function () {
 });
 
 it('refuses a monthly donation, which needs a stored mandate', function () {
+    // Reaching this means the donor switched to monthly mid-tap: hand back
+    // nothing so the checkout falls through to the form, rather than 500ing.
     Livewire::test(DonationForm::class, ['element' => $this->element])
         ->set('amount', 50)
         ->set('frequency', 'monthly')
-        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com');
-})->throws(RuntimeException::class, 'Express checkout is not available');
+        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com')
+        ->assertReturned('');
+
+    expect(Donation::query()->count())->toBe(0);
+});
 
 it('refuses a CHIP campaign, which redirects instead', function () {
     $this->organization->update(['chip_brand_id' => 'BRAND', 'chip_api_key' => 'secret', 'chip_enabled' => true]);
@@ -145,8 +150,20 @@ it('refuses a CHIP campaign, which redirects instead', function () {
     Livewire::test(DonationForm::class, ['element' => $this->element->fresh()])
         ->set('amount', 50)
         ->set('frequency', 'one_time')
-        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com');
-})->throws(RuntimeException::class, 'Express checkout is not available');
+        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com')
+        ->assertReturned('');
+
+    expect(Donation::query()->count())->toBe(0);
+});
+
+it('hides the wallet button the moment the donor picks monthly', function () {
+    // The container stays in the layout so Stripe can measure the device, but
+    // it must disappear for monthly or the donor taps a button the server will
+    // refuse.
+    $this->get(route('donations.show', $this->element))
+        ->assertOk()
+        ->assertSee('x-show="frequency === \'one_time\'" id="express-checkout-wrapper"', false);
+});
 
 it('rejects an address the wallet could not give us', function () {
     Livewire::test(DonationForm::class, ['element' => $this->element])

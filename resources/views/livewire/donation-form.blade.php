@@ -477,7 +477,9 @@
                                      the device offers inside a hidden element, and it
                                      renders nothing when there is nothing to show, so
                                      an empty container takes no space. --}}
-                                <div id="express-checkout-element"></div>
+                                <div x-show="frequency === 'one_time'" id="express-checkout-wrapper">
+                                    <div id="express-checkout-element"></div>
+                                </div>
 
                                 <div x-show="expressAvailable && frequency === 'one_time'" x-cloak class="flex items-center gap-3">
                                     <span class="h-px flex-1 bg-slate-200"></span>
