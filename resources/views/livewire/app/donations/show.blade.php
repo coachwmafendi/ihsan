@@ -793,18 +793,24 @@
                 Are you sure you want to refund 100% of the donation to the supporter?
             </p>
 
-            <flux:select wire:model="refundReason" label="Refund reason" placeholder="Select reason">
-                <flux:select.option value="duplicate">Duplicate donation</flux:select.option>
-                <flux:select.option value="fraud">Fraud</flux:select.option>
-                <flux:select.option value="requested_by_supporter">Requested by supporter</flux:select.option>
-                <flux:select.option value="other">Other</flux:select.option>
-            </flux:select>
+            {{-- The modal's contents are teleported out of this component, so a
+                 wire:model on the select never reaches the server and the reason
+                 arrived empty however carefully it was chosen. Alpine holds it
+                 and hands it to the action instead. --}}
+            <div x-data="{ refundReason: '' }" class="space-y-4">
+                <flux:select x-model="refundReason" label="Refund reason" placeholder="Select reason">
+                    <flux:select.option value="duplicate">Duplicate donation</flux:select.option>
+                    <flux:select.option value="fraud">Fraud</flux:select.option>
+                    <flux:select.option value="requested_by_supporter">Requested by supporter</flux:select.option>
+                    <flux:select.option value="other">Other</flux:select.option>
+                </flux:select>
 
-            <div class="flex justify-end gap-3 pt-2">
-                <flux:modal.close>
-                    <x-ui.button wireClick="cancelRefund" variant="secondary">Cancel</x-ui.button>
-                </flux:modal.close>
-                <x-ui.button wireClick="confirmRefund" variant="danger">Refund donation</x-ui.button>
+                <div class="flex justify-end gap-3 pt-2">
+                    <flux:modal.close>
+                        <x-ui.button wireClick="cancelRefund" variant="secondary">Cancel</x-ui.button>
+                    </flux:modal.close>
+                    <x-ui.button variant="danger" x-on:click="$wire.confirmRefund(refundReason)">Refund donation</x-ui.button>
+                </div>
             </div>
         </div>
     </flux:modal>
