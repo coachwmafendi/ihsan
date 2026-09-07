@@ -406,3 +406,17 @@ it('greets the wallet donor by name on the thank-you screen', function () {
         ->assertSee('this.donorFirstName = walletFirstName;', false)
         ->assertSee('this.donorEmail = payerEmail;', false);
 });
+
+it('shows a wallet failure the way every other payment error is shown', function () {
+    // A declined card is the same class of message as cardError, so it reads at
+    // the same size, and it sits under the button that failed rather than below
+    // the divider where it looks like the card path's problem.
+    $body = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
+
+    expect($body)->toContain('x-show="expressError" x-cloak class="mt-1 text-sm text-red-600"');
+
+    $errorAt = strpos($body, 'x-show="expressError"');
+    $dividerAt = strpos($body, 'x-show="expressAvailable" x-cloak class="flex items-center gap-3"');
+
+    expect($errorAt)->toBeLessThan($dividerAt);
+});
