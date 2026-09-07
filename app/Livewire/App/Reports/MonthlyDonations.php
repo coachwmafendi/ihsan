@@ -51,7 +51,11 @@ class MonthlyDonations extends Component
 
     private function setDateRangeFromMonth(): void
     {
-        if (! Carbon::canBeCreatedFromFormat('Y-m', $this->selectedMonth)) {
+        // canBeCreatedFromFormat takes the date first and the format second.
+        // Reversed, it asked whether the literal "Y-m" could be read as a date,
+        // which is always no - so every month a user picked was thrown away and
+        // replaced with the current one.
+        if (! Carbon::canBeCreatedFromFormat($this->selectedMonth, 'Y-m')) {
             $this->selectedMonth = $this->reportingPeriod()->localNow()->format('Y-m');
         }
 

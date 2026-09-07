@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Donation;
 use App\Models\Organization;
+use App\Support\PaymentMethodLabel;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -241,7 +242,7 @@ class DonationExportController extends Controller
             'stripe_fee' => number_format((float) $donation->stripe_fee, 2),
             'processing_fee' => number_format((float) $donation->processing_fee, 2),
             'donor_fee_covered' => number_format((float) $donation->donor_fee_covered, 2),
-            'payment_method_type' => ucfirst($donation->payment_method_type ?? ''),
+            'payment_method_type' => PaymentMethodLabel::for($donation->payment_method_type, ''),
             'payment_method_brand' => $donation->payment_method_brand ? ucfirst($donation->payment_method_brand) : '',
             'device_type' => $donation->deviceLabel() ?? '',
             'is_anonymous' => $donation->is_anonymous ? 'Yes' : 'No',
