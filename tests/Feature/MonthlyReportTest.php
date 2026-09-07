@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Livewire\App\Reports\MonthlyDonations;
 use App\Mail\MonthlyReport;
 use App\Models\Campaign;
 use App\Models\Donation;
@@ -119,4 +120,30 @@ it('does not queue monthly report for soft-deleted organizations', function () {
 
     Mail::assertNothingQueued();
     expect($organization->refresh()->settings['monthly_report_last_sent'] ?? null)->toBeNull();
+});
+
+it('keeps the month the user picked', function () {
+    // canBeCreatedFromFormat takes the date first. Reversed, it asked whether
+    // the literal "Y-m" was a date - always no - so every chosen month was
+    // discarded and the report snapped back to the current one.
+    $organization = Organization::factory()->create();
+    $user = User::factory()->create(['organization_id' => $organization->id]);
+
+    Livewire::actingAs($user)
+        ->test(MonthlyDonations::class)
+        ->set('selectedMonth', '2026-08')
+        ->assertSet('selectedMonth', '2026-08')
+        ->assertSet('dateFrom', '2026-08-01')
+        ->assertSet('dateTo', '2026-08-31');
+});
+
+it('falls back to the current month when the value is nonsense', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->create(['organization_id' => $organization->id]);
+
+    $component = Livewire::actingAs($user)
+        ->test(MonthlyDonations::class)
+        ->set('selectedMonth', 'not-a-month');
+
+    expect($component->get('selectedMonth'))->toMatch('/^\d{4}-\d{2}$/');
 });
