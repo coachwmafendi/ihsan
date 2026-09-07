@@ -377,3 +377,42 @@ it('bases the platform fee on the pledge, not on the donor fee cover', function 
     expect($capturedParams['amount'])->toBe(5375)
         ->and($capturedParams['application_fee_amount'])->toBe(125);
 });
+
+it('does not ask Stripe to set up a card it is charging off-session', function () {
+    // Stripe refuses a PaymentIntent that carries both, and every app-controlled
+    // recurring charge failed on it before ever reaching a card. The plans were
+    // young enough that no donor had missed an installment yet.
+    config(['services.stripe.secret' => 'sk_test_recurring']);
+
+    $subscription = createDueSubscription();
+
+    $capturedParams = [];
+    ApiRequestor::setHttpClient(new class($capturedParams) implements ClientInterface
+    {
+        /**
+         * @param  array<string, mixed>  $capturedParams
+         */
+        public function __construct(private array &$capturedParams) {}
+
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null)
+        {
+            if (str_contains($absUrl, '/v1/payment_intents') && $method === 'post') {
+                $this->capturedParams = $params;
+            }
+
+            return [json_encode([
+                'id' => 'pi_no_setup_future_usage',
+                'object' => 'payment_intent',
+                'status' => 'succeeded',
+                'amount' => $params['amount'] ?? 0,
+                'currency' => 'myr',
+                'latest_charge' => null,
+            ]), 200, []];
+        }
+    });
+
+    app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    expect($capturedParams)->not->toHaveKey('setup_future_usage')
+        ->and($capturedParams)->toHaveKey('off_session');
+});
