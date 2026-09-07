@@ -8,8 +8,12 @@
                 let stripe = null;
                 let elements = null;
                 let paymentElement = null;
+                let expressElements = null;
+                let expressElement = null;
 
                 return {
+                    expressAvailable: false,
+                    expressError: '',
                     amount: String(initialAmount ?? ''),
                     currency: initialCurrency,
                     currencySymbol: initialCurrencySymbol,
@@ -149,6 +153,91 @@
                         if (!this.donorFirstName.trim()) { this.stepErrors.firstName = 'First name is required.'; valid = false; }
                         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.donorEmail)) { this.stepErrors.email = 'Please enter a valid email address.'; valid = false; }
                         return valid;
+                    },
+                    // Apple Pay and Google Pay hand back the payer's name and
+                    // email, so a donor who has a wallet skips the two steps
+                    // that exist only to collect them. Stripe is asked in
+                    // deferred mode - no PaymentIntent exists until the donor
+                    // actually taps, which keeps the pending records clean.
+                    mountExpressCheckout() {
+                        if (!stripe || expressElement || this.frequency !== 'one_time') return;
+
+                        const container = document.getElementById('express-checkout-element');
+                        if (!container) return;
+
+                        try {
+                            expressElements = stripe.elements({
+                                mode: 'payment',
+                                amount: this.expressAmountInCents(),
+                                currency: this.currency,
+                            });
+
+                            expressElement = expressElements.create('expressCheckout', {
+                                buttonType: { applePay: 'donate', googlePay: 'donate' },
+                                buttonHeight: 48,
+                            });
+
+                            expressElement.on('availablepaymentmethodschange', ({ availablePaymentMethods }) => {
+                                this.expressAvailable = !!availablePaymentMethods;
+                            });
+
+                            expressElement.on('click', (event) => {
+                                event.resolve({ emailRequired: true, billingAddressRequired: false });
+                            });
+
+                            expressElement.on('confirm', (event) => this.confirmExpress(event));
+
+                            expressElement.mount('#express-checkout-element');
+                        } catch (e) {
+                            this.expressAvailable = false;
+                        }
+                    },
+                    expressAmountInCents() {
+                        const amount = parseFloat(this.amount) || 0;
+                        const cover = this.coverFee ? parseFloat(this.estimatedFeeAmount) || 0 : 0;
+                        return Math.max(50, Math.round((amount + cover) * 100));
+                    },
+                    // The wallet sheet shows a total, so keep it in step with the
+                    // amount and the fee cover the donor picked.
+                    syncExpressAmount() {
+                        if (!expressElements) return;
+
+                        try {
+                            expressElements.update({ amount: this.expressAmountInCents(), currency: this.currency });
+                        } catch (e) {
+                            // A stale element is replaced on the next mount.
+                        }
+                    },
+                    async confirmExpress(event) {
+                        this.expressError = '';
+                        this.processing = true;
+
+                        try {
+                            const { error: submitError } = await expressElements.submit();
+                            if (submitError) throw new Error(submitError.message);
+
+                            const payerName = event.billingDetails?.name || event.payerName || '';
+                            const payerEmail = event.billingDetails?.email || event.payerEmail || '';
+
+                            const clientSecret = await this.$wire.submitExpress(payerName, payerEmail);
+                            if (!clientSecret) throw new Error('Could not start the payment. Please try the form instead.');
+
+                            const { error } = await stripe.confirmPayment({
+                                elements: expressElements,
+                                clientSecret,
+                                confirmParams: { return_url: window.location.href },
+                                redirect: 'if_required',
+                            });
+
+                            if (error) throw new Error(error.message);
+
+                            this.currentStep = 3;
+                            await this.$wire.confirmPayment(clientSecret.split('_secret')[0]);
+                            this.finishSuccess();
+                        } catch (e) {
+                            this.processing = false;
+                            this.expressError = e.message || 'The payment could not be completed. Please try the form instead.';
+                        }
                     },
                     mountPaymentElement() {
                         const container = document.getElementById('payment-element');
@@ -450,6 +539,21 @@
 
                         if (this.currentStep === 3 && this.paymentGateway === 'stripe') {
                             this.$nextTick(() => this.mountPaymentElement());
+                        }
+
+                        if (this.paymentGateway === 'stripe') {
+                            this.$nextTick(() => this.mountExpressCheckout());
+
+                            // The wallet sheet quotes a total, so it has to follow
+                            // whatever the donor changes on the amount step.
+                            this.$watch('frequency', (value) => {
+                                if (value === 'one_time') {
+                                    this.$nextTick(() => this.mountExpressCheckout());
+                                }
+                            });
+                            this.$watch('amount', () => this.syncExpressAmount());
+                            this.$watch('coverFee', () => this.syncExpressAmount());
+                            this.$watch('currency', () => this.syncExpressAmount());
                         }
 
                         if (this.isPopup || this.isEmbed) {

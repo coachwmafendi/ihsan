@@ -674,6 +674,61 @@ class DonationForm extends Component
     }
 
     #[Renderless]
+    /**
+     * Take a donation straight from a wallet button.
+     *
+     * Apple Pay and Google Pay hand back the payer's name and email, which is
+     * everything the second step of the form exists to collect. Fill those in
+     * and run the ordinary submit, so the wallet path shares one code path with
+     * the form: the same validation, fraud checks, tracking, fee calculation
+     * and pending-attempt reuse.
+     */
+    public function submitExpress(string $name, string $email, ?string $phone = null): string
+    {
+        if (! $this->expressCheckoutAvailable()) {
+            throw new \RuntimeException('Express checkout is not available for this donation.');
+        }
+
+        [$firstName, $lastName] = $this->splitPayerName($name);
+
+        $this->firstName = $firstName;
+        $this->lastName = $lastName ?? '';
+        $this->email = trim($email);
+
+        if (filled($phone)) {
+            $this->phone = trim($phone);
+        }
+
+        return $this->submit();
+    }
+
+    /**
+     * Wallet buttons are offered for one-off card donations only.
+     *
+     * A monthly gift needs a stored mandate and CHIP has its own redirect, so
+     * both keep to the form until they are built and tested in their own right.
+     */
+    public function expressCheckoutAvailable(): bool
+    {
+        return $this->frequency === 'one_time' && ! $this->isChipGateway();
+    }
+
+    /**
+     * @return array{0: string, 1: string|null}
+     */
+    private function splitPayerName(string $name): array
+    {
+        $parts = preg_split('/\s+/', trim($name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        if ($parts === []) {
+            return ['Donor', null];
+        }
+
+        $firstName = array_shift($parts);
+
+        return [$firstName, $parts === [] ? null : implode(' ', $parts)];
+    }
+
     public function submit(): string
     {
         // CHIP recurring donations can only be charged to cards.

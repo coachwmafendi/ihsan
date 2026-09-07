@@ -466,6 +466,28 @@
                                 </label>
                             @endif
 
+                            {{-- Wallet buttons take the name and email straight from
+                                 Apple Pay or Google Pay, so a donor who has one skips
+                                 the two steps that only exist to collect them. The
+                                 block stays hidden until Stripe confirms the device
+                                 actually offers a wallet, so nobody sees an empty gap. --}}
+                            @if ($isStripeGateway)
+                                {{-- The mount point stays in the layout even when no
+                                     wallet is available: Stripe cannot work out what
+                                     the device offers inside a hidden element, and it
+                                     renders nothing when there is nothing to show, so
+                                     an empty container takes no space. --}}
+                                <div id="express-checkout-element"></div>
+
+                                <div x-show="expressAvailable && frequency === 'one_time'" x-cloak class="flex items-center gap-3">
+                                    <span class="h-px flex-1 bg-slate-200"></span>
+                                    <span class="text-xs font-medium uppercase tracking-wide text-slate-400">or</span>
+                                    <span class="h-px flex-1 bg-slate-200"></span>
+                                </div>
+
+                                <div x-show="expressError" x-cloak class="text-xs text-red-600" x-text="expressError"></div>
+                            @endif
+
                              <button
                                  type="button"
                                  x-on:click="nextStep()"
