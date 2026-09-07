@@ -318,3 +318,24 @@ it('does not mount the wallet on a modal that opens past the amount step', funct
         ->assertOk()
         ->assertSee('if (this.currentStep !== 1) return;', false);
 });
+
+it('asks the wallet for the billing details it needs to record a donor', function () {
+    // Stripe only fills billingDetails when the billing address is requested,
+    // and the payer's name lives nowhere else. With it off the confirm handler
+    // received no name and every wallet payment failed validation.
+    $this->get(route('donations.show', $this->element))
+        ->assertOk()
+        ->assertSee('billingAddressRequired: true', false)
+        ->assertDontSee('billingAddressRequired: false', false);
+});
+
+it('reads the payer only from where Stripe actually puts them', function () {
+    // payerName/payerEmail belong to the old Payment Request Button; on this
+    // element they are always undefined, so a missing name looked like an empty
+    // string rather than a fault.
+    $body = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
+
+    expect($body)
+        ->toContain('event.billingDetails?.name')
+        ->not->toContain('event.payerName');
+});

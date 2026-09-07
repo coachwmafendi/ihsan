@@ -201,7 +201,12 @@
                             });
 
                             expressElement.on('click', (event) => {
-                                const options = { emailRequired: true, billingAddressRequired: false };
+                                // The wallet only returns the payer's name inside
+                                // billingDetails, and it only fills billingDetails in
+                                // when the billing address is asked for. Without this
+                                // the confirm handler gets no name, the donation fails
+                                // validation, and the donor is told to use the form.
+                                const options = { emailRequired: true, billingAddressRequired: true };
 
                                 // Apple issues a merchant token and shows the donor how
                                 // to cancel, but only when the terms arrive here - the
@@ -289,8 +294,12 @@
                             const { error: submitError } = await expressElements.submit();
                             if (submitError) throw new Error(submitError.message);
 
-                            const payerName = event.billingDetails?.name || event.payerName || '';
-                            const payerEmail = event.billingDetails?.email || event.payerEmail || '';
+                            const payerName = (event.billingDetails?.name || '').trim();
+                            const payerEmail = (event.billingDetails?.email || '').trim();
+
+                            if (!payerName || !payerEmail) {
+                                throw new Error('Your wallet did not share a name and email. Please use the form instead.');
+                            }
 
                             const clientSecret = await this.$wire.submitExpress(payerName, payerEmail);
                             if (!clientSecret) throw new Error('Could not start the payment. Please try the form instead.');
