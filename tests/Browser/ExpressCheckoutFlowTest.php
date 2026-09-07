@@ -93,3 +93,21 @@ it('does not offer the wallet on a modal that opens past the amount step', funct
     visit('/donate/'.$this->element->token.'?popup=1&step=2')
         ->assertMissing('#express-checkout-wrapper');
 });
+
+it('knows the smallest amount Stripe will charge in this currency', function () {
+    // RM0.50 is not a chargeable amount; the old floor of 50 cents was borrowed
+    // from dollars and quietly produced one.
+    visit($this->url)
+        ->assertScript(checkoutState('state.expressMinimumInCents()'), '200');
+});
+
+it('does not quote the wallet an amount Stripe would refuse', function () {
+    // A donor typing their own amount passes through an empty field, and handing
+    // that to a mounted element dropped the wallet buttons for good - they never
+    // came back once a real amount was typed.
+    $page = visit($this->url);
+
+    $page->assertScript(checkoutState('state.expressAmountIsChargeable()'), 'true')
+        ->assertScript(checkoutState("(state.amount = '', state.expressAmountIsChargeable())"), 'false')
+        ->assertScript(checkoutState("(state.amount = '10', state.expressAmountIsChargeable())"), 'true');
+});
