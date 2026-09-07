@@ -430,12 +430,23 @@
                                         $statusColor = 'text-amber-600';
                                     }
 
+                                    // A plan that has stopped keeps its old period end, so
+                                    // falling back to it promised an installment that will
+                                    // never be taken.
                                     $nextInstallmentAt = $subscription->next_charge_at ?? $subscription->current_period_end;
                                     $statusTooltip = match ($subscription->status->value) {
                                         'past_due' => $nextInstallmentAt
                                             ? 'Payment failed — next retry on '.myrTime($nextInstallmentAt)
                                             : 'Payment failed — retry schedule pending',
                                         'failed' => 'No further retries scheduled',
+                                        'cancelled' => $subscription->cancelled_at
+                                            ? 'Cancelled on '.myrTime($subscription->cancelled_at).' — no further installments'
+                                            : 'Cancelled — no further installments',
+                                        'completed' => 'Completed — no further installments',
+                                        'incomplete', 'incomplete_expired' => 'Never started — no installments taken',
+                                        'paused' => $subscription->paused_until
+                                            ? 'Paused — resumes on '.myrTime($subscription->paused_until)
+                                            : 'Paused — no installments until it resumes',
                                         default => $nextInstallmentAt
                                             ? 'Next installment: '.myrTime($nextInstallmentAt)
                                             : 'No upcoming installment',

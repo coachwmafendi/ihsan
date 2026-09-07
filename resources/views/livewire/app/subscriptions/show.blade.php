@@ -701,6 +701,34 @@
                             <p class="font-medium">Cancellation scheduled</p>
                             <p class="mt-1 text-amber-700">Final installment on {{ myrTime($this->nextInstallmentDate) }}.</p>
                         </div>
+                    @elseif ($subscription->status === App\Enums\SubscriptionStatus::Paused)
+                        {{-- A paused plan is resting, not finished. Calling it ended
+                             and hiding every action left no way back. --}}
+                        <button
+                            wire:click="resumeSubscription"
+                            class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                            <x-heroicon-o-play-circle class="size-5 text-slate-400" />
+                            Resume plan
+                        </button>
+                        <button
+                            wire:click="openCancelModal"
+                            class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 transition hover:bg-red-50"
+                        >
+                            <x-heroicon-o-trash class="size-5 text-red-400" />
+                            Cancel recurring
+                        </button>
+                    @elseif ($subscription->status === App\Enums\SubscriptionStatus::Cancelled)
+                        <button
+                            wire:click="openReactivateModal"
+                            class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                            <x-heroicon-o-arrow-path class="size-5 text-slate-400" />
+                            Reactivate plan
+                        </button>
+                        <div class="px-4 py-3 text-xs text-slate-500">
+                            Cancelled on {{ myrTime($subscription->cancelled_at) }}. No charges are being made.
+                        </div>
                     @else
                         <div class="px-4 py-3 text-sm text-slate-600">
                             This recurring plan has ended. No further charges will be made.
@@ -1075,6 +1103,25 @@
     </flux:modal>
 
     {{-- Skip Installments Modal --}}
+    <flux:modal wire:model="showReactivateModal" name="reactivate-recurring-modal">
+        <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-slate-900">Reactivate recurring plan</h3>
+
+            <p class="text-sm text-slate-600">
+                This supporter was told their plan had stopped. Reactivating starts
+                charging them again, beginning
+                <span class="font-medium text-slate-900">{{ $this->reactivationDate() }}</span>.
+            </p>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <flux:modal.close>
+                    <x-ui.button wireClick="closeReactivateModal" variant="secondary">Cancel</x-ui.button>
+                </flux:modal.close>
+                <x-ui.button wireClick="reactivateSubscription" variant="primary">Reactivate plan</x-ui.button>
+            </div>
+        </div>
+    </flux:modal>
+
     <flux:modal wire:model="showSkipModal" name="skip-installments-modal">
         <div class="space-y-6">
             <div>

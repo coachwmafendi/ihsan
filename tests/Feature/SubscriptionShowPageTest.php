@@ -736,7 +736,7 @@ it('processes an immediate payment for an app-controlled subscription from edit 
         ->assertDispatched('notify', type: 'success');
 });
 
-it('shows ended state and blocks manage actions for cancelled subscriptions', function () {
+it('offers a cancelled subscription reactivation and still blocks the rest', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,
         'donor_id' => $this->donor->id,
@@ -748,7 +748,11 @@ it('shows ended state and blocks manage actions for cancelled subscriptions', fu
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('Ended')
-        ->assertSee('This recurring plan has ended')
+        // A cancelled plan can be started again - an organiser who cancelled the
+        // wrong one had no way back - but editing it while stopped still is not
+        // allowed.
+        ->assertSee('Reactivate plan')
+        ->assertDontSee('This recurring plan has ended')
         ->assertSee('This recurring donation was cancelled on')
         ->call('openEditPaymentDetailsModal')
         ->assertDispatched('notify', type: 'error');

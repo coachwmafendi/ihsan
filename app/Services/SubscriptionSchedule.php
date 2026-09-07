@@ -35,6 +35,28 @@ class SubscriptionSchedule
         };
     }
 
+    /**
+     * The first charge date on or after a given moment, stepping forward from
+     * the plan's own anchor so the donor keeps the day of the month they signed
+     * up on. Resuming used to add an interval to a date already months away,
+     * which pushed the plan further out every time it was resumed.
+     */
+    public static function nextChargeAfter(
+        CarbonImmutable $anchor,
+        SubscriptionInterval $interval,
+        CarbonImmutable $after,
+    ): CarbonImmutable {
+        $next = $anchor;
+
+        // A decade of monthly steps is far more than any plan needs, and stops a
+        // bad anchor from spinning here forever.
+        for ($step = 0; $step < 600 && $next <= $after; $step++) {
+            $next = self::nextChargeAt($next, $interval);
+        }
+
+        return $next;
+    }
+
     private static function addMonthsClamped(CarbonImmutable $from, int $months): CarbonImmutable
     {
         $next = $from->addMonthsNoOverflow($months);

@@ -11,6 +11,7 @@ use App\Actions\Stripe\ChangeRecurringAmount;
 use App\Actions\Stripe\ChargeRecurringInstallment as ChargeRecurringInstallmentAction;
 use App\Actions\Stripe\ManageStripeSubscription;
 use App\Actions\Stripe\PauseLocalRecurringPlan;
+use App\Actions\Stripe\ResumeLocalRecurringPlan;
 use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Actions\Stripe\UpdateAppControlledPaymentMethod;
 use App\Enums\DonationStatus;
@@ -256,6 +257,94 @@ class SubscriptionShow extends Component
     public string $cancelReason = '';
 
     public string $cancelDetails = '';
+
+    /**
+     * A paused plan is resting, not finished, and the panel offered no way out
+     * of that state - it described the plan as ended and hid every action.
+     */
+    public function resumeSubscription(): void
+    {
+        if ($this->subscription->status !== SubscriptionStatus::Paused) {
+            return;
+        }
+
+        try {
+            if (filled($this->subscription->stripe_subscription_id)) {
+                app(ManageStripeSubscription::class)->resume($this->subscription);
+            } else {
+                app(ResumeLocalRecurringPlan::class)->resume($this->subscription);
+            }
+        } catch (\Exception $e) {
+            $this->dispatch('notify', type: 'error', message: 'Unable to resume this plan. Please try again.');
+
+            return;
+        }
+
+        $this->subscription->refresh();
+        $this->dispatch('notify', type: 'success', message: 'Recurring plan resumed.');
+    }
+
+    /**
+     * Starting a cancelled plan charging again takes money from a donor who was
+     * told it had stopped, so it asks first and says exactly when the next
+     * charge lands.
+     */
+    public function reactivateSubscription(): void
+    {
+        if ($this->subscription->status !== SubscriptionStatus::Cancelled) {
+            return;
+        }
+
+        try {
+            app(ResumeLocalRecurringPlan::class)->resume($this->subscription);
+        } catch (\Exception $e) {
+            $this->dispatch('notify', type: 'error', message: 'Unable to reactivate this plan. Please try again.');
+
+            return;
+        }
+
+        $this->subscription->update([
+            'cancelled_at' => null,
+            'cancellation_reason' => null,
+            'cancel_at_period_end' => false,
+            'cancel_at' => null,
+        ]);
+
+        $this->subscription->refresh();
+        $this->showReactivateModal = false;
+        $this->dispatch('notify', type: 'success', message: 'Recurring plan reactivated.');
+    }
+
+    public bool $showReactivateModal = false;
+
+    public function openReactivateModal(): void
+    {
+        if ($this->subscription->status !== SubscriptionStatus::Cancelled) {
+            return;
+        }
+
+        $this->showReactivateModal = true;
+    }
+
+    public function closeReactivateModal(): void
+    {
+        $this->showReactivateModal = false;
+    }
+
+    /**
+     * When charging would begin again, so nobody restarts a plan without
+     * knowing what the donor is about to be billed and when.
+     */
+    public function reactivationDate(): string
+    {
+        $anchor = CarbonImmutable::instance($this->subscription->created_at ?? now());
+
+        return myrTime(SubscriptionSchedule::nextChargeAfter(
+            $anchor,
+            $this->subscription->interval,
+            CarbonImmutable::now(),
+        ));
+    }
 
     public function openCancelModal(): void
     {
