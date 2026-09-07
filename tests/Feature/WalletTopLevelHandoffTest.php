@@ -76,7 +76,8 @@ it('offers the handoff button instead of a wallet element that cannot mount', fu
     $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
         ->assertOk()
         ->assertSee('Pay with Apple Pay or Google Pay')
-        ->assertSee('openTopLevelCheckout()', false)
+        ->assertSee('target="_top"', false)
+        ->assertSee('x-bind:href="topLevelCheckoutHref()"', false)
         ->assertDontSee('id="express-checkout-element"', false);
 });
 
@@ -100,14 +101,17 @@ it('points the handoff at the hosted checkout for this element', function () {
         ->toContain('/donate/'.$this->element->token);
 });
 
-it('only lets our own checkout steer the host page', function () {
-    // Any other frame on the page can post a message; without the origin check
-    // an embedded ad could redirect the donor away from the site.
+it('does not need the embedding site to do anything', function () {
+    // The first version asked the host page to navigate for us, which meant an
+    // older cached copy of widget.js sitting on the site silently broke the
+    // button. A link with target="_top" navigates on its own.
     $widget = file_get_contents(base_path('resources/js/widget.js'));
 
-    expect($widget)
-        ->toContain('if (event.origin !== baseUrl) return;')
-        ->toContain('if (url.indexOf(baseUrl + "/") !== 0) return;');
+    expect($widget)->not->toContain('ihsan:open-checkout');
+
+    $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
+        ->assertOk()
+        ->assertSee('target="_top"', false);
 });
 
 it('names the card path when the handoff button sits above it', function () {
