@@ -396,3 +396,13 @@ it('refuses a currency the organisation does not accept', function () {
 
     expect(Donation::query()->sole()->currency)->toBe('myr');
 });
+
+it('greets the wallet donor by name on the thank-you screen', function () {
+    // The wallet skips the step that collects a name, and the success screen
+    // reads it from the browser rather than the server - so a real donation
+    // thanked "Friend" and said the receipt went to nobody.
+    $this->get(route('donations.show', $this->element))
+        ->assertOk()
+        ->assertSee('this.donorFirstName = walletFirstName;', false)
+        ->assertSee('this.donorEmail = payerEmail;', false);
+});
