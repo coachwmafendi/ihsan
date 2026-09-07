@@ -197,13 +197,35 @@ it('offers the buttons for both one-off and monthly gifts', function () {
     expect($component->instance()->expressCheckoutAvailable())->toBeTrue();
 });
 
-it('tells Apple Pay the subscription terms before the donor agrees', function () {
+it('tells Apple Pay the subscription terms when it opens the sheet', function () {
+    // The terms have to arrive in the click handler's resolve(). Declared when
+    // the element is created they are ignored, and the sheet does not open at
+    // all - the wallet button simply did nothing on a monthly gift.
     $this->get(route('donations.show', $this->element))
         ->assertOk()
+        ->assertSee("event.expressPaymentType === 'apple_pay'", false)
         ->assertSee('recurringPaymentRequest', false)
         ->assertSee("recurringPaymentIntervalUnit: 'month'", false)
+        ->assertSee('event.resolve(options);', false)
         // Must match the PaymentIntent, which saves the card for later.
         ->assertSee("setupFutureUsage: 'off_session'", false);
+});
+
+it('does not declare the recurring terms when the element is created', function () {
+    // Where they used to live, and where Apple ignores them.
+    $body = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
+
+    $create = substr($body, strpos($body, "create('expressCheckout'"), 400);
+
+    expect($create)->not->toContain('recurringPaymentRequest');
+});
+
+it('asks Apple for nothing extra on a one-off gift', function () {
+    // A one-off donation has no terms to agree to, and sending them would make
+    // Apple show a subscription sheet for a single payment.
+    $this->get(route('donations.show', $this->element))
+        ->assertOk()
+        ->assertSee("this.frequency === 'monthly' && event.expressPaymentType === 'apple_pay'", false);
 });
 
 it('points the donor at somewhere they can cancel', function () {

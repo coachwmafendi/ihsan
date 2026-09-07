@@ -194,22 +194,6 @@
                                 // Link is switched off on the payment step; keep the
                                 // two steps offering the same set of methods.
                                 paymentMethods: { link: 'never' },
-                                // Apple issues a merchant token and shows the donor how
-                                // to cancel, but only when the terms are declared.
-                                ...(monthly ? {
-                                    applePay: {
-                                        recurringPaymentRequest: {
-                                            paymentDescription: 'Monthly donation',
-                                            managementURL: this.recurringManagementUrl,
-                                            regularBilling: {
-                                                amount: this.expressAmountInCents(),
-                                                label: 'Monthly donation',
-                                                recurringPaymentIntervalUnit: 'month',
-                                                recurringPaymentIntervalCount: 1,
-                                            },
-                                        },
-                                    },
-                                } : {}),
                             });
 
                             expressElement.on('availablepaymentmethodschange', ({ paymentMethods }) => {
@@ -217,7 +201,31 @@
                             });
 
                             expressElement.on('click', (event) => {
-                                event.resolve({ emailRequired: true, billingAddressRequired: false });
+                                const options = { emailRequired: true, billingAddressRequired: false };
+
+                                // Apple issues a merchant token and shows the donor how
+                                // to cancel, but only when the terms arrive here - the
+                                // sheet ignores them if they are declared when the
+                                // element is created, and refuses to open at all.
+                                // Nothing may be awaited before resolve(): Apple opens
+                                // the sheet only while the tap still counts as a gesture.
+                                if (this.frequency === 'monthly' && event.expressPaymentType === 'apple_pay') {
+                                    options.applePay = {
+                                        recurringPaymentRequest: {
+                                            paymentDescription: 'Monthly donation',
+                                            managementURL: this.recurringManagementUrl,
+                                            billingAgreement: 'Billed monthly until you cancel.',
+                                            regularBilling: {
+                                                amount: this.expressAmountInCents(),
+                                                label: 'Monthly donation',
+                                                recurringPaymentIntervalUnit: 'month',
+                                                recurringPaymentIntervalCount: 1,
+                                            },
+                                        },
+                                    };
+                                }
+
+                                event.resolve(options);
                             });
 
                             expressElement.on('confirm', (event) => this.confirmExpress(event));
