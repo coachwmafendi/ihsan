@@ -37,6 +37,7 @@ class RegisterPaymentMethodDomains
         $account = ['stripe_account' => $organization->stripe_account_id];
 
         $registered = [];
+        $failures = [];
 
         foreach ($this->domainsFor($organization) as $domain) {
             try {
@@ -54,6 +55,8 @@ class RegisterPaymentMethodDomains
 
                 $registered[] = $domain;
             } catch (ApiErrorException $e) {
+                $failures[$domain] = $e->getMessage();
+
                 Log::warning('Failed to register Stripe payment method domain', [
                     'organization_id' => $organization->id,
                     'stripe_account_id' => $organization->stripe_account_id,
@@ -63,7 +66,30 @@ class RegisterPaymentMethodDomains
             }
         }
 
+        $this->recordFailures($organization, $failures);
+
         return $registered;
+    }
+
+    /**
+     * Stripe refuses to register a domain whose verification file it cannot
+     * fetch, so the domain never appears in its records at all and the settings
+     * page can only call it pending. Keeping the refusal turns a silent nothing
+     * into the reason, which is usually a firewall in front of the site.
+     *
+     * @param  array<string, string>  $failures
+     */
+    private function recordFailures(Organization $organization, array $failures): void
+    {
+        $settings = $organization->settings ?? [];
+
+        if (($settings['payment_domain_errors'] ?? []) === $failures) {
+            return;
+        }
+
+        $settings['payment_domain_errors'] = $failures;
+
+        $organization->update(['settings' => $settings]);
     }
 
     /**
