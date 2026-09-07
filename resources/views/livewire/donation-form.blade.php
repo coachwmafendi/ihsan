@@ -394,6 +394,7 @@
                                                     x-bind:aria-expanded="open ? 'true' : 'false'"
                                                     x-bind:aria-label="'Currency: ' + currency.toUpperCase() + '. Change currency'"
                                                     aria-haspopup="listbox"
+                                                    data-currency-trigger
                                                     class="flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-lg px-2 transition hover:bg-slate-100"
                                                 >
                                                     <x-currency-flag :currency="$this->currency" style="width:21px;height:14px"/>
@@ -415,6 +416,7 @@
                                                         <button
                                                             type="button"
                                                             role="option"
+                                                            data-currency="{{ $code }}"
                                                             x-bind:aria-selected="currency === '{{ $code }}' ? 'true' : 'false'"
                                                             x-on:click="choose('{{ $code }}', @js($currencyDropdownLabels[$code] ?? strtoupper($code)))"
                                                             x-on:keydown.down.prevent="focusOption({{ $index + 1 }})"
