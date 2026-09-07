@@ -746,6 +746,20 @@ class DonationForm extends Component
 
         $settings = $organization->settings ?? [];
 
+        // What Stripe last told us, stored by the settings page and by every
+        // registration run. This is the real answer: a domain sitting in the
+        // organisation's own list proves nothing about whether Stripe accepted
+        // it, and keying off the list alone let a domain switch this fallback
+        // off without switching any wallet on.
+        $verified = $settings['wallet_verified_domains'] ?? null;
+
+        if (is_array($verified)) {
+            return ! in_array($host, $verified, true);
+        }
+
+        // Nothing stored yet, so fall back to what we can infer. Erring towards
+        // leaving the wallet alone keeps a working site working until the first
+        // status arrives.
         $registered = collect((array) ($settings['allowed_domains'] ?? []))
             ->map(fn ($domain): string => DomainName::normalize((string) $domain))
             ->all();

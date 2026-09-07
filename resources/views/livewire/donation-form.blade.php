@@ -520,7 +520,12 @@
                                  x-bind:disabled="processing"
                                  class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
                              >
-                                 @if ($isStripeGateway && ! $organiserSetButtonText)
+                                 @if ($isStripeGateway && ! $organiserSetButtonText && $this->walletRequiresTopLevel())
+                                     {{-- The handoff button is always there, so the card
+                                          path always needs naming. expressAvailable stays
+                                          false here - no Stripe element is ever mounted. --}}
+                                     Donate with card
+                                 @elseif ($isStripeGateway && ! $organiserSetButtonText)
                                      {{-- With a wallet button above, "Continue" no longer
                                           says where it leads; name the card path instead.
                                           Without one there is nothing to contrast against,

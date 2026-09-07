@@ -29,6 +29,9 @@ beforeEach(function () {
     ]);
     $this->element = Element::factory()->for($this->organization)->for($this->campaign)->create([
         'type' => ElementType::Form,
+        // No button_text: an organiser's own wording wins over ours, and these
+        // tests are about the label we choose when they have not set one.
+        'config' => ['template' => 'secure-donation'],
     ]);
 });
 
@@ -105,4 +108,46 @@ it('only lets our own checkout steer the host page', function () {
     expect($widget)
         ->toContain('if (event.origin !== baseUrl) return;')
         ->toContain('if (url.indexOf(baseUrl + "/") !== 0) return;');
+});
+
+it('names the card path when the handoff button sits above it', function () {
+    // expressAvailable never turns true on this path - no Stripe element is
+    // mounted - so the label would otherwise stay "Continue" while a wallet
+    // button sat right above it.
+    $response = $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
+        ->assertOk();
+
+    expect($response->getContent())
+        ->toContain('Donate with card')
+        ->not->toContain('x-show="! expressAvailable"');
+});
+
+it('keeps the label tied to the wallet on a site that mounts one', function () {
+    $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://tahfizannur.org/derma'))
+        ->assertOk()
+        ->assertSee('x-show="! expressAvailable"', false)
+        ->assertSee('Donate with card');
+});
+
+it('trusts what Stripe last said over what the organiser typed in the list', function () {
+    // A domain sitting in the list proves only that someone typed it. Keying
+    // off the list alone let a domain switch the fallback off without
+    // switching any wallet on - the state this page was in on 7 Sep.
+    $this->organization->update(['settings' => [
+        'allowed_domains' => ['mtaqlaa.onpay.my'],
+        'wallet_verified_domains' => ['tahfizannur.org'],
+    ]]);
+
+    expect(embeddedOn('https://mtaqlaa.onpay.my/x')->instance()->walletRequiresTopLevel())
+        ->toBeTrue();
+});
+
+it('leaves the wallet in the frame on a domain Stripe reports as verified', function () {
+    $this->organization->update(['settings' => [
+        'allowed_domains' => [],
+        'wallet_verified_domains' => ['tahfizannur.org'],
+    ]]);
+
+    expect(embeddedOn('https://tahfizannur.org/derma')->instance()->walletRequiresTopLevel())
+        ->toBeFalse();
 });

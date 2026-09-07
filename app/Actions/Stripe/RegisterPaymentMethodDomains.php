@@ -68,6 +68,11 @@ class RegisterPaymentMethodDomains
 
         $this->recordFailures($organization, $failures);
 
+        // The checkout decides whether a site can carry a wallet from the stored
+        // status, so leaving it behind after a registration would keep serving
+        // yesterday's answer.
+        app(FetchPaymentMethodDomainStatuses::class)->fetch($organization->refresh(), fresh: true);
+
         return $registered;
     }
 
