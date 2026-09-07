@@ -45,8 +45,43 @@ class FetchPaymentMethodDomainStatuses
         }
 
         return Cache::remember($key, now()->addMinutes(self::CacheMinutes), function () use ($organization): array {
-            return $this->load($organization);
+            $statuses = $this->load($organization);
+
+            $this->persist($organization, $statuses);
+
+            return $statuses;
         });
+    }
+
+    /**
+     * Keep the answer on the organization as well as in the cache.
+     *
+     * The checkout has to know whether the embedding site can carry a wallet,
+     * and it cannot wait on a Stripe call to find out. Reading a stored answer
+     * costs nothing, and a stale one is only ever as old as the last time
+     * anyone opened the settings page or ran a registration.
+     *
+     * @param  array<string, DomainStatus>  $statuses
+     */
+    private function persist(Organization $organization, array $statuses): void
+    {
+        $organization->refresh();
+
+        $settings = $organization->settings ?? [];
+
+        $active = collect($statuses)
+            ->filter(fn (array $status): bool => $status['apple_pay'] === 'active' && $status['google_pay'] === 'active')
+            ->keys()
+            ->values()
+            ->all();
+
+        if (($settings['wallet_verified_domains'] ?? null) === $active) {
+            return;
+        }
+
+        $settings['wallet_verified_domains'] = $active;
+
+        $organization->update(['settings' => $settings]);
     }
 
     public function forget(Organization $organization): void

@@ -451,3 +451,37 @@ it('does not flag the checkout domain or a domain already added', function () {
     expect(Livewire::actingAs($user)->test(AllowDomains::class)->instance()->unregisteredEmbeddingDomains())
         ->toBe([]);
 });
+
+it('stores which domains Stripe verified so the checkout never calls the API', function () {
+    $org = Organization::factory()->stripeConnected()->create();
+
+    (new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([
+            ['domain' => 'tahfizannur.org', 'apple' => 'active', 'google' => 'active'],
+            ['domain' => 'half.example.org', 'apple' => 'active', 'google' => 'inactive'],
+        ])
+    ))->fetch($org);
+
+    // A domain only counts when both wallets are live on it.
+    expect($org->fresh()->settings['wallet_verified_domains'])->toBe(['tahfizannur.org']);
+});
+
+it('refreshes the stored status whenever registration runs', function () {
+    // Otherwise a recheck would fix Stripe's records and leave the checkout
+    // deciding from yesterday's answer.
+    $created = [];
+
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['tahfizannur.org'], 'wallet_verified_domains' => []],
+    ]);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([
+            ['domain' => 'tahfizannur.org', 'apple' => 'active', 'google' => 'active'],
+        ])
+    ));
+
+    (new RegisterPaymentMethodDomains(fakeStripeClientForDomains($created)))->register($org);
+
+    expect($org->fresh()->settings['wallet_verified_domains'])->toContain('tahfizannur.org');
+});
