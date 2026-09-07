@@ -4,7 +4,7 @@
     document.addEventListener('alpine:init', () => {
         if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
             Alpine._donationStepRegistered = true;
-            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe', initialChipPaymentMethods = [], initialChipPaymentMethod = 'card', initialFpxBanks = [], initialRecurringManagementUrl = '', initialWalletRequiresTopLevel = false, initialTopLevelCheckoutUrl = '') => {
+            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe', initialChipPaymentMethods = [], initialChipPaymentMethod = 'card', initialFpxBanks = [], initialRecurringManagementUrl = '', initialWalletRequiresTopLevel = false, initialTopLevelCheckoutUrl = '', initialWalletMinimum = 2) => {
                 let stripe = null;
                 let elements = null;
                 let paymentElement = null;
@@ -21,6 +21,9 @@
                     // Stripe never registered the wallet can only run if the donor
                     // leaves it for our own checkout.
                     walletRequiresTopLevel: initialWalletRequiresTopLevel,
+                    // Stripe's floor for this currency, worked out on the server
+                    // where the settlement currency is known.
+                    walletMinimum: initialWalletMinimum,
                     topLevelCheckoutUrl: initialTopLevelCheckoutUrl,
                     amount: String(initialAmount ?? ''),
                     currency: initialCurrency,
@@ -283,7 +286,7 @@
                      * to something that only looks valid.
                      */
                     expressMinimumInCents() {
-                        return { myr: 200, usd: 50, sgd: 50 }[this.currency] ?? 200;
+                        return Math.round(this.walletMinimum * 100);
                     },
                     expressAmountIsChargeable() {
                         return this.expressAmountInCents() >= this.expressMinimumInCents();
@@ -649,9 +652,14 @@
                         });
 
                         this.$wire.on('amount-updated', ({ amount }) => { this.setAmount(amount); });
-                        this.$wire.on('currency-updated', ({ currency, symbol, amount, oneTimeAmounts, monthlyAmounts }) => {
+                        this.$wire.on('currency-updated', ({ currency, symbol, amount, oneTimeAmounts, monthlyAmounts, minimumAmount, walletMinimum }) => {
                             if (currency) this.currency = currency;
                             this.currencySymbol = symbol;
+                            // Both floors are stated in ringgit on the server and
+                            // converted there, so they have to travel with the
+                            // switch or the form judges dollars by ringgit rules.
+                            if (minimumAmount) this.minimumAmount = minimumAmount;
+                            if (walletMinimum) this.walletMinimum = walletMinimum;
                             if (oneTimeAmounts) this.oneTimeAmounts = oneTimeAmounts;
                             if (monthlyAmounts) this.monthlyAmounts = monthlyAmounts;
                             const amounts = this.frequency === 'monthly' ? this.monthlyAmounts : this.oneTimeAmounts;

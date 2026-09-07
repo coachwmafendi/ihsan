@@ -60,7 +60,8 @@
     $shareUrl = $campaign ? route('campaigns.public', $campaign) : request()->fullUrl();
     $connectedStripeAccountId = $organization->stripe_onboarded ? $organization->stripe_account_id : null;
     $currencySymbol = \App\Support\Currency::symbol($this->currency);
-    $minimumAmount = (float) ($campaign->minimum_amount ?? 5);
+    $minimumAmount = $this->minimumAmount();
+    $walletMinimum = \App\Support\Currency::chargeMinimum($this->currency);
     $totalAmount = (float) $this->amount + $this->estimatedFee;
     $paymentGateway = $campaign->payment_gateway?->value ?? 'stripe';
     $isStripeGateway = $paymentGateway === 'stripe';
@@ -261,7 +262,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates($campaign->payment_gateway?->value ?? 'stripe', $organization->processing_fee_override !== null ? (float) $organization->processing_fee_override : null, $this->donorCountryCode())), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'), @js($this->chipPaymentMethods()), @js($this->chipPaymentMethod), @js(\App\Support\ChipFpxBanks::b2c()), @js($this->recurringManagementUrl()), @js($this->walletRequiresTopLevel()), @js($this->topLevelCheckoutUrl()))"
+                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates($campaign->payment_gateway?->value ?? 'stripe', $organization->processing_fee_override !== null ? (float) $organization->processing_fee_override : null, $this->donorCountryCode())), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'), @js($this->chipPaymentMethods()), @js($this->chipPaymentMethod), @js(\App\Support\ChipFpxBanks::b2c()), @js($this->recurringManagementUrl()), @js($this->walletRequiresTopLevel()), @js($this->topLevelCheckoutUrl()), @js($walletMinimum))"
                         data-campaign-public-id="{{ $campaign->public_id }}"
                         x-init="$wire.trackServerPageView(window.__IHSAN_PAGEVIEW_ID__ ?? null)"
                         class="relative"

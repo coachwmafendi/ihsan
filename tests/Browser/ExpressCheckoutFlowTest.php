@@ -135,14 +135,15 @@ it('keeps the wallet when the donor switches currency', function () {
 });
 
 it('uses the floor of the currency the donor switched to', function () {
-    // Ringgit refuses below RM2; dollars refuse below 50 cents. Reading the
-    // ringgit floor after a switch to dollars would reject valid amounts.
+    // Ringgit refuses below RM2. A Singapore dollar gift settles into ringgit,
+    // so it has to clear that same RM2 - which is more than the SGD 0.50 Stripe
+    // lists for an account that settles in Singapore dollars.
     $page = visit(multiCurrencyCheckoutUrl());
 
     $page->assertScript(checkoutState('state.expressMinimumInCents()'), '200')
         ->click('[data-currency-trigger]')
         ->click('[data-currency="sgd"]')
-        ->assertScript(checkoutState('state.expressMinimumInCents()'), '50');
+        ->assertScript(checkoutState('state.expressMinimumInCents()'), '70');
 });
 
 it('quotes the wallet the donation alone when the donor declines the fee', function () {
