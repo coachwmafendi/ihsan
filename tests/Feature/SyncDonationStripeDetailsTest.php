@@ -9,6 +9,7 @@ use App\Models\Organization;
 use Stripe\ApiRequestor;
 use Stripe\HttpClient\ClientInterface;
 use Stripe\HttpClient\CurlClient;
+use Stripe\PaymentIntent;
 use Stripe\Stripe;
 
 beforeEach(function () {
@@ -340,4 +341,91 @@ it('stores the longest card check result Stripe reports', function () {
         'avs_result' => 'unavailable',
         'cvc_result' => 'unavailable',
     ]);
+});
+
+it('records the wallet on an installment whose charge arrives as an id', function () {
+    // A recurring charge is confirmed elsewhere, so the intent handed here has
+    // its charge as a bare id - and the wallet lives only on the charge. A
+    // Google Pay installment was filed as an ordinary card because of it.
+    $stripeClient = new class implements ClientInterface
+    {
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $charge = [
+                'id' => 'ch_wallet_installment',
+                'object' => 'charge',
+                'amount' => 1000,
+                'currency' => 'myr',
+                'balance_transaction' => [
+                    'id' => 'txn_wallet',
+                    'object' => 'balance_transaction',
+                    'fee' => 130,
+                    'amount' => 1000,
+                    'currency' => 'myr',
+                    'exchange_rate' => null,
+                    'fee_details' => [],
+                ],
+                'payment_method_details' => [
+                    'type' => 'card',
+                    'card' => [
+                        'brand' => 'visa',
+                        'last4' => '7882',
+                        'country' => 'MY',
+                        'wallet' => ['type' => 'google_pay'],
+                    ],
+                ],
+            ];
+
+            $response = match (true) {
+                str_contains($absUrl, '/v1/payment_methods/') => [
+                    'id' => 'pm_wallet_card',
+                    'object' => 'payment_method',
+                    'type' => 'card',
+                    'card' => ['brand' => 'visa', 'last4' => '7882', 'exp_month' => 12, 'exp_year' => 2030, 'country' => 'MY'],
+                    'billing_details' => ['address' => null, 'name' => null, 'email' => null, 'phone' => null],
+                ],
+                str_contains($absUrl, '/v1/payment_intents/') => [
+                    'id' => 'pi_wallet_installment',
+                    'object' => 'payment_intent',
+                    'status' => 'succeeded',
+                    'amount' => 1000,
+                    'currency' => 'myr',
+                    'payment_method' => 'pm_wallet_card',
+                    'latest_charge' => $charge,
+                ],
+                default => ['id' => 'ch_wallet_installment', 'object' => 'charge'] + $charge,
+            };
+
+            return [json_encode($response), 200, []];
+        }
+    };
+
+    ApiRequestor::setHttpClient($stripeClient);
+
+    $organization = Organization::factory()->create(['stripe_account_id' => 'acct_wallet']);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->create([
+        'donor_id' => $donor->id,
+        'stripe_payment_intent_id' => 'pi_wallet_installment',
+        'currency' => 'myr',
+        'gross_amount' => 10,
+    ]);
+
+    // Exactly what a confirmed installment hands over: the charge as an id.
+    $intent = PaymentIntent::constructFrom([
+        'id' => 'pi_wallet_installment',
+        'object' => 'payment_intent',
+        'status' => 'succeeded',
+        'amount' => 1000,
+        'currency' => 'myr',
+        'payment_method' => 'pm_wallet_card',
+        'latest_charge' => 'ch_wallet_installment',
+    ]);
+
+    app(SyncDonationStripeDetails::class)->sync($donation, $intent);
+
+    expect($donation->fresh()->payment_method_type)->toBe('google_pay');
+
+    ApiRequestor::setHttpClient(CurlClient::instance());
 });

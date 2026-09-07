@@ -291,7 +291,9 @@ class SubscriptionShow extends Component
      */
     public function reactivateSubscription(): void
     {
-        if ($this->subscription->status !== SubscriptionStatus::Cancelled) {
+        // A failed plan is one whose retries ran out. Once the card behind it is
+        // sorted, starting it again is the same act as undoing a cancellation.
+        if (! in_array($this->subscription->status, [SubscriptionStatus::Cancelled, SubscriptionStatus::Failed], true)) {
             return;
         }
 
@@ -319,7 +321,7 @@ class SubscriptionShow extends Component
 
     public function openReactivateModal(): void
     {
-        if ($this->subscription->status !== SubscriptionStatus::Cancelled) {
+        if (! in_array($this->subscription->status, [SubscriptionStatus::Cancelled, SubscriptionStatus::Failed], true)) {
             return;
         }
 
@@ -344,6 +346,61 @@ class SubscriptionShow extends Component
             $this->subscription->interval,
             CarbonImmutable::now(),
         ));
+    }
+
+    public bool $showRetryModal = false;
+
+    public function openRetryModal(): void
+    {
+        if ($this->subscription->status !== SubscriptionStatus::PastDue) {
+            return;
+        }
+
+        $this->showRetryModal = true;
+    }
+
+    public function closeRetryModal(): void
+    {
+        $this->showRetryModal = false;
+    }
+
+    /**
+     * Charge a plan whose last installment failed, without waiting for the
+     * scheduled retry. Recovering one used to mean editing the database by
+     * hand: the charge action only touches active plans, so a past-due plan
+     * could sit there until its own retry came round.
+     */
+    public function retryInstallmentNow(): void
+    {
+        if ($this->subscription->status !== SubscriptionStatus::PastDue) {
+            return;
+        }
+
+        $this->subscription->update([
+            'status' => SubscriptionStatus::Active,
+            'next_charge_at' => now(),
+        ]);
+
+        try {
+            $result = app(ChargeRecurringInstallmentAction::class)->handle($this->subscription);
+        } catch (\Exception $e) {
+            $this->dispatch('notify', type: 'error', message: 'Unable to retry this installment. Please try again.');
+
+            return;
+        }
+
+        $this->subscription->refresh();
+        $this->showRetryModal = false;
+
+        if ($result->succeeded()) {
+            $this->dispatch('notify', type: 'success', message: 'Installment charged.');
+
+            return;
+        }
+
+        // The charge action has already rescheduled the retry and put the plan
+        // back to past due, so say what happened rather than pretend it worked.
+        $this->dispatch('notify', type: 'error', message: 'The card was declined again. The plan stays past due.');
     }
 
     public function openCancelModal(): void
