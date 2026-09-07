@@ -196,6 +196,22 @@ class DonationForm extends Component
         return $methods;
     }
 
+    /**
+     * The smallest donation this campaign will take, written in whatever
+     * currency the donor is giving in. A campaign's minimum is always set in
+     * ringgit, and applying that figure straight to dollars made the bar four
+     * times higher than anyone configured - a USD 5 gift was refused against a
+     * RM10 minimum, with nothing on screen to explain it.
+     */
+    public function minimumAmount(): float
+    {
+        $campaignMinimum = (float) ($this->campaign?->minimum_amount
+            ?? $this->element?->campaign?->minimum_amount
+            ?? 1);
+
+        return Currency::minimumDonation($campaignMinimum, $this->currency);
+    }
+
     public function selectCurrency(string $currency, bool $resetAmount = true): void
     {
         if ($this->isChipGateway()) {
@@ -220,6 +236,8 @@ class DonationForm extends Component
             currency: $currency,
             symbol: Currency::symbol($currency),
             amount: $this->amount,
+            minimumAmount: $this->minimumAmount(),
+            walletMinimum: Currency::chargeMinimum($currency),
             oneTimeAmounts: $this->suggestedAmounts('one_time'),
             monthlyAmounts: $this->suggestedAmounts('monthly'),
         );
@@ -1424,7 +1442,7 @@ class DonationForm extends Component
     protected function rules(): array
     {
         $rules = [
-            'amount' => ['required', 'numeric', 'min:'.($this->campaign?->minimum_amount ?? $this->element?->campaign?->minimum_amount ?? 1), 'max:100000'],
+            'amount' => ['required', 'numeric', 'min:'.$this->minimumAmount(), 'max:100000'],
             'currency' => ['required', 'string', 'in:myr,usd,sgd'],
             'frequency' => [
                 'required',

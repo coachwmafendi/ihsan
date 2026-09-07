@@ -460,3 +460,40 @@ it('writes the rejected wallet donation to the log', function () {
         ->withArgs(fn (string $message, array $context): bool => $message === 'Wallet donation rejected before it could start'
             && $context['currency'] === 'myr');
 });
+
+it('judges a foreign-currency gift by the minimum in that currency', function () {
+    // The campaign asks for RM10. A USD 5 gift is more than twice that, and was
+    // refused anyway because the ringgit figure was applied to dollars.
+    mockIntent();
+
+    $this->campaign->update(['minimum_amount' => 10]);
+    $this->organization->update(['settings' => ['accepted_currencies' => ['myr', 'usd']]]);
+
+    Livewire::test(DonationForm::class, ['element' => $this->element->fresh()])
+        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com', null, [
+            'amount' => 5,
+            'frequency' => 'one_time',
+            'currency' => 'usd',
+            'coverFee' => false,
+        ]);
+
+    expect(Donation::query()->sole())
+        ->currency->toBe('usd')
+        ->and((float) Donation::query()->sole()->gross_amount)->toBe(5.0);
+});
+
+it('still refuses a foreign gift below the campaign minimum', function () {
+    $this->campaign->update(['minimum_amount' => 10]);
+    $this->organization->update(['settings' => ['accepted_currencies' => ['myr', 'usd']]]);
+
+    $attempt = fn () => Livewire::test(DonationForm::class, ['element' => $this->element->fresh()])
+        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com', null, [
+            'amount' => 1,
+            'frequency' => 'one_time',
+            'currency' => 'usd',
+            'coverFee' => false,
+        ]);
+
+    expect($attempt)->toThrow(RuntimeException::class);
+    expect(Donation::query()->count())->toBe(0);
+});
