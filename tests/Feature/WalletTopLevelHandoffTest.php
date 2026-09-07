@@ -155,3 +155,26 @@ it('leaves the wallet in the frame on a domain Stripe reports as verified', func
     expect(embeddedOn('https://tahfizannur.org/derma')->instance()->walletRequiresTopLevel())
         ->toBeFalse();
 });
+
+it('carries the page the donor came from through the handoff', function () {
+    // The handoff leaves the organisation's site, and a donation that records
+    // our own checkout as its source tells every ad platform the wrong thing.
+    // A real handoff donation was filed against app.getihsan.my this way.
+    $url = embeddedOn('https://mtaqlaa.onpay.my/order/form/infaq')
+        ->instance()
+        ->topLevelCheckoutUrl();
+
+    expect($url)->toContain('pu='.urlencode('https://mtaqlaa.onpay.my/order/form/infaq'));
+});
+
+it('leaves the handoff url clean when there is no host page to record', function () {
+    expect(Livewire::test(DonationForm::class, ['element' => $this->element])->instance()->topLevelCheckoutUrl())
+        ->not->toContain('pu=');
+});
+
+it('appends the donor choices to a handoff url that already carries the host page', function () {
+    // Two query strings joined with a second "?" would drop everything after it.
+    $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
+        ->assertOk()
+        ->assertSee("this.topLevelCheckoutUrl.includes('?') ? '&' : '?'", false);
+});

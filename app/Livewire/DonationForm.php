@@ -850,9 +850,16 @@ class DonationForm extends Component
     {
         $token = $this->element?->token;
 
-        return $token
+        $url = $token
             ? route('donations.show', $token)
             : url()->current();
+
+        // The handoff leaves the organisation's site behind, so without carrying
+        // the page the donor came from, the donation records our own checkout as
+        // its source and every ad platform is told the wrong thing.
+        return filled($this->parentPageUrl)
+            ? $url.'?pu='.urlencode($this->parentPageUrl)
+            : $url;
     }
 
     /**

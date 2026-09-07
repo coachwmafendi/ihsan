@@ -263,7 +263,9 @@
                             cover_fee: this.coverFee ? '1' : '0',
                         });
 
-                        return this.topLevelCheckoutUrl + '?' + params.toString();
+                        const separator = this.topLevelCheckoutUrl.includes('?') ? '&' : '?';
+
+                        return this.topLevelCheckoutUrl + separator + params.toString();
                     },
                     // A monthly gift declares different terms to the wallet, and those
                     // are fixed when the element is created.
