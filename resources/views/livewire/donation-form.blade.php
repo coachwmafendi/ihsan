@@ -466,13 +466,48 @@
                                 </label>
                             @endif
 
+                            {{-- Wallet buttons take the name and email straight from
+                                 Apple Pay or Google Pay, so a donor who has one skips
+                                 the two steps that only exist to collect them. The
+                                 block stays hidden until Stripe confirms the device
+                                 actually offers a wallet, so nobody sees an empty gap. --}}
+                            @if ($isStripeGateway)
+                                {{-- The mount point stays in the layout even when no
+                                     wallet is available: Stripe cannot work out what
+                                     the device offers inside a hidden element, and it
+                                     renders nothing when there is nothing to show, so
+                                     an empty container takes no space. --}}
+                                <div id="express-checkout-element"></div>
+
+                                <div x-show="expressAvailable && frequency === 'one_time'" x-cloak class="flex items-center gap-3">
+                                    <span class="h-px flex-1 bg-slate-200"></span>
+                                    <span class="text-xs font-medium uppercase tracking-wide text-slate-400">or</span>
+                                    <span class="h-px flex-1 bg-slate-200"></span>
+                                </div>
+
+                                <div x-show="expressError" x-cloak class="text-xs text-red-600" x-text="expressError"></div>
+                            @endif
+
+                             @php
+                                 $primaryButtonText = $isEmbed ? $this->config('button_text', 'Continue') : 'Continue';
+                                 $organiserSetButtonText = $isEmbed && filled($this->config('button_text'));
+                             @endphp
                              <button
                                  type="button"
                                  x-on:click="nextStep()"
                                  x-bind:disabled="processing"
                                  class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
                              >
-                                 {{ $isEmbed ? $this->config('button_text', 'Continue') : 'Continue' }} &rarr;
+                                 @if ($isStripeGateway && ! $organiserSetButtonText)
+                                     {{-- With a wallet button above, "Continue" no longer
+                                          says where it leads; name the card path instead.
+                                          Without one there is nothing to contrast against,
+                                          so the neutral label stays. --}}
+                                     <span x-show="! (expressAvailable && frequency === 'one_time')">{{ $primaryButtonText }} &rarr;</span>
+                                     <span x-show="expressAvailable && frequency === 'one_time'" x-cloak>Donate with card</span>
+                                 @else
+                                     {{ $primaryButtonText }} &rarr;
+                                 @endif
                              </button>
                          </div>{{-- end Step 1 --}}
 
