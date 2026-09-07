@@ -685,8 +685,11 @@ class DonationForm extends Component
      */
     public function submitExpress(string $name, string $email, ?string $phone = null): string
     {
+        // The button is hidden for monthly gifts and CHIP campaigns, so reaching
+        // here means the donor changed something mid-tap. Hand back nothing and
+        // let the checkout fall through to the form rather than raising a 500.
         if (! $this->expressCheckoutAvailable()) {
-            throw new \RuntimeException('Express checkout is not available for this donation.');
+            return '';
         }
 
         [$firstName, $lastName] = $this->splitPayerName($name);
