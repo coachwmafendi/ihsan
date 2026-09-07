@@ -220,3 +220,26 @@ it('reads the wallet list under the name Stripe actually sends', function () {
         ->assertSee("availablepaymentmethodschange', ({ paymentMethods })", false)
         ->assertDontSee('availablePaymentMethods', false);
 });
+
+it('names the card path once a wallet button sits above it', function () {
+    // "Continue" stops saying where it leads once there is a wallet button to
+    // contrast against, so the label switches to name the card path.
+    $this->get(route('donations.show', $this->element))
+        ->assertOk()
+        ->assertSee('Donate with card', false)
+        ->assertSee("x-show=\"! (expressAvailable && frequency === 'one_time')\"", false);
+});
+
+it('leaves an organiser who set their own button text alone', function () {
+    $this->element->update(['config' => [
+        'template' => 'secure-donation',
+        'button_text' => 'Sumbang Sekarang',
+    ]]);
+
+    // The organiser's own wording only applies to the embedded form.
+    $response = $this->get(route('donations.show', $this->element).'?embed=1')->assertOk();
+
+    expect($response->getContent())
+        ->toContain('Sumbang Sekarang')
+        ->not->toContain('Donate with card');
+});

@@ -488,13 +488,26 @@
                                 <div x-show="expressError" x-cloak class="text-xs text-red-600" x-text="expressError"></div>
                             @endif
 
+                             @php
+                                 $primaryButtonText = $isEmbed ? $this->config('button_text', 'Continue') : 'Continue';
+                                 $organiserSetButtonText = $isEmbed && filled($this->config('button_text'));
+                             @endphp
                              <button
                                  type="button"
                                  x-on:click="nextStep()"
                                  x-bind:disabled="processing"
                                  class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
                              >
-                                 {{ $isEmbed ? $this->config('button_text', 'Continue') : 'Continue' }} &rarr;
+                                 @if ($isStripeGateway && ! $organiserSetButtonText)
+                                     {{-- With a wallet button above, "Continue" no longer
+                                          says where it leads; name the card path instead.
+                                          Without one there is nothing to contrast against,
+                                          so the neutral label stays. --}}
+                                     <span x-show="! (expressAvailable && frequency === 'one_time')">{{ $primaryButtonText }} &rarr;</span>
+                                     <span x-show="expressAvailable && frequency === 'one_time'" x-cloak>Donate with card</span>
+                                 @else
+                                     {{ $primaryButtonText }} &rarr;
+                                 @endif
                              </button>
                          </div>{{-- end Step 1 --}}
 
