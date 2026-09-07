@@ -135,3 +135,48 @@ it('says when a paused plan comes back rather than naming an installment', funct
         ->test(SubscriptionIndex::class)
         ->assertSee('Paused — resumes on');
 });
+
+it('lets a past-due plan be retried without touching the database by hand', function () {
+    // The charge action only takes active plans, so a past-due one sat stranded
+    // until its own retry came round - recovering ours meant writing SQL.
+    $subscription = planWith(SubscriptionStatus::PastDue, [
+        'retry_count' => 1,
+        'next_charge_at' => now()->addDay(),
+    ]);
+
+    plan($subscription)
+        ->assertSee('Retry payment now')
+        ->assertSee('Update payment details')
+        ->assertDontSee('This recurring plan has ended');
+});
+
+it('offers a failed plan the same way back as a cancelled one', function () {
+    $subscription = planWith(SubscriptionStatus::Failed, ['next_charge_at' => null]);
+
+    plan($subscription)
+        ->assertSee('Reactivate plan')
+        ->assertSee('no retries remain');
+
+    plan($subscription)->call('reactivateSubscription');
+
+    expect($subscription->fresh()->status)->toBe(SubscriptionStatus::Active);
+});
+
+it('says a plan that never started never started', function (SubscriptionStatus $status) {
+    // Calling these "ended" suggested something had run and stopped.
+    plan(planWith($status))
+        ->assertSee('This plan never started')
+        ->assertDontSee('This recurring plan has ended');
+})->with([
+    'incomplete' => [SubscriptionStatus::Incomplete],
+    'expired' => [SubscriptionStatus::IncompleteExpired],
+]);
+
+it('refuses to retry a plan that is not past due', function () {
+    $subscription = planWith(SubscriptionStatus::Active, ['next_charge_at' => now()->addMonth()]);
+
+    plan($subscription)->call('retryInstallmentNow');
+
+    expect($subscription->fresh()->status)->toBe(SubscriptionStatus::Active)
+        ->and($subscription->fresh()->next_charge_at->isFuture())->toBeTrue();
+});

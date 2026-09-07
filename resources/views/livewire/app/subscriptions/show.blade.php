@@ -718,7 +718,32 @@
                             <x-heroicon-o-trash class="size-5 text-red-400" />
                             Cancel recurring
                         </button>
-                    @elseif ($subscription->status === App\Enums\SubscriptionStatus::Cancelled)
+                    @elseif ($subscription->status === App\Enums\SubscriptionStatus::PastDue)
+                        {{-- A failed installment left the plan stranded until its own
+                             retry came round; recovering one meant editing the
+                             database by hand. --}}
+                        <button
+                            wire:click="openRetryModal"
+                            class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                            <x-heroicon-o-arrow-path class="size-5 text-slate-400" />
+                            Retry payment now
+                        </button>
+                        <button
+                            wire:click="openEditPaymentDetailsModal"
+                            class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                            <x-heroicon-o-credit-card class="size-5 text-slate-400" />
+                            Update payment details
+                        </button>
+                        <button
+                            wire:click="openCancelModal"
+                            class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 transition hover:bg-red-50"
+                        >
+                            <x-heroicon-o-trash class="size-5 text-red-400" />
+                            Cancel recurring
+                        </button>
+                    @elseif (in_array($subscription->status, [App\Enums\SubscriptionStatus::Cancelled, App\Enums\SubscriptionStatus::Failed], true))
                         <button
                             wire:click="openReactivateModal"
                             class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
@@ -727,7 +752,17 @@
                             Reactivate plan
                         </button>
                         <div class="px-4 py-3 text-xs text-slate-500">
-                            Cancelled on {{ myrTime($subscription->cancelled_at) }}. No charges are being made.
+                            @if ($subscription->status === App\Enums\SubscriptionStatus::Failed)
+                                Payment failed and no retries remain. No charges are being made.
+                            @else
+                                Cancelled on {{ myrTime($subscription->cancelled_at) }}. No charges are being made.
+                            @endif
+                        </div>
+                    @elseif (in_array($subscription->status, [App\Enums\SubscriptionStatus::Incomplete, App\Enums\SubscriptionStatus::IncompleteExpired], true))
+                        {{-- These never took a first payment, so calling them ended
+                             suggested something ran and stopped. --}}
+                        <div class="px-4 py-3 text-sm text-slate-600">
+                            This plan never started. No installment was ever taken.
                         </div>
                     @else
                         <div class="px-4 py-3 text-sm text-slate-600">
@@ -1103,6 +1138,26 @@
     </flux:modal>
 
     {{-- Skip Installments Modal --}}
+    <flux:modal wire:model="showRetryModal" name="retry-installment-modal">
+        <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-slate-900">Retry payment now</h3>
+
+            <p class="text-sm text-slate-600">
+                This charges the supporter
+                <span class="font-medium text-slate-900">{{ $this->formattedAmount() }}</span>
+                straight away, instead of waiting for the scheduled retry. If the
+                card is declined again the plan stays past due.
+            </p>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <flux:modal.close>
+                    <x-ui.button wireClick="closeRetryModal" variant="secondary">Cancel</x-ui.button>
+                </flux:modal.close>
+                <x-ui.button wireClick="retryInstallmentNow" variant="primary">Charge now</x-ui.button>
+            </div>
+        </div>
+    </flux:modal>
+
     <flux:modal wire:model="showReactivateModal" name="reactivate-recurring-modal">
         <div class="space-y-4">
             <h3 class="text-lg font-semibold text-slate-900">Reactivate recurring plan</h3>
