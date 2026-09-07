@@ -6,10 +6,13 @@ use App\Actions\Stripe\FetchPaymentMethodDomainStatuses;
 use App\Actions\Stripe\RegisterPaymentMethodDomains;
 use App\Jobs\RegisterStripePaymentMethodDomains;
 use App\Livewire\App\Settings\AllowDomains;
+use App\Models\Campaign;
+use App\Models\Donation;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Stripe\Exception\InvalidRequestException;
 use Stripe\StripeClient;
 
 uses(RefreshDatabase::class);
@@ -329,4 +332,122 @@ it('says so when Ihsan itself has no checkout domain configured', function () {
         ->call('loadDomainStatuses')
         ->assertSee('Not configured')
         ->assertSee('no checkout domain configured');
+});
+
+/**
+ * Build a StripeClient whose create() refuses with a Stripe API error.
+ */
+function fakeStripeClientRefusingDomains(string $message): StripeClient
+{
+    $service = Mockery::mock();
+    $service->shouldReceive('all')->andReturn(new class
+    {
+        /** @var array<int, object> */
+        public array $data = [];
+    });
+    $service->shouldReceive('create')->andThrow(new InvalidRequestException($message));
+
+    $client = Mockery::mock(StripeClient::class);
+    $client->paymentMethodDomains = $service;
+
+    return $client;
+}
+
+it('keeps the reason Stripe refused a domain', function () {
+    // Stripe will not register a domain whose verification file it cannot
+    // fetch, so the domain is absent from its records entirely and "pending"
+    // is a misreading - it is never going to arrive on its own.
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['mtaqlaa.onpay.my']],
+    ]);
+
+    (new RegisterPaymentMethodDomains(
+        fakeStripeClientRefusingDomains('The domain could not be verified.')
+    ))->register($org);
+
+    expect($org->fresh()->settings['payment_domain_errors']['mtaqlaa.onpay.my'])
+        ->toContain('could not be verified');
+});
+
+it('shows the refusal instead of calling a rejected domain pending', function () {
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => [
+            'allowed_domains' => ['mtaqlaa.onpay.my'],
+            'payment_domain_errors' => ['mtaqlaa.onpay.my' => 'The domain could not be verified.'],
+        ],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([])
+    ));
+
+    $component = Livewire::actingAs($user)->test(AllowDomains::class)
+        ->call('loadDomainStatuses')
+        ->assertSee('Not registered')
+        ->assertSee('The domain could not be verified.');
+
+    // Pending still belongs to a domain we simply have not heard back about.
+    expect($component->instance()->walletStatusFor('mtaqlaa.onpay.my'))
+        ->label->toBe('Not registered')
+        ->tone->toBe('failed');
+});
+
+it('clears a stored refusal once the domain registers', function () {
+    $created = [];
+
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => [
+            'allowed_domains' => ['mtaqlaa.onpay.my'],
+            'payment_domain_errors' => ['mtaqlaa.onpay.my' => 'The domain could not be verified.'],
+        ],
+    ]);
+
+    (new RegisterPaymentMethodDomains(fakeStripeClientForDomains($created)))->register($org);
+
+    expect($org->fresh()->settings['payment_domain_errors'])->toBe([]);
+});
+
+it('points out a subdomain donations arrive from that nobody registered', function () {
+    // The parent domain being verified is no help: Stripe registers domains
+    // exactly, so give.example.org loses its wallets while example.org is green.
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['onpay.my']],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+    $campaign = Campaign::factory()->for($org)->create();
+
+    Donation::factory()->for($campaign)->create(['page_url' => 'https://mtaqlaa.onpay.my/order/form/infaq-overseas']);
+    Donation::factory()->for($campaign)->create(['page_url' => 'https://onpay.my/give']);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([])
+    ));
+
+    $component = Livewire::actingAs($user)->test(AllowDomains::class);
+
+    expect($component->instance()->unregisteredEmbeddingDomains())->toBe(['mtaqlaa.onpay.my']);
+
+    $component->assertSee('Donations are coming from domains you have not added')
+        ->assertSee('mtaqlaa.onpay.my');
+});
+
+it('does not flag the checkout domain or a domain already added', function () {
+    config()->set('app.app_panel_domain', 'app.getihsan.my');
+
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['tahfizannur.org']],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+    $campaign = Campaign::factory()->for($org)->create();
+
+    Donation::factory()->for($campaign)->create(['page_url' => 'https://www.tahfizannur.org/derma']);
+    Donation::factory()->for($campaign)->create(['page_url' => 'https://app.getihsan.my/donate/abc']);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([])
+    ));
+
+    expect(Livewire::actingAs($user)->test(AllowDomains::class)->instance()->unregisteredEmbeddingDomains())
+        ->toBe([]);
 });

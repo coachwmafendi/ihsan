@@ -7,9 +7,12 @@ namespace App\Livewire\App\Settings;
 use App\Actions\Stripe\FetchPaymentMethodDomainStatuses;
 use App\Actions\Stripe\RegisterPaymentMethodDomains;
 use App\Jobs\RegisterStripePaymentMethodDomains;
+use App\Models\Campaign;
+use App\Models\Donation;
 use App\Models\Organization;
 use App\Support\DomainName;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -78,6 +81,11 @@ class AllowDomains extends Component
 
         $register->register($org);
 
+        // register() records any refusal on the organization, and the copy
+        // hanging off the signed-in user still holds the settings from before.
+        $org->refresh();
+        Auth::user()?->setRelation('organization', $org);
+
         $this->domain_statuses = $statuses->fetch($org, fresh: true);
         $this->statuses_loaded = true;
 
@@ -104,10 +112,17 @@ class AllowDomains extends Component
      */
     public function walletStatusFor(string $domain): array
     {
-        $status = $this->domain_statuses[DomainName::normalize($domain)] ?? null;
+        $normalized = DomainName::normalize($domain);
+        $status = $this->domain_statuses[$normalized] ?? null;
 
         if ($status === null) {
-            return ['label' => 'Pending verification', 'tone' => 'pending', 'error' => null];
+            $refusal = $this->registrationErrorFor($normalized);
+
+            // Stripe holds no record of it, so either registration was refused
+            // - and we kept the reason - or the job simply has not run yet.
+            return $refusal
+                ? ['label' => 'Not registered', 'tone' => 'failed', 'error' => $refusal]
+                : ['label' => 'Pending verification', 'tone' => 'pending', 'error' => null];
         }
 
         $active = collect(['apple_pay', 'google_pay'])
@@ -118,6 +133,53 @@ class AllowDomains extends Component
             1 => ['label' => 'Partly active', 'tone' => 'partial', 'error' => $status['error']],
             default => ['label' => 'Not verified', 'tone' => 'failed', 'error' => $status['error']],
         };
+    }
+
+    private function registrationErrorFor(string $normalizedDomain): ?string
+    {
+        $errors = (array) ($this->organization()?->settings['payment_domain_errors'] ?? []);
+
+        return $errors[$normalizedDomain] ?? null;
+    }
+
+    /**
+     * Hosts donations actually arrived from that nobody has registered.
+     *
+     * A subdomain is a separate domain to Stripe, so a site embedded at
+     * give.example.org loses its wallet buttons while example.org sits in the
+     * list showing green - the failure is invisible from this page alone. The
+     * donations already record the page they came from, so no extra tracking
+     * is needed to spot it.
+     *
+     * @return array<int, string>
+     */
+    #[Computed]
+    public function unregisteredEmbeddingDomains(): array
+    {
+        $org = $this->organization();
+
+        if (! $org) {
+            return [];
+        }
+
+        $known = collect($this->normalizeDomains($this->allowed_domains))
+            ->push($this->checkoutDomain())
+            ->filter()
+            ->all();
+
+        return Donation::query()
+            ->whereIn('campaign_id', Campaign::query()->where('organization_id', $org->id)->select('id'))
+            ->whereNotNull('page_url')
+            ->where('created_at', '>=', now()->subDays(90))
+            ->orderByDesc('id')
+            ->limit(500)
+            ->pluck('page_url')
+            ->map(fn (string $url): string => DomainName::normalize((string) (parse_url($url, PHP_URL_HOST) ?: '')))
+            ->filter()
+            ->reject(fn (string $host): bool => in_array($host, $known, true))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public function addDomain(string $domain): void

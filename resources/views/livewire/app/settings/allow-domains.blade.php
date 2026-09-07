@@ -99,6 +99,28 @@
                         @endforeach
                     </ul>
 
+                    @php $unregistered = $this->unregisteredEmbeddingDomains; @endphp
+
+                    @if ($unregistered !== [])
+                        <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
+                            <p class="text-sm font-medium text-amber-900">Donations are coming from domains you have not added</p>
+                            <p class="mt-1 text-xs text-amber-800">
+                                Stripe treats every subdomain as its own domain, so wallets stay hidden on these pages even when the domain above them is verified. Add each one below.
+                            </p>
+
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @foreach ($unregistered as $host)
+                                    <button
+                                        type="button"
+                                        wire:click="addDomain('{{ $host }}')"
+                                        class="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-white px-3 py-1 text-xs font-medium text-amber-900 transition-colors hover:bg-amber-100">
+                                        + {{ $host }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <p class="text-xs text-slate-400">
                         Apple Pay and Google Pay only appear when Stripe has verified both your site and the Ihsan checkout it embeds. Verification runs after you save and can take a moment; use <span class="font-medium text-slate-500">Recheck wallets</span> if a domain stays unverified.
                     </p>
