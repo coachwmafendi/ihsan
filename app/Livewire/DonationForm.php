@@ -684,14 +684,24 @@ class DonationForm extends Component
      * the form: the same validation, fraud checks, tracking, fee calculation
      * and pending-attempt reuse.
      */
-    public function submitExpress(string $name, string $email, ?string $phone = null): string
+    /**
+     * @param  array{amount?: mixed, frequency?: mixed, currency?: mixed, coverFee?: mixed}|null  $selection
+     *                                                                                                        What the donor chose on the amount step. It lives only in
+     *                                                                                                        the browser until a donation is submitted, and the wallet
+     *                                                                                                        skips the step that would otherwise send it - so without
+     *                                                                                                        this the charge is built from whatever the page was
+     *                                                                                                        rendered with rather than what the donor picked.
+     */
+    public function submitExpress(string $name, string $email, ?string $phone = null, ?array $selection = null): string
     {
-        // The button is hidden for monthly gifts and CHIP campaigns, so reaching
-        // here means the donor changed something mid-tap. Hand back nothing and
-        // let the checkout fall through to the form rather than raising a 500.
+        // The button is hidden for CHIP campaigns, so reaching here means the
+        // donor changed something mid-tap. Hand back nothing and let the
+        // checkout fall through to the form rather than raising a 500.
         if (! $this->expressCheckoutAvailable()) {
             return '';
         }
+
+        $this->applyExpressSelection($selection ?? []);
 
         [$firstName, $lastName] = $this->splitPayerName($name);
 
@@ -704,6 +714,31 @@ class DonationForm extends Component
         }
 
         return $this->submit();
+    }
+
+    /**
+     * Currency runs through selectCurrency so an organisation that does not
+     * accept it is not charged in it; everything else is left to validate().
+     *
+     * @param  array{amount?: mixed, frequency?: mixed, currency?: mixed, coverFee?: mixed}  $selection
+     */
+    private function applyExpressSelection(array $selection): void
+    {
+        if (isset($selection['currency']) && is_string($selection['currency'])) {
+            $this->selectCurrency($selection['currency'], resetAmount: false);
+        }
+
+        if (isset($selection['frequency']) && is_string($selection['frequency'])) {
+            $this->frequency = $selection['frequency'];
+        }
+
+        if (isset($selection['amount']) && is_numeric($selection['amount'])) {
+            $this->amount = (float) $selection['amount'];
+        }
+
+        if (array_key_exists('coverFee', $selection)) {
+            $this->coverFee = (bool) $selection['coverFee'];
+        }
     }
 
     /**
