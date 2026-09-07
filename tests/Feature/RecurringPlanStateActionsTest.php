@@ -1,0 +1,137 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Enums\SubscriptionStatus;
+use App\Livewire\App\Subscriptions\SubscriptionIndex;
+use App\Livewire\App\Subscriptions\SubscriptionShow;
+use App\Models\Campaign;
+use App\Models\Organization;
+use App\Models\Subscription;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
+/**
+ * The panel only ever offered actions on an active plan. Everything else fell
+ * through to "This recurring plan has ended", which was false for a paused plan
+ * and left no way back from it - the only route out was writing SQL by hand.
+ */
+beforeEach(function () {
+    $this->organization = Organization::factory()->stripeConnected()->create();
+    $this->user = User::factory()->create(['organization_id' => $this->organization->id]);
+    $this->campaign = Campaign::factory()->for($this->organization)->create();
+});
+
+function planWith(SubscriptionStatus $status, array $attributes = []): Subscription
+{
+    return Subscription::factory()->for(test()->campaign)->create(array_merge([
+        'status' => $status,
+        // App-controlled: these are the plans this panel schedules itself.
+        'stripe_subscription_id' => null,
+        'created_at' => now()->subMonths(2)->setDay(8),
+    ], $attributes));
+}
+
+function plan(Subscription $subscription): Testable
+{
+    return Livewire::actingAs(test()->user)->test(SubscriptionShow::class, ['subscription' => $subscription]);
+}
+
+it('offers a paused plan a way back', function () {
+    $subscription = planWith(SubscriptionStatus::Paused, [
+        'paused_until' => now()->addMonths(3),
+        'next_charge_at' => now()->addMonths(3),
+    ]);
+
+    plan($subscription)
+        ->assertSee('Resume plan')
+        ->assertDontSee('This recurring plan has ended');
+});
+
+it('brings a resumed plan back to its own billing day, not further away', function () {
+    // Resuming used to add an interval to a date already months out, so every
+    // resume pushed the donor's next charge another month into the future.
+    $subscription = planWith(SubscriptionStatus::Paused, [
+        'paused_until' => now()->addMonths(3),
+        'next_charge_at' => now()->addMonths(3),
+    ]);
+
+    plan($subscription)->call('resumeSubscription');
+
+    $subscription->refresh();
+
+    expect($subscription->status)->toBe(SubscriptionStatus::Active)
+        ->and($subscription->paused_until)->toBeNull()
+        ->and($subscription->next_charge_at->isAfter(now()))->toBeTrue()
+        ->and($subscription->next_charge_at->isBefore(now()->addMonths(2)))->toBeTrue();
+});
+
+it('lets a cancelled plan be started again, once someone confirms it', function () {
+    // The supporter was told it had stopped, so this cannot be a single click.
+    $subscription = planWith(SubscriptionStatus::Cancelled, [
+        'cancelled_at' => now()->subDay(),
+        'cancellation_reason' => 'Cancelled by mistake',
+        'next_charge_at' => null,
+    ]);
+
+    $component = plan($subscription)->assertSee('Reactivate plan');
+
+    $component->call('openReactivateModal')->assertSet('showReactivateModal', true);
+
+    $component->call('reactivateSubscription');
+
+    $subscription->refresh();
+
+    expect($subscription->status)->toBe(SubscriptionStatus::Active)
+        ->and($subscription->cancelled_at)->toBeNull()
+        ->and($subscription->cancellation_reason)->toBeNull()
+        ->and($subscription->next_charge_at)->not->toBeNull();
+});
+
+it('refuses to resume a plan that was never paused', function () {
+    $subscription = planWith(SubscriptionStatus::Cancelled, ['cancelled_at' => now()]);
+
+    plan($subscription)->call('resumeSubscription');
+
+    expect($subscription->fresh()->status)->toBe(SubscriptionStatus::Cancelled);
+});
+
+it('still calls a completed plan ended', function () {
+    $subscription = planWith(SubscriptionStatus::Completed);
+
+    plan($subscription)
+        ->assertSee('This recurring plan has ended')
+        ->assertDontSee('Resume plan');
+});
+
+it('does not promise an installment a stopped plan will never take', function (SubscriptionStatus $status, string $expected) {
+    // The tooltip fell back to the old period end when there was no next charge,
+    // so a cancelled plan still advertised a date months away.
+    $subscription = planWith($status, [
+        'next_charge_at' => null,
+        'current_period_end' => now()->addMonth(),
+        'cancelled_at' => $status === SubscriptionStatus::Cancelled ? now() : null,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->assertSee($expected);
+})->with([
+    'cancelled' => [SubscriptionStatus::Cancelled, 'no further installments'],
+    'completed' => [SubscriptionStatus::Completed, 'Completed — no further installments'],
+]);
+
+it('says when a paused plan comes back rather than naming an installment', function () {
+    planWith(SubscriptionStatus::Paused, [
+        'paused_until' => now()->addMonths(3),
+        'next_charge_at' => now()->addMonths(3),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->assertSee('Paused — resumes on');
+});

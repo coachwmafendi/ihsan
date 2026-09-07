@@ -11,8 +11,16 @@ class ResumeLocalRecurringPlan
 {
     public function resume(Subscription $subscription): void
     {
-        $base = CarbonImmutable::instance($subscription->next_charge_at ?? now());
-        $nextChargeAt = SubscriptionSchedule::nextChargeAt($base, $subscription->interval);
+        // Step forward from where the plan started, not from the paused date.
+        // Adding an interval to a date already months away pushed the next
+        // charge further out every time anyone resumed.
+        $anchor = CarbonImmutable::instance($subscription->created_at ?? now());
+
+        $nextChargeAt = SubscriptionSchedule::nextChargeAfter(
+            $anchor,
+            $subscription->interval,
+            CarbonImmutable::now(),
+        );
 
         $subscription->update([
             'status' => SubscriptionStatus::Active,
