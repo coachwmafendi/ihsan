@@ -4,7 +4,7 @@
     document.addEventListener('alpine:init', () => {
         if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
             Alpine._donationStepRegistered = true;
-            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe', initialChipPaymentMethods = [], initialChipPaymentMethod = 'card', initialFpxBanks = [], initialRecurringManagementUrl = '') => {
+            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe', initialChipPaymentMethods = [], initialChipPaymentMethod = 'card', initialFpxBanks = [], initialRecurringManagementUrl = '', initialWalletRequiresTopLevel = false, initialTopLevelCheckoutUrl = '') => {
                 let stripe = null;
                 let elements = null;
                 let paymentElement = null;
@@ -15,6 +15,11 @@
                     expressAvailable: false,
                     expressError: '',
                     recurringManagementUrl: initialRecurringManagementUrl,
+                    // Apple validates against the top-level domain, so on a site
+                    // Stripe never registered the wallet can only run if the donor
+                    // leaves it for our own checkout.
+                    walletRequiresTopLevel: initialWalletRequiresTopLevel,
+                    topLevelCheckoutUrl: initialTopLevelCheckoutUrl,
                     amount: String(initialAmount ?? ''),
                     currency: initialCurrency,
                     currencySymbol: initialCurrencySymbol,
@@ -165,6 +170,7 @@
                         // the amount is already settled and the container is hidden.
                         // Stripe cannot measure a hidden element, so do not ask it to.
                         if (this.currentStep !== 1) return;
+                        if (this.walletRequiresTopLevel) return;
                         if (!stripe || expressElement) return;
 
                         const container = document.getElementById('express-checkout-element');
@@ -220,6 +226,30 @@
                         } catch (e) {
                             this.expressAvailable = false;
                         }
+                    },
+                    /**
+                     * Hand the donor to the hosted checkout, where our own domain is
+                     * on top and the wallet is allowed to run. The parent page owns
+                     * the address bar, so it has to do the navigating; opening a new
+                     * tab instead would lose the wallet's own return to this page.
+                     */
+                    openTopLevelCheckout() {
+                        const params = new URLSearchParams({
+                            amount: this.amount,
+                            frequency: this.frequency,
+                            currency: this.currency,
+                            cover_fee: this.coverFee ? '1' : '0',
+                        });
+
+                        const url = this.topLevelCheckoutUrl + '?' + params.toString();
+
+                        if (window.parent !== window) {
+                            window.parent.postMessage({ type: 'ihsan:open-checkout', url }, '*');
+
+                            return;
+                        }
+
+                        window.location.href = url;
                     },
                     // A monthly gift declares different terms to the wallet, and those
                     // are fixed when the element is created.
