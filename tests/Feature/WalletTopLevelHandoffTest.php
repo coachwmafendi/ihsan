@@ -178,3 +178,18 @@ it('appends the donor choices to a handoff url that already carries the host pag
         ->assertOk()
         ->assertSee("this.topLevelCheckoutUrl.includes('?') ? '&' : '?'", false);
 });
+
+it('does not hand off from the page the handoff already landed on', function () {
+    // The hosted checkout carries the site the donor came from so attribution
+    // stays right, and reading that alone made this page offer the handoff
+    // button again - a loop the donor could never get out of.
+    $this->get(route('donations.show', $this->element).'?amount=10&frequency=one_time&currency=myr&cover_fee=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
+        ->assertOk()
+        ->assertSee('id="express-checkout-element"', false)
+        ->assertDontSee('Pay with Apple Pay or Google Pay');
+});
+
+it('still hands off from inside an embedded frame', function () {
+    expect(embeddedOn('https://mtaqlaa.onpay.my/x')->instance()->walletRequiresTopLevel())
+        ->toBeTrue();
+});
