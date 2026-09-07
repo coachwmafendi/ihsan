@@ -10,6 +10,8 @@
                 let paymentElement = null;
                 let expressElements = null;
                 let expressElement = null;
+                let expressAmountTimer = null;
+                let expressAmountWasBelowMinimum = false;
 
                 return {
                     expressAvailable: false,
@@ -172,6 +174,9 @@
                         if (this.currentStep !== 1) return;
                         if (this.walletRequiresTopLevel) return;
                         if (!stripe || expressElement) return;
+                        // Creating one with an amount Stripe cannot charge fails the
+                        // same way updating one does.
+                        if (!this.expressAmountIsChargeable()) return;
 
                         const container = document.getElementById('express-checkout-element');
                         if (!container) return;
@@ -270,21 +275,54 @@
 
                         this.$nextTick(() => this.mountExpressCheckout());
                     },
+                    /**
+                     * Stripe refuses a charge below a per-currency floor, and pushing
+                     * one at a mounted element drops the wallet for good. A donor
+                     * typing their own amount passes through an empty field on the
+                     * way, so the transient value has to be recognised, not clamped
+                     * to something that only looks valid.
+                     */
+                    expressMinimumInCents() {
+                        return { myr: 200, usd: 50, sgd: 50 }[this.currency] ?? 200;
+                    },
+                    expressAmountIsChargeable() {
+                        return this.expressAmountInCents() >= this.expressMinimumInCents();
+                    },
                     expressAmountInCents() {
                         const amount = parseFloat(this.amount) || 0;
                         const cover = this.coverFee ? parseFloat(this.estimatedFeeAmount) || 0 : 0;
-                        return Math.max(50, Math.round((amount + cover) * 100));
+                        return Math.round((amount + cover) * 100);
                     },
                     // The wallet sheet shows a total, so keep it in step with the
                     // amount and the fee cover the donor picked.
                     syncExpressAmount() {
-                        if (!expressElements) return;
+                        // Debounced: every keystroke of a custom amount would otherwise
+                        // reach Stripe, including the empty field in the middle of one.
+                        clearTimeout(expressAmountTimer);
 
-                        try {
-                            expressElements.update({ amount: this.expressAmountInCents(), currency: this.currency });
-                        } catch (e) {
-                            // A stale element is replaced on the next mount.
-                        }
+                        expressAmountTimer = setTimeout(() => {
+                            if (!this.expressAmountIsChargeable()) {
+                                expressAmountWasBelowMinimum = true;
+
+                                return;
+                            }
+
+                            // Stripe gives up on an element it was handed an
+                            // impossible amount, so build a fresh one rather than
+                            // update the one it stopped listening to.
+                            if (expressAmountWasBelowMinimum || !expressElements) {
+                                expressAmountWasBelowMinimum = false;
+                                this.remountExpressCheckout();
+
+                                return;
+                            }
+
+                            try {
+                                expressElements.update({ amount: this.expressAmountInCents(), currency: this.currency });
+                            } catch (e) {
+                                this.remountExpressCheckout();
+                            }
+                        }, 400);
                     },
                     async confirmExpress(event) {
                         this.expressError = '';
