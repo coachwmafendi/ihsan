@@ -394,7 +394,7 @@
                                                     aria-haspopup="listbox"
                                                     class="flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-lg px-2 transition hover:bg-slate-100"
                                                 >
-                                                    <x-currency-flag :currency="$this->currency" style="width:20px;height:14px"/>
+                                                    <x-currency-flag :currency="$this->currency" style="width:21px;height:14px"/>
                                                     <span class="text-sm font-medium text-slate-500" x-text="currency.toUpperCase()">{{ strtoupper($this->currency) }}</span>
                                                     <svg class="mt-0.5 size-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -420,7 +420,7 @@
                                                             x-bind:class="currency === '{{ $code }}' ? 'text-teal-700' : 'text-slate-700'"
                                                             class="flex min-h-11 w-full items-center gap-2 px-3 text-left text-sm font-semibold transition hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
                                                         >
-                                                            <x-currency-flag :currency="$code" style="width:20px;height:14px"/>
+                                                            <x-currency-flag :currency="$code" style="width:21px;height:14px"/>
                                                             <span>{{ $currencyDropdownLabels[$code] ?? strtoupper($code) }}</span>
                                                             <span class="text-xs font-normal text-slate-400">{{ strtoupper($code) }}</span>
                                                         </button>

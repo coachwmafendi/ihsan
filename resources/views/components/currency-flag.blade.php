@@ -2,8 +2,14 @@
 
 @php $currency = strtolower($currency); @endphp
 
+{{-- Every one of these flags has white touching an edge, so on the white
+     checkout they lose their outline. The hairline lives inside the SVG so it
+     hugs the flag itself: the three flags have different aspect ratios and are
+     letterboxed inside a shared box, so a CSS ring would sit away from the
+     artwork. --}}
+
 @if ($currency === 'myr')
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14" {{ $attributes->merge(['class' => 'block shrink-0 overflow-hidden rounded-sm ' . $class]) }}>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 13.333" {{ $attributes->merge(['class' => 'block shrink-0 overflow-hidden rounded-sm ' . $class]) }}>
     <rect width="20" height="14" fill="#fff"/>
     <rect y="0"  width="20" height="1" fill="#CC0001"/>
     <rect y="2"  width="20" height="1" fill="#CC0001"/>
@@ -24,10 +30,11 @@
         6.245,3.901 7.3,3.5   6.245,3.099 7.369,3.196
         6.593,2.378 7.563,2.954 7.219,1.878 7.844,2.817
     "/>
+    <rect x="0.25" y="0.25" width="19.5" height="12.833" rx="0.5" fill="none" stroke="rgba(15,23,42,0.28)" stroke-width="1" vector-effect="non-scaling-stroke"/>
 </svg>
 
 @elseif ($currency === 'usd')
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 10" {{ $attributes->merge(['class' => 'block shrink-0 overflow-hidden rounded-sm ' . $class]) }}>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 10" {{ $attributes->merge(['class' => 'block shrink-0 overflow-hidden rounded-sm ' . $class]) }}>
     <rect width="19" height="10" fill="#fff"/>
     <rect y="0"     width="19" height="0.769" fill="#B22234"/>
     <rect y="1.538" width="19" height="0.769" fill="#B22234"/>
@@ -43,6 +50,7 @@
         </pattern>
     </defs>
     <rect width="7.6" height="5.385" fill="url(#us-stars)"/>
+    <rect x="0.12" y="0.12" width="14.76" height="9.76" rx="0.25" fill="none" stroke="rgba(15,23,42,0.28)" stroke-width="1" vector-effect="non-scaling-stroke"/>
 </svg>
 
 @elseif ($currency === 'sgd')
@@ -56,6 +64,7 @@
     <polygon fill="#fff" points="1.302,0.65 1.33,0.744 1.427,0.744 1.348,0.8 1.376,0.894 1.302,0.838 1.228,0.894 1.256,0.8 1.177,0.744 1.274,0.744"/>
     <polygon fill="#fff" points="1.0,0.65  1.028,0.744 1.125,0.744 1.046,0.8  1.074,0.894 1.0,0.838  0.926,0.894 0.954,0.8  0.875,0.744 0.972,0.744"/>
     <polygon fill="#fff" points="0.844,0.36 0.872,0.454 0.969,0.454 0.89,0.51  0.918,0.604 0.844,0.548 0.77,0.604  0.798,0.51  0.719,0.454 0.816,0.454"/>
+    <rect x="0.02" y="0.02" width="2.96" height="1.96" rx="0.06" fill="none" stroke="rgba(15,23,42,0.28)" stroke-width="1" vector-effect="non-scaling-stroke"/>
 </svg>
 
 @endif
