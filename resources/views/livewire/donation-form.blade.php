@@ -261,7 +261,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates($campaign->payment_gateway?->value ?? 'stripe', $organization->processing_fee_override !== null ? (float) $organization->processing_fee_override : null, $this->donorCountryCode())), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'), @js($this->chipPaymentMethods()), @js($this->chipPaymentMethod), @js(\App\Support\ChipFpxBanks::b2c()), @js($this->recurringManagementUrl()))"
+                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates($campaign->payment_gateway?->value ?? 'stripe', $organization->processing_fee_override !== null ? (float) $organization->processing_fee_override : null, $this->donorCountryCode())), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'), @js($this->chipPaymentMethods()), @js($this->chipPaymentMethod), @js(\App\Support\ChipFpxBanks::b2c()), @js($this->recurringManagementUrl()), @js($this->walletRequiresTopLevel()), @js($this->topLevelCheckoutUrl()))"
                         data-campaign-public-id="{{ $campaign->public_id }}"
                         x-init="$wire.trackServerPageView(window.__IHSAN_PAGEVIEW_ID__ ?? null)"
                         class="relative"
@@ -479,6 +479,23 @@
                                      the device offers inside a hidden element, and it
                                      renders nothing when there is nothing to show, so
                                      an empty container takes no space. --}}
+                                @if ($this->walletRequiresTopLevel())
+                                    {{-- Stripe never registered this site, so Apple would refuse
+                                         the wallet inside the frame however it is offered. --}}
+                                    <button
+                                        type="button"
+                                        x-on:click="openTopLevelCheckout()"
+                                        class="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 text-base font-semibold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.98]"
+                                    >
+                                        Pay with Apple Pay or Google Pay
+                                    </button>
+
+                                    <div class="flex items-center gap-3">
+                                        <span class="h-px flex-1 bg-slate-200"></span>
+                                        <span class="text-xs font-medium uppercase tracking-wide text-slate-400">or</span>
+                                        <span class="h-px flex-1 bg-slate-200"></span>
+                                    </div>
+                                @else
                                 <div id="express-checkout-wrapper">
                                     <div id="express-checkout-element"></div>
                                 </div>
@@ -490,6 +507,7 @@
                                 </div>
 
                                 <div x-show="expressError" x-cloak class="text-xs text-red-600" x-text="expressError"></div>
+                                @endif
                             @endif
 
                              @php

@@ -38,6 +38,7 @@ use App\Services\TrackingScriptService;
 use App\Support\ChipFpxBanks;
 use App\Support\ClientInfo;
 use App\Support\Currency;
+use App\Support\DomainName;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -714,6 +715,57 @@ class DonationForm extends Component
     public function expressCheckoutAvailable(): bool
     {
         return ! $this->isChipGateway();
+    }
+
+    /**
+     * Whether the wallet can only work if the donor leaves the embedding site.
+     *
+     * Apple validates Apple Pay against the top-level domain, so a form embedded
+     * on a site Stripe has not registered gets no wallet at all - and some
+     * organisations cannot fix that, because the site belongs to a third-party
+     * platform they only rent a subdomain on. Sending the donor to the hosted
+     * checkout puts our own registered domain on top, where the wallet works.
+     *
+     * Read from what we already know rather than asking Stripe, so the checkout
+     * never waits on an API call: a host we never registered, or one Stripe
+     * refused, cannot have wallets.
+     */
+    public function walletRequiresTopLevel(): bool
+    {
+        $host = DomainName::normalize((string) (parse_url($this->parentPageUrl, PHP_URL_HOST) ?: ''));
+
+        if ($host === '' || $host === DomainName::normalize((string) config('app.app_panel_domain'))) {
+            return false;
+        }
+
+        $organization = ($this->element?->campaign ?? $this->campaign)?->organization;
+
+        if (! $organization) {
+            return false;
+        }
+
+        $settings = $organization->settings ?? [];
+
+        $registered = collect((array) ($settings['allowed_domains'] ?? []))
+            ->map(fn ($domain): string => DomainName::normalize((string) $domain))
+            ->all();
+
+        $refused = (array) ($settings['payment_domain_errors'] ?? []);
+
+        return ! in_array($host, $registered, true) || isset($refused[$host]);
+    }
+
+    /**
+     * The hosted checkout, where our own domain is the top-level one. The
+     * donor's amount and frequency ride along so they do not start over.
+     */
+    public function topLevelCheckoutUrl(): string
+    {
+        $token = $this->element?->token;
+
+        return $token
+            ? route('donations.show', $token)
+            : url()->current();
     }
 
     /**
