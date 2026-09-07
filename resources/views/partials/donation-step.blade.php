@@ -699,7 +699,12 @@
                             this.$watch('frequency', () => this.remountExpressCheckout());
                             this.$watch('amount', () => this.syncExpressAmount());
                             this.$watch('coverFee', () => this.syncExpressAmount());
-                            this.$watch('currency', () => this.syncExpressAmount());
+                            // Currency is fixed when the element is created, the same
+                            // as the subscription terms, and switching it re-renders
+                            // this component - which takes the mounted element's
+                            // container with it and left the divider standing over
+                            // nothing. Build a new one.
+                            this.$watch('currency', () => this.remountExpressCheckout());
                         }
 
                         if (this.isPopup || this.isEmbed) {

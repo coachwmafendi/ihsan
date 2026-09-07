@@ -165,3 +165,24 @@ it('sends the wallet the same amount the donor is shown', function () {
         'true'
     );
 });
+
+it('keeps the wallet mount point alive across a currency switch', function () {
+    // Switching currency re-renders the component. Without protecting the
+    // container, Livewire replaced the element Stripe had mounted into and the
+    // buttons vanished, leaving the "or" divider standing over nothing.
+    $page = visit(multiCurrencyCheckoutUrl());
+
+    $page->assertVisible('#express-checkout-element')
+        ->click('[data-currency-trigger]')
+        ->click('[data-currency="usd"]')
+        ->assertScript(checkoutState('state.currency'), 'usd')
+        ->assertVisible('#express-checkout-element');
+});
+
+it('rebuilds the wallet rather than updating it when currency changes', function () {
+    // Currency is fixed when the element is created, like the subscription
+    // terms, so the old element cannot simply be told about the new one.
+    $markup = file_get_contents(base_path('resources/views/partials/donation-step.blade.php'));
+
+    expect($markup)->toContain("this.\$watch('currency', () => this.remountExpressCheckout());");
+});
