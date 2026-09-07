@@ -228,12 +228,13 @@
                         }
                     },
                     /**
-                     * Hand the donor to the hosted checkout, where our own domain is
-                     * on top and the wallet is allowed to run. The parent page owns
-                     * the address bar, so it has to do the navigating; opening a new
-                     * tab instead would lose the wallet's own return to this page.
+                     * The hosted checkout, carrying whatever the donor has chosen so
+                     * far. Used as a link with target="_top" rather than a scripted
+                     * redirect: a cross-origin frame may navigate the page above it
+                     * on a real click, so the embedding site needs to do nothing and
+                     * an older cached copy of widget.js cannot break it.
                      */
-                    openTopLevelCheckout() {
+                    topLevelCheckoutHref() {
                         const params = new URLSearchParams({
                             amount: this.amount,
                             frequency: this.frequency,
@@ -241,15 +242,7 @@
                             cover_fee: this.coverFee ? '1' : '0',
                         });
 
-                        const url = this.topLevelCheckoutUrl + '?' + params.toString();
-
-                        if (window.parent !== window) {
-                            window.parent.postMessage({ type: 'ihsan:open-checkout', url }, '*');
-
-                            return;
-                        }
-
-                        window.location.href = url;
+                        return this.topLevelCheckoutUrl + '?' + params.toString();
                     },
                     // A monthly gift declares different terms to the wallet, and those
                     // are fixed when the element is created.

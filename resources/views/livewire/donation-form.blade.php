@@ -482,13 +482,17 @@
                                 @if ($this->walletRequiresTopLevel())
                                     {{-- Stripe never registered this site, so Apple would refuse
                                          the wallet inside the frame however it is offered. --}}
-                                    <button
-                                        type="button"
-                                        x-on:click="openTopLevelCheckout()"
-                                        class="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 text-base font-semibold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.98]"
+                                    {{-- A link, not a scripted redirect: a cross-origin
+                                         frame is allowed to navigate the page above it
+                                         when the donor actually clicks, so the embedding
+                                         site has to do nothing at all. --}}
+                                    <a
+                                        x-bind:href="topLevelCheckoutHref()"
+                                        target="_top"
+                                        class="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 text-base font-semibold text-white no-underline shadow-sm transition hover:bg-slate-800 active:scale-[0.98]"
                                     >
                                         Pay with Apple Pay or Google Pay
-                                    </button>
+                                    </a>
 
                                     <div class="flex items-center gap-3">
                                         <span class="h-px flex-1 bg-slate-200"></span>

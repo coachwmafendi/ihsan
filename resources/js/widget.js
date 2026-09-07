@@ -16,24 +16,6 @@
     return m ? m[1] : window.location.origin;
   })();
 
-  /**
-   * The checkout asks to be opened as a full page when the wallet cannot run
-   * inside the frame - Apple validates Apple Pay against the top-level domain,
-   * and some sites belong to a platform that cannot be registered with Stripe.
-   * Only our own checkout may steer the host page, or any embedded frame on the
-   * page could redirect the donor somewhere else.
-   */
-  window.addEventListener("message", function (event) {
-    if (event.origin !== baseUrl) return;
-    if (!event.data || event.data.type !== "ihsan:open-checkout") return;
-
-    var url = String(event.data.url || "");
-
-    if (url.indexOf(baseUrl + "/") !== 0) return;
-
-    window.location.href = url;
-  });
-
   function addHint(rel, href, crossOrigin) {
     var selector = 'link[rel="' + rel + '"][href="' + href + '"]';
     if (document.querySelector(selector)) return;
