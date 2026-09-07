@@ -284,3 +284,49 @@ it('does not call Stripe for an organization without a connected account', funct
         ->call('loadDomainStatuses')
         ->assertSet('domain_statuses', []);
 });
+
+it('shows whether Stripe verified the checkout frame itself', function () {
+    // Safari only allows Apple Pay in a cross-origin iframe when the frame's own
+    // source domain is registered, so an organiser whose site verifies fine can
+    // still lose the wallet with nothing on screen explaining why.
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['tahfizannur.org']],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([
+            ['domain' => 'tahfizannur.org', 'apple' => 'active', 'google' => 'active'],
+            ['domain' => 'app.getihsan.my', 'apple' => 'inactive', 'google' => 'inactive', 'error' => 'Domain verification file not reachable'],
+        ])
+    ));
+
+    $component = Livewire::actingAs($user)->test(AllowDomains::class)->call('loadDomainStatuses');
+
+    expect($component->instance()->checkoutDomain())->toBe('app.getihsan.my');
+
+    $component->assertSee('app.getihsan.my')
+        ->assertSee('Ihsan checkout')
+        ->assertSee('Not verified')
+        ->assertSee('Domain verification file not reachable');
+});
+
+it('says so when Ihsan itself has no checkout domain configured', function () {
+    // Nothing gets registered in that case, so the wallet is missing for every
+    // organisation at once and the cause is ours rather than theirs.
+    config()->set('app.app_panel_domain', null);
+
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['tahfizannur.org']],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([])
+    ));
+
+    Livewire::actingAs($user)->test(AllowDomains::class)
+        ->call('loadDomainStatuses')
+        ->assertSee('Not configured')
+        ->assertSee('no checkout domain configured');
+});

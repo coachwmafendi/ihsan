@@ -85,6 +85,18 @@ class AllowDomains extends Component
     }
 
     /**
+     * The checkout runs in an iframe served from here, and Safari only allows
+     * Apple Pay in a cross-origin iframe when the frame's own source domain is
+     * registered too - not just the site embedding it. We register it for every
+     * connected account, but until now there was nothing on screen saying
+     * whether Stripe had accepted it.
+     */
+    public function checkoutDomain(): string
+    {
+        return DomainName::normalize((string) config('app.app_panel_domain'));
+    }
+
+    /**
      * Verification can take a moment after Stripe first sees a domain, so an
      * unknown domain reads as pending rather than broken.
      *

@@ -48,7 +48,32 @@
                         ];
                     @endphp
 
+                    @php $checkoutStatus = $this->walletStatusFor($this->checkoutDomain()); @endphp
+
                     <ul class="divide-y divide-slate-100 rounded-lg border border-slate-200">
+                        <li class="flex flex-wrap items-center justify-between gap-2 bg-slate-50 px-3 py-2.5">
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-medium text-slate-900">{{ $this->checkoutDomain() ?: 'Not configured' }}</p>
+                                <p class="mt-0.5 text-xs text-slate-500">Ihsan checkout — the frame your donation form runs in</p>
+
+                                @if ($this->checkoutDomain() === '')
+                                    <p class="mt-0.5 text-xs text-red-600">Ihsan has no checkout domain configured, so it was never registered with Stripe and wallets cannot appear. Contact support.</p>
+                                @endif
+
+                                @if ($checkoutStatus['error'])
+                                    <p class="mt-0.5 text-xs text-red-600">{{ $checkoutStatus['error'] }}</p>
+                                @endif
+                            </div>
+
+                            <div class="flex shrink-0 items-center gap-2">
+                                @if (! $statuses_loaded)
+                                    <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">Checking...</span>
+                                @else
+                                    <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium {{ $statusTones[$checkoutStatus['tone']] }}">{{ $checkoutStatus['label'] }}</span>
+                                @endif
+                            </div>
+                        </li>
+
                         @foreach ($allowed_domains as $i => $domain)
                             @php $status = $this->walletStatusFor($domain); @endphp
 
@@ -75,7 +100,7 @@
                     </ul>
 
                     <p class="text-xs text-slate-400">
-                        Apple Pay and Google Pay only appear on a domain Stripe has verified. Verification runs after you save and can take a moment; use <span class="font-medium text-slate-500">Recheck wallets</span> if a domain stays unverified.
+                        Apple Pay and Google Pay only appear when Stripe has verified both your site and the Ihsan checkout it embeds. Verification runs after you save and can take a moment; use <span class="font-medium text-slate-500">Recheck wallets</span> if a domain stays unverified.
                     </p>
                 @else
                     <p class="text-sm text-slate-500">No domains added yet. Add your website domain below.</p>
