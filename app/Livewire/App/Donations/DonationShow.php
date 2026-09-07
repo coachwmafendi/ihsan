@@ -383,8 +383,17 @@ class DonationShow extends Component
         $this->refundReason = null;
     }
 
-    public function confirmRefund(): void
+    /**
+     * The reason comes from the modal, whose markup Flux teleports out of this
+     * component - so it is passed in rather than bound, and a chosen reason can
+     * no longer arrive empty.
+     */
+    public function confirmRefund(?string $reason = null): void
     {
+        if (filled($reason)) {
+            $this->refundReason = $reason;
+        }
+
         if (! $this->canRefund()) {
             $this->dispatch('notify', message: 'This donation cannot be refunded.', variant: 'danger');
 
