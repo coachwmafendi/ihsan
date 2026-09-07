@@ -13,6 +13,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Subscription;
+use App\Support\PaymentMethodLabel;
 use App\Support\ReportingPeriod;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -521,18 +522,7 @@ class Dashboard extends Component
         $total = (float) $methods->sum('total_amount');
 
         return $methods->map(fn ($m) => [
-            'name' => match ($m->payment_method_type) {
-                'card' => 'Card',
-                'bank_transfer' => 'Bank Transfer',
-                'fpx' => 'FPX',
-                'grabpay' => 'GrabPay',
-                'grabpay_paylater' => 'GrabPay PayLater',
-                'boost' => 'Boost',
-                'tng' => 'Touch n Go',
-                'alipay' => 'Alipay',
-                'wechatpay' => 'WeChat Pay',
-                default => ucfirst($m->payment_method_type ?? 'Other'),
-            },
+            'name' => PaymentMethodLabel::for($m->payment_method_type),
             'count' => (int) $m->count,
             'value' => (float) $m->total_amount,
             'label' => 'MYR '.number_format((float) $m->total_amount, 2),
