@@ -9,7 +9,7 @@
      artwork. --}}
 
 @if ($currency === 'myr')
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14" {{ $attributes->merge(['class' => 'block shrink-0 overflow-hidden rounded-sm ' . $class]) }}>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 13.333" {{ $attributes->merge(['class' => 'block shrink-0 overflow-hidden rounded-sm ' . $class]) }}>
     <rect width="20" height="14" fill="#fff"/>
     <rect y="0"  width="20" height="1" fill="#CC0001"/>
     <rect y="2"  width="20" height="1" fill="#CC0001"/>
@@ -30,11 +30,11 @@
         6.245,3.901 7.3,3.5   6.245,3.099 7.369,3.196
         6.593,2.378 7.563,2.954 7.219,1.878 7.844,2.817
     "/>
-    <rect x="0.25" y="0.25" width="19.5" height="13.5" rx="0.5" fill="none" stroke="rgba(15,23,42,0.28)" stroke-width="1" vector-effect="non-scaling-stroke"/>
+    <rect x="0.25" y="0.25" width="19.5" height="12.833" rx="0.5" fill="none" stroke="rgba(15,23,42,0.28)" stroke-width="1" vector-effect="non-scaling-stroke"/>
 </svg>
 
 @elseif ($currency === 'usd')
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 10" {{ $attributes->merge(['class' => 'block shrink-0 overflow-hidden rounded-sm ' . $class]) }}>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 10" {{ $attributes->merge(['class' => 'block shrink-0 overflow-hidden rounded-sm ' . $class]) }}>
     <rect width="19" height="10" fill="#fff"/>
     <rect y="0"     width="19" height="0.769" fill="#B22234"/>
     <rect y="1.538" width="19" height="0.769" fill="#B22234"/>
@@ -50,7 +50,7 @@
         </pattern>
     </defs>
     <rect width="7.6" height="5.385" fill="url(#us-stars)"/>
-    <rect x="0.12" y="0.12" width="18.76" height="9.76" rx="0.25" fill="none" stroke="rgba(15,23,42,0.28)" stroke-width="1" vector-effect="non-scaling-stroke"/>
+    <rect x="0.12" y="0.12" width="14.76" height="9.76" rx="0.25" fill="none" stroke="rgba(15,23,42,0.28)" stroke-width="1" vector-effect="non-scaling-stroke"/>
 </svg>
 
 @elseif ($currency === 'sgd')
