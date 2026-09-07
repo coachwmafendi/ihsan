@@ -203,3 +203,20 @@ it('quotes the wallet the same total the donor sees', function () {
         ->assertSee('expressAmountInCents()', false)
         ->assertSee("this.\$watch('coverFee', () => this.syncExpressAmount())", false);
 });
+
+it('offers the same methods the payment step does', function () {
+    // Link is switched off on the payment step; the two steps must not
+    // disagree about what a donor can use.
+    $this->get(route('donations.show', $this->element))
+        ->assertOk()
+        ->assertSee("paymentMethods: { link: 'never' }", false);
+});
+
+it('reads the wallet list under the name Stripe actually sends', function () {
+    // The event carries `paymentMethods`; reading anything else leaves the
+    // divider hidden while the buttons render, which looked like a layout bug.
+    $this->get(route('donations.show', $this->element))
+        ->assertOk()
+        ->assertSee("availablepaymentmethodschange', ({ paymentMethods })", false)
+        ->assertDontSee('availablePaymentMethods', false);
+});

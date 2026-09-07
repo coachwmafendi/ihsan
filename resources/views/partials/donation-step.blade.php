@@ -175,10 +175,13 @@
                             expressElement = expressElements.create('expressCheckout', {
                                 buttonType: { applePay: 'donate', googlePay: 'donate' },
                                 buttonHeight: 48,
+                                // Link is switched off on the payment step; keep the
+                                // two steps offering the same set of methods.
+                                paymentMethods: { link: 'never' },
                             });
 
-                            expressElement.on('availablepaymentmethodschange', ({ availablePaymentMethods }) => {
-                                this.expressAvailable = !!availablePaymentMethods;
+                            expressElement.on('availablepaymentmethodschange', ({ paymentMethods }) => {
+                                this.expressAvailable = !!paymentMethods;
                             });
 
                             expressElement.on('click', (event) => {
