@@ -105,7 +105,9 @@ class ChargeRecurringInstallment
             'payment_method' => $paymentMethod->stripe_payment_method_id,
             'off_session' => true,
             'confirm' => true,
-            'setup_future_usage' => 'off_session',
+            // No setup_future_usage: Stripe refuses it alongside off_session,
+            // and there is nothing to set up - the card was saved when the
+            // donor started the plan and is already on the customer.
             'receipt_email' => $donor->email,
             'description' => (string) str($campaign->title)->limit(200),
             'metadata' => $this->metadata($subscription, $campaign, $donor),
