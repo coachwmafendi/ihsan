@@ -19,6 +19,15 @@ pest()->extend(TestCase::class)
     ->in('Feature');
 
 /*
+ * Browser tests drive a real page, so they can exercise the parts of the
+ * checkout that only exist once Alpine and Stripe.js have run - the wallet
+ * buttons among them, which no amount of rendered-markup assertions can reach.
+ */
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
+    ->in('Browser');
+
+/*
 |--------------------------------------------------------------------------
 | Expectations
 |--------------------------------------------------------------------------

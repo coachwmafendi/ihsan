@@ -26,6 +26,7 @@
         "lightningcss-linux-x64-gnu": "^1.29.1"
     },
     "devDependencies": {
-        "payment-icons": "^1.2.1"
+        "payment-icons": "^1.2.1",
+        "playwright": "^1.63.0"
     }
 }

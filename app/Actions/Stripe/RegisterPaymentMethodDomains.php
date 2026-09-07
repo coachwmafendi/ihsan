@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Stripe;
 
 use App\Models\Organization;
+use App\Support\DomainName;
 use Illuminate\Support\Facades\Log;
 use Stripe\Exception\ApiErrorException;
 use Stripe\StripeClient;
@@ -77,24 +78,10 @@ class RegisterPaymentMethodDomains
         $allowed = (array) ($organization->settings['allowed_domains'] ?? []);
 
         return collect([$panelDomain, ...$allowed])
-            ->map(fn ($domain): string => $this->normalizeDomain((string) $domain))
+            ->map(fn ($domain): string => DomainName::normalize((string) $domain))
             ->filter()
             ->unique()
             ->values()
             ->all();
-    }
-
-    private function normalizeDomain(string $domain): string
-    {
-        $domain = trim($domain);
-        $host = parse_url($domain, PHP_URL_HOST);
-
-        if ($host) {
-            $domain = $host;
-        }
-
-        $domain = strtolower($domain);
-
-        return str_starts_with($domain, 'www.') ? substr($domain, 4) : $domain;
     }
 }

@@ -17,24 +17,66 @@
 
 
 
-    <form wire:submit="save" class="space-y-6" x-data="{ newDomain: '' }">
+    <form wire:submit="save" class="space-y-6" x-data="{ newDomain: '' }" wire:init="loadDomainStatuses">
         <x-ui.card title="Allowed Domains" description="Domains permitted to embed your elements and checkout modal. Only requests originating from these domains will be accepted.">
             <div class="space-y-4">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-3">
                     <p class="text-sm text-slate-600">
                         <span class="font-medium text-slate-900">{{ count($allowed_domains) }}</span> of <span class="font-medium text-slate-900">{{ App\Livewire\App\Settings\AllowDomains::MAX_ALLOWED_DOMAINS }}</span> domains added
                     </p>
+
+                    @if (count($allowed_domains) > 0)
+                        <button
+                            type="button"
+                            wire:click="recheckDomains"
+                            wire:loading.attr="disabled"
+                            wire:target="recheckDomains"
+                            class="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400">
+                            <span wire:loading.remove wire:target="recheckDomains">Recheck wallets</span>
+                            <span wire:loading wire:target="recheckDomains">Rechecking...</span>
+                        </button>
+                    @endif
                 </div>
 
                 @if (count($allowed_domains) > 0)
-                    <div class="flex flex-wrap gap-2">
+                    @php
+                        $statusTones = [
+                            'active' => 'bg-emerald-50 border-emerald-200 text-emerald-700',
+                            'partial' => 'bg-amber-50 border-amber-200 text-amber-700',
+                            'pending' => 'bg-slate-100 border-slate-200 text-slate-600',
+                            'failed' => 'bg-red-50 border-red-200 text-red-700',
+                        ];
+                    @endphp
+
+                    <ul class="divide-y divide-slate-100 rounded-lg border border-slate-200">
                         @foreach ($allowed_domains as $i => $domain)
-                            <span class="inline-flex items-center gap-1.5 rounded-full bg-teal-50 border border-teal-200 px-3 py-1 text-sm font-medium text-teal-700">
-                                {{ $domain }}
-                                <button type="button" wire:click="removeDomain({{ $i }})" class="text-teal-400 hover:text-red-500 transition-colors leading-none">&times;</button>
-                            </span>
+                            @php $status = $this->walletStatusFor($domain); @endphp
+
+                            <li class="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-medium text-slate-900">{{ $domain }}</p>
+
+                                    @if ($status['error'])
+                                        <p class="mt-0.5 text-xs text-red-600">{{ $status['error'] }}</p>
+                                    @endif
+                                </div>
+
+                                <div class="flex shrink-0 items-center gap-2">
+                                    @if (! $statuses_loaded)
+                                        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">Checking...</span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium {{ $statusTones[$status['tone']] }}">{{ $status['label'] }}</span>
+                                    @endif
+
+                                    <button type="button" wire:click="removeDomain({{ $i }})" class="text-lg leading-none text-slate-400 transition-colors hover:text-red-500" aria-label="Remove {{ $domain }}">&times;</button>
+                                </div>
+                            </li>
                         @endforeach
-                    </div>
+                    </ul>
+
+                    <p class="text-xs text-slate-400">
+                        Apple Pay and Google Pay only appear on a domain Stripe has verified. Verification runs after you save and can take a moment; use <span class="font-medium text-slate-500">Recheck wallets</span> if a domain stays unverified.
+                    </p>
                 @else
                     <p class="text-sm text-slate-500">No domains added yet. Add your website domain below.</p>
                 @endif
