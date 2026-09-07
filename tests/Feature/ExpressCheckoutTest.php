@@ -497,3 +497,41 @@ it('still refuses a foreign gift below the campaign minimum', function () {
     expect($attempt)->toThrow(RuntimeException::class);
     expect(Donation::query()->count())->toBe(0);
 });
+
+it('records when a wallet donation actually went through', function () {
+    // Only the CHIP path wrote this down, so every Stripe donation - card and
+    // wallet alike - had no record of when it succeeded.
+    mockIntent();
+
+    $component = Livewire::test(DonationForm::class, ['element' => $this->element])
+        ->set('amount', 50)
+        ->set('coverFee', false)
+        ->set('frequency', 'one_time');
+
+    $component->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com');
+
+    $donation = Donation::query()->sole();
+
+    expect($donation->finalized_at)->toBeNull();
+
+    $donation->update(['stripe_payment_intent_id' => 'pi_express']);
+
+    ApiRequestor::setHttpClient(new class implements ClientInterface
+    {
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null)
+        {
+            return [json_encode([
+                'id' => 'pi_express',
+                'object' => 'payment_intent',
+                'status' => 'succeeded',
+                'amount' => 5000,
+                'currency' => 'myr',
+                'latest_charge' => null,
+            ]), 200, []];
+        }
+    });
+
+    $component->call('confirmPayment', 'pi_express');
+
+    expect(Donation::query()->sole()->finalized_at)->not->toBeNull();
+});
