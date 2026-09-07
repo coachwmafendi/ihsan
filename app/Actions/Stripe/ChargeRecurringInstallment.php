@@ -236,6 +236,7 @@ class ChargeRecurringInstallment
                 'donor_fee_covered' => $feeCoverAmount,
                 'currency' => $subscription->currency,
                 'status' => DonationStatus::Succeeded,
+                'finalized_at' => now(),
                 'type' => DonationType::Recurring,
                 'source' => $subscription->source ?? 'checkout_modal',
             ]);

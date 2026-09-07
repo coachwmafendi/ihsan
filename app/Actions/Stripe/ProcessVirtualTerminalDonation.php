@@ -133,6 +133,7 @@ class ProcessVirtualTerminalDonation
             'currency' => strtolower($currency),
             'base_currency' => 'myr',
             'status' => DonationStatus::Succeeded,
+            'finalized_at' => now(),
             'type' => DonationType::OneTime,
             'stripe_payment_intent_id' => $paymentIntent->id,
         ]);

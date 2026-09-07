@@ -229,6 +229,7 @@ class ProcessVirtualTerminalSubscription
                 'currency' => strtolower($currency),
                 'base_currency' => 'myr',
                 'status' => DonationStatus::Succeeded,
+                'finalized_at' => now(),
                 'type' => DonationType::Recurring,
                 'stripe_invoice_id' => $invoice->id ?? null,
             ],

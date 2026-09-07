@@ -227,13 +227,25 @@ class DonationShow extends Component
         return (float) $this->donation->donor_fee_covered > 0 ? 'Covered' : 'Not covered';
     }
 
+    /**
+     * When the payment went through, which stays true after a refund - the page
+     * shows the original transaction alongside it and saying nothing there read
+     * as though the donation had never succeeded.
+     *
+     * Donations taken before we recorded the moment fall back to updated_at, the
+     * best approximation there is for them.
+     */
     public function successDate(): ?string
     {
-        if ($this->donation->status !== DonationStatus::Succeeded) {
+        if (! in_array($this->donation->status, [DonationStatus::Succeeded, DonationStatus::Refunded], true)) {
             return null;
         }
 
-        return $this->donation->updated_at ? myrTime($this->donation->updated_at) : myrTime($this->donation->created_at);
+        $succeededAt = $this->donation->finalized_at
+            ?? $this->donation->updated_at
+            ?? $this->donation->created_at;
+
+        return $succeededAt ? myrTime($succeededAt) : null;
     }
 
     public function refundDate(): ?string

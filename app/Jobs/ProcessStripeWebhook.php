@@ -127,6 +127,7 @@ class ProcessStripeWebhook implements ShouldQueue
             if ($wasPending) {
                 $lockedDonation->update([
                     'status' => DonationStatus::Succeeded,
+                    'finalized_at' => $lockedDonation->finalized_at ?? now(),
                 ]);
 
                 $campaign = Campaign::query()->whereKey($lockedDonation->campaign_id)->lockForUpdate()->first();
@@ -438,6 +439,7 @@ class ProcessStripeWebhook implements ShouldQueue
             'net_amount' => $grossAmount,
             'currency' => $invoice->currency,
             'status' => DonationStatus::Succeeded,
+            'finalized_at' => now(),
             'type' => DonationType::Recurring,
             'stripe_payment_intent_id' => $invoice->payment_intent,
             'stripe_charge_id' => $invoice->charge,

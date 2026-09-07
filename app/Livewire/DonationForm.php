@@ -507,6 +507,10 @@ class DonationForm extends Component
 
                 $lockedDonation->update([
                     'status' => DonationStatus::Succeeded,
+                    // When the donation actually went through. Reading it off
+                    // updated_at made a later edit look like the success, and a
+                    // refund erased the date entirely.
+                    'finalized_at' => $lockedDonation->finalized_at ?? now(),
                 ]);
 
                 $campaign = Campaign::query()->whereKey($lockedDonation->campaign_id)->lockForUpdate()->first();
