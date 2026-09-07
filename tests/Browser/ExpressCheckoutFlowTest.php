@@ -111,3 +111,56 @@ it('does not quote the wallet an amount Stripe would refuse', function () {
         ->assertScript(checkoutState("(state.amount = '', state.expressAmountIsChargeable())"), 'false')
         ->assertScript(checkoutState("(state.amount = '10', state.expressAmountIsChargeable())"), 'true');
 });
+
+/**
+ * An organisation that takes more than ringgit. Switching currency changes the
+ * amount Stripe is quoted, the floor it will refuse below, and the fee the
+ * donor is offered to cover - so the wallet has to survive the switch.
+ */
+function multiCurrencyCheckoutUrl(): string
+{
+    test()->organization->update(['settings' => ['accepted_currencies' => ['myr', 'usd', 'sgd']]]);
+
+    return '/donate/'.test()->element->token.'?popup=1';
+}
+
+it('keeps the wallet when the donor switches currency', function () {
+    $page = visit(multiCurrencyCheckoutUrl());
+
+    $page->assertScript(checkoutState('state.currency'), 'myr')
+        ->click('[data-currency-trigger]')
+        ->click('[data-currency="usd"]')
+        ->assertScript(checkoutState('state.currency'), 'usd')
+        ->assertScript(checkoutState('state.expressAmountIsChargeable()'), 'true');
+});
+
+it('uses the floor of the currency the donor switched to', function () {
+    // Ringgit refuses below RM2; dollars refuse below 50 cents. Reading the
+    // ringgit floor after a switch to dollars would reject valid amounts.
+    $page = visit(multiCurrencyCheckoutUrl());
+
+    $page->assertScript(checkoutState('state.expressMinimumInCents()'), '200')
+        ->click('[data-currency-trigger]')
+        ->click('[data-currency="sgd"]')
+        ->assertScript(checkoutState('state.expressMinimumInCents()'), '50');
+});
+
+it('quotes the wallet the donation alone when the donor declines the fee', function () {
+    // With the cover off the wallet must be told the donation and nothing more,
+    // or the donor is charged for a fee they chose not to pay.
+    $page = visit($this->url);
+
+    $page->assertScript(checkoutState("(state.amount = '100', state.coverFee = false, state.expressAmountInCents())"), '10000')
+        ->assertScript(checkoutState('(state.coverFee = true, state.expressAmountInCents() > 10000)'), 'true');
+});
+
+it('sends the wallet the same amount the donor is shown', function () {
+    // The two are computed separately, so a change to either could silently
+    // charge something other than the total on screen.
+    $page = visit($this->url);
+
+    $page->assertScript(
+        checkoutState("(state.amount = '50', state.coverFee = true, state.expressAmountInCents() === Math.round((50 + parseFloat(state.estimatedFeeAmount)) * 100))"),
+        'true'
+    );
+});
