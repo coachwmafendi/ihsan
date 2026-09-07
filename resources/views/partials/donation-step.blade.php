@@ -339,6 +339,15 @@
                                 throw new Error('Your wallet did not share a name and email. Please use the form instead.');
                             }
 
+                            // The wallet skips the step that would have collected
+                            // these, and the thank-you screen reads them from here -
+                            // without this it greets the donor as "Friend" and says
+                            // the receipt went to nobody.
+                            const [walletFirstName, ...walletRest] = payerName.split(/\s+/);
+                            this.donorFirstName = walletFirstName;
+                            this.donorLastName = walletRest.join(' ');
+                            this.donorEmail = payerEmail;
+
                             // The amount step lives entirely in the browser, and the
                             // wallet skips the step that would otherwise send it, so
                             // the donor's choices have to travel with the call.
