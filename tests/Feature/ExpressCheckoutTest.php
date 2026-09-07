@@ -14,6 +14,7 @@ use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Element;
 use App\Models\Organization;
+use Illuminate\Support\Facades\Log;
 use Livewire\Livewire;
 use Stripe\ApiRequestor;
 use Stripe\HttpClient\ClientInterface;
@@ -158,13 +159,16 @@ it('refuses a CHIP campaign, which redirects instead', function () {
     expect(Donation::query()->count())->toBe(0);
 });
 
-it('rejects an address the wallet could not give us', function () {
-    Livewire::test(DonationForm::class, ['element' => $this->element])
+it('rejects an address the wallet could not give us, and says so', function () {
+    // The donor has already authorised the payment, so a silent refusal leaves
+    // them staring at a generic failure with no idea what to do next.
+    $attempt = fn () => Livewire::test(DonationForm::class, ['element' => $this->element])
         ->set('amount', 50)
         ->set('coverFee', false)
         ->set('frequency', 'one_time')
-        ->call('submitExpress', 'Ahmad Donor', 'not-an-email')
-        ->assertHasErrors('email');
+        ->call('submitExpress', 'Ahmad Donor', 'not-an-email');
+
+    expect($attempt)->toThrow(RuntimeException::class, 'The email field must be a valid email address.');
 
     expect(Donation::query()->count())->toBe(0);
 });
@@ -419,4 +423,40 @@ it('shows a wallet failure the way every other payment error is shown', function
     $dividerAt = strpos($body, 'x-show="expressAvailable" x-cloak class="flex items-center gap-3"');
 
     expect($errorAt)->toBeLessThan($dividerAt);
+});
+
+it('tells the wallet donor why their donation was rejected', function () {
+    // Livewire answers a failed validation with nothing, so the checkout could
+    // only say "could not start the payment" - after the donor had already
+    // authorised it with their fingerprint. A USD attempt died this way with
+    // nothing on screen or in the log to say which rule refused it.
+    Log::spy();
+
+    Livewire::test(DonationForm::class, ['element' => $this->element])
+        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com', null, [
+            'amount' => 0.5,
+            'frequency' => 'one_time',
+            'currency' => 'myr',
+            'coverFee' => false,
+        ]);
+})->throws(RuntimeException::class);
+
+it('writes the rejected wallet donation to the log', function () {
+    Log::spy();
+
+    try {
+        Livewire::test(DonationForm::class, ['element' => $this->element])
+            ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com', null, [
+                'amount' => 0.5,
+                'frequency' => 'one_time',
+                'currency' => 'myr',
+                'coverFee' => false,
+            ]);
+    } catch (RuntimeException $e) {
+        // The message reaching the donor is asserted above.
+    }
+
+    Log::shouldHaveReceived('warning')
+        ->withArgs(fn (string $message, array $context): bool => $message === 'Wallet donation rejected before it could start'
+            && $context['currency'] === 'myr');
 });

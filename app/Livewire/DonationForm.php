@@ -40,8 +40,10 @@ use App\Support\ClientInfo;
 use App\Support\Currency;
 use App\Support\DomainName;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Renderless;
@@ -713,7 +715,25 @@ class DonationForm extends Component
             $this->phone = trim($phone);
         }
 
-        return $this->submit();
+        // A wallet donor has already authorised the payment by this point, and
+        // Livewire answers a failed validation with nothing at all - which the
+        // checkout could only report as "could not start the payment". Say what
+        // was actually wrong, to them and to the log.
+        try {
+            return $this->submit();
+        } catch (ValidationException $e) {
+            $reason = collect($e->errors())->flatten()->first() ?? $e->getMessage();
+
+            Log::warning('Wallet donation rejected before it could start', [
+                'campaign_id' => ($this->element?->campaign ?? $this->campaign)?->getKey(),
+                'currency' => $this->currency,
+                'frequency' => $this->frequency,
+                'amount' => $this->amount,
+                'errors' => $e->errors(),
+            ]);
+
+            throw new \RuntimeException($reason);
+        }
     }
 
     /**
