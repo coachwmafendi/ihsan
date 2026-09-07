@@ -506,13 +506,15 @@
                                     <div id="express-checkout-element"></div>
                                 </div>
 
+                                {{-- Under the button that failed, not under the divider,
+                                     and sized like every other payment error here. --}}
+                                <div x-show="expressError" x-cloak class="mt-1 text-sm text-red-600" x-text="expressError"></div>
+
                                 <div x-show="expressAvailable" x-cloak class="flex items-center gap-3">
                                     <span class="h-px flex-1 bg-slate-200"></span>
                                     <span class="text-xs font-medium uppercase tracking-wide text-slate-400">or</span>
                                     <span class="h-px flex-1 bg-slate-200"></span>
                                 </div>
-
-                                <div x-show="expressError" x-cloak class="text-xs text-red-600" x-text="expressError"></div>
                                 @endif
                             @endif
 
