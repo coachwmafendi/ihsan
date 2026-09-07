@@ -131,16 +131,18 @@ it('still charges the fee cover the donor agreed to', function () {
     expect((float) Donation::query()->sole()->donor_fee_covered)->toBe($expectedCover);
 });
 
-it('refuses a monthly donation, which needs a stored mandate', function () {
-    // Reaching this means the donor switched to monthly mid-tap: hand back
-    // nothing so the checkout falls through to the form, rather than 500ing.
+it('takes a monthly gift from a wallet too', function () {
+    mockIntent();
+
     Livewire::test(DonationForm::class, ['element' => $this->element])
         ->set('amount', 50)
+        ->set('coverFee', false)
         ->set('frequency', 'monthly')
-        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com')
-        ->assertReturned('');
+        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com');
 
-    expect(Donation::query()->count())->toBe(0);
+    expect(Donation::query()->sole())
+        ->type->toBe(DonationType::Recurring)
+        ->status->toBe(DonationStatus::Pending);
 });
 
 it('refuses a CHIP campaign, which redirects instead', function () {
@@ -154,15 +156,6 @@ it('refuses a CHIP campaign, which redirects instead', function () {
         ->assertReturned('');
 
     expect(Donation::query()->count())->toBe(0);
-});
-
-it('hides the wallet button the moment the donor picks monthly', function () {
-    // The container stays in the layout so Stripe can measure the device, but
-    // it must disappear for monthly or the donor taps a button the server will
-    // refuse.
-    $this->get(route('donations.show', $this->element))
-        ->assertOk()
-        ->assertSee('x-show="frequency === \'one_time\'" id="express-checkout-wrapper"', false);
 });
 
 it('rejects an address the wallet could not give us', function () {
@@ -191,7 +184,9 @@ it('reuses the pending attempt when a wallet payment is retried', function () {
     expect(Donation::query()->count())->toBe(1);
 });
 
-it('offers the buttons only for one-off card donations', function () {
+it('offers the buttons for both one-off and monthly gifts', function () {
+    // Campaigns that open on Monthly - and several do - would otherwise never
+    // show a wallet button at all.
     $component = Livewire::test(DonationForm::class, ['element' => $this->element])
         ->set('frequency', 'one_time');
 
@@ -199,7 +194,32 @@ it('offers the buttons only for one-off card donations', function () {
 
     $component->set('frequency', 'monthly');
 
-    expect($component->instance()->expressCheckoutAvailable())->toBeFalse();
+    expect($component->instance()->expressCheckoutAvailable())->toBeTrue();
+});
+
+it('tells Apple Pay the subscription terms before the donor agrees', function () {
+    $this->get(route('donations.show', $this->element))
+        ->assertOk()
+        ->assertSee('recurringPaymentRequest', false)
+        ->assertSee("recurringPaymentIntervalUnit: 'month'", false)
+        // Must match the PaymentIntent, which saves the card for later.
+        ->assertSee("setupFutureUsage: 'off_session'", false);
+});
+
+it('points the donor at somewhere they can cancel', function () {
+    $component = Livewire::test(DonationForm::class, ['element' => $this->element]);
+
+    expect($component->instance()->recurringManagementUrl())
+        ->toContain('donorportal')
+        ->toContain($this->organization->code);
+});
+
+it('rebuilds the wallet element when the gift changes frequency', function () {
+    // The terms are fixed when the element is created, so switching between
+    // one-off and monthly has to start a new one.
+    $this->get(route('donations.show', $this->element))
+        ->assertOk()
+        ->assertSee("this.\$watch('frequency', () => this.remountExpressCheckout())", false);
 });
 
 it('keeps the wallet mount point in the layout so Stripe can measure the device', function () {
@@ -244,7 +264,7 @@ it('names the card path once a wallet button sits above it', function () {
     $this->get(route('donations.show', $this->element))
         ->assertOk()
         ->assertSee('Donate with card', false)
-        ->assertSee("x-show=\"! (expressAvailable && frequency === 'one_time')\"", false);
+        ->assertSee('x-show="! expressAvailable"', false);
 });
 
 it('leaves an organiser who set their own button text alone', function () {

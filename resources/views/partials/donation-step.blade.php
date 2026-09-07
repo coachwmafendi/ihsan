@@ -4,7 +4,7 @@
     document.addEventListener('alpine:init', () => {
         if (typeof Alpine !== 'undefined' && !Alpine._donationStepRegistered) {
             Alpine._donationStepRegistered = true;
-            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe', initialChipPaymentMethods = [], initialChipPaymentMethod = 'card', initialFpxBanks = []) => {
+            Alpine.data('donationStep', (initialFirstName = '', initialLastName = '', initialEmail = '', initialPhone = '', connectedStripeAccountId = null, initialMinimumAmount = 5, initialAmount = 5, initialStep = 1, initialFrequency = 'one_time', initialCurrency = 'myr', initialOneTimeAmounts = [], initialMonthlyAmounts = [], initialFeeConfig = {myr: 0.50, 'usd': 0.30, 'sgd': 0.50}, initialCoverFee = true, initialIsEmbed = false, initialIsPopup = false, initialCurrencySymbol = 'RM', initialDonationPublicId = null, initialRedirectUrl = '', initialIsPublicPage = false, initialRaisedAmount = 0, initialTargetAmount = 0, initialPaymentGateway = 'stripe', initialChipPaymentMethods = [], initialChipPaymentMethod = 'card', initialFpxBanks = [], initialRecurringManagementUrl = '') => {
                 let stripe = null;
                 let elements = null;
                 let paymentElement = null;
@@ -14,6 +14,7 @@
                 return {
                     expressAvailable: false,
                     expressError: '',
+                    recurringManagementUrl: initialRecurringManagementUrl,
                     amount: String(initialAmount ?? ''),
                     currency: initialCurrency,
                     currencySymbol: initialCurrencySymbol,
@@ -164,16 +165,21 @@
                         // the amount is already settled and the container is hidden.
                         // Stripe cannot measure a hidden element, so do not ask it to.
                         if (this.currentStep !== 1) return;
-                        if (!stripe || expressElement || this.frequency !== 'one_time') return;
+                        if (!stripe || expressElement) return;
 
                         const container = document.getElementById('express-checkout-element');
                         if (!container) return;
+
+                        const monthly = this.frequency === 'monthly';
 
                         try {
                             expressElements = stripe.elements({
                                 mode: 'payment',
                                 amount: this.expressAmountInCents(),
                                 currency: this.currency,
+                                // Must match the PaymentIntent, which saves the card
+                                // for the months that follow.
+                                ...(monthly ? { setupFutureUsage: 'off_session' } : {}),
                             });
 
                             expressElement = expressElements.create('expressCheckout', {
@@ -182,6 +188,22 @@
                                 // Link is switched off on the payment step; keep the
                                 // two steps offering the same set of methods.
                                 paymentMethods: { link: 'never' },
+                                // Apple issues a merchant token and shows the donor how
+                                // to cancel, but only when the terms are declared.
+                                ...(monthly ? {
+                                    applePay: {
+                                        recurringPaymentRequest: {
+                                            paymentDescription: 'Monthly donation',
+                                            managementURL: this.recurringManagementUrl,
+                                            regularBilling: {
+                                                amount: this.expressAmountInCents(),
+                                                label: 'Monthly donation',
+                                                recurringPaymentIntervalUnit: 'month',
+                                                recurringPaymentIntervalCount: 1,
+                                            },
+                                        },
+                                    },
+                                } : {}),
                             });
 
                             expressElement.on('availablepaymentmethodschange', ({ paymentMethods }) => {
@@ -198,6 +220,19 @@
                         } catch (e) {
                             this.expressAvailable = false;
                         }
+                    },
+                    // A monthly gift declares different terms to the wallet, and those
+                    // are fixed when the element is created.
+                    remountExpressCheckout() {
+                        if (expressElement) {
+                            try { expressElement.unmount(); expressElement.destroy(); } catch (e) { /* already gone */ }
+                        }
+
+                        expressElement = null;
+                        expressElements = null;
+                        this.expressAvailable = false;
+
+                        this.$nextTick(() => this.mountExpressCheckout());
                     },
                     expressAmountInCents() {
                         const amount = parseFloat(this.amount) || 0;
@@ -558,11 +593,7 @@
                                     this.$nextTick(() => this.mountExpressCheckout());
                                 }
                             });
-                            this.$watch('frequency', (value) => {
-                                if (value === 'one_time') {
-                                    this.$nextTick(() => this.mountExpressCheckout());
-                                }
-                            });
+                            this.$watch('frequency', () => this.remountExpressCheckout());
                             this.$watch('amount', () => this.syncExpressAmount());
                             this.$watch('coverFee', () => this.syncExpressAmount());
                             this.$watch('currency', () => this.syncExpressAmount());

@@ -706,14 +706,27 @@ class DonationForm extends Component
     }
 
     /**
-     * Wallet buttons are offered for one-off card donations only.
+     * Wallet buttons are offered on the Stripe path, one-off and monthly alike.
      *
-     * A monthly gift needs a stored mandate and CHIP has its own redirect, so
-     * both keep to the form until they are built and tested in their own right.
+     * A monthly gift saves the wallet's card for later, the same way the form
+     * does. CHIP keeps to the form because it redirects away to its own page.
      */
     public function expressCheckoutAvailable(): bool
     {
-        return $this->frequency === 'one_time' && ! $this->isChipGateway();
+        return ! $this->isChipGateway();
+    }
+
+    /**
+     * Where a donor manages a recurring gift, which Apple Pay shows them before
+     * they agree to it.
+     */
+    public function recurringManagementUrl(): string
+    {
+        $organization = ($this->element?->campaign ?? $this->campaign)?->organization;
+
+        return $organization
+            ? route('donorportal.dashboard', $organization)
+            : config('app.url');
     }
 
     /**

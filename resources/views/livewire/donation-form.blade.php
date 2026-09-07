@@ -261,7 +261,7 @@
                 >
                     <div
                         wire:ignore.self
-                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates($campaign->payment_gateway?->value ?? 'stripe', $organization->processing_fee_override !== null ? (float) $organization->processing_fee_override : null, $this->donorCountryCode())), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'), @js($this->chipPaymentMethods()), @js($this->chipPaymentMethod), @js(\App\Support\ChipFpxBanks::b2c()))"
+                        x-data="donationStep(@js($firstName), @js($lastName), @js($email), @js($phone), @js($connectedStripeAccountId), @js($minimumAmount), @js($this->amount), @js((int) request()->query('step', 1)), @js($frequency), @js($this->currency), @js($this->suggestedAmounts('one_time')), @js($this->suggestedAmounts('monthly')), @js(\App\Services\DonationFeeEstimator::rates($campaign->payment_gateway?->value ?? 'stripe', $organization->processing_fee_override !== null ? (float) $organization->processing_fee_override : null, $this->donorCountryCode())), @js($this->coverFee), @js($this->isEmbed), @js($isPopup), @js($currencySymbol), @js($this->donationPublicId), @js($redirectUrl), @js($this->isPublicPage), @js($this->campaignCollectedAmount), @js($this->campaignTargetAmount), @js($campaign->payment_gateway?->value ?? 'stripe'), @js($this->chipPaymentMethods()), @js($this->chipPaymentMethod), @js(\App\Support\ChipFpxBanks::b2c()), @js($this->recurringManagementUrl()))"
                         data-campaign-public-id="{{ $campaign->public_id }}"
                         x-init="$wire.trackServerPageView(window.__IHSAN_PAGEVIEW_ID__ ?? null)"
                         class="relative"
@@ -285,7 +285,8 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
-                                    x-on:click="selectFrequency('one_time')"
+                                    data-frequency="one_time"
+                                        x-on:click="selectFrequency('one_time')"
                                     class="min-h-10 rounded-lg border px-3 text-base font-semibold transition"
                                     :class="frequency === 'one_time' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                                 >
@@ -295,6 +296,7 @@
                                 @if ($allowMonthly)
                                     <button
                                         type="button"
+                                        data-frequency="monthly"
                                         x-on:click="selectFrequency('monthly'); launchHearts($event)"
                                         class="relative min-h-10 rounded-lg border px-3 text-base font-semibold transition overflow-visible"
                                         :class="frequency === 'monthly' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
@@ -477,11 +479,11 @@
                                      the device offers inside a hidden element, and it
                                      renders nothing when there is nothing to show, so
                                      an empty container takes no space. --}}
-                                <div x-show="frequency === 'one_time'" id="express-checkout-wrapper">
+                                <div id="express-checkout-wrapper">
                                     <div id="express-checkout-element"></div>
                                 </div>
 
-                                <div x-show="expressAvailable && frequency === 'one_time'" x-cloak class="flex items-center gap-3">
+                                <div x-show="expressAvailable" x-cloak class="flex items-center gap-3">
                                     <span class="h-px flex-1 bg-slate-200"></span>
                                     <span class="text-xs font-medium uppercase tracking-wide text-slate-400">or</span>
                                     <span class="h-px flex-1 bg-slate-200"></span>
@@ -505,8 +507,8 @@
                                           says where it leads; name the card path instead.
                                           Without one there is nothing to contrast against,
                                           so the neutral label stays. --}}
-                                     <span x-show="! (expressAvailable && frequency === 'one_time')">{{ $primaryButtonText }} &rarr;</span>
-                                     <span x-show="expressAvailable && frequency === 'one_time'" x-cloak>Donate with card</span>
+                                     <span x-show="! expressAvailable">{{ $primaryButtonText }} &rarr;</span>
+                                     <span x-show="expressAvailable" x-cloak>Donate with card</span>
                                  @else
                                      {{ $primaryButtonText }} &rarr;
                                  @endif
