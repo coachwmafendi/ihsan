@@ -809,6 +809,13 @@ class DonationForm extends Component
      */
     public function walletRequiresTopLevel(): bool
     {
+        // Only a checkout actually running inside someone else's page needs the
+        // handoff. The hosted page carries the site it came from for attribution,
+        // and reading that alone made this page hand off to itself.
+        if (! $this->isEmbed && ! $this->isPopup) {
+            return false;
+        }
+
         $host = DomainName::normalize((string) (parse_url($this->parentPageUrl, PHP_URL_HOST) ?: ''));
 
         if ($host === '' || $host === DomainName::normalize((string) config('app.app_panel_domain'))) {
