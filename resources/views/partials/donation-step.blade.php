@@ -339,7 +339,15 @@
                                 throw new Error('Your wallet did not share a name and email. Please use the form instead.');
                             }
 
-                            const clientSecret = await this.$wire.submitExpress(payerName, payerEmail);
+                            // The amount step lives entirely in the browser, and the
+                            // wallet skips the step that would otherwise send it, so
+                            // the donor's choices have to travel with the call.
+                            const clientSecret = await this.$wire.submitExpress(payerName, payerEmail, null, {
+                                amount: this.amount,
+                                frequency: this.frequency,
+                                currency: this.currency,
+                                coverFee: this.coverFee,
+                            });
                             if (!clientSecret) throw new Error('Could not start the payment. Please try the form instead.');
 
                             const { error } = await stripe.confirmPayment({

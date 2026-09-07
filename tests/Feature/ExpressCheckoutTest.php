@@ -339,3 +339,60 @@ it('reads the payer only from where Stripe actually puts them', function () {
         ->toContain('event.billingDetails?.name')
         ->not->toContain('event.payerName');
 });
+
+it('charges what the donor chose, not what the page was rendered with', function () {
+    // The amount step lives in the browser and the wallet skips the step that
+    // sends it. Without the donor's choices travelling with the call, a wallet
+    // donation was built from the campaign's defaults - the wrong amount, taken
+    // silently, with only a frequency mismatch ever raising an error.
+    mockIntent();
+
+    Livewire::test(DonationForm::class, ['element' => $this->element])
+        ->set('amount', 500)
+        ->set('frequency', 'one_time')
+        ->set('coverFee', true)
+        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com', null, [
+            'amount' => 10,
+            'frequency' => 'monthly',
+            'currency' => 'myr',
+            'coverFee' => false,
+        ]);
+
+    $donation = Donation::query()->sole();
+
+    expect((float) $donation->gross_amount)->toBe(10.0)
+        ->and($donation->type)->toBe(DonationType::Recurring)
+        ->and((float) $donation->donor_fee_covered)->toBe(0.0);
+});
+
+it('keeps the rendered choices when the wallet sends none', function () {
+    mockIntent();
+
+    Livewire::test(DonationForm::class, ['element' => $this->element])
+        ->set('amount', 75)
+        ->set('frequency', 'one_time')
+        ->set('coverFee', false)
+        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com');
+
+    expect((float) Donation::query()->sole()->gross_amount)->toBe(75.0);
+});
+
+it('refuses a currency the organisation does not accept', function () {
+    // Setting it straight onto the component would skip the check the picker
+    // does, and bill an organisation in a currency it never enabled.
+    mockIntent();
+
+    $this->organization->update(['settings' => ['accepted_currencies' => ['myr']]]);
+
+    Livewire::test(DonationForm::class, ['element' => $this->element->fresh()])
+        ->set('amount', 50)
+        ->set('frequency', 'one_time')
+        ->call('submitExpress', 'Ahmad Donor', 'ahmad@example.com', null, [
+            'amount' => 50,
+            'currency' => 'usd',
+            'frequency' => 'one_time',
+            'coverFee' => false,
+        ]);
+
+    expect(Donation::query()->sole()->currency)->toBe('myr');
+});
