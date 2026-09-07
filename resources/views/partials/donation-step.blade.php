@@ -160,6 +160,10 @@
                     // deferred mode - no PaymentIntent exists until the donor
                     // actually taps, which keeps the pending records clean.
                     mountExpressCheckout() {
+                        // The modal opened from an inline form starts at step 2, where
+                        // the amount is already settled and the container is hidden.
+                        // Stripe cannot measure a hidden element, so do not ask it to.
+                        if (this.currentStep !== 1) return;
                         if (!stripe || expressElement || this.frequency !== 'one_time') return;
 
                         const container = document.getElementById('express-checkout-element');
@@ -549,6 +553,11 @@
 
                             // The wallet sheet quotes a total, so it has to follow
                             // whatever the donor changes on the amount step.
+                            this.$watch('currentStep', (value) => {
+                                if (value === 1) {
+                                    this.$nextTick(() => this.mountExpressCheckout());
+                                }
+                            });
                             this.$watch('frequency', (value) => {
                                 if (value === 'one_time') {
                                     this.$nextTick(() => this.mountExpressCheckout());

@@ -243,3 +243,19 @@ it('leaves an organiser who set their own button text alone', function () {
         ->toContain('Sumbang Sekarang')
         ->not->toContain('Donate with card');
 });
+
+it('offers the wallet on the inline form, where the amount step actually lives', function () {
+    // A Form element shows the amount step inline on the organisation's page and
+    // only opens the modal at step 2, so the wallet has to be on the inline one.
+    $this->get(route('donations.show', $this->element).'?embed=1')
+        ->assertOk()
+        ->assertSee('id="express-checkout-element"', false);
+});
+
+it('does not mount the wallet on a modal that opens past the amount step', function () {
+    // Stripe cannot measure a hidden element; the step-2 modal has the amount
+    // settled already.
+    $this->get(route('donations.show', $this->element).'?popup=1&step=2')
+        ->assertOk()
+        ->assertSee('if (this.currentStep !== 1) return;', false);
+});
