@@ -503,7 +503,9 @@
                                         <span class="h-px flex-1 bg-slate-200"></span>
                                     </div>
                                 @else
-                                <div id="express-checkout-wrapper">
+                                {{-- Stripe owns what is inside; Livewire must not
+                                     morph it away on a re-render. --}}
+                                <div id="express-checkout-wrapper" wire:ignore>
                                     <div id="express-checkout-element"></div>
                                 </div>
 
