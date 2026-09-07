@@ -33,8 +33,13 @@ final class DonationFeeEstimator
      * ringgit charge on a Malaysian card lands at 3%, on a foreign card at 4%,
      * and a foreign-currency charge at 5% domestic or 6% foreign.
      *
-     * The fixed part is that RM1.00 expressed in the presentment currency,
-     * rounded up so a moving exchange rate doesn't eat into the donation.
+     * The fixed part is that RM1.00 expressed in the presentment currency. It
+     * is derived from a floor exchange rate rather than the live one, so that a
+     * ringgit that strengthens between the quote and the charge cannot leave
+     * the organization short: USD at 4.00 and SGD at 3.00, rounded up to five
+     * cents. Both floors sit well below where those pairs have traded, and a
+     * breach costs a few cents rather than a percentage. Change the floor, not
+     * the cent figure.
      *
      * CHIP's rates are unmeasured and the gateway is locked; see
      * docs/guides/chip-v2.md.
@@ -44,8 +49,8 @@ final class DonationFeeEstimator
     private const PROCESSOR_RATES = [
         'stripe' => [
             'myr' => ['percent' => 0.030, 'international' => 0.040, 'fixed' => 1.00],
-            'usd' => ['percent' => 0.050, 'international' => 0.060, 'fixed' => 0.30],
-            'sgd' => ['percent' => 0.050, 'international' => 0.060, 'fixed' => 0.40],
+            'usd' => ['percent' => 0.050, 'international' => 0.060, 'fixed' => 0.25],
+            'sgd' => ['percent' => 0.050, 'international' => 0.060, 'fixed' => 0.35],
         ],
         'chip' => [
             'myr' => ['percent' => 0.025, 'international' => 0.025, 'fixed' => 1.00],

@@ -93,6 +93,26 @@ it('covers the international and conversion surcharges on foreign currencies', f
     ['usd', 0.25],
 ]);
 
+/**
+ * The fixed part is RM1.00 in the donor's currency, taken at a floor exchange
+ * rate so a strengthening ringgit cannot leave the organization short. Padding
+ * it further just overcharges the donor: at SGD 0.40 a SGD 10 gift quoted about
+ * nine cents more cover than the charge actually cost.
+ */
+it('sets the fixed fee from a floor exchange rate, not a guess', function (string $currency, float $floorRate) {
+    $rates = DonationFeeEstimator::rates('stripe');
+
+    $ringgitAtFloor = 1.00 / $floorRate;
+
+    expect($rates[$currency]['fixed'])
+        ->toBeGreaterThanOrEqual($ringgitAtFloor)
+        // Five cents of rounding, no more; anything larger is padding.
+        ->toBeLessThan($ringgitAtFloor + 0.05);
+})->with([
+    'USD floored at 4.00' => ['usd', 4.00],
+    'SGD floored at 3.00' => ['sgd', 3.00],
+]);
+
 it('quotes the foreign currency processor rate that production settles at', function () {
     $rates = DonationFeeEstimator::rates('stripe');
 
