@@ -25,6 +25,20 @@ class SyncDonationStripeDetails
         ], $stripeOptions);
 
         $rawCharge = $paymentIntent->latest_charge ?? ($paymentIntent->charges->data[0] ?? null);
+
+        // An intent confirmed elsewhere - a recurring installment, say - arrives
+        // with its charge as a bare id, and the wallet a donor paid with is
+        // recorded only on the charge. Without fetching it, a Google Pay
+        // installment was filed as an ordinary card.
+        if (is_string($rawCharge) && $rawCharge !== '') {
+            $paymentIntent = StripePaymentIntent::retrieve([
+                'id' => $paymentIntent->id,
+                'expand' => ['latest_charge.balance_transaction'],
+            ], $stripeOptions);
+
+            $rawCharge = $paymentIntent->latest_charge ?? $rawCharge;
+        }
+
         $paymentMethod = $this->retrievePaymentMethod($paymentIntent, $stripeOptions);
         $pmDetails = $this->paymentMethodDetails($paymentMethod, $rawCharge);
 
