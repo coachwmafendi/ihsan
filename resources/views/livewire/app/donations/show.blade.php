@@ -652,10 +652,10 @@
 
         {{-- Right Column / Floating Menu --}}
         <div class="space-y-4">
-            {{-- Sticky, but never taller than the screen: the section list runs
-                 past the bottom on a short window and its last items cannot be
-                 reached. --}}
-            <div class="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto lg:pb-4">
+            {{-- Not sticky: see the recurring plan page. Pinning it hid the
+                 items past the fold; capping its height only moved the problem
+                 into a scrollbar of its own. --}}
+            <div>
                 {{-- Actions --}}
                 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
                     @if ($donation->status->value === 'succeeded')

@@ -190,12 +190,13 @@ it('does not give reactivate the same icon as the plans nav item', function () {
                             Reactivate plan');
 });
 
-it('keeps the sticky sidebar within the screen', function () {
-    // Stacked up, the panel ran past the bottom of the viewport and its last
-    // items could not be scrolled to at all.
+it('leaves the side panel scrolling with the page', function () {
+    // Pinned to the top it grew past the bottom of the window and its last
+    // items were unreachable; capping its height gave it a scrollbar of its
+    // own, which needed a second scroll gesture to reach the same items.
     $markup = file_get_contents(base_path('resources/views/livewire/app/subscriptions/show.blade.php'));
 
     expect($markup)
-        ->toContain('lg:max-h-[calc(100vh-3rem)]')
-        ->toContain('lg:overflow-y-auto');
+        ->not->toContain('lg:sticky')
+        ->not->toContain('lg:overflow-y-auto');
 });
