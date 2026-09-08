@@ -193,3 +193,18 @@ it('still hands off from inside an embedded frame', function () {
     expect(embeddedOn('https://mtaqlaa.onpay.my/x')->instance()->walletRequiresTopLevel())
         ->toBeTrue();
 });
+
+it('will not hand off a donor who has not entered an amount', function () {
+    // The handoff is a link, so it never met the checks the card button runs.
+    // An emptied amount field sailed straight through to the hosted page.
+    $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
+        ->assertOk()
+        ->assertSee('if (! validateStep1()) $event.preventDefault()', false)
+        ->assertSee('x-bind:aria-disabled="! amountIsUsable()"', false);
+});
+
+it('shows the same minimum message the card button would', function () {
+    $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
+        ->assertOk()
+        ->assertSee('x-show="stepErrors.amount"', false);
+});

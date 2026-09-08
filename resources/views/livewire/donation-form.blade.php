@@ -492,10 +492,24 @@
                                     <a
                                         x-bind:href="topLevelCheckoutHref()"
                                         target="_top"
-                                        class="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 text-base font-semibold text-white no-underline shadow-sm transition hover:bg-slate-800 active:scale-[0.98]"
+                                        {{-- A link does not run the checks the card
+                                             button does, so an empty amount used to
+                                             sail straight through to the hosted page.
+                                             The click is stopped here instead, and
+                                             only when the amount is unusable - a
+                                             valid one still counts as the gesture the
+                                             browser needs to leave the frame. --}}
+                                        x-on:click="if (! validateStep1()) $event.preventDefault()"
+                                        x-bind:aria-disabled="! amountIsUsable()"
+                                        x-bind:class="amountIsUsable()
+                                            ? 'bg-slate-900 hover:bg-slate-800 active:scale-[0.98]'
+                                            : 'bg-slate-400 cursor-not-allowed'"
+                                        class="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg px-4 text-base font-semibold text-white no-underline shadow-sm transition"
                                     >
                                         Pay with Apple Pay or Google Pay
                                     </a>
+
+                                    <div x-show="stepErrors.amount" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.amount"></div>
 
                                     <div class="flex items-center gap-3">
                                         <span class="h-px flex-1 bg-slate-200"></span>

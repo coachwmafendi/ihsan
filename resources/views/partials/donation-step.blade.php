@@ -151,6 +151,16 @@
                             }, i * 80);
                         }
                     },
+                    /**
+                     * Whether the amount on screen is one we could actually
+                     * charge. Used to grey out the wallet handoff, which is a
+                     * link and so never met the card button's checks.
+                     */
+                    amountIsUsable() {
+                        const amount = parseFloat(this.amount);
+
+                        return !!amount && amount >= this.minimumAmount && amount <= 100000;
+                    },
                     validateStep1() {
                         this.stepErrors = {};
                         const amt = parseFloat(this.amount);
