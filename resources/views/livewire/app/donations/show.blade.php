@@ -654,30 +654,42 @@
         <div class="space-y-4">
             <x-ui.sticky-panel>
                 {{-- Actions --}}
-                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                    @if ($donation->status->value === 'succeeded')
-                        <a
-                            href="{{ route('donations.receipt.download', $donation) }}"
-                            class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                        >
-                            <x-heroicon-o-arrow-down-tray class="size-5 text-slate-500" />
-                            Download receipt
-                        </a>
-                    @endif
-                    @if ($this->canRefund())
-                        <button
-                            type="button"
-                            wire:click="openRefundModal"
-                            class="flex w-full items-center gap-3 border-t border-slate-100 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                        >
-                            <x-heroicon-o-arrow-uturn-left class="size-5 text-slate-500" />
-                            Refund donation
-                        </button>
-                    @endif
-                </div>
+                @php
+                    $canDownloadReceipt = $donation->status->value === 'succeeded';
+                    $hasActions = $canDownloadReceipt || $this->canRefund();
+                @endphp
+
+                {{--
+                    A refunded donation has neither action left, and the card was
+                    drawn regardless - an empty bordered box that read as a stray
+                    rule floating above the menu.
+                --}}
+                @if ($hasActions)
+                    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                        @if ($canDownloadReceipt)
+                            <a
+                                href="{{ route('donations.receipt.download', $donation) }}"
+                                class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                            >
+                                <x-heroicon-o-arrow-down-tray class="size-5 text-slate-500" />
+                                Download receipt
+                            </a>
+                        @endif
+                        @if ($this->canRefund())
+                            <button
+                                type="button"
+                                wire:click="openRefundModal"
+                                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 @if ($canDownloadReceipt) border-t border-slate-100 @endif"
+                            >
+                                <x-heroicon-o-arrow-uturn-left class="size-5 text-slate-500" />
+                                Refund donation
+                            </button>
+                        @endif
+                    </div>
+                @endif
 
                 {{-- Navigation --}}
-                <div class="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5">
+                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 @if ($hasActions) mt-4 @endif">
                     <nav class="space-y-0.5" aria-label="Donation sections">
                         <button
                             type="button"

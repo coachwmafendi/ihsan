@@ -650,6 +650,25 @@ it('displays refunded state on the donation show page', function () {
         ->assertSee('Amounts below reflect the original transaction before the refund.');
 });
 
+it('drops the actions card entirely when a donation has no actions left', function () {
+    // Refunded leaves neither download nor refund, and the card was still
+    // drawn - an empty bordered box that read as a stray rule above the menu.
+    $panelCard = 'overflow-hidden rounded-xl border border-slate-200 bg-white';
+
+    $succeeded = Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->html();
+
+    $this->donation->update(['status' => 'refunded', 'refunded_at' => now()]);
+
+    $refunded = Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->html();
+
+    expect(substr_count($succeeded, $panelCard))->toBe(2)
+        ->and(substr_count($refunded, $panelCard))->toBe(1);
+});
+
 it('warns when a refunded donation belongs to an active recurring plan', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,
