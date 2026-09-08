@@ -29,7 +29,9 @@
 
             <x-filament::button
                 color="gray"
-                :icon="\Filament\Support\Icons\Heroicon::ArrowLeftEndOnRectangle"
+                {{-- Arrow leaving the frame; the left-facing one points into it, which is
+                     the sign-in gesture. --}}
+                :icon="\Filament\Support\Icons\Heroicon::ArrowRightStartOnRectangle"
                 :icon-alias="\Filament\View\PanelsIconAlias::WIDGETS_ACCOUNT_LOGOUT_BUTTON"
                 labeled-from="sm"
                 tag="button"
