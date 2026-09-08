@@ -7,6 +7,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
+use App\Services\ReceiptImageOptimizer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Support\Facades\Storage;
@@ -195,8 +196,36 @@ it('embeds the organization logo in the pdf receipt when available', function ()
     $html = view('emails.donation-receipt-pdf', ['donation' => $donation])->render();
 
     expect($html)
-        ->toContain('data:image/png;base64,')
+        ->toContain('file://')
+        ->toContain('logos/org.png')
         ->not->toContain('<span class="badge">'); // initial fallback suppressed
+});
+
+it('downsizes a large organization logo for the pdf receipt', function () {
+    Storage::fake('public');
+
+    $image = imagecreatetruecolor(600, 600);
+    $blue = imagecolorallocate($image, 15, 118, 110);
+    imagefill($image, 0, 0, $blue);
+
+    ob_start();
+    imagepng($image, null, 2);
+    $png = ob_get_clean();
+
+    Storage::disk('public')->put('logos/large.png', $png);
+
+    $originalPath = Storage::disk('public')->path('logos/large.png');
+    $thumbnailPath = ReceiptImageOptimizer::receiptThumbnail($originalPath);
+
+    expect($thumbnailPath)
+        ->not->toBeNull()
+        ->not->toBe($originalPath)
+        ->and(file_exists($thumbnailPath))->toBeTrue()
+        ->and(filesize($thumbnailPath))->toBeLessThan(filesize($originalPath));
+
+    $dimensions = getimagesize($thumbnailPath);
+    expect($dimensions[0])->toBeLessThanOrEqual(200)
+        ->and($dimensions[1])->toBeLessThanOrEqual(200);
 });
 
 it('renders the pdf receipt for recurring donations with recurring labels', function () {
