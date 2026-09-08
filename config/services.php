@@ -3,6 +3,17 @@
 return [
 
     /*
+     * Used only to ask which commit is at the head of the deploy branch, so a
+     * push that never triggered a build can be noticed. A read-only token is
+     * enough; without one the check is skipped rather than failing.
+     */
+    'github' => [
+        'repository' => env('GITHUB_REPOSITORY'),
+        'token' => env('GITHUB_TOKEN'),
+        'deploy_branch' => env('GITHUB_DEPLOY_BRANCH', 'main'),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Third Party Services
     |--------------------------------------------------------------------------
