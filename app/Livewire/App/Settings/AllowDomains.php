@@ -10,6 +10,7 @@ use App\Jobs\RegisterStripePaymentMethodDomains;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Organization;
+use App\Support\CheckoutDomains;
 use App\Support\DomainName;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -98,10 +99,15 @@ class AllowDomains extends Component
      * registered too - not just the site embedding it. We register it for every
      * connected account, but until now there was nothing on screen saying
      * whether Stripe had accepted it.
+     *
+     * There are two of them: the frame every NGO site embeds, and the main site
+     * that serves the donor portal and the hosted campaign pages.
+     *
+     * @return array<int, string>
      */
-    public function checkoutDomain(): string
+    public function checkoutDomains(): array
     {
-        return DomainName::normalize((string) config('app.app_panel_domain'));
+        return CheckoutDomains::all();
     }
 
     /**
@@ -163,7 +169,7 @@ class AllowDomains extends Component
         }
 
         $known = collect($this->normalizeDomains($this->allowed_domains))
-            ->push($this->checkoutDomain())
+            ->merge($this->checkoutDomains())
             ->filter()
             ->all();
 
