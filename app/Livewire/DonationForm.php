@@ -35,6 +35,7 @@ use App\Services\FraudDetectionService;
 use App\Services\MonthlyUpsellRules;
 use App\Services\RecurringPlanResolver;
 use App\Services\TrackingScriptService;
+use App\Support\CheckoutDomains;
 use App\Support\ChipFpxBanks;
 use App\Support\ClientInfo;
 use App\Support\Currency;
@@ -818,7 +819,9 @@ class DonationForm extends Component
 
         $host = DomainName::normalize((string) (parse_url($this->parentPageUrl, PHP_URL_HOST) ?: ''));
 
-        if ($host === '' || $host === DomainName::normalize((string) config('app.app_panel_domain'))) {
+        // Our own hosts are registered for every connected account, and the
+        // donor portal runs on one of them.
+        if ($host === '' || CheckoutDomains::includes($host)) {
             return false;
         }
 

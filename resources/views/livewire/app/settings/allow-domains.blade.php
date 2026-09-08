@@ -48,31 +48,32 @@
                         ];
                     @endphp
 
-                    @php $checkoutStatus = $this->walletStatusFor($this->checkoutDomain()); @endphp
-
                     <ul class="divide-y divide-slate-100 rounded-lg border border-slate-200">
-                        <li class="flex flex-wrap items-center justify-between gap-2 bg-slate-50 px-3 py-2.5">
-                            <div class="min-w-0">
-                                <p class="truncate text-sm font-medium text-slate-900">{{ $this->checkoutDomain() ?: 'Not configured' }}</p>
-                                <p class="mt-0.5 text-xs text-slate-500">Ihsan checkout — the frame your donation form runs in</p>
+                        @forelse ($this->checkoutDomains() as $checkoutDomain)
+                            @php $checkoutStatus = $this->walletStatusFor($checkoutDomain); @endphp
+                            <li class="flex flex-wrap items-center justify-between gap-2 bg-slate-50 px-3 py-2.5">
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-medium text-slate-900">{{ $checkoutDomain }}</p>
+                                    <p class="mt-0.5 text-xs text-slate-500">Ihsan checkout — a page your donation form runs on</p>
 
-                                @if ($this->checkoutDomain() === '')
-                                    <p class="mt-0.5 text-xs text-red-600">Ihsan has no checkout domain configured, so it was never registered with Stripe and wallets cannot appear. Contact support.</p>
-                                @endif
+                                    @if ($checkoutStatus['error'])
+                                        <p class="mt-0.5 text-xs text-red-600">{{ $checkoutStatus['error'] }}</p>
+                                    @endif
+                                </div>
 
-                                @if ($checkoutStatus['error'])
-                                    <p class="mt-0.5 text-xs text-red-600">{{ $checkoutStatus['error'] }}</p>
-                                @endif
-                            </div>
-
-                            <div class="flex shrink-0 items-center gap-2">
-                                @if (! $statuses_loaded)
-                                    <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">Checking...</span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium {{ $statusTones[$checkoutStatus['tone']] }}">{{ $checkoutStatus['label'] }}</span>
-                                @endif
-                            </div>
-                        </li>
+                                <div class="flex shrink-0 items-center gap-2">
+                                    @if (! $statuses_loaded)
+                                        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">Checking...</span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium {{ $statusTones[$checkoutStatus['tone']] }}">{{ $checkoutStatus['label'] }}</span>
+                                    @endif
+                                </div>
+                            </li>
+                        @empty
+                            <li class="bg-slate-50 px-3 py-2.5">
+                                <p class="text-xs text-red-600">Ihsan has no checkout domain configured, so nothing was registered with Stripe and wallets cannot appear. Contact support.</p>
+                            </li>
+                        @endforelse
 
                         @foreach ($allowed_domains as $i => $domain)
                             @php $status = $this->walletStatusFor($domain); @endphp

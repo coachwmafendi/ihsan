@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Stripe;
 
 use App\Models\Organization;
+use App\Support\CheckoutDomains;
 use App\Support\DomainName;
 use Illuminate\Support\Facades\Log;
 use Stripe\Exception\ApiErrorException;
@@ -98,17 +99,21 @@ class RegisterPaymentMethodDomains
     }
 
     /**
-     * Platform checkout domain (Payment Element lives here) plus org allowed domains.
+     * Both platform checkout domains plus the org's own allowed domains.
+     *
+     * Only the panel domain was registered. The donor portal and the hosted
+     * campaign pages are served from the main site instead, so Apple Pay - the
+     * one wallet Stripe gates on a registered domain - never appeared there for
+     * any organisation. Google Pay did, which made it look like a device
+     * problem rather than a missing registration.
      *
      * @return array<int, string>
      */
     private function domainsFor(Organization $organization): array
     {
-        $panelDomain = (string) config('app.app_panel_domain');
-
         $allowed = (array) ($organization->settings['allowed_domains'] ?? []);
 
-        return collect([$panelDomain, ...$allowed])
+        return collect([...CheckoutDomains::all(), ...$allowed])
             ->map(fn ($domain): string => DomainName::normalize((string) $domain))
             ->filter()
             ->unique()

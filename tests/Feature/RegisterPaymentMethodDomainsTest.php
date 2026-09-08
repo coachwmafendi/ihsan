@@ -19,6 +19,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config()->set('app.app_panel_domain', 'app.getihsan.my');
+    config()->set('app.url', 'https://getihsan.my');
     config()->set('services.stripe.secret', 'sk_test_dummy');
 });
 
@@ -58,7 +59,7 @@ function fakeStripeClientForDomains(array &$created, array $alreadyRegistered = 
     return $client;
 }
 
-it('registers the panel domain plus allowed domains on the connected account', function () {
+it('registers both Ihsan domains plus allowed domains on the connected account', function () {
     $created = [];
 
     $org = Organization::factory()->stripeConnected()->create([
@@ -69,12 +70,26 @@ it('registers the panel domain plus allowed domains on the connected account', f
 
     expect($registered)->toEqualCanonicalizing([
         'app.getihsan.my',
+        'getihsan.my',
         'infaq.darulmujtaba.my',
         'example.org',
     ]);
 
     // www. is normalised away, so example.org is created once.
-    expect($created)->toContain('app.getihsan.my', 'infaq.darulmujtaba.my', 'example.org');
+    expect($created)->toContain('app.getihsan.my', 'getihsan.my', 'infaq.darulmujtaba.my', 'example.org');
+});
+
+it('registers the site the donor portal is served from, not only the embed frame', function () {
+    // Apple Pay is the wallet Stripe gates on a registered domain, so on the
+    // donor portal it was simply absent while Google Pay carried on working -
+    // which reads like a device problem rather than a missing registration.
+    $created = [];
+
+    $org = Organization::factory()->stripeConnected()->create(['settings' => []]);
+
+    (new RegisterPaymentMethodDomains(fakeStripeClientForDomains($created)))->register($org);
+
+    expect($created)->toContain('getihsan.my');
 });
 
 it('skips creation for domains already registered and revalidates them', function () {
@@ -88,8 +103,8 @@ it('skips creation for domains already registered and revalidates them', functio
         fakeStripeClientForDomains($created, alreadyRegistered: ['app.getihsan.my'])
     ))->register($org);
 
-    expect($registered)->toEqualCanonicalizing(['app.getihsan.my', 'infaq.darulmujtaba.my']);
-    expect($created)->toBe(['infaq.darulmujtaba.my']);
+    expect($registered)->toEqualCanonicalizing(['app.getihsan.my', 'getihsan.my', 'infaq.darulmujtaba.my']);
+    expect($created)->toBe(['getihsan.my', 'infaq.darulmujtaba.my']);
 });
 
 it('does nothing for organizations without a connected account', function () {
@@ -306,7 +321,7 @@ it('shows whether Stripe verified the checkout frame itself', function () {
 
     $component = Livewire::actingAs($user)->test(AllowDomains::class)->call('loadDomainStatuses');
 
-    expect($component->instance()->checkoutDomain())->toBe('app.getihsan.my');
+    expect($component->instance()->checkoutDomains())->toBe(['app.getihsan.my', 'getihsan.my']);
 
     $component->assertSee('app.getihsan.my')
         ->assertSee('Ihsan checkout')
@@ -318,6 +333,7 @@ it('says so when Ihsan itself has no checkout domain configured', function () {
     // Nothing gets registered in that case, so the wallet is missing for every
     // organisation at once and the cause is ours rather than theirs.
     config()->set('app.app_panel_domain', null);
+    config()->set('app.url', null);
 
     $org = Organization::factory()->stripeConnected()->create([
         'settings' => ['allowed_domains' => ['tahfizannur.org']],
@@ -330,7 +346,6 @@ it('says so when Ihsan itself has no checkout domain configured', function () {
 
     Livewire::actingAs($user)->test(AllowDomains::class)
         ->call('loadDomainStatuses')
-        ->assertSee('Not configured')
         ->assertSee('no checkout domain configured');
 });
 
