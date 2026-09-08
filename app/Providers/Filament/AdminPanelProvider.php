@@ -23,6 +23,9 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Facades\FilamentIcon;
+use Filament\Support\Icons\Heroicon;
+use Filament\View\PanelsIconAlias;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -38,6 +41,13 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         $domain = config('app.admin_panel_domain');
+
+        // The default points an arrow into the frame, which is the sign-in
+        // gesture. Signing out leaves it.
+        FilamentIcon::register([
+            PanelsIconAlias::USER_MENU_LOGOUT_BUTTON => Heroicon::ArrowRightStartOnRectangle,
+            PanelsIconAlias::WIDGETS_ACCOUNT_LOGOUT_BUTTON => Heroicon::ArrowRightStartOnRectangle,
+        ]);
 
         return $panel
             ->default()

@@ -77,8 +77,10 @@ $unreadCount = auth()->user()?->getUnreadNotificationsCountAttribute() ?? 0;
                 <form method="POST" action="{{ route('logout') }}" class="block">
                     @csrf
                     <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left">
-                        <x-heroicon-o-arrow-left-on-rectangle class="size-4" />
-                        Log out
+                        {{-- Arrow leaving the frame. The left-facing one points into it, which is
+                             the sign-in gesture. --}}
+                        <x-heroicon-o-arrow-right-start-on-rectangle class="size-4" />
+                        Sign out
                     </button>
                 </form>
             </div>
