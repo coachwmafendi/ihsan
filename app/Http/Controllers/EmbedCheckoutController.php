@@ -12,11 +12,21 @@ use Illuminate\Support\Str;
 
 class EmbedCheckoutController extends Controller
 {
+    /**
+     * What an embedded checkout frame is allowed to do.
+     *
+     * Three scripts build that frame and each carried its own copy of this
+     * string. One of them was missing the payment permission, and Apple Pay
+     * vanished on every site using it with nothing to say why.
+     */
+    private const IframeAllow = 'payment *; clipboard-write; autoplay';
+
     public function widget(): Response
     {
         $path = resource_path('js/widget.js');
 
         $script = file_exists($path) ? file_get_contents($path) : '';
+        $script = str_replace('IHSAN_IFRAME_ALLOW', self::IframeAllow, $script);
 
         return response($script, 200, [
             'Content-Type' => 'application/javascript',
@@ -31,6 +41,7 @@ class EmbedCheckoutController extends Controller
         $path = resource_path('js/loader.js');
 
         $script = file_exists($path) ? file_get_contents($path) : '';
+        $script = str_replace('IHSAN_IFRAME_ALLOW', self::IframeAllow, $script);
 
         return response($script, 200, [
             'Content-Type' => 'application/javascript; charset=UTF-8',
@@ -197,7 +208,7 @@ class EmbedCheckoutController extends Controller
         modal.setAttribute('role', 'dialog');
         modal.setAttribute('aria-modal', 'true');
         modal.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,.58);padding:20px;';
-        modal.innerHTML = '<div style="position:relative;width:min(100%,520px);height:min(94vh,820px);background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(15,23,42,.28);overflow:hidden;"><button type="button" data-ihsan-close style="position:absolute;top:10px;right:10px;z-index:2;width:34px;height:34px;border:0;border-radius:999px;background:rgba(15,23,42,.08);font:24px/1 system-ui,sans-serif;cursor:pointer;">&times;</button><iframe title="Ihsan checkout" data-ihsan-frame allow="payment *; clipboard-write; autoplay" style="width:100%;height:100%;border:0;"></iframe></div>';
+        modal.innerHTML = '<div style="position:relative;width:min(100%,520px);height:min(94vh,820px);background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(15,23,42,.28);overflow:hidden;"><button type="button" data-ihsan-close style="position:absolute;top:10px;right:10px;z-index:2;width:34px;height:34px;border:0;border-radius:999px;background:rgba(15,23,42,.08);font:24px/1 system-ui,sans-serif;cursor:pointer;">&times;</button><iframe title="Ihsan checkout" data-ihsan-frame allow="IHSAN_IFRAME_ALLOW" style="width:100%;height:100%;border:0;"></iframe></div>';
 
         modal.addEventListener('click', function (event) {
             if (event.target === modal || event.target.closest('[data-ihsan-close]')) {
@@ -302,8 +313,8 @@ class EmbedCheckoutController extends Controller
 JS;
 
         return response(str_replace(
-            ['CHECKOUT_BASE_URL', 'DONATE_BASE_URL'],
-            [Js::from($checkoutBaseUrl), Js::from($donateBaseUrl)],
+            ['CHECKOUT_BASE_URL', 'DONATE_BASE_URL', 'IHSAN_IFRAME_ALLOW'],
+            [Js::from($checkoutBaseUrl), Js::from($donateBaseUrl), self::IframeAllow],
             $script,
         ), 200)
             ->header('Content-Type', 'application/javascript; charset=UTF-8')

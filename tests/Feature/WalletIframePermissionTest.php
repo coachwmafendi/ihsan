@@ -58,3 +58,40 @@ it('serves a button embed whose opener grants payment permission', function () {
 
     expect($this->get('/embed.js')->getContent())->toContain('payment *');
 });
+
+it('takes the frame permission from one place', function () {
+    // Each script carried its own copy of the string, and one of them had lost
+    // the payment permission. The controller substitutes a single constant when
+    // it serves them, so a change reaches all three or none.
+    $controller = file_get_contents(base_path('app/Http/Controllers/EmbedCheckoutController.php'));
+
+    expect($controller)->toContain("private const IframeAllow = 'payment *; clipboard-write; autoplay';");
+
+    foreach (['resources/js/widget.js', 'resources/js/loader.js'] as $script) {
+        expect(file_get_contents(base_path($script)))
+            ->toContain('IHSAN_IFRAME_ALLOW')
+            ->not->toContain('payment *; clipboard-write; autoplay');
+    }
+});
+
+it('leaves no placeholder in what it actually serves', function (string $route) {
+    // A substitution that silently failed would hand the browser the literal
+    // token, and the frame would carry no permission at all.
+    $script = $this->get($route)->assertOk()->getContent();
+
+    expect($script)
+        ->not->toContain('IHSAN_IFRAME_ALLOW')
+        ->toContain('payment *');
+})->with([
+    '/e/widget.js',
+    '/e/loader.js',
+    '/embed.js',
+]);
+
+it('closes the checkout modal on Escape, whichever embed opened it', function () {
+    // The loader's modal closed on Escape and the widget's did not, so the same
+    // donor met two different behaviours depending on which script the site had.
+    foreach (['resources/js/widget.js', 'resources/js/loader.js'] as $script) {
+        expect(file_get_contents(base_path($script)))->toContain('Escape');
+    }
+});
