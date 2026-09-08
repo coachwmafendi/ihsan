@@ -36,9 +36,9 @@
         <tr><td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.dunning.attempt') }}</td><td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $retryCount }}</td></tr>
     </table>
 
-    <p>
+    <p style="text-align: center; margin: 28px 0;">
         <a href="{{ $loginUrl ?? route('donorportal.login', $subscription->campaign->organization) }}"
-           style="display: inline-block; background: #0d9488; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+           style="display: inline-block; background-color: #228B22; color: #ffffff; padding: 14px 28px; border-radius: 6px; font-size: 18px; text-decoration: none; font-weight: 600;">
             {{ $t('emails.dunning.update_payment') }}
         </a>
     </p>

@@ -139,7 +139,9 @@ return [
 
     'donor_refund' => [
         'subject' => 'Your donation has been refunded — :organization',
-        'title' => 'Donation Refunded',
+        'title' => 'Refund Processed',
+        'subtitle' => 'From :organization',
+        'status_label' => 'Refund Processed',
         'preheader' => 'Your donation of :amount to :campaign has been refunded.',
         'intro' => 'We are writing to let you know that your donation of :amount to :campaign has been refunded. The refunded amount should appear in your account within 5–10 business days, depending on your bank or card issuer.',
         'body' => 'If you have any questions about this refund, please feel free to reach out to us.',
@@ -148,6 +150,13 @@ return [
         'campaign_label' => 'Campaign',
         'donation_id_label' => 'Donation ID',
         'date_label' => 'Date',
+        'payment_method_label' => 'Payment Method',
+        'timeline_heading' => 'What happens next',
+        'timeline_body' => 'The refunded amount is on its way back to your original payment method. Most banks and card issuers process refunds within 5–10 business days.',
+        'no_action_needed' => 'You do not need to do anything. We will send you an update if anything changes.',
+        'cta_view' => 'View Donation Details',
+        'cta_contact' => 'Contact Support',
+        'support_intro' => 'Need help? Reply to this email or contact :organization directly.',
         'reason' => 'You are receiving this because you made a donation to this campaign.',
     ],
 

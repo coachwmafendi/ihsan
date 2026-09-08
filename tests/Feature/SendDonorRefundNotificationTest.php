@@ -12,7 +12,10 @@ use App\Models\Organization;
 use Illuminate\Support\Facades\Mail;
 
 test('donor refund email renders refund details', function () {
-    $organization = Organization::factory()->create(['name' => 'Test Org']);
+    $organization = Organization::factory()->create([
+        'name' => 'Test Org',
+        'contact_email' => 'support@example.com',
+    ]);
     $campaign = Campaign::factory()->for($organization)->create(['title' => 'Test Campaign']);
     $donor = Donor::factory()->create(['name' => 'Ahmad Ismail']);
 
@@ -29,7 +32,7 @@ test('donor refund email renders refund details', function () {
     $html = $mailable->render();
 
     expect($html)
-        ->toContain('Donation Refunded')
+        ->toContain('Refund Processed')
         ->toContain('Hi Ahmad Ismail')
         ->toContain('MYR 100.00')
         ->toContain('Test Campaign')
@@ -37,7 +40,13 @@ test('donor refund email renders refund details', function () {
         ->toContain($donation->public_id)
         ->toContain('donor/notifications/'.$donor->public_id)
         ->toContain('Amount Refunded')
-        ->toContain('Campaign');
+        ->toContain('Campaign')
+        ->toContain('Payment Method')
+        ->toContain('What happens next')
+        ->toContain('You do not need to do anything')
+        ->toContain('View Donation Details')
+        ->toContain('Contact Support')
+        ->toContain('Need help?');
 });
 
 test('job sends donor refund email once and logs it', function () {
@@ -84,7 +93,10 @@ test('job does not send email when donor has opted out', function () {
 });
 
 test('logged donor refund email can be previewed', function () {
-    $organization = Organization::factory()->create(['name' => 'Test Org']);
+    $organization = Organization::factory()->create([
+        'name' => 'Test Org',
+        'contact_email' => 'support@example.com',
+    ]);
     $campaign = Campaign::factory()->for($organization)->create(['title' => 'Test Campaign']);
     $donor = Donor::factory()->create(['name' => 'Siti Aminah']);
 
@@ -101,16 +113,22 @@ test('logged donor refund email can be previewed', function () {
 
     expect($html)
         ->not->toBeNull()
-        ->toContain('Donation Refunded')
+        ->toContain('Refund Processed')
         ->toContain('MYR 75.00')
         ->toContain('Test Campaign')
-        ->toContain('Hi Siti Aminah');
+        ->toContain('Hi Siti Aminah')
+        ->toContain('What happens next')
+        ->toContain('View Donation Details')
+        ->toContain('support@example.com');
 });
 
 test('logged donor refund email can be resent', function () {
     Mail::fake();
 
-    $organization = Organization::factory()->create(['name' => 'Test Org']);
+    $organization = Organization::factory()->create([
+        'name' => 'Test Org',
+        'contact_email' => 'support@example.com',
+    ]);
     $campaign = Campaign::factory()->for($organization)->create(['title' => 'Test Campaign']);
     $donor = Donor::factory()->create(['name' => 'Siti Aminah']);
 
