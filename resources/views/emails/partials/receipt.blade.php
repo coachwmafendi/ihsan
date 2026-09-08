@@ -1,4 +1,6 @@
 @php
+    use App\Services\ReceiptImageOptimizer;
+
     $org = $donation->campaign->organization;
     $donor = $donation->donor;
 
@@ -12,10 +14,9 @@
 
     $orgInitial = strtoupper(mb_substr(trim($org->name), 0, 1));
 
-    $logoData = null;
+    $logoPath = null;
     if (filled($org->logo_path) && \Illuminate\Support\Facades\Storage::disk('public')->exists($org->logo_path)) {
-        $logoMime = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($org->logo_path) ?: 'image/png';
-        $logoData = 'data:'.$logoMime.';base64,'.base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($org->logo_path));
+        $logoPath = ReceiptImageOptimizer::receiptThumbnail(\Illuminate\Support\Facades\Storage::disk('public')->path($org->logo_path));
     }
 
     $addressParts = array_filter([$org->city, $org->state, $org->country]);
@@ -26,8 +27,8 @@
 <table class="header-table">
     <tr>
         <td style="vertical-align: middle;">
-            @if ($logoData)
-                <img class="logo" src="{{ $logoData }}" alt=""><span class="org-name">{{ $org->name }}</span>
+            @if ($logoPath)
+                <img class="logo" src="file://{{ $logoPath }}" alt=""><span class="org-name">{{ $org->name }}</span>
             @else
                 <span class="badge">{{ $orgInitial }}</span><span class="org-name">{{ $org->name }}</span>
             @endif

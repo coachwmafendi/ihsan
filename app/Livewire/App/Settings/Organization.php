@@ -139,6 +139,7 @@ class Organization extends Component
             'website_url' => ['nullable', 'url', 'max:255'],
             'contact_email' => ['nullable', 'email', 'max:255'],
             'contact_phone' => ['nullable', 'string', 'max:255'],
+            'logo' => ['nullable', 'image', 'max:2048'],
             'address_line_1' => ['nullable', 'string', 'max:255'],
             'address_line_2' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],

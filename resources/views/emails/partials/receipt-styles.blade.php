@@ -2,7 +2,7 @@
     @page { margin: 40px 44px; }
     * { box-sizing: border-box; }
     body {
-        font-family: 'DejaVu Sans', sans-serif;
+        font-family: 'Helvetica', sans-serif;
         font-size: 11px;
         line-height: 1.5;
         color: #1a1a2e;
