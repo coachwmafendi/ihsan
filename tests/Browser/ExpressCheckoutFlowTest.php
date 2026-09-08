@@ -115,6 +115,13 @@ it('holds the wallet to the same minimum the card is held to', function () {
         ->click('[data-currency="usd"]')
         ->assertScript(checkoutState('state.minimumAmount'), '2.5')
         ->assertScript(checkoutState('state.expressMinimumInCents()'), '250')
+        ->assertScript(checkoutState("(state.amount = '1', state.expressAmountIsChargeable())"), 'false')
+        // And the third currency, whose floor differs again: RM10 is SGD 3.35,
+        // well above the SGD 0.70 the wallet used to be gated on.
+        ->click('[data-currency-trigger]')
+        ->click('[data-currency="sgd"]')
+        ->assertScript(checkoutState('state.minimumAmount'), '3.35')
+        ->assertScript(checkoutState('state.expressMinimumInCents()'), '335')
         ->assertScript(checkoutState("(state.amount = '1', state.expressAmountIsChargeable())"), 'false');
 });
 
