@@ -37,6 +37,12 @@
                         <flux:field>
                             <flux:label>Campaign <span class="text-red-500">*</span></flux:label>
                             <flux:select class="h-8 py-1.5" wire:model="campaign_id" placeholder="Select a campaign">
+                                {{-- An option the unset property can match. Flux marks
+                                     its placeholder selected in the markup it sends, so
+                                     without this the browser sits on an option Livewire
+                                     is not bound to - which is how the refund modal
+                                     submitted a reason it was visibly showing. --}}
+                                <flux:select.option value="">Select a campaign</flux:select.option>
                                 @foreach ($this->campaigns as $campaign)
                                     <flux:select.option value="{{ $campaign->id }}">{{ $campaign->title }}</flux:select.option>
                                 @endforeach
