@@ -264,9 +264,9 @@
                                     $pmBrand = strtolower($donation->payment_method_brand ?? '');
                                 @endphp
                                 @if ($pmBrand === 'apple_pay' || $pmType === 'apple_pay')
-                                    <x-icons.apple-pay class="h-5 w-auto text-slate-700" />
+                                    <x-icons.apple-pay class="h-6 w-auto text-slate-700" />
                                 @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
-                                    <x-icons.google-pay class="h-5 w-auto text-slate-700" />
+                                    <x-icons.google-pay class="h-6 w-auto text-slate-700" />
                                 @else
                                     @php
                                         $paymentLabel = match (true) {

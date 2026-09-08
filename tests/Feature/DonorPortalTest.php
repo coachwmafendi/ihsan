@@ -6,6 +6,7 @@ use App\Enums\DonationType;
 use App\Enums\ElementType;
 use App\Enums\SubscriptionStatus;
 use App\Enums\UserRole;
+use App\Http\Controllers\EmbedCheckoutController;
 use App\Mail\SubscriptionAmountChangedNotification;
 use App\Mail\SupporterSubscriptionAmountChangedNotification;
 use App\Models\Campaign;
@@ -193,7 +194,6 @@ it('opens new donation modal with a form element token when one exists for the l
         ->get(route('donorportal.dashboard', $org))
         ->assertOk()
         ->assertSee(route('donations.show', ['element' => $formElement, 'popup' => 1]), false)
-        ->assertSee(route('donations.show', $formElement), false)
         ->assertDontSee(route('donations.show', ['element' => $buttonElement, 'popup' => 1]), false)
         ->assertDontSee(route('donations.campaign-show', ['campaign' => $campaign, 'popup' => 1]), false);
 });
@@ -215,8 +215,34 @@ it('falls back to a campaign modal url when no active element exists for the lat
     $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
         ->get(route('donorportal.dashboard', $org))
         ->assertOk()
-        ->assertSee(route('donations.campaign-show', ['campaign' => $campaign, 'popup' => 1]), false)
-        ->assertSee(route('donations.campaign-show', $campaign), false);
+        ->assertSee(route('donations.campaign-show', ['campaign' => $campaign, 'popup' => 1]), false);
+});
+
+it('lets the donor portal checkout frame take wallet payments and keeps its close button in view', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+    $campaign = Campaign::factory()->create([
+        'organization_id' => $org->getKey(),
+        'checkout_modal_enabled' => true,
+    ]);
+
+    Donation::factory()->create([
+        'donor_id' => $donor->getKey(),
+        'campaign_id' => $campaign->getKey(),
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.dashboard', $org))
+        ->assertOk()
+        // Without this the wallet button renders and then refuses to pay.
+        ->assertSee('allow="'.EmbedCheckoutController::IframeAllow.'"', false)
+        // Pinned to the frame, not stacked in a bar a phone can push off screen.
+        ->assertSee('absolute right-3 top-3', false)
+        ->assertSee('h-[92dvh]', false)
+        // One checkout url for every screen, so a phone is no longer sent the
+        // whole hosted site inside a frame that already has a header of its own.
+        ->assertDontSee('matchMedia', false);
 });
 
 it('renders donations page with stats and card list', function () {

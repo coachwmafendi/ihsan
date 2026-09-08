@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use Spatie\Activitylog\Models\Activity;
 
 uses(RefreshDatabase::class);
 
@@ -220,4 +221,85 @@ it('keeps the side panel in view without hiding its own contents', function () {
 it('uses the same panel on the donation page', function () {
     expect(file_get_contents(base_path('resources/views/livewire/app/donations/show.blade.php')))
         ->toContain('<x-ui.sticky-panel');
+});
+
+/**
+ * Cancelling wrote a full audit entry; pausing, skipping, resuming and
+ * reactivating wrote nothing at all. Reactivating is the one that starts
+ * taking money from someone who was told their plan had stopped, and it was
+ * the quietest of the lot.
+ */
+it('records who paused a plan and for how long', function () {
+    $subscription = planWith(SubscriptionStatus::Active, ['next_charge_at' => now()->addDays(5)]);
+
+    plan($subscription)->call('pauseSubscription');
+
+    $activity = Activity::query()->where('event', 'subscription.paused')->latest('id')->first();
+
+    expect($activity)->not->toBeNull()
+        ->and($activity->causer_id)->toBe($this->user->getKey())
+        ->and($activity->properties->get('initiator'))->toBe('admin')
+        ->and($activity->properties->get('months'))->toBe(1)
+        ->and($activity->description)->toContain($subscription->public_id);
+});
+
+it('records a skip as the pause it is, with the months asked for', function () {
+    $subscription = planWith(SubscriptionStatus::Active, ['next_charge_at' => now()->addDays(5)]);
+
+    plan($subscription)
+        ->set('skipDuration', '3')
+        ->call('confirmSkip');
+
+    $activity = Activity::query()->where('event', 'subscription.paused')->latest('id')->first();
+
+    expect($activity?->properties->get('months'))->toBe(3)
+        ->and($activity?->properties->get('skipped'))->toBeTrue();
+});
+
+it('records who resumed a paused plan', function () {
+    $subscription = planWith(SubscriptionStatus::Paused, [
+        'paused_until' => now()->addMonths(3),
+        'next_charge_at' => now()->addMonths(3),
+    ]);
+
+    plan($subscription)->call('resumeSubscription');
+
+    $activity = Activity::query()->where('event', 'subscription.resumed')->latest('id')->first();
+
+    expect($activity)->not->toBeNull()
+        ->and($activity->causer_id)->toBe($this->user->getKey())
+        ->and($activity->properties->get('initiator'))->toBe('admin');
+});
+
+it('records a reactivation with the status it came from and when charging resumes', function () {
+    $subscription = planWith(SubscriptionStatus::Cancelled, [
+        'cancelled_at' => now()->subDay(),
+        'next_charge_at' => null,
+    ]);
+
+    plan($subscription)->call('reactivateSubscription');
+
+    $activity = Activity::query()->where('event', 'subscription.reactivated')->latest('id')->first();
+
+    expect($activity)->not->toBeNull()
+        ->and($activity->causer_id)->toBe($this->user->getKey())
+        ->and($activity->properties->get('initiator'))->toBe('admin')
+        ->and($activity->properties->get('from_status'))->toBe('cancelled')
+        ->and($activity->properties->get('next_charge_at'))->not->toBeNull();
+});
+
+it('records an admin cancellation once, with the reason given', function () {
+    // The cancel action logged as well as the caller, so every cancellation
+    // from the donor portal was written down twice.
+    $subscription = planWith(SubscriptionStatus::Active, ['next_charge_at' => now()->addDays(5)]);
+
+    plan($subscription)
+        ->set('cancelReason', 'Duplicate plan')
+        ->call('cancelSubscription');
+
+    $entries = Activity::query()->where('event', 'subscription.cancelled')->get();
+
+    expect($entries)->toHaveCount(1)
+        ->and($entries->first()->properties->get('reason'))->toBe('Duplicate plan')
+        ->and($entries->first()->properties->get('initiator'))->toBe('admin');
 });

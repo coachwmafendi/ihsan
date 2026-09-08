@@ -490,9 +490,9 @@
                                             $pmBrand = strtolower($donation->payment_method_brand ?? '');
                                         @endphp
                                         @if ($pmBrand === 'apple_pay' || $pmType === 'apple_pay')
-                                            <x-icons.apple-pay class="h-4 w-auto text-slate-600" />
+                                            <x-icons.apple-pay class="h-5 w-auto text-slate-600" />
                                         @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
-                                            <x-icons.google-pay class="h-4 w-auto text-slate-600" />
+                                            <x-icons.google-pay class="h-5 w-auto text-slate-600" />
                                         @elseif ($pmType === 'card' || filled($pmBrand))
                                             <x-ui.tooltip :text="\Illuminate\Support\Str::headline($pmBrand)">
                                                 <x-heroicon-o-credit-card class="size-4 text-slate-400" />

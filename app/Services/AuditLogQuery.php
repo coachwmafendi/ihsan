@@ -206,6 +206,7 @@ class AuditLogQuery
             'subscription.cancelled' => 'Subscription Cancelled',
             'subscription.paused' => 'Subscription Paused',
             'subscription.resumed' => 'Subscription Resumed',
+            'subscription.reactivated' => 'Subscription Reactivated',
             'installment.created' => 'Installment Created',
             'installment.charged' => 'Installment Charged',
             'installment.failed' => 'Installment Failed',

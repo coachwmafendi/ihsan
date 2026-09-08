@@ -5,8 +5,13 @@ namespace App\Actions\Stripe;
 use App\Enums\SubscriptionStatus;
 use App\Jobs\SendDonorSubscriptionCancelledNotification;
 use App\Models\Subscription;
-use App\Services\SubscriptionActivityLogger;
 
+/**
+ * Writing the audit entry is the caller's job, not this action's. Only the
+ * caller knows whether the supporter or an admin asked for it, and while this
+ * class logged as well every cancellation from the donor portal was recorded
+ * twice.
+ */
 class CancelLocalRecurringPlan
 {
     public function cancel(Subscription $subscription, bool $immediately = true): void
@@ -17,13 +22,6 @@ class CancelLocalRecurringPlan
             'cancel_at_period_end' => ! $immediately,
             'next_charge_at' => null,
         ]);
-
-        SubscriptionActivityLogger::cancelled(
-            $subscription,
-            $immediately ? 'Cancelled immediately' : 'Cancelled at period end',
-            auth()->user(),
-            ['source' => 'manual']
-        );
 
         if ($immediately) {
             SendDonorSubscriptionCancelledNotification::dispatch($subscription);

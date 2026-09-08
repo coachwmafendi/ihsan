@@ -24,6 +24,7 @@ use App\Models\Organization;
 use App\Models\Subscription;
 use App\Services\AuditLogQuery;
 use App\Services\DonationFeeEstimator;
+use App\Services\SubscriptionActivityLogger;
 use App\Services\SubscriptionSchedule;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -281,6 +282,7 @@ class SubscriptionShow extends Component
         }
 
         $this->subscription->refresh();
+        SubscriptionActivityLogger::resumed($this->subscription, Auth::user());
         $this->dispatch('notify', type: 'success', message: 'Recurring plan resumed.');
     }
 
@@ -296,6 +298,8 @@ class SubscriptionShow extends Component
         if (! in_array($this->subscription->status, [SubscriptionStatus::Cancelled, SubscriptionStatus::Failed], true)) {
             return;
         }
+
+        $previousStatus = $this->subscription->status;
 
         try {
             app(ResumeLocalRecurringPlan::class)->resume($this->subscription);
@@ -313,6 +317,9 @@ class SubscriptionShow extends Component
         ]);
 
         $this->subscription->refresh();
+        SubscriptionActivityLogger::reactivated($this->subscription, Auth::user(), [
+            'from_status' => $previousStatus->value,
+        ]);
         $this->showReactivateModal = false;
         $this->dispatch('notify', type: 'success', message: 'Recurring plan reactivated.');
     }
@@ -381,6 +388,14 @@ class SubscriptionShow extends Component
             'next_charge_at' => now(),
         ]);
 
+        // The charge itself records an installment, but not the fact that the
+        // plan was taken off past due by hand to make that charge possible.
+        SubscriptionActivityLogger::updated(
+            $this->subscription,
+            'retried from past due before its scheduled attempt',
+            Auth::user(),
+        );
+
         try {
             $result = app(ChargeRecurringInstallmentAction::class)->handle($this->subscription);
         } catch (\Exception $e) {
@@ -448,6 +463,11 @@ class SubscriptionShow extends Component
         }
 
         $this->subscription->refresh();
+        SubscriptionActivityLogger::cancelled(
+            $this->subscription,
+            $reason ?: 'Cancelled immediately',
+            Auth::user(),
+        );
         $this->showCancelModal = false;
         $this->dispatch('notify', type: 'success', message: 'Subscription cancelled.');
     }
@@ -783,6 +803,7 @@ class SubscriptionShow extends Component
         }
 
         $this->subscription->refresh();
+        SubscriptionActivityLogger::paused($this->subscription, Auth::user(), ['months' => 1]);
         $this->dispatch('notify', type: 'success', message: 'Subscription paused for one month.');
     }
 
@@ -837,6 +858,7 @@ class SubscriptionShow extends Component
         }
 
         $this->subscription->refresh();
+        SubscriptionActivityLogger::paused($this->subscription, Auth::user(), ['months' => $months, 'skipped' => true]);
         $this->showSkipModal = false;
         $this->dispatch('notify', type: 'success', message: 'Subscription skipped for '.$months.' month'.($months > 1 ? 's' : '').'.');
     }

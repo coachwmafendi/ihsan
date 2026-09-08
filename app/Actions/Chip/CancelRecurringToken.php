@@ -8,9 +8,12 @@ use App\Enums\SubscriptionStatus;
 use App\Jobs\SendDonorSubscriptionCancelledNotification;
 use App\Models\Subscription;
 use App\Services\ChipApi;
-use App\Services\SubscriptionActivityLogger;
 use Throwable;
 
+/**
+ * The audit entry belongs to the caller, which is the only place that knows
+ * whether the supporter or an admin asked. See CancelLocalRecurringPlan.
+ */
 class CancelRecurringToken
 {
     public function __construct(private ChipApi $chipApi) {}
@@ -35,8 +38,6 @@ class CancelRecurringToken
             'cancel_at_period_end' => false,
             'next_charge_at' => null,
         ]);
-
-        SubscriptionActivityLogger::cancelled($subscription, 'CHIP recurring token cancelled', auth()->user(), ['source' => 'manual']);
 
         SendDonorSubscriptionCancelledNotification::dispatch($subscription);
     }

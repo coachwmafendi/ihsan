@@ -17,9 +17,10 @@ class EmbedCheckoutController extends Controller
      *
      * Three scripts build that frame and each carried its own copy of this
      * string. One of them was missing the payment permission, and Apple Pay
-     * vanished on every site using it with nothing to say why.
+     * vanished on every site using it with nothing to say why. The donor
+     * portal's own modal was a fourth copy, and had no permission at all.
      */
-    private const IframeAllow = 'payment *; clipboard-write; autoplay';
+    public const IframeAllow = 'payment *; clipboard-write; autoplay';
 
     public function widget(): Response
     {
