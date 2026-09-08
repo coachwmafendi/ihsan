@@ -60,10 +60,7 @@
 
     var iframe = d.createElement("iframe");
     iframe.src = url;
-    iframe.setAttribute(
-      "allow",
-      "payment *; clipboard-write; autoplay"
-    );
+    iframe.setAttribute("allow", "IHSAN_IFRAME_ALLOW");
     iframe.setAttribute("loading", "eager");
     iframe.style.cssText = [
       "width:100%",

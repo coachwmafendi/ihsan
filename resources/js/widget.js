@@ -187,7 +187,7 @@
     var checkUrl = overrideUrl || checkoutUrl(el, true);
     var iframe = document.createElement("iframe");
     iframe.src = checkUrl;
-    iframe.setAttribute("allow", "payment *; clipboard-write; autoplay");
+    iframe.setAttribute("allow", "IHSAN_IFRAME_ALLOW");
     iframe.style.cssText = [
       "width:100%",
       "height:100%",
@@ -280,9 +280,19 @@
 
     function closeOverlay() {
       window.removeEventListener("message", modalMessageHandler);
+      document.removeEventListener("keydown", escapeHandler);
       overlay.remove();
       unlockBodyScroll();
     }
+
+    // Escape closes it, the same as the loader's modal. This one only closed on
+    // the button or the backdrop, so the two embeds behaved differently for a
+    // donor who reached for the key.
+    function escapeHandler(event) {
+      if (event.key === "Escape") closeOverlay();
+    }
+
+    document.addEventListener("keydown", escapeHandler);
 
     // Hide the skeleton as soon as the donation form reports it is ready.
     // The iframe load event gives us the rendered HTML quickly, but we wait
@@ -914,7 +924,7 @@
 
     var iframe = document.createElement("iframe");
     iframe.src = formUrl;
-    iframe.setAttribute("allow", "payment *; clipboard-write; autoplay");
+    iframe.setAttribute("allow", "IHSAN_IFRAME_ALLOW");
     iframe.setAttribute("width", "100%");
     iframe.setAttribute("height", script.getAttribute("data-height") || "540");
     iframe.setAttribute("frameborder", "0");
