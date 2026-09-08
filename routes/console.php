@@ -74,3 +74,10 @@ if (SchedulerLock::cacheIsSharedAcrossServers()) {
         $event->onOneServer();
     }
 }
+
+// A push once failed to start a build with no error anywhere, and production
+// quietly kept serving the previous commit until someone opened a shell.
+Schedule::command('ihsan:check-deployed-version')
+    ->hourly()
+    ->timezone('Asia/Kuala_Lumpur')
+    ->withoutOverlapping();
