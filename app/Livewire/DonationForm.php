@@ -203,6 +203,11 @@ class DonationForm extends Component
      * ringgit, and applying that figure straight to dollars made the bar four
      * times higher than anyone configured - a USD 5 gift was refused against a
      * RM10 minimum, with nothing on screen to explain it.
+     *
+     * One figure serves both buttons. Stripe's own per-currency floor is folded
+     * into it rather than kept beside it: as a second number it ended up gating
+     * the wallet on its own, so the same amount the card refused was still
+     * offered to Apple Pay.
      */
     public function minimumAmount(): float
     {
@@ -238,7 +243,6 @@ class DonationForm extends Component
             symbol: Currency::symbol($currency),
             amount: $this->amount,
             minimumAmount: $this->minimumAmount(),
-            walletMinimum: Currency::chargeMinimum($currency),
             oneTimeAmounts: $this->suggestedAmounts('one_time'),
             monthlyAmounts: $this->suggestedAmounts('monthly'),
         );
