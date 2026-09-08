@@ -196,6 +196,16 @@ class AllowDomains extends Component
             return;
         }
 
+        // Ihsan's own hosts are registered on every connected account and are
+        // listed above the organiser's list, where they cannot be removed.
+        // Adding one here would spend a slot on a domain we already manage and
+        // put a removable copy of it on screen.
+        if (CheckoutDomains::includes($domain)) {
+            $this->dispatch('notify', message: DomainName::normalize($domain).' is an Ihsan domain and is always allowed.', variant: 'error');
+
+            return;
+        }
+
         if (count($this->allowed_domains) >= self::MAX_ALLOWED_DOMAINS) {
             $this->dispatch('notify', message: 'You can only add up to '.self::MAX_ALLOWED_DOMAINS.' allowed domains.', variant: 'error');
 
