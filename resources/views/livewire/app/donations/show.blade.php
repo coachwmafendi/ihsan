@@ -881,8 +881,11 @@
                 </div>
             </div>
 
-            <flux:select wire:model="editCountry" placeholder="Country">
-                <flux:select.option value="">Country</flux:select.option>
+            {{-- No placeholder attribute: Flux renders one as an option of its
+                 own, so alongside the empty option the property binds to it
+                 listed "Country" twice. --}}
+            <flux:select wire:model="editCountry">
+                <flux:select.option value="">Select country</flux:select.option>
                 <flux:select.option value="MY">Malaysia</flux:select.option>
                 <flux:select.option value="SG">Singapore</flux:select.option>
                 <flux:select.option value="ID">Indonesia</flux:select.option>

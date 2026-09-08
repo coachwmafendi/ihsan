@@ -1111,7 +1111,7 @@
                 <p class="mt-2 text-sm text-slate-600">Ending a recurring plan halts future payments and triggers a cancellation email to the supporter, if enabled.</p>
             </div>
 
-            <flux:select wire:model="cancelReason" label="Cancellation reason" placeholder="Select reason">
+            <flux:select wire:model="cancelReason" label="Cancellation reason">
                 <flux:select.option value="">Select reason</flux:select.option>
                 <flux:select.option value="Financial difficulty">Financial difficulty</flux:select.option>
                 <flux:select.option value="Life changes">Life changes</flux:select.option>
@@ -1248,8 +1248,10 @@
                 </div>
             </div>
 
-            <flux:select wire:model="editCountry" placeholder="Country">
-                <flux:select.option value="">Country</flux:select.option>
+            {{-- See the donation page: a placeholder attribute here would list
+                 "Country" a second time, above the option the property binds to. --}}
+            <flux:select wire:model="editCountry">
+                <flux:select.option value="">Select country</flux:select.option>
                 <flux:select.option value="MY">Malaysia</flux:select.option>
                 <flux:select.option value="SG">Singapore</flux:select.option>
                 <flux:select.option value="ID">Indonesia</flux:select.option>
