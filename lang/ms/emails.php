@@ -118,7 +118,9 @@ return [
 
     'donor_refund' => [
         'subject' => 'Derma anda telah dipulangkan — :organization',
-        'title' => 'Derma Dipulangkan',
+        'title' => 'Pemulangan Telah Diproses',
+        'subtitle' => 'Daripada :organization',
+        'status_label' => 'Pemulangan Diproses',
         'preheader' => 'Derma anda berjumlah :amount kepada :campaign telah dipulangkan.',
         'intro' => 'Kami ingin memaklumkan bahawa derma anda berjumlah :amount kepada :campaign telah dipulangkan. Jumlah yang dipulangkan akan dipaparkan dalam akaun anda dalam tempoh 5–10 hari bekerja, bergantung kepada bank atau penerbit kad anda.',
         'body' => 'Sekiranya anda mempunyai sebarang pertanyaan mengenai pemulangan ini, sila hubungi kami.',
@@ -127,6 +129,13 @@ return [
         'campaign_label' => 'Kempen',
         'donation_id_label' => 'ID Derma',
         'date_label' => 'Tarikh',
+        'payment_method_label' => 'Kaedah Pembayaran',
+        'timeline_heading' => 'Apa yang berlaku seterusnya',
+        'timeline_body' => 'Jumlah yang dipulangkan sedang dikembalikan ke kaedah pembayaran asal anda. Kebanyakan bank dan penerbit kad memproses pemulangan dalam tempoh 5–10 hari bekerja.',
+        'no_action_needed' => 'Anda tidak perlu melakukan apa-apa. Kami akan menghantar kemas kini jika terdapat sebarang perubahan.',
+        'cta_view' => 'Lihat Butiran Derma',
+        'cta_contact' => 'Hubungi Sokongan',
+        'support_intro' => 'Perlukan bantuan? Balas email ini atau hubungi :organization secara terus.',
         'reason' => 'Anda menerima email ini kerana telah menderma kepada kempen ini.',
     ],
 
