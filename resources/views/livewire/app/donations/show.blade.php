@@ -652,10 +652,7 @@
 
         {{-- Right Column / Floating Menu --}}
         <div class="space-y-4">
-            {{-- Not sticky: see the recurring plan page. Pinning it hid the
-                 items past the fold; capping its height only moved the problem
-                 into a scrollbar of its own. --}}
-            <div>
+            <x-ui.sticky-panel>
                 {{-- Actions --}}
                 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
                     @if ($donation->status->value === 'succeeded')
@@ -776,7 +773,7 @@
                         </button>
                     </nav>
                 </div>
-            </div>
+            </x-ui.sticky-panel>
         </div>
 
     {{-- Back Link --}}

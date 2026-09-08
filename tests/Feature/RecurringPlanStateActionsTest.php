@@ -190,13 +190,27 @@ it('does not give reactivate the same icon as the plans nav item', function () {
                             Reactivate plan');
 });
 
-it('leaves the side panel scrolling with the page', function () {
-    // Pinned to the top it grew past the bottom of the window and its last
-    // items were unreachable; capping its height gave it a scrollbar of its
-    // own, which needed a second scroll gesture to reach the same items.
+it('keeps the side panel in view without hiding its own contents', function () {
+    // Pinned at a fixed offset, a panel taller than the window kept its last
+    // items below the fold for as long as the page was scrolled. Capping its
+    // height instead put those items behind a scrollbar of its own.
     $markup = file_get_contents(base_path('resources/views/livewire/app/subscriptions/show.blade.php'));
 
     expect($markup)
-        ->not->toContain('lg:sticky')
+        ->toContain('<x-ui.sticky-panel')
         ->not->toContain('lg:overflow-y-auto');
+
+    $panel = file_get_contents(base_path('resources/views/components/ui/sticky-panel.blade.php'));
+
+    // The offset follows the panel's height, so a tall one is pinned by its
+    // bottom edge and the page carries it up until everything has been seen.
+    expect($panel)
+        ->toContain('lg:sticky')
+        ->toContain('window.innerHeight')
+        ->toContain('ResizeObserver');
+});
+
+it('uses the same panel on the donation page', function () {
+    expect(file_get_contents(base_path('resources/views/livewire/app/donations/show.blade.php')))
+        ->toContain('<x-ui.sticky-panel');
 });

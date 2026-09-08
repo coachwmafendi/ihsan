@@ -664,12 +664,7 @@
 
         {{-- Right Column / Floating Menu --}}
         <div class="space-y-4">
-            {{-- Not sticky. Pinned to the top it grew past the bottom of the
-                 window and the last items could not be reached; capping its
-                 height instead gave the panel its own scrollbar, so reaching
-                 them took a second scroll inside the box. Letting it move with
-                 the page costs the actions scrolling away and nothing else. --}}
-            <div class="space-y-4">
+            <x-ui.sticky-panel class="space-y-4">
                 {{-- Floating Action Menu --}}
                 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     @if ($this->canManageRecurringPlan)
@@ -855,7 +850,7 @@
                         </button>
                     </nav>
                 </div>
-            </div>
+            </x-ui.sticky-panel>
         </div>
     </div>
 
