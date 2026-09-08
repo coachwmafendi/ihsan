@@ -664,7 +664,10 @@
 
         {{-- Right Column / Floating Menu --}}
         <div class="space-y-4">
-            <div class="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {{-- Sticky, but never taller than the screen: with the actions, the
+                 status note and the section list stacked up it ran past the
+                 bottom and the last items could not be reached at all. --}}
+            <div class="space-y-4 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto lg:pb-4">
                 {{-- Floating Action Menu --}}
                 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     @if ($this->canManageRecurringPlan)
@@ -748,7 +751,9 @@
                             wire:click="openReactivateModal"
                             class="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                         >
-                            <x-heroicon-o-arrow-path class="size-5 text-slate-400" />
+                            {{-- Undoing a cancellation, not the cycling arrows the
+                                 Recurring plans nav item already uses. --}}
+                            <x-heroicon-o-arrow-uturn-left class="size-5 text-slate-400" />
                             Reactivate plan
                         </button>
                         <div class="px-4 py-3 text-xs text-slate-500">
