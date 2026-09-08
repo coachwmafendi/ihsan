@@ -164,7 +164,9 @@
                     validateStep1() {
                         this.stepErrors = {};
                         const amt = parseFloat(this.amount);
-                        if (!amt || amt < this.minimumAmount) { this.stepErrors.amount = 'Minimum amount is ' + this.minimumAmount + '.'; return false; }
+                        // With the symbol: a bare "3.35" beside a Singapore dollar
+                        // field reads as ringgit to a donor who never saw the rate.
+                        if (!amt || amt < this.minimumAmount) { this.stepErrors.amount = 'Minimum amount is ' + this.currencySymbol + ' ' + this.minimumAmount + '.'; return false; }
                         if (amt > 100000) { this.stepErrors.amount = 'Amount cannot exceed 100,000.'; return false; }
                         return true;
                     },

@@ -509,8 +509,6 @@
                                         Pay with Apple Pay or Google Pay
                                     </a>
 
-                                    <div x-show="stepErrors.amount" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.amount"></div>
-
                                     <div class="flex items-center gap-3">
                                         <span class="h-px flex-1 bg-slate-200"></span>
                                         <span class="text-xs font-medium uppercase tracking-wide text-slate-400">or</span>

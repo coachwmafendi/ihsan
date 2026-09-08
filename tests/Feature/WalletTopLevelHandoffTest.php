@@ -203,8 +203,20 @@ it('will not hand off a donor who has not entered an amount', function () {
         ->assertSee('x-bind:aria-disabled="! amountIsUsable()"', false);
 });
 
-it('shows the same minimum message the card button would', function () {
-    $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
+it('shows the minimum once, beside the field it is about', function () {
+    // Both buttons write the same error, so repeating it under each one put the
+    // same sentence on screen twice.
+    $body = $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
         ->assertOk()
-        ->assertSee('x-show="stepErrors.amount"', false);
+        ->getContent();
+
+    expect(substr_count($body, 'x-show="stepErrors.amount"'))->toBe(1);
+});
+
+it('names the currency in the minimum, not just a number', function () {
+    // "Minimum amount is 3.35" beside a Singapore dollar field reads as ringgit
+    // to a donor who never saw the conversion.
+    $this->get(route('donations.show', $this->element))
+        ->assertOk()
+        ->assertSee("'Minimum amount is ' + this.currencySymbol", false);
 });
