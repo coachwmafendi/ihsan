@@ -37,8 +37,11 @@ it('sends a welcome email to a supporter when a recurring subscription starts', 
 
         return $mail->donation->is($donation)
             && str_contains($html, 'Thank you for your generous donation and for choosing to support us on a recurring basis!')
-            && str_contains($html, 'On behalf of everyone at '.$organization->name)
-            && str_contains($html, 'Your friends at '.$organization->name)
+            // Escaped as the template renders it: a factory name containing an
+            // ampersand or an apostrophe comes back as &amp; or &#039;, and the
+            // raw comparison failed only for those names.
+            && str_contains($html, 'On behalf of everyone at '.e($organization->name))
+            && str_contains($html, 'Your friends at '.e($organization->name))
             && str_contains($html, 'Download Receipt')
             && str_contains($html, route('donorportal.dashboard', $organization))
             && str_contains($html, 'Don’t send me these emails anymore');
@@ -108,4 +111,27 @@ it('renders the welcome email in malay when the supporter locale is ms', functio
 
     expect($mailable->render())->toContain('Terima kasih kerana menyertai sebagai penyokong berulang')
         ->and($mailable->envelope()->subject)->toBe('Terima kasih kerana menyertai sebagai penyokong berulang');
+});
+
+it('greets an organisation whose name has to be escaped', function () {
+    // The check compared the raw name against rendered HTML, so it failed only
+    // when the factory happened to generate a name with an ampersand or an
+    // apostrophe - a test that fails at random teaches people to ignore it.
+    Mail::fake();
+
+    $organization = Organization::factory()->create(['name' => "Hassan & Sons' Trust"]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create(['locale' => 'en']);
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'subscription_id' => $subscription->getKey(),
+        'type' => DonationType::Recurring,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    (new SendDonorNewSubscriptionNotification($donation))->handle();
+
+    Mail::assertQueued(DonorNewSubscriptionNotification::class, function (DonorNewSubscriptionNotification $mail) use ($organization) {
+        return str_contains($mail->render(), 'On behalf of everyone at '.e($organization->name));
+    });
 });

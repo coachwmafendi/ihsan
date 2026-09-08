@@ -839,13 +839,19 @@ it('lists payment methods and warns about expiry', function () {
     $donor = Donor::factory()->create();
     Donation::factory()->for($donor)->for($campaign)->create();
 
+    // Relative to today: written as fixed months, "expiring soon" quietly
+    // became "expired" once the real calendar caught up with it.
+    $expired = now()->subMonths(3);
+    $soon = now()->addMonth();
+    $healthy = now()->addYears(5);
+
     DonorPaymentMethod::create([
         'donor_id' => $donor->getKey(),
         'stripe_payment_method_id' => 'pm_expired',
         'brand' => 'Visa',
         'last4' => '4242',
-        'exp_month' => 1,
-        'exp_year' => 2026,
+        'exp_month' => (int) $expired->format('n'),
+        'exp_year' => (int) $expired->format('Y'),
     ]);
 
     DonorPaymentMethod::create([
@@ -853,8 +859,8 @@ it('lists payment methods and warns about expiry', function () {
         'stripe_payment_method_id' => 'pm_soon',
         'brand' => 'Mastercard',
         'last4' => '4444',
-        'exp_month' => 9,
-        'exp_year' => 2026,
+        'exp_month' => (int) $soon->format('n'),
+        'exp_year' => (int) $soon->format('Y'),
     ]);
 
     DonorPaymentMethod::create([
@@ -862,8 +868,8 @@ it('lists payment methods and warns about expiry', function () {
         'stripe_payment_method_id' => 'pm_healthy',
         'brand' => 'Amex',
         'last4' => '0005',
-        'exp_month' => 12,
-        'exp_year' => 2033,
+        'exp_month' => (int) $healthy->format('n'),
+        'exp_year' => (int) $healthy->format('Y'),
     ]);
 
     $html = $this->actingAs($user)
@@ -879,8 +885,10 @@ it('lists payment methods and warns about expiry', function () {
         ->getContent();
 
     // The card closest to lapsing has to lead, since that is the one to act on.
-    expect(strpos($html, '4242'))->toBeLessThan(strpos($html, '4444'))
-        ->and(strpos($html, '4444'))->toBeLessThan(strpos($html, '0005'));
+    // Matched on the masked number as rendered: bare digits collide with random
+    // amounts and ids elsewhere on the page, which made this fail at random.
+    expect(strpos($html, '•••• 4242'))->toBeLessThan(strpos($html, '•••• 4444'))
+        ->and(strpos($html, '•••• 4444'))->toBeLessThan(strpos($html, '•••• 0005'));
 });
 
 it('shows an empty state when the supporter has no saved cards', function () {
