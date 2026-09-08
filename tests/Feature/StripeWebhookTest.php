@@ -4,6 +4,7 @@ use App\Actions\Stripe\SyncDonationStripeDetails;
 use App\Enums\DonationStatus;
 use App\Enums\DonationType;
 use App\Jobs\ProcessStripeWebhook;
+use App\Jobs\RegisterStripePaymentMethodDomains;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendDonorNewSubscriptionNotification;
@@ -1729,6 +1730,40 @@ it('does not overwrite existing stripe_onboarded_at on subsequent account webhoo
 
     expect($organization->stripe_onboarded)->toBeTrue()
         ->and($organization->stripe_onboarded_at->toDateTimeString())->toBe($onboardedAt->toDateTimeString());
+});
+
+it('registers Ihsan checkout domains for an account that finishes onboarding by webhook', function () {
+    // The two screens that finish onboarding register them, but an organiser
+    // who closes the tab instead of coming back lands here - and used to end up
+    // live with no domains registered, so wallets never appeared on their pages.
+    Queue::fake();
+
+    $organization = Organization::factory()->create([
+        'stripe_account_id' => 'acct_onboarded_needs_domains',
+        'stripe_onboarded' => false,
+        'stripe_onboarded_at' => null,
+    ]);
+
+    (new ProcessStripeWebhook(accountUpdatedPayload('acct_onboarded_needs_domains', true, 'evt_needs_domains')))->handle();
+
+    Queue::assertPushed(
+        RegisterStripePaymentMethodDomains::class,
+        fn ($job) => $job->organizationId === $organization->getKey(),
+    );
+});
+
+it('does not re-register domains every time Stripe updates an account already live', function () {
+    Queue::fake();
+
+    Organization::factory()->create([
+        'stripe_account_id' => 'acct_live_already',
+        'stripe_onboarded' => true,
+        'stripe_onboarded_at' => now()->subDay(),
+    ]);
+
+    (new ProcessStripeWebhook(accountUpdatedPayload('acct_live_already', true, 'evt_live_already')))->handle();
+
+    Queue::assertNotPushed(RegisterStripePaymentMethodDomains::class);
 });
 
 it('rejects webhook with invalid payload', function () {

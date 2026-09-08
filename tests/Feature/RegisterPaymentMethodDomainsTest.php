@@ -500,3 +500,26 @@ it('refreshes the stored status whenever registration runs', function () {
 
     expect($org->fresh()->settings['wallet_verified_domains'])->toContain('tahfizannur.org');
 });
+
+it('does not let an organiser remove or duplicate Ihsan own checkout domains', function () {
+    // They are registered on every connected account and every donation form
+    // runs on one of them, so an organiser removing one would take the wallets
+    // off their own pages.
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['tahfizannur.org']],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([])
+    ));
+
+    $component = Livewire::actingAs($user)->test(AllowDomains::class)
+        ->call('loadDomainStatuses')
+        ->assertSee('getihsan.my')
+        ->assertDontSeeHtml('aria-label="Remove getihsan.my"')
+        ->assertDontSeeHtml('aria-label="Remove app.getihsan.my"');
+
+    $component->call('addDomain', 'https://www.getihsan.my/derma')
+        ->assertSet('allowed_domains', ['tahfizannur.org']);
+});

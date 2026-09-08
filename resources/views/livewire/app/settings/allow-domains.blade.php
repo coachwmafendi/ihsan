@@ -54,7 +54,7 @@
                             <li class="flex flex-wrap items-center justify-between gap-2 bg-slate-50 px-3 py-2.5">
                                 <div class="min-w-0">
                                     <p class="truncate text-sm font-medium text-slate-900">{{ $checkoutDomain }}</p>
-                                    <p class="mt-0.5 text-xs text-slate-500">Ihsan checkout — a page your donation form runs on</p>
+                                    <p class="mt-0.5 text-xs text-slate-500">Ihsan checkout — a page your donation form runs on. Always allowed, and not counted against your limit.</p>
 
                                     @if ($checkoutStatus['error'])
                                         <p class="mt-0.5 text-xs text-red-600">{{ $checkoutStatus['error'] }}</p>
