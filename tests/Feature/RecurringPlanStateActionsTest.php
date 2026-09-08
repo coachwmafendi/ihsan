@@ -208,6 +208,13 @@ it('keeps the side panel in view without hiding its own contents', function () {
         ->toContain('lg:sticky')
         ->toContain('window.innerHeight')
         ->toContain('ResizeObserver');
+
+    // And it clears the app header, which is sticky and would otherwise cover
+    // the panel's first items - measured rather than written down twice.
+    expect($panel)->toContain("document.querySelector('header.sticky')");
+
+    expect(file_get_contents(base_path('resources/views/livewire/app/topbar.blade.php')))
+        ->toContain('<header class="sticky top-0');
 });
 
 it('uses the same panel on the donation page', function () {
