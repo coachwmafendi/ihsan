@@ -706,6 +706,8 @@ class ProcessStripeWebhook implements ShouldQueue
             return;
         }
 
+        $wasOnboarded = (bool) $organization->stripe_onboarded;
+
         $updates = ['stripe_onboarded' => $account->charges_enabled];
 
         if ($account->charges_enabled && $organization->stripe_onboarded_at === null) {
@@ -713,6 +715,14 @@ class ProcessStripeWebhook implements ShouldQueue
         }
 
         $organization->update($updates);
+
+        // The two screens that finish onboarding register Ihsan's checkout
+        // domains on the new account, but an organiser who closes the tab
+        // instead of coming back finishes here - and used to arrive with no
+        // domains registered at all, so wallets never appeared for them.
+        if ($account->charges_enabled && ! $wasOnboarded) {
+            RegisterStripePaymentMethodDomains::dispatch($organization->id);
+        }
     }
 
     private function handlePayout(StripeEvent $event): void
