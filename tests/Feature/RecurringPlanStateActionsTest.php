@@ -180,3 +180,22 @@ it('refuses to retry a plan that is not past due', function () {
     expect($subscription->fresh()->status)->toBe(SubscriptionStatus::Active)
         ->and($subscription->fresh()->next_charge_at->isFuture())->toBeTrue();
 });
+
+it('does not give reactivate the same icon as the plans nav item', function () {
+    // Side by side they were indistinguishable, and one navigates while the
+    // other starts charging a supporter again.
+    $markup = file_get_contents(base_path('resources/views/livewire/app/subscriptions/show.blade.php'));
+
+    expect($markup)->toContain('<x-heroicon-o-arrow-uturn-left class="size-5 text-slate-400" />
+                            Reactivate plan');
+});
+
+it('keeps the sticky sidebar within the screen', function () {
+    // Stacked up, the panel ran past the bottom of the viewport and its last
+    // items could not be scrolled to at all.
+    $markup = file_get_contents(base_path('resources/views/livewire/app/subscriptions/show.blade.php'));
+
+    expect($markup)
+        ->toContain('lg:max-h-[calc(100vh-3rem)]')
+        ->toContain('lg:overflow-y-auto');
+});
