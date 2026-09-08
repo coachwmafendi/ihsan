@@ -101,6 +101,30 @@ it('knows the smallest amount Stripe will charge in this currency', function () 
         ->assertScript(checkoutState('state.expressMinimumInCents()'), '200');
 });
 
+it('holds the wallet to the same minimum the card is held to', function () {
+    // Stripe's floor was a second figure sitting beside the campaign's own, and
+    // it gated the wallet on its own: with a RM10 campaign minimum the card
+    // refused a USD 1 gift while Apple Pay was still offered it.
+    $this->campaign->update(['minimum_amount' => 10]);
+
+    $page = visit(multiCurrencyCheckoutUrl());
+
+    $page->assertScript(checkoutState('state.minimumAmount'), '10')
+        ->assertScript(checkoutState('state.expressMinimumInCents()'), '1000')
+        ->click('[data-currency-trigger]')
+        ->click('[data-currency="usd"]')
+        ->assertScript(checkoutState('state.minimumAmount'), '2.5')
+        ->assertScript(checkoutState('state.expressMinimumInCents()'), '250')
+        ->assertScript(checkoutState("(state.amount = '1', state.expressAmountIsChargeable())"), 'false')
+        // And the third currency, whose floor differs again: RM10 is SGD 3.35,
+        // well above the SGD 0.70 the wallet used to be gated on.
+        ->click('[data-currency-trigger]')
+        ->click('[data-currency="sgd"]')
+        ->assertScript(checkoutState('state.minimumAmount'), '3.35')
+        ->assertScript(checkoutState('state.expressMinimumInCents()'), '335')
+        ->assertScript(checkoutState("(state.amount = '1', state.expressAmountIsChargeable())"), 'false');
+});
+
 it('does not quote the wallet an amount Stripe would refuse', function () {
     // A donor typing their own amount passes through an empty field, and handing
     // that to a mounted element dropped the wallet buttons for good - they never
