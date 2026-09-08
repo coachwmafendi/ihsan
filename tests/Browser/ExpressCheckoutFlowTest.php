@@ -186,3 +186,13 @@ it('rebuilds the wallet rather than updating it when currency changes', function
 
     expect($markup)->toContain("this.\$watch('currency', () => this.remountExpressCheckout());");
 });
+
+it('knows an emptied amount is not one we can charge', function () {
+    // What the wallet handoff link is greyed out by, and what stops the click.
+    $page = visit($this->url);
+
+    $page->assertScript(checkoutState('state.amountIsUsable()'), 'true')
+        ->assertScript(checkoutState("(state.amount = '', state.amountIsUsable())"), 'false')
+        ->assertScript(checkoutState("(state.amount = '0', state.amountIsUsable())"), 'false')
+        ->assertScript(checkoutState("(state.amount = '100', state.amountIsUsable())"), 'true');
+});
