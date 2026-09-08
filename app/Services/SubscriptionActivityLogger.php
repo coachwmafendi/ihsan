@@ -85,6 +85,26 @@ class SubscriptionActivityLogger
     }
 
     /**
+     * A plan that had stopped for good is charging again. The supporter was
+     * told it had ended, so the trail has to say who started it and when the
+     * money resumes.
+     *
+     * @param  array<string, mixed>  $context
+     */
+    public static function reactivated(Subscription $subscription, ?User $causer = null, array $context = []): Activity
+    {
+        return self::log(
+            subscription: $subscription,
+            event: 'subscription.reactivated',
+            description: 'Recurring plan '.$subscription->public_id.' reactivated.',
+            context: array_merge($context, [
+                'next_charge_at' => $subscription->next_charge_at?->toIso8601String(),
+            ]),
+            causer: $causer,
+        );
+    }
+
+    /**
      * @param  array<string, mixed>  $context
      */
     public static function installmentCreated(Subscription $subscription, Donation $installment, ?User $causer = null, array $context = []): Activity

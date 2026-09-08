@@ -258,9 +258,9 @@
                                     $pmBrand = strtolower($this->latestDonation?->payment_method_brand ?? '');
                                 @endphp
                                 @if ($pmBrand === 'apple_pay' || $pmType === 'apple_pay')
-                                    <x-icons.apple-pay class="h-4 w-auto text-slate-700" />
+                                    <x-icons.apple-pay class="h-6 w-auto text-slate-700" />
                                 @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
-                                    <x-icons.google-pay class="h-4 w-auto text-slate-700" />
+                                    <x-icons.google-pay class="h-6 w-auto text-slate-700" />
                                 @else
                                     <x-heroicon-o-credit-card class="size-4 text-slate-400" />
                                     <span>{{ $this->latestDonation?->payment_method_type ? ucfirst($this->latestDonation->payment_method_type) : 'Credit Card' }}</span>

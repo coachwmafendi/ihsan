@@ -23,13 +23,7 @@
     </x-slot:skeleton>
     <div x-data="{
         donationModalOpen: false,
-        donationModalDesktopUrl: @js($donationModalDesktopUrl),
-        donationModalMobileUrl: @js($donationModalMobileUrl),
-        donationModalUrl() {
-            return window.matchMedia('(min-width: 768px)').matches
-                ? this.donationModalDesktopUrl
-                : this.donationModalMobileUrl;
-        },
+        donationModalUrl: @js($donationModalUrl),
     }"
          @message.window="if ($event.data && $event.data.type === 'donation-popup-close') { donationModalOpen = false; window.location.reload(); }">
         <div class="mb-8">
@@ -71,23 +65,34 @@
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
                  x-cloak
-                 class="fixed inset-0 z-[9999] flex bg-black/40 px-4 py-4"
+                 class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-3 sm:p-6"
                  role="dialog"
                  aria-modal="true"
                  @click.self="donationModalOpen = false"
                  @keydown.escape.window="donationModalOpen = false">
-                 <div class="relative mx-auto flex w-full max-w-6xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white/80 backdrop-blur-xl shadow-2xl">
-                    <div class="flex items-center justify-end border-b border-slate-100 px-4 py-2">
-                        <button type="button"
-                                class="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-                                aria-label="Close donation form"
-                                @click="donationModalOpen = false">
-                            <x-heroicon name="x-mark" class="h-5 w-5" />
-                        </button>
-                    </div>
-                    <iframe :src="donationModalOpen ? donationModalUrl() : 'about:blank'"
+                 {{--
+                     The height is in dvh, not vh: on a phone, vh measures the
+                     viewport with the browser's own bars hidden, so a panel
+                     sized that way hangs off the top of the screen and takes
+                     the close button with it.
+                 --}}
+                 <div class="relative flex h-[92dvh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+                    {{--
+                        The button floats over the frame rather than sitting in
+                        a bar above it: nothing can push it out of view, and the
+                        modal stops wearing a second empty header on top of the
+                        checkout's own.
+                    --}}
+                    <button type="button"
+                            class="absolute right-3 top-3 z-10 flex size-9 items-center justify-center rounded-full bg-white text-slate-500 shadow-md ring-1 ring-slate-900/10 transition hover:bg-slate-100 hover:text-slate-900"
+                            aria-label="Close donation form"
+                            @click="donationModalOpen = false">
+                        <x-heroicon name="x-mark" class="size-5" />
+                    </button>
+                    <iframe :src="donationModalOpen ? donationModalUrl : 'about:blank'"
                             title="Donation form"
-                            class="h-full w-full flex-1 border-0 min-h-[70vh]"></iframe>
+                            allow="{{ $donationModalIframeAllow }}"
+                            class="h-full w-full flex-1 border-0"></iframe>
                 </div>
             </div>
         </div>

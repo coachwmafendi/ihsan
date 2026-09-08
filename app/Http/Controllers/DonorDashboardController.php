@@ -16,14 +16,17 @@ class DonorDashboardController extends Controller
     use DonorPortalScoping;
 
     /**
-     * @return array{href: string, desktop: string, mobile: string}
+     * The checkout the "Make a new donation" button opens.
+     *
+     * Phones used to be sent to the full hosted page instead of the popup one,
+     * which put an entire website - header, footer and all - inside a modal
+     * that already had a frame of its own. The popup layout strips its own
+     * chrome when it detects it is in an iframe, so one URL serves both.
      */
-    private function donationModalUrlsFor(?Campaign $campaign): array
+    private function donationModalUrlFor(?Campaign $campaign): string
     {
         if ($campaign === null) {
-            $home = route('home');
-
-            return ['href' => $home, 'desktop' => $home, 'mobile' => $home];
+            return route('home');
         }
 
         $portalElement = Element::query()
@@ -33,11 +36,7 @@ class DonorDashboardController extends Controller
             ->first();
 
         if ($portalElement !== null) {
-            return [
-                'href' => route('donations.show', ['element' => $portalElement, 'popup' => 1]),
-                'desktop' => route('donations.show', ['element' => $portalElement, 'popup' => 1]),
-                'mobile' => route('donations.show', $portalElement),
-            ];
+            return route('donations.show', ['element' => $portalElement, 'popup' => 1]);
         }
 
         $elements = Element::query()
@@ -49,25 +48,15 @@ class DonorDashboardController extends Controller
             $element = $elements->firstWhere('type', $type);
 
             if ($element !== null) {
-                return [
-                    'href' => route('donations.show', ['element' => $element, 'popup' => 1]),
-                    'desktop' => route('donations.show', ['element' => $element, 'popup' => 1]),
-                    'mobile' => route('donations.show', $element),
-                ];
+                return route('donations.show', ['element' => $element, 'popup' => 1]);
             }
         }
 
         if (! $campaign->checkout_modal_enabled) {
-            $home = route('home');
-
-            return ['href' => $home, 'desktop' => $home, 'mobile' => $home];
+            return route('home');
         }
 
-        return [
-            'href' => route('donations.campaign-show', ['campaign' => $campaign, 'popup' => 1]),
-            'desktop' => route('donations.campaign-show', ['campaign' => $campaign, 'popup' => 1]),
-            'mobile' => route('donations.campaign-show', $campaign),
-        ];
+        return route('donations.campaign-show', ['campaign' => $campaign, 'popup' => 1]);
     }
 
     public function dashboard(Organization $organization)
@@ -134,14 +123,12 @@ class DonorDashboardController extends Controller
             ->limit(5)
             ->get();
         $latestCampaign = $recentDonations->first()?->campaign;
-        $donationModalUrls = $this->donationModalUrlsFor($latestCampaign);
 
         return view('donor.dashboard', [
             'donor' => $donor,
             'organization' => $organization,
-            'donationModalUrl' => $donationModalUrls['href'],
-            'donationModalDesktopUrl' => $donationModalUrls['desktop'],
-            'donationModalMobileUrl' => $donationModalUrls['mobile'],
+            'donationModalUrl' => $this->donationModalUrlFor($latestCampaign),
+            'donationModalIframeAllow' => EmbedCheckoutController::IframeAllow,
             'totalGiven' => $totalGiven,
             'currencyBreakdown' => $currencyBreakdown,
             'activeSubscriptions' => $activeSubscriptions,
