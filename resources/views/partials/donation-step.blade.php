@@ -180,10 +180,10 @@
                     // deferred mode - no PaymentIntent exists until the donor
                     // actually taps, which keeps the pending records clean.
                     mountExpressCheckout() {
-                        // The modal opened from an inline form starts at step 2, where
-                        // the amount is already settled and the container is hidden.
-                        // Stripe cannot measure a hidden element, so do not ask it to.
-                        if (this.currentStep !== 1) return;
+                        // The wallet sits on step two now, after the monthly offer.
+                        // Stripe cannot measure a hidden element, so it is only built
+                        // once that step is the one on screen.
+                        if (this.currentStep !== 2) return;
                         if (this.walletRequiresTopLevel) return;
                         if (!stripe || expressElement) return;
                         // Creating one with an amount Stripe cannot charge fails the
@@ -278,6 +278,35 @@
                     },
                     // A monthly gift declares different terms to the wallet, and those
                     // are fixed when the element is created.
+                    /**
+                     * Stripe measures the box it is given and renders nothing into
+                     * one with no size. The step is swapped in a tick after the
+                     * state changes and transitions in after that, so asking on
+                     * $nextTick handed it a box of nothing. Waiting on a frame
+                     * instead only moves the problem: a backgrounded tab paints no
+                     * frames at all. The box telling us it has a size is the one
+                     * signal that holds in every case.
+                     */
+                    whenExpressBoxHasSize(run) {
+                        const node = document.getElementById('express-checkout-element');
+
+                        if (!node) return;
+
+                        if (node.getBoundingClientRect().width > 0) {
+                            run();
+
+                            return;
+                        }
+
+                        const observer = new ResizeObserver(() => {
+                            if (node.getBoundingClientRect().width > 0) {
+                                observer.disconnect();
+                                run();
+                            }
+                        });
+
+                        observer.observe(node);
+                    },
                     remountExpressCheckout() {
                         if (expressElement) {
                             try { expressElement.unmount(); expressElement.destroy(); } catch (e) { /* already gone */ }
@@ -732,9 +761,9 @@
                             // The wallet sheet quotes a total, so it has to follow
                             // whatever the donor changes on the amount step.
                             this.$watch('currentStep', (value) => {
-                                if (value === 1) {
-                                    this.$nextTick(() => this.mountExpressCheckout());
-                                }
+                                if (value !== 2) return;
+
+                                this.whenExpressBoxHasSize(() => this.mountExpressCheckout());
                             });
                             this.$watch('frequency', () => this.remountExpressCheckout());
                             this.$watch('amount', () => this.syncExpressAmount());
