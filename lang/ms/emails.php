@@ -50,6 +50,18 @@ return [
         'attempt_note' => 'Ini adalah percubaan ke-:retry daripada :total bagi tempoh bil ini.',
     ],
 
+    'failed_donation' => [
+        'subject' => 'Derma anda tidak berjaya',
+        'title' => 'Derma anda tidak berjaya',
+        'preheader' => 'Derma anda kepada :campaign ditolak oleh bank anda.',
+        'intro' => 'Derma :amount anda kepada :campaign ditolak oleh bank anda, jadi tiada caj dikenakan dan tiada wang keluar dari akaun anda.',
+        'reason_label' => 'Inilah sebabnya:',
+        'retry' => 'Cuba lagi',
+        'another_card' => 'Derma dengan kad lain',
+        'prefilled' => 'Jumlah yang anda pilih sudah terisi, jadi ia hanya beberapa ketikan sahaja.',
+        'no_further_mail' => 'Jika anda berubah fikiran, abaikan sahaja e-mel ini - kami tidak akan menghubungi anda lagi mengenainya.',
+    ],
+
     'donor_new_subscription' => [
         'subject' => 'Terima kasih kerana menyertai sebagai penyokong berulang',
         'title' => 'Terima kasih atas derma murah hati anda dan kerana memilih untuk menyokong kami secara berulang!',

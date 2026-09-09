@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
+use App\Mail\Concerns\SetsDonorLocale;
 use App\Models\Donation;
 use App\Support\PaymentFailureReason;
 use Illuminate\Bus\Queueable;
@@ -22,7 +23,7 @@ use Illuminate\Queue\SerializesModels;
  */
 class FailedDonationRecovery extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, SetsDonorLocale;
 
     public function __construct(
         public Donation $donation,
@@ -39,19 +40,20 @@ class FailedDonationRecovery extends Mailable
             replyTo: filled($organization?->contact_email)
                 ? [new Address($organization->contact_email, $organization->name)]
                 : [],
-            subject: 'Your donation did not go through',
+            subject: trans('emails.failed_donation.subject', [], $this->donorLocale($this->donation->donor)),
         );
     }
 
     public function content(): Content
     {
+        // The donor layout every other supporter email uses, rather than the
+        // generic markdown one - which arrived with a black button and none of
+        // the organisation's own dressing.
         return new Content(
-            markdown: 'emails.failed-donation-recovery',
+            view: 'emails.failed-donation-recovery',
             with: [
-                'donorName' => $this->donation->donor?->name,
-                'campaignTitle' => $this->donation->campaign?->title,
-                'organizationName' => $this->donation->campaign?->organization?->name,
-                'amount' => $this->donation->display_donation_amount,
+                'donor' => $this->donation->donor,
+                'locale' => $this->donorLocale($this->donation->donor),
             ],
         );
     }

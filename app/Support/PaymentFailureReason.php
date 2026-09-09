@@ -49,6 +49,50 @@ class PaymentFailureReason
     }
 
     /**
+     * The same thing, in words fit to send to the person it happened to.
+     *
+     * Stripe's message is written for whoever is integrating, not for whoever
+     * was paying, and some of it is plainly so: one decline reached a donor as
+     * "You can provide payment_method_data or a new PaymentMethod to attempt to
+     * fulfil this PaymentIntent again."
+     */
+    public function donorMessage(): string
+    {
+        $ours = match ($this->code) {
+            'insufficient_funds' => 'There was not enough in the account to cover it.',
+            'transaction_not_allowed', 'card_not_supported' => 'The bank does not allow this kind of purchase on that card.',
+            'currency_not_supported' => 'The card cannot be charged in this currency.',
+            'expired_card' => 'The card has expired.',
+            'incorrect_cvc', 'invalid_cvc' => 'The security code did not match the card.',
+            'incorrect_number', 'invalid_number' => 'The card number was not accepted.',
+            'incorrect_expiry', 'invalid_expiry_month', 'invalid_expiry_year' => 'The expiry date did not match the card.',
+            'authentication_required' => 'The bank asked for an extra confirmation step that was not completed.',
+            'processing_error' => 'Something went wrong on the bank\'s side.',
+            'card_velocity_exceeded' => 'The card has been used too many times in a short period.',
+            'lost_card', 'stolen_card', 'pickup_card' => 'The bank would not accept this card.',
+            'do_not_honor', 'generic_decline' => 'The bank declined the payment without giving a reason.',
+            default => null,
+        };
+
+        if ($ours !== null) {
+            return $ours;
+        }
+
+        return $this->readsLikeDeveloperText($this->message)
+            ? 'The bank declined the payment.'
+            : $this->message;
+    }
+
+    /**
+     * Stripe's own vocabulary, leaking. Nothing with an API object or a
+     * snake_case parameter in it was written for a donor to read.
+     */
+    private function readsLikeDeveloperText(string $message): bool
+    {
+        return preg_match('/\b(PaymentMethod|PaymentIntent|SetupIntent|[a-z]+_[a-z_]+)\b/', $message) === 1;
+    }
+
+    /**
      * What the donor should do about it. Silence where we have nothing useful
      * to add, rather than a line of filler under every failure.
      */
@@ -67,6 +111,29 @@ class PaymentFailureReason
             'card_velocity_exceeded' => 'The card has been used too many times in a short period. Waiting a while before trying again should clear it.',
             'lost_card', 'stolen_card', 'pickup_card' => 'The bank has reported this card lost or stolen. Do not ask the donor to try it again - they need to speak to their bank.',
             'do_not_honor', 'generic_decline' => 'The bank declined without giving a reason, which they will only explain to the cardholder. Another card usually works.',
+            default => null,
+        };
+    }
+
+    /**
+     * What to do next, addressed to the donor rather than about them. The
+     * panel's version tells an admin not to send someone back to a stolen
+     * card; the donor's version cannot be phrased that way.
+     */
+    public function donorAdvice(): ?string
+    {
+        return match ($this->code) {
+            'insufficient_funds' => 'The same card may work later, or another one now.',
+            'transaction_not_allowed', 'card_not_supported' => 'Prepaid cards are often blocked for online payments from abroad, so another card is usually the quickest way through.',
+            'currency_not_supported' => 'Giving in ringgit instead usually works.',
+            'expired_card' => 'Another card will do it.',
+            'incorrect_cvc', 'invalid_cvc' => 'It is the three digits on the back of the card.',
+            'incorrect_number', 'invalid_number', 'incorrect_expiry', 'invalid_expiry_month', 'invalid_expiry_year' => 'Worth checking the details on the card itself.',
+            'authentication_required' => 'Trying again and finishing the bank\'s check should be enough.',
+            'processing_error' => 'This one usually clears on a second attempt.',
+            'card_velocity_exceeded' => 'Waiting a while before trying again should clear it.',
+            'lost_card', 'stolen_card', 'pickup_card' => 'Your bank will be able to tell you why. Another card will work in the meantime.',
+            'do_not_honor', 'generic_decline' => 'Banks only explain these to the cardholder, so another card is usually quicker than asking.',
             default => null,
         };
     }

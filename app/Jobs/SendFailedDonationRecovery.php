@@ -9,6 +9,7 @@ use App\Enums\DonationStatus;
 use App\Mail\FailedDonationRecovery;
 use App\Models\Donation;
 use App\Models\DonorEmailLog;
+use App\Support\CampaignCheckoutUrl;
 use App\Support\PaymentFailureReason;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -81,7 +82,15 @@ class SendFailedDonationRecovery implements ShouldQueue
             return;
         }
 
-        $mailable = new FailedDonationRecovery($donation, $reason, $this->retryUrl($donation));
+        $retryUrl = $this->retryUrl($donation);
+
+        // A link into a 404 is worse than no letter: the donor is told to try
+        // again and then shown a missing page.
+        if ($retryUrl === null) {
+            return;
+        }
+
+        $mailable = new FailedDonationRecovery($donation, $reason, $retryUrl);
 
         Mail::to($donor->email, $donor->name)->queue($mailable);
 
@@ -123,13 +132,13 @@ class SendFailedDonationRecovery implements ShouldQueue
     }
 
     /**
-     * Back to the same checkout with the same choices already made, so picking
-     * up where they left off is a couple of taps rather than a form again.
+     * Back to a checkout that will open, with the same choices already made, so
+     * picking up where they left off is a couple of taps rather than a form
+     * again. Null when the campaign has no address a donor can reach.
      */
-    private function retryUrl(Donation $donation): string
+    private function retryUrl(Donation $donation): ?string
     {
-        return route('donations.campaign-show', [
-            'campaign' => $donation->campaign,
+        return CampaignCheckoutUrl::for($donation->campaign, [
             'amount' => (float) $donation->gross_amount,
             'currency' => $donation->currency,
             'frequency' => $donation->type->value === 'recurring' ? 'monthly' : 'one_time',
