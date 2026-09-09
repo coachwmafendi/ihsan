@@ -17,6 +17,6 @@ Someone trying to donate to **{{ $campaign->title }}** told us the checkout did 
 | **Device** | {{ $deviceType ?: 'Not recorded' }} |
 | **Received** | {{ myrTime(now()) }} |
 
-If the report points at the payment step rather than your own page, forward it to Ihsan support and we will look at it.
+Ihsan support has a copy of this already. If it points at the payment step rather than your own page, we are looking at it — there is nothing you need to forward.
 
 @endcomponent
