@@ -121,3 +121,47 @@ it('keeps the failure block off a donation that succeeded', function () {
         ->test(DonationShow::class, ['donation' => $donation])
         ->assertDontSee('Why it failed');
 });
+
+it('keeps Stripe developer wording away from donors but keeps it for the panel', function () {
+    // A donor was sent this verbatim: "You can provide payment_method_data or a
+    // new PaymentMethod to attempt to fulfill this PaymentIntent again."
+    $reason = PaymentFailureReason::for(failedDonationWith([
+        'message' => 'The provided PaymentMethod has failed authentication. You can provide payment_method_data or a new PaymentMethod to attempt to fulfill this PaymentIntent again.',
+        'decline_code' => null,
+        'code' => 'authentication_required',
+    ]));
+
+    expect($reason->donorMessage())->toBe('The bank asked for an extra confirmation step that was not completed.')
+        // The panel keeps the raw text: an admin debugging a decline wants it.
+        ->and($reason->message)->toContain('PaymentIntent');
+});
+
+it('falls back to plain words for a code it has never seen', function () {
+    $withJargon = PaymentFailureReason::for(failedDonationWith([
+        'message' => 'The SetupIntent could not be confirmed.',
+        'decline_code' => 'brand_new_code',
+        'code' => 'card_declined',
+    ]));
+
+    $withoutJargon = PaymentFailureReason::for(failedDonationWith([
+        'message' => 'Your card was declined.',
+        'decline_code' => 'another_new_code',
+        'code' => 'card_declined',
+    ]));
+
+    expect($withJargon->donorMessage())->toBe('The bank declined the payment.')
+        // Nothing wrong with the bank's own plain sentence; it passes through.
+        ->and($withoutJargon->donorMessage())->toBe('Your card was declined.');
+});
+
+it('addresses the donor rather than talking about them', function () {
+    $reason = PaymentFailureReason::for(failedDonationWith([
+        'message' => 'Your card was declined.',
+        'decline_code' => 'stolen_card',
+        'code' => 'card_declined',
+    ]));
+
+    expect($reason->advice())->toContain('the donor')
+        ->and($reason->donorAdvice())->not->toContain('the donor')
+        ->and($reason->donorAdvice())->toContain('Your bank');
+});

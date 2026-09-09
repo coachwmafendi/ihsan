@@ -50,6 +50,18 @@ return [
         'attempt_note' => 'This is attempt #:retry of :total for this billing period.',
     ],
 
+    'failed_donation' => [
+        'subject' => 'Your donation did not go through',
+        'title' => 'Your donation did not go through',
+        'preheader' => 'Your donation to :campaign was declined by your bank.',
+        'intro' => 'Your :amount donation to :campaign was declined by your bank, so nothing was charged and no money left your account.',
+        'reason_label' => 'Here is why:',
+        'retry' => 'Try again',
+        'another_card' => 'Give with another card',
+        'prefilled' => 'The amount you chose is already filled in, so it is a couple of taps.',
+        'no_further_mail' => 'If you have changed your mind, you can ignore this - we will not write to you about it again.',
+    ],
+
     'donor_new_subscription' => [
         'subject' => 'Thank you for joining as a recurring supporter',
         'title' => 'Thank you for your generous donation and for choosing to support us on a recurring basis!',
