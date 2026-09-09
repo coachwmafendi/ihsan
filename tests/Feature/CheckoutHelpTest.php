@@ -61,6 +61,9 @@ it('sends a checkout problem to the organisation it happened to', function () {
 
     Mail::assertQueued(CheckoutProblemReport::class, function (CheckoutProblemReport $mail) {
         return $mail->hasTo('admin@alayubi.test')
+            // Most of what breaks in a checkout is ours, and an organisation
+            // reading about a wallet that would not open can do nothing with it.
+            && $mail->hasBcc(support_email())
             && $mail->campaign->is($this->campaign)
             && str_contains($mail->reportMessage, 'never loaded');
     });

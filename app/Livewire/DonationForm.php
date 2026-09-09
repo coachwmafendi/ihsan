@@ -177,7 +177,11 @@ class DonationForm extends Component
             'checkout-problem:'.request()->ip(),
             3,
             function () use ($organization, $campaign): void {
+                // Copied to us as well: most of what breaks in a checkout is
+                // ours to fix, and an organisation reading about a wallet that
+                // would not open can do nothing with it on their own.
                 Mail::to(filled($organization->contact_email) ? $organization->contact_email : support_email())
+                    ->bcc(support_email())
                     ->queue(new CheckoutProblemReport(
                         organization: $organization,
                         campaign: $campaign,
