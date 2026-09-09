@@ -152,3 +152,17 @@ it('shows new supporters this month trend on the total supporters card', functio
         ->assertStatus(200)
         ->assertSee('+1 this month');
 });
+
+it('lines the money and the counts up on the right', function () {
+    // Left-aligned, MYR 1,200.00 and MYR 90.00 put their decimal points in
+    // different places and the eye has to read every figure to compare two.
+    $markup = file_get_contents(base_path('resources/views/livewire/app/supporters/index.blade.php'));
+
+    // Both headings sit over the right edge of the numbers they label.
+    expect(substr_count($markup, 'py-3 text-right text-xs font-semibold'))->toBe(2)
+        ->and($markup)->toContain('text-right text-sm tabular-nums')
+        ->and($markup)->toContain('px-5 py-4 text-right tabular-nums');
+
+    // Dates and names stay where they were; only the figures moved.
+    expect($markup)->toContain('<td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500">');
+});

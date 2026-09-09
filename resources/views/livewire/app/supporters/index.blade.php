@@ -265,7 +265,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-right text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('donations_count')" class="group inline-flex items-center gap-1">
                                     Donations
                                     @if ($sortField === 'donations_count')
@@ -279,7 +279,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap px-5 py-3 text-right text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('lifetime_report_amount')" class="group inline-flex items-center gap-1">
                                     Lifetime Donated
                                     @if ($sortField === 'lifetime_report_amount')
@@ -350,10 +350,10 @@
                                 <td class="px-5 py-4 text-sm text-slate-600">
                                     {{ $donor->email }}
                                 </td>
-                                <td class="px-5 py-4 text-sm text-slate-900">
+                                <td class="px-5 py-4 text-right text-sm tabular-nums text-slate-900">
                                     {{ number_format($donor->donations_count) }}
                                 </td>
-                                <td class="px-5 py-4">
+                                <td class="px-5 py-4 text-right tabular-nums">
                                     @php
                                         $exact = $exactAmounts->get($donor->id, collect());
                                         $exactNonMyr = $exact->filter(fn ($amount, $currency) => strtoupper($currency) !== 'MYR');
