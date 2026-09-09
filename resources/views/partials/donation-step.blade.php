@@ -431,14 +431,15 @@
                             });
                             paymentElement = elements.create('payment', {
                                 layout: 'tabs',
-                                // The wallets have a step of their own now, with a
-                                // button that only appears when the device can
-                                // actually present the sheet. This element decides
-                                // more optimistically: in an in-app browser - opened
-                                // from WhatsApp, say - it offered an Apple Pay tab
-                                // and then failed on the tap with "Unable to show
-                                // Apple Pay", which is the last thing a donor should
-                                // meet at the payment step.
+                                // Apple Pay cannot work from here, on any device.
+                                // Safari opens the sheet only while the tap is still
+                                // a user gesture, and this button goes to the server
+                                // for a PaymentIntent before confirmPayment is ever
+                                // called - by which time the gesture has expired and
+                                // the donor is told "Unable to show Apple Pay" with
+                                // their card already out. The express button avoids
+                                // this by resolving inside the click itself, so the
+                                // wallets belong to it alone.
                                 wallets: {
                                     link: 'never',
                                     applePay: 'never',
