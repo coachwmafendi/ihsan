@@ -100,7 +100,7 @@ class PaymentFailureReason
     {
         return match ($this->code) {
             'insufficient_funds' => 'There was not enough in the account. The same card may work later, or another one now.',
-            'transaction_not_allowed', 'card_not_supported' => 'The bank does not allow this kind of purchase on that card. Prepaid cards are often blocked for online payments from abroad, so a different card is usually the quickest way through.',
+            'transaction_not_allowed', 'card_not_supported' => 'The card issuer blocks this kind of transaction on that particular card - usually online or overseas purchases that were never switched on. It is set per card rather than per bank or country, so another card from the same donor often works.',
             'currency_not_supported' => 'The card cannot be charged in this currency. Giving in ringgit instead usually works.',
             'expired_card' => 'The card has expired.',
             'incorrect_cvc', 'invalid_cvc' => 'The security code did not match the card.',
@@ -124,7 +124,7 @@ class PaymentFailureReason
     {
         return match ($this->code) {
             'insufficient_funds' => 'The same card may work later, or another one now.',
-            'transaction_not_allowed', 'card_not_supported' => 'Prepaid cards are often blocked for online payments from abroad, so another card is usually the quickest way through.',
+            'transaction_not_allowed', 'card_not_supported' => 'Your bank can switch it on, and another card usually works straight away.',
             'currency_not_supported' => 'Giving in ringgit instead usually works.',
             'expired_card' => 'Another card will do it.',
             'incorrect_cvc', 'invalid_cvc' => 'It is the three digits on the back of the card.',
