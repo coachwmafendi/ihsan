@@ -9,6 +9,7 @@ use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonationReceipt;
 use App\Jobs\SendDonorNewSubscriptionNotification;
 use App\Jobs\SendDonorRecurringPaymentNotification;
+use App\Jobs\SendFailedDonationRecovery;
 use App\Jobs\SendFailedPaymentNotification;
 use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendLinkedInConversionEvent;
@@ -132,6 +133,28 @@ it('stores stripe failure reason when a one time payment intent fails', function
         ->and($donation->stripe_fee_details['last_payment_error']['decline_code'] ?? null)->toBe('insufficient_funds')
         ->and($donation->status_tooltip)->toBe('Your card has insufficient funds. The bank returned the decline code insufficient_funds.')
         ->and(WebhookLog::query()->where('stripe_event_id', 'evt_webhook_failed_123')->first()?->status)->toBe('completed');
+});
+
+it('schedules the donor a note about the decline, an hour out', function () {
+    // Most donors retry successfully within minutes, so writing straight away
+    // would reach people who have already fixed it themselves.
+    Queue::fake();
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'status' => DonationStatus::Pending,
+        'type' => DonationType::OneTime,
+        'stripe_payment_intent_id' => 'pi_webhook_failed_recovery',
+    ]);
+
+    (new ProcessStripeWebhook(paymentIntentFailedPayload($donation, 'evt_webhook_failed_recovery')))->handle();
+
+    Queue::assertPushed(
+        SendFailedDonationRecovery::class,
+        fn ($job) => $job->donationId === $donation->getKey() && $job->delay !== null,
+    );
 });
 
 it('stores pending status when a payment intent is created', function () {
