@@ -5,15 +5,19 @@ A donation has been **{{ $action }}** by the fraud prevention system.
 
 ## Donation Details
 
-| Field | Value |
-|-------|-------|
-| **Donor** | {{ $donation->donor?->name ?? 'Unknown' }} |
-| **Email** | {{ $donation->donor?->email ?? 'N/A' }} |
-| **Amount** | {{ $donation->display_donation_amount }} |
-| **Campaign** | {{ $donation->campaign?->title ?? 'N/A' }} |
-| **Reason** | {{ $reason }} |
-| **Risk Score** | {{ $donation->risk_score ?? 'N/A' }} |
-| **Time** | {{ myrTime($donation->created_at, format: 'M j, Y H:i:s') }} |
+**Donor:** {{ $donation->donor?->name ?? 'Unknown' }}
+
+**Email:** {{ $donation->donor?->email ?? 'N/A' }}
+
+**Amount:** {{ $donation->display_donation_amount }}
+
+**Campaign:** {{ $donation->campaign?->title ?? 'N/A' }}
+
+**Reason:** {{ $reason }}
+
+**Risk score:** {{ $donation->risk_score ?? 'N/A' }}
+
+**Time:** {{ myrTime($donation->created_at, format: 'M j, Y H:i:s') }}
 
 @if ($action === 'blocked')
 **This donation has been blocked and will not be processed.**
