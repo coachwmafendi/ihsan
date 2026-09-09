@@ -9,13 +9,17 @@ Someone trying to donate to **{{ $campaign->title }}** told us the checkout did 
 
 ## Where it happened
 
-| Field | Value |
-|-------|-------|
-| **Campaign** | {{ $campaign->title }} |
-| **Organization** | {{ $organization->name }} |
-| **Page** | {{ $pageUrl ?: 'Not recorded' }} |
-| **Device** | {{ $deviceType ?: 'Not recorded' }} |
-| **Received** | {{ myrTime(now()) }} |
+{{-- Not a table: two columns headed "Field" and "Value" say nothing that the
+     labels beside the values do not already say. --}}
+**Campaign:** {{ $campaign->title }}
+
+**Organization:** {{ $organization->name }}
+
+**Page:** {{ $pageUrl ?: 'Not recorded' }}
+
+**Device:** {{ $deviceType ?: 'Not recorded' }}
+
+**Received:** {{ myrTime(now()) }}
 
 Ihsan support has a copy of this already. If it points at the payment step rather than your own page, we are looking at it — there is nothing you need to forward.
 
