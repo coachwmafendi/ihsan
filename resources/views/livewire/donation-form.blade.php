@@ -579,12 +579,21 @@
                                  Back
                              </button>
 
-                            {{-- Summary bar --}}
-                            <div class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3 text-sm">
-                                <span class="font-semibold text-slate-800"
-                                    x-text="currencySymbol + ' ' + (parseFloat(amount) + (coverFee ? parseFloat(estimatedFeeAmount) : 0)).toFixed(2)"
-                                ></span>
-                                <span class="text-slate-500" x-text="frequency === 'monthly' ? 'Monthly' : 'One-time'"></span>
+                            {{-- Summary bar. The total is not the figure the donor
+                                 chose - covering the costs adds to it - and on these
+                                 steps nothing said so, leaving them to press pay on a
+                                 number they never typed. --}}
+                            <div class="flex items-start justify-between gap-3 rounded-lg bg-slate-50 px-4 py-3 text-sm">
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-slate-800"
+                                        x-text="currencySymbol + ' ' + (parseFloat(amount) + (coverFee ? parseFloat(estimatedFeeAmount) : 0)).toFixed(2)"
+                                    ></p>
+                                    <p x-show="coverFee && parseFloat(estimatedFeeAmount) > 0" x-cloak
+                                       class="mt-0.5 text-xs text-slate-500"
+                                       x-text="currencySymbol + ' ' + formatCompactAmount(amount) + ' + ' + currencySymbol + ' ' + estimatedFeeAmount + ' transaction costs'"
+                                    ></p>
+                                </div>
+                                <span class="shrink-0 text-slate-500" x-text="frequency === 'monthly' ? 'Monthly' : 'One-time'"></span>
                             </div>
 
 {{-- The wallet lives here rather than on the amount step, so a donor sees the
@@ -678,7 +687,6 @@
                                             aria-describedby="donor-firstName-error"
                                             x-bind:aria-invalid="stepErrors.firstName ? 'true' : 'false'"
                                             class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
-                                            placeholder="First name"
                                         />
                                         <div id="donor-firstName-error" role="alert" x-show="stepErrors.firstName" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.firstName"></div>
                                         @error('firstName')<span role="alert" class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
@@ -693,7 +701,6 @@
                                             aria-describedby="donor-lastName-error"
                                             x-bind:aria-invalid="stepErrors.lastName ? 'true' : 'false'"
                                             class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
-                                            placeholder="Last name"
                                         />
                                         <div id="donor-lastName-error" role="alert" x-show="stepErrors.lastName" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.lastName"></div>
                                         @error('lastName')<span role="alert" class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
@@ -773,12 +780,21 @@
                                 Back
                             </button>
 
-                            {{-- Summary bar --}}
-                            <div class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3 text-sm">
-                                <span class="font-semibold text-slate-800"
-                                    x-text="currencySymbol + ' ' + (parseFloat(amount) + (coverFee ? parseFloat(estimatedFeeAmount) : 0)).toFixed(2)"
-                                ></span>
-                                <span class="text-slate-500" x-text="frequency === 'monthly' ? 'Monthly' : 'One-time'"></span>
+                            {{-- Summary bar. The total is not the figure the donor
+                                 chose - covering the costs adds to it - and on these
+                                 steps nothing said so, leaving them to press pay on a
+                                 number they never typed. --}}
+                            <div class="flex items-start justify-between gap-3 rounded-lg bg-slate-50 px-4 py-3 text-sm">
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-slate-800"
+                                        x-text="currencySymbol + ' ' + (parseFloat(amount) + (coverFee ? parseFloat(estimatedFeeAmount) : 0)).toFixed(2)"
+                                    ></p>
+                                    <p x-show="coverFee && parseFloat(estimatedFeeAmount) > 0" x-cloak
+                                       class="mt-0.5 text-xs text-slate-500"
+                                       x-text="currencySymbol + ' ' + formatCompactAmount(amount) + ' + ' + currencySymbol + ' ' + estimatedFeeAmount + ' transaction costs'"
+                                    ></p>
+                                </div>
+                                <span class="shrink-0 text-slate-500" x-text="frequency === 'monthly' ? 'Monthly' : 'One-time'"></span>
                             </div>
 
                             @if ($isStripeGateway)

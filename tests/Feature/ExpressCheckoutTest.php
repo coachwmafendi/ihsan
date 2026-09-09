@@ -608,3 +608,29 @@ it('says what the wallet button saves the donor', function () {
         ->toContain('your name and email are filled automatically')
         ->toContain('or enter your details');
 });
+
+it('says what the total is made of', function () {
+    // The donor chooses RM100 and the summary reads RM106.19, because covering
+    // the costs adds to it. Nothing on the later steps said so, which left
+    // people pressing pay on a number they never typed.
+    $markup = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
+
+    expect($markup)
+        ->toContain("' transaction costs'")
+        // Only when there is a cover to explain; without one the total is the
+        // amount and the line would be noise.
+        ->toContain('coverFee && parseFloat(estimatedFeeAmount) > 0');
+});
+
+it('does not repeat a field label inside the field', function () {
+    // "First name" above the box and "First name" in it teaches nothing, and
+    // grey placeholder text reads as a filled value at a glance. The email
+    // placeholder stays: it shows the shape of the answer, which its label
+    // cannot.
+    $markup = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
+
+    expect($markup)
+        ->not->toContain('placeholder="First name"')
+        ->not->toContain('placeholder="Last name"')
+        ->toContain('placeholder="you@example.com"');
+});
