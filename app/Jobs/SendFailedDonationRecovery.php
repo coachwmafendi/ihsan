@@ -14,6 +14,7 @@ use App\Support\PaymentFailureReason;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 /**
  * Tell a donor their payment was refused, once, an hour after it happened.
@@ -90,17 +91,22 @@ class SendFailedDonationRecovery implements ShouldQueue
             return;
         }
 
-        $mailable = new FailedDonationRecovery($donation, $reason, $retryUrl);
-
-        Mail::to($donor->email, $donor->name)->queue($mailable);
+        // Logged before it is queued, and carrying the id the SES webhook
+        // matches a delivery back to - otherwise the entry sits at "queued"
+        // for ever and nobody can say whether the donor was reached.
+        $messageId = Str::uuid()->toString();
+        $mailable = new FailedDonationRecovery($donation, $reason, $retryUrl, $messageId);
 
         app(LogDonorEmail::class)->handle(
             donor: $donor,
             mailable: $mailable,
             organization: $organization,
             donation: $donation,
+            messageId: $messageId,
             metadata: ['decline_code' => $reason->code],
         );
+
+        Mail::to($donor->email, $donor->name)->queue($mailable);
     }
 
     /**

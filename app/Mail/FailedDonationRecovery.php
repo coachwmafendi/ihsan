@@ -12,6 +12,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
 
 /**
@@ -29,7 +30,21 @@ class FailedDonationRecovery extends Mailable
         public Donation $donation,
         public PaymentFailureReason $reason,
         public string $retryUrl,
+        public ?string $messageId = null,
     ) {}
+
+    /**
+     * The id the SES webhook matches a delivery back to. Without it the log
+     * entry never leaves "queued", and for a letter whose whole purpose is
+     * reaching somebody, not knowing whether it arrived is the one thing we
+     * cannot afford - the two sent so far are both still unaccounted for.
+     */
+    public function headers(): Headers
+    {
+        return new Headers(
+            text: $this->messageId ? ['X-Donor-Email-Log-Message-Id' => $this->messageId] : [],
+        );
+    }
 
     public function envelope(): Envelope
     {

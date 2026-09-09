@@ -205,3 +205,36 @@ it('wears the same green button as every other supporter email', function () {
         return str_contains($html, '#228B22');
     });
 });
+
+it('carries the id a delivery can be matched back to', function () {
+    // Every other supporter email reaches "delivered"; the first two of these
+    // sat at "queued" for ever, because the header the MessageSent listener
+    // reads was never on them. For a letter whose whole purpose is reaching
+    // somebody, not knowing whether it arrived is the one thing we cannot
+    // afford.
+    Mail::fake();
+
+    (new SendFailedDonationRecovery(failedDonation()->getKey()))->handle();
+
+    $log = DonorEmailLog::query()->where('mailable_class', FailedDonationRecovery::class)->firstOrFail();
+
+    expect($log->message_id)->not->toBeNull();
+
+    Mail::assertQueued(FailedDonationRecovery::class, function (FailedDonationRecovery $mail) use ($log) {
+        // The same id on the wire as in the row, or the two never meet again.
+        return $mail->messageId === $log->message_id
+            && $mail->headers()->text['X-Donor-Email-Log-Message-Id'] === $log->message_id;
+    });
+});
+
+it('writes the log row before the letter goes out', function () {
+    // The listener fires on send and looks the row up by that id; queued first,
+    // it could arrive before there was anything to find.
+    Mail::fake();
+
+    (new SendFailedDonationRecovery(failedDonation()->getKey()))->handle();
+
+    $job = file_get_contents(base_path('app/Jobs/SendFailedDonationRecovery.php'));
+
+    expect(strpos($job, 'LogDonorEmail::class'))->toBeLessThan(strpos($job, 'Mail::to($donor->email'));
+});
