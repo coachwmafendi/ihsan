@@ -33,6 +33,22 @@ function failedDonationWith(array $error): Donation
     ]);
 }
 
+it('does not blame a card category the data does not support', function () {
+    // Three Brunei donors hit transaction_not_allowed on debit and prepaid
+    // cards; other Brunei donors succeeded on debit, credit and prepaid cards
+    // from the same country. The block is set per card by its issuer, so
+    // naming prepaid told one donor about a card they were not holding.
+    $reason = PaymentFailureReason::for(failedDonationWith([
+        'message' => 'Your card does not support this type of purchase.',
+        'decline_code' => 'transaction_not_allowed',
+        'code' => 'card_declined',
+    ]));
+
+    expect($reason->advice())->not->toContain('Prepaid')
+        ->and($reason->donorAdvice())->not->toContain('Prepaid')
+        ->and($reason->advice())->toContain('per card');
+});
+
 it('reads the reason Stripe already gave us', function () {
     $donation = failedDonationWith([
         'message' => 'Your card does not support this type of purchase.',
@@ -46,7 +62,7 @@ it('reads the reason Stripe already gave us', function () {
         // The decline code is the specific one; card_declined says almost nothing.
         ->and($reason->code)->toBe('transaction_not_allowed')
         ->and($reason->message)->toBe('Your card does not support this type of purchase.')
-        ->and($reason->advice())->toContain('Prepaid cards');
+        ->and($reason->advice())->toContain('per card rather than per bank or country');
 });
 
 it('falls back to the error code when the bank gave no decline code', function () {
@@ -107,7 +123,7 @@ it('shows the reason and the advice on the donation page', function () {
         ->test(DonationShow::class, ['donation' => $donation])
         ->assertSee('Why it failed')
         ->assertSee('Your card does not support this type of purchase.')
-        ->assertSee('Prepaid cards are often blocked')
+        ->assertSee('per card rather than per bank or country')
         ->assertSee('transaction not allowed');
 });
 
