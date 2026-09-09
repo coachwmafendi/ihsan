@@ -161,6 +161,45 @@ class Subscription extends Model
         return Currency::format((string) $this->currency, $amount);
     }
 
+    /**
+     * How many months of this plan fit into one, so plans on every interval can
+     * be added together as a monthly figure.
+     */
+    private const MonthlyMultipliers = [
+        'weekly' => 52 / 12,
+        'biweekly' => 26 / 12,
+        'monthly' => 1,
+        'bimonthly' => 6 / 12,
+        'quarterly' => 4 / 12,
+        'semiannual' => 2 / 12,
+        'yearly' => 1 / 12,
+    ];
+
+    /**
+     * What this plan is worth per month in ringgit.
+     *
+     * The amount is in the donor's own currency, and the campaigns list was
+     * adding those together as though they were all ringgit - six SGD plans
+     * worth about RM749 a month were being reported as RM235.
+     *
+     * The rate comes from the plan's own last settled charge, because that is
+     * the only rate we can prove. A foreign plan that has never charged has no
+     * rate to prove, and returns null rather than a guess.
+     */
+    public function monthlyReportAmount(): ?float
+    {
+        $multiplier = self::MonthlyMultipliers[$this->interval->value] ?? 1;
+        $amount = (float) $this->amount * $multiplier;
+
+        if (strtolower((string) $this->currency) === 'myr') {
+            return $amount;
+        }
+
+        $rate = (float) ($this->settled_exchange_rate ?? 0);
+
+        return $rate > 0 ? $amount * $rate : null;
+    }
+
     public function sourceLabel(): Attribute
     {
         return Attribute::get(function (): string {

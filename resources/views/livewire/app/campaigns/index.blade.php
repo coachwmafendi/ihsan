@@ -176,16 +176,13 @@
                                     {{ number_format($campaign->donations_count) }}
                                 </td>
                                 @php
-                                    $monthlyMultiplier = [
-                                        'weekly' => 52 / 12,
-                                        'biweekly' => 26 / 12,
-                                        'monthly' => 1,
-                                        'bimonthly' => 6 / 12,
-                                        'quarterly' => 4 / 12,
-                                        'semiannual' => 2 / 12,
-                                        'yearly' => 1 / 12,
-                                    ];
-                                    $recurringAmount = $campaign->subscriptions->sum(fn ($subscription) => (float) $subscription->amount * ($monthlyMultiplier[$subscription->interval->value] ?? 1));
+                                    // Converted per plan at the rate its own last charge
+                                    // settled at; a foreign plan that has never charged has
+                                    // no rate to prove and is left out of the total.
+                                    $recurringAmount = $campaign->subscriptions
+                                        ->map(fn ($subscription) => $subscription->monthlyReportAmount())
+                                        ->filter(fn (?float $amount) => $amount !== null)
+                                        ->sum();
                                     $recurringHasApproximation = $campaign->subscriptions->contains(fn ($subscription) => strtolower($subscription->currency) !== 'myr');
                                 @endphp
                                 <td class="px-5 py-4 whitespace-nowrap text-sm text-slate-600">
