@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use App\Enums\DonationStatus;
+use App\Filament\Pages\PlatformOverview;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Organization;
+use App\Services\WalletShareReport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -73,4 +75,35 @@ it('says so plainly when there is nothing to report', function () {
     $this->artisan('ihsan:wallet-share')
         ->expectsOutputToContain('No successful donations')
         ->assertSuccessful();
+});
+
+it('gives the page and the command the same arithmetic', function () {
+    // Two places reporting the same measurement is two places to disagree.
+    donationPaidBy('apple_pay', '2026-09-08 09:00:00');
+    donationPaidBy('card', '2026-09-08 10:00:00');
+    donationPaidBy('card', '2026-09-08 11:00:00');
+    donationPaidBy('card', '2026-09-08 12:00:00');
+
+    $weeks = app(WalletShareReport::class)->weekly(1);
+
+    expect($weeks)->toHaveCount(1)
+        ->and($weeks[0]['donations'])->toBe(4)
+        ->and($weeks[0]['wallet'])->toBe(1)
+        ->and($weeks[0]['card'])->toBe(3)
+        ->and($weeks[0]['share'])->toBe(25.0)
+        // Four donations is still under the threshold, and says so.
+        ->and($weeks[0]['thin'])->toBeTrue();
+});
+
+it('shows the share on the platform overview', function () {
+    foreach (range(1, 5) as $i) {
+        donationPaidBy($i === 1 ? 'apple_pay' : 'card', '2026-09-08 0'.$i.':00:00');
+    }
+
+    $page = new PlatformOverview;
+    $page->mount();
+
+    expect($page->walletShare)->not->toBeEmpty()
+        ->and($page->walletShare[0]['share'])->toBe(20.0)
+        ->and($page->walletShare[0]['thin'])->toBeFalse();
 });

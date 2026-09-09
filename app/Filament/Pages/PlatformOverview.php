@@ -10,6 +10,7 @@ use App\Models\Fraud\BlockedDonation;
 use App\Models\Organization;
 use App\Models\ProcessingFee;
 use App\Models\Subscription;
+use App\Services\WalletShareReport;
 use App\Support\ReportingPeriod;
 use Carbon\Carbon;
 use Filament\Pages\Page;
@@ -90,6 +91,15 @@ class PlatformOverview extends Page
      */
     public array $topOrganizations = [];
 
+    /**
+     * Week by week, how many donations were finished with a wallet rather than
+     * a card. The monthly offer now stands in front of the wallet button, and
+     * this is the only thing that will say what that cost or earned.
+     *
+     * @var array<int, array{week: string, donations: int, wallet: int, card: int, share: float|null, median: float, thin: bool}>
+     */
+    public array $walletShare = [];
+
     public bool $topOrganizationsHaveApproximation = false;
 
     public int $newDonorsThisMonth = 0;
@@ -157,6 +167,8 @@ class PlatformOverview extends Page
             ->count();
 
         $this->totalDonors = Donor::query()->count();
+
+        $this->walletShare = app(WalletShareReport::class)->weekly(8);
 
         $this->recentOrganizations = Organization::query()
             ->latest()

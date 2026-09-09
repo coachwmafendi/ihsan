@@ -262,6 +262,18 @@
                                     };
                                 }
 
+                                // Google Pay has no equivalent: Stripe's resolve()
+                                // carries recurring terms for Apple alone. Line
+                                // items are the only text we can put on that sheet,
+                                // so the recurrence is said in the name of one.
+                                //
+                                // Scoped to Google Pay on purpose. Apple refuses a
+                                // sheet whose line items do not add up to its total,
+                                // and the Apple path is the one that works today.
+                                if (this.frequency === 'monthly' && event.expressPaymentType === 'google_pay') {
+                                    options.lineItems = this.monthlyLineItems();
+                                }
+
                                 event.resolve(options);
                             });
 
@@ -321,6 +333,28 @@
                         });
 
                         observer.observe(node);
+                    },
+                    /**
+                     * The donation and the covered costs, adding up to exactly the
+                     * total the wallet is quoted. A sheet whose parts do not sum to
+                     * its whole is one a wallet is entitled to refuse, so this is
+                     * derived from the same figure rather than recalculated beside
+                     * it.
+                     */
+                    monthlyLineItems() {
+                        const total = this.expressAmountInCents();
+                        const cover = this.coverFee ? Math.round((parseFloat(this.estimatedFeeAmount) || 0) * 100) : 0;
+                        const donation = total - cover;
+
+                        const items = [
+                            { name: 'Monthly donation — charged every month until you cancel', amount: donation },
+                        ];
+
+                        if (cover > 0) {
+                            items.push({ name: 'Transaction costs', amount: cover });
+                        }
+
+                        return items;
                     },
                     remountExpressCheckout() {
                         if (expressElement) {

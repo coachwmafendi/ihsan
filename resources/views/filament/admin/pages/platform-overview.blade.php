@@ -165,6 +165,47 @@
             </div>
         </x-filament::section>
 
+        <x-filament::section>
+            <x-slot name="heading">
+                Wallet share
+            </x-slot>
+
+            <x-slot name="description">
+                Donations finished with Apple Pay or Google Pay rather than a card. The monthly
+                offer now stands in front of that button, so this is what says whether it cost
+                the fastest path or paid for itself.
+            </x-slot>
+
+            <div class="ihsan-admin-list">
+                @forelse ($walletShare as $week)
+                    <div class="ihsan-admin-list-row">
+                        <div class="min-w-0">
+                            <div class="text-sm font-medium text-ihsan-ink dark:text-white">
+                                Week of {{ \Carbon\Carbon::parse($week['week'])->format('j M Y') }}
+                            </div>
+                            <div class="text-sm text-ihsan-muted dark:text-stone-400">
+                                {{ $week['wallet'] }} wallet &middot; {{ $week['card'] }} card &middot; median MYR {{ number_format($week['median'], 2) }}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            @if ($week['thin'])
+                                {{-- One donor moves the share by tens of points at this size,
+                                     so the percentage would be a number pretending to be a
+                                     measurement. --}}
+                                <x-filament::badge color="gray">Too few to read</x-filament::badge>
+                            @else
+                                <span class="text-sm font-semibold text-ihsan-ink dark:text-white">
+                                    {{ number_format($week['share'], 1) }}%
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="py-3 text-sm text-ihsan-muted dark:text-stone-400">No successful donations yet.</div>
+                @endforelse
+            </div>
+        </x-filament::section>
+
         {{-- Donor & Subscription Health --}}
         <div class="grid gap-4 xl:grid-cols-2">
             <x-filament::section>
