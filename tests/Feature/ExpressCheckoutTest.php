@@ -292,7 +292,9 @@ it('leaves the amount step a single neutral button', function () {
 
     expect($response->getContent())
         ->toContain('Continue')
-        ->not->toContain('x-show="! expressAvailable"');
+        // The label used to flip to name the card path; nothing on the amount
+        // step contrasts against a wallet any more.
+        ->not->toContain('<span x-show="expressAvailable" x-cloak>Donate with card</span>');
 });
 
 it('leaves an organiser who set their own button text alone', function () {
@@ -580,4 +582,29 @@ it('leaves the wallets to the step that checks whether they work', function () {
         ->toContain("applePay: 'never'")
         ->toContain("googlePay: 'never'")
         ->toContain("link: 'never'");
+});
+
+it('describes the step by what is actually on it', function () {
+    // The header said "Your Details" while the first thing on screen was a
+    // button that fills those details in and finishes the donation. A wallet
+    // donor never reaches a third step either, so counting them towards one
+    // described the card path and nobody else.
+    $markup = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
+
+    expect($markup)
+        ->toContain("How you'd like to pay")
+        ->toContain('currentStep === 2 && expressAvailable')
+        // And the card path keeps the wording that is true for it.
+        ->toContain('currentStep === 2 && ! expressAvailable');
+});
+
+it('says what the wallet button saves the donor', function () {
+    // Nothing on the screen said the button skipped the form beneath it, and a
+    // bare "or" put a one-tap payment and a two-step form side by side as
+    // though they were the same kind of choice.
+    $markup = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
+
+    expect($markup)
+        ->toContain('nothing to type')
+        ->toContain('or enter your details');
 });

@@ -274,7 +274,11 @@
                         {{-- Step progress indicator --}}
                         <div x-show="typeof currentStep === 'number'" class="mb-4 text-sm text-slate-500">
                             <span x-show="currentStep === 1" x-cloak>Step <strong class="text-slate-800">1</strong> of 3 — Choose Amount</span>
-                            <span x-show="currentStep === 2" x-cloak>Step <strong class="text-slate-800">2</strong> of 3 — Your Details</span>
+                            {{-- A wallet donor finishes here, having typed nothing,
+                                 so counting them towards a third step and calling
+                                 this "Your Details" describes the card path only. --}}
+                            <span x-show="currentStep === 2 && expressAvailable" x-cloak>Step <strong class="text-slate-800">2</strong> — How you'd like to pay</span>
+                            <span x-show="currentStep === 2 && ! expressAvailable" x-cloak>Step <strong class="text-slate-800">2</strong> of 3 — Your Details</span>
                             <span x-show="currentStep === 3" x-cloak>Step <strong class="text-slate-800">3</strong> of 3 — Payment</span>
                         </div>
 
@@ -624,9 +628,13 @@
                                         Pay with Apple Pay or Google Pay
                                     </a>
 
+                                    <p class="text-center text-xs text-slate-500">
+                                        Fills in your name and email for you — nothing to type.
+                                    </p>
+
                                     <div class="flex items-center gap-3">
                                         <span class="h-px flex-1 bg-slate-200"></span>
-                                        <span class="text-xs font-medium uppercase tracking-wide text-slate-500">or</span>
+                                        <span class="whitespace-nowrap text-xs font-medium text-slate-500">or enter your details</span>
                                         <span class="h-px flex-1 bg-slate-200"></span>
                                     </div>
                                 @else
@@ -640,9 +648,15 @@
                                      and sized like every other payment error here. --}}
                                 <div x-show="expressError" x-cloak class="mt-1 text-sm text-red-600" x-text="expressError"></div>
 
+                                {{-- What the button above actually saves the donor:
+                                     nothing on this screen has to be filled in. --}}
+                                <p x-show="expressAvailable" x-cloak class="text-center text-xs text-slate-500">
+                                    Fills in your name and email for you — nothing to type.
+                                </p>
+
                                 <div x-show="expressAvailable" x-cloak class="flex items-center gap-3">
                                     <span class="h-px flex-1 bg-slate-200"></span>
-                                    <span class="text-xs font-medium uppercase tracking-wide text-slate-500">or</span>
+                                    <span class="whitespace-nowrap text-xs font-medium text-slate-500">or enter your details</span>
                                     <span class="h-px flex-1 bg-slate-200"></span>
                                 </div>
                                 @endif
@@ -651,7 +665,7 @@
 
 
                             <div class="space-y-3">
-                                <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">Your details</p>
+                                <p x-show="! expressAvailable" x-cloak class="text-xs font-semibold uppercase tracking-widest text-slate-500">Your details</p>
 
                                 <div class="grid grid-cols-2 gap-3">
                                     <label class="block">
