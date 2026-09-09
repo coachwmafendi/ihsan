@@ -605,6 +605,6 @@ it('says what the wallet button saves the donor', function () {
     $markup = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
 
     expect($markup)
-        ->toContain('nothing to type')
+        ->toContain('your name and email are filled automatically')
         ->toContain('or enter your details');
 });
