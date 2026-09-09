@@ -96,7 +96,21 @@ class CampaignIndex extends Component
             ])
             ->withCount(['donations' => fn ($query) => $query->where('status', DonationStatus::Succeeded)])
             ->withExists(['donations as has_non_myr_donations' => fn ($query) => $query->where('status', DonationStatus::Succeeded)->where('currency', '!=', 'myr')])
-            ->with(['latestDonation', 'subscriptions' => fn ($query) => $query->where('status', SubscriptionStatus::Active)->select('id', 'campaign_id', 'amount', 'currency', 'interval')]);
+            ->with(['latestDonation', 'subscriptions' => function ($query) {
+                // The plan's amount is in the donor's own currency, and the list
+                // was adding SGD to MYR as though they were the same money. Each
+                // plan carries the rate its own last charge settled at, which is
+                // the only rate we can prove.
+                $query->where('status', SubscriptionStatus::Active)
+                    ->select('id', 'campaign_id', 'amount', 'currency', 'interval')
+                    ->addSelect(['settled_exchange_rate' => Donation::select('exchange_rate')
+                        ->whereColumn('donations.subscription_id', 'subscriptions.id')
+                        ->where('donations.status', DonationStatus::Succeeded)
+                        ->whereNotNull('donations.exchange_rate')
+                        ->latest('donations.created_at')
+                        ->limit(1),
+                    ]);
+            }]);
 
         if (filled($this->search)) {
             $query->whereRaw('LOWER(title) LIKE ?', ['%'.strtolower($this->search).'%']);

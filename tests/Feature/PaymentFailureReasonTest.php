@@ -165,3 +165,18 @@ it('addresses the donor rather than talking about them', function () {
         ->and($reason->donorAdvice())->not->toContain('the donor')
         ->and($reason->donorAdvice())->toContain('Your bank');
 });
+
+it('knows the authentication failure by the code Stripe actually sends', function () {
+    // A real decline arrived as code payment_intent_authentication_failure with
+    // no decline_code at all, so the mapping written for authentication_required
+    // missed it and the donor got "The bank declined the payment." and no advice.
+    $reason = PaymentFailureReason::for(failedDonationWith([
+        'message' => 'The provided PaymentMethod has failed authentication. You can provide payment_method_data or a new PaymentMethod to attempt to fulfill this PaymentIntent again.',
+        'decline_code' => null,
+        'code' => 'payment_intent_authentication_failure',
+    ]));
+
+    expect($reason->donorMessage())->toContain('extra confirmation step')
+        ->and($reason->donorAdvice())->toContain('finishing the bank')
+        ->and($reason->advice())->not->toBeNull();
+});
