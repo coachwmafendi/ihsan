@@ -568,3 +568,16 @@ it('waits for the wallet box to have a size before asking Stripe to fill it', fu
         ->assertSee('whenExpressBoxHasSize', false)
         ->assertSee('new ResizeObserver', false);
 });
+
+it('leaves the wallets to the step that checks whether they work', function () {
+    // The payment step's own element decides more optimistically than the
+    // wallet step's: in an in-app browser it offered an Apple Pay tab and then
+    // failed on the tap with "Unable to show Apple Pay". The wallet has a step
+    // of its own, so the card form is only a card form.
+    $markup = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
+
+    expect($markup)
+        ->toContain("applePay: 'never'")
+        ->toContain("googlePay: 'never'")
+        ->toContain("link: 'never'");
+});
