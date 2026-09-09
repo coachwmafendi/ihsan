@@ -481,63 +481,6 @@
                                  the two steps that only exist to collect them. The
                                  block stays hidden until Stripe confirms the device
                                  actually offers a wallet, so nobody sees an empty gap. --}}
-                            @if ($isStripeGateway)
-                                {{-- The mount point stays in the layout even when no
-                                     wallet is available: Stripe cannot work out what
-                                     the device offers inside a hidden element, and it
-                                     renders nothing when there is nothing to show, so
-                                     an empty container takes no space. --}}
-                                @if ($this->walletRequiresTopLevel())
-                                    {{-- Stripe never registered this site, so Apple would refuse
-                                         the wallet inside the frame however it is offered. --}}
-                                    {{-- A link, not a scripted redirect: a cross-origin
-                                         frame is allowed to navigate the page above it
-                                         when the donor actually clicks, so the embedding
-                                         site has to do nothing at all. --}}
-                                    <a
-                                        x-bind:href="topLevelCheckoutHref()"
-                                        target="_top"
-                                        {{-- A link does not run the checks the card
-                                             button does, so an empty amount used to
-                                             sail straight through to the hosted page.
-                                             The click is stopped here instead, and
-                                             only when the amount is unusable - a
-                                             valid one still counts as the gesture the
-                                             browser needs to leave the frame. --}}
-                                        x-on:click="if (! validateStep1()) { $event.preventDefault(); focusFirstError(); }"
-                                        x-bind:aria-disabled="! amountIsUsable()"
-                                        x-bind:class="amountIsUsable()
-                                            ? 'bg-slate-900 hover:bg-slate-800 active:scale-[0.98]'
-                                            : 'bg-slate-400 cursor-not-allowed'"
-                                        class="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg px-4 text-base font-semibold text-white no-underline shadow-sm transition"
-                                    >
-                                        Pay with Apple Pay or Google Pay
-                                    </a>
-
-                                    <div class="flex items-center gap-3">
-                                        <span class="h-px flex-1 bg-slate-200"></span>
-                                        <span class="text-xs font-medium uppercase tracking-wide text-slate-500">or</span>
-                                        <span class="h-px flex-1 bg-slate-200"></span>
-                                    </div>
-                                @else
-                                {{-- Stripe owns what is inside; Livewire must not
-                                     morph it away on a re-render. --}}
-                                <div id="express-checkout-wrapper" wire:ignore>
-                                    <div id="express-checkout-element"></div>
-                                </div>
-
-                                {{-- Under the button that failed, not under the divider,
-                                     and sized like every other payment error here. --}}
-                                <div x-show="expressError" x-cloak class="mt-1 text-sm text-red-600" x-text="expressError"></div>
-
-                                <div x-show="expressAvailable" x-cloak class="flex items-center gap-3">
-                                    <span class="h-px flex-1 bg-slate-200"></span>
-                                    <span class="text-xs font-medium uppercase tracking-wide text-slate-500">or</span>
-                                    <span class="h-px flex-1 bg-slate-200"></span>
-                                </div>
-                                @endif
-                            @endif
-
                              @php
                                  $primaryButtonText = $isEmbed ? $this->config('button_text', 'Continue') : 'Continue';
                                  $organiserSetButtonText = $isEmbed && filled($this->config('button_text'));
@@ -548,21 +491,11 @@
                                  x-bind:disabled="processing"
                                  class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-700 hover:bg-teal-800' }}"
                              >
-                                 @if ($isStripeGateway && ! $organiserSetButtonText && $this->walletRequiresTopLevel())
-                                     {{-- The handoff button is always there, so the card
-                                          path always needs naming. expressAvailable stays
-                                          false here - no Stripe element is ever mounted. --}}
-                                     Donate with card
-                                 @elseif ($isStripeGateway && ! $organiserSetButtonText)
-                                     {{-- With a wallet button above, "Continue" no longer
-                                          says where it leads; name the card path instead.
-                                          Without one there is nothing to contrast against,
-                                          so the neutral label stays. --}}
-                                     <span x-show="! expressAvailable">{{ $primaryButtonText }} &rarr;</span>
-                                     <span x-show="expressAvailable" x-cloak>Donate with card</span>
-                                 @else
-                                     {{ $primaryButtonText }} &rarr;
-                                 @endif
+                                 {{-- Nothing to contrast against on this step any more:
+                                      the wallet moved to the next one, so this button
+                                      leads to both ways of paying rather than only the
+                                      card, and the neutral label is the honest one. --}}
+                                 {{ $primaryButtonText }} &rarr;
                              </button>
                          </div>{{-- end Step 1 --}}
 
@@ -649,6 +582,73 @@
                                 ></span>
                                 <span class="text-slate-500" x-text="frequency === 'monthly' ? 'Monthly' : 'One-time'"></span>
                             </div>
+
+{{-- The wallet lives here rather than on the amount step, so a donor sees the
+     monthly offer before the sheet rather than instead of it. It cannot be
+     deferred any later than the tap itself: the sheet opens only while the
+     tap still counts as a gesture, so the button has to be the thing the
+     donor presses after the offer, not something we open on their behalf.
+
+     A wallet returns the payer's name and email, so anyone paying this way
+     never reaches the form below it. --}}
+                            @if ($isStripeGateway)
+                                {{-- The mount point stays in the layout even when no
+                                     wallet is available: Stripe cannot work out what
+                                     the device offers inside a hidden element, and it
+                                     renders nothing when there is nothing to show, so
+                                     an empty container takes no space. --}}
+                                @if ($this->walletRequiresTopLevel())
+                                    {{-- Stripe never registered this site, so Apple would refuse
+                                         the wallet inside the frame however it is offered. --}}
+                                    {{-- A link, not a scripted redirect: a cross-origin
+                                         frame is allowed to navigate the page above it
+                                         when the donor actually clicks, so the embedding
+                                         site has to do nothing at all. --}}
+                                    <a
+                                        x-bind:href="topLevelCheckoutHref()"
+                                        target="_top"
+                                        {{-- A link does not run the checks the card
+                                             button does, so an empty amount used to
+                                             sail straight through to the hosted page.
+                                             The click is stopped here instead, and
+                                             only when the amount is unusable - a
+                                             valid one still counts as the gesture the
+                                             browser needs to leave the frame. --}}
+                                        x-on:click="if (! validateStep1()) { $event.preventDefault(); focusFirstError(); }"
+                                        x-bind:aria-disabled="! amountIsUsable()"
+                                        x-bind:class="amountIsUsable()
+                                            ? 'bg-slate-900 hover:bg-slate-800 active:scale-[0.98]'
+                                            : 'bg-slate-400 cursor-not-allowed'"
+                                        class="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg px-4 text-base font-semibold text-white no-underline shadow-sm transition"
+                                    >
+                                        Pay with Apple Pay or Google Pay
+                                    </a>
+
+                                    <div class="flex items-center gap-3">
+                                        <span class="h-px flex-1 bg-slate-200"></span>
+                                        <span class="text-xs font-medium uppercase tracking-wide text-slate-500">or</span>
+                                        <span class="h-px flex-1 bg-slate-200"></span>
+                                    </div>
+                                @else
+                                {{-- Stripe owns what is inside; Livewire must not
+                                     morph it away on a re-render. --}}
+                                <div id="express-checkout-wrapper" wire:ignore>
+                                    <div id="express-checkout-element"></div>
+                                </div>
+
+                                {{-- Under the button that failed, not under the divider,
+                                     and sized like every other payment error here. --}}
+                                <div x-show="expressError" x-cloak class="mt-1 text-sm text-red-600" x-text="expressError"></div>
+
+                                <div x-show="expressAvailable" x-cloak class="flex items-center gap-3">
+                                    <span class="h-px flex-1 bg-slate-200"></span>
+                                    <span class="text-xs font-medium uppercase tracking-wide text-slate-500">or</span>
+                                    <span class="h-px flex-1 bg-slate-200"></span>
+                                </div>
+                                @endif
+                            @endif
+
+
 
                             <div class="space-y-3">
                                 <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">Your details</p>
