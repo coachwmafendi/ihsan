@@ -91,7 +91,11 @@
 
     @if ($usesSecureDonationShell)
         @if ($isPopup)
-            <div class="bg-white md:grid md:grid-cols-[minmax(0,1fr)_440px]">
+            {{-- The help row belongs to the whole checkout rather than to the
+                 column the form happens to sit in, so the grid closes before it
+                 and it runs the full width underneath. --}}
+            <div class="bg-white">
+            <div class="md:grid md:grid-cols-[minmax(0,1fr)_440px]">
                 <section class="hidden md:flex md:min-h-0 md:flex-col md:border-r md:border-slate-200">
         @else
             <div class="{{ $isPublicPage ? 'min-h-0 bg-transparent px-0 py-0' : 'min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8' }}">
@@ -332,6 +336,8 @@
                                             x-bind:value="amount"
                                             type="text"
                                             inputmode="decimal"
+                                            aria-describedby="donation-amount-error"
+                                            x-bind:aria-invalid="stepErrors.amount ? 'true' : 'false'"
                                             @keydown="
                                                 const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab','Home','End'];
                                                 if (allowed.includes($event.key)) return;
@@ -466,7 +472,7 @@
                                             </span>
                                         </label>
                                     @endif
-                                    <div x-show="stepErrors.amount" x-cloak class="mt-1 text-xs text-red-600" x-text="stepErrors.amount"></div>
+                                    <div id="donation-amount-error" role="alert" x-show="stepErrors.amount" x-cloak class="mt-1 text-xs text-red-600" x-text="stepErrors.amount"></div>
                                 </label>
                             @endif
 
@@ -498,7 +504,7 @@
                                              only when the amount is unusable - a
                                              valid one still counts as the gesture the
                                              browser needs to leave the frame. --}}
-                                        x-on:click="if (! validateStep1()) $event.preventDefault()"
+                                        x-on:click="if (! validateStep1()) { $event.preventDefault(); focusFirstError(); }"
                                         x-bind:aria-disabled="! amountIsUsable()"
                                         x-bind:class="amountIsUsable()
                                             ? 'bg-slate-900 hover:bg-slate-800 active:scale-[0.98]'
@@ -655,11 +661,13 @@
                                             x-model="donorFirstName"
                                             type="text"
                                             autocomplete="given-name"
+                                            aria-describedby="donor-firstName-error"
+                                            x-bind:aria-invalid="stepErrors.firstName ? 'true' : 'false'"
                                             class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
                                             placeholder="First name"
                                         />
-                                        <div x-show="stepErrors.firstName" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.firstName"></div>
-                                        @error('firstName')<span class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
+                                        <div id="donor-firstName-error" role="alert" x-show="stepErrors.firstName" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.firstName"></div>
+                                        @error('firstName')<span role="alert" class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
                                     </label>
                                     <label class="block">
                                         <span class="mb-1 block text-sm font-medium text-slate-700">Last name</span>
@@ -668,11 +676,13 @@
                                             x-model="donorLastName"
                                             type="text"
                                             autocomplete="family-name"
+                                            aria-describedby="donor-lastName-error"
+                                            x-bind:aria-invalid="stepErrors.lastName ? 'true' : 'false'"
                                             class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
                                             placeholder="Last name"
                                         />
-                                        <div x-show="stepErrors.lastName" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.lastName"></div>
-                                        @error('lastName')<span class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
+                                        <div id="donor-lastName-error" role="alert" x-show="stepErrors.lastName" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.lastName"></div>
+                                        @error('lastName')<span role="alert" class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
                                     </label>
                                 </div>
 
@@ -686,8 +696,8 @@
                                         class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
                                         placeholder="you@example.com"
                                     />
-                                    <div x-show="stepErrors.email" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.email"></div>
-                                    @error('email')<span class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
+                                    <div id="donor-email-error" role="alert" x-show="stepErrors.email" x-cloak class="mt-1 text-sm text-red-600" x-text="stepErrors.email"></div>
+                                    @error('email')<span role="alert" class="mt-1 block text-sm text-red-600">{{ $message }}</span>@enderror
                                 </label>
 
                                 @if ($showPhone)
@@ -762,8 +772,8 @@
                                     <div wire:ignore>
                                         <label class="mb-0.5 block text-sm font-medium text-slate-700">Payment details</label>
                                         <div id="payment-element" class="min-h-10 rounded-lg border border-slate-200 px-3 py-2.5 transition focus-within:border-teal-600 focus-within:ring-2 focus-within:ring-teal-600/10"></div>
-                                        <div x-show="cardError" x-cloak class="mt-1 text-sm text-red-600" x-text="cardError"></div>
-                                        <div x-show="stripeInitError" x-cloak class="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" x-text="stripeInitError"></div>
+                                        <div role="alert" x-show="cardError" x-cloak class="mt-1 text-sm text-red-600" x-text="cardError"></div>
+                                        <div role="alert" x-show="stripeInitError" x-cloak class="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" x-text="stripeInitError"></div>
                                     </div>
 
                                     <button
@@ -873,7 +883,7 @@
                                                 @endforeach
                                             </select>
                                             @error('chipFpxBankCode')
-                                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                                <p role="alert" class="mt-1 text-xs text-red-600">{{ $message }}</p>
                                             @enderror
                                         </div>
                                     @endif
@@ -1023,7 +1033,7 @@
                                 <svg class="size-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                             </div>
                             <h2 class="text-base font-semibold text-slate-900">Payment failed</h2>
-                            <p class="mt-1 text-sm text-slate-500" x-text="cardError"></p>
+                            <p role="alert" class="mt-1 text-sm text-slate-500" x-text="cardError"></p>
                             <button
                                 type="button"
                                 x-on:click="currentStep = 3"
@@ -1039,11 +1049,27 @@
             </section>
         @if ($isPopup)
             </div>
+            <x-checkout-help
+                class="mt-0 px-6 pb-5 md:px-7"
+                :organization-name="$organization->name"
+                :problem-report-sent="$problemReportSent"
+            />
+            </div>
         @else
+                <x-checkout-help
+                    class="mx-6 mb-6"
+                    :organization-name="$organization->name"
+                    :problem-report-sent="$problemReportSent"
+                />
                 </main>
             </div>
         @endif
     @elseif ($isEmbed)
+        <x-checkout-help
+            class="mt-5"
+            :organization-name="$organization->name"
+            :problem-report-sent="$problemReportSent"
+        />
         </div>
     @else
                     <div class="mx-auto mt-4 size-7 rounded-full bg-slate-300"></div>

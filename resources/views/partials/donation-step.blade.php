@@ -448,9 +448,21 @@
                             report?.(e);
                         }
                     },
+                    /**
+                     * Put the cursor on the field that failed. Announcing the
+                     * error is only half of it: a donor using a screen reader
+                     * hears what is wrong and then has to hunt for the field it
+                     * belongs to, and on a phone the message can sit off screen
+                     * entirely.
+                     */
+                    focusFirstError() {
+                        this.$nextTick(() => {
+                            this.$root.querySelector('[aria-invalid="true"]')?.focus();
+                        });
+                    },
                     async nextStep() {
-                        if (this.currentStep === 1 && !this.validateStep1()) return;
-                        if (this.currentStep === 2 && !this.validateStep2()) return;
+                        if (this.currentStep === 1 && !this.validateStep1()) { this.focusFirstError(); return; }
+                        if (this.currentStep === 2 && !this.validateStep2()) { this.focusFirstError(); return; }
                         if (typeof this.currentStep !== 'number' || this.currentStep >= 3) return;
 
                         if (this.currentStep === 1) {
