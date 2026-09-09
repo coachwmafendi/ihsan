@@ -54,46 +54,15 @@ function checkoutState(string $expression): string
     JS;
 }
 
-/**
- * The wallet moved off the amount step so the monthly offer can be shown first,
- * and the sheet cannot be opened for a donor - only by one. So these drive the
- * checkout to step two before looking for it.
- */
-function goToWalletStep(string $expression = 'true'): string
-{
-    return <<<JS
-    (async () => {
-        const root = [...document.querySelectorAll('[x-data]')]
-            .find(el => el._x_dataStack?.[0] && 'expressAvailable' in el._x_dataStack[0]);
-        const state = root._x_dataStack[0];
-
-        await state.nextStep();
-
-        // The offer stands between the amount and the wallet when a campaign has
-        // one; step past it the way a donor declining would.
-        if (state.currentStep === 'upsell') state.declineUpsell();
-
-        await new Promise(r => setTimeout(r, 1200));
-
-        // Read inside the same script: each browser command starts from the page
-        // as it loaded, so a step reached in one assertion is gone by the next.
-        const wrapper = document.getElementById('express-checkout-wrapper');
-        const walletBox = document.getElementById('express-checkout-element');
-        const shown = (el) => !!el && getComputedStyle(el).display !== 'none' && el.offsetParent !== null;
-
-        return String({$expression});
-    })()
-    JS;
-}
-
 it('keeps the wallet available for a monthly gift', function () {
     // Campaigns that open on Monthly - and several do - would otherwise never
     // show a wallet button at all.
     $page = visit($this->url);
 
-    $page->click('[data-frequency="monthly"]')
-        ->assertScript(checkoutState('state.frequency'), 'monthly')
-        ->assertScript(goToWalletStep('state.currentStep + \'|\' + shown(wrapper)'), '2|true');
+    $page->assertVisible('#express-checkout-wrapper')
+        ->click('[data-frequency="monthly"]')
+        ->assertVisible('#express-checkout-wrapper')
+        ->assertScript(checkoutState('state.frequency'), 'monthly');
 });
 
 it('rebuilds the wallet element when the donor changes frequency', function () {
@@ -118,11 +87,11 @@ it('loads the checkout without a javascript error', function () {
     visit($this->url)->assertNoJavascriptErrors();
 });
 
-it('offers the wallet on a modal that opens straight at the payment step', function () {
-    // An embedded form hands off to this modal with the amount already settled,
-    // which lands on the step the wallet now lives on.
+it('does not offer the wallet on a modal that opens past the amount step', function () {
+    // The amount is settled by then, the container is hidden, and Stripe cannot
+    // measure a hidden element.
     visit('/donate/'.$this->element->token.'?popup=1&step=2')
-        ->assertVisible('#express-checkout-wrapper');
+        ->assertMissing('#express-checkout-wrapper');
 });
 
 it('knows the smallest amount Stripe will charge in this currency', function () {
@@ -227,10 +196,11 @@ it('keeps the wallet mount point alive across a currency switch', function () {
     // buttons vanished, leaving the "or" divider standing over nothing.
     $page = visit(multiCurrencyCheckoutUrl());
 
-    $page->click('[data-currency-trigger]')
+    $page->assertVisible('#express-checkout-element')
+        ->click('[data-currency-trigger]')
         ->click('[data-currency="usd"]')
         ->assertScript(checkoutState('state.currency'), 'usd')
-        ->assertScript(goToWalletStep('state.currentStep + \'|\' + shown(walletBox)'), '2|true');
+        ->assertVisible('#express-checkout-element');
 });
 
 it('rebuilds the wallet rather than updating it when currency changes', function () {
