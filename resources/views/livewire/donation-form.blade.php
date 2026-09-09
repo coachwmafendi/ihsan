@@ -818,6 +818,17 @@
                                         @endif
                                         <span x-show="processing" x-cloak>Processing...</span>
                                     </button>
+
+                                    {{-- What a monthly donor is agreeing to, where they
+                                         agree to it. Apple forces this onto its own
+                                         sheet, so a wallet donor always sees it; the
+                                         card path showed nothing at all, and the two
+                                         are the same commitment. --}}
+                                    <p x-show="frequency === 'monthly'" x-cloak class="text-center text-xs leading-relaxed text-slate-500">
+                                        <span x-text="currencySymbol + ' ' + (parseFloat(amount) + (coverFee ? parseFloat(estimatedFeeAmount) : 0)).toFixed(2)"></span>
+                                        today, then every month from <span x-text="nextChargeLabel()"></span>.
+                                        Cancel any time — the link is in your receipt email.
+                                    </p>
                                 </form>
                             @elseif ($isChipDirectPost)
                                 <form id="chip-direct-post-form" method="POST" x-bind:action="$wire.chipDirectPostUrl" @submit.prevent="handleSubmit" target="chip-direct-post-frame" class="space-y-4">

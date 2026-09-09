@@ -85,6 +85,21 @@
                     get donorName() {
                         return `${this.donorFirstName || ''} ${this.donorLastName || ''}`.trim() || 'Friend';
                     },
+                    /**
+                     * When the second charge lands, written the way the server
+                     * works it out: one month on, and clamped to the last day
+                     * where the month is too short to hold the same date - the
+                     * 31st becoming the 28th rather than rolling into March.
+                     */
+                    nextChargeLabel() {
+                        const now = new Date();
+                        const target = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                        const lastDayOfTarget = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+
+                        target.setDate(Math.min(now.getDate(), lastDayOfTarget));
+
+                        return target.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                    },
                     formatCurrency(value) { return Number(value || 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
                     // Upsell amounts read better without trailing zero cents.
                     formatCompactAmount(value) {
