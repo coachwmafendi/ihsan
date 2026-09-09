@@ -47,14 +47,14 @@
     @click.outside="close()"
     {{ $attributes->merge(['class' => 'relative border-t border-slate-100 pt-3']) }}
 >
-    <div class="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-slate-400">
+    <div class="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-slate-500">
         @foreach ([
             'secure' => 'Is my donation secure?',
             'cancel' => 'Can I cancel a monthly donation?',
             'problem' => 'Report a problem',
         ] as $key => $label)
             @if (! $loop->first)
-                <span aria-hidden="true" class="text-slate-300">&middot;</span>
+                <span aria-hidden="true" class="text-slate-400">&middot;</span>
             @endif
             <button
                 type="button"
