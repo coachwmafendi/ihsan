@@ -256,3 +256,13 @@ it('counts an embed acceptance in the tracking params', function () {
         'upsell_offer_taken' => 'lighter',
     ]);
 });
+
+it('lets the offer be looked at twice while it is being worked on', function () {
+    // Declining once hides it for a month, which makes the screen impossible to
+    // see again without clearing browser storage by hand.
+    $campaign = upsellFormCampaign();
+
+    $this->get(route('donations.campaign-show', $campaign))
+        ->assertOk()
+        ->assertSee("get('upsell') === 'force'", false);
+});

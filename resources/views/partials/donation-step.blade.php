@@ -606,6 +606,13 @@
                     // private mode. An uncaught throw here would take down the
                     // whole donation form, so every access is guarded.
                     declinedRecently() {
+                        // Declining once hides the offer for a month, which makes
+                        // the thing impossible to look at twice while working on
+                        // it. ?upsell=force says show it anyway.
+                        if (new URLSearchParams(window.location.search).get('upsell') === 'force') {
+                            return false;
+                        }
+
                         try {
                             const stored = window.localStorage.getItem(this.upsellCooldownKey());
                             if (!stored) return false;
