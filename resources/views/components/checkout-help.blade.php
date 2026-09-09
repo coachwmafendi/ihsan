@@ -40,6 +40,11 @@
         },
     }"
     @keydown.escape.window="close()"
+    {{-- Outside means outside the whole row, not outside the panel. Hung on the
+         panel it fired on the links themselves - they are siblings of it - so
+         the tap that opened one answer immediately closed it again, and only
+         the first tap of all appeared to work. --}}
+    @click.outside="close()"
     {{ $attributes->merge(['class' => 'relative border-t border-slate-100 pt-3']) }}
 >
     <div class="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-slate-400">
@@ -69,7 +74,6 @@
         x-ref="panel"
         x-show="open"
         x-cloak
-        @click.outside="close()"
         class="rounded-xl bg-white p-4 text-left text-sm leading-relaxed text-slate-600"
         x-bind:class="floats
             ? 'absolute bottom-full left-1/2 z-20 mb-3 w-96 -translate-x-1/2 shadow-[0_4px_20px_rgba(15,23,42,0.22)]'

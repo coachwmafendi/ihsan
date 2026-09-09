@@ -413,7 +413,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th scope="col" class="whitespace-nowrap min-w-[180px] px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
+                            <th scope="col" class="whitespace-nowrap min-w-[180px] px-5 py-3 text-right text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('gross_amount')" class="group inline-flex items-center gap-1">
                                     Donation
                                     @if ($sortField === 'gross_amount')
@@ -481,9 +481,12 @@
                                 <td class="whitespace-nowrap min-w-[180px] px-5 py-4 text-sm text-slate-500">
                                     {{ myrTime($donation->created_at) }}
                                 </td>
-                                <td class="whitespace-nowrap min-w-[180px] px-5 py-4">
-                                    <div class="flex items-center gap-2">
+                                <td class="whitespace-nowrap min-w-[180px] px-5 py-4 text-right tabular-nums">
+                                    {{-- The icons sit in a lane of their own width so the figures
+                                         keep a straight right edge however many a row carries. --}}
+                                    <div class="flex items-center justify-end gap-2">
                                         <x-donation-report-amount :donation="$donation" />
+                                        <span class="flex w-16 shrink-0 items-center gap-1.5">
                                         {{-- Payment method icon --}}
                                         @php
                                             $pmType = $donation->payment_method_type;
@@ -507,6 +510,7 @@
                                                 <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-50 px-1 text-[10px] font-semibold text-teal-600">{{ $donation->subscription?->payment_count ?? 1 }}</span>
                                             </x-ui.tooltip>
                                         @endif
+                                        </span>
                                     </div>
                                 </td>
                                 <td class="px-5 py-4">
