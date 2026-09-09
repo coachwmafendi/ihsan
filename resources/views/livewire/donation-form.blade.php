@@ -161,7 +161,7 @@
             <div class="px-6 py-6 {{ $isPopup ? 'md:px-8 md:py-7' : '' }}">
                 <div>
                 <div class="mb-5">
-                    <p class="min-w-0 truncate text-xs font-bold uppercase tracking-[0.18em] text-slate-400">{{ $organization->name }}</p>
+                    <p class="min-w-0 truncate text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{{ $organization->name }}</p>
                 </div>
 
                 <h1 class="text-2xl font-bold leading-tight tracking-normal text-slate-950">{{ $introTitle }}</h1>
@@ -292,7 +292,7 @@
                                     data-frequency="one_time"
                                         x-on:click="selectFrequency('one_time')"
                                     class="min-h-10 rounded-lg border px-3 text-base font-semibold transition"
-                                    :class="frequency === 'one_time' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
+                                    :class="frequency === 'one_time' ? 'border-teal-600 bg-teal-200 text-teal-800 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                                 >
                                     Give once
                                 </button>
@@ -303,7 +303,7 @@
                                         data-frequency="monthly"
                                         x-on:click="selectFrequency('monthly'); launchHearts($event)"
                                         class="relative min-h-10 rounded-lg border px-3 text-base font-semibold transition overflow-visible"
-                                        :class="frequency === 'monthly' ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
+                                        :class="frequency === 'monthly' ? 'border-teal-600 bg-teal-200 text-teal-800 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                                     >
                                         <span style="color: {{ $iconColor }};">&hearts;</span>
                                         Monthly
@@ -319,7 +319,7 @@
                                             type="button"
                                             x-on:click="selectAmount(amt)"
                                             class="min-h-12 whitespace-nowrap rounded-lg border px-1.5 text-sm font-semibold transition sm:px-2 sm:text-base"
-                                            :class="isSelectedAmount(amt) ? 'border-teal-600 bg-teal-200 text-teal-700 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
+                                            :class="isSelectedAmount(amt) ? 'border-teal-600 bg-teal-200 text-teal-800 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
                                             x-text="currencySymbol + ' ' + Number(amt).toLocaleString('en')"
                                         ></button>
                                     </template>
@@ -405,7 +405,7 @@
                                                 >
                                                     <x-currency-flag :currency="$this->currency" style="width:21px;height:14px"/>
                                                     <span class="text-sm font-medium text-slate-500" x-text="currency.toUpperCase()">{{ strtoupper($this->currency) }}</span>
-                                                    <svg class="mt-0.5 size-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                                    <svg class="mt-0.5 size-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                                                     </svg>
                                                 </button>
@@ -432,7 +432,7 @@
                                                         >
                                                             <x-currency-flag :currency="$code" style="width:21px;height:14px"/>
                                                             <span>{{ $currencyDropdownLabels[$code] ?? strtoupper($code) }}</span>
-                                                            <span class="text-xs font-normal text-slate-400">{{ strtoupper($code) }}</span>
+                                                            <span class="text-xs font-normal text-slate-500">{{ strtoupper($code) }}</span>
                                                         </button>
                                                     @endforeach
                                                 </div>
@@ -462,13 +462,13 @@
                                                         class="relative -top-0.5 ml-0.5 cursor-help"
                                                         x-on:click.stop=""
                                                     >
-                                                        <x-heroicon-o-information-circle class="size-4 text-slate-400" />
+                                                        <x-heroicon-o-information-circle class="size-4 text-slate-500" />
                                                         <x-slot:tip>
                                                             <span x-text="'Covering ' + currencySymbol + ' ' + estimatedFeeAmount + ' pays the card processing and platform costs for your donation. The exact cost depends on the card used, so this is an estimate.'"></span>
                                                         </x-slot:tip>
                                                     </x-ui.tooltip></span>
                                                 </span>
-                                                <span class="text-xs text-slate-400">Estimated card processing and platform costs. Covering them keeps your full donation with us.</span>
+                                                <span class="text-xs text-slate-500">Estimated card processing and platform costs. Covering them keeps your full donation with us.</span>
                                             </span>
                                         </label>
                                     @endif
@@ -516,7 +516,7 @@
 
                                     <div class="flex items-center gap-3">
                                         <span class="h-px flex-1 bg-slate-200"></span>
-                                        <span class="text-xs font-medium uppercase tracking-wide text-slate-400">or</span>
+                                        <span class="text-xs font-medium uppercase tracking-wide text-slate-500">or</span>
                                         <span class="h-px flex-1 bg-slate-200"></span>
                                     </div>
                                 @else
@@ -532,7 +532,7 @@
 
                                 <div x-show="expressAvailable" x-cloak class="flex items-center gap-3">
                                     <span class="h-px flex-1 bg-slate-200"></span>
-                                    <span class="text-xs font-medium uppercase tracking-wide text-slate-400">or</span>
+                                    <span class="text-xs font-medium uppercase tracking-wide text-slate-500">or</span>
                                     <span class="h-px flex-1 bg-slate-200"></span>
                                 </div>
                                 @endif
@@ -546,7 +546,7 @@
                                  type="button"
                                  x-on:click="nextStep()"
                                  x-bind:disabled="processing"
-                                 class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
+                                 class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-700 hover:bg-teal-800' }}"
                              >
                                  @if ($isStripeGateway && ! $organiserSetButtonText && $this->walletRequiresTopLevel())
                                      {{-- The handoff button is always there, so the card
@@ -579,7 +579,7 @@
                                 <button
                                     type="button"
                                     x-on:click="currentStep = 1"
-                                    class="rounded p-1 text-slate-400 transition hover:text-slate-700"
+                                    class="rounded p-1 text-slate-500 transition hover:text-slate-700"
                                     aria-label="Back to amount"
                                 >
                                     <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
@@ -651,7 +651,7 @@
                             </div>
 
                             <div class="space-y-3">
-                                <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Your details</p>
+                                <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">Your details</p>
 
                                 <div class="grid grid-cols-2 gap-3">
                                     <label class="block">
@@ -702,7 +702,7 @@
 
                                 @if ($showPhone)
                                     <label class="block">
-                                        <span class="mb-1 block text-sm font-medium text-slate-700">Phone <span class="font-normal text-slate-400">(optional)</span></span>
+                                        <span class="mb-1 block text-sm font-medium text-slate-700">Phone <span class="font-normal text-slate-500">(optional)</span></span>
                                         <input
                                             wire:model="phone"
                                             x-model="donorPhone"
@@ -724,7 +724,7 @@
 
                             @if ($showComment)
                                 <label class="block">
-                                    <span class="mb-0.5 block text-sm font-medium text-slate-700">Comment <span class="font-normal text-slate-400">(optional)</span></span>
+                                    <span class="mb-0.5 block text-sm font-medium text-slate-700">Comment <span class="font-normal text-slate-500">(optional)</span></span>
                                     <textarea wire:model="comment" rows="2" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-base outline-none sm:text-sm transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/10" placeholder="Leave a message..."></textarea>
                                 </label>
                             @endif
@@ -733,7 +733,7 @@
                                  type="button"
                                  x-on:click="nextStep()"
                                  x-bind:disabled="processing"
-                                 class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
+                                 class="min-h-12 w-full rounded-lg px-4 text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-700 hover:bg-teal-800' }}"
                              >
                                  Continue &rarr;
                              </button>
@@ -778,7 +778,7 @@
 
                                     <button
                                         type="submit"
-                                        class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
+                                        class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-700 hover:bg-teal-800' }}"
                                         x-bind:disabled="processing"
                                     >
                                         @if ($usesSecureDonationShell && in_array($submitText, ['Donate and Support', 'Donate Now'], true))
@@ -835,7 +835,7 @@
                                     <button
                                         x-show="typeof chipDirectPostSubmitted === 'undefined' || !chipDirectPostSubmitted"
                                         type="submit"
-                                        class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
+                                        class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-700 hover:bg-teal-800' }}"
                                         x-bind:disabled="processing"
                                     >
                                         <span x-show="!processing">Pay securely</span>
@@ -891,7 +891,7 @@
                                     <button
                                         type="button"
                                         x-on:click="handleSubmit"
-                                        class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-600 hover:bg-teal-700' }}"
+                                        class="min-h-12 w-full rounded-lg px-4 text-sm font-bold text-white shadow-sm transition active:scale-[0.98] disabled:opacity-60 {{ $btnHasEffect ? 'ihsan-submit-effect' : 'bg-teal-700 hover:bg-teal-800' }}"
                                         x-bind:disabled="processing || (paymentGateway === 'chip' && chipPaymentMethod === 'fpx' && ! chipFpxBankCode)"
                                     >
                                         <span x-show="!processing">Proceed to secure checkout</span>
