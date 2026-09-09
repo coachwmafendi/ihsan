@@ -24,6 +24,7 @@ use App\Jobs\SendNewSubscriptionNotification;
 use App\Jobs\SendSnapchatConversionEvent;
 use App\Jobs\SendXAdsConversionEvent;
 use App\Jobs\SyncDonationStripeDetailsJob;
+use App\Mail\CheckoutProblemReport;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -42,6 +43,8 @@ use App\Support\Currency;
 use App\Support\DomainName;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -137,6 +140,65 @@ class DonationForm extends Component
     public float $campaignCollectedAmount = 0.0;
 
     public float $campaignTargetAmount = 0.0;
+
+    public string $problemReport = '';
+
+    public bool $problemReportConfirmed = false;
+
+    public bool $problemReportSent = false;
+
+    /**
+     * A donor whose checkout broke has no account and no order to complain
+     * about - the failure is the reason there is nothing to point at. This is
+     * the only way they can tell anyone, so it takes no sign-in and asks for
+     * nothing but the description.
+     */
+    public function submitProblemReport(): void
+    {
+        $this->validate([
+            'problemReport' => ['required', 'string', 'min:10', 'max:500'],
+            'problemReportConfirmed' => ['accepted'],
+        ], [
+            'problemReport.required' => 'Please describe what went wrong.',
+            'problemReport.min' => 'A few more words would help us find it.',
+            'problemReportConfirmed.accepted' => 'Please confirm there are no card details in your message.',
+        ]);
+
+        $campaign = $this->element?->campaign ?? $this->campaign;
+        $organization = $campaign?->organization;
+
+        if (! $campaign || ! $organization) {
+            return;
+        }
+
+        // The form sits on a public page with no account behind it, so the only
+        // thing holding back a flood is the address it came from.
+        $sent = RateLimiter::attempt(
+            'checkout-problem:'.request()->ip(),
+            3,
+            function () use ($organization, $campaign): void {
+                Mail::to(filled($organization->contact_email) ? $organization->contact_email : support_email())
+                    ->queue(new CheckoutProblemReport(
+                        organization: $organization,
+                        campaign: $campaign,
+                        reportMessage: $this->problemReport,
+                        pageUrl: $this->parentPageUrl ?: $this->pageUrl,
+                        deviceType: $this->deviceType,
+                    ));
+            },
+            3600,
+        );
+
+        if (! $sent) {
+            $this->addError('problemReport', 'That is a few reports in a row. Please try again later.');
+
+            return;
+        }
+
+        $this->problemReport = '';
+        $this->problemReportConfirmed = false;
+        $this->problemReportSent = true;
+    }
 
     /**
      * @return array<int, string>

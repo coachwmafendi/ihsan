@@ -91,7 +91,11 @@
 
     @if ($usesSecureDonationShell)
         @if ($isPopup)
-            <div class="bg-white md:grid md:grid-cols-[minmax(0,1fr)_440px]">
+            {{-- The help row belongs to the whole checkout rather than to the
+                 column the form happens to sit in, so the grid closes before it
+                 and it runs the full width underneath. --}}
+            <div class="bg-white">
+            <div class="md:grid md:grid-cols-[minmax(0,1fr)_440px]">
                 <section class="hidden md:flex md:min-h-0 md:flex-col md:border-r md:border-slate-200">
         @else
             <div class="{{ $isPublicPage ? 'min-h-0 bg-transparent px-0 py-0' : 'min-h-screen bg-[#eef1f6] px-4 py-8 sm:px-6 lg:px-8' }}">
@@ -1045,11 +1049,27 @@
             </section>
         @if ($isPopup)
             </div>
+            <x-checkout-help
+                class="mt-0 px-6 pb-5 md:px-7"
+                :organization-name="$organization->name"
+                :problem-report-sent="$problemReportSent"
+            />
+            </div>
         @else
+                <x-checkout-help
+                    class="mx-6 mb-6"
+                    :organization-name="$organization->name"
+                    :problem-report-sent="$problemReportSent"
+                />
                 </main>
             </div>
         @endif
     @elseif ($isEmbed)
+        <x-checkout-help
+            class="mt-5"
+            :organization-name="$organization->name"
+            :problem-report-sent="$problemReportSent"
+        />
         </div>
     @else
                     <div class="mx-auto mt-4 size-7 rounded-full bg-slate-300"></div>
