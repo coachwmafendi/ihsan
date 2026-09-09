@@ -180,10 +180,10 @@
                     // deferred mode - no PaymentIntent exists until the donor
                     // actually taps, which keeps the pending records clean.
                     mountExpressCheckout() {
-                        // The modal opened from an inline form starts at step 2, where
-                        // the amount is already settled and the container is hidden.
-                        // Stripe cannot measure a hidden element, so do not ask it to.
-                        if (this.currentStep !== 1) return;
+                        // The wallet sits on step two now, after the monthly offer.
+                        // Stripe cannot measure a hidden element, so it is only built
+                        // once that step is the one on screen.
+                        if (this.currentStep !== 2) return;
                         if (this.walletRequiresTopLevel) return;
                         if (!stripe || expressElement) return;
                         // Creating one with an amount Stripe cannot charge fails the
@@ -278,6 +278,35 @@
                     },
                     // A monthly gift declares different terms to the wallet, and those
                     // are fixed when the element is created.
+                    /**
+                     * Stripe measures the box it is given and renders nothing into
+                     * one with no size. The step is swapped in a tick after the
+                     * state changes and transitions in after that, so asking on
+                     * $nextTick handed it a box of nothing. Waiting on a frame
+                     * instead only moves the problem: a backgrounded tab paints no
+                     * frames at all. The box telling us it has a size is the one
+                     * signal that holds in every case.
+                     */
+                    whenExpressBoxHasSize(run) {
+                        const node = document.getElementById('express-checkout-element');
+
+                        if (!node) return;
+
+                        if (node.getBoundingClientRect().width > 0) {
+                            run();
+
+                            return;
+                        }
+
+                        const observer = new ResizeObserver(() => {
+                            if (node.getBoundingClientRect().width > 0) {
+                                observer.disconnect();
+                                run();
+                            }
+                        });
+
+                        observer.observe(node);
+                    },
                     remountExpressCheckout() {
                         if (expressElement) {
                             try { expressElement.unmount(); expressElement.destroy(); } catch (e) { /* already gone */ }
@@ -431,14 +460,15 @@
                             });
                             paymentElement = elements.create('payment', {
                                 layout: 'tabs',
-                                // The wallets have a step of their own now, with a
-                                // button that only appears when the device can
-                                // actually present the sheet. This element decides
-                                // more optimistically: in an in-app browser - opened
-                                // from WhatsApp, say - it offered an Apple Pay tab
-                                // and then failed on the tap with "Unable to show
-                                // Apple Pay", which is the last thing a donor should
-                                // meet at the payment step.
+                                // Apple Pay cannot work from here, on any device.
+                                // Safari opens the sheet only while the tap is still
+                                // a user gesture, and this button goes to the server
+                                // for a PaymentIntent before confirmPayment is ever
+                                // called - by which time the gesture has expired and
+                                // the donor is told "Unable to show Apple Pay" with
+                                // their card already out. The express button avoids
+                                // this by resolving inside the click itself, so the
+                                // wallets belong to it alone.
                                 wallets: {
                                     link: 'never',
                                     applePay: 'never',
@@ -731,9 +761,9 @@
                             // The wallet sheet quotes a total, so it has to follow
                             // whatever the donor changes on the amount step.
                             this.$watch('currentStep', (value) => {
-                                if (value === 1) {
-                                    this.$nextTick(() => this.mountExpressCheckout());
-                                }
+                                if (value !== 2) return;
+
+                                this.whenExpressBoxHasSize(() => this.mountExpressCheckout());
                             });
                             this.$watch('frequency', () => this.remountExpressCheckout());
                             this.$watch('amount', () => this.syncExpressAmount());

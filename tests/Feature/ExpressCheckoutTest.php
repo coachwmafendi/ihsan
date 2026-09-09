@@ -284,13 +284,17 @@ it('reads the wallet list under the name Stripe actually sends', function () {
         ->assertDontSee('availablePaymentMethods', false);
 });
 
-it('names the card path once a wallet button sits above it', function () {
-    // "Continue" stops saying where it leads once there is a wallet button to
-    // contrast against, so the label switches to name the card path.
-    $this->get(route('donations.show', $this->element))
-        ->assertOk()
-        ->assertSee('Donate with card', false)
-        ->assertSee('x-show="! expressAvailable"', false);
+it('leaves the amount step a single neutral button', function () {
+    // The label used to switch to "Donate with card" to contrast against a
+    // wallet button beside it. The wallet sits on the next step now, so this
+    // one leads to both ways of paying and the neutral word is the honest one.
+    $response = $this->get(route('donations.show', $this->element))->assertOk();
+
+    expect($response->getContent())
+        ->toContain('Continue')
+        // The label used to flip to name the card path; nothing on the amount
+        // step contrasts against a wallet any more.
+        ->not->toContain('<span x-show="expressAvailable" x-cloak>Donate with card</span>');
 });
 
 it('leaves an organiser who set their own button text alone', function () {
@@ -315,12 +319,32 @@ it('offers the wallet on the inline form, where the amount step actually lives',
         ->assertSee('id="express-checkout-element"', false);
 });
 
-it('does not mount the wallet on a modal that opens past the amount step', function () {
-    // Stripe cannot measure a hidden element; the step-2 modal has the amount
-    // settled already.
+it('builds the wallet on the step it now lives on', function () {
+    // Stripe cannot measure a hidden element, so the element is only built once
+    // its step is the one on screen - step two, after the monthly offer.
     $this->get(route('donations.show', $this->element).'?popup=1&step=2')
         ->assertOk()
-        ->assertSee('if (this.currentStep !== 1) return;', false);
+        ->assertSee('if (this.currentStep !== 2) return;', false)
+        ->assertDontSee('if (this.currentStep !== 1) return;', false);
+});
+
+it('puts the wallet after the monthly offer rather than before it', function () {
+    // A donor tapping the wallet on the amount step never saw the offer at all,
+    // because the sheet opens on the tap and nothing can be shown in between.
+    $markup = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
+
+    // Anchored on markup that appears once each: the offer panel, and the card
+    // field that belongs to the payment step.
+    $upsell = strpos($markup, "x-show=\"currentStep === 'upsell'\"");
+    $wallet = strpos($markup, 'id="express-checkout-element"');
+    $cardField = strpos($markup, 'id="payment-element"');
+
+    expect($upsell)->not->toBeFalse()
+        ->and($wallet)->not->toBeFalse()
+        ->and($cardField)->not->toBeFalse()
+        // After the offer, and still ahead of the card fields.
+        ->and($wallet)->toBeGreaterThan($upsell)
+        ->and($wallet)->toBeLessThan($cardField);
 });
 
 it('asks the wallet for the billing details it needs to record a donor', function () {
@@ -536,6 +560,17 @@ it('records when a wallet donation actually went through', function () {
     expect(Donation::query()->sole()->finalized_at)->not->toBeNull();
 });
 
+it('waits for the wallet box to have a size before asking Stripe to fill it', function () {
+    // Stripe renders nothing into a box with no size. Step two is swapped in a
+    // tick after the state changes and transitions in after that, so $nextTick
+    // handed it nothing; waiting on a frame instead breaks in a backgrounded
+    // tab, which paints none.
+    $this->get(route('donations.show', $this->element))
+        ->assertOk()
+        ->assertSee('whenExpressBoxHasSize', false)
+        ->assertSee('new ResizeObserver', false);
+});
+
 it('leaves the wallets to the step that checks whether they work', function () {
     // The payment step's own element decides more optimistically than the
     // wallet step's: in an in-app browser it offered an Apple Pay tab and then
@@ -547,4 +582,29 @@ it('leaves the wallets to the step that checks whether they work', function () {
         ->toContain("applePay: 'never'")
         ->toContain("googlePay: 'never'")
         ->toContain("link: 'never'");
+});
+
+it('describes the step by what is actually on it', function () {
+    // The header said "Your Details" while the first thing on screen was a
+    // button that fills those details in and finishes the donation. A wallet
+    // donor never reaches a third step either, so counting them towards one
+    // described the card path and nobody else.
+    $markup = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
+
+    expect($markup)
+        ->toContain("How you'd like to pay")
+        ->toContain('currentStep === 2 && expressAvailable')
+        // And the card path keeps the wording that is true for it.
+        ->toContain('currentStep === 2 && ! expressAvailable');
+});
+
+it('says what the wallet button saves the donor', function () {
+    // Nothing on the screen said the button skipped the form beneath it, and a
+    // bare "or" put a one-tap payment and a two-step form side by side as
+    // though they were the same kind of choice.
+    $markup = $this->get(route('donations.show', $this->element))->assertOk()->getContent();
+
+    expect($markup)
+        ->toContain('nothing to type')
+        ->toContain('or enter your details');
 });
