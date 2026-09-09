@@ -151,3 +151,14 @@ it('runs the row under the whole modal rather than the column the form sits in',
         ->toContain('this.$el.offsetWidth')
         ->not->toContain('md:absolute');
 });
+
+it('brings an answer opened underneath the row into view', function () {
+    // On a phone the panel opens below the fold, so the tap reads as having
+    // done nothing. Only the accordion needs this: floating, it is already on
+    // screen and scrolling would move the form for no reason.
+    $markup = file_get_contents(base_path('resources/views/components/checkout-help.blade.php'));
+
+    expect($markup)
+        ->toContain('if (this.open && ! this.floats)')
+        ->toContain("scrollIntoView({ behavior: 'smooth', block: 'nearest' })");
+});

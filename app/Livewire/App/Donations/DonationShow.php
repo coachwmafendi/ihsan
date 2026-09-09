@@ -15,6 +15,7 @@ use App\Models\Donation;
 use App\Models\DonorEmailLog;
 use App\Models\Organization;
 use App\Services\AuditLogQuery;
+use App\Support\PaymentFailureReason;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -280,6 +281,21 @@ class DonationShow extends Component
     public function isRecurring(): bool
     {
         return $this->donation->subscription !== null;
+    }
+
+    /**
+     * Why the payment did not go through. Stripe's answer was already stored on
+     * every failed donation and shown nowhere, so the page said only "Failed"
+     * and finding out more meant opening a shell.
+     */
+    #[Computed]
+    public function failureReason(): ?PaymentFailureReason
+    {
+        if ($this->donation->status !== DonationStatus::Failed) {
+            return null;
+        }
+
+        return PaymentFailureReason::for($this->donation);
     }
 
     public function paymentProcessorLabel(): string

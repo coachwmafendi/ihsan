@@ -19,7 +19,19 @@
     x-data="{
         open: null,
         floats: false,
-        toggle(key) { this.open = this.open === key ? null : key; },
+        toggle(key) {
+            this.open = this.open === key ? null : key;
+
+            // Opened underneath, the answer lands below the fold and the tap
+            // reads as having done nothing at all. Bring it into view - the
+            // least amount of scrolling that makes it visible, so the form
+            // above does not jump away from under the donor.
+            if (this.open && ! this.floats) {
+                this.$nextTick(() => {
+                    this.$refs.panel?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                });
+            }
+        },
         close() { this.open = null; },
         measure() { this.floats = this.$el.offsetWidth >= 460; },
         init() {
@@ -54,6 +66,7 @@
 
     <div
         id="checkout-help-panel"
+        x-ref="panel"
         x-show="open"
         x-cloak
         @click.outside="close()"

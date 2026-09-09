@@ -127,6 +127,23 @@
                                 <dd class="text-sm font-medium text-slate-900">{{ $this->refundDate() ?? '—' }}</dd>
                             </div>
                         @endif
+                        @if ($this->failureReason)
+                            {{-- The bank's message says what happened; the line
+                                 under it says what the donor should do, which is
+                                 what anyone reading this page actually needs. --}}
+                            <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
+                                <dt class="text-sm text-slate-500">Why it failed</dt>
+                                <dd class="text-sm text-slate-900">
+                                    <p class="font-medium">{{ $this->failureReason->message }}</p>
+                                    @if ($this->failureReason->advice())
+                                        <p class="mt-1 text-slate-500">{{ $this->failureReason->advice() }}</p>
+                                    @endif
+                                    @if ($this->failureReason->label())
+                                        <p class="mt-1 text-xs uppercase tracking-wide text-slate-400">{{ $this->failureReason->label() }}</p>
+                                    @endif
+                                </dd>
+                            </div>
+                        @endif
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Frequency</dt>
                             <dd class="text-sm text-slate-900">{{ $this->frequencyLabel() }}</dd>
