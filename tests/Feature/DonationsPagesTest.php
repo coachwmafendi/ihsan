@@ -479,7 +479,10 @@ it('renders date and donation columns without wrapping', function () {
 
     $response->assertOk()
         ->assertSeeHtml('class="whitespace-nowrap min-w-[180px] px-5 py-4 text-sm text-slate-500"')
-        ->assertSeeHtml('class="whitespace-nowrap min-w-[180px] px-5 py-4">');
+        // The figures are right-aligned with tabular digits, and the payment
+        // icons keep a lane of their own so the amounts hold a straight edge.
+        ->assertSeeHtml('class="whitespace-nowrap min-w-[180px] px-5 py-4 text-right tabular-nums"')
+        ->assertSeeHtml('class="flex w-16 shrink-0 items-center gap-1.5"');
 });
 
 it('redirects guests to login', function () {
