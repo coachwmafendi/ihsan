@@ -629,7 +629,7 @@
                                     </a>
 
                                     <p class="text-center text-xs text-slate-500">
-                                        Fills in your name and email for you — nothing to type.
+                                        Fast and secure — your name and email are filled automatically.
                                     </p>
 
                                     <div class="flex items-center gap-3">
@@ -651,7 +651,7 @@
                                 {{-- What the button above actually saves the donor:
                                      nothing on this screen has to be filled in. --}}
                                 <p x-show="expressAvailable" x-cloak class="text-center text-xs text-slate-500">
-                                    Fills in your name and email for you — nothing to type.
+                                    Fast and secure — your name and email are filled automatically.
                                 </p>
 
                                 <div x-show="expressAvailable" x-cloak class="flex items-center gap-3">
