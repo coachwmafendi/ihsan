@@ -71,3 +71,61 @@ it('tells a monthly donor what they are agreeing to, where they agree to it', fu
 it('says nothing of the sort to a one-time donor', function () {
     visit('/donate/terms?popup=1')->assertScript(termsOnPaymentStep('one_time'), 'none');
 });
+
+function walletLineItems(string $frequency, bool $coverFee = true): string
+{
+    $cover = $coverFee ? 'true' : 'false';
+
+    return <<<JS
+    (async () => {
+        const root = [...document.querySelectorAll('[x-data]')]
+            .find(el => el._x_dataStack?.[0] && 'expressAvailable' in el._x_dataStack[0]);
+        const state = root._x_dataStack[0];
+
+        state.selectFrequency('{$frequency}');
+        state.setAmount(100);
+        state.coverFee = {$cover};
+
+        await new Promise(r => setTimeout(r, 400));
+
+        const items = state.monthlyLineItems();
+        const sum = items.reduce((total, item) => total + item.amount, 0);
+
+        return JSON.stringify({
+            count: items.length,
+            saysRecurring: /every month until you cancel/.test(items[0].name),
+            // Apple refuses a sheet whose parts do not add up to its whole, and
+            // Google is no more forgiving about arithmetic that does not work.
+            sumsToTotal: sum === state.expressAmountInCents(),
+        });
+    })()
+    JS;
+}
+
+it('gives Google Pay line items that add up to what the wallet is charged', function () {
+    visit('/donate/terms?popup=1')->assertScript(
+        walletLineItems('monthly'),
+        '{"count":2,"saysRecurring":true,"sumsToTotal":true}',
+    );
+});
+
+it('drops the costs line when the donor declines to cover them', function () {
+    visit('/donate/terms?popup=1')->assertScript(
+        walletLineItems('monthly', coverFee: false),
+        '{"count":1,"saysRecurring":true,"sumsToTotal":true}',
+    );
+});
+
+it('keeps the line items away from Apple, whose sheet already carries the terms', function () {
+    // Apple gets recurringPaymentRequest and refuses a sheet whose line items
+    // do not reconcile; that path works today and must not be disturbed.
+    $markup = file_get_contents(base_path('resources/views/partials/donation-step.blade.php'));
+
+    expect($markup)->toContain("event.expressPaymentType === 'google_pay'")
+        ->toContain('options.lineItems = this.monthlyLineItems();');
+
+    $lineItemsAt = strpos($markup, 'options.lineItems');
+    $googleGuardAt = strpos($markup, "event.expressPaymentType === 'google_pay'");
+
+    expect($googleGuardAt)->toBeLessThan($lineItemsAt);
+});
