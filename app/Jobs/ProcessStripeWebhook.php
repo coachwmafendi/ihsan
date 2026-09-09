@@ -240,6 +240,10 @@ class ProcessStripeWebhook implements ShouldQueue
             'stripe_fee_details' => $stripeFeeDetails,
         ]);
 
+        // An hour from now, and only if nothing has changed by then: most
+        // donors who fail retry successfully on their own within minutes.
+        SendFailedDonationRecovery::dispatch($donation->getKey())->delay(now()->addHour());
+
         DonationActivityLogger::transactionAttemptFailed(
             $donation,
             'stripe',
