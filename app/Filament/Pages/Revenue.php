@@ -92,17 +92,17 @@ class Revenue extends Page
             ->when($to, fn (Builder $q) => $q->where('donations.created_at', '<=', $to));
 
         $totalVolume = (float) (clone $succeeded)->sum('base_amount');
-        $this->totalDonationVolume = number_format($totalVolume, 2, '.', '');
+        $this->totalDonationVolume = number_format($totalVolume, 2);
         $this->totalTransactions = (clone $succeeded)->count();
         $this->averageDonationSize = $this->totalTransactions > 0
-            ? number_format($totalVolume / $this->totalTransactions, 2, '.', '')
+            ? number_format($totalVolume / $this->totalTransactions, 2)
             : '0.00';
 
         $totalFeeAmount = (float) ProcessingFee::query()
             ->when($from, fn (Builder $q) => $q->where('created_at', '>=', $from))
             ->when($to, fn (Builder $q) => $q->where('created_at', '<=', $to))
             ->sum('fee_amount');
-        $this->totalProcessingFees = number_format($totalFeeAmount, 2, '.', '');
+        $this->totalProcessingFees = number_format($totalFeeAmount, 2);
 
         $this->paidFees = $this->sumFeesByStatus('paid', $from, $to);
         $this->collectedFees = $this->sumFeesByStatus('collected', $from, $to);
@@ -111,11 +111,11 @@ class Revenue extends Page
         $this->failedFees = $this->sumFeesByStatus('failed', $from, $to);
 
         $this->averageFeePerTransaction = $this->totalTransactions > 0
-            ? number_format($totalFeeAmount / $this->totalTransactions, 2, '.', '')
+            ? number_format($totalFeeAmount / $this->totalTransactions, 2)
             : '0.00';
 
         $this->effectiveFeeRate = $totalVolume > 0
-            ? number_format(($totalFeeAmount / $totalVolume) * 100, 2, '.', '')
+            ? number_format(($totalFeeAmount / $totalVolume) * 100, 2)
             : '0.00';
 
         $this->revenueByOrganization = $this->reportService->organizationRows($this->period);
@@ -134,6 +134,6 @@ class Revenue extends Page
             ->when($to, fn (Builder $q) => $q->where('created_at', '<=', $to))
             ->sum('fee_amount');
 
-        return number_format($sum, 2, '.', '');
+        return number_format($sum, 2);
     }
 }
