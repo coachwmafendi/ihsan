@@ -492,10 +492,17 @@
                                             $pmType = $donation->payment_method_type;
                                             $pmBrand = strtolower($donation->payment_method_brand ?? '');
                                         @endphp
+                                        {{-- The wallet mark hides the card that was actually
+                                             charged, which is what a supporter names when they
+                                             ring about a payment. --}}
                                         @if ($pmBrand === 'apple_pay' || $pmType === 'apple_pay')
-                                            <x-icons.apple-pay class="h-5 w-auto text-slate-600" />
+                                            <x-ui.tooltip :text="\App\Support\WalletCardLabel::for('apple_pay', $donation->payment_method_brand, $donation->payment_method_last4)">
+                                                <x-icons.apple-pay class="h-5 w-auto text-slate-600" />
+                                            </x-ui.tooltip>
                                         @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
-                                            <x-icons.google-pay class="h-5 w-auto text-slate-600" />
+                                            <x-ui.tooltip :text="\App\Support\WalletCardLabel::for('google_pay', $donation->payment_method_brand, $donation->payment_method_last4)">
+                                                <x-icons.google-pay class="h-5 w-auto text-slate-600" />
+                                            </x-ui.tooltip>
                                         @elseif ($pmType === 'card' || filled($pmBrand))
                                             <x-ui.tooltip :text="\Illuminate\Support\Str::headline($pmBrand)">
                                                 <x-heroicon-o-credit-card class="size-4 text-slate-400" />
