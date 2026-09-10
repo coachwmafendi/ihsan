@@ -482,10 +482,17 @@
                                             <span class="text-sm font-semibold text-slate-800">{{ $displayAmount }}</span>
                                         @endif
                                         {{-- Payment method icon --}}
+                                        {{-- The card underneath is the one that will be charged
+                                             again next month, so it belongs on hover here even
+                                             more than on a single donation. --}}
                                         @if ($pmBrand === 'apple_pay' || $pmType === 'apple_pay')
-                                            <x-icons.apple-pay class="h-5 w-auto text-slate-600" />
+                                            <x-ui.tooltip :text="\App\Support\WalletCardLabel::for('apple_pay', $latestDonation?->payment_method_brand, $latestDonation?->payment_method_last4)">
+                                                <x-icons.apple-pay class="h-5 w-auto text-slate-600" />
+                                            </x-ui.tooltip>
                                         @elseif ($pmBrand === 'google_pay' || $pmType === 'google_pay')
-                                            <x-icons.google-pay class="h-5 w-auto text-slate-600" />
+                                            <x-ui.tooltip :text="\App\Support\WalletCardLabel::for('google_pay', $latestDonation?->payment_method_brand, $latestDonation?->payment_method_last4)">
+                                                <x-icons.google-pay class="h-5 w-auto text-slate-600" />
+                                            </x-ui.tooltip>
                                         @elseif ($pmType === 'card' || filled($pmBrand))
                                             <x-ui.tooltip :text="filled($pmBrand) ? \Illuminate\Support\Str::headline($pmBrand) : 'Credit card'">
                                                 <x-icons.credit-card class="size-4 text-slate-500" />

@@ -973,3 +973,16 @@ it('shows a device icon on the donation list for specific device types', functio
     ['desktop', 'Unknown', 'desktop', 'Desktop'],
     ['desktop', null, 'desktop', 'Desktop'],
 ]);
+
+it('says which card a wallet payment used, on hover', function () {
+    $this->donation->update([
+        'payment_method_type' => 'apple_pay',
+        'payment_method_brand' => 'mastercard',
+        'payment_method_last4' => '0697',
+        'status' => 'succeeded',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->assertSee('Apple Pay · Mastercard •••• 0697');
+});
