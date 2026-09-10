@@ -151,7 +151,7 @@ class PlatformOverview extends Page
 
         $succeededDonations = Donation::query()->where('status', DonationStatus::Succeeded);
 
-        $this->totalDonationsVolume = number_format((float) (clone $succeededDonations)->sum('base_amount'), 2, '.', '');
+        $this->totalDonationsVolume = number_format((float) (clone $succeededDonations)->sum('base_amount'), 2);
         $this->totalDonationsHasApproximation = Donation::hasReportApproximations($succeededDonations);
         $this->totalDonationsCount = Donation::query()->count();
 
@@ -193,7 +193,7 @@ class PlatformOverview extends Page
             ->get()
             ->map(fn (Organization $org): array => [
                 'name' => $org->name,
-                'total' => 'MYR '.number_format((float) $org->total, 2, '.', ''),
+                'total' => 'MYR '.number_format((float) $org->total, 2),
             ])
             ->all();
 
@@ -210,7 +210,7 @@ class PlatformOverview extends Page
                 $originalAmount = $donation->displayAmount((float) $donation->gross_amount);
 
                 $amount = strtolower($donation->currency) !== 'myr' && $donation->base_amount !== null
-                    ? '≈ MYR '.number_format((float) $donation->base_amount, 2, '.', '')
+                    ? '≈ MYR '.number_format((float) $donation->base_amount, 2)
                     : $originalAmount;
 
                 $original = strtolower($donation->currency) !== 'myr' && $donation->base_amount !== null
@@ -260,9 +260,9 @@ class PlatformOverview extends Page
         $donThisMonth = (float) (clone $donThisMonthQuery)->sum('base_amount');
         $donLastMonth = (float) (clone $donLastMonthQuery)->sum('base_amount');
 
-        $this->donationsThisMonth = number_format($donThisMonth, 2, '.', '');
+        $this->donationsThisMonth = number_format($donThisMonth, 2);
         $this->donationsThisMonthHasApproximation = Donation::hasReportApproximations($donThisMonthQuery);
-        $this->donationsLastMonth = number_format($donLastMonth, 2, '.', '');
+        $this->donationsLastMonth = number_format($donLastMonth, 2);
         $this->donationsLastMonthHasApproximation = Donation::hasReportApproximations($donLastMonthQuery);
         $this->donationsMomChange = $this->momChange($donThisMonth, $donLastMonth);
 
@@ -274,8 +274,8 @@ class PlatformOverview extends Page
             ->whereBetween('created_at', $lastMonth)
             ->sum('fee_amount');
 
-        $this->processingFeesThisMonth = number_format($feesThisMonth, 2, '.', '');
-        $this->processingFeesLastMonth = number_format($feesLastMonth, 2, '.', '');
+        $this->processingFeesThisMonth = number_format($feesThisMonth, 2);
+        $this->processingFeesLastMonth = number_format($feesLastMonth, 2);
         $this->processingFeesMomChange = $this->momChange($feesThisMonth, $feesLastMonth);
 
         $this->pendingBlockedDonations = BlockedDonation::query()

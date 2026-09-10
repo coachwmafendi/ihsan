@@ -82,15 +82,15 @@ class RevenueReportService
                     'name' => $org->name,
                     'donations' => $donations,
                     'volume_raw' => $volume,
-                    'volume' => 'MYR '.number_format($volume, 2, '.', ''),
+                    'volume' => 'MYR '.number_format($volume, 2),
                     'stripe_fees_raw' => $stripeFees,
-                    'stripe_fees' => 'MYR '.number_format($stripeFees, 2, '.', ''),
+                    'stripe_fees' => 'MYR '.number_format($stripeFees, 2),
                     'fees_raw' => $fees,
-                    'fees' => 'MYR '.number_format($fees, 2, '.', ''),
+                    'fees' => 'MYR '.number_format($fees, 2),
                     'avg_donation_raw' => $avg,
-                    'avg_donation' => 'MYR '.number_format($avg, 2, '.', ''),
+                    'avg_donation' => 'MYR '.number_format($avg, 2),
                     'effective_rate_raw' => $rate,
-                    'effective_rate' => number_format($rate, 2, '.', '').'%',
+                    'effective_rate' => number_format($rate, 2).'%',
                 ];
             })
             ->filter(fn (array $row) => $row['donations'] > 0)
@@ -135,15 +135,15 @@ class RevenueReportService
             'name' => $organization->name,
             'donations' => $donations,
             'volume_raw' => $volume,
-            'volume' => 'MYR '.number_format($volume, 2, '.', ''),
+            'volume' => 'MYR '.number_format($volume, 2),
             'stripe_fees_raw' => $stripeFees,
-            'stripe_fees' => 'MYR '.number_format($stripeFees, 2, '.', ''),
+            'stripe_fees' => 'MYR '.number_format($stripeFees, 2),
             'fees_raw' => $fees,
-            'fees' => 'MYR '.number_format($fees, 2, '.', ''),
+            'fees' => 'MYR '.number_format($fees, 2),
             'avg_donation_raw' => $avg,
-            'avg_donation' => 'MYR '.number_format($avg, 2, '.', ''),
+            'avg_donation' => 'MYR '.number_format($avg, 2),
             'effective_rate_raw' => $rate,
-            'effective_rate' => number_format($rate, 2, '.', '').'%',
+            'effective_rate' => number_format($rate, 2).'%',
         ];
     }
 

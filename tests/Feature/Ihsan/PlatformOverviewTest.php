@@ -417,3 +417,23 @@ it('counts processing fees whatever status they carry', function () {
         ->assertSet('totalProcessingFees', '11.00')
         ->assertSet('processingFeesThisMonth', '11.00');
 });
+
+it('separates thousands in the figures it shows', function () {
+    // number_format was called with an empty thousands separator, so MYR
+    // 17,327.75 read as MYR 17327.75 and a glance could not tell seventeen
+    // thousand from a hundred and seventy-three thousand.
+    $org = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($org)->create();
+
+    Donation::factory()->for($campaign)->create([
+        'status' => DonationStatus::Succeeded,
+        'gross_amount' => 17327.75,
+        'base_amount' => 17327.75,
+        'currency' => 'myr',
+    ]);
+
+    $page = new PlatformOverview;
+    $page->mount();
+
+    expect($page->totalDonationsVolume)->toBe('17,327.75');
+});
