@@ -147,7 +147,7 @@
                     </button>
                 </div>
 
-                <p class="text-xs text-slate-400">Enter domain only (e.g. <code>mywebsite.com</code>) or full URL — <code>www.</code> and path are stripped automatically on save.</p>
+                <p class="text-xs text-slate-400">Enter domain only (e.g. <code>mywebsite.com</code>) or full URL — <code>www.</code> and path are stripped automatically, and a domain already on the list cannot be added twice.</p>
             </div>
         </x-ui.card>
 

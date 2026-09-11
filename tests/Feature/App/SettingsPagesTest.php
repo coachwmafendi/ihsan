@@ -131,6 +131,63 @@ it('normalizes domains on save (strips www, lowercases)', function () {
     expect($organization->fresh()->settings['allowed_domains'])->toBe(['mywebsite.com']);
 });
 
+it('refuses a domain that is already in the list', function () {
+    $organization = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['mywebsite.com']],
+    ]);
+    $user = User::factory()->create(['organization_id' => $organization->id]);
+
+    actingAs($user);
+
+    Livewire::test(AllowDomains::class)
+        ->call('addDomain', 'mywebsite.com')
+        ->assertSet('allowed_domains', ['mywebsite.com'])
+        ->assertDispatched('notify', message: 'mywebsite.com is already on your list.', variant: 'error');
+});
+
+it('treats a differently spelled duplicate as the same domain', function () {
+    // The organiser cannot see that tahfizdarululama.org and
+    // https://www.Tahfizdarululama.org/derma are one domain to Stripe, so the
+    // second one has to be caught here rather than silently dropped on save.
+    $organization = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => []],
+    ]);
+    $user = User::factory()->create(['organization_id' => $organization->id]);
+
+    actingAs($user);
+
+    Livewire::test(AllowDomains::class)
+        ->call('addDomain', 'tahfizdarululama.org')
+        ->call('addDomain', 'https://www.Tahfizdarululama.org/derma')
+        ->assertSet('allowed_domains', ['tahfizdarululama.org'])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($organization->fresh()->settings['allowed_domains'])->toBe(['tahfizdarululama.org']);
+});
+
+it('does not spend a slot on a duplicate domain', function () {
+    $organization = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => []],
+    ]);
+    $user = User::factory()->create(['organization_id' => $organization->id]);
+
+    actingAs($user);
+
+    $component = Livewire::test(AllowDomains::class);
+
+    foreach (range(1, 9) as $i) {
+        $component->call('addDomain', "domain-{$i}.com");
+    }
+
+    // The duplicate must not take the last slot from a domain they still need.
+    $component->call('addDomain', 'domain-1.com')
+        ->call('addDomain', 'domain-10.com')
+        ->assertCount('allowed_domains', 10);
+
+    expect($component->get('allowed_domains'))->toContain('domain-10.com');
+});
+
 it('enforces a maximum of 10 allowed domains', function () {
     $organization = Organization::factory()->stripeConnected()->create([
         'settings' => ['allowed_domains' => []],

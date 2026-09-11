@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\CampaignStatus;
 use App\Enums\ElementType;
+use App\Http\Controllers\EmbedCheckoutController;
 use App\Models\Campaign;
 use App\Models\Element;
 use App\Models\Organization;
@@ -63,9 +64,13 @@ it('takes the frame permission from one place', function () {
     // Each script carried its own copy of the string, and one of them had lost
     // the payment permission. The controller substitutes a single constant when
     // it serves them, so a change reaches all three or none.
+    // The constant went public when the donor portal's own modal needed the
+    // same permission; what this test is about is that there is one of it, not
+    // who is allowed to read it.
     $controller = file_get_contents(base_path('app/Http/Controllers/EmbedCheckoutController.php'));
 
-    expect($controller)->toContain("private const IframeAllow = 'payment *; clipboard-write; autoplay';");
+    expect($controller)->toContain("const IframeAllow = 'payment *; clipboard-write; autoplay';");
+    expect(EmbedCheckoutController::IframeAllow)->toBe('payment *; clipboard-write; autoplay');
 
     foreach (['resources/js/widget.js', 'resources/js/loader.js'] as $script) {
         expect(file_get_contents(base_path($script)))

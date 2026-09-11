@@ -65,8 +65,11 @@ it('does not trigger N+1 queries on the platform overview page', function () {
     });
 
     // Includes the two constant eager-load queries (campaigns, organizations)
-    // that back the recent donations list, which only run when donations exist.
-    expect($queryCount)->toBeLessThanOrEqual(46);
+    // that back the recent donations list, which only run when donations exist,
+    // and one aggregate for the weekly wallet share. The number that matters is
+    // that it does not move with the number of organisations: measured at 47
+    // for both 3 and 9 of them.
+    expect($queryCount)->toBeLessThanOrEqual(47);
 });
 
 function countQueries(callable $callback): int

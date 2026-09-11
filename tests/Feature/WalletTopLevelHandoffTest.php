@@ -115,22 +115,36 @@ it('does not need the embedding site to do anything', function () {
 });
 
 it('names the card path when the handoff button sits above it', function () {
-    // expressAvailable never turns true on this path - no Stripe element is
-    // mounted - so the label would otherwise stay "Continue" while a wallet
-    // button sat right above it.
+    // The divider under the wallet button is what tells the donor the form
+    // below is the other way to pay. On this path no Stripe element mounts, so
+    // expressAvailable never turns true: gate the divider on it and the donor
+    // gets a wallet button sitting straight on top of an unexplained form.
     $response = $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
         ->assertOk();
 
     expect($response->getContent())
-        ->toContain('Donate with card')
-        ->not->toContain('x-show="! expressAvailable"');
+        ->toContain('or enter your details')
+        ->not->toContain('x-show="expressAvailable"');
 });
 
-it('keeps the label tied to the wallet on a site that mounts one', function () {
+it('keeps the divider tied to the wallet on a site that mounts one', function () {
+    // Here the wallet may or may not appear - the device decides - so the
+    // divider has to follow it rather than always being drawn.
     $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://tahfizannur.org/derma'))
         ->assertOk()
-        ->assertSee('x-show="! expressAvailable"', false)
-        ->assertSee('Donate with card');
+        ->assertSee('x-show="expressAvailable"', false)
+        ->assertSee('or enter your details');
+});
+
+it('does not name the details section twice on the handoff path', function () {
+    // The divider is drawn unconditionally here and the "Your details" heading
+    // is shown whenever expressAvailable is false - which on this path is
+    // always - so both landed on screen, one under the other.
+    $body = $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
+        ->assertOk()
+        ->getContent();
+
+    expect($body)->not->toContain('>Your details</p>');
 });
 
 it('trusts what Stripe last said over what the organiser typed in the list', function () {
@@ -199,7 +213,7 @@ it('will not hand off a donor who has not entered an amount', function () {
     // An emptied amount field sailed straight through to the hosted page.
     $this->get(route('donations.show', $this->element).'?embed=1&pu='.urlencode('https://mtaqlaa.onpay.my/x'))
         ->assertOk()
-        ->assertSee('if (! validateStep1()) $event.preventDefault()', false)
+        ->assertSee('if (! validateStep1()) { $event.preventDefault(); focusFirstError(); }', false)
         ->assertSee('x-bind:aria-disabled="! amountIsUsable()"', false);
 });
 
