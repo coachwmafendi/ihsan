@@ -474,6 +474,57 @@ it('stops flagging a subdomain once Stripe reports it verified', function () {
     $component->assertDontSee('Donations are coming from domains you have not added');
 });
 
+it('offers to take over a domain Stripe verified outside the list', function () {
+    // Registering in Stripe's dashboard works, but nothing here re-validates a
+    // domain that is not on the list, so it lives on whatever the organiser set
+    // up by hand. Offering it back is how it comes under management.
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => [
+            'allowed_domains' => ['onpay.my'],
+            'wallet_verified_domains' => ['mtaqlaa.onpay.my', 'onpay.my'],
+        ],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([])
+    ));
+
+    $component = Livewire::actingAs($user)->test(AllowDomains::class);
+
+    expect($component->instance()->unmanagedVerifiedDomains())->toBe(['mtaqlaa.onpay.my']);
+
+    $component->assertSee('Wallets already work on these')
+        ->assertSee('mtaqlaa.onpay.my');
+
+    $component->call('addDomain', 'mtaqlaa.onpay.my')
+        ->assertSet('allowed_domains', ['onpay.my', 'mtaqlaa.onpay.my']);
+
+    // Once it is on the list there is nothing left to offer.
+    expect($component->instance()->unmanagedVerifiedDomains())->toBe([]);
+});
+
+it('never offers our own checkout domains as something to take over', function () {
+    // They are registered on every connected account, so they are always in the
+    // verified list and never in the organiser's.
+    config()->set('app.app_panel_domain', 'app.getihsan.my');
+
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => [
+            'allowed_domains' => ['tahfizannur.org'],
+            'wallet_verified_domains' => ['app.getihsan.my', 'getihsan.my', 'tahfizannur.org'],
+        ],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([])
+    ));
+
+    expect(Livewire::actingAs($user)->test(AllowDomains::class)->instance()->unmanagedVerifiedDomains())
+        ->toBe([]);
+});
+
 it('does not flag the checkout domain or a domain already added', function () {
     config()->set('app.app_panel_domain', 'app.getihsan.my');
 

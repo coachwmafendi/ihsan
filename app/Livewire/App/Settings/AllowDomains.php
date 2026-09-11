@@ -177,10 +177,8 @@ class AllowDomains extends Component
         // were hidden on a page that had them. The checkout already decides
         // this from Stripe; this is the same question, so it reads the same
         // answer.
-        $verified = (array) ($org->settings['wallet_verified_domains'] ?? []);
-
         $known = collect($this->normalizeDomains($this->allowed_domains))
-            ->merge($this->normalizeDomains($verified))
+            ->merge($this->verifiedDomains())
             ->merge($this->checkoutDomains())
             ->filter()
             ->all();
@@ -196,6 +194,42 @@ class AllowDomains extends Component
             ->filter()
             ->reject(fn (string $host): bool => in_array($host, $known, true))
             ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Domains Stripe reports as carrying both wallets, whatever their source.
+     *
+     * @return array<int, string>
+     */
+    private function verifiedDomains(): array
+    {
+        return $this->normalizeDomains(
+            (array) ($this->organization()?->settings['wallet_verified_domains'] ?? [])
+        );
+    }
+
+    /**
+     * Domains that work today but nothing here keeps working.
+     *
+     * Registering in Stripe's own dashboard is a real fix and the wallets
+     * appear, so warning about these would be false. But registration is only
+     * revalidated for domains on the list, so one added by hand lives on
+     * whatever the organiser set up and nothing notices if Stripe drops it.
+     * Offering it back is how it comes under management.
+     *
+     * @return array<int, string>
+     */
+    #[Computed]
+    public function unmanagedVerifiedDomains(): array
+    {
+        $listed = collect($this->normalizeDomains($this->allowed_domains))
+            ->merge($this->checkoutDomains())
+            ->all();
+
+        return collect($this->verifiedDomains())
+            ->reject(fn (string $domain): bool => in_array($domain, $listed, true))
             ->values()
             ->all();
     }
