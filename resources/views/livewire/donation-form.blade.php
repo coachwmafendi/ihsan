@@ -674,7 +674,14 @@
 
 
                             <div class="space-y-3">
-                                <p x-show="! expressAvailable" x-cloak class="text-xs font-semibold uppercase tracking-widest text-slate-500">Your details</p>
+                                {{-- The handoff branch above always draws its own
+                                     divider, and expressAvailable never turns true
+                                     on that path, so this heading repeated it -
+                                     "or enter your details" with "Your details"
+                                     directly underneath. --}}
+                                @unless ($isStripeGateway && $this->walletRequiresTopLevel())
+                                    <p x-show="! expressAvailable" x-cloak class="text-xs font-semibold uppercase tracking-widest text-slate-500">Your details</p>
+                                @endunless
 
                                 <div class="grid grid-cols-2 gap-3">
                                     <label class="block">
