@@ -122,6 +122,28 @@
                         </div>
                     @endif
 
+                    @php $unmanaged = $this->unmanagedVerifiedDomains; @endphp
+
+                    @if ($unmanaged !== [])
+                        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5">
+                            <p class="text-sm font-medium text-emerald-900">Wallets already work on these</p>
+                            <p class="mt-1 text-xs text-emerald-800">
+                                Stripe has verified them, but they are not on your list, so we do not re-check them. Add each one to keep it verified from here.
+                            </p>
+
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @foreach ($unmanaged as $host)
+                                    <button
+                                        type="button"
+                                        wire:click="addDomain('{{ $host }}')"
+                                        class="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-white px-3 py-1 text-xs font-medium text-emerald-900 transition-colors hover:bg-emerald-100">
+                                        + {{ $host }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <p class="text-xs text-slate-400">
                         Apple Pay and Google Pay only appear when Stripe has verified both your site and the Ihsan checkout it embeds. Verification runs after you save and can take a moment; use <span class="font-medium text-slate-500">Recheck wallets</span> if a domain stays unverified.
                     </p>
