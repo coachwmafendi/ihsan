@@ -170,7 +170,17 @@ class AllowDomains extends Component
             return [];
         }
 
+        // What Stripe says, not only what the organiser typed. An organiser can
+        // register a domain in Stripe's own dashboard - one did, after this
+        // banner told them to - and the wallets work there from that moment on.
+        // Reading the list alone kept the warning up and kept claiming wallets
+        // were hidden on a page that had them. The checkout already decides
+        // this from Stripe; this is the same question, so it reads the same
+        // answer.
+        $verified = (array) ($org->settings['wallet_verified_domains'] ?? []);
+
         $known = collect($this->normalizeDomains($this->allowed_domains))
+            ->merge($this->normalizeDomains($verified))
             ->merge($this->checkoutDomains())
             ->filter()
             ->all();
