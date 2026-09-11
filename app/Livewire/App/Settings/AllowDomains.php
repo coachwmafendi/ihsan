@@ -54,7 +54,9 @@ class AllowDomains extends Component
             }
         }
 
-        $this->allowed_domains = $allowedDomains ?? [];
+        // Older rows were saved before add-time normalisation, and anything
+        // written by another screen never went through it at all.
+        $this->allowed_domains = $this->normalizeDomains($allowedDomains ?? []);
     }
 
     /**
@@ -206,13 +208,28 @@ class AllowDomains extends Component
             return;
         }
 
+        $normalized = $this->normalizeDomain($domain);
+
+        // save() has always deduplicated, but only after the fact: the second
+        // copy sat in the list looking real, counted against the limit, and
+        // then vanished on save with nothing said. Two spellings of one host
+        // are worse - example.org and https://www.Example.org/derma read as
+        // different domains on screen and identical ones to Stripe.
+        if (in_array($normalized, $this->normalizeDomains($this->allowed_domains), true)) {
+            $this->dispatch('notify', message: $normalized.' is already on your list.', variant: 'error');
+
+            return;
+        }
+
         if (count($this->allowed_domains) >= self::MAX_ALLOWED_DOMAINS) {
             $this->dispatch('notify', message: 'You can only add up to '.self::MAX_ALLOWED_DOMAINS.' allowed domains.', variant: 'error');
 
             return;
         }
 
-        $this->allowed_domains[] = $domain;
+        // Stored in the shape it will be saved in, so the row on screen is the
+        // domain Stripe will be asked to verify.
+        $this->allowed_domains[] = $normalized;
     }
 
     public function removeDomain(int $index): void
