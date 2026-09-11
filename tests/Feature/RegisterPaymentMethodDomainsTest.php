@@ -447,6 +447,33 @@ it('points out a subdomain donations arrive from that nobody registered', functi
         ->assertSee('mtaqlaa.onpay.my');
 });
 
+it('stops flagging a subdomain once Stripe reports it verified', function () {
+    // The organiser can register a domain in Stripe's own dashboard, and one
+    // did exactly that after this banner told them to. The banner kept asking,
+    // because it read the list they typed rather than what Stripe says - and it
+    // claims wallets stay hidden there, which by then is untrue.
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => [
+            'allowed_domains' => ['onpay.my'],
+            'wallet_verified_domains' => ['mtaqlaa.onpay.my', 'onpay.my'],
+        ],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+    $campaign = Campaign::factory()->for($org)->create();
+
+    Donation::factory()->for($campaign)->create(['page_url' => 'https://mtaqlaa.onpay.my/order/form/infaq']);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([])
+    ));
+
+    $component = Livewire::actingAs($user)->test(AllowDomains::class);
+
+    expect($component->instance()->unregisteredEmbeddingDomains())->toBe([]);
+
+    $component->assertDontSee('Donations are coming from domains you have not added');
+});
+
 it('does not flag the checkout domain or a domain already added', function () {
     config()->set('app.app_panel_domain', 'app.getihsan.my');
 
