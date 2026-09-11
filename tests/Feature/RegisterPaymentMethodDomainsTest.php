@@ -28,21 +28,33 @@ beforeEach(function () {
  *
  * @param  array<int, string>  $alreadyRegistered
  */
-function fakeStripeClientForDomains(array &$created, array $alreadyRegistered = []): StripeClient
+function fakeStripeClientForDomains(array &$created, array $alreadyRegistered = [], array $failValidateFor = []): StripeClient
 {
     $service = Mockery::mock();
 
-    $service->shouldReceive('all')->andReturnUsing(function (array $params) use ($alreadyRegistered) {
-        $domain = $params['domain_name'];
-        $data = in_array($domain, $alreadyRegistered, true)
-            ? [(object) ['id' => 'pmd_'.md5($domain)]]
-            : [];
-
+    $list = function (array $data) {
         return new class($data)
         {
             /** @param array<int, object> $data */
             public function __construct(public array $data) {}
         };
+    };
+
+    // Two shapes: asking after one domain before registering it, and listing
+    // everything on the account to revalidate what is already there.
+    $service->shouldReceive('all')->andReturnUsing(function (array $params) use ($alreadyRegistered, $list) {
+        if (! isset($params['domain_name'])) {
+            return $list(array_map(
+                fn (string $domain): object => (object) ['id' => 'pmd_'.md5($domain), 'domain_name' => $domain],
+                $alreadyRegistered,
+            ));
+        }
+
+        $domain = $params['domain_name'];
+
+        return $list(in_array($domain, $alreadyRegistered, true)
+            ? [(object) ['id' => 'pmd_'.md5($domain), 'domain_name' => $domain]]
+            : []);
     });
 
     $service->shouldReceive('create')->andReturnUsing(function (array $params) use (&$created) {
@@ -51,7 +63,15 @@ function fakeStripeClientForDomains(array &$created, array $alreadyRegistered = 
         return (object) ['id' => 'pmd_new', 'domain_name' => $params['domain_name']];
     });
 
-    $service->shouldReceive('validate')->andReturn((object) ['id' => 'pmd_validated']);
+    $service->shouldReceive('validate')->andReturnUsing(function (string $id) use ($failValidateFor) {
+        foreach ($failValidateFor as $domain) {
+            if ($id === 'pmd_'.md5($domain)) {
+                throw new InvalidRequestException('The domain could not be verified.');
+            }
+        }
+
+        return (object) ['id' => 'pmd_validated'];
+    });
 
     $client = Mockery::mock(StripeClient::class);
     $client->paymentMethodDomains = $service;
@@ -105,6 +125,47 @@ it('skips creation for domains already registered and revalidates them', functio
 
     expect($registered)->toEqualCanonicalizing(['app.getihsan.my', 'getihsan.my', 'infaq.darulmujtaba.my']);
     expect($created)->toBe(['getihsan.my', 'infaq.darulmujtaba.my']);
+});
+
+it('revalidates a domain registered outside the organiser list', function () {
+    // Somebody registered it in Stripe's dashboard. Verification lapses if the
+    // file stops being served, and nothing was re-checking these - the only way
+    // to get that was to add the domain to the list, which is a different
+    // decision: the list is who may embed this organisation's checkout.
+    $created = [];
+
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['onpay.my']],
+    ]);
+
+    $registered = (new RegisterPaymentMethodDomains(
+        fakeStripeClientForDomains($created, alreadyRegistered: ['mtaqlaa.onpay.my'])
+    ))->register($org);
+
+    expect($registered)->toContain('mtaqlaa.onpay.my');
+
+    // Revalidated, not registered again, and the list itself is untouched.
+    expect($created)->not->toContain('mtaqlaa.onpay.my');
+    expect($org->fresh()->settings['allowed_domains'])->toBe(['onpay.my']);
+});
+
+it('keeps a failure on a domain it does not manage out of the organiser errors', function () {
+    // These appear on no screen, so an error recorded against one would show up
+    // nowhere the organiser could act on it.
+    $created = [];
+
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['onpay.my']],
+    ]);
+
+    $registered = (new RegisterPaymentMethodDomains(fakeStripeClientForDomains(
+        $created,
+        alreadyRegistered: ['mtaqlaa.onpay.my'],
+        failValidateFor: ['mtaqlaa.onpay.my'],
+    )))->register($org);
+
+    expect($registered)->not->toContain('mtaqlaa.onpay.my');
+    expect($org->fresh()->settings['payment_domain_errors'] ?? [])->toBe([]);
 });
 
 it('does nothing for organizations without a connected account', function () {

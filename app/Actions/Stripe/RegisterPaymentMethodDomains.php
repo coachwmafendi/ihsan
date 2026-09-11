@@ -67,6 +67,8 @@ class RegisterPaymentMethodDomains
             }
         }
 
+        $this->revalidateDomainsOutsideTheList($stripe, $account, $registered);
+
         $this->recordFailures($organization, $failures);
 
         // The checkout decides whether a site can carry a wallet from the stored
@@ -75,6 +77,61 @@ class RegisterPaymentMethodDomains
         app(FetchPaymentMethodDomainStatuses::class)->fetch($organization->refresh(), fresh: true);
 
         return $registered;
+    }
+
+    /**
+     * Keep alive the domains somebody registered in Stripe's own dashboard.
+     *
+     * Verification is not permanent - Stripe re-checks the file it fetched, and
+     * a domain that stops serving it loses its wallets. Only the domains on the
+     * organiser's list were being revalidated, so a domain added by hand lived
+     * on whatever was set up there and nothing here noticed if it lapsed.
+     *
+     * Getting that used to mean adding the domain to the list, which is not the
+     * same decision at all: the list is who may embed this organisation's
+     * checkout, and a shared platform host would hand that to every tenant on
+     * it. Revalidating asks Stripe to re-check a domain it already knows, and
+     * grants nobody anything.
+     *
+     * A failure here is logged and nothing more. These domains appear on no
+     * screen, so recording an error against one would only leave a message the
+     * organiser can never see the source of.
+     *
+     * @param  array{stripe_account: string}  $account
+     * @param  array<int, string>  $registered
+     */
+    private function revalidateDomainsOutsideTheList(StripeClient $stripe, array $account, array &$registered): void
+    {
+        try {
+            $domains = $stripe->paymentMethodDomains->all(['limit' => 100], $account);
+        } catch (ApiErrorException $e) {
+            Log::warning('Failed to list Stripe payment method domains for revalidation', [
+                'stripe_account_id' => $account['stripe_account'],
+                'error' => $e->getMessage(),
+            ]);
+
+            return;
+        }
+
+        foreach ($domains->data as $domain) {
+            $name = DomainName::normalize((string) $domain->domain_name);
+
+            if ($name === '' || in_array($name, $registered, true)) {
+                continue;
+            }
+
+            try {
+                $stripe->paymentMethodDomains->validate($domain->id, [], $account);
+
+                $registered[] = $name;
+            } catch (ApiErrorException $e) {
+                Log::warning('Failed to revalidate a Stripe payment method domain', [
+                    'stripe_account_id' => $account['stripe_account'],
+                    'domain' => $name,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /**
