@@ -282,19 +282,29 @@
                 />
             </button>
 
+            {{-- The filtered query is the slowest thing on this page and was the
+                 only control with no sign it had started: Filament's own table
+                 indicator follows the table's methods, and these call one of
+                 ours. --}}
             <button
                 @click="apply()"
                 type="button"
-                class="inline-flex items-center gap-2 rounded-lg bg-stone-800 px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-stone-700 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-200"
+                wire:loading.attr="disabled"
+                wire:target="applyFilters"
+                class="inline-flex items-center gap-2 rounded-lg bg-stone-800 px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-stone-700 disabled:opacity-60 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-200"
             >
+                <x-admin.loading-spinner target="applyFilters" />
                 Apply Filters
             </button>
 
             <button
                 @click="clear()"
                 type="button"
-                class="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white/70 px-3 py-1.5 text-sm font-medium text-stone-500 shadow-sm transition-all hover:border-stone-300 hover:bg-white hover:text-stone-700 dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:bg-stone-900 dark:hover:text-white"
+                wire:loading.attr="disabled"
+                wire:target="clearAllFilters"
+                class="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white/70 px-3 py-1.5 text-sm font-medium text-stone-500 shadow-sm transition-all hover:border-stone-300 hover:bg-white hover:text-stone-700 disabled:opacity-60 dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:bg-stone-900 dark:hover:text-white"
             >
+                <x-admin.loading-spinner target="clearAllFilters" />
                 Clear filters
             </button>
         </div>
