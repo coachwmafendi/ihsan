@@ -91,9 +91,24 @@
                         </div>
                     </template>
                 </div>
+
+                {{-- One indicator for the whole switch rather than one per
+                     button: every button sets the same property, so a spinner
+                     on each would start six of them at once. --}}
+                <span class="ml-1 flex items-center text-stone-400 dark:text-stone-500">
+                    <x-admin.loading-spinner target="period" />
+                </span>
             </div>
         </div>
 
+        {{-- Until the round trip lands these still show the period being
+             replaced, which reads as a click that missed. Dimming says the
+             numbers on screen are the old ones. --}}
+        <div
+            wire:loading.class.delay.default="opacity-40"
+            wire:target="period"
+            class="space-y-6 transition-opacity"
+        >
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <x-admin.metric-card icon="heroicon-o-banknotes" label="Total processing fees" :value="'MYR '.$totalProcessingFees" :note="$totalTransactions.' successful transaction'.($totalTransactions !== 1 ? 's' : '')" />
             <x-admin.metric-card icon="heroicon-o-arrow-trending-up" label="Donation volume" :value="'MYR '.$totalDonationVolume" note="Gross from succeeded donations" />
@@ -259,5 +274,6 @@
                 </table>
             </div>
         </x-filament::section>
+        </div>{{-- end period-dimmed content --}}
     </div>
 </x-filament-panels::page>

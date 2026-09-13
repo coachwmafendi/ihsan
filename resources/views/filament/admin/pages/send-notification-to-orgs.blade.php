@@ -5,9 +5,16 @@
                 {{ $this->form }}
 
                 <div class="border-t border-gray-200 pt-6">
+                    {{-- No wire:loading here: Filament reads the wire:click and
+                         swaps the icon for a spinner on its own. The
+                         wire:loading.label that used to sit here did nothing at
+                         all - Livewire has no "label" modifier, and the element
+                         already carries the wire:loading.attr Filament adds, so
+                         the second one was never honoured. Measured by clicking
+                         Send with it in place: the button stayed exactly as it
+                         was. --}}
                     <x-filament::button
                         wire:click="sendNotification"
-                        wire:loading.label="Sending..."
                         icon="heroicon-o-paper-airplane"
                     >
                         Send Notification
@@ -134,12 +141,20 @@
                                         {{ $notification->created_at->diffForHumans() }}
                                     </td>
                                     <td class="whitespace-nowrap px-4 py-4 text-right">
+                                        {{-- Targeted with its own id: without the
+                                             argument every row's Delete would
+                                             spin when any one of them is used. --}}
+                                        @php $deleteTarget = "deleteNotification('".$notification->id."')"; @endphp
+
                                         <button
                                             wire:click="deleteNotification('{{ $notification->id }}')"
                                             wire:confirm="Are you sure you want to delete this notification?"
+                                            wire:loading.attr="disabled"
+                                            wire:target="deleteNotification('{{ $notification->id }}')"
                                             type="button"
-                                            class="text-sm font-medium text-red-600 hover:text-red-700"
+                                            class="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700 disabled:opacity-60"
                                         >
+                                            <x-admin.loading-spinner :target="$deleteTarget" />
                                             Delete
                                         </button>
                                     </td>

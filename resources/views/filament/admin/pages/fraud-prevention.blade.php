@@ -11,9 +11,17 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400">Monitor and manage suspicious donation activity.</p>
             </div>
             <div class="flex items-center gap-2">
+                {{-- Every figure below is recounted for the new period, and the
+                     select gave no sign it had gone to fetch them. --}}
+                <span class="text-gray-400 dark:text-gray-500">
+                    <x-admin.loading-spinner target="period" />
+                </span>
+
                 <select
                     wire:model.live="period"
-                    class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    wire:loading.attr="disabled"
+                    wire:target="period"
+                    class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                 >
                     <option value="today">Today</option>
                     <option value="yesterday">Yesterday</option>
