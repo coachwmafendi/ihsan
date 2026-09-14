@@ -42,10 +42,34 @@ class Dashboard extends Component
 
     public function updatedPeriod(string $value): void
     {
+        $this->resetErrorBag(['customFrom', 'customTo']);
+
         if ($value === 'custom' && ($this->customFrom === null || $this->customTo === null)) {
             $this->customFrom = $this->reportingPeriod()->localNow()->subDays(29)->format('Y-m-d');
             $this->customTo = $this->reportingPeriod()->localNow()->format('Y-m-d');
         }
+    }
+
+    /**
+     * Read the custom range once it is complete.
+     *
+     * Both fields used to be live, so every dashboard figure was recomputed on
+     * each half-entered date - and one of those recomputations ran against a
+     * range whose end was still the old one, which is a different question
+     * nobody asked. The dates are held until this is called.
+     */
+    public function applyCustomRange(): void
+    {
+        $this->validate([
+            'customFrom' => ['required', 'date'],
+            'customTo' => ['required', 'date', 'after_or_equal:customFrom'],
+        ], [
+            'customFrom.required' => 'Pick a start date.',
+            'customTo.required' => 'Pick an end date.',
+            'customTo.after_or_equal' => 'The end date cannot fall before the start date.',
+        ]);
+
+        $this->period = 'custom';
     }
 
     /**
@@ -62,7 +86,47 @@ class Dashboard extends Component
             return $this->customDateRange();
         }
 
-        return $this->reportingPeriod()->local($this->period);
+        if ($this->period === 'all_time') {
+            return $this->allTimeRange();
+        }
+
+        [$from, $to] = $this->reportingPeriod()->local($this->period);
+
+        // "This month" and "This year" run to the end of the calendar month or
+        // year, which is mostly in the future. No donation lands there, so the
+        // totals are the same either way - but the trend would draw a row of
+        // empty bars for months that have not happened.
+        $endOfToday = $this->reportingPeriod()->localNow()->endOfDay();
+
+        return [$from, $to?->min($endOfToday)];
+    }
+
+    /**
+     * Everything, bounded by the first donation rather than left open.
+     *
+     * An unbounded range reads as null here, and the trend falls back to the
+     * last seven days when it gets one - so "All time" would have shown
+     * all-time totals above a week-long chart.
+     *
+     * @return array{0: ?CarbonImmutable, 1: ?CarbonImmutable}
+     */
+    private function allTimeRange(): array
+    {
+        $org = $this->organization;
+        $now = $this->reportingPeriod()->localNow();
+
+        $first = $org
+            ? Donation::whereHas('campaign', fn ($query) => $query->where('organization_id', $org->id))
+                ->where('status', DonationStatus::Succeeded)
+                ->min('created_at')
+            : null;
+
+        return [
+            $first
+                ? CarbonImmutable::parse($first)->setTimezone($this->reportingPeriod()->timezone)->startOfDay()
+                : $now->startOfDay(),
+            $now->endOfDay(),
+        ];
     }
 
     /**

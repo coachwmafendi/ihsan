@@ -549,6 +549,59 @@
                 >
                     90D
                 </button>
+                {{-- The longer periods live behind one trigger rather than in
+                     the row: reporting reaches for a whole month or a whole
+                     year, and eleven buttons in a strip that already scrolls
+                     helps nobody find them. --}}
+                @php
+                    $morePeriods = [
+                        'this_month' => 'This month',
+                        'last_month' => 'Last month',
+                        'this_year' => 'Year to date',
+                        'all_time' => 'All time',
+                    ];
+                @endphp
+
+                {{-- Positioned against the viewport rather than this button:
+                     the strip it sits in scrolls sideways, and an absolutely
+                     placed panel inside it is clipped at the edge. --}}
+                <div x-data="{ open: false, rect: {} }" @click.outside="open = false" class="relative shrink-0">
+                    <button
+                        type="button"
+                        @click="rect = $el.getBoundingClientRect(); open = ! open"
+                        :aria-expanded="open ? 'true' : 'false'"
+                        aria-haspopup="true"
+                        class="flex shrink-0 items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-all {{ isset($morePeriods[$period]) ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}"
+                    >
+                        {{ $morePeriods[$period] ?? 'More' }}
+                        <x-heroicon-o-chevron-down class="size-3.5 transition-transform" x-bind:class="open ? 'rotate-180' : ''" />
+                    </button>
+
+                    <template x-teleport="body">
+                        <div
+                            x-show="open"
+                            x-cloak
+                            @click.outside="open = false"
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            :style="`position:fixed; top:${rect.bottom + 4}px; left:${Math.max(8, rect.right - 176)}px; z-index:9999`"
+                            class="min-w-44 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+                        >
+                            @foreach ($morePeriods as $key => $label)
+                                <button
+                                    type="button"
+                                    wire:click="$set('period', '{{ $key }}')"
+                                    @click="open = false"
+                                    class="block w-full px-3 py-2 text-left text-sm font-medium transition-colors {{ $period === $key ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50' }}"
+                                >
+                                    {{ $label }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </template>
+                </div>
+
                 <button
                     type="button"
                     wire:click="$set('period', 'custom')"
@@ -559,18 +612,44 @@
             </div>
 
             @if($period === 'custom')
-                <div class="flex flex-wrap items-center gap-2">
-                    <input
-                        type="date"
-                        wire:model.live="customFrom"
-                        class="block rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                    >
-                    <span class="text-sm text-slate-400">to</span>
-                    <input
-                        type="date"
-                        wire:model.live="customTo"
-                        class="block rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                    >
+                {{-- Held, not live: the dates are read when Apply is pressed,
+                     so the figures are computed once against a range the
+                     organiser has finished choosing. --}}
+                <div class="flex flex-col items-start gap-1 sm:items-end">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input
+                            type="date"
+                            wire:model="customFrom"
+                            aria-label="Start date"
+                            @keydown.enter.prevent="$wire.applyCustomRange()"
+                            class="block rounded-lg border bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-1 {{ $errors->has('customFrom') ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-slate-300 focus:border-teal-500 focus:ring-teal-500' }}"
+                        >
+                        <span class="text-sm text-slate-400">to</span>
+                        <input
+                            type="date"
+                            wire:model="customTo"
+                            aria-label="End date"
+                            @keydown.enter.prevent="$wire.applyCustomRange()"
+                            class="block rounded-lg border bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-1 {{ $errors->has('customTo') ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-slate-300 focus:border-teal-500 focus:ring-teal-500' }}"
+                        >
+
+                        <button
+                            type="button"
+                            wire:click="applyCustomRange"
+                            wire:loading.attr="disabled"
+                            wire:target="applyCustomRange"
+                            class="rounded-lg bg-teal-700 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:opacity-60"
+                        >
+                            Apply
+                        </button>
+                    </div>
+
+                    @error('customFrom')
+                        <p class="text-xs text-red-600" role="alert">{{ $message }}</p>
+                    @enderror
+                    @error('customTo')
+                        <p class="text-xs text-red-600" role="alert">{{ $message }}</p>
+                    @enderror
                 </div>
             @endif
 
