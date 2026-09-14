@@ -662,4 +662,15 @@ class Dashboard extends Component
     {
         return $this->reportingPeriod()->label();
     }
+
+    /**
+     * Today as the figures are dated, which is not today as the visitor's
+     * device has it: an organiser abroad, or reading before 8am in Kuala
+     * Lumpur, would otherwise see the calendar ring the wrong day.
+     */
+    #[Computed]
+    public function todayInReportingTimezone(): string
+    {
+        return $this->reportingPeriod()->localNow()->format('Y-m-d');
+    }
 }

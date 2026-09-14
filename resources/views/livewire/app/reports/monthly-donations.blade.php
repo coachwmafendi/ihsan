@@ -52,8 +52,8 @@
             @else
                 <x-ui.date-range-calendar
                     wire:key="custom-date-range-{{ $dateFrom }}-{{ $dateTo }}"
-                    wire:from="dateFrom"
-                    wire:to="dateTo"
+                    wire-from="dateFrom"
+                    wire-to="dateTo"
                     :initial-from="$dateFrom"
                     :initial-to="$dateTo"
                 />

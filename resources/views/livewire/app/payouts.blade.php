@@ -93,8 +93,8 @@
 
                     <div x-show="op === 'between'" class="mt-3 w-[28rem]">
                         <x-ui.date-range-calendar
-                            wire:from="pendingDateFrom"
-                            wire:to="pendingDateTo"
+                            wire-from="pendingDateFrom"
+                            wire-to="pendingDateTo"
                             :initial-from="$pendingDateFrom"
                             :initial-to="$pendingDateTo"
                             inline

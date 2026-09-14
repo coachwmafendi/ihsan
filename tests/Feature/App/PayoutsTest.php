@@ -243,3 +243,27 @@ it('renders its filters with the shared chip component', function () {
         ->and(substr_count($html, 'appearance-none'))->toBe(4)
         ->and(substr_count($html, 'right-3 my-auto size-4'))->toBe(4);
 });
+
+it('sends the picked dates to the fields the between filter reads', function () {
+    // The calendar takes its target property names as props, and both call
+    // sites passed them as wire:from / wire:to - a Livewire-looking attribute
+    // Blade never maps to a prop. So the component kept its defaults and wrote
+    // to dateFrom and dateTo, while applyDateFilter() reads pendingDateFrom and
+    // pendingDateTo: the picked range was overwritten by last month to today.
+    $html = Livewire::actingAs($this->user)->test(PayoutsPage::class)->html();
+
+    expect($html)
+        ->toContain("\$wire.set('pendingDateFrom'")
+        ->toContain("\$wire.set('pendingDateTo'");
+});
+
+it('keeps the range the organiser picked when the between filter is applied', function () {
+    Livewire::actingAs($this->user)
+        ->test(PayoutsPage::class)
+        ->set('dateOperator', 'between')
+        ->set('pendingDateFrom', '2026-03-01')
+        ->set('pendingDateTo', '2026-03-31')
+        ->call('applyDateFilter')
+        ->assertSet('dateFrom', '2026-03-01')
+        ->assertSet('dateTo', '2026-03-31');
+});
