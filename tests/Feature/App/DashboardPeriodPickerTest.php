@@ -40,11 +40,10 @@ it('holds the custom dates until they are applied', function () {
         ->html();
 
     expect($html)
-        ->toContain('wire:model="customFrom"')
-        ->toContain('wire:model="customTo"')
-        ->not->toContain('wire:model.live="customFrom"')
-        ->not->toContain('wire:model.live="customTo"')
-        ->toContain('wire:click="applyCustomRange"');
+        ->toContain('holdsUntilApplied: true')
+        ->toContain('applyCustomRange')
+        ->not->toContain('wire:model.live=\"customFrom\"')
+        ->not->toContain('wire:model.live=\"customTo\"');
 });
 
 it('reads the held dates when apply is pressed', function () {
@@ -137,4 +136,32 @@ it('falls back to today for an organisation with nothing to show yet', function 
 
     expect($from->format('Y-m-d'))->toBe('2026-09-14');
     expect($to->format('Y-m-d'))->toBe('2026-09-14');
+});
+
+it('hands the calendar the reporting timezone rather than the browser clock', function () {
+    // The component used to ring "today" from new Date().toISOString(), which
+    // is UTC - the wrong day for anyone in Kuala Lumpur reading before 8am.
+    $this->travelTo(CarbonImmutable::parse('2026-09-14 02:00:00', 'UTC'));
+
+    $html = Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->set('period', 'custom')
+        ->html();
+
+    // 02:00 UTC is already the 14th in Kuala Lumpur.
+    expect($html)->toContain("today: '2026-09-14'");
+});
+
+it('points the calendar at the properties the dashboard actually reads', function () {
+    // The component takes its target property names as props. Two other call
+    // sites passed them as wire:from, which Blade never maps to a prop, so the
+    // calendar wrote to whatever the defaults were.
+    $html = Livewire::actingAs($this->user)
+        ->test(Dashboard::class)
+        ->set('period', 'custom')
+        ->html();
+
+    expect($html)
+        ->toContain("\$wire.set('customFrom'")
+        ->toContain("\$wire.set('customTo'");
 });

@@ -612,37 +612,22 @@
             </div>
 
             @if($period === 'custom')
-                {{-- Held, not live: the dates are read when Apply is pressed,
-                     so the figures are computed once against a range the
-                     organiser has finished choosing. --}}
+                {{-- Held, not live: the range is read when Apply is pressed, so
+                     the figures are computed once against dates the organiser
+                     has finished choosing. --}}
                 <div class="flex flex-col items-start gap-1 sm:items-end">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <input
-                            type="date"
-                            wire:model="customFrom"
-                            aria-label="Start date"
-                            @keydown.enter.prevent="$wire.applyCustomRange()"
-                            class="block rounded-lg border bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-1 {{ $errors->has('customFrom') ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-slate-300 focus:border-teal-500 focus:ring-teal-500' }}"
-                        >
-                        <span class="text-sm text-slate-400">to</span>
-                        <input
-                            type="date"
-                            wire:model="customTo"
-                            aria-label="End date"
-                            @keydown.enter.prevent="$wire.applyCustomRange()"
-                            class="block rounded-lg border bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-1 {{ $errors->has('customTo') ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-slate-300 focus:border-teal-500 focus:ring-teal-500' }}"
-                        >
-
-                        <button
-                            type="button"
-                            wire:click="applyCustomRange"
-                            wire:loading.attr="disabled"
-                            wire:target="applyCustomRange"
-                            class="rounded-lg bg-teal-700 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:opacity-60"
-                        >
-                            Apply
-                        </button>
-                    </div>
+                    <x-ui.date-range-calendar
+                        wire:key="dashboard-range-{{ $customFrom }}-{{ $customTo }}"
+                        wire-from="customFrom"
+                        wire-to="customTo"
+                        :initial-from="$customFrom"
+                        :initial-to="$customTo"
+                        :today="$this->todayInReportingTimezone"
+                        apply-action="applyCustomRange"
+                        align="right"
+                        label-from="From"
+                        label-to="To"
+                    />
 
                     @error('customFrom')
                         <p class="text-xs text-red-600" role="alert">{{ $message }}</p>

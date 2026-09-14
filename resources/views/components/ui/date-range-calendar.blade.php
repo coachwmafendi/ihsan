@@ -7,6 +7,9 @@
     'initialFrom' => null,
     'initialTo' => null,
     'inline' => false,
+    'applyAction' => null,
+    'today' => null,
+    'align' => 'left',
 ])
 
 <div
@@ -18,13 +21,30 @@
         startDate: @js($initialFrom ?: null),
         endDate: @js($initialTo ?: null),
         hovering: null,
+        {{-- Today as the figures are dated, not as the visitor's device has it.
+             new Date() reads the browser clock and toISOString() then reads UTC,
+             which rings the wrong day for anyone reading before 8am in KL. --}}
+        today: @js($today ?: now()->format('Y-m-d')),
         init() {
-            let base = this.startDate ? new Date(this.startDate) : new Date();
-            this.leftYear = base.getFullYear();
-            this.leftMonth = base.getMonth() === 0 ? 11 : base.getMonth() - 1;
-            if (base.getMonth() === 0) {
-                this.leftYear--;
+            {{-- Parsed by parts: new Date('2026-01-01') is UTC midnight, which
+                 is the previous day anywhere west of Greenwich. --}}
+            if (this.startDate) {
+                {{-- Open on the month the range starts in, so the range itself
+                     is what the two months show. Opening one month earlier put
+                     a 16 Aug - 14 Sep range on a July and August pair, where
+                     the end of it could not be seen at all. --}}
+                let [y, m] = this.startDate.split('-').map(Number);
+                this.leftYear = y;
+                this.leftMonth = m - 1;
+
+                return;
             }
+
+            {{-- Nothing chosen yet: this month on the right, since a range
+                 being picked is far more often behind us than ahead. --}}
+            let [y, m] = this.today.split('-').map(Number);
+            this.leftYear = m === 1 ? y - 1 : y;
+            this.leftMonth = m === 1 ? 11 : m - 2;
         },
         get rightYear() { return this.leftMonth === 11 ? this.leftYear + 1 : this.leftYear },
         get rightMonth() { return (this.leftMonth + 1) % 12 },
@@ -52,6 +72,12 @@
                 let [s, e] = dateStr < this.startDate ? [dateStr, this.startDate] : [this.startDate, dateStr];
                 this.startDate = s;
                 this.endDate = e;
+
+                {{-- Where there is an Apply, the range is not read until it is
+                     pressed: writing on the second click is what made every
+                     half-chosen range recompute the page behind it. --}}
+                if (this.holdsUntilApplied) return;
+
                 $wire.set('{{ $wireFrom }}', s);
                 $wire.set('{{ $wireTo }}', e);
                 this.open = @js($inline) || false;
@@ -67,7 +93,22 @@
             return d > s && d < e;
         },
         isToday(d) {
-            return d === new Date().toISOString().slice(0, 10);
+            return d === this.today;
+        },
+        holdsUntilApplied: @js($applyAction !== null),
+        get isComplete() { return Boolean(this.startDate && this.endDate) },
+        clear() {
+            this.startDate = null;
+            this.endDate = null;
+            this.hovering = null;
+        },
+        apply() {
+            if (! this.isComplete) return;
+
+            $wire.set('{{ $wireFrom }}', this.startDate);
+            $wire.set('{{ $wireTo }}', this.endDate);
+            $wire.call(@js($applyAction));
+            this.open = @js($inline) || false;
         }
     }"
     x-init="init()"
@@ -105,7 +146,9 @@
         x-transition:enter-end="opacity-100 scale-100"
         @class([
             'rounded-xl border border-slate-200 bg-white p-5 shadow-xl',
-            'absolute left-0 top-full z-50 mt-2' => ! $inline,
+            'absolute top-full z-50 mt-2' => ! $inline,
+            'left-0' => ! $inline && $align !== 'right',
+            'right-0' => ! $inline && $align === 'right',
         ])
         @if (! $inline)
             style="display:none"
@@ -162,5 +205,25 @@
                 </div>
             @endforeach
         </div>
+
+        @if ($applyAction !== null)
+            <div class="mt-4 flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
+                <button
+                    type="button"
+                    @click="clear()"
+                    class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                    Clear
+                </button>
+                <button
+                    type="button"
+                    @click="apply()"
+                    :disabled="! isComplete"
+                    class="rounded-lg bg-teal-700 px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    Apply
+                </button>
+            </div>
+        @endif
     </div>
 </div>
