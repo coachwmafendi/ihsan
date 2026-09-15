@@ -2,9 +2,12 @@
 
 namespace App\Actions\Stripe;
 
+use App\Enums\DonationStatus;
+use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\DonorPaymentMethod;
 use App\Services\StripeMetadata;
+use Illuminate\Support\Facades\DB;
 use Stripe\BalanceTransaction;
 use Stripe\Charge;
 use Stripe\Customer;
@@ -61,6 +64,11 @@ class SyncDonationStripeDetails
 
         $riskData = $this->extractRiskData($paymentIntent, $rawCharge);
 
+        // What the campaign counter was told this donation was worth, before
+        // this sync changes its mind.
+        $hadBaseAmount = $donation->base_amount !== null;
+        $countedBefore = (float) ($donation->base_amount ?? $donation->gross_amount);
+
         $donation->update([
             'stripe_charge_id' => $chargeId,
             'stripe_fee' => $stripeFee,
@@ -87,6 +95,8 @@ class SyncDonationStripeDetails
             'cvc_result' => $riskData['cvc_result'],
             'net_amount' => (float) ($baseAmount ?? $donation->gross_amount) + $donorFeeCovered - $stripeFee - $processingFee,
         ]);
+
+        $this->correctCampaignTotal($donation, $hadBaseAmount, $countedBefore, (float) ($baseAmount ?? $donation->gross_amount));
 
         $this->syncDonorAddress($donation, $pmDetails, $paymentIntent);
         $this->syncDonorPaymentMethod($donation, $paymentMethod);
@@ -324,6 +334,48 @@ class SyncDonationStripeDetails
         }
 
         return [$chargeId, $stripeFee, $processingFee, $baseAmount, $exchangeRate, $feeDetails];
+    }
+
+    /**
+     * Put back what the campaign counter was short.
+     *
+     * A foreign donation is added to collected_amount the moment it succeeds,
+     * and the rate that turns it into ringgit comes from Stripe's balance
+     * transaction - which often does not exist yet at that moment. The counter
+     * took the foreign figure as if it were ringgit: SGD 50 counted as RM 50,
+     * not RM 160.63. This sync is where the real rate finally arrives, so it is
+     * where the difference is owed.
+     *
+     * Only for a donation already counted, and only where it had no base
+     * amount to be counted by - that is the shortfall, and anything else is a
+     * figure some other path is entitled to own. Where this runs before the
+     * donation is finalised, the finalising transaction reads the base amount
+     * this just wrote and adds the right figure itself; adjusting here as well
+     * would count it twice.
+     */
+    private function correctCampaignTotal(Donation $donation, bool $hadBaseAmount, float $countedBefore, float $countedNow): void
+    {
+        if ($hadBaseAmount || $donation->status !== DonationStatus::Succeeded) {
+            return;
+        }
+
+        $difference = round($countedNow - $countedBefore, 2);
+
+        if (abs($difference) < 0.01) {
+            return;
+        }
+
+        DB::transaction(function () use ($donation, $difference): void {
+            $campaign = Campaign::query()->whereKey($donation->campaign_id)->lockForUpdate()->first();
+
+            if ($campaign === null) {
+                return;
+            }
+
+            $campaign->update([
+                'collected_amount' => max(0, round((float) $campaign->collected_amount + $difference, 2)),
+            ]);
+        });
     }
 
     /**
