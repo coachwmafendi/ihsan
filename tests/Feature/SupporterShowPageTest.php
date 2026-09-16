@@ -66,6 +66,28 @@ it('renders donation date with malaysian time and payment method icon', function
         ->assertSee($expectedTime);
 });
 
+it('renders the wallet icon at full height instead of letterboxing it in a square', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($donor)->for($campaign)->create([
+        'payment_method_brand' => 'visa',
+        'payment_method_type' => 'apple_pay',
+    ]);
+
+    expect($donation->card_icon_component)->toBe('icons.apple-pay');
+
+    $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Apple Pay')
+        ->assertSee('h-7 w-auto shrink-0', false)
+        ->assertDontSee('size-6 shrink-0', false);
+});
+
 it('shows installment number badge for recurring donations', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([
