@@ -38,6 +38,8 @@ class SupporterShow extends Component
 
     public bool $showAllEmails = false;
 
+    public bool $showAllDonations = false;
+
     public bool $showPreviewModal = false;
 
     public ?int $previewLogId = null;
@@ -129,8 +131,34 @@ class SupporterShow extends Component
         return $this->scopedDonations()
             ->with(['campaign', 'subscription'])
             ->latest()
-            ->limit(10)
+            ->limit(50)
             ->get();
+    }
+
+    /**
+     * The donations actually drawn in the card.
+     *
+     * A regular giver racks up rows fast, so the card shows the latest handful
+     * until asked for the rest.
+     */
+    #[Computed]
+    public function visibleDonations(): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($this->showAllDonations) {
+            return $this->recentDonations;
+        }
+
+        return $this->recentDonations->take(5);
+    }
+
+    public function revealAllDonations(): void
+    {
+        $this->showAllDonations = true;
+    }
+
+    public function collapseDonations(): void
+    {
+        $this->showAllDonations = false;
     }
 
     #[Computed]
@@ -294,6 +322,11 @@ class SupporterShow extends Component
     public function revealAllEmails(): void
     {
         $this->showAllEmails = true;
+    }
+
+    public function collapseEmails(): void
+    {
+        $this->showAllEmails = false;
     }
 
     public function confirmResend(int $id): void

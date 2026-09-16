@@ -229,7 +229,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
-                                    @foreach ($this->recentDonations as $donation)
+                                    @foreach ($this->visibleDonations as $donation)
                                         <tr
                                             class="cursor-pointer transition-colors hover:bg-slate-50"
                                             onclick="window.location='{{ route('app.donations.show', $donation) }}'"
@@ -267,6 +267,15 @@
                                 </tbody>
                             </table>
                         </div>
+                        @if ($this->recentDonations->count() > 5)
+                            <button
+                                type="button"
+                                wire:click="{{ $showAllDonations ? 'collapseDonations' : 'revealAllDonations' }}"
+                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                            >
+                                {{ $showAllDonations ? 'Show less' : 'Show all ('.$this->recentDonations->count().')' }}
+                            </button>
+                        @endif
                     @else
                         <x-ui.empty-state
                             icon="heroicon-o-banknotes"
@@ -514,13 +523,13 @@
                                 </tbody>
                             </table>
                         </div>
-                        @if (! $showAllEmails && $this->emailLogs->count() > 5)
+                        @if ($this->emailLogs->count() > 5)
                             <button
                                 type="button"
-                                wire:click="revealAllEmails"
+                                wire:click="{{ $showAllEmails ? 'collapseEmails' : 'revealAllEmails' }}"
                                 class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
                             >
-                                Show all ({{ $this->emailLogs->count() }})
+                                {{ $showAllEmails ? 'Show less' : 'Show all ('.$this->emailLogs->count().')' }}
                             </button>
                         @endif
                     @else
