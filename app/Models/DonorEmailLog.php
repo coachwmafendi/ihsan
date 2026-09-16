@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Services\PublicIdGenerator;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Database\Factories\DonorEmailLogFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,6 +35,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Subscription|null $subscription
  * @property-read DonorEmailLog|null $originalLog
  * @property-read Collection<int, DonorEmailLog> $resends
+ * @property-read string $status_label
+ * @property-read string $status_tone
+ * @property-read CarbonInterface|null $status_at
+ * @property-read string|null $status_detail
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DonorEmailLog newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DonorEmailLog newQuery()
@@ -99,5 +105,67 @@ class DonorEmailLog extends Model
     public function resends(): HasMany
     {
         return $this->hasMany(self::class, 'resent_from_id');
+    }
+
+    /**
+     * What actually became of this email, strongest signal first.
+     *
+     * A bounce and a delivered-but-unread email both used to render as a dash,
+     * and those two need opposite action from staff.
+     */
+    public function statusLabel(): Attribute
+    {
+        return Attribute::get(fn (): string => match (true) {
+            $this->bounced_at !== null || $this->delivery_status === 'bounced' => 'Bounced',
+            $this->complained_at !== null || $this->delivery_status === 'complained' => 'Marked spam',
+            $this->opened_at !== null => 'Opened',
+            $this->delivered_at !== null || $this->delivery_status === 'delivered' => 'Delivered',
+            $this->sent_at !== null || $this->delivery_status === 'sent' => 'Sent',
+            default => 'Queued',
+        });
+    }
+
+    /**
+     * The x-ui.badge status that matches this email's outcome.
+     */
+    public function statusTone(): Attribute
+    {
+        return Attribute::get(fn (): string => match ($this->status_label) {
+            'Bounced' => 'failed',
+            'Marked spam' => 'warning',
+            'Opened' => 'success',
+            'Delivered' => 'info',
+            'Sent' => 'default',
+            default => 'pending',
+        });
+    }
+
+    /**
+     * The moment the status happened.
+     */
+    public function statusAt(): Attribute
+    {
+        return Attribute::get(fn (): ?CarbonInterface => match ($this->status_label) {
+            'Bounced' => $this->bounced_at,
+            'Marked spam' => $this->complained_at,
+            'Opened' => $this->opened_at,
+            'Delivered' => $this->delivered_at,
+            'Sent' => $this->sent_at,
+            default => null,
+        });
+    }
+
+    /**
+     * The sentence explaining the status, for a tooltip. Null when the label says enough.
+     */
+    public function statusDetail(): Attribute
+    {
+        return Attribute::get(fn (): ?string => match ($this->status_label) {
+            'Bounced' => $this->bounce_reason ?: 'The mail server rejected this address.',
+            'Marked spam' => 'The supporter reported this email as spam.',
+            'Sent' => 'Handed to the mail server. No delivery confirmation yet.',
+            'Queued' => 'Waiting to go out.',
+            default => null,
+        });
     }
 }
