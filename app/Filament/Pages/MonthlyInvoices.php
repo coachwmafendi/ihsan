@@ -84,7 +84,7 @@ class MonthlyInvoices extends Page implements HasTable
                     })
                     ->formatStateUsing(fn (string $state): string => str($state)->headline()->toString()),
                 TextColumn::make('paid_at')
-                    ->label('Paid At')
+                    ->label('Paid At (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
                     ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
                     ->sortable()
@@ -93,7 +93,7 @@ class MonthlyInvoices extends Page implements HasTable
                     ->label('Stripe ID')
                     ->toggleable(),
                 TextColumn::make('created_at')
-                    ->label('Sent At')
+                    ->label('Sent At (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
                     ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
                     ->sortable()
