@@ -73,3 +73,19 @@ it('never invents a default for a donor that has none', function () {
 
     expect(DonorPaymentMethod::where('donor_id', $donor->id)->where('is_default', true)->count())->toBe(0);
 });
+
+it('maps the card brand to its logo component', function (string $brand, string $component) {
+    $card = DonorPaymentMethod::factory()->make(['brand' => $brand]);
+
+    expect($card->card_icon_component)->toBe($component);
+})->with([
+    ['Visa', 'icons.visa'],
+    ['Mastercard', 'icons.mastercard'],
+    ['Amex', 'icons.amex'],
+    ['Discover', 'icons.discover'],
+    ['Diners', 'icons.diners'],
+    ['Jcb', 'icons.jcb'],
+    ['Maestro', 'icons.maestro'],
+    ['Unionpay', 'icons.unionpay'],
+    ['Something else', 'icons.credit-card'],
+]);
