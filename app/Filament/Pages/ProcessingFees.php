@@ -34,8 +34,8 @@ class ProcessingFees extends Page implements HasTable
             ->query(ProcessingFee::query()->with(['donation.donor', 'donation.campaign', 'organization', 'monthlyInvoice']))
             ->columns([
                 TextColumn::make('created_at')
-                    ->label('Date')
-                    ->date()
+                    ->label('Date (MYT)')
+                    ->date('d M Y', timezone: 'Asia/Kuala_Lumpur')
                     ->sortable(),
                 TextColumn::make('organization.name')
                     ->label('Organization')

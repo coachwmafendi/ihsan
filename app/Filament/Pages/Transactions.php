@@ -260,7 +260,7 @@ class Transactions extends Page implements HasTable
                     ->tooltip(fn (Donation $record): ?string => $record->status_tooltip)
                     ->sortable(),
                 TextColumn::make('created_at')
-                    ->label('Date')
+                    ->label('Date (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
                     ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
                     ->sortable(),

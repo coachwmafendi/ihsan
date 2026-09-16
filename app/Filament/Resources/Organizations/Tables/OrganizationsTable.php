@@ -48,18 +48,18 @@ class OrganizationsTable
                     ->boolean()
                     ->label('Stripe'),
                 TextColumn::make('approved_at')
-                    ->label('Onboarded Date')
+                    ->label('Onboarded Date (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
                     ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
                     ->sortable()
                     ->placeholder('—'),
                 TextColumn::make('created_at')
-                    ->label('Application Date')
+                    ->label('Application Date (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
                     ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
                     ->sortable(),
                 TextColumn::make('deleted_at')
-                    ->label('Deleted At')
+                    ->label('Deleted At (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
                     ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
                     ->sortable()
