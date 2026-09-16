@@ -403,6 +403,33 @@ it('shows converted myr amount, payment method and installment number in the ins
         ->assertSee('Succeeded');
 });
 
+it('renders the installment wallet icon at full height instead of letterboxing it in a square', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+    ]);
+
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $subscription->id,
+        'payment_method_brand' => 'visa',
+        'payment_method_type' => 'apple_pay',
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now()->subDay(),
+    ]);
+
+    expect($donation->card_icon_component)->toBe('icons.apple-pay');
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Apple Pay')
+        ->assertSee('h-6 w-auto shrink-0 text-slate-700', false)
+        ->assertDontSee('size-5 text-slate-700', false);
+});
+
 it('shows retry scheduled tooltip for failed installments while subscription is still retrying', function () {
     $subscription = Subscription::factory()->create([
         'campaign_id' => $this->campaign->id,

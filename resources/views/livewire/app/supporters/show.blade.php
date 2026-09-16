@@ -241,7 +241,7 @@
                                                 <div class="flex items-center gap-2">
                                                     <x-donation-report-amount :donation="$donation" />
                                                     <x-ui.tooltip :text="$donation->payment_method_display">
-                                                        <x-dynamic-component :component="$donation->card_icon_component" class="size-6 shrink-0" />
+                                                        <x-dynamic-component :component="$donation->card_icon_component" class="h-7 w-auto shrink-0" />
                                                     </x-ui.tooltip>
                                                     @if ($donation->installment_number !== null)
                                                         <x-ui.tooltip :text="\Illuminate\Support\Number::ordinal($donation->installment_number).' Installment'">
