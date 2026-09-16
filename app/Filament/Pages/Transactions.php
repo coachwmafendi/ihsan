@@ -262,7 +262,7 @@ class Transactions extends Page implements HasTable
                 TextColumn::make('created_at')
                     ->label('Date (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
-                    ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
+                    ->formatStateUsing(fn ($state) => $state ? myrTime($state, false) : '—')
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc');

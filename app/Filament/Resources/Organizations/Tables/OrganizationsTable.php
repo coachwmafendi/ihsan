@@ -50,18 +50,18 @@ class OrganizationsTable
                 TextColumn::make('approved_at')
                     ->label('Onboarded Date (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
-                    ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
+                    ->formatStateUsing(fn ($state) => $state ? myrTime($state, false) : '—')
                     ->sortable()
                     ->placeholder('—'),
                 TextColumn::make('created_at')
                     ->label('Application Date (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
-                    ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
+                    ->formatStateUsing(fn ($state) => $state ? myrTime($state, false) : '—')
                     ->sortable(),
                 TextColumn::make('deleted_at')
                     ->label('Deleted At (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
-                    ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
+                    ->formatStateUsing(fn ($state) => $state ? myrTime($state, false) : '—')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
