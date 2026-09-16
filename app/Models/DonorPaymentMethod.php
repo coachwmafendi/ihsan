@@ -7,6 +7,7 @@ use Database\Factories\DonorPaymentMethodFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -64,6 +65,25 @@ class DonorPaymentMethod extends Model
     public function donor(): BelongsTo
     {
         return $this->belongsTo(Donor::class);
+    }
+
+    /**
+     * Make this the donor's only default card.
+     *
+     * Stripe mints a new payment method for every checkout, so a donor collects
+     * rows quickly. Without clearing the siblings, several rows claim to be the
+     * default and the virtual terminal can preselect the wrong card.
+     */
+    public function markAsSoleDefault(): void
+    {
+        DB::transaction(function (): void {
+            static::query()
+                ->where('donor_id', $this->donor_id)
+                ->whereKeyNot($this->getKey())
+                ->update(['is_default' => false]);
+
+            $this->forceFill(['is_default' => true])->save();
+        });
     }
 
     /**
