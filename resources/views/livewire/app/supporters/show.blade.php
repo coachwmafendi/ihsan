@@ -339,31 +339,40 @@
                 <x-ui.card title="Payment Methods" icon="heroicon-o-credit-card">
                     @if ($this->paymentMethods->isNotEmpty())
                         <ul class="divide-y divide-slate-200">
-                            @foreach ($this->paymentMethods as $paymentMethod)
+                            @foreach ($this->paymentMethods as $entry)
+                                @php($card = $entry['card'])
                                 <li class="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                                     <div class="flex items-center gap-3">
-                                        <x-heroicon-o-credit-card class="size-5 shrink-0 text-slate-400" />
+                                        <x-dynamic-component :component="$card->card_icon_component" class="h-6 w-auto shrink-0" />
                                         <div>
                                             <p class="text-sm font-medium text-slate-900">
-                                                {{ $paymentMethod->brand }} •••• {{ $paymentMethod->last4 }}
-                                                @if ($paymentMethod->is_default)
+                                                {{ $card->brand }} •••• {{ $card->last4 }}
+                                                @if ($entry['is_default'])
                                                     <span class="ml-1 text-xs font-normal text-slate-400">Default</span>
+                                                @endif
+                                                @if ($entry['count'] > 1)
+                                                    <x-ui.tooltip :text="'Stripe issues a new token each time this card is charged. These '.$entry['count'].' records are the same card.'">
+                                                        <span class="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">×{{ $entry['count'] }}</span>
+                                                    </x-ui.tooltip>
                                                 @endif
                                             </p>
                                             <p class="text-xs text-slate-500">
-                                                @if ($paymentMethod->exp_month && $paymentMethod->exp_year)
-                                                    Expires {{ str_pad((string) $paymentMethod->exp_month, 2, '0', STR_PAD_LEFT) }}/{{ $paymentMethod->exp_year }}
+                                                @if ($card->exp_month && $card->exp_year)
+                                                    Expires {{ str_pad((string) $card->exp_month, 2, '0', STR_PAD_LEFT) }}/{{ $card->exp_year }}
                                                 @else
                                                     Expiry not on record
+                                                @endif
+                                                @if ($entry['last_saved_at'])
+                                                    · Last saved {{ myrTime($entry['last_saved_at'], false, 'd M Y') }}
                                                 @endif
                                             </p>
                                         </div>
                                     </div>
-                                    @if ($paymentMethod->isExpired())
+                                    @if ($card->isExpired())
                                         <x-ui.tooltip text="Recurring charges on this card will fail. Ask the supporter to update it.">
                                             <x-ui.badge status="failed" size="sm">Expired</x-ui.badge>
                                         </x-ui.tooltip>
-                                    @elseif ($paymentMethod->expiresSoon())
+                                    @elseif ($card->expiresSoon())
                                         <x-ui.tooltip text="This card lapses before an upcoming installment. Reach out before the charge fails.">
                                             <x-ui.badge status="warning" size="sm">Expiring soon</x-ui.badge>
                                         </x-ui.tooltip>

@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Carbon\CarbonImmutable;
 use Database\Factories\DonorPaymentMethodFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -21,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read Donor $donor
+ * @property-read string $card_icon_component
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DonorPaymentMethod newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DonorPaymentMethod newQuery()
@@ -64,6 +67,43 @@ class DonorPaymentMethod extends Model
     public function donor(): BelongsTo
     {
         return $this->belongsTo(Donor::class);
+    }
+
+    /**
+     * Make this the donor's only default card.
+     *
+     * Stripe mints a new payment method for every checkout, so a donor collects
+     * rows quickly. Without clearing the siblings, several rows claim to be the
+     * default and the virtual terminal can preselect the wrong card.
+     */
+    public function markAsSoleDefault(): void
+    {
+        DB::transaction(function (): void {
+            static::query()
+                ->where('donor_id', $this->donor_id)
+                ->whereKeyNot($this->getKey())
+                ->update(['is_default' => false]);
+
+            $this->forceFill(['is_default' => true])->save();
+        });
+    }
+
+    /**
+     * The brand logo component for this card.
+     */
+    public function cardIconComponent(): Attribute
+    {
+        return Attribute::get(fn (): string => match (strtolower((string) $this->brand)) {
+            'visa' => 'icons.visa',
+            'mastercard' => 'icons.mastercard',
+            'amex' => 'icons.amex',
+            'discover' => 'icons.discover',
+            'diners' => 'icons.diners',
+            'jcb' => 'icons.jcb',
+            'maestro' => 'icons.maestro',
+            'unionpay' => 'icons.unionpay',
+            default => 'icons.credit-card',
+        });
     }
 
     /**

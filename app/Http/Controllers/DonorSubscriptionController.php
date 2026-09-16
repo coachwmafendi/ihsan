@@ -472,9 +472,10 @@ class DonorSubscriptionController extends Controller
                 'exp_month' => $paymentMethod->card->exp_month,
                 'exp_year' => $paymentMethod->card->exp_year,
                 'country' => $paymentMethod->card->country ?? null,
-                'is_default' => true,
             ],
         );
+
+        $donorPaymentMethod->markAsSoleDefault();
 
         $subscription->update(['donor_payment_method_id' => $donorPaymentMethod->getKey()]);
 

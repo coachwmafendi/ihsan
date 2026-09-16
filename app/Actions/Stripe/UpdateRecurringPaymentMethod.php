@@ -31,8 +31,6 @@ class UpdateRecurringPaymentMethod
             throw new \RuntimeException('Only card payment methods supported.');
         }
 
-        DonorPaymentMethod::query()->where('donor_id', $donor->getKey())->update(['is_default' => false]);
-
         $donorPaymentMethod = DonorPaymentMethod::updateOrCreate(
             [
                 'donor_id' => $donor->getKey(),
@@ -44,9 +42,10 @@ class UpdateRecurringPaymentMethod
                 'exp_month' => $paymentMethod->card->exp_month,
                 'exp_year' => $paymentMethod->card->exp_year,
                 'country' => $paymentMethod->card->country ?? null,
-                'is_default' => true,
             ],
         );
+
+        $donorPaymentMethod->markAsSoleDefault();
 
         $subscription->update(['donor_payment_method_id' => $donorPaymentMethod->getKey()]);
     }

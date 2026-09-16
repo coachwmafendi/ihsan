@@ -143,9 +143,7 @@ class CreateAppControlledRecurringPlan
 
         $card = $paymentMethod->card;
 
-        DonorPaymentMethod::query()->where('donor_id', $donor->getKey())->update(['is_default' => false]);
-
-        return DonorPaymentMethod::updateOrCreate(
+        $donorPaymentMethod = DonorPaymentMethod::updateOrCreate(
             ['stripe_payment_method_id' => $paymentMethod->id],
             [
                 'donor_id' => $donor->getKey(),
@@ -154,8 +152,11 @@ class CreateAppControlledRecurringPlan
                 'exp_month' => $card->exp_month,
                 'exp_year' => $card->exp_year,
                 'country' => $card->country ?? null,
-                'is_default' => true,
             ],
         );
+
+        $donorPaymentMethod->markAsSoleDefault();
+
+        return $donorPaymentMethod;
     }
 }

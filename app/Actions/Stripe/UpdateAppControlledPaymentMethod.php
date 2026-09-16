@@ -36,13 +36,12 @@ class UpdateAppControlledPaymentMethod
                 'exp_month' => $paymentMethod->card?->exp_month ?? null,
                 'exp_year' => $paymentMethod->card?->exp_year ?? null,
                 'country' => $paymentMethod->card?->country ?? null,
-                'is_default' => true,
             ]
         );
 
-        $subscription->update(['donor_payment_method_id' => $donorPaymentMethod->getKey()]);
+        $donorPaymentMethod->markAsSoleDefault();
 
-        $donor->paymentMethods()->whereKeyNot($donorPaymentMethod->getKey())->update(['is_default' => false]);
+        $subscription->update(['donor_payment_method_id' => $donorPaymentMethod->getKey()]);
 
         return $donorPaymentMethod;
     }

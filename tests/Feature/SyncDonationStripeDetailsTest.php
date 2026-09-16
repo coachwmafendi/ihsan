@@ -429,3 +429,73 @@ it('records the wallet on an installment whose charge arrives as an id', functio
 
     ApiRequestor::setHttpClient(CurlClient::instance());
 });
+
+it('leaves the donor with a single default card after a sync', function () {
+    $stripeClient = new class implements ClientInterface
+    {
+        public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null): array
+        {
+            $response = match (true) {
+                str_ends_with($absUrl, '/v1/payment_methods/pm_test_card') => [
+                    'id' => 'pm_test_card',
+                    'object' => 'payment_method',
+                    'type' => 'card',
+                    'card' => [
+                        'brand' => 'visa',
+                        'last4' => '4242',
+                        'exp_month' => 12,
+                        'exp_year' => 2030,
+                        'country' => 'MY',
+                    ],
+                    'billing_details' => ['address' => null],
+                ],
+                str_contains($absUrl, '/v1/payment_intents/') => [
+                    'id' => 'pi_test_123',
+                    'object' => 'payment_intent',
+                    'status' => 'succeeded',
+                    'payment_method' => 'pm_test_card',
+                    'latest_charge' => [
+                        'id' => 'ch_test_123',
+                        'object' => 'charge',
+                        'balance_transaction' => [
+                            'id' => 'bt_test_123',
+                            'object' => 'balance_transaction',
+                            'fee' => 50,
+                            'fee_details' => [],
+                            'exchange_rate' => null,
+                        ],
+                        'billing_details' => ['name' => 'Ahmad Ali', 'address' => null],
+                    ],
+                ],
+                default => throw new RuntimeException('Unexpected Stripe request: '.$absUrl),
+            };
+
+            return [json_encode($response), 200, []];
+        }
+    };
+
+    ApiRequestor::setHttpClient($stripeClient);
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+
+    DonorPaymentMethod::factory()->for($donor)->default()->create([
+        'stripe_payment_method_id' => 'pm_older_card',
+    ]);
+
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'gross_amount' => 100,
+        'currency' => 'myr',
+        'stripe_payment_intent_id' => 'pi_test_123',
+    ]);
+
+    try {
+        app(SyncDonationStripeDetails::class)->sync($donation);
+    } finally {
+        ApiRequestor::setHttpClient(CurlClient::instance());
+    }
+
+    expect(DonorPaymentMethod::where('donor_id', $donor->id)->where('is_default', true)->count())->toBe(1)
+        ->and(DonorPaymentMethod::where('stripe_payment_method_id', 'pm_test_card')->value('is_default'))->toBeTrue();
+});

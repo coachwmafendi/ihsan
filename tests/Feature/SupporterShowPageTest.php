@@ -926,6 +926,104 @@ it('shows an empty state when the supporter has no saved cards', function () {
         ->assertSee('No payment methods');
 });
 
+it('shows one row per physical card with a count of the tokens behind it', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    DonorPaymentMethod::factory()->for($donor)->count(6)->create([
+        'brand' => 'Mastercard',
+        'last4' => '0697',
+        'exp_month' => 5,
+        'exp_year' => 2029,
+    ]);
+
+    DonorPaymentMethod::factory()->for($donor)->create([
+        'brand' => 'Visa',
+        'last4' => '7882',
+        'exp_month' => 11,
+        'exp_year' => 2029,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Mastercard •••• 0697')
+        ->assertSee('Visa •••• 7882')
+        ->assertSee('×6');
+
+    expect(substr_count($response->getContent(), 'Mastercard •••• 0697'))->toBe(1);
+});
+
+it('hides the count chip for a card saved only once', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    DonorPaymentMethod::factory()->for($donor)->create([
+        'brand' => 'Visa',
+        'last4' => '7882',
+    ]);
+
+    $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Visa •••• 7882')
+        ->assertDontSee('×1');
+});
+
+it('shows the default badge once for a card saved many times', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    DonorPaymentMethod::factory()->for($donor)->default()->count(3)->create([
+        'brand' => 'Mastercard',
+        'last4' => '0697',
+        'exp_month' => 5,
+        'exp_year' => 2029,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('Default');
+
+    expect(substr_count($response->getContent(), '>Default<'))->toBe(1);
+});
+
+it('renders the card brand logo instead of the generic icon', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    DonorPaymentMethod::factory()->for($donor)->create([
+        'brand' => 'Mastercard',
+        'last4' => '0697',
+    ]);
+
+    $this->actingAs($user)
+        ->get('https://app.example.test/supporters/'.$donor->public_id)
+        ->assertOk()
+        ->assertSee('id="mastercard"', false);
+});
+
 it('shows when a supporter joined and links to their audit log entries', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create([
