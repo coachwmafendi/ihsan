@@ -426,11 +426,11 @@
                                         <th class="py-2 pr-4 font-medium text-slate-900">Donation ID</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Amount</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Campaign</th>
-                                        <th class="py-2 font-medium text-slate-900">Date & Time</th>
+                                        <th class="py-2 font-medium text-slate-900">Date & Time (MYT)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($this->recentPayments as $payment)
+                                    @foreach ($this->visiblePayments as $payment)
                                         <tr class="border-b border-slate-50 last:border-0">
                                             <td class="py-3 pr-4">
                                                 @php
@@ -495,12 +495,21 @@
                                                     <span class="text-slate-400">—</span>
                                                 @endif
                                             </td>
-                                            <td class="py-3 pr-4 text-slate-600">{{ myrTime($payment->created_at) }}</td>
+                                            <td class="py-3 pr-4 whitespace-nowrap text-slate-600">{{ myrTime($payment->created_at, false) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
+                        @if ($this->recentPayments->count() > 5)
+                            <button
+                                type="button"
+                                wire:click="{{ $showAllPayments ? 'collapsePayments' : 'revealAllPayments' }}"
+                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                            >
+                                {{ $showAllPayments ? 'Show less' : 'Show all ('.$this->recentPayments->count().')' }}
+                            </button>
+                        @endif
                     @else
                         <x-ui.empty-state
                             icon="heroicon-o-calendar-days"
@@ -521,13 +530,13 @@
                                     <tr class="border-b border-slate-100">
                                         <th class="py-2 pr-4 font-medium text-slate-900">Receipt Number</th>
                                         <th class="py-2 pr-4 font-medium text-slate-900">Amount</th>
-                                        <th class="py-2 pr-4 font-medium text-slate-900">Donation Date</th>
-                                        <th class="py-2 pr-4 font-medium text-slate-900">Issue Date</th>
+                                        <th class="py-2 pr-4 font-medium text-slate-900">Donation Date (MYT)</th>
+                                        <th class="py-2 pr-4 font-medium text-slate-900">Issue Date (MYT)</th>
                                         <th class="py-2"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($this->receiptDonations as $donation)
+                                    @foreach ($this->visibleReceipts as $donation)
                                         <tr class="border-b border-slate-50 last:border-0">
                                             <td class="py-3 pr-4">
                                                 <div class="flex items-center gap-2">
@@ -545,7 +554,7 @@
                                                 </x-ui.tooltip>
                                             </td>
                                             <td class="py-3 pr-4 text-slate-600">{{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}</td>
-                                            <td class="py-3 pr-4 text-slate-600">{{ myrTime($donation->finalized_at ?? $donation->created_at) }}</td>
+                                            <td class="py-3 pr-4 whitespace-nowrap text-slate-600">{{ myrTime($donation->finalized_at ?? $donation->created_at, false) }}</td>
                                             <td class="py-3 text-right">
                                                 @if ($donation->status->value === 'succeeded')
                                                     <a href="{{ route('donations.receipt.download', ['donation' => $donation->public_id]) }}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900">
@@ -559,6 +568,15 @@
                                 </tbody>
                             </table>
                         </div>
+                        @if ($this->receiptDonations->count() > 5)
+                            <button
+                                type="button"
+                                wire:click="{{ $showAllReceipts ? 'collapseReceipts' : 'revealAllReceipts' }}"
+                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                            >
+                                {{ $showAllReceipts ? 'Show less' : 'Show all ('.$this->receiptDonations->count().')' }}
+                            </button>
+                        @endif
                     @else
                         <x-ui.empty-state
                             icon="heroicon-o-receipt-percent"
@@ -577,21 +595,21 @@
                             <table class="min-w-full divide-y divide-slate-200">
                                 <thead>
                                     <tr class="bg-slate-50">
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Sent</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Sent (MYT)</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Subject</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Opened</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Opened (MYT)</th>
                                         <th scope="col" class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-slate-500"></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
-                                    @foreach ($this->emailLogs as $log)
+                                    @foreach ($this->visibleEmailLogs as $log)
                                         <tr
                                             class="cursor-pointer transition-colors hover:bg-slate-50"
                                             wire:click="previewEmail({{ $log->id }})"
                                             wire:key="email-log-{{ $log->id }}"
                                         >
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->sent_at ? myrTime($log->sent_at) : '—' }}
+                                                {{ $log->sent_at ? myrTime($log->sent_at, false) : '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-sm font-medium text-slate-900">
                                                 <span class="inline-flex items-center gap-2">
@@ -602,7 +620,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->opened_at ? myrTime($log->opened_at) : '—' }}
+                                                {{ $log->opened_at ? myrTime($log->opened_at, false) : '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-right">
                                                 <button
@@ -619,6 +637,15 @@
                                 </tbody>
                             </table>
                         </div>
+                        @if ($this->emailLogs->count() > 5)
+                            <button
+                                type="button"
+                                wire:click="{{ $showAllEmails ? 'collapseEmails' : 'revealAllEmails' }}"
+                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                            >
+                                {{ $showAllEmails ? 'Show less' : 'Show all ('.$this->emailLogs->count().')' }}
+                            </button>
+                        @endif
                     @else
                         <x-ui.empty-state
                             icon="heroicon-o-envelope"

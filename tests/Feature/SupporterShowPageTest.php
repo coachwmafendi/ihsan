@@ -56,13 +56,14 @@ it('renders donation date with malaysian time and payment method icon', function
         'payment_method_type' => 'card',
     ]);
 
-    $expectedTime = myrTime($donation->created_at);
+    $expectedTime = myrTime($donation->created_at, false);
 
     expect($donation->card_icon_component)->toBe('icons.visa');
 
     $this->actingAs($user)
         ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
+        ->assertSee('Date (MYT)')
         ->assertSee($expectedTime);
 });
 

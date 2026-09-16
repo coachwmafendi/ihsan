@@ -40,6 +40,8 @@ class SupporterShow extends Component
 
     public bool $showAllDonations = false;
 
+    public bool $showAllReceipts = false;
+
     public bool $showPreviewModal = false;
 
     public ?int $previewLogId = null;
@@ -168,8 +170,31 @@ class SupporterShow extends Component
             ->where('status', DonationStatus::Succeeded)
             ->with('campaign')
             ->latest()
-            ->limit(25)
+            ->limit(50)
             ->get();
+    }
+
+    /**
+     * The receipts actually drawn in the card.
+     */
+    #[Computed]
+    public function visibleReceipts(): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($this->showAllReceipts) {
+            return $this->receiptDonations;
+        }
+
+        return $this->receiptDonations->take(5);
+    }
+
+    public function revealAllReceipts(): void
+    {
+        $this->showAllReceipts = true;
+    }
+
+    public function collapseReceipts(): void
+    {
+        $this->showAllReceipts = false;
     }
 
     #[Computed]
