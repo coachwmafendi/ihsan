@@ -10,7 +10,9 @@ use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
@@ -216,17 +218,33 @@ class SupporterShow extends Component
     }
 
     /**
-     * Cards on file, with the ones closest to lapsing first.
+     * Cards on file, one entry per physical card, closest to lapsing first.
      *
-     * A card that expires before the next installment fails the charge, so the
-     * soonest expiry is the one worth acting on.
+     * Stripe mints a new payment method for every checkout, so a single card owns
+     * a row per donation. Grouping on the card's own details collapses those back
+     * into the one card a human would recognise.
+     *
+     * @return Collection<int, array{card: DonorPaymentMethod, count: int, is_default: bool, last_saved_at: ?CarbonInterface}>
      */
     #[Computed]
-    public function paymentMethods()
+    public function paymentMethods(): Collection
     {
         return $this->donor->paymentMethods()
             ->orderByRaw('exp_year is null, exp_year asc, exp_month asc')
-            ->get();
+            ->get()
+            ->groupBy(fn (DonorPaymentMethod $card): string => implode('|', [
+                strtolower($card->brand),
+                $card->last4,
+                $card->exp_month,
+                $card->exp_year,
+            ]))
+            ->map(fn (Collection $group): array => [
+                'card' => $group->sortByDesc('created_at')->first(),
+                'count' => $group->count(),
+                'is_default' => $group->contains(fn (DonorPaymentMethod $card): bool => $card->is_default),
+                'last_saved_at' => $group->max('created_at'),
+            ])
+            ->values();
     }
 
     #[Computed]
