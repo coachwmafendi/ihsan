@@ -222,7 +222,7 @@ class SyncDonationStripeDetails
 
         $card = $paymentMethod->card;
 
-        DonorPaymentMethod::updateOrCreate(
+        $donorPaymentMethod = DonorPaymentMethod::updateOrCreate(
             ['stripe_payment_method_id' => $paymentMethod->id],
             [
                 'donor_id' => $donor->getKey(),
@@ -231,9 +231,10 @@ class SyncDonationStripeDetails
                 'exp_month' => $card->exp_month,
                 'exp_year' => $card->exp_year,
                 'country' => $card->country ?? null,
-                'is_default' => true,
             ]
         );
+
+        $donorPaymentMethod->markAsSoleDefault();
     }
 
     private function syncDonorAddress(Donation $donation, array $pmDetails, StripePaymentIntent $paymentIntent): void
