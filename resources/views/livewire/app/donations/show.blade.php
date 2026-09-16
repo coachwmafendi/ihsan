@@ -524,8 +524,8 @@
                                 <tr class="border-b border-slate-100">
                                     <th class="py-2 pr-4 font-medium text-slate-900">Receipt Number</th>
                                     <th class="py-2 pr-4 font-medium text-slate-900">Amount</th>
-                                    <th class="py-2 pr-4 font-medium text-slate-900">Donation Date</th>
-                                    <th class="py-2 pr-4 font-medium text-slate-900">Issue Date</th>
+                                    <th class="py-2 pr-4 font-medium text-slate-900">Donation Date (MYT)</th>
+                                    <th class="py-2 pr-4 font-medium text-slate-900">Issue Date (MYT)</th>
                                     <th class="py-2"></th>
                                 </tr>
                             </thead>
@@ -587,9 +587,9 @@
                             <table class="min-w-full divide-y divide-slate-200">
                                 <thead>
                                     <tr class="bg-slate-50">
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Sent</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Sent (MYT)</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Subject</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Opened</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Opened (MYT)</th>
                                         <th scope="col" class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-slate-500"></th>
                                     </tr>
                                 </thead>
@@ -601,7 +601,7 @@
                                             wire:key="email-log-{{ $log->id }}"
                                         >
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->sent_at ? myrTime($log->sent_at) : '—' }}
+                                                {{ $log->sent_at ? myrTime($log->sent_at, false) : '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-sm font-medium text-slate-900">
                                                 <span class="inline-flex items-center gap-2">
@@ -612,7 +612,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->opened_at ? myrTime($log->opened_at) : '—' }}
+                                                {{ $log->opened_at ? myrTime($log->opened_at, false) : '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-right">
                                                 <button

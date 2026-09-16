@@ -401,7 +401,7 @@
                         <tr class="bg-slate-50">
                             <th scope="col" class="whitespace-nowrap min-w-[180px] px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
-                                    Date
+                                    Date (MYT)
                                     @if ($sortField === 'created_at')
                                         @if ($sortDirection === 'asc')
                                             <x-heroicon-o-chevron-up class="size-3 text-slate-400" />
@@ -479,7 +479,7 @@
                                 class="cursor-pointer transition-colors hover:bg-slate-50"
                             >
                                 <td class="whitespace-nowrap min-w-[180px] px-5 py-4 text-sm text-slate-500">
-                                    {{ myrTime($donation->created_at) }}
+                                    {{ myrTime($donation->created_at, false) }}
                                 </td>
                                 <td class="whitespace-nowrap min-w-[180px] px-5 py-4 text-right tabular-nums">
                                     {{-- The icons sit in a lane of their own width so the figures

@@ -371,3 +371,21 @@ it('excludes scheduled to cancel plans from expected monthly total', function ()
         ->assertSee('MYR 200.00')
         ->assertDontSee('MYR 300.00');
 });
+
+it('names the timezone in the created column header instead of on every row', function () {
+    $createdAt = now()->subHour();
+
+    Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+        'interval' => SubscriptionInterval::Monthly,
+        'created_at' => $createdAt,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionIndex::class)
+        ->assertSee('Created (MYT)')
+        ->assertSee(myrTime($createdAt, false))
+        ->assertDontSee(myrTime($createdAt, true));
+});
