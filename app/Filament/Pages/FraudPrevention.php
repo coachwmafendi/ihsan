@@ -124,7 +124,7 @@ class FraudPrevention extends Page implements HasTable
                 TextColumn::make('created_at')
                     ->label('Blocked At (MYT)')
                     ->dateTime('M j, Y H:i', timezone: 'Asia/Kuala_Lumpur')
-                    ->formatStateUsing(fn ($state) => $state ? myrTime($state) : '—')
+                    ->formatStateUsing(fn ($state) => $state ? myrTime($state, false) : '—')
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')

@@ -23,6 +23,25 @@ it('names the timezone on the transactions date column', function () {
         ->assertSee('Date (MYT)');
 });
 
+it('does not repeat the timezone on every transactions row', function () {
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->create(['organization_id' => $organization->id]);
+    $donor = Donor::factory()->create();
+
+    $donation = Donation::factory()->create([
+        'campaign_id' => $campaign->id,
+        'donor_id' => $donor->id,
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now()->subHour(),
+    ]);
+
+    Livewire::actingAs($this->admin)
+        ->test(Transactions::class)
+        ->assertSee('Date (MYT)')
+        ->assertSee(myrTime($donation->created_at, false))
+        ->assertDontSee(myrTime($donation->created_at, true));
+});
+
 it('names the timezone on the processing fees date column', function () {
     Livewire::actingAs($this->admin)
         ->test(ProcessingFees::class)
