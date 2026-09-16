@@ -449,37 +449,55 @@
             {{-- Emails --}}
             <section id="emails">
                 <x-ui.card title="Emails" icon="heroicon-o-envelope">
+                    @if ($this->bouncedEmailCount > 0)
+                        <div class="mb-4 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                            <x-heroicon-o-exclamation-triangle class="size-4 shrink-0" />
+                            {{ $this->bouncedEmailCount }} {{ Str::plural('email', $this->bouncedEmailCount) }} bounced — this address may be wrong.
+                        </div>
+                    @endif
                     @if ($this->emailLogs->isNotEmpty())
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-slate-200">
                                 <thead>
                                     <tr class="bg-slate-50">
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Sent</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Subject</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Opened</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Sent (MYT)</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Email</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Status</th>
                                         <th scope="col" class="px-4 py-3 text-right text-xs font-semibold tracking-wider text-slate-500"></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
-                                    @foreach ($this->emailLogs as $log)
+                                    @foreach ($this->visibleEmailLogs as $log)
                                         <tr
                                             class="cursor-pointer transition-colors hover:bg-slate-50"
                                             wire:click="previewEmail({{ $log->id }})"
                                             wire:key="email-log-{{ $log->id }}"
                                         >
-                                            <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->sent_at ? myrTime($log->sent_at) : '—' }}
+                                            <td class="px-4 py-3 text-sm whitespace-nowrap text-slate-500">
+                                                {{ $log->sent_at ? myrTime($log->sent_at, false) : '—' }}
                                             </td>
                                             <td class="px-4 py-3 text-sm font-medium text-slate-900">
-                                                <span class="inline-flex items-center gap-2">
-                                                    {{ $log->subject }}
+                                                <span class="inline-flex flex-wrap items-center gap-2">
+                                                    <x-ui.badge status="default" size="xs">{{ $log->type_label }}</x-ui.badge>
+                                                    {{ $log->short_subject }}
                                                     @if (filled($log->resent_from_id))
                                                         <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Resent</span>
                                                     @endif
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ $log->opened_at ? myrTime($log->opened_at) : '—' }}
+                                                <span class="inline-flex flex-col gap-1">
+                                                    @if ($log->status_detail)
+                                                        <x-ui.tooltip :text="$log->status_detail">
+                                                            <x-ui.badge :status="$log->status_tone" size="sm">{{ $log->status_label }}</x-ui.badge>
+                                                        </x-ui.tooltip>
+                                                    @else
+                                                        <x-ui.badge :status="$log->status_tone" size="sm">{{ $log->status_label }}</x-ui.badge>
+                                                    @endif
+                                                    @if ($log->status_at)
+                                                        <span class="text-xs whitespace-nowrap text-slate-400">{{ myrTime($log->status_at, false) }}</span>
+                                                    @endif
+                                                </span>
                                             </td>
                                             <td class="px-4 py-3 text-right">
                                                 <button
@@ -496,6 +514,15 @@
                                 </tbody>
                             </table>
                         </div>
+                        @if (! $showAllEmails && $this->emailLogs->count() > 5)
+                            <button
+                                type="button"
+                                wire:click="revealAllEmails"
+                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                            >
+                                Show all ({{ $this->emailLogs->count() }})
+                            </button>
+                        @endif
                     @else
                         <x-ui.empty-state
                             icon="heroicon-o-envelope"
