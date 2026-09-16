@@ -2,6 +2,19 @@
 
 namespace App\Models;
 
+use App\Mail\DonationReceipt;
+use App\Mail\DonorDunningNotification;
+use App\Mail\DonorNewSubscriptionNotification;
+use App\Mail\DonorPaymentMethodChangedNotification;
+use App\Mail\DonorPaymentMethodExpiringNotification;
+use App\Mail\DonorRecurringPaymentNotification;
+use App\Mail\DonorRefundNotification;
+use App\Mail\DonorSubscriptionCancelledNotification;
+use App\Mail\DonorSubscriptionFailedNotification;
+use App\Mail\FailedDonationRecovery;
+use App\Mail\FailedPaymentNotification;
+use App\Mail\MagicLink;
+use App\Mail\SupporterSubscriptionAmountChangedNotification;
 use App\Services\PublicIdGenerator;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -13,6 +26,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -39,6 +53,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read string $status_tone
  * @property-read CarbonInterface|null $status_at
  * @property-read string|null $status_detail
+ * @property-read string $type_label
+ * @property-read string $short_subject
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DonorEmailLog newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DonorEmailLog newQuery()
@@ -166,6 +182,52 @@ class DonorEmailLog extends Model
             'Sent' => 'Handed to the mail server. No delivery confirmation yet.',
             'Queued' => 'Waiting to go out.',
             default => null,
+        });
+    }
+
+    /**
+     * A short name for the kind of email this is.
+     *
+     * The subject repeats the organisation on a page already scoped to it, so the
+     * kind of email is what makes the list scannable.
+     */
+    public function typeLabel(): Attribute
+    {
+        return Attribute::get(fn (): string => match ($this->mailable_class) {
+            DonationReceipt::class => 'Receipt',
+            DonorRefundNotification::class => 'Refund',
+            DonorNewSubscriptionNotification::class => 'New plan',
+            DonorRecurringPaymentNotification::class => 'Installment',
+            DonorSubscriptionCancelledNotification::class => 'Plan cancelled',
+            SupporterSubscriptionAmountChangedNotification::class => 'Plan changed',
+            DonorPaymentMethodChangedNotification::class => 'Card changed',
+            DonorPaymentMethodExpiringNotification::class => 'Card expiring',
+            FailedPaymentNotification::class,
+            DonorSubscriptionFailedNotification::class,
+            FailedDonationRecovery::class,
+            DonorDunningNotification::class => 'Payment failed',
+            MagicLink::class => 'Portal link',
+            default => 'Email',
+        });
+    }
+
+    /**
+     * The subject with the organisation's own name taken out.
+     */
+    public function shortSubject(): Attribute
+    {
+        return Attribute::get(function (): string {
+            $organizationName = $this->organization?->name;
+
+            if (blank($organizationName)) {
+                return $this->subject;
+            }
+
+            $stripped = str_replace($organizationName, '', $this->subject);
+            $stripped = trim($stripped);
+            $stripped = trim($stripped, "—-–|· \t\n\r\0\x0B");
+
+            return Str::squish($stripped) ?: $this->subject;
         });
     }
 }

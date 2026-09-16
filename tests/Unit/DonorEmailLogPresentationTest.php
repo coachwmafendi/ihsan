@@ -1,6 +1,12 @@
 <?php
 
+use App\Mail\DonationReceipt;
+use App\Mail\DonorNewSubscriptionNotification;
+use App\Mail\DonorRefundNotification;
+use App\Mail\FailedPaymentNotification;
+use App\Mail\MagicLink;
 use App\Models\DonorEmailLog;
+use App\Models\Organization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -98,4 +104,53 @@ it('reports an email still waiting to go out', function () {
     expect($log->status_label)->toBe('Queued')
         ->and($log->status_tone)->toBe('pending')
         ->and($log->status_at)->toBeNull();
+});
+
+it('names the kind of email from its mailable', function (string $mailable, string $label) {
+    $log = DonorEmailLog::factory()->make(['mailable_class' => $mailable]);
+
+    expect($log->type_label)->toBe($label);
+})->with([
+    [DonationReceipt::class, 'Receipt'],
+    [DonorRefundNotification::class, 'Refund'],
+    [DonorNewSubscriptionNotification::class, 'New plan'],
+    [FailedPaymentNotification::class, 'Payment failed'],
+    [MagicLink::class, 'Portal link'],
+    ['App\Mail\SomethingUnmapped', 'Email'],
+]);
+
+it('drops the organisation name from the subject', function () {
+    $organization = Organization::factory()->create(['name' => 'MASJID TAHFIZ AL AYUBI']);
+    $log = DonorEmailLog::factory()->for($organization)->make([
+        'subject' => 'Your Donation Receipt — MASJID TAHFIZ AL AYUBI',
+    ]);
+
+    expect($log->short_subject)->toBe('Your Donation Receipt');
+});
+
+it('drops the organisation name from the front of the subject too', function () {
+    $organization = Organization::factory()->create(['name' => 'MASJID TAHFIZ AL AYUBI']);
+    $log = DonorEmailLog::factory()->for($organization)->make([
+        'subject' => 'MASJID TAHFIZ AL AYUBI — Donor Portal',
+    ]);
+
+    expect($log->short_subject)->toBe('Donor Portal');
+});
+
+it('keeps the subject whole when it does not name the organisation', function () {
+    $organization = Organization::factory()->create(['name' => 'MASJID TAHFIZ AL AYUBI']);
+    $log = DonorEmailLog::factory()->for($organization)->make([
+        'subject' => 'Your donation did not go through',
+    ]);
+
+    expect($log->short_subject)->toBe('Your donation did not go through');
+});
+
+it('keeps the subject whole when the log has no organisation', function () {
+    $log = DonorEmailLog::factory()->make([
+        'organization_id' => null,
+        'subject' => 'Your Donation Receipt — MASJID TAHFIZ AL AYUBI',
+    ]);
+
+    expect($log->short_subject)->toBe('Your Donation Receipt — MASJID TAHFIZ AL AYUBI');
 });
