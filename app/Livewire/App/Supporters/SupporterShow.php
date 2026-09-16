@@ -10,6 +10,7 @@ use App\Actions\Stripe\SyncDonorDetailsToStripe;
 use App\Enums\DonationStatus;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\DonorEmailLog;
 use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use Carbon\CarbonInterface;
@@ -34,6 +35,8 @@ class SupporterShow extends Component
     public string $lastName = '';
 
     public string $email = '';
+
+    public bool $showAllEmails = false;
 
     public bool $showPreviewModal = false;
 
@@ -257,6 +260,40 @@ class SupporterShow extends Component
             ->latest('sent_at')
             ->limit(50)
             ->get();
+    }
+
+    /**
+     * The emails actually drawn in the card.
+     *
+     * A supporter collects receipts and portal links quickly, so the card shows
+     * the latest handful until asked for the rest.
+     */
+    #[Computed]
+    public function visibleEmailLogs(): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($this->showAllEmails) {
+            return $this->emailLogs;
+        }
+
+        return $this->emailLogs->take(5);
+    }
+
+    /**
+     * How many of the loaded emails bounced.
+     *
+     * Surfaced above the table so collapsing the list can never hide a bounce.
+     */
+    #[Computed]
+    public function bouncedEmailCount(): int
+    {
+        return $this->emailLogs
+            ->filter(fn (DonorEmailLog $log): bool => $log->status_label === 'Bounced')
+            ->count();
+    }
+
+    public function revealAllEmails(): void
+    {
+        $this->showAllEmails = true;
     }
 
     public function confirmResend(int $id): void

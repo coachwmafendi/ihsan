@@ -1039,3 +1039,73 @@ it('shows when a supporter joined and links to their audit log entries', functio
         ->assertSee('Supporter since')
         ->assertSee(route('app.audit-log.index', ['search' => $donor->public_id]), false);
 });
+
+it('shows the five most recent emails with a button to reveal the rest', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    foreach (range(1, 8) as $index) {
+        DonorEmailLog::factory()->for($donor)->for($organization)->create([
+            'subject' => "Email number {$index}",
+            'sent_at' => now()->subDays($index),
+        ]);
+    }
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->assertSee('Email number 1')
+        ->assertSee('Email number 5')
+        ->assertDontSee('Email number 6')
+        ->assertSee('Show all (8)')
+        ->call('revealAllEmails')
+        ->assertSee('Email number 6')
+        ->assertSee('Email number 8')
+        ->assertDontSee('Show all (8)');
+});
+
+it('does not offer to reveal more when five or fewer emails exist', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    DonorEmailLog::factory()->for($donor)->for($organization)->count(3)->create();
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->assertDontSee('Show all');
+});
+
+it('announces a bounce at the top of the emails card even when the list is collapsed', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    DonorEmailLog::factory()->for($donor)->for($organization)->count(7)->create([
+        'sent_at' => now()->subHour(),
+    ]);
+
+    DonorEmailLog::factory()->for($donor)->for($organization)->create([
+        'subject' => 'Your donation did not go through',
+        'delivery_status' => 'bounced',
+        'bounced_at' => now()->subDays(9),
+        'sent_at' => now()->subDays(9),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->assertDontSee('Your donation did not go through')
+        ->assertSee('1 email bounced');
+});

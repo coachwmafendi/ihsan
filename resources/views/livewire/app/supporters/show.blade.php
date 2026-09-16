@@ -449,6 +449,12 @@
             {{-- Emails --}}
             <section id="emails">
                 <x-ui.card title="Emails" icon="heroicon-o-envelope">
+                    @if ($this->bouncedEmailCount > 0)
+                        <div class="mb-4 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                            <x-heroicon-o-exclamation-triangle class="size-4 shrink-0" />
+                            {{ $this->bouncedEmailCount }} {{ Str::plural('email', $this->bouncedEmailCount) }} bounced — this address may be wrong.
+                        </div>
+                    @endif
                     @if ($this->emailLogs->isNotEmpty())
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-slate-200">
@@ -461,7 +467,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
-                                    @foreach ($this->emailLogs as $log)
+                                    @foreach ($this->visibleEmailLogs as $log)
                                         <tr
                                             class="cursor-pointer transition-colors hover:bg-slate-50"
                                             wire:click="previewEmail({{ $log->id }})"
@@ -496,6 +502,15 @@
                                 </tbody>
                             </table>
                         </div>
+                        @if (! $showAllEmails && $this->emailLogs->count() > 5)
+                            <button
+                                type="button"
+                                wire:click="revealAllEmails"
+                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                            >
+                                Show all ({{ $this->emailLogs->count() }})
+                            </button>
+                        @endif
                     @else
                         <x-ui.empty-state
                             icon="heroicon-o-envelope"
