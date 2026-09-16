@@ -478,8 +478,8 @@ it('shows converted myr amount with original currency tooltip in the receipts ta
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('≈ MYR 158.00')
         ->assertSee($donation->formatted_amount)
-        ->assertSee('Issue Date')
-        ->assertSee(myrTime($donation->finalized_at ?? $donation->created_at));
+        ->assertSee('Issue Date (MYT)')
+        ->assertSee(myrTime($donation->finalized_at ?? $donation->created_at, false));
 });
 
 it('shows the credit card expiry date in the recurring plan details', function () {
@@ -974,4 +974,112 @@ it('lists only settled installments in the receipts table', function () {
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee($succeeded->invoice_number)
         ->assertDontSee($failed->invoice_number);
+});
+
+it('folds the installments list down to the latest five', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    foreach (range(1, 8) as $index) {
+        Donation::factory()->create([
+            'subscription_id' => $subscription->id,
+            'campaign_id' => $this->campaign->id,
+            'donor_id' => $this->donor->id,
+            'status' => DonationStatus::Succeeded,
+            'public_id' => "INSTALL{$index}",
+            'created_at' => now()->subDays($index),
+        ]);
+    }
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('INSTALL1')
+        ->assertSee('INSTALL5')
+        ->assertDontSee('INSTALL6')
+        ->call('revealAllPayments')
+        ->assertSee('INSTALL8')
+        ->assertSee('Show less')
+        ->call('collapsePayments')
+        ->assertDontSee('INSTALL8');
+});
+
+it('folds the receipts list down to the latest five', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    $donations = collect(range(1, 8))->map(fn (int $index) => Donation::factory()->create([
+        'subscription_id' => $subscription->id,
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => DonationStatus::Succeeded,
+        'invoice_number' => "RCPT-{$index}",
+        'created_at' => now()->subDays($index),
+    ]));
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee($donations[0]->invoice_number)
+        ->assertSee($donations[4]->invoice_number)
+        ->assertDontSee($donations[5]->invoice_number)
+        ->call('revealAllReceipts')
+        ->assertSee($donations[7]->invoice_number)
+        ->call('collapseReceipts')
+        ->assertDontSee($donations[7]->invoice_number);
+});
+
+it('folds the emails list down to the latest five', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    foreach (range(1, 8) as $index) {
+        DonorEmailLog::factory()->for($this->donor)->for($this->organization)->create([
+            'subscription_id' => $subscription->id,
+            'subject' => "Email number {$index}",
+            'sent_at' => now()->subDays($index),
+        ]);
+    }
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Email number 1')
+        ->assertSee('Email number 5')
+        ->assertDontSee('Email number 6')
+        ->assertSee('Show all (8)')
+        ->call('revealAllEmails')
+        ->assertSee('Email number 8')
+        ->assertSee('Show less')
+        ->call('collapseEmails')
+        ->assertDontSee('Email number 8');
+});
+
+it('labels the installment date column with the timezone instead of every row', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::Active,
+    ]);
+
+    $chargedAt = now()->subHour();
+
+    Donation::factory()->create([
+        'subscription_id' => $subscription->id,
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => DonationStatus::Succeeded,
+        'created_at' => $chargedAt,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Date & Time (MYT)', false)
+        ->assertSee('whitespace-nowrap text-slate-600">'.myrTime($chargedAt, false).'</td>', false);
 });

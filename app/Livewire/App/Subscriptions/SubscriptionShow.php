@@ -50,6 +50,12 @@ class SubscriptionShow extends Component
 
     public bool $showInstallmentEvents = false;
 
+    public bool $showAllPayments = false;
+
+    public bool $showAllReceipts = false;
+
+    public bool $showAllEmails = false;
+
     public bool $showUpgradeModal = false;
 
     public bool $showPreviewModal = false;
@@ -133,8 +139,24 @@ class SubscriptionShow extends Component
         return $this->subscription->donations()
             ->with('campaign')
             ->latest()
-            ->limit(10)
+            ->limit(50)
             ->get();
+    }
+
+    /**
+     * The installments actually drawn in the card.
+     *
+     * A long-running plan charges every month, so the card shows the latest
+     * handful until asked for the rest.
+     */
+    #[Computed]
+    public function visiblePayments(): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($this->showAllPayments) {
+            return $this->recentPayments;
+        }
+
+        return $this->recentPayments->take(5);
     }
 
     #[Computed]
@@ -143,7 +165,64 @@ class SubscriptionShow extends Component
         return $this->subscription->donations()
             ->whereIn('status', [DonationStatus::Succeeded, DonationStatus::Refunded])
             ->latest()
+            ->limit(50)
             ->get();
+    }
+
+    /**
+     * The receipts actually drawn in the card.
+     */
+    #[Computed]
+    public function visibleReceipts(): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($this->showAllReceipts) {
+            return $this->receiptDonations;
+        }
+
+        return $this->receiptDonations->take(5);
+    }
+
+    /**
+     * The emails actually drawn in the card.
+     */
+    #[Computed]
+    public function visibleEmailLogs(): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($this->showAllEmails) {
+            return $this->emailLogs;
+        }
+
+        return $this->emailLogs->take(5);
+    }
+
+    public function revealAllPayments(): void
+    {
+        $this->showAllPayments = true;
+    }
+
+    public function collapsePayments(): void
+    {
+        $this->showAllPayments = false;
+    }
+
+    public function revealAllReceipts(): void
+    {
+        $this->showAllReceipts = true;
+    }
+
+    public function collapseReceipts(): void
+    {
+        $this->showAllReceipts = false;
+    }
+
+    public function revealAllEmails(): void
+    {
+        $this->showAllEmails = true;
+    }
+
+    public function collapseEmails(): void
+    {
+        $this->showAllEmails = false;
     }
 
     #[Computed]

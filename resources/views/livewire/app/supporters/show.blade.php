@@ -223,19 +223,19 @@
                             <table class="min-w-full divide-y divide-slate-200">
                                 <thead>
                                     <tr class="bg-slate-50">
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Date</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Date (MYT)</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Amount</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Campaign</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
-                                    @foreach ($this->recentDonations as $donation)
+                                    @foreach ($this->visibleDonations as $donation)
                                         <tr
                                             class="cursor-pointer transition-colors hover:bg-slate-50"
                                             onclick="window.location='{{ route('app.donations.show', $donation) }}'"
                                         >
-                                            <td class="px-4 py-3 text-sm text-slate-500">
-                                                {{ myrTime($donation->created_at) }}
+                                            <td class="px-4 py-3 text-sm whitespace-nowrap text-slate-500">
+                                                {{ myrTime($donation->created_at, false) }}
                                             </td>
                                             <td class="px-4 py-3">
                                                 <div class="flex items-center gap-2">
@@ -267,6 +267,15 @@
                                 </tbody>
                             </table>
                         </div>
+                        @if ($this->recentDonations->count() > 5)
+                            <button
+                                type="button"
+                                wire:click="{{ $showAllDonations ? 'collapseDonations' : 'revealAllDonations' }}"
+                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                            >
+                                {{ $showAllDonations ? 'Show less' : 'Show all ('.$this->recentDonations->count().')' }}
+                            </button>
+                        @endif
                     @else
                         <x-ui.empty-state
                             icon="heroicon-o-banknotes"
@@ -398,14 +407,14 @@
                             <table class="min-w-full divide-y divide-slate-200">
                                 <thead>
                                     <tr class="bg-slate-50">
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Date</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Date (MYT)</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Receipt</th>
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Amount</th>
-                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Issue Date</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Issue Date (MYT)</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
-                                    @foreach ($this->receiptDonations as $donation)
+                                    @foreach ($this->visibleReceipts as $donation)
                                         <tr class="transition-colors hover:bg-slate-50">
                                             <td class="px-4 py-3 text-sm text-slate-500">
                                                 {{ myrTime($donation->created_at, withLabel: false, format: 'M d, Y') }}
@@ -436,6 +445,15 @@
                                 </tbody>
                             </table>
                         </div>
+                        @if ($this->receiptDonations->count() > 5)
+                            <button
+                                type="button"
+                                wire:click="{{ $showAllReceipts ? 'collapseReceipts' : 'revealAllReceipts' }}"
+                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                            >
+                                {{ $showAllReceipts ? 'Show less' : 'Show all ('.$this->receiptDonations->count().')' }}
+                            </button>
+                        @endif
                     @else
                         <x-ui.empty-state
                             icon="heroicon-o-receipt-percent"
@@ -514,13 +532,13 @@
                                 </tbody>
                             </table>
                         </div>
-                        @if (! $showAllEmails && $this->emailLogs->count() > 5)
+                        @if ($this->emailLogs->count() > 5)
                             <button
                                 type="button"
-                                wire:click="revealAllEmails"
+                                wire:click="{{ $showAllEmails ? 'collapseEmails' : 'revealAllEmails' }}"
                                 class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
                             >
-                                Show all ({{ $this->emailLogs->count() }})
+                                {{ $showAllEmails ? 'Show less' : 'Show all ('.$this->emailLogs->count().')' }}
                             </button>
                         @endif
                     @else

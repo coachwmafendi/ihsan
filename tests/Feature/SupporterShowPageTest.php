@@ -56,13 +56,14 @@ it('renders donation date with malaysian time and payment method icon', function
         'payment_method_type' => 'card',
     ]);
 
-    $expectedTime = myrTime($donation->created_at);
+    $expectedTime = myrTime($donation->created_at, false);
 
     expect($donation->card_icon_component)->toBe('icons.visa');
 
     $this->actingAs($user)
         ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
+        ->assertSee('Date (MYT)')
         ->assertSee($expectedTime);
 });
 
@@ -1065,6 +1066,79 @@ it('shows the five most recent emails with a button to reveal the rest', functio
         ->assertSee('Email number 6')
         ->assertSee('Email number 8')
         ->assertDontSee('Show all (8)');
+});
+
+it('shows the five most recent donations and folds the rest away', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $donor = Donor::factory()->create();
+
+    foreach (range(1, 8) as $index) {
+        $campaign = Campaign::factory()->for($organization)->create([
+            'title' => "Campaign number {$index}",
+        ]);
+
+        Donation::factory()->for($donor)->for($campaign)->create([
+            'created_at' => now()->subDays($index),
+        ]);
+    }
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->assertSee('Campaign number 1')
+        ->assertSee('Campaign number 5')
+        ->assertDontSee('Campaign number 6')
+        ->assertSee('Show all (8)')
+        ->call('revealAllDonations')
+        ->assertSee('Campaign number 8')
+        ->assertSee('Show less')
+        ->call('collapseDonations')
+        ->assertDontSee('Campaign number 8')
+        ->assertSee('Show all (8)');
+});
+
+it('does not offer to reveal more donations when five or fewer exist', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->count(3)->create();
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->assertDontSee('Show all');
+});
+
+it('folds the email list back up again', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create([
+        'role' => UserRole::NgoAdmin,
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    Donation::factory()->for($donor)->for($campaign)->create();
+
+    foreach (range(1, 8) as $index) {
+        DonorEmailLog::factory()->for($donor)->for($organization)->create([
+            'subject' => "Email number {$index}",
+            'sent_at' => now()->subDays($index),
+        ]);
+    }
+
+    Livewire::actingAs($user)
+        ->test(SupporterShow::class, ['donor' => $donor])
+        ->assertDontSee('Show less')
+        ->call('revealAllEmails')
+        ->assertSee('Show less')
+        ->assertSee('Email number 8')
+        ->call('collapseEmails')
+        ->assertDontSee('Email number 8')
+        ->assertDontSee('Show less')
+        ->assertSee('Show all (8)');
 });
 
 it('does not offer to reveal more when five or fewer emails exist', function () {
