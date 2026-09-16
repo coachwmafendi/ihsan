@@ -986,3 +986,37 @@ it('says which card a wallet payment used, on hover', function () {
         ->test(DonationIndex::class)
         ->assertSee('Apple Pay · Mastercard •••• 0697');
 });
+
+it('names the timezone in the date column header instead of on every row', function () {
+    $createdAt = now()->subHour();
+
+    $donation = Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => 'succeeded',
+        'created_at' => $createdAt,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->assertSee('Date (MYT)')
+        ->assertSee(myrTime($donation->created_at, false))
+        ->assertDontSee(myrTime($donation->created_at, true));
+});
+
+it('drops the repeated timezone from the emails table on the donation show page', function () {
+    $sentAt = now()->subHour();
+
+    DonorEmailLog::factory()->for($this->donor)->for($this->organization)->create([
+        'donation_id' => $this->donation->id,
+        'subject' => 'Your Donation Receipt',
+        'sent_at' => $sentAt,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $this->donation])
+        ->assertSee('Sent (MYT)')
+        ->assertSee('Opened (MYT)')
+        ->assertSee(myrTime($sentAt, false))
+        ->assertDontSee(myrTime($sentAt, true));
+});

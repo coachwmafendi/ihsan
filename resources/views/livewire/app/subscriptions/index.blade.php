@@ -332,7 +332,7 @@
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">Status</th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
-                                    Created
+                                    Created (MYT)
                                     @if ($sortField === 'created_at')
                                         @if ($sortDirection === 'asc')
                                             <x-heroicon-o-chevron-up class="size-3 text-slate-400" />
@@ -461,7 +461,7 @@
                                     </x-ui.tooltip>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-500">
-                                    {{ myrTime($subscription->created_at) }}
+                                    {{ myrTime($subscription->created_at, false) }}
                                 </td>
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-2">

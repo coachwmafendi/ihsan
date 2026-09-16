@@ -100,10 +100,10 @@
                             <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">Donations</th>
                             <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">Recurring</th>
                             <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">Recurring amount</th>
-                            <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">Last Donation</th>
+                            <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">Last Donation (MYT)</th>
                             <th scope="col" class="px-5 py-3 text-left whitespace-nowrap text-xs font-semibold tracking-wider text-slate-500">
                                 <button wire:click="sortBy('created_at')" class="group inline-flex items-center gap-1">
-                                    Created
+                                    Created (MYT)
                                     @if ($sortField === 'created_at')
                                         @if ($sortDirection === 'asc')
                                             <x-heroicon-o-chevron-up class="size-3 text-slate-400" />
