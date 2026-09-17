@@ -45,7 +45,7 @@
             },
         }"
     >
-        <div class="mb-6 grid gap-4 md:grid-cols-3">
+        <div class="mb-6 grid grid-cols-2 gap-4 [&>*]:min-w-0 md:grid-cols-3">
             <x-admin.metric-card
                 icon="heroicon-o-banknotes"
                 label="Total Amount"

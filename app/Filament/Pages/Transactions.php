@@ -265,6 +265,9 @@ class Transactions extends Page implements HasTable
                     ->formatStateUsing(fn ($state) => $state ? myrTime($state, false) : '—')
                     ->sortable(),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            // Nine columns do not fit a phone. Stacked, a row reads top to
+            // bottom instead of hiding the amount and status off-screen.
+            ->stackedOnMobile();
     }
 }

@@ -218,24 +218,26 @@
     @apply mt-1 max-w-3xl text-sm leading-6 text-ihsan-muted dark:text-stone-400;
 }
 
+/* A phone shows these two to a row, so everything inside them is a size down
+   until there is room for the full card. */
 .ihsan-admin-metric-card {
-    @apply overflow-hidden rounded-lg border border-stone-200 bg-ihsan-cream p-5 shadow-sm ring-0 dark:border-stone-800 dark:bg-stone-900;
+    @apply overflow-hidden rounded-lg border border-stone-200 bg-ihsan-cream p-4 shadow-sm ring-0 sm:p-5 dark:border-stone-800 dark:bg-stone-900;
 }
 
 .ihsan-admin-metric-header {
-    @apply flex items-center gap-2 text-sm font-medium text-ihsan-muted dark:text-stone-400;
+    @apply flex items-center gap-2 text-xs font-medium text-ihsan-muted sm:text-sm dark:text-stone-400;
 }
 
 .ihsan-admin-metric-icon {
-    @apply flex size-8 shrink-0 items-center justify-center rounded-md bg-stone-100 text-ihsan-terracotta ring-1 ring-stone-200 dark:bg-stone-800 dark:text-orange-300 dark:ring-stone-700;
+    @apply hidden size-8 shrink-0 items-center justify-center rounded-md bg-stone-100 text-ihsan-terracotta ring-1 ring-stone-200 sm:flex dark:bg-stone-800 dark:text-orange-300 dark:ring-stone-700;
 }
 
 .ihsan-admin-metric-value {
-    @apply mt-3 text-2xl font-semibold tracking-normal text-ihsan-ink dark:text-white;
+    @apply mt-2 text-lg font-semibold tracking-normal text-ihsan-ink sm:mt-3 sm:text-2xl dark:text-white;
 }
 
 .ihsan-admin-metric-note {
-    @apply mt-1.5 text-xs leading-5 text-ihsan-muted dark:text-stone-400;
+    @apply mt-1.5 text-[0.7rem] leading-4 text-ihsan-muted sm:text-xs sm:leading-5 dark:text-stone-400;
 }
 
 .ihsan-admin-stat-tile {
@@ -305,13 +307,15 @@
     @apply text-stone-600 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800;
 }
 
-/* Widen vertical tab content on organization edit */
+/* Widen vertical tab content on organization edit. A phone has no room for a
+   192px rail beside the form — it leaves the inputs unusably narrow — so the
+   rail sits above the fields until the screen is wide enough. */
 .fi-panel-admin .fi-sc-tabs.fi-vertical {
-    @apply gap-6;
+    @apply max-md:flex-col gap-6;
 }
 
 .fi-panel-admin .fi-sc-tabs.fi-vertical > .fi-tabs.fi-vertical {
-    @apply w-48 shrink-0;
+    @apply w-48 shrink-0 max-md:w-full;
 }
 
 .fi-panel-admin .fi-sc-tabs.fi-vertical > .fi-sc-tabs-tab.fi-active {

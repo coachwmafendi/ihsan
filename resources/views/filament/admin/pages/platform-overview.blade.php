@@ -1,7 +1,7 @@
 <x-filament-panels::page>
     <div class="ihsan-admin-page">
         {{-- Row 1: All-time platform totals --}}
-        <div class="grid gap-4 [&>*]:min-w-0 md:grid-cols-2 xl:grid-cols-4">
+        <div class="grid grid-cols-2 gap-4 [&>*]:min-w-0 xl:grid-cols-4">
             <x-admin.metric-card icon="heroicon-o-banknotes" label="Total donations" :value="($totalDonationsHasApproximation ? '≈ ' : '').'MYR '.$totalDonationsVolume" :note="'All time · '.$totalDonationsCount.' transactions'" />
             <x-admin.metric-card icon="heroicon-o-receipt-percent" label="Processing fees" :value="'MYR '.$totalProcessingFees" note="All time · transferred to platform" />
             <x-admin.metric-card icon="heroicon-o-arrow-path" label="Active subscriptions" :value="$activeSubscriptions" note="Currently active" />
@@ -9,7 +9,7 @@
         </div>
 
         {{-- Row 2: Monthly pulse --}}
-        <div class="grid gap-4 [&>*]:min-w-0 md:grid-cols-2 xl:grid-cols-3">
+        <div class="grid grid-cols-2 gap-4 [&>*]:min-w-0 xl:grid-cols-3">
             <x-admin.metric-card
                 icon="heroicon-o-chart-bar"
                 label="Estimated MRR"

@@ -24,6 +24,7 @@ class OrganizationsTable
         return $table
             ->reorderableColumns()
             ->deferColumnManager(false)
+            ->stackedOnMobile()
             ->defaultSort(fn (Builder $query): Builder => $query->orderByRaw('approved_at IS NULL, approved_at DESC'))
             ->columns([
                 TextColumn::make('code')

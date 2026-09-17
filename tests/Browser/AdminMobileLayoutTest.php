@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
+use App\Models\Campaign;
+use App\Models\Donation;
+use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -45,6 +48,73 @@ it('keeps every revenue period button inside the width of a phone', function () 
     visit('/admin/revenue')
         ->on()->mobile()
         ->assertScript(OVERFLOW_PAST_VIEWPORT, 0);
+});
+
+it('fits the overview metric cards two to a row on a phone', function () {
+    // Seven full-width cards cost more than a screen of scrolling before the
+    // first real section. Two to a row halves that.
+    $this->actingAs($this->admin);
+
+    visit('/admin/platform-overview')
+        ->on()->mobile()
+        ->assertScript(<<<'JS'
+            (() => {
+                const cards = [...document.querySelectorAll('.ihsan-admin-metric-card')];
+                if (! cards.length) return 'NO CARDS';
+                const tops = new Set(cards.map((c) => Math.round(c.getBoundingClientRect().top)));
+                return cards.length > tops.size ? 'two up' : 'one up';
+            })()
+        JS, 'two up')
+        ->assertScript(OVERFLOW_PAST_VIEWPORT, 0);
+});
+
+it('gives organization edit fields the full width of a phone', function () {
+    // The vertical tab rail is a fixed 192px. Left beside the form on a phone
+    // it leaves the inputs about 90px wide — too narrow to read or type in.
+    $this->actingAs($this->admin);
+
+    $organization = Organization::factory()->create();
+
+    visit("/admin/organizations/{$organization->getKey()}/edit")
+        ->on()->mobile()
+        ->assertScript(<<<'JS'
+            (() => {
+                const input = document.querySelector('input.fi-input');
+                return input ? Math.round(input.getBoundingClientRect().width) > 240 : 'NO INPUT';
+            })()
+        JS, true)
+        ->assertScript(OVERFLOW_PAST_VIEWPORT, 0);
+});
+
+it('reads a transaction row on a phone without scrolling sideways', function () {
+    // Nine columns is 1400px of table. Scrolled, a phone shows the donor and
+    // half an organization name — not the amount, status or date.
+    $this->actingAs($this->admin);
+
+    $campaign = Campaign::factory()->for(Organization::factory())->create();
+    Donation::factory()->for($campaign)->for(Donor::factory())->create();
+
+    visit('/admin/transactions')
+        ->on()->mobile()
+        ->assertScript(<<<'JS'
+            (() => {
+                const table = document.querySelector('.fi-ta-content-ctn');
+                return table ? table.scrollWidth - table.clientWidth : 'NO TABLE';
+            })()
+        JS, 0);
+});
+
+it('reads an organization row on a phone without scrolling sideways', function () {
+    $this->actingAs($this->admin);
+
+    visit('/admin/organizations')
+        ->on()->mobile()
+        ->assertScript(<<<'JS'
+            (() => {
+                const table = document.querySelector('.fi-ta-content-ctn');
+                return table ? table.scrollWidth - table.clientWidth : 'NO TABLE';
+            })()
+        JS, 0);
 });
 
 it('lets a phone reach the last period on the revenue switch', function () {
