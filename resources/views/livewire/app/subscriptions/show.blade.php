@@ -502,13 +502,15 @@
                             </table>
                         </div>
                         @if ($this->recentPayments->count() > 5)
-                            <button
-                                type="button"
-                                wire:click="{{ $showAllPayments ? 'collapsePayments' : 'revealAllPayments' }}"
-                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
-                            >
-                                {{ $showAllPayments ? 'Show less' : 'Show all ('.$this->recentPayments->count().')' }}
-                            </button>
+                            <div class="mt-3 flex justify-center">
+                                <button
+                                    type="button"
+                                    wire:click="{{ $showAllPayments ? 'collapsePayments' : 'revealAllPayments' }}"
+                                    class="text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                                >
+                                    {{ $showAllPayments ? 'Show less' : 'Show all ('.$this->recentPayments->count().')' }}
+                                </button>
+                            </div>
                         @endif
                     @else
                         <x-ui.empty-state
@@ -569,13 +571,15 @@
                             </table>
                         </div>
                         @if ($this->receiptDonations->count() > 5)
-                            <button
-                                type="button"
-                                wire:click="{{ $showAllReceipts ? 'collapseReceipts' : 'revealAllReceipts' }}"
-                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
-                            >
-                                {{ $showAllReceipts ? 'Show less' : 'Show all ('.$this->receiptDonations->count().')' }}
-                            </button>
+                            <div class="mt-3 flex justify-center">
+                                <button
+                                    type="button"
+                                    wire:click="{{ $showAllReceipts ? 'collapseReceipts' : 'revealAllReceipts' }}"
+                                    class="text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                                >
+                                    {{ $showAllReceipts ? 'Show less' : 'Show all ('.$this->receiptDonations->count().')' }}
+                                </button>
+                            </div>
                         @endif
                     @else
                         <x-ui.empty-state
@@ -638,13 +642,15 @@
                             </table>
                         </div>
                         @if ($this->emailLogs->count() > 5)
-                            <button
-                                type="button"
-                                wire:click="{{ $showAllEmails ? 'collapseEmails' : 'revealAllEmails' }}"
-                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
-                            >
-                                {{ $showAllEmails ? 'Show less' : 'Show all ('.$this->emailLogs->count().')' }}
-                            </button>
+                            <div class="mt-3 flex justify-center">
+                                <button
+                                    type="button"
+                                    wire:click="{{ $showAllEmails ? 'collapseEmails' : 'revealAllEmails' }}"
+                                    class="text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                                >
+                                    {{ $showAllEmails ? 'Show less' : 'Show all ('.$this->emailLogs->count().')' }}
+                                </button>
+                            </div>
                         @endif
                     @else
                         <x-ui.empty-state

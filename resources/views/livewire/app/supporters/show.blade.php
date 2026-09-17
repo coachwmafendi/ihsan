@@ -268,13 +268,15 @@
                             </table>
                         </div>
                         @if ($this->recentDonations->count() > 5)
-                            <button
-                                type="button"
-                                wire:click="{{ $showAllDonations ? 'collapseDonations' : 'revealAllDonations' }}"
-                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
-                            >
-                                {{ $showAllDonations ? 'Show less' : 'Show all ('.$this->recentDonations->count().')' }}
-                            </button>
+                            <div class="mt-3 flex justify-center">
+                                <button
+                                    type="button"
+                                    wire:click="{{ $showAllDonations ? 'collapseDonations' : 'revealAllDonations' }}"
+                                    class="text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                                >
+                                    {{ $showAllDonations ? 'Show less' : 'Show all ('.$this->recentDonations->count().')' }}
+                                </button>
+                            </div>
                         @endif
                     @else
                         <x-ui.empty-state
@@ -446,13 +448,15 @@
                             </table>
                         </div>
                         @if ($this->receiptDonations->count() > 5)
-                            <button
-                                type="button"
-                                wire:click="{{ $showAllReceipts ? 'collapseReceipts' : 'revealAllReceipts' }}"
-                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
-                            >
-                                {{ $showAllReceipts ? 'Show less' : 'Show all ('.$this->receiptDonations->count().')' }}
-                            </button>
+                            <div class="mt-3 flex justify-center">
+                                <button
+                                    type="button"
+                                    wire:click="{{ $showAllReceipts ? 'collapseReceipts' : 'revealAllReceipts' }}"
+                                    class="text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                                >
+                                    {{ $showAllReceipts ? 'Show less' : 'Show all ('.$this->receiptDonations->count().')' }}
+                                </button>
+                            </div>
                         @endif
                     @else
                         <x-ui.empty-state
@@ -504,7 +508,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-slate-500">
-                                                <span class="inline-flex flex-col gap-1">
+                                                <span class="inline-flex flex-col items-start gap-1">
                                                     @if ($log->status_detail)
                                                         <x-ui.tooltip :text="$log->status_detail">
                                                             <x-ui.badge :status="$log->status_tone" size="sm">{{ $log->status_label }}</x-ui.badge>
@@ -533,13 +537,15 @@
                             </table>
                         </div>
                         @if ($this->emailLogs->count() > 5)
-                            <button
-                                type="button"
-                                wire:click="{{ $showAllEmails ? 'collapseEmails' : 'revealAllEmails' }}"
-                                class="mt-3 text-sm font-medium text-slate-600 transition hover:text-teal-600"
-                            >
-                                {{ $showAllEmails ? 'Show less' : 'Show all ('.$this->emailLogs->count().')' }}
-                            </button>
+                            <div class="mt-3 flex justify-center">
+                                <button
+                                    type="button"
+                                    wire:click="{{ $showAllEmails ? 'collapseEmails' : 'revealAllEmails' }}"
+                                    class="text-sm font-medium text-slate-600 transition hover:text-teal-600"
+                                >
+                                    {{ $showAllEmails ? 'Show less' : 'Show all ('.$this->emailLogs->count().')' }}
+                                </button>
+                            </div>
                         @endif
                     @else
                         <x-ui.empty-state
