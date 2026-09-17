@@ -19,7 +19,14 @@
         $logoPath = ReceiptImageOptimizer::receiptThumbnail(\Illuminate\Support\Facades\Storage::disk('public')->path($org->logo_path));
     }
 
-    $addressParts = array_filter([$org->city, $org->state, $org->country]);
+    $addressParts = array_filter([
+        $org->address_line_1,
+        $org->address_line_2,
+        $org->city,
+        $org->state,
+        $org->postcode,
+        $org->country,
+    ]);
     $contactParts = array_filter([implode(', ', $addressParts), $org->contact_email, $org->contact_phone]);
 @endphp
 

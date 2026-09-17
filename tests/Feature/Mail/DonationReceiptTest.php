@@ -182,6 +182,26 @@ it('renders the pdf receipt template with the new layout', function () {
         ->toContain('info@darulmujtaba.org');
 });
 
+it('prints the full organization address in the pdf receipt footer', function () {
+    $organization = Organization::factory()->create([
+        'name' => 'Darul Mujtaba',
+        'address_line_1' => 'No. 12, Jalan Setia 3',
+        'address_line_2' => 'Taman Setia Indah',
+        'city' => 'Johor Bahru',
+        'state' => 'Johor',
+        'postcode' => '81100',
+        'country' => 'Malaysia',
+        'contact_email' => 'info@darulmujtaba.org',
+    ]);
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create();
+
+    $html = view('emails.donation-receipt-pdf', ['donation' => $donation])->render();
+
+    expect($html)->toContain('No. 12, Jalan Setia 3, Taman Setia Indah, Johor Bahru, Johor, 81100, Malaysia');
+});
+
 it('embeds the organization logo in the pdf receipt when available', function () {
     Storage::fake('public');
     // 1x1 transparent PNG

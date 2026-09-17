@@ -58,6 +58,30 @@ it('only includes succeeded donations from the requested year', function () {
         ->toContain('MYR 250.00');
 });
 
+it('prints the full organization address in the annual statement footer', function () {
+    $org = Organization::factory()->create([
+        'address_line_1' => 'No. 12, Jalan Setia 3',
+        'address_line_2' => 'Taman Setia Indah',
+        'city' => 'Johor Bahru',
+        'state' => 'Johor',
+        'postcode' => '81100',
+        'country' => 'Malaysia',
+    ]);
+    $campaign = Campaign::factory()->for($org)->create();
+    $donor = Donor::factory()->create();
+
+    statementDonation($campaign, $donor, '2026-06-01 10:00:00', ['gross_amount' => 250]);
+
+    $html = view('emails.donation-annual-statement', [
+        'donations' => Donation::query()->where('gross_amount', 250)->get(),
+        'organization' => $org,
+        'donor' => $donor,
+        'year' => 2026,
+    ])->render();
+
+    expect($html)->toContain('No. 12, Jalan Setia 3, Taman Setia Indah, Johor Bahru, Johor, 81100, Malaysia');
+});
+
 it('redirects when no donations exist for the year', function () {
     $org = Organization::factory()->create();
     $campaign = Campaign::factory()->for($org)->create();
