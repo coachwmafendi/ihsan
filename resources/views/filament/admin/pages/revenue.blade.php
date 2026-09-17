@@ -109,7 +109,7 @@
             wire:target="period"
             class="space-y-6 transition-opacity"
         >
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div class="grid grid-cols-2 gap-4 [&>*]:min-w-0 xl:grid-cols-5">
             <x-admin.metric-card icon="heroicon-o-banknotes" label="Total processing fees" :value="'MYR '.$totalProcessingFees" :note="$totalTransactions.' successful transaction'.($totalTransactions !== 1 ? 's' : '')" />
             <x-admin.metric-card icon="heroicon-o-arrow-trending-up" label="Donation volume" :value="'MYR '.$totalDonationVolume" note="Gross from succeeded donations" />
             <x-admin.metric-card icon="heroicon-o-calculator" label="Avg donation" :value="'MYR '.$averageDonationSize" note="Average per transaction" />
