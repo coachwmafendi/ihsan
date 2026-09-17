@@ -426,7 +426,7 @@ it('renders the installment wallet icon at full height instead of letterboxing i
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
         ->assertSee('Apple Pay')
-        ->assertSee('h-6 w-auto shrink-0 text-slate-700', false)
+        ->assertSee('h-5 w-auto shrink-0 text-slate-700', false)
         ->assertDontSee('size-5 text-slate-700', false);
 });
 

@@ -241,7 +241,7 @@
                                                 <div class="flex items-center gap-2">
                                                     <x-donation-report-amount :donation="$donation" />
                                                     <x-ui.tooltip :text="$donation->payment_method_display">
-                                                        <x-dynamic-component :component="$donation->card_icon_component" class="h-7 w-auto shrink-0" />
+                                                        <x-dynamic-component :component="$donation->card_icon_component" class="h-5 w-auto shrink-0" />
                                                     </x-ui.tooltip>
                                                     @if ($donation->installment_number !== null)
                                                         <x-ui.tooltip :text="\Illuminate\Support\Number::ordinal($donation->installment_number).' Installment'">
@@ -354,7 +354,7 @@
                                 @php($card = $entry['card'])
                                 <li class="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                                     <div class="flex items-center gap-3">
-                                        <x-dynamic-component :component="$card->card_icon_component" class="h-6 w-auto shrink-0" />
+                                        <x-dynamic-component :component="$card->card_icon_component" class="h-5 w-auto shrink-0" />
                                         <div>
                                             <p class="text-sm font-medium text-slate-900">
                                                 {{ $card->brand }} •••• {{ $card->last4 }}

@@ -85,7 +85,7 @@ it('renders the wallet icon at full height instead of letterboxing it in a squar
         ->get('https://app.example.test/supporters/'.$donor->public_id)
         ->assertOk()
         ->assertSee('Apple Pay')
-        ->assertSee('h-7 w-auto shrink-0', false)
+        ->assertSee('h-5 w-auto shrink-0', false)
         ->assertDontSee('size-6 shrink-0', false);
 });
 
