@@ -484,7 +484,7 @@
                                                         <span>{{ $payment->formatted_report_amount }}</span>
                                                     </x-ui.tooltip>
                                                     <x-ui.tooltip :text="$payment->payment_method_display">
-                                                        <x-dynamic-component :component="$payment->card_icon_component" class="h-6 w-auto shrink-0 text-slate-700" />
+                                                        <x-dynamic-component :component="$payment->card_icon_component" class="h-5 w-auto shrink-0 text-slate-700" />
                                                     </x-ui.tooltip>
                                                 </div>
                                             </td>
