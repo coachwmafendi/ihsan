@@ -28,7 +28,14 @@
         }
         $orgInitial = strtoupper(mb_substr(trim($organization->name), 0, 1));
 
-        $addressParts = array_filter([$organization->city, $organization->state, $organization->country]);
+        $addressParts = array_filter([
+            $organization->address_line_1,
+            $organization->address_line_2,
+            $organization->city,
+            $organization->state,
+            $organization->postcode,
+            $organization->country,
+        ]);
         $contactParts = array_filter([implode(', ', $addressParts), $organization->contact_email, $organization->contact_phone]);
         $brand = parse_url((string) config('app.url'), PHP_URL_HOST) ?: config('app.name');
     @endphp
