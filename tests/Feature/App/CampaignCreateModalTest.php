@@ -125,3 +125,14 @@ it('tightens the campaigns table for a phone', function () {
         ->assertSeeHtml('px-3 py-3 sm:px-5')
         ->assertSeeHtml('p-3 sm:p-5');
 });
+
+it('keeps a long campaign title to one line in the table', function () {
+    Campaign::factory()->for($this->organization)->create([
+        'title' => 'Dana Pembinaan Masjid Tahfiz Al Ayubi Kampung Baru',
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignIndex::class)
+        ->assertSeeHtml('block max-w-[11rem] truncate');
+});

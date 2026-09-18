@@ -241,3 +241,12 @@ it('paginates supporters based on per page selection', function () {
 
     expect($component->instance()->donors)->toHaveCount(30);
 });
+
+it('keeps a long donor email to one line in the table', function () {
+    Donor::factory()->create(['email' => 'madrasahsaidatinakhadijah.my.selangor@gmail.com']);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(SupporterIndex::class)
+        ->assertSeeHtml('block max-w-[11rem] truncate');
+});

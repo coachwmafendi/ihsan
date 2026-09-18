@@ -348,7 +348,9 @@
                                     <p class="text-sm font-medium text-slate-900">{{ $donor->name }}</p>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
-                                    {{ $donor->email }}
+                                    <x-ui.tooltip :text="$donor->email">
+                                        <span class="block max-w-[11rem] truncate sm:max-w-[18rem]">{{ $donor->email }}</span>
+                                    </x-ui.tooltip>
                                 </td>
                                 <td class="px-5 py-4 text-right text-sm tabular-nums text-slate-900">
                                     {{ number_format($donor->donations_count) }}

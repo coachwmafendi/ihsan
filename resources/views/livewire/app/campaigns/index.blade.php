@@ -134,10 +134,12 @@
                                                 <x-heroicon-o-megaphone class="size-5 text-teal-600" />
                                             </div>
                                         @endif
-                                        <div>
-                                            <span class="text-sm font-semibold text-slate-900">
-                                                {{ $campaign->title }}
-                                            </span>
+                                        <div class="min-w-0">
+                                            <x-ui.tooltip :text="$campaign->title">
+                                                <span class="block max-w-[11rem] truncate text-sm font-semibold text-slate-900 sm:max-w-[18rem]">
+                                                    {{ $campaign->title }}
+                                                </span>
+                                            </x-ui.tooltip>
                                             @if ($campaign->payment_gateway)
                                                 <x-ui.badge status="info" size="xs" class="mt-1 w-fit">
                                                     {{ $campaign->payment_gateway->getLabel() }}

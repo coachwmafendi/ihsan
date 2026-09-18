@@ -511,9 +511,11 @@
                                     @endif
                                 </td>
                                 <td class="px-5 py-4">
-                                    <span class="text-sm font-medium text-slate-900">{{ $subscription->donor?->name ?? 'Unknown' }}</span>
+                                    <span class="block max-w-[11rem] truncate text-sm font-medium text-slate-900 sm:max-w-[18rem]">{{ $subscription->donor?->name ?? 'Unknown' }}</span>
                                     @if ($subscription->donor?->email)
-                                        <p class="mt-0.5 text-xs text-slate-500">{{ $subscription->donor->email }}</p>
+                                        <x-ui.tooltip :text="$subscription->donor->email">
+                                            <p class="mt-0.5 block max-w-[11rem] truncate text-xs text-slate-500 sm:max-w-[18rem]">{{ $subscription->donor->email }}</p>
+                                        </x-ui.tooltip>
                                     @endif
                                 </td>
                             </tr>

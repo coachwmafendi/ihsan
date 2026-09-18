@@ -145,3 +145,18 @@ it('lets a phone reach the last period on the revenue switch', function () {
         ->click('All Time')
         ->assertSee('Total processing fees');
 });
+
+it('keeps the bottom bar on a tablet, where the sidebar is still a drawer', function () {
+    // Filament hands the sidebar back at 1024px, so the bar has to stay until
+    // then — the same breakpoint the NGO panel's bar uses.
+    $this->actingAs($this->admin);
+
+    visit('/admin/transactions')
+        ->on()->iPadMini()
+        ->assertScript(<<<'JS'
+            (() => {
+                const bar = document.querySelector('[data-test="admin-bottom-nav"]');
+                return bar ? getComputedStyle(bar).display : 'NO BAR';
+            })()
+        JS, 'flex');
+});
