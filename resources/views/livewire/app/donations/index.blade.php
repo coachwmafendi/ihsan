@@ -557,14 +557,17 @@
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
                                     @if ($donation->campaign)
-                                        <a
-                                            href="{{ route('app.campaigns.edit', $donation->campaign) }}"
-                                            wire:navigate.stop
-                                            class="hover:text-teal-600"
-                                            onclick="event.stopPropagation()"
-                                        >
-                                            {{ $donation->campaign->title }}
-                                        </a>
+                                        {{-- Long names wrapped to five lines and set the row height. --}}
+                                        <x-ui.tooltip :text="$donation->campaign->title">
+                                            <a
+                                                href="{{ route('app.campaigns.edit', $donation->campaign) }}"
+                                                wire:navigate.stop
+                                                class="block max-w-[10rem] truncate hover:text-teal-600 sm:max-w-[16rem]"
+                                                onclick="event.stopPropagation()"
+                                            >
+                                                {{ $donation->campaign->title }}
+                                            </a>
+                                        </x-ui.tooltip>
                                     @else
                                         <span class="text-slate-400">—</span>
                                     @endif

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Livewire\App\Campaigns\CampaignIndex;
 use App\Models\Campaign;
 use App\Models\Organization;
 use App\Models\User;
@@ -111,4 +112,16 @@ it('clears the auto-populated name when clone selection is removed', function ()
         ->assertSet('newCampaignName', 'Source Campaign (Copy)')
         ->set('cloneCampaignId', '')
         ->assertSet('newCampaignName', '');
+});
+
+it('tightens the campaigns table for a phone', function () {
+    // Table cells at desktop padding leave little room for the columns
+    // themselves once a phone takes 40px of it per row.
+    Campaign::factory()->for($this->organization)->create();
+
+    $this->actingAs($this->user);
+
+    Livewire::test(CampaignIndex::class)
+        ->assertSeeHtml('px-3 py-3 sm:px-5')
+        ->assertSeeHtml('p-3 sm:p-5');
 });

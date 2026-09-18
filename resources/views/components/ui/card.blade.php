@@ -29,7 +29,8 @@
         </div>
     @endif
 
-    <div @class(['p-5' => $padded])>
+    {{-- A phone gives up 40px of row to desktop padding it has no room for. --}}
+    <div @class(['p-3 sm:p-5' => $padded])>
         {{ $slot }}
     </div>
 
