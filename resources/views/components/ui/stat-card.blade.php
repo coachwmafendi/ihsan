@@ -6,7 +6,7 @@
     'trend'      => null,
     'trendColor' => 'gray',
     'progress'   => null,
-    'valueClass' => 'text-3xl font-semibold tracking-tight text-gray-950 dark:text-white',
+    'valueClass' => 'text-xl sm:text-3xl font-semibold tracking-tight text-gray-950 dark:text-white',
 ])
 
 @php
@@ -18,8 +18,10 @@
     $trendClass = $trendColors[$trendColor] ?? $trendColors['gray'];
 @endphp
 
-<div {{ $attributes->merge(['class' => 'rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10']) }}>
-    <div class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $label }}</div>
+{{-- Two of these sit side by side on a phone, so the padding and supporting
+     type step down until there is room for the full card. --}}
+<div {{ $attributes->merge(['class' => 'rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-950/5 sm:p-6 dark:bg-gray-900 dark:ring-white/10']) }}>
+    <div class="text-xs font-medium text-gray-500 sm:text-sm dark:text-gray-400">{{ $label }}</div>
     <div @class(['mt-2', $valueClass])>{{ $value }}</div>
     @if (! is_null($progress))
         @php $clamped = max(0, min(100, (float) $progress)); $visible = $clamped > 0 ? max($clamped, 3) : 0; @endphp
@@ -28,7 +30,7 @@
         </div>
     @endif
     @if ($subtext)
-        <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ $subtext }}</div>
+        <div class="mt-2 text-xs text-gray-500 sm:text-sm dark:text-gray-400">{{ $subtext }}</div>
     @endif
     @if ($trend)
         <div class="mt-2 text-sm font-medium {{ $trendClass }}">{{ $trend }}</div>

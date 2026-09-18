@@ -42,10 +42,13 @@
         :class="$store.sidebar.collapsed ? 'lg:pl-16' : 'lg:pl-64'"
     >
         <livewire:app.topbar />
-        <main class="flex-1 p-6 md:p-8">
+        {{-- Bottom padding on small screens keeps the last row clear of the bar. --}}
+        <main class="flex-1 p-6 pb-24 md:p-8 lg:pb-8">
             {{ $slot }}
         </main>
     </div>
+
+    <x-bottom-nav />
 
     <livewire:app.command-palette />
 </div>

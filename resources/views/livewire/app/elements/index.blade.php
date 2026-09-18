@@ -39,7 +39,7 @@
     </div>
 
     {{-- Summary Stats --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <x-ui.stat-card
             label="{{ $showArchived ? 'Archived Elements' : 'Total Elements' }}"
             value="{{ number_format($this->totalCount) }}"
