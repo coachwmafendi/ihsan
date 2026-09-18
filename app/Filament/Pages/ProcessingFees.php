@@ -36,8 +36,7 @@ class ProcessingFees extends Page implements HasTable
                 TextColumn::make('created_at')
                     ->label('Date (MYT)')
                     ->date('d M Y', timezone: 'Asia/Kuala_Lumpur')
-                    ->sortable()
-                    ->visibleFrom('md'),
+                    ->sortable(),
                 TextColumn::make('organization.name')
                     ->label('Organization')
                     ->searchable()
@@ -52,8 +51,7 @@ class ProcessingFees extends Page implements HasTable
                     })
                     ->formatStateUsing(fn (string $state): string => str($state)->headline()->toString())
                     ->sortable()
-                    ->toggleable()
-                    ->visibleFrom('md'),
+                    ->toggleable(),
                 TextColumn::make('fee_amount')
                     ->label('Amount')
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
@@ -72,13 +70,11 @@ class ProcessingFees extends Page implements HasTable
                     ->searchable()
                     ->toggleable()
                     ->limit(30)
-                    ->tooltip(fn (ProcessingFee $record): string => $record->donation?->campaign?->title ?? '')
-                    ->visibleFrom('md'),
+                    ->tooltip(fn (ProcessingFee $record): string => $record->donation?->campaign?->title ?? ''),
                 TextColumn::make('donation.donor.name')
                     ->label('Donor')
                     ->searchable()
-                    ->toggleable()
-                    ->visibleFrom('md'),
+                    ->toggleable(),
                 TextColumn::make('donation.gross_amount')
                     ->label('Donation')
                     ->formatStateUsing(function (string $state, ProcessingFee $record): string {
@@ -103,13 +99,11 @@ class ProcessingFees extends Page implements HasTable
                         return null;
                     })
                     ->sortable()
-                    ->toggleable()
-                    ->visibleFrom('md'),
+                    ->toggleable(),
                 TextColumn::make('fee_percentage')
                     ->label('Rate')
                     ->formatStateUsing(fn (string $state): string => $state.'%')
-                    ->toggleable()
-                    ->visibleFrom('md'),
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => str($state)->headline()->toString())
@@ -124,8 +118,7 @@ class ProcessingFees extends Page implements HasTable
                 TextColumn::make('monthlyInvoice.invoice_number')
                     ->label('Invoice #')
                     ->searchable()
-                    ->toggleable()
-                    ->visibleFrom('md'),
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('organization_id')

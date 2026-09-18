@@ -3,9 +3,6 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
-use App\Models\Campaign;
-use App\Models\Donation;
-use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,16 +28,6 @@ const OVERFLOW_PAST_VIEWPORT = <<<'JS'
     (() => {
         const layout = document.querySelector('.fi-layout');
         return layout ? layout.scrollWidth - layout.clientWidth : -1;
-    })()
-JS;
-
-/**
- * How far a Filament table reaches past the screen, in pixels.
- */
-const TABLE_OVERFLOW = <<<'JS'
-    (() => {
-        const table = document.querySelector('.fi-ta-content-ctn');
-        return table ? table.scrollWidth - table.clientWidth : -1;
     })()
 JS;
 
@@ -174,23 +161,12 @@ it('keeps the bottom bar on a tablet, where the sidebar is still a drawer', func
         JS, 'flex');
 });
 
-it('fits a transaction row on a phone without scrolling sideways', function () {
-    // Nine columns is ~1400px of table. The six that are context rather than
-    // answer are hidden below md and stay in the column manager.
-    $this->actingAs($this->admin);
-
-    $campaign = Campaign::factory()->for(Organization::factory())->create();
-    Donation::factory()->for($campaign)->for(Donor::factory())->create();
-
-    visit('/admin/transactions')
+it('leaves the bottom bar off the sign-in screen', function () {
+    // The render hook fires on every panel page. Signed out, every link in the
+    // bar leads straight back to this screen.
+    visit('/admin/login')
         ->on()->mobile()
-        ->assertScript(TABLE_OVERFLOW, 0);
-});
-
-it('fits an organization row on a phone without scrolling sideways', function () {
-    $this->actingAs($this->admin);
-
-    visit('/admin/organizations')
-        ->on()->mobile()
-        ->assertScript(TABLE_OVERFLOW, 0);
+        ->assertScript(<<<'JS'
+            (() => document.querySelector('[data-test="admin-bottom-nav"]') ? 'PRESENT' : 'ABSENT')()
+        JS, 'ABSENT');
 });

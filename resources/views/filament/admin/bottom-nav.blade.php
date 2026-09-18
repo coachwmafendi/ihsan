@@ -1,9 +1,17 @@
 @php
+    // Imports stay outside the guard below: a `use` statement inside a
+    // conditional block is a PHP parse error once Blade compiles it.
     use App\Filament\Pages\PlatformOverview;
     use App\Filament\Pages\Revenue;
     use App\Filament\Pages\Transactions;
     use App\Filament\Resources\Organizations\OrganizationResource;
+@endphp
 
+{{-- The render hook fires on every panel page, sign-in included, where every
+     link in the bar would lead straight back to that screen. --}}
+@if (filament()->auth()->check())
+
+@php
     $items = [
         [
             'label' => 'Overview',
@@ -67,3 +75,5 @@
         <span class="ihsan-admin-bottom-nav-label">More</span>
     </button>
 </nav>
+
+@endif
