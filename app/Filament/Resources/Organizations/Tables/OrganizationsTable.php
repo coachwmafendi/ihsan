@@ -29,7 +29,8 @@ class OrganizationsTable
                 TextColumn::make('code')
                     ->label('Code')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
@@ -46,18 +47,21 @@ class OrganizationsTable
                     ->sortable(),
                 IconColumn::make('stripe_onboarded')
                     ->boolean()
-                    ->label('Stripe'),
+                    ->label('Stripe')
+                    ->visibleFrom('md'),
                 TextColumn::make('approved_at')
                     ->label('Onboarded Date (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
                     ->formatStateUsing(fn ($state) => $state ? myrTime($state, false) : '—')
                     ->sortable()
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->visibleFrom('md'),
                 TextColumn::make('created_at')
                     ->label('Application Date (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
                     ->formatStateUsing(fn ($state) => $state ? myrTime($state, false) : '—')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 TextColumn::make('deleted_at')
                     ->label('Deleted At (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
