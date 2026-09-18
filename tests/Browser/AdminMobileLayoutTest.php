@@ -194,3 +194,13 @@ it('fits an organization row on a phone without scrolling sideways', function ()
         ->on()->mobile()
         ->assertScript(TABLE_OVERFLOW, 0);
 });
+
+it('leaves the bottom bar off the sign-in screen', function () {
+    // The render hook fires on every panel page. Signed out, every link in the
+    // bar leads straight back to this screen.
+    visit('/admin/login')
+        ->on()->mobile()
+        ->assertScript(<<<'JS'
+            (() => document.querySelector('[data-test="admin-bottom-nav"]') ? 'PRESENT' : 'ABSENT')()
+        JS, 'ABSENT');
+});
