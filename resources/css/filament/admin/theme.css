@@ -233,7 +233,7 @@
 }
 
 .ihsan-admin-metric-value {
-    @apply mt-2 text-lg font-semibold tracking-normal text-ihsan-ink sm:mt-3 sm:text-2xl dark:text-white;
+    @apply mt-2 text-base font-semibold leading-6 tracking-normal text-ihsan-ink sm:mt-3 sm:text-2xl sm:leading-8 dark:text-white;
 }
 
 .ihsan-admin-metric-note {
