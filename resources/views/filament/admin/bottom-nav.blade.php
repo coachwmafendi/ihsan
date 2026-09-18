@@ -30,7 +30,13 @@
     $currentUrl = url()->current();
 @endphp
 
-<nav class="ihsan-admin-bottom-nav" data-test="admin-bottom-nav">
+{{-- Stands down while the sidebar is open rather than sitting on top of it. --}}
+<nav
+    class="ihsan-admin-bottom-nav"
+    data-test="admin-bottom-nav"
+    x-data
+    x-show="! $store.sidebar.isOpen"
+>
     @foreach ($items as $item)
         @php
             $isCurrent = str_starts_with($currentUrl, $item['url']);

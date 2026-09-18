@@ -107,7 +107,14 @@ it('opens the sidebar from the bottom bar so the other pages stay reachable', fu
         ->on()->mobile()
         ->click('More')
         ->assertSee('Fraud Prevention')
-        ->assertSee('Monthly Invoices');
+        ->assertSee('Monthly Invoices')
+        // The bar would otherwise sit on top of the open sidebar.
+        ->assertScript(<<<'JS'
+            (() => {
+                const bar = document.querySelector('[data-test="admin-bottom-nav"]');
+                return bar ? getComputedStyle(bar).display : 'NO BAR';
+            })()
+        JS, 'none');
 });
 
 it('keeps the bottom navigation bar off a desktop screen', function () {
