@@ -83,6 +83,45 @@ it('gives organization edit fields the full width of a phone', function () {
         ->assertScript(OVERFLOW_PAST_VIEWPORT, 0);
 });
 
+it('shows a bottom navigation bar on a phone and marks the page you are on', function () {
+    $this->actingAs($this->admin);
+
+    visit('/admin/transactions')
+        ->on()->mobile()
+        ->assertVisible('@admin-bottom-nav')
+        ->assertScript(<<<'JS'
+            (() => {
+                const bar = document.querySelector('[data-test="admin-bottom-nav"]');
+                if (! bar) return 'NO BAR';
+                const labels = [...bar.querySelectorAll('a, button')].map((el) => el.textContent.trim());
+                const current = bar.querySelector('[aria-current="page"]');
+                return labels.join('|') + ' :: ' + (current ? current.textContent.trim() : 'NONE');
+            })()
+        JS, 'Overview|Transactions|Organizations|Revenue|More :: Transactions');
+});
+
+it('opens the sidebar from the bottom bar so the other pages stay reachable', function () {
+    $this->actingAs($this->admin);
+
+    visit('/admin/transactions')
+        ->on()->mobile()
+        ->click('More')
+        ->assertSee('Fraud Prevention')
+        ->assertSee('Monthly Invoices');
+});
+
+it('keeps the bottom navigation bar off a desktop screen', function () {
+    $this->actingAs($this->admin);
+
+    visit('/admin/transactions')
+        ->assertScript(<<<'JS'
+            (() => {
+                const bar = document.querySelector('[data-test="admin-bottom-nav"]');
+                return bar ? getComputedStyle(bar).display : 'NO BAR';
+            })()
+        JS, 'none');
+});
+
 it('lets a phone reach the last period on the revenue switch', function () {
     // The switch is wider than a phone either way. What matters is that the
     // buttons past the fold can be scrolled to and pressed rather than clipped.
