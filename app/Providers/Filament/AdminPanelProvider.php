@@ -26,8 +26,10 @@ use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\Support\Icons\Heroicon;
 use Filament\View\PanelsIconAlias;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
+use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -60,6 +62,10 @@ class AdminPanelProvider extends PanelProvider
                 '*/revenue/report/*',
             ])
             ->breadcrumbs(false)
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): View => view('filament.admin.bottom-nav'),
+            )
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('16rem')
             ->brandLogo(asset('logo-ihsan.svg'))

@@ -218,6 +218,30 @@
     @apply mt-1 max-w-3xl text-sm leading-6 text-ihsan-muted dark:text-stone-400;
 }
 
+/* Phone-only bottom navigation. The four pages opened daily, plus a way into
+   the sidebar for the rest. Hidden from md up, where the sidebar is enough. */
+.ihsan-admin-bottom-nav {
+    @apply fixed inset-x-0 bottom-0 z-30 hidden items-stretch border-t border-stone-200 bg-ihsan-cream/95 backdrop-blur max-md:flex dark:border-stone-800 dark:bg-stone-900/95;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.ihsan-admin-bottom-nav-item {
+    @apply flex flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-stone-500 transition dark:text-stone-400;
+}
+
+.ihsan-admin-bottom-nav-item-active {
+    @apply text-ihsan-terracotta dark:text-orange-300;
+}
+
+.ihsan-admin-bottom-nav-label {
+    @apply text-[0.625rem] font-medium leading-none;
+}
+
+/* Room for the bar, so it never sits on top of the last row of a page. */
+.fi-panel-admin .fi-main {
+    @apply max-md:pb-20;
+}
+
 /* A phone shows these two to a row, so everything inside them is a size down
    until there is room for the full card. */
 .ihsan-admin-metric-card {
