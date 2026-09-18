@@ -129,3 +129,14 @@ it('shows an error when google analytics 4 test connection fails', function () {
         ->call('testConnection', 'ga4')
         ->assertDispatched('notify', type: 'error');
 });
+
+it('draws the provider filter with the app-wide select chevron', function () {
+    // A bare native select renders the platform arrow, which sits apart from
+    // every other select in the panel.
+    $this->actingAs($this->user);
+
+    Livewire::test(Tracking::class)
+        ->assertSeeHtml('wire:model.live="eventFilter"')
+        ->assertSeeHtml('appearance-none')
+        ->assertSeeHtml('pointer-events-none absolute inset-y-0 right-3');
+});

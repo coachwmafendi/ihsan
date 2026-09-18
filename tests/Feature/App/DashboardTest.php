@@ -693,3 +693,24 @@ it('keeps every dashboard card on the same Malaysian day as the headline stats',
         ->and(collect($instance->campaignsBreakdown())->sum('donations_count'))->toBe(0)
         ->and($instance->donationSizes()['under_50'] ?? 0)->toBe(0);
 });
+
+it('sizes the stat cards down for a phone', function () {
+    // Eight full-width cards cost more than a screen of scrolling before the
+    // charts. Two to a row, with smaller type and padding, halves that.
+    actingAs($this->user);
+
+    Livewire::test(Dashboard::class)
+        ->assertSeeHtml('grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4')
+        ->assertSeeHtml('text-lg sm:text-2xl font-semibold')
+        ->assertSeeHtml('p-4 shadow-sm ring-1 ring-gray-950/5 sm:p-6');
+});
+
+it('carries a phone bottom bar with the four daily pages and a way to the rest', function () {
+    actingAs($this->user);
+
+    get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->assertSeeHtml('data-test="app-bottom-nav"')
+        ->assertSeeInOrder(['Dashboard', 'Donations', 'Recurring', 'Supporters', 'More'])
+        ->assertSeeHtml("\$dispatch('toggle-sidebar')");
+});

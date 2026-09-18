@@ -32,7 +32,7 @@
             </div>
 
             {{-- Stats grid skeleton --}}
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 @for ($i = 0; $i < 8; $i++)
                     <div class="h-28 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                         <div class="h-3 w-24 animate-pulse rounded bg-slate-200"></div>
@@ -666,50 +666,50 @@
     </x-ui.card>
 
     {{-- Stats Grid --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <x-ui.stat-card
             label="Total Donations"
             value="{{ ($this->stats['has_approximation'] ? '≈ ' : '').'MYR '.number_format($this->stats['total_amount'] ?? 0, 2) }}"
             subtext="{{ number_format($this->stats['total_count'] ?? 0) }} donations"
-            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+            value-class="text-lg sm:text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="Donors"
             value="{{ number_format($this->stats['total_donors'] ?? 0) }}"
-            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+            value-class="text-lg sm:text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="Active Campaigns"
             value="{{ number_format($this->stats['active_campaigns'] ?? 0) }}"
-            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+            value-class="text-lg sm:text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="Active Subscriptions"
             value="{{ number_format($this->stats['active_subscriptions'] ?? 0) }}"
-            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+            value-class="text-lg sm:text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="Avg Donation"
             value="{{ ($this->stats['has_approximation'] ? '≈ ' : '') }}MYR {{ number_format(($this->stats['total_count'] ?? 0) > 0 ? ($this->stats['total_amount'] ?? 0) / ($this->stats['total_count'] ?? 1) : 0, 2) }}"
-            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+            value-class="text-lg sm:text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="MRR"
             value="{{ ($this->recurringHealth['mrr_has_approximation'] ? '≈ ' : '').'MYR '.number_format($this->recurringHealth['mrr'] ?? 0, 2) }}"
             subtext="Monthly recurring revenue"
-            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+            value-class="text-lg sm:text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="At-risk Subscriptions"
             value="{{ number_format($this->recurringHealth['at_risk_count'] ?? 0) }}"
             subtext="Past due or failed"
-            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+            value-class="text-lg sm:text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
         <x-ui.stat-card
             label="Expected (30 days)"
             value="{{ ($this->recurringHealth['expected_30_days_has_approximation'] ? '≈ ' : '').'MYR '.number_format($this->recurringHealth['expected_30_days'] ?? 0, 2) }}"
             subtext="Scheduled recurring charges"
-            value-class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
+            value-class="text-lg sm:text-2xl font-semibold tracking-tight text-gray-950 dark:text-white"
         />
     </div>
 

@@ -262,15 +262,18 @@
                     class="block w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm placeholder-slate-400 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                 />
             </div>
-            <select
-                wire:model.live="eventFilter"
-                class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-            >
-                <option value="">All providers</option>
-                @foreach ($providers as $p)
-                    <option value="{{ $p->value }}">{{ $p->label() }}</option>
-                @endforeach
-            </select>
+            <div class="relative">
+                <select
+                    wire:model.live="eventFilter"
+                    class="block w-full appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-10 text-sm text-slate-700 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                >
+                    <option value="">All providers</option>
+                    @foreach ($providers as $p)
+                        <option value="{{ $p->value }}">{{ $p->label() }}</option>
+                    @endforeach
+                </select>
+                <x-dynamic-component component="heroicon-m-chevron-down" class="pointer-events-none absolute inset-y-0 right-3 my-auto size-4 text-slate-400" />
+            </div>
         </div>
 
         <div class="overflow-hidden rounded-lg border border-slate-200">
