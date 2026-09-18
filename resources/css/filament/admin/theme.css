@@ -218,10 +218,11 @@
     @apply mt-1 max-w-3xl text-sm leading-6 text-ihsan-muted dark:text-stone-400;
 }
 
-/* Phone-only bottom navigation. The four pages opened daily, plus a way into
-   the sidebar for the rest. Hidden from md up, where the sidebar is enough. */
+/* Bottom navigation for the screens where the sidebar is a drawer: the four
+   pages opened daily, plus a way into the sidebar for the rest. Filament hands
+   the sidebar back at lg, which is where the bar stands down. */
 .ihsan-admin-bottom-nav {
-    @apply fixed inset-x-0 bottom-0 z-30 hidden items-stretch border-t border-stone-200 bg-ihsan-cream/95 backdrop-blur max-md:flex dark:border-stone-800 dark:bg-stone-900/95;
+    @apply fixed inset-x-0 bottom-0 z-30 hidden items-stretch border-t border-stone-200 bg-ihsan-cream/95 backdrop-blur max-lg:flex dark:border-stone-800 dark:bg-stone-900/95;
     padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -239,7 +240,7 @@
 
 /* Room for the bar, so it never sits on top of the last row of a page. */
 .fi-panel-admin .fi-main {
-    @apply max-md:pb-20;
+    @apply max-lg:pb-20;
 }
 
 /* A phone shows these two to a row, so everything inside them is a size down
