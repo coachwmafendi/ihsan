@@ -54,12 +54,14 @@
                         @click="open = ! open"
                         class="flex w-full items-start justify-between gap-4 px-5 py-4 text-left hover:bg-slate-50"
                     >
-                        <div class="flex items-start gap-3">
+                        {{-- Without a zero min-width the description cannot shrink, and
+                             the row runs past the card's overflow-hidden edge. --}}
+                        <div class="flex min-w-0 items-start gap-3">
                             <x-heroicon-o-chevron-down
                                 class="mt-0.5 size-4 shrink-0 text-slate-400 transition-transform"
                                 ::class="open ? 'rotate-180' : ''"
                             />
-                            <div>
+                            <div class="min-w-0">
                                 <p class="text-sm font-medium text-slate-900">
                                     {{ $activity->description }}
                                 </p>

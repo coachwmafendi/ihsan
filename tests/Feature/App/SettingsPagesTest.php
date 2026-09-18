@@ -357,3 +357,24 @@ it('allows platform admin to change email', function () {
     expect($user->name)->toBe('Super Admin');
     expect($user->email)->toBe('newsuper@example.com');
 });
+
+it('keeps the installation snippet from widening the page on a phone', function () {
+    // The loader snippet is 500px of unbreakable `white-space: pre`. As a grid
+    // item with the default auto min-width it widened the whole page by 241px
+    // instead of scrolling inside its own box.
+    actingAs($this->user);
+
+    get('https://app.example.test/settings/installation')
+        ->assertOk()
+        ->assertSeeHtml('grid gap-4 [&>*]:min-w-0 md:grid-cols-2');
+});
+
+it('lets the tracking events table scroll rather than clipping it', function () {
+    // overflow-hidden on the wrapper cut 105px of the table off with no way
+    // to reach it.
+    actingAs($this->user);
+
+    get('https://app.example.test/settings/tracking')
+        ->assertOk()
+        ->assertSeeHtml('overflow-x-auto rounded-lg border border-slate-200');
+});
