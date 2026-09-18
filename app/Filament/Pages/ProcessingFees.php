@@ -143,7 +143,6 @@ class ProcessingFees extends Page implements HasTable
                     }),
             ])
             ->defaultSort('created_at', 'desc')
-            ->stackedOnMobile()
             ->actions([
                 Action::make('mark_paid')
                     ->label('Mark as Paid')

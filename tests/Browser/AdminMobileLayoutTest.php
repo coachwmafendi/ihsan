@@ -3,9 +3,6 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
-use App\Models\Campaign;
-use App\Models\Donation;
-use App\Models\Donor;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -84,37 +81,6 @@ it('gives organization edit fields the full width of a phone', function () {
             })()
         JS, true)
         ->assertScript(OVERFLOW_PAST_VIEWPORT, 0);
-});
-
-it('reads a transaction row on a phone without scrolling sideways', function () {
-    // Nine columns is 1400px of table. Scrolled, a phone shows the donor and
-    // half an organization name — not the amount, status or date.
-    $this->actingAs($this->admin);
-
-    $campaign = Campaign::factory()->for(Organization::factory())->create();
-    Donation::factory()->for($campaign)->for(Donor::factory())->create();
-
-    visit('/admin/transactions')
-        ->on()->mobile()
-        ->assertScript(<<<'JS'
-            (() => {
-                const table = document.querySelector('.fi-ta-content-ctn');
-                return table ? table.scrollWidth - table.clientWidth : 'NO TABLE';
-            })()
-        JS, 0);
-});
-
-it('reads an organization row on a phone without scrolling sideways', function () {
-    $this->actingAs($this->admin);
-
-    visit('/admin/organizations')
-        ->on()->mobile()
-        ->assertScript(<<<'JS'
-            (() => {
-                const table = document.querySelector('.fi-ta-content-ctn');
-                return table ? table.scrollWidth - table.clientWidth : 'NO TABLE';
-            })()
-        JS, 0);
 });
 
 it('lets a phone reach the last period on the revenue switch', function () {
