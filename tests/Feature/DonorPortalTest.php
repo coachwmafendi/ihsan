@@ -1153,3 +1153,16 @@ it('throttles report problem submissions', function () {
         ->assertRedirect(route('donorportal.dashboard', $org))
         ->assertSessionHas('error');
 });
+
+it('carries a bottom navigation bar on a phone', function () {
+    // The portal's mobile nav was behind a hamburger, so a donor checking a
+    // receipt paid two taps for every move between the four pages.
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.dashboard', $org))
+        ->assertOk()
+        ->assertSeeHtml('data-test="donor-bottom-nav"')
+        ->assertSeeInOrder(['Dashboard', 'Donations', 'Recurring', 'Profile']);
+});
