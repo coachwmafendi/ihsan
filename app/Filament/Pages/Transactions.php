@@ -191,18 +191,23 @@ class Transactions extends Page implements HasTable
                 TextColumn::make('donor.name')
                     ->label('Donor')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    // A long donor name would otherwise hold the table wider
+                    // than a phone, and Filament's layout clips what spills.
+                    ->wrap(),
                 TextColumn::make('campaign.organization.name')
                     ->label('Organization')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 TextColumn::make('campaign.title')
                     ->label('Campaign')
                     ->searchable()
                     ->sortable()
                     ->toggleable()
                     ->limit(30)
-                    ->tooltip(fn (Donation $record): string => $record->campaign?->title ?? ''),
+                    ->tooltip(fn (Donation $record): string => $record->campaign?->title ?? '')
+                    ->visibleFrom('md'),
                 TextColumn::make('gross_amount')
                     ->label('Amount')
                     ->formatStateUsing(function (string $state, Donation $record): string {
@@ -225,6 +230,7 @@ class Transactions extends Page implements HasTable
                 TextColumn::make('processing_fee')
                     ->label('Processing Fee')
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
+                    ->visibleFrom('md')
                     ->tooltip(function (string $state, Donation $record): ?string {
                         $exchangeRate = (float) ($record->exchange_rate ?? 0);
 
@@ -238,7 +244,8 @@ class Transactions extends Page implements HasTable
                 TextColumn::make('net_amount')
                     ->label('Org receives')
                     ->formatStateUsing(fn (string $state): string => 'MYR '.number_format((float) $state, 2))
-                    ->toggleable(),
+                    ->toggleable()
+                    ->visibleFrom('md'),
                 TextColumn::make('type')
                     ->badge()
                     ->color(fn (DonationType $state): string => match ($state) {
@@ -246,7 +253,8 @@ class Transactions extends Page implements HasTable
                         DonationType::Recurring => 'info',
                     })
                     ->formatStateUsing(fn (DonationType $state): string => str($state->value)->headline()->toString())
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (DonationStatus $state): string => match ($state) {
@@ -263,7 +271,8 @@ class Transactions extends Page implements HasTable
                     ->label('Date (MYT)')
                     ->dateTime('d M Y, h:i A', timezone: 'Asia/Kuala_Lumpur')
                     ->formatStateUsing(fn ($state) => $state ? myrTime($state, false) : '—')
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
             ])
             ->defaultSort('created_at', 'desc');
     }
