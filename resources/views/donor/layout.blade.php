@@ -124,9 +124,12 @@
         </div>
     </header>
 
-    <main class="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6 py-8">
+    {{-- Bottom padding on small screens keeps the last row clear of the bar. --}}
+    <main class="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 sm:px-6 py-8 md:pb-8">
         @yield('content')
     </main>
+
+    <x-donor-bottom-nav :organization="$organization" />
 
     @if (session('success'))
         <div x-data="{ show: true }"
