@@ -276,7 +276,8 @@
             </div>
         </div>
 
-        <div class="overflow-hidden rounded-lg border border-slate-200">
+        {{-- Hidden, not auto, cut 105px of this table off on a phone. --}}
+        <div class="overflow-x-auto rounded-lg border border-slate-200">
             <table class="min-w-full divide-y divide-slate-100 text-sm">
                 <thead class="bg-slate-50">
                     <tr>

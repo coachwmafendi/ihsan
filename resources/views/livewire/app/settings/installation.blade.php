@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-2">
+        <div class="grid gap-4 [&>*]:min-w-0 md:grid-cols-2">
             {{-- Option A: ready-made embed code --}}
             <div class="rounded-xl border border-slate-200 bg-white p-5">
                 <div class="mb-3 flex items-center gap-2">

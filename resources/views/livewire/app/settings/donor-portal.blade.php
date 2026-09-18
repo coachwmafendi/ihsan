@@ -28,8 +28,9 @@
                 <div class="space-y-3">
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Portal URL</label>
-                        <div class="mt-1 flex items-center gap-3">
-                            <input type="text" readonly value="{{ $portalUrl }}" class="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700 shadow-sm">
+                        {{-- Side by side, a phone left 203px for a URL twice that long. --}}
+                        <div class="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                            <input type="text" readonly value="{{ $portalUrl }}" class="block w-full min-w-0 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-700 shadow-sm sm:text-sm">
                             <a href="{{ $portalUrl }}" target="_blank" rel="noopener noreferrer"
                                 class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
