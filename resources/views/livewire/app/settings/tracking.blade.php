@@ -104,7 +104,9 @@
                                         wire:model="credentials.{{ $slug }}.{{ $field['key'] }}"
                                         placeholder="{{ $field['placeholder'] }}"
                                         autocomplete="{{ $field['type'] === 'password' ? 'new-password' : 'off' }}"
-                                        class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                        {{-- An access token runs several hundred characters; a size
+                                             down shows more of it in a 299px box on a phone. --}}
+                                        class="block w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 sm:text-sm"
                                     />
                                     @if (! empty($field['hint']))
                                         <p class="text-xs text-slate-400">{{ $field['hint'] }}</p>
