@@ -140,3 +140,12 @@ it('draws the provider filter with the app-wide select chevron', function () {
         ->assertSeeHtml('appearance-none')
         ->assertSeeHtml('pointer-events-none absolute inset-y-0 right-3');
 });
+
+it('sizes the credential fields down on a phone', function () {
+    // An access token is several hundred characters in a 299px box.
+    $this->actingAs($this->user);
+
+    Livewire::test(Tracking::class)
+        ->assertSeeHtml('text-xs text-slate-900 placeholder-slate-400')
+        ->assertSeeHtml('sm:text-sm');
+});
