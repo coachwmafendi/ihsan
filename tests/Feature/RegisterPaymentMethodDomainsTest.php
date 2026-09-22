@@ -11,6 +11,7 @@ use App\Models\Donation;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Stripe\Exception\InvalidRequestException;
 use Stripe\StripeClient;
@@ -661,4 +662,94 @@ it('does not let an organiser remove or duplicate Ihsan own checkout domains', f
 
     $component->call('addDomain', 'https://www.getihsan.my/derma')
         ->assertSet('allowed_domains', ['tahfizannur.org']);
+});
+
+it('paints cached statuses at mount instead of spending a round trip on them', function () {
+    // The deferred fetch exists so a cold read never holds up first paint, but
+    // it costs a request on every visit - and the answer is almost always
+    // already cached, because nothing but a save or a recheck changes it.
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['tahfizannur.org']],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+
+    (new FetchPaymentMethodDomainStatuses(fakeStripeClientForStatuses([
+        ['domain' => 'tahfizannur.org', 'apple' => 'active', 'google' => 'active'],
+    ])))->fetch($org);
+
+    // Anything reaching for Stripe now is a call the cache should have spared.
+    $client = Mockery::mock(StripeClient::class);
+    $client->paymentMethodDomains = Mockery::mock()->shouldNotReceive('all')->getMock();
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses($client));
+
+    Livewire::actingAs($user)->test(AllowDomains::class)
+        ->assertSet('statuses_loaded', true)
+        ->assertDontSeeHtml('wire:init="loadDomainStatuses"')
+        ->assertDontSee('Checking...')
+        ->assertSee('Wallets active');
+});
+
+it('still defers to Stripe when nothing is cached yet', function () {
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['tahfizannur.org']],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([])
+    ));
+
+    Livewire::actingAs($user)->test(AllowDomains::class)
+        ->assertSet('statuses_loaded', false)
+        ->assertSeeHtml('wire:init="loadDomainStatuses"');
+});
+
+it('scans the donations for embedding hosts once rather than on every render', function () {
+    // 500 donation rows read on each render is the page's own cost, and an NGO
+    // moves its form about as often as it redesigns its site.
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['onpay.my']],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+    $campaign = Campaign::factory()->for($org)->create();
+
+    Donation::factory()->for($campaign)->create(['page_url' => 'https://mtaqlaa.onpay.my/order/form/infaq']);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([])
+    ));
+
+    $scans = 0;
+    DB::listen(function ($query) use (&$scans) {
+        if (str_contains($query->sql, 'page_url')) {
+            $scans++;
+        }
+    });
+
+    $component = Livewire::actingAs($user)->test(AllowDomains::class);
+    $component->call('$refresh')->assertSee('mtaqlaa.onpay.my');
+
+    expect($scans)->toBe(1);
+});
+
+it('drops a flagged host from the banner the moment it is added', function () {
+    // Only the scan is cached; the list is filtered afresh, so the chip cannot
+    // sit there offering a domain that is already on the list.
+    $org = Organization::factory()->stripeConnected()->create([
+        'settings' => ['allowed_domains' => ['onpay.my']],
+    ]);
+    $user = User::factory()->create(['organization_id' => $org->id]);
+    $campaign = Campaign::factory()->for($org)->create();
+
+    Donation::factory()->for($campaign)->create(['page_url' => 'https://mtaqlaa.onpay.my/order/form/infaq']);
+
+    $this->swap(FetchPaymentMethodDomainStatuses::class, new FetchPaymentMethodDomainStatuses(
+        fakeStripeClientForStatuses([])
+    ));
+
+    $component = Livewire::actingAs($user)->test(AllowDomains::class)
+        ->assertSee('Donations are coming from domains you have not added');
+
+    $component->call('addDomain', 'mtaqlaa.onpay.my')
+        ->assertDontSee('Donations are coming from domains you have not added');
 });

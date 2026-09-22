@@ -17,7 +17,9 @@
 
 
 
-    <form wire:submit="save" class="space-y-6" x-data="{ newDomain: '' }" wire:init="loadDomainStatuses">
+    {{-- Only fetch when the badges are not already on screen: a cached answer
+         paints at mount, and asking again would cost a round trip per visit. --}}
+    <form wire:submit="save" class="space-y-6" x-data="{ newDomain: '' }" @unless ($statuses_loaded) wire:init="loadDomainStatuses" @endunless>
         <x-ui.card title="Allowed Domains" description="Domains permitted to embed your elements and checkout modal. Only requests originating from these domains will be accepted.">
             <div class="space-y-4">
                 <div class="flex items-center justify-between gap-3">

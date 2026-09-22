@@ -25,7 +25,12 @@ use Stripe\StripeClient;
  */
 class FetchPaymentMethodDomainStatuses
 {
-    private const CacheMinutes = 5;
+    /**
+     * Verification state barely moves once a domain is registered, and the two
+     * things that do change it - saving the list, and Recheck wallets - both
+     * bypass the cache, so a short window only bought repeated Stripe calls.
+     */
+    private const CacheMinutes = 60;
 
     public function __construct(private ?StripeClient $stripe = null) {}
 
@@ -82,6 +87,26 @@ class FetchPaymentMethodDomainStatuses
         $settings['wallet_verified_domains'] = $active;
 
         $organization->update(['settings' => $settings]);
+    }
+
+    /**
+     * What is already cached, without ever reaching for Stripe.
+     *
+     * The settings page defers the fetch so a cold read cannot hold up the
+     * first paint, but that deferral costs a second round trip on every visit -
+     * including the overwhelming majority where the answer was sitting in the
+     * cache all along. This lets the page paint the badges outright when it is.
+     *
+     * @return array<string, DomainStatus>|null null when nothing is cached
+     */
+    public function cached(Organization $organization): ?array
+    {
+        if (blank($organization->stripe_account_id)) {
+            return null;
+        }
+
+        /** @var array<string, DomainStatus>|null */
+        return Cache::get($this->cacheKey($organization));
     }
 
     public function forget(Organization $organization): void
