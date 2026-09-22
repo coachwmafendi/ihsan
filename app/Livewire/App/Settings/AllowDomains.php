@@ -13,6 +13,7 @@ use App\Models\Organization;
 use App\Support\CheckoutDomains;
 use App\Support\DomainName;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -35,12 +36,21 @@ class AllowDomains extends Component
 
     public bool $statuses_loaded = false;
 
-    public function mount(): void
+    public function mount(FetchPaymentMethodDomainStatuses $statuses): void
     {
         $org = $this->organization();
 
         if (! $org) {
             return;
+        }
+
+        // Only what is already cached - a cold read still waits for the
+        // deferred call, so Stripe never holds up the first paint.
+        $cached = $statuses->cached($org);
+
+        if ($cached !== null) {
+            $this->domain_statuses = $cached;
+            $this->statuses_loaded = true;
         }
 
         $settings = $org->settings ?? [];
@@ -183,19 +193,41 @@ class AllowDomains extends Component
             ->filter()
             ->all();
 
-        return Donation::query()
-            ->whereIn('campaign_id', Campaign::query()->where('organization_id', $org->id)->select('id'))
-            ->whereNotNull('page_url')
-            ->where('created_at', '>=', now()->subDays(90))
-            ->orderByDesc('id')
-            ->limit(500)
-            ->pluck('page_url')
-            ->map(fn (string $url): string => DomainName::normalize((string) (parse_url($url, PHP_URL_HOST) ?: '')))
-            ->filter()
+        return collect($this->recentEmbeddingHosts($org))
             ->reject(fn (string $host): bool => in_array($host, $known, true))
-            ->unique()
             ->values()
             ->all();
+    }
+
+    /**
+     * Hosts recent donations came from, cached away from the filtering above.
+     *
+     * Scanning 500 donation rows on every render is the page's own cost, not
+     * Stripe's, and the answer changes about as often as an NGO changes where
+     * its form is embedded. Only the scan is cached: the list is filtered
+     * against the domains afresh each time, so adding one from the banner
+     * still takes its chip away immediately.
+     *
+     * @return array<int, string>
+     */
+    private function recentEmbeddingHosts(Organization $org): array
+    {
+        return Cache::remember(
+            'org:'.$org->id.':donation-embedding-hosts',
+            now()->addHour(),
+            fn (): array => Donation::query()
+                ->whereIn('campaign_id', Campaign::query()->where('organization_id', $org->id)->select('id'))
+                ->whereNotNull('page_url')
+                ->where('created_at', '>=', now()->subDays(90))
+                ->orderByDesc('id')
+                ->limit(500)
+                ->pluck('page_url')
+                ->map(fn (string $url): string => DomainName::normalize((string) (parse_url($url, PHP_URL_HOST) ?: '')))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all(),
+        );
     }
 
     /**
