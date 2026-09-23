@@ -50,7 +50,7 @@ RUN npm run build
 # --------------------------------------------------
 # Stage 3: Final Apache + PHP runtime image
 # --------------------------------------------------
-FROM php:8.4-apache
+FROM php:8.4-apache AS runtime
 
 # Install required system and PHP extensions
 RUN apt-get update && apt-get install -y \

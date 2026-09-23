@@ -1,0 +1,128 @@
+name: Build and Deploy
+
+# Build the image here, push it to GHCR, put it on the VPS, then tell Coolify to
+# deploy it.
+#
+# Coolify used to build this Dockerfile on the VPS itself on every deploy —
+# composer install, a Vite build, and PHP extensions compiled from source, on
+# the same 2 cores that serve the site. Every deploy left another 1.31GB image
+# and more build cache behind, and the disk reached 81%. When it fills, Coolify
+# prunes images out from under running containers, which is how the other app on
+# this host kept ending up at Traefik's "no available server". Building here
+# means the VPS only ever pulls a finished image.
+#
+# Coolify's auto-deploy webhook is disabled for this app on purpose. Left on, a
+# push to main would race this workflow: Coolify would start deploying before
+# the image it needs exists. The deploy is triggered from the last step here, so
+# it can only run after a successful build.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time, and never cancel one mid-push: a half-pushed tag that
+# gets deployed is worse than waiting for the run in front to finish.
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/coachwmafendi/ihsan
+          # `latest` is the compose file's default; `sha-<short>` is the
+          # immutable tag Coolify is pinned to, and the one to set by hand in
+          # IHSAN_IMAGE_TAG for a rollback.
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-,format=short
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          target: runtime
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # The PHP-extension, composer and npm layers are reused between runs,
+          # so an ordinary push does not rebuild them.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Put the image on the host before Coolify is told anything.
+      #
+      # Coolify's compose deploy removes the running containers and then pulls
+      # their replacement. A pull that fails at that moment does not roll back —
+      # it leaves no container at all and the site answers "no available
+      # server". Pulling here inverts that: if the host cannot pull, this step
+      # fails, the workflow stops, Coolify is never called, and the containers
+      # that are serving the site keep serving it. If it succeeds, Coolify's own
+      # pull is a cache hit that cannot fail at the one moment it must not.
+      #
+      # It authenticates with this job's own GITHUB_TOKEN, which already has the
+      # access — the push step above wrote the very image being pulled. So there
+      # is no long-lived registry secret here to rotate or to expire unnoticed.
+      #
+      # The key is pinned to one forced command on the host and cannot open a
+      # shell; the tag it sends is validated there before use.
+      - name: Pre-pull the image onto the host
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          SHA_TAG="sha-$(echo "${GITHUB_SHA}" | cut -c1-7)"
+
+          mkdir -p ~/.ssh
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          install -m 600 /dev/null ~/.ssh/ihsan_ci
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/ihsan_ci
+
+          printf '%s\n%s\n' "${{ github.actor }}" "$REGISTRY_TOKEN" | ssh \
+            -i ~/.ssh/ihsan_ci \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=20 \
+            "ihsan-ci@${{ secrets.VPS_HOST }}" "$SHA_TAG"
+
+          rm -f ~/.ssh/ihsan_ci
+
+      # Pin Coolify to the exact tag just pushed. Deploying against `latest`
+      # races: Coolify pulls whatever `latest` resolves to at that instant,
+      # which is often still the previous image.
+      - name: Pin image tag in Coolify
+        run: |
+          SHA_TAG="sha-$(echo "${GITHUB_SHA}" | cut -c1-7)"
+          curl -fsS --retry 3 --retry-delay 5 -X PATCH \
+            "${{ secrets.COOLIFY_URL }}/api/v1/applications/${{ secrets.COOLIFY_APP_UUID }}/envs/bulk" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"data\":[{\"key\":\"IHSAN_IMAGE_TAG\",\"value\":\"${SHA_TAG}\",\"is_preview\":false,\"is_buildtime\":false,\"is_runtime\":true}]}"
+
+      - name: Trigger Coolify deploy
+        run: |
+          curl -fsS --retry 3 --retry-delay 5 -X POST \
+            "${{ secrets.COOLIFY_URL }}/api/v1/deploy?uuid=${{ secrets.COOLIFY_APP_UUID }}&force=true" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
