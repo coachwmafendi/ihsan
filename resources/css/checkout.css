@@ -1,0 +1,90 @@
+/*
+ * Stylesheet for the donation checkout, and nothing else.
+ *
+ * app.css is built from every view in the application — the NGO panel, the
+ * admin tables, the donor portal — and the checkout iframe was loading all
+ * of it to render one form. It also carries Flux's stylesheet, which the
+ * checkout has no use for: not one <flux:*> component appears anywhere in
+ * the checkout's view tree.
+ *
+ * `source(none)` turns off Tailwind's automatic scanning so only the files
+ * listed below contribute classes. That is the whole point of this file, and
+ * also its hazard: a view rendered by the checkout but missing from the list
+ * loses its styling silently, with no build error. Anything added to the
+ * checkout's view tree has to be added here too, and
+ * tests/Feature/CheckoutStylesheetTest.php fails when the list drifts.
+ */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import 'tailwindcss' source(none);
+
+/* The layouts that wrap the checkout, and the partials they pull in. */
+@source '../views/layouts/popup.blade.php';
+@source '../views/layouts/embed.blade.php';
+@source '../views/layouts/donation.blade.php';
+@source '../views/partials/head.blade.php';
+@source '../views/partials/donation-step.blade.php';
+@source '../views/partials/stripe-js.blade.php';
+@source '../views/partials/cloudflare-analytics.blade.php';
+
+/* The form itself and the components it renders. */
+@source '../views/livewire/donation-form.blade.php';
+@source '../views/components/checkout-help.blade.php';
+@source '../views/components/currency-flag.blade.php';
+@source '../views/components/tracking-scripts.blade.php';
+@source '../views/components/ui/tooltip.blade.php';
+@source '../views/components/icons';
+
+/* Classes the component builds in PHP rather than in a template. */
+@source '../../app/Livewire/DonationForm.php';
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+    --color-slate-950: #020617;
+
+    --color-accent: #0d9488;
+    --color-accent-hover: #0f766e;
+    --color-accent-subtle: #f0fdfa;
+
+    --color-page: #f7f7fb;
+
+    --color-success: #10b981;
+    --color-success-subtle: #f0fdf4;
+    --color-danger: #ef4444;
+    --color-danger-subtle: #fef2f2;
+    --color-warning: #f59e0b;
+    --color-warning-subtle: #fffbeb;
+}
+
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+
+    button:not(:disabled),
+    [type='button']:not(:disabled),
+    [type='reset']:not(:disabled),
+    [type='submit']:not(:disabled),
+    [role='button']:not([aria-disabled='true']) {
+        @apply cursor-pointer;
+    }
+}
+
+[x-cloak] { display: none !important; }
