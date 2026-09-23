@@ -93,6 +93,52 @@
     image.src = url;
   }
 
+  // The checkout iframe only starts fetching its stylesheet, its script bundle
+  // and Stripe.js once the donor has clicked, so the skeleton has to sit there
+  // while they download. These files are immutable and cacheable, and the
+  // iframe shares this page's HTTP cache, so pulling them in the moment the
+  // donor reaches for the button leaves the iframe with nothing to wait for.
+  // Only assets are warmed, never the checkout document: prefetching that
+  // would open a session and fire the campaign's tracking pixels for a donor
+  // who never clicked.
+  var checkoutAssets = IHSAN_PREFETCH_ASSETS;
+  var checkoutAssetsWarmed = false;
+
+  function warmCheckoutAssets() {
+    if (checkoutAssetsWarmed) return;
+    checkoutAssetsWarmed = true;
+
+    for (var i = 0; i < checkoutAssets.length; i++) {
+      var asset = checkoutAssets[i];
+      if (!asset || !asset.href) continue;
+
+      var link = document.createElement("link");
+      link.rel = "prefetch";
+      link.href = asset.href;
+      if (asset.as) link.as = asset.as;
+      // Match the credentials mode the iframe will request the file with, or
+      // the browser keeps a second cache entry and downloads it twice. Vite
+      // emits module scripts, which are CORS requests; stylesheets and classic
+      // scripts are not.
+      if (asset.crossOrigin) link.crossOrigin = "anonymous";
+      document.head.appendChild(link);
+    }
+  }
+
+  /**
+   * Warm the checkout on the first sign a donor is heading for this trigger.
+   * touchstart covers phones, where there is no hover to read.
+   */
+  function warmOnIntent(node) {
+    if (!node || !checkoutAssets.length) return;
+
+    var events = ["pointerenter", "touchstart", "focus"];
+
+    for (var i = 0; i < events.length; i++) {
+      node.addEventListener(events[i], warmCheckoutAssets, { once: true, passive: true });
+    }
+  }
+
   function createCheckoutSkeleton(isMobileView) {
     var skeleton = document.createElement("div");
     skeleton.setAttribute("data-ihsan-checkout-skeleton", "true");
@@ -511,6 +557,8 @@
       btn.style.transform = posTransform || "";
       btn.style.boxShadow = "0 4px 16px rgba(0,0,0,.18)";
     });
+    warmOnIntent(btn);
+
     btn.addEventListener("click", function (e) {
       e.preventDefault();
       handleClick(el);
@@ -632,6 +680,8 @@
       btn.style.transform = posTransform;
       btn.style.boxShadow = "0 4px 16px rgba(0,0,0,.18)";
     });
+    warmOnIntent(btn);
+
     btn.addEventListener("click", function (e) {
       e.preventDefault();
       handleClick(el);
@@ -770,6 +820,8 @@
     btn.addEventListener("mouseup", function () {
       btn.style.transform = "translateY(-2px)";
     });
+    warmOnIntent(btn);
+
     btn.addEventListener("click", function (e) {
       e.preventDefault();
       handleClick(el);
@@ -1087,6 +1139,8 @@
     }
 
     if (isCheckoutModal) {
+      warmOnIntent(link);
+
       link.addEventListener("click", function (e) {
         e.preventDefault();
         showCheckoutModal(el);
@@ -1178,6 +1232,8 @@
       if (!anchor.hasAttribute("tabindex")) {
         anchor.setAttribute("tabindex", "0");
       }
+      warmOnIntent(anchor);
+
       anchor.addEventListener("click", function (e) {
         e.preventDefault();
         handleClick(el);
@@ -1203,6 +1259,8 @@
         if (!fallbackAnchor.hasAttribute("tabindex")) {
           fallbackAnchor.setAttribute("tabindex", "0");
         }
+        warmOnIntent(fallbackAnchor);
+
         fallbackAnchor.addEventListener("click", function (e) {
           e.preventDefault();
           handleClick(el);

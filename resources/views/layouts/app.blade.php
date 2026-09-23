@@ -36,6 +36,10 @@
         {{ $slot }}
     </x-app-shell>
 
+    {{-- Pages that need a heavy library (charts) pull it in here, ahead of
+         Livewire so the global is set before Alpine components initialise. --}}
+    @stack('scripts')
+
     @livewireScripts
     @fluxScripts
 

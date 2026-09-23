@@ -7,8 +7,7 @@
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <x-tracking-scripts :organization="$organization ?? null" :configs="$trackingConfigs ?? null" />
-        <link rel="preconnect" href="https://js.stripe.com" crossorigin>
-        <script src="https://js.stripe.com/v3/"></script>
+        @include('partials.stripe-js')
         @include('partials.cloudflare-analytics')
         @livewireStyles
     </head>

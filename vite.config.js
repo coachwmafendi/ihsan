@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/css/landing.css',
                 'resources/css/filament/admin/theme.css',
                 'resources/js/app.js',
+                'resources/js/charts.js',
             ],
             refresh: true,
             fonts: [

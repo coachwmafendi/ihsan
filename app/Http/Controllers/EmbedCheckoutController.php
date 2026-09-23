@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Models\Element;
+use Illuminate\Foundation\ViteManifestNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Js;
 use Illuminate\Support\Str;
 
@@ -28,6 +30,13 @@ class EmbedCheckoutController extends Controller
 
         $script = file_exists($path) ? file_get_contents($path) : '';
         $script = str_replace('IHSAN_IFRAME_ALLOW', self::IframeAllow, $script);
+        // A raw script file, not a Blade attribute: Js::from would escape the
+        // quotes for HTML and hand the browser something it cannot parse.
+        $script = str_replace(
+            'IHSAN_PREFETCH_ASSETS',
+            json_encode($this->checkoutPrefetchAssets(), JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
+            $script,
+        );
 
         return response($script, 200, [
             'Content-Type' => 'application/javascript',
@@ -35,6 +44,37 @@ class EmbedCheckoutController extends Controller
             'Pragma' => 'no-cache',
             'Expires' => '0',
         ]);
+    }
+
+    /**
+     * The files the checkout iframe will need, so the widget can warm them in
+     * the host page's cache while the donor is still reaching for the button.
+     *
+     * Only build output and Stripe.js are listed: both are cacheable, and both
+     * are otherwise fetched from scratch after the click, with the skeleton
+     * standing in for them. `crossOrigin` mirrors how the iframe itself asks
+     * for the file — Vite emits module scripts, which are CORS requests, while
+     * stylesheets and Stripe's classic script are not. A mismatch stores a
+     * second cache entry and the file downloads twice.
+     *
+     * @return list<array{href: string, as: string, crossOrigin: bool}>
+     */
+    private function checkoutPrefetchAssets(): array
+    {
+        try {
+            $assets = [
+                ['href' => Vite::asset('resources/css/app.css'), 'as' => 'style', 'crossOrigin' => false],
+                ['href' => Vite::asset('resources/js/app.js'), 'as' => 'script', 'crossOrigin' => true],
+            ];
+        } catch (ViteManifestNotFoundException) {
+            // No build output to point at (a dev server, or a fresh checkout).
+            // The widget simply skips warming.
+            return [];
+        }
+
+        $assets[] = ['href' => 'https://js.stripe.com/v3/', 'as' => 'script', 'crossOrigin' => false];
+
+        return $assets;
     }
 
     public function loader(): Response

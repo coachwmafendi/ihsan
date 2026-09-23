@@ -3,8 +3,7 @@
     <head>
         @include('partials.head')
         <x-tracking-scripts :organization="$organization ?? null" :configs="$trackingConfigs ?? null" />
-        <link rel="preconnect" href="https://js.stripe.com" crossorigin>
-        <script src="https://js.stripe.com/v3/"></script>
+        @include('partials.stripe-js')
         @livewireStyles
     </head>
     <body class="min-h-screen bg-[#eef1f6] text-slate-950 antialiased">

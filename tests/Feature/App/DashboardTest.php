@@ -16,6 +16,7 @@ use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Vite;
 use Livewire\Livewire;
 
 use function Pest\Laravel\actingAs;
@@ -713,4 +714,12 @@ it('carries a phone bottom bar with the four daily pages and a way to the rest',
         ->assertSeeHtml('data-test="app-bottom-nav"')
         ->assertSeeInOrder(['Dashboard', 'Donations', 'Recurring', 'Supporters', 'More'])
         ->assertSeeHtml("\$dispatch('toggle-sidebar')");
+});
+
+it('loads the charting bundle it needs, which the checkout no longer carries', function () {
+    actingAs($this->user);
+
+    get('https://app.example.test/dashboard')
+        ->assertOk()
+        ->assertSee(Vite::asset('resources/js/charts.js'), false);
 });

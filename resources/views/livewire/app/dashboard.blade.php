@@ -1120,3 +1120,7 @@
     <livewire:app.campaigns.campaign-create-modal />
 </div>
 </div>
+
+@push('scripts')
+    @vite('resources/js/charts.js')
+@endpush

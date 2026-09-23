@@ -787,6 +787,10 @@
                         window.addEventListener('message', (event) => this.handleChipMessage(event));
 
                         try {
+                            // Stripe.js loads async so it does not block the
+                            // page: it may not have arrived yet.
+                            await window.ihsanStripeJs;
+
                             stripe = connectedStripeAccountId
                                 ? Stripe(window.stripePublishableKey, { stripeAccount: connectedStripeAccountId })
                                 : Stripe(window.stripePublishableKey);
