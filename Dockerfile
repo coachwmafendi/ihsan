@@ -29,7 +29,12 @@ RUN composer install \
     --optimize-autoloader
 
 COPY . .
-RUN composer dump-autoload --optimize
+# routes/app.php refuses to load without the panel domains, and
+# dump-autoload fires package:discover, which boots the framework. The real
+# values come from the environment at runtime; these only have to be non-blank
+# for the build to get past the guard.
+RUN APP_PANEL_DOMAIN=build.invalid ADMIN_PANEL_DOMAIN=build.invalid \
+    composer dump-autoload --optimize
 
 # --------------------------------------------------
 # Stage 2: Build frontend assets with Vite
@@ -119,6 +124,10 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
 # Discover packages and prepare Filament assets using a temporary app key.
+# Build-time only: ARG never lands in the image, so the real domains injected
+# at runtime are the only ones the container ever sees.
+ARG APP_PANEL_DOMAIN=build.invalid
+ARG ADMIN_PANEL_DOMAIN=build.invalid
 RUN APP_KEY=$(php -r "echo 'base64:'.base64_encode(random_bytes(32));" | tr -d '\n') \
     php artisan package:discover --ansi \
     && APP_KEY=$(php -r "echo 'base64:'.base64_encode(random_bytes(32));" | tr -d '\n') \
