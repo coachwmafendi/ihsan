@@ -97,3 +97,17 @@ it('reports a failed stripe.js load instead of hanging on the skeleton', functio
         ->toContain('onerror="window.ihsanStripeJsSettle.reject')
         ->toContain('Payment system failed to initialize');
 });
+
+it('does not ship a font family the checkout never renders', function () {
+    // @fonts emits Instrument Sans alone, and nothing asks for it: the sans
+    // stack is Inter, which app.css carries. It cost six files and 72 KB.
+    $element = checkoutElement();
+
+    foreach (['?popup=1', '?embed=1', ''] as $mode) {
+        $content = $this->get(route('donations.show', $element->token).$mode)
+            ->assertOk()
+            ->getContent();
+
+        expect($content)->not->toContain('instrument-sans');
+    }
+});
