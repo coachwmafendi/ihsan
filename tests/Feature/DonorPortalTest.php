@@ -18,6 +18,7 @@ use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Vite;
 use Stripe\ApiRequestor;
 use Stripe\HttpClient\ClientInterface;
 use Stripe\HttpClient\CurlClient;
@@ -1165,4 +1166,14 @@ it('carries a bottom navigation bar on a phone', function () {
         ->assertOk()
         ->assertSeeHtml('data-test="donor-bottom-nav"')
         ->assertSeeInOrder(['Dashboard', 'Donations', 'Recurring', 'Profile']);
+});
+
+it('loads the charting bundle on the donor dashboard, which the checkout no longer carries', function () {
+    $org = Organization::factory()->create();
+    $donor = Donor::factory()->create();
+
+    $this->withSession(['donor_id' => $donor->getKey(), 'organization_id' => $org->getKey()])
+        ->get(route('donorportal.dashboard', $org))
+        ->assertOk()
+        ->assertSee(Vite::asset('resources/js/charts.js'), false);
 });

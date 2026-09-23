@@ -7,7 +7,7 @@
 
     <title>{{ $title ?? 'Virtual Terminal' }}</title>
 
-    @fonts
+    {{-- No @fonts: see partials/head.blade.php. --}}
     @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://js.stripe.com/v3/"></script>

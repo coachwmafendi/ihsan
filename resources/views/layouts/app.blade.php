@@ -19,7 +19,7 @@
         })();
     </script>
 
-    @fonts
+    {{-- No @fonts: see partials/head.blade.php. --}}
     @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('components.ui._tooltip-script')
@@ -35,6 +35,10 @@
     <x-app-shell>
         {{ $slot }}
     </x-app-shell>
+
+    {{-- Pages that need a heavy library (charts) pull it in here, ahead of
+         Livewire so the global is set before Alpine components initialise. --}}
+    @stack('scripts')
 
     @livewireScripts
     @fluxScripts

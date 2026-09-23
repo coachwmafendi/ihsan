@@ -186,6 +186,7 @@
 @endsection
 
 @push('scripts')
+@vite('resources/js/charts.js')
 <script>
     function initDonutChart() {
         var canvas = document.getElementById('campaignDonut');

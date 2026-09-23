@@ -313,3 +313,31 @@ it('forwards the upsell outcome, not just the suppression flag, to the modal', f
         ->toContain('"upsell_accepted=" + (d.upsellAccepted ? "1" : "0")')
         ->toContain('"upsell_amount=" + encodeURIComponent(d.upsellOriginal || "")');
 });
+
+it('warms the checkout assets from the widget before the donor clicks', function () {
+    // The iframe used to start fetching its stylesheet, bundle and Stripe.js
+    // only after the click, leaving the skeleton to cover the download.
+    $script = $this->get(route('widget.script'))->assertOk()->getContent();
+
+    expect($script)
+        ->toContain('function warmCheckoutAssets()')
+        ->toContain('link.rel = "prefetch"')
+        ->toContain('"pointerenter", "touchstart", "focus"')
+        ->not->toContain('IHSAN_PREFETCH_ASSETS')
+        ->toContain('https://js.stripe.com/v3/')
+        ->toContain('/build/assets/app-');
+
+    // Every trigger the widget builds has to warm, phones included.
+    expect(substr_count($script, 'warmOnIntent('))->toBe(7);
+});
+
+it('never prefetches the checkout document itself from the widget', function () {
+    // Prefetching it would open a session and fire the campaign's tracking
+    // pixels for a donor who never clicked.
+    $script = $this->get(route('widget.script'))->assertOk()->getContent();
+
+    expect($script)
+        ->not->toContain('link.rel = "prefetch";
+      link.href = checkUrl')
+        ->not->toContain('rel = "prerender"');
+});

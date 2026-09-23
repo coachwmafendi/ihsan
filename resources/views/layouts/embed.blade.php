@@ -4,11 +4,10 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}</title>
-        @fonts
+        {{-- No @fonts: see partials/head.blade.php. --}}
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <x-tracking-scripts :organization="$organization ?? null" :configs="$trackingConfigs ?? null" />
-        <link rel="preconnect" href="https://js.stripe.com" crossorigin>
-        <script src="https://js.stripe.com/v3/"></script>
+        @include('partials.stripe-js')
         @include('partials.cloudflare-analytics')
         @livewireStyles
     </head>
