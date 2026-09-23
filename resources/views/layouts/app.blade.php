@@ -19,7 +19,7 @@
         })();
     </script>
 
-    @fonts
+    {{-- No @fonts: see partials/head.blade.php. --}}
     @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('components.ui._tooltip-script')
