@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
-        @include('partials.head')
+        @include('partials.head', ['cssEntry' => 'resources/css/checkout.css'])
         <x-tracking-scripts :organization="$organization ?? null" :configs="$trackingConfigs ?? null" />
         @include('partials.stripe-js')
         @livewireStyles

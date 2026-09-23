@@ -15,7 +15,11 @@
     app.css. Emitting it cost the checkout six font files and 72 KB before
     a donor had read the amount.
 --}}
-@vite(['resources/css/app.css', 'resources/js/app.js'])
+{{--
+    The checkout passes its own, much smaller stylesheet; every other page
+    that shares this head gets the full one.
+--}}
+@vite([$cssEntry ?? 'resources/css/app.css', 'resources/js/app.js'])
 @fluxAppearance
 
 @include('partials.cloudflare-analytics')

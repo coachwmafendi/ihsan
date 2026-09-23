@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/css/landing.css',
                 'resources/css/filament/admin/theme.css',
+                'resources/css/checkout.css',
                 'resources/js/app.js',
                 'resources/js/charts.js',
             ],

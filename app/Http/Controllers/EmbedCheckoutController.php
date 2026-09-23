@@ -63,7 +63,7 @@ class EmbedCheckoutController extends Controller
     {
         try {
             $assets = [
-                ['href' => Vite::asset('resources/css/app.css'), 'as' => 'style', 'crossOrigin' => false],
+                ['href' => Vite::asset('resources/css/checkout.css'), 'as' => 'style', 'crossOrigin' => false],
                 ['href' => Vite::asset('resources/js/app.js'), 'as' => 'script', 'crossOrigin' => true],
             ];
         } catch (ViteManifestNotFoundException) {

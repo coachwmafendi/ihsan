@@ -325,7 +325,10 @@ it('warms the checkout assets from the widget before the donor clicks', function
         ->toContain('"pointerenter", "touchstart", "focus"')
         ->not->toContain('IHSAN_PREFETCH_ASSETS')
         ->toContain('https://js.stripe.com/v3/')
-        ->toContain('/build/assets/app-');
+        ->toContain('/build/assets/app-')
+        // The iframe loads the checkout's own stylesheet, so that is the one
+        // worth warming - app.css would be a download it never reads.
+        ->toContain('/build/assets/checkout-');
 
     // Every trigger the widget builds has to warm, phones included.
     expect(substr_count($script, 'warmOnIntent('))->toBe(7);
