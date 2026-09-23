@@ -1,0 +1,63 @@
+# Coolify "Docker Compose" build pack.
+#
+# This file exists to stop the VPS building its own image. Coolify used to
+# compile this Dockerfile on the 2-core box that also serves the site: a full
+# composer install, a Vite build, and PHP extensions from source on every
+# deploy. Each run left another 1.31GB image and a growing build cache behind
+# it, and the disk reached 81% with four Ihsan images on it. When that disk
+# fills, Coolify's cleanup prunes images out from under whatever is running —
+# which is how the neighbouring app on this host kept ending up at Traefik's
+# "no available server". The image is built in GitHub Actions now and the VPS
+# only ever pulls it.
+#
+# Postgres and Redis are deliberately absent: they are Coolify managed database
+# resources, so they keep the backup UI and scheduled dumps, and DB_HOST /
+# REDIS_HOST in Coolify's env point at the hostnames it assigns them. Those
+# names only resolve on the shared `coolify` network, which is why that is the
+# only network declared here — compose would otherwise invent a private network
+# where DB_HOST resolves to nothing and every boot dies on `migrate --force`.
+#
+# One service, not three: supervisor inside the image already runs Apache, the
+# queue worker and the scheduler together, which suits a single small VPS.
+
+services:
+  app:
+    # Built and pushed by .github/workflows/deploy.yml. IHSAN_IMAGE_TAG is set
+    # in Coolify's env by that workflow, pinned to the immutable sha-<short>
+    # tag it just pushed; set it by hand to an older tag to roll back.
+    image: ghcr.io/coachwmafendi/ihsan:${IHSAN_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    volumes:
+      - ihsan-storage-app:/var/www/html/storage/app
+    networks:
+      - coolify
+    # Coolify attaches its own per-project networks on top of this one, leaving
+    # the container on several at once. Traefik then has to guess which address
+    # to route to and can pick one coolify-proxy cannot reach, which surfaces as
+    # a bare "Bad Gateway" behind a perfectly healthy container.
+    labels:
+      - traefik.docker.network=coolify
+    # The entrypoint caches config and views and runs migrations before Apache
+    # serves anything, so the first probe has to wait for all of it. A probe
+    # that trips during a slow migration would restart the container mid-write.
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', '--max-time', '15', 'http://localhost/up']
+      interval: 60s
+      timeout: 20s
+      retries: 5
+      start_period: 90s
+
+volumes:
+  # Pinned to the volume the dockerfile-build deploy already created, by its
+  # exact name. Coolify names volumes differently under the two build packs —
+  # `<uuid>-ihsan-storage-app` for a Dockerfile app, `<uuid>_<name>` for a
+  # compose one — so letting compose name this would hand the app a new, empty
+  # volume and every uploaded campaign image would vanish from the site while
+  # sitting untouched in the old one.
+  ihsan-storage-app:
+    external: true
+    name: zuchfimlpnsmv681bn6y69d3-ihsan-storage-app
+
+networks:
+  coolify:
+    external: true
