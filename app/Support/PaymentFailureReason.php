@@ -27,6 +27,27 @@ class PaymentFailureReason
         public readonly string $message,
     ) {}
 
+    /**
+     * The same reason, from a record that kept the code and the message rather
+     * than Stripe's error blob.
+     *
+     * A failed recurring installment writes no donation, so a plan carries its
+     * last failure on itself and has nothing to hand this class otherwise.
+     */
+    public static function fromCode(?string $code, ?string $message = null): ?self
+    {
+        $message = trim((string) $message);
+
+        if ($message === '' && blank($code)) {
+            return null;
+        }
+
+        return new self(
+            code: filled($code) ? (string) $code : null,
+            message: $message !== '' ? $message : 'The payment was declined.',
+        );
+    }
+
     public static function for(Donation $donation): ?self
     {
         $error = $donation->stripe_fee_details['last_payment_error'] ?? null;

@@ -6,6 +6,7 @@ use App\Enums\SubscriptionInterval;
 use App\Enums\SubscriptionStatus;
 use App\Services\PublicIdGenerator;
 use App\Support\Currency;
+use App\Support\PaymentFailureReason;
 use Carbon\CarbonImmutable;
 use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -53,6 +54,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $public_id
  * @property string|null $source
  * @property string|null $last_failure_message
+ * @property string|null $last_failure_code
  * @property-read Collection<int, Activity> $activitiesAsSubject
  * @property-read int|null $activities_as_subject_count
  * @property-read Campaign $campaign
@@ -92,7 +94,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['campaign_id', 'donor_id', 'donor_payment_method_id', 'source', 'public_id', 'stripe_subscription_id', 'chip_recurring_token', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'last_failure_message', 'retry_count', 'payment_count', 'failed_installment_count', 'cancel_at_period_end', 'cover_fee', 'fee_cover_amount', 'cancel_at', 'max_plan_amount', 'max_plan_installments', 'current_period_start', 'current_period_end', 'next_charge_at', 'last_charge_at', 'last_charge_attempt_at', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
+#[Fillable(['campaign_id', 'donor_id', 'donor_payment_method_id', 'source', 'public_id', 'stripe_subscription_id', 'chip_recurring_token', 'stripe_price_id', 'amount', 'currency', 'interval', 'status', 'last_failure_message', 'last_failure_code', 'retry_count', 'payment_count', 'failed_installment_count', 'cancel_at_period_end', 'cover_fee', 'fee_cover_amount', 'cancel_at', 'max_plan_amount', 'max_plan_installments', 'current_period_start', 'current_period_end', 'next_charge_at', 'last_charge_at', 'last_charge_attempt_at', 'paused_until', 'cancelled_at', 'cancellation_reason'])]
 class Subscription extends Model
 {
     /** @use HasFactory<SubscriptionFactory> */
@@ -139,6 +141,15 @@ class Subscription extends Model
     public function donations(): HasMany
     {
         return $this->hasMany(Donation::class);
+    }
+
+    /**
+     * Why the last installment did not go through, in words that also say
+     * whether another attempt can help.
+     */
+    public function failureReason(): ?PaymentFailureReason
+    {
+        return PaymentFailureReason::fromCode($this->last_failure_code, $this->last_failure_message);
     }
 
     /**

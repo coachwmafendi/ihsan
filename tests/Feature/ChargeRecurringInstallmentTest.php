@@ -341,6 +341,7 @@ it('updates retry schedule and sends dunning notification after a failed charge'
     expect($subscription)
         ->status->toBe(SubscriptionStatus::PastDue)
         ->last_failure_message->toBe('Your card was declined.')
+        ->last_failure_code->toBe('card_declined')
         ->retry_count->toBe(1)
         ->last_charge_attempt_at->not->toBeNull()
         ->next_charge_at->format('Y-m-d')->toBe(now()->addDay()->format('Y-m-d'));
@@ -368,6 +369,8 @@ it('records the decline reason when Stripe throws instead of returning a failed 
     expect($subscription)
         ->status->toBe(SubscriptionStatus::PastDue)
         ->last_failure_message->toBe('Your card has insufficient funds.')
+        // The code decides whether the notification may promise a retry helps.
+        ->last_failure_code->toBe('insufficient_funds')
         ->retry_count->toBe(1);
 });
 
