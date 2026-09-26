@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Actions\Stripe\SyncDonationStripeDetails;
+use App\Enums\DonationStatus;
 use App\Models\Donation;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -23,8 +24,14 @@ class ResyncForeignDonationExchangeRates extends Command
 
         $dryRun = $this->option('dry-run');
 
+        // A charge that never collected has no balance transaction, so Stripe
+        // holds no exchange rate to fetch. Without this the command spent a
+        // call on every declined and pending donation, wrote the null back and
+        // still counted each one as synced - reporting 49 synced while filling
+        // in one.
         $query = Donation::query()
             ->with('campaign.organization')
+            ->where('status', DonationStatus::Succeeded)
             ->whereRaw('LOWER(currency) != ?', ['myr'])
             ->whereNull('base_amount')
             ->whereNotNull('stripe_payment_intent_id');
