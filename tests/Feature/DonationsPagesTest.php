@@ -1020,3 +1020,85 @@ it('drops the repeated timezone from the emails table on the donation show page'
         ->assertSee(myrTime($sentAt, false))
         ->assertDontSee(myrTime($sentAt, true));
 });
+
+/**
+ * An installment the server charged off-session has no device of its own: the
+ * only device the plan was ever seen from is the checkout that started it.
+ */
+function planWithAServerChargedInstallment(Campaign $campaign, Donor $donor): array
+{
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $campaign->id,
+        'donor_id' => $donor->id,
+    ]);
+
+    $checkout = Donation::factory()->create([
+        'campaign_id' => $campaign->id,
+        'donor_id' => $donor->id,
+        'subscription_id' => $subscription->id,
+        'device_type' => 'Android',
+        'os' => 'Android',
+        'browser' => 'Chrome',
+        'created_at' => now()->subMonth(),
+    ]);
+
+    $installment = Donation::factory()->create([
+        'campaign_id' => $campaign->id,
+        'donor_id' => $donor->id,
+        'subscription_id' => $subscription->id,
+        'device_type' => null,
+        'os' => null,
+        'browser' => null,
+    ]);
+
+    return [$checkout, $installment];
+}
+
+it('shows the signup device on an installment the server charged', function () {
+    planWithAServerChargedInstallment($this->campaign, $this->donor);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->assertSee('data-device-category="mobile"', false)
+        // The checkout keeps the plain wording; the installment names where it
+        // borrowed the device from.
+        ->assertSee('Android donation')
+        ->assertSee('Android — device this plan was started on');
+});
+
+it('names the signup device on the show page of an installment the server charged', function () {
+    [, $installment] = planWithAServerChargedInstallment($this->campaign, $this->donor);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $installment])
+        ->assertSee('>Device</dt>', false)
+        ->assertSeeText('Android')
+        ->assertSeeText('device this plan was started on')
+        // Browser, unlike the device, describes a session this charge never
+        // had, so it stays empty rather than borrowing one.
+        ->assertDontSee('Chrome');
+});
+
+it('leaves a donation with no plan behind it unmarked', function () {
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => null,
+        'device_type' => null,
+        'os' => null,
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationIndex::class)
+        ->assertDontSee('data-device-category', false)
+        ->assertDontSee('device this plan was started on');
+});
+
+it('does not tell the checkout it borrowed its own device', function () {
+    [$checkout] = planWithAServerChargedInstallment($this->campaign, $this->donor);
+
+    Livewire::actingAs($this->user)
+        ->test(DonationShow::class, ['donation' => $checkout])
+        ->assertSeeText('Android')
+        ->assertDontSee('device this plan was started on');
+});

@@ -502,7 +502,12 @@
                              separate OS row would only repeat this one. --}}
                         <div class="grid grid-cols-1 gap-1 sm:grid-cols-[180px_1fr] sm:gap-6">
                             <dt class="text-sm text-slate-500">Device</dt>
-                            <dd class="text-sm font-medium text-slate-900">{{ $donation->deviceLabel() ?? '—' }}</dd>
+                            {{-- An installment the server charged has no device of
+                                 its own, so it names the checkout's - and says so,
+                                 rather than claiming this charge came from it. --}}
+                            <dd class="text-sm font-medium text-slate-900">
+                                {{ $donation->displayDeviceLabel() ?? '—' }}@if ($donation->deviceIsInherited())<span class="ml-1 text-xs font-normal text-slate-500">— device this plan was started on</span>@endif
+                            </dd>
                         </div>
                     </dl>
                 </x-ui.card>

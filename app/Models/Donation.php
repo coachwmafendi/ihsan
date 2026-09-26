@@ -304,6 +304,45 @@ class Donation extends Model
     }
 
     /**
+     * The donation whose device stands for this one.
+     *
+     * An installment the server charges off-session has no device: nobody was
+     * at a screen for it. The checkout that started the plan is the only device
+     * the plan was ever seen from, so it answers for its installments.
+     */
+    public function deviceSource(): ?self
+    {
+        if (filled($this->device_type)) {
+            return $this;
+        }
+
+        $checkout = $this->subscription?->firstDonation;
+
+        return $checkout !== null && filled($checkout->device_type) ? $checkout : null;
+    }
+
+    /**
+     * Whether the device shown for this donation was borrowed from the checkout
+     * that started its plan, rather than seen on this charge.
+     */
+    public function deviceIsInherited(): bool
+    {
+        $source = $this->deviceSource();
+
+        return $source !== null && ! $source->is($this);
+    }
+
+    public function displayDeviceLabel(): ?string
+    {
+        return $this->deviceSource()?->deviceLabel();
+    }
+
+    public function displayDeviceCategory(): ?string
+    {
+        return $this->deviceSource()?->deviceCategory();
+    }
+
+    /**
      * Name the device as precisely as the stored columns allow.
      *
      * Rows written before devices were named only hold a bucket, but they still
