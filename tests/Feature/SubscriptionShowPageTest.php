@@ -17,6 +17,7 @@ use App\Models\DonorPaymentMethod;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\SubscriptionSchedule;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -213,20 +214,14 @@ it('shows the past due recurring donation status banner', function () {
         'donor_id' => $this->donor->id,
         'status' => SubscriptionStatus::PastDue,
         'interval' => SubscriptionInterval::Monthly,
+        'payment_count' => 1,
+        'last_charge_attempt_at' => now()->subDay(),
         'next_charge_at' => now()->addDays(3),
-    ]);
-
-    Donation::factory()->create([
-        'campaign_id' => $this->campaign->id,
-        'donor_id' => $this->donor->id,
-        'subscription_id' => $subscription->id,
-        'status' => DonationStatus::Failed,
-        'created_at' => now()->subDay(),
     ]);
 
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
-        ->assertSee('Installment #1 failed')
+        ->assertSee('Installment #2 failed on '.myrTime($subscription->last_charge_attempt_at))
         ->assertSee('We will retry the payment on')
         ->assertSee(myrTime($subscription->next_charge_at));
 });
@@ -242,9 +237,73 @@ it('shows the stripe failure reason on the past due status banner', function () 
 
     Livewire::actingAs($this->user)
         ->test(SubscriptionShow::class, ['subscription' => $subscription])
-        ->assertSee('The most recent installment failed')
+        ->assertSee('Installment #2 failed')
         ->assertSee('Reason:')
         ->assertSee('Your card was declined.');
+});
+
+/**
+ * A failed attempt records no donation, so reading the latest donation named
+ * the last installment that worked: a plan whose second installment failed
+ * reported "Installment #1 failed", dated to the successful first charge.
+ */
+it('names the installment that failed, not the last one that succeeded', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::PastDue,
+        'interval' => SubscriptionInterval::Monthly,
+        'payment_count' => 1,
+        'last_charge_attempt_at' => now()->subHours(6),
+        'next_charge_at' => now()->addDay(),
+    ]);
+
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'subscription_id' => $subscription->id,
+        'status' => DonationStatus::Succeeded,
+        'created_at' => now()->subMonth(),
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('Installment #2 failed on '.myrTime($subscription->last_charge_attempt_at))
+        ->assertDontSee('Installment #1 failed')
+        ->assertDontSee('failed on '.myrTime(now()->subMonth()));
+});
+
+/**
+ * next_charge_at on a past-due plan is its retry date, not a billing
+ * anniversary. Rolling it forward by the interval until it landed in the
+ * future turned a retry due this morning into one two months out.
+ */
+it('does not invent a retry date for a past due plan whose retry is overdue', function () {
+    $subscription = Subscription::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'status' => SubscriptionStatus::PastDue,
+        'interval' => SubscriptionInterval::Monthly,
+        'payment_count' => 1,
+        'last_charge_attempt_at' => now()->subDays(4),
+        // Three days back, so the date this used to roll forward to cannot
+        // collide with the plan's own monthly anniversary elsewhere on the page.
+        'next_charge_at' => now()->subDays(3),
+    ]);
+
+    $rolledForward = SubscriptionSchedule::nextChargeAt(
+        CarbonImmutable::parse($subscription->next_charge_at),
+        $subscription->interval,
+    );
+
+    $component = Livewire::actingAs($this->user)
+        ->test(SubscriptionShow::class, ['subscription' => $subscription])
+        ->assertSee('We will retry the payment shortly');
+
+    expect(myrTime($component->instance()->nextInstallmentDate))
+        ->toBe(myrTime($subscription->next_charge_at))
+        ->not->toBe(myrTime($rolledForward))
+        ->and($component->instance()->retryDate)->toBeNull();
 });
 
 it('shows the incomplete recurring donation status banner', function () {
