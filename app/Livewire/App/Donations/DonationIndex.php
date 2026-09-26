@@ -250,7 +250,10 @@ class DonationIndex extends Component
                 $q->whereHas('campaign', fn (Builder $cq) => $cq->where('organization_id', $org->id));
             })
             ->when(! $org, fn (Builder $q) => $q->whereRaw('1 = 0'))
-            ->with(['campaign', 'donor', 'subscription']);
+            // An installment shows the device of the checkout that started its
+            // plan, so that checkout comes along rather than being fetched per
+            // row.
+            ->with(['campaign', 'donor', 'subscription.firstDonation']);
 
         if (filled($this->search)) {
             $search = '%'.strtolower($this->search).'%';

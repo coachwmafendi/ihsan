@@ -523,7 +523,10 @@
                                 <td class="px-5 py-4">
                                     @php
                                         $supporterName = $donation->donor?->name ?? 'Anonymous';
-                                        $deviceCategory = $donation->device_type ? $donation->deviceCategory() : null;
+                                        $deviceCategory = $donation->displayDeviceCategory();
+                                        $deviceTooltip = $donation->deviceIsInherited()
+                                            ? $donation->displayDeviceLabel().' — device this plan was started on'
+                                            : $donation->displayDeviceLabel().' donation';
                                         // The icon is an atomic inline box, so the line may break right
                                         // before it and leave it stranded under a name that fills the
                                         // column. Tie it to the final word and let the rest wrap freely.
@@ -533,7 +536,7 @@
                                     @endphp
                                     <div class="text-sm font-medium text-slate-900">
                                         {{ $nameHead }}<span class="whitespace-nowrap">{{ $nameTail }}@if ($deviceCategory)<span data-device-category="{{ $deviceCategory }}" class="ml-1.5 inline-flex align-middle">
-                                            <x-ui.tooltip :text="$donation->deviceLabel().' donation'">
+                                            <x-ui.tooltip :text="$deviceTooltip">
                                                 @if ($deviceCategory === 'mobile')
                                                     <x-heroicon-o-device-phone-mobile class="size-3.5 shrink-0 text-slate-400" />
                                                 @elseif ($deviceCategory === 'tablet')

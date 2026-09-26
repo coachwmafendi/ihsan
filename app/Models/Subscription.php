@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -138,6 +139,15 @@ class Subscription extends Model
     public function donations(): HasMany
     {
         return $this->hasMany(Donation::class);
+    }
+
+    /**
+     * The checkout that started the plan - the one installment a person made
+     * at a screen, and so the only one that carries a device.
+     */
+    public function firstDonation(): HasOne
+    {
+        return $this->hasOne(Donation::class)->oldestOfMany('id');
     }
 
     public function emailLogs(): HasMany
