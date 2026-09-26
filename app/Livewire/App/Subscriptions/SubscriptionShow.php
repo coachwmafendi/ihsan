@@ -252,6 +252,13 @@ class SubscriptionShow extends Component
 
         $date = CarbonImmutable::parse($baseDate);
 
+        // On a past-due plan next_charge_at is the retry date, days away, not a
+        // billing anniversary. Rolling it forward by the interval reported a
+        // retry that had already come round as one two months out.
+        if ($this->subscription->status === SubscriptionStatus::PastDue) {
+            return $date;
+        }
+
         while ($date->isPast()) {
             $date = SubscriptionSchedule::nextChargeAt($date, $this->subscription->interval);
         }
@@ -263,6 +270,37 @@ class SubscriptionShow extends Component
     public function lastInstallmentDate(): ?string
     {
         return $this->latestDonation?->created_at ? myrTime($this->latestDonation->created_at) : null;
+    }
+
+    /**
+     * The installment that failed is the one after the last that was paid: a
+     * failed attempt records no donation, so reading the latest donation named
+     * the last installment that worked instead.
+     */
+    #[Computed]
+    public function failedInstallmentNumber(): int
+    {
+        return ((int) $this->subscription->payment_count) + 1;
+    }
+
+    #[Computed]
+    public function failedInstallmentDate(): ?string
+    {
+        return $this->subscription->last_charge_attempt_at
+            ? myrTime($this->subscription->last_charge_attempt_at)
+            : null;
+    }
+
+    /**
+     * A retry whose date has passed is due on the next scheduler run, so it is
+     * "shortly" rather than a date already gone by.
+     */
+    #[Computed]
+    public function retryDate(): ?string
+    {
+        $date = $this->nextInstallmentDate;
+
+        return $date === null || $date->isPast() ? null : myrTime($date);
     }
 
     #[Computed]

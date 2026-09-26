@@ -72,6 +72,19 @@ function makeStripeClient(string $scenario, string $paymentIntentId, string $pay
             }
 
             if (str_ends_with($absUrl, '/v1/payment_intents') && $method === 'post') {
+                // An off-session decline usually comes back as a 402 the SDK
+                // turns into a CardException, not as a failed intent.
+                if ($this->scenario === 'card_exception') {
+                    return [json_encode([
+                        'error' => [
+                            'type' => 'card_error',
+                            'code' => 'card_declined',
+                            'decline_code' => 'insufficient_funds',
+                            'message' => 'Your card has insufficient funds.',
+                        ],
+                    ]), 402, []];
+                }
+
                 return [json_encode(match ($this->scenario) {
                     'success' => $this->successPaymentIntent(),
                     'duplicate' => $this->successPaymentIntent(),
@@ -338,6 +351,67 @@ it('updates retry schedule and sends dunning notification after a failed charge'
     });
 });
 
+it('records the decline reason when Stripe throws instead of returning a failed intent', function (): void {
+    Queue::fake();
+
+    $subscription = createDueSubscription();
+    $paymentMethodId = $subscription->donorPaymentMethod->stripe_payment_method_id;
+
+    ApiRequestor::setHttpClient(makeStripeClient('card_exception', 'pi_recurring_card_exception', $paymentMethodId));
+
+    $result = app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    expect($result->status)->toBe('failed')
+        ->and($result->errorCode)->toBe('insufficient_funds');
+
+    $subscription->refresh();
+    expect($subscription)
+        ->status->toBe(SubscriptionStatus::PastDue)
+        ->last_failure_message->toBe('Your card has insufficient funds.')
+        ->retry_count->toBe(1);
+});
+
+it('charges a past due plan once its retry has come round', function (): void {
+    Queue::fake();
+
+    $subscription = createDueSubscription();
+    $subscription->update([
+        'status' => SubscriptionStatus::PastDue,
+        'retry_count' => 1,
+        'last_failure_message' => 'Your card was declined.',
+        'next_charge_at' => now()->subHours(6),
+    ]);
+    $paymentIntentId = 'pi_recurring_past_due_retry';
+
+    ApiRequestor::setHttpClient(makeStripeClient('success', $paymentIntentId, $subscription->donorPaymentMethod->stripe_payment_method_id));
+
+    $result = app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    expect($result->status)->toBe('succeeded');
+
+    $subscription->refresh();
+    expect($subscription)
+        ->status->toBe(SubscriptionStatus::Active)
+        ->payment_count->toBe(2)
+        ->retry_count->toBe(0);
+});
+
+it('refuses to charge a plan that is no longer collecting', function (SubscriptionStatus $status): void {
+    $subscription = createDueSubscription();
+    $subscription->update(['status' => $status]);
+
+    $result = app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    expect($result->status)->toBe('failed')
+        ->and($result->errorCode)->toBe('subscription_not_chargeable');
+})->with([
+    [SubscriptionStatus::Cancelled],
+    [SubscriptionStatus::Failed],
+    [SubscriptionStatus::Paused],
+    [SubscriptionStatus::Completed],
+    [SubscriptionStatus::Incomplete],
+]);
+
 it('marks subscription as failed and dispatches final dunning on terminal failure', function (): void {
     Queue::fake();
 
@@ -391,6 +465,50 @@ it('pauses schedule for authentication when a charge requires action', function 
         ->next_charge_at->format('Y-m-d')->toBe(now()->addDay()->format('Y-m-d'));
 
     Queue::assertNothingPushed();
+});
+
+/**
+ * Nobody is there to authenticate an off-session charge, so a card that keeps
+ * asking would be attempted for ever now that past-due plans are charged again.
+ */
+it('gives up on a card that keeps asking for authentication', function (): void {
+    Queue::fake();
+
+    $subscription = createDueSubscription();
+    $subscription->update([
+        'status' => SubscriptionStatus::PastDue,
+        'retry_count' => 3,
+        'failed_installment_count' => 5,
+        'next_charge_at' => now()->subHour(),
+    ]);
+    $paymentMethodId = $subscription->donorPaymentMethod->stripe_payment_method_id;
+
+    ApiRequestor::setHttpClient(makeStripeClient('requires_action', 'pi_recurring_action_terminal', $paymentMethodId));
+
+    $result = app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    expect($result->status)->toBe('requires_action');
+
+    $subscription->refresh();
+    expect($subscription)
+        ->status->toBe(SubscriptionStatus::Failed)
+        ->next_charge_at->toBeNull();
+});
+
+it('advances the retry ladder when a charge requires authentication', function (): void {
+    Queue::fake();
+
+    $subscription = createDueSubscription();
+    $paymentMethodId = $subscription->donorPaymentMethod->stripe_payment_method_id;
+
+    ApiRequestor::setHttpClient(makeStripeClient('requires_action', 'pi_recurring_action_ladder', $paymentMethodId));
+
+    app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    $subscription->refresh();
+    expect($subscription)
+        ->status->toBe(SubscriptionStatus::PastDue)
+        ->retry_count->toBe(1);
 });
 
 it('bases the platform fee on the pledge, not on the donor fee cover', function (): void {

@@ -125,7 +125,10 @@ class ChargeRecurringInstallment
         try {
             $paymentIntent = StripePaymentIntent::create($params, $stripeOptions);
         } catch (CardException $e) {
-            $oldRetryCount = $this->recordAttemptFailure($subscription);
+            // An off-session decline arrives as an exception rather than a
+            // failed intent, and the reason was passed to the notifications
+            // while the plan itself recorded none.
+            $oldRetryCount = $this->recordAttemptFailure($subscription, $e->getMessage());
             $this->dispatchFailureNotifications($subscription, $e->getMessage(), $oldRetryCount, true);
 
             return new ChargeResult('failed', errorCode: $e->getDeclineCode() ?? 'card_declined');
@@ -156,8 +159,10 @@ class ChargeRecurringInstallment
             return new ChargeResult('failed', errorCode: 'not_app_controlled');
         }
 
-        if ($subscription->status !== SubscriptionStatus::Active) {
-            return new ChargeResult('failed', errorCode: 'subscription_not_active');
+        // Past due is the state a plan sits in between retries, so refusing it
+        // here left the scheduled retry with nothing to charge.
+        if (! in_array($subscription->status, [SubscriptionStatus::Active, SubscriptionStatus::PastDue], true)) {
+            return new ChargeResult('failed', errorCode: 'subscription_not_chargeable');
         }
 
         if ($subscription->next_charge_at !== null && $subscription->next_charge_at->isFuture()) {
@@ -304,11 +309,11 @@ class ChargeRecurringInstallment
 
     private function handleRequiresAction(Subscription $subscription, StripePaymentIntent $paymentIntent): ChargeResult
     {
-        $subscription->update([
-            'last_charge_attempt_at' => now(),
-            'next_charge_at' => now()->addDay(),
-            'status' => 'past_due',
-        ]);
+        // Off-session there is nobody to authenticate, so a card that keeps
+        // asking for it never resolves. Putting the attempt on the retry ladder
+        // lets the plan reach a terminal state instead of being charged daily
+        // for ever now that past-due plans are picked up again.
+        $this->recordAttemptFailure($subscription);
 
         return new ChargeResult('requires_action', clientSecret: $paymentIntent->client_secret);
     }

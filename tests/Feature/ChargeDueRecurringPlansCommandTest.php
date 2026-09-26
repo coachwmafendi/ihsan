@@ -43,6 +43,54 @@ it('dispatches jobs for due app-controlled subscriptions', function (): void {
     });
 });
 
+it('dispatches jobs for past due plans whose retry has come round', function (): void {
+    Queue::fake();
+
+    $retryDue = createAppControlledSubscription([
+        'status' => SubscriptionStatus::PastDue,
+        'retry_count' => 1,
+        'next_charge_at' => now()->subHours(6),
+    ]);
+
+    $exitCode = Artisan::call('ihsan:charge-recurring-plans');
+
+    expect($exitCode)->toBe(0);
+
+    Queue::assertPushed(ChargeRecurringInstallment::class, function ($job) use ($retryDue) {
+        return $job->subscription->is($retryDue);
+    });
+});
+
+it('skips a past due plan whose retry is still in the future', function (): void {
+    Queue::fake();
+
+    createAppControlledSubscription([
+        'status' => SubscriptionStatus::PastDue,
+        'retry_count' => 1,
+        'next_charge_at' => now()->addDay(),
+    ]);
+
+    $exitCode = Artisan::call('ihsan:charge-recurring-plans');
+
+    expect($exitCode)->toBe(0);
+
+    Queue::assertNothingPushed();
+});
+
+it('skips plans that are no longer collecting', function (): void {
+    Queue::fake();
+
+    foreach ([SubscriptionStatus::Failed, SubscriptionStatus::Cancelled, SubscriptionStatus::Paused, SubscriptionStatus::Completed, SubscriptionStatus::Incomplete] as $status) {
+        createAppControlledSubscription(['status' => $status]);
+    }
+
+    $exitCode = Artisan::call('ihsan:charge-recurring-plans');
+
+    expect($exitCode)->toBe(0);
+
+    Queue::assertNothingPushed();
+});
+
 it('skips legacy stripe subscriptions', function (): void {
     Queue::fake();
 

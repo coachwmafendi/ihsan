@@ -122,7 +122,9 @@ final class ChargeRecurringInstallment
             return false;
         }
 
-        if ($subscription->status !== SubscriptionStatus::Active) {
+        // Past due is the state a plan sits in between retries, so refusing it
+        // here left the scheduled retry with nothing to charge.
+        if (! in_array($subscription->status, [SubscriptionStatus::Active, SubscriptionStatus::PastDue], true)) {
             return false;
         }
 
@@ -151,7 +153,7 @@ final class ChargeRecurringInstallment
 
         $claimed = Subscription::query()
             ->whereKey($subscription->getKey())
-            ->where('status', SubscriptionStatus::Active)
+            ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::PastDue])
             ->when(
                 $dueAt === null,
                 fn ($query) => $query->whereNull('next_charge_at'),

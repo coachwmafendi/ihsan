@@ -116,6 +116,25 @@ it('does not charge a subscription that is no longer active', function () {
         ->and(Donation::query()->where('subscription_id', $subscription->id)->count())->toBe(0);
 });
 
+it('charges a past due subscription once its retry has come round', function () {
+    $subscription = chipSubscription([
+        'status' => SubscriptionStatus::PastDue,
+        'retry_count' => 1,
+        'next_charge_at' => now()->subMinute(),
+    ]);
+
+    $history = [];
+    fakePaidChipApi($history);
+
+    app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    $subscription->refresh();
+
+    expect(Donation::query()->where('subscription_id', $subscription->id)->count())->toBe(1)
+        ->and($subscription->status)->toBe(SubscriptionStatus::Active)
+        ->and((int) $subscription->retry_count)->toBe(0);
+});
+
 it('does not charge a paused subscription', function () {
     $subscription = chipSubscription([
         'next_charge_at' => now()->subMinute(),

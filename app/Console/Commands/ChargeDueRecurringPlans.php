@@ -18,9 +18,13 @@ class ChargeDueRecurringPlans extends Command
     {
         $chunk = (int) $this->option('chunk');
 
+        // A failed installment leaves the plan past due with its retry date in
+        // next_charge_at. Dispatching only active plans meant that retry never
+        // ran: one decline stranded the plan for good, and the retry ladder in
+        // ScheduleRetry never advanced past its first step.
         $query = Subscription::query()
             ->whereNull('stripe_subscription_id')
-            ->where('status', SubscriptionStatus::Active)
+            ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::PastDue])
             ->where('next_charge_at', '<=', now())
             ->where(function ($query): void {
                 $query->whereNull('paused_until')
