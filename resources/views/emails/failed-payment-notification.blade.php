@@ -20,10 +20,31 @@
             @endif
         </table>
 
+        @php
+            $reason = $subscription->failureReason();
+            // Stripe only retries the plans it still bills. An app-controlled
+            // plan is retried here, on a schedule this email can name.
+            $stripeBillsThisPlan = filled($subscription->stripe_subscription_id);
+            $nextAttemptAt = $subscription->next_charge_at;
+        @endphp
+
         @if ($isFinalAttempt)
-            <p>This was the final retry attempt. The subscription is now past due and no further automatic retries are scheduled.</p>
+            <p>That was the last attempt. The plan is now marked as failed and will not be charged again.</p>
+        @elseif ($reason !== null && ! $reason->worthRetrying())
+            <p>Further attempts are expected to fail in the same way, so this one needs a different card rather than more time.</p>
+            @if ($nextAttemptAt)
+                <p>The schedule will still try again on <strong>{{ myrTime($nextAttemptAt) }}</strong>, and keep going until the plan closes itself.</p>
+            @endif
+        @elseif ($stripeBillsThisPlan)
+            <p>Stripe will retry this payment automatically.</p>
+        @elseif ($nextAttemptAt)
+            <p>We will try again on <strong>{{ myrTime($nextAttemptAt) }}</strong>. That will be retry {{ ($subscription->retry_count ?? 0) + 1 }}.</p>
         @else
-            <p>Stripe will automatically retry this payment. This is retry {{ $subscription->retry_count ?? 0 }}. Please monitor the situation.</p>
+            <p>We will try again shortly.</p>
+        @endif
+
+        @if ($reason?->advice())
+            <p style="color: #475569;">{{ $reason->advice() }}</p>
         @endif
 
         <p style="margin: 24px 0;">

@@ -128,10 +128,12 @@ class ChargeRecurringInstallment
             // An off-session decline arrives as an exception rather than a
             // failed intent, and the reason was passed to the notifications
             // while the plan itself recorded none.
-            $oldRetryCount = $this->recordAttemptFailure($subscription, $e->getMessage());
+            $declineCode = $e->getDeclineCode() ?? 'card_declined';
+
+            $oldRetryCount = $this->recordAttemptFailure($subscription, $e->getMessage(), $declineCode);
             $this->dispatchFailureNotifications($subscription, $e->getMessage(), $oldRetryCount, true);
 
-            return new ChargeResult('failed', errorCode: $e->getDeclineCode() ?? 'card_declined');
+            return new ChargeResult('failed', errorCode: $declineCode);
         } catch (Throwable $e) {
             report($e);
 
@@ -322,14 +324,23 @@ class ChargeRecurringInstallment
     {
         $errorCode = $paymentIntent->last_payment_error?->code ?? $paymentIntent->status;
         $errorMessage = $paymentIntent->last_payment_error?->message ?? null;
+        // The decline code is the bank's own verdict; the error code may only be
+        // Stripe saying the intent still wants a payment method.
+        $declineCode = $paymentIntent->last_payment_error?->decline_code
+            ?? $paymentIntent->last_payment_error?->code;
 
-        $oldRetryCount = $this->recordAttemptFailure($subscription, $errorMessage);
+        $oldRetryCount = $this->recordAttemptFailure($subscription, $errorMessage, $declineCode);
         $this->dispatchFailureNotifications($subscription, $errorMessage, $oldRetryCount, true);
 
         return new ChargeResult('failed', errorCode: (string) $errorCode);
     }
 
-    private function recordAttemptFailure(Subscription $subscription, ?string $errorMessage = null): int
+    /**
+     * @param  string|null  $errorCode  The bank's decline code where there is one: the
+     *                                  message says what happened, only the code says
+     *                                  whether another attempt can help.
+     */
+    private function recordAttemptFailure(Subscription $subscription, ?string $errorMessage = null, ?string $errorCode = null): int
     {
         $oldRetryCount = $subscription->retry_count;
         $schedule = $this->scheduleRetry->afterFailure($subscription);
@@ -337,6 +348,7 @@ class ChargeRecurringInstallment
         $subscription->update([
             'status' => $schedule['status'],
             'last_failure_message' => $errorMessage,
+            'last_failure_code' => $errorCode,
             'retry_count' => $schedule['retry_count'],
             'failed_installment_count' => $schedule['failed_installment_count'],
             'last_charge_attempt_at' => now(),
