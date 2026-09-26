@@ -279,8 +279,16 @@ class ChargeRecurringInstallment
             $donation->refresh();
         } catch (Throwable $syncException) {
             report($syncException);
-            SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
         }
+
+        // Stripe attaches the balance transaction a beat after the charge
+        // confirms, so this first sync often reads no fee and no exchange rate
+        // and raises no error doing it. A foreign installment left that way has
+        // no ringgit figure at all - the donation page shows no conversion, and
+        // the campaign counter is short by the difference. The checkout paths
+        // queue this resync whatever happened; installments used to queue it
+        // only when the sync threw, which is the one case that did not happen.
+        SyncDonationStripeDetailsJob::dispatch($donation->getKey())->delay(now()->addMinutes(2));
 
         SendCampaignMilestoneNotification::dispatch($campaign, $previousCollected);
         SendNewDonationNotification::dispatch($donation)->delay(now()->addMinutes(5));

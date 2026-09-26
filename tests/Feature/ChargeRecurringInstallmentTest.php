@@ -15,6 +15,7 @@ use App\Jobs\SendMetaConversionEvent;
 use App\Jobs\SendNewDonationNotification;
 use App\Jobs\SendSnapchatConversionEvent;
 use App\Jobs\SendXAdsConversionEvent;
+use App\Jobs\SyncDonationStripeDetailsJob;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
@@ -66,10 +67,15 @@ function makeStripeClient(string $scenario, string $paymentIntentId, string $pay
                 ]), 200, []];
             }
 
+            if (str_ends_with($absUrl, '/v1/charges/ch_pending_balance_transaction') && $method === 'get') {
+                return [json_encode($this->chargeWithoutBalanceTransaction()), 200, []];
+            }
+
             if (str_ends_with($absUrl, '/v1/payment_intents') && $method === 'post') {
                 return [json_encode(match ($this->scenario) {
                     'success' => $this->successPaymentIntent(),
                     'duplicate' => $this->successPaymentIntent(),
+                    'pending_balance_transaction' => $this->pendingBalanceTransactionPaymentIntent(),
                     'requires_action' => [
                         'id' => $this->paymentIntentId,
                         'object' => 'payment_intent',
@@ -117,6 +123,37 @@ function makeStripeClient(string $scenario, string $paymentIntentId, string $pay
                         ],
                     ],
                 ],
+            ];
+        }
+
+        /**
+         * Stripe attaches the balance transaction a beat after the charge
+         * confirms, so a sync run this early sees the charge without one.
+         *
+         * @return array<string, mixed>
+         */
+        private function pendingBalanceTransactionPaymentIntent(): array
+        {
+            return [
+                'id' => $this->paymentIntentId,
+                'object' => 'payment_intent',
+                'status' => 'succeeded',
+                'payment_method' => $this->paymentMethodId,
+                'latest_charge' => $this->chargeWithoutBalanceTransaction(),
+            ];
+        }
+
+        /**
+         * @return array<string, mixed>
+         */
+        private function chargeWithoutBalanceTransaction(): array
+        {
+            return [
+                'id' => 'ch_pending_balance_transaction',
+                'object' => 'charge',
+                'amount' => 3000,
+                'currency' => 'sgd',
+                'balance_transaction' => null,
             ];
         }
     };
@@ -217,6 +254,29 @@ it('creates a new donation and advances the subscription after a successful char
     Queue::assertPushed(SendLinkedInConversionEvent::class);
     Queue::assertPushed(SendXAdsConversionEvent::class);
     Queue::assertPushed(SendSnapchatConversionEvent::class);
+});
+
+it('queues a resync when the charge has no balance transaction yet', function (): void {
+    Queue::fake();
+
+    $subscription = createDueSubscription();
+    $subscription->update(['currency' => 'sgd', 'amount' => 30.00]);
+    $paymentIntentId = 'pi_recurring_pending_balance_transaction';
+
+    ApiRequestor::setHttpClient(makeStripeClient('pending_balance_transaction', $paymentIntentId, $subscription->donorPaymentMethod->stripe_payment_method_id));
+
+    $result = app(ChargeRecurringInstallment::class)->handle($subscription);
+
+    expect($result->status)->toBe('succeeded');
+
+    $donation = $result->donation->refresh();
+
+    expect($donation)
+        ->currency->toBe('sgd')
+        ->base_amount->toBeNull()
+        ->exchange_rate->toBeNull();
+
+    Queue::assertPushed(SyncDonationStripeDetailsJob::class, fn (SyncDonationStripeDetailsJob $job): bool => $job->donationId === $donation->getKey());
 });
 
 it('handles duplicate payment intent ids without creating a second donation', function (): void {
