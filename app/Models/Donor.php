@@ -106,11 +106,22 @@ class Donor extends Model
         });
 
         static::saving(function (Donor $donor) {
+            // A name typed with a stray space kept it: joining first and last
+            // only trimmed the ends, so "Muhammad Nurshahid " and "Ramle " read
+            // as a name with a gap in the middle wherever it was shown.
+            foreach (['first_name', 'last_name', 'name'] as $field) {
+                $value = $donor->getAttributes()[$field] ?? null;
+
+                if (is_string($value)) {
+                    $donor->setAttribute($field, Str::squish($value));
+                }
+            }
+
             $firstName = $donor->first_name;
             $lastName = $donor->last_name;
 
             if (filled($firstName) || filled($lastName)) {
-                $donor->name = trim("{$firstName} {$lastName}");
+                $donor->setAttribute('name', Str::squish("{$firstName} {$lastName}"));
             }
         });
     }
@@ -121,15 +132,17 @@ class Donor extends Model
     protected function name(): Attribute
     {
         return Attribute::make(
+            // Rows written before names were squished on the way in still carry
+            // the gap; what people read should not.
             get: function (mixed $value): string {
                 $firstName = $this->attributes['first_name'] ?? null;
                 $lastName = $this->attributes['last_name'] ?? null;
 
                 if (filled($firstName) || filled($lastName)) {
-                    return trim("{$firstName} {$lastName}");
+                    return Str::squish("{$firstName} {$lastName}");
                 }
 
-                return $value ?? '';
+                return Str::squish((string) ($value ?? ''));
             }
         );
     }
