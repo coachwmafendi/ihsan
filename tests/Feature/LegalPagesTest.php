@@ -18,3 +18,24 @@ it('renders the same footer on the case study page', function () {
         ->assertOk()
         ->assertSee('data-landing-footer', false);
 });
+
+it('serves the privacy policy', function () {
+    $this->get('/privacy')
+        ->assertOk()
+        ->assertSee('Privacy Policy')
+        ->assertSee('Last updated')
+        ->assertSee('data-landing-footer', false);
+});
+
+it('serves the terms of service', function () {
+    $this->get('/terms')
+        ->assertOk()
+        ->assertSee('Terms of Service')
+        ->assertSee('Last updated')
+        ->assertSee('data-landing-footer', false);
+});
+
+it('names both legal routes', function () {
+    expect(route('legal.privacy'))->toEndWith('/privacy')
+        ->and(route('legal.terms'))->toEndWith('/terms');
+});

@@ -21,6 +21,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 Route::view('/', 'welcome')->name('home');
 
+// Short paths: these get typed by hand into verification forms.
+Route::view('/privacy', 'legal.privacy')->name('legal.privacy');
+Route::view('/terms', 'legal.terms')->name('legal.terms');
+
 // Legacy panel URLs: the panel moved to its own subdomain.
 Route::get('/app/{path?}', function (string $path = '') {
     $target = 'https://'.config('app.app_panel_domain').app_panel_port_suffix().'/'.$path;
