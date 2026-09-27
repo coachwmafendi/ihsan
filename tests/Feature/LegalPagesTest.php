@@ -57,3 +57,25 @@ it('translates the footer link labels', function () {
         ->assertSee('Dasar Privasi')
         ->assertSee('Terma Perkhidmatan');
 });
+
+it('covers each part of the privacy policy', function () {
+    $response = $this->get('/privacy')->assertOk();
+
+    foreach ([
+        'What we collect',
+        'Card details',
+        'Why we collect it',
+        'Who else sees it',
+        'How long we keep it',
+        'Your choices',
+        'Changes to this policy',
+    ] as $heading) {
+        $response->assertSee($heading);
+    }
+});
+
+it('says plainly that Ihsan never holds card numbers', function () {
+    $this->get('/privacy')
+        ->assertOk()
+        ->assertSee('never see or store your card number');
+});
