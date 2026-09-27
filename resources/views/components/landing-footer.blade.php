@@ -14,6 +14,8 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm {{ $text }}">
         <span>@lang('footer.copyright')</span>
         <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+            <a href="{{ route('legal.privacy') }}" class="{{ $link }} transition-colors">@lang('footer.privacy')</a>
+            <a href="{{ route('legal.terms') }}" class="{{ $link }} transition-colors">@lang('footer.terms')</a>
             <a href="mailto:@lang('footer.email')" class="{{ $link }} transition-colors">@lang('footer.email')</a>
             <a href="{{ route('language.switch', ['locale' => app()->getLocale() === 'ms' ? 'en' : 'ms']) }}" class="text-xs font-medium {{ $pill }} transition-colors border rounded-full px-3 py-1">
                 @lang('nav.switch_language')

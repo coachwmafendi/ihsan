@@ -39,3 +39,21 @@ it('names both legal routes', function () {
     expect(route('legal.privacy'))->toEndWith('/privacy')
         ->and(route('legal.terms'))->toEndWith('/terms');
 });
+
+it('links to both documents from the landing footer', function () {
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('href="'.route('legal.privacy').'"', false)
+        ->assertSee('href="'.route('legal.terms').'"', false)
+        ->assertSee('Privacy Policy')
+        ->assertSee('Terms of Service');
+});
+
+it('translates the footer link labels', function () {
+    app()->setLocale('ms');
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('Dasar Privasi')
+        ->assertSee('Terma Perkhidmatan');
+});

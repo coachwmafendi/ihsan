@@ -130,5 +130,7 @@
     "case.img.students_caption": "Many students are orphans and asnaf who receive schooling, meals, and boarding at no cost.",
     "case.img.form_caption": "The Ihsan donation form embedded on the madrasah's website.",
     "case.img.building_caption": "The new main building under construction — now more than 50% complete.",
-    "nav.back_home": "Back to home"
+    "nav.back_home": "Back to home",
+    "footer.privacy": "Privacy Policy",
+    "footer.terms": "Terms of Service"
 }
