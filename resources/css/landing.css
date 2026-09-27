@@ -10,6 +10,13 @@
 
 @theme {
     --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* The landing's three darks, named by the job each one does. They were
+       written as bare hex values, so the same colour appeared under three
+       spellings and nothing said which meant "page" and which meant "band". */
+    --color-canvas: #0f172a;
+    --color-mockup: #111827;
+    --color-band: #16203a;
 }
 
 @layer base {

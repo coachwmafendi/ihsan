@@ -2,7 +2,7 @@
     <x-slot:title>@lang('site.title')</x-slot:title>
 
     {{-- Nav --}}
-    <nav class="fixed top-0 inset-x-0 z-50 bg-[#0f172a]/80 backdrop-blur-lg border-b border-white/5" x-data="{ open: false }">
+    <nav class="fixed top-0 inset-x-0 z-50 bg-canvas/80 backdrop-blur-lg border-b border-white/5" x-data="{ open: false }">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <a href="{{ route('home') }}" class="flex items-center gap-2 text-white font-bold text-lg tracking-tight">
                 <x-app-logo-icon class="h-7 w-auto" />
@@ -44,7 +44,7 @@
         </div>
 
         {{-- Mobile dropdown --}}
-        <div x-show="open" style="display:none" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="md:hidden border-t border-white/5 bg-[#0f172a]/95 backdrop-blur-lg">
+        <div x-show="open" style="display:none" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="md:hidden border-t border-white/5 bg-canvas/95 backdrop-blur-lg">
             <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-1">
                 <a href="#features" @click="open = false" class="text-slate-300 hover:text-white hover:bg-white/5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors">@lang('nav.features')</a>
                 <a href="#pricing" @click="open = false" class="text-slate-300 hover:text-white hover:bg-white/5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors">@lang('nav.pricing')</a>
@@ -107,7 +107,7 @@
     </section>
 
     {{-- Stats --}}
-    <section class="border-t border-white/5 bg-[#0f172a]">
+    <section class="border-t border-white/5 bg-canvas">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 text-center">
                 <div>
@@ -149,9 +149,9 @@
                 </div>
 
                 {{-- App layout --}}
-                <div class="flex bg-[#111827]">
+                <div class="flex bg-mockup">
                     {{-- Sidebar --}}
-                    <div class="hidden sm:flex w-52 shrink-0 bg-[#0f172a] border-r border-white/5 flex-col p-3">
+                    <div class="hidden sm:flex w-52 shrink-0 bg-canvas border-r border-white/5 flex-col p-3">
                         <div class="px-3 py-3 mb-2">
                             <span class="text-white font-bold text-lg">Ihsan</span>
                         </div>
@@ -250,7 +250,7 @@
                         </div>
                         <span class="text-xs text-slate-600 ml-2 truncate">app.getihsan.my/app/campaigns</span>
                     </div>
-                    <div class="bg-[#111827] p-4">
+                    <div class="bg-mockup p-4">
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-sm font-semibold text-white">Campaigns</span>
                             <span class="text-xs bg-teal-600 text-white px-3 py-1 rounded-full font-medium">+ New</span>
@@ -302,7 +302,7 @@
                         </div>
                         <span class="text-xs text-slate-600 ml-2 truncate">getihsan.my/my/donations</span>
                     </div>
-                    <div class="bg-[#111827] p-4">
+                    <div class="bg-mockup p-4">
                         <div class="mb-3">
                             <span class="text-sm font-semibold text-white">My Donations</span>
                             <p class="text-xs text-slate-500 mt-0.5">Hafizah bt. Azlan</p>
@@ -340,54 +340,54 @@
     </section>
 
     {{-- Features --}}
-    <section id="features" class="bg-[#131d31] py-20 sm:py-28">
+    <section id="features" class="bg-band border-t border-teal-400/15 py-20 sm:py-28">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-2xl sm:text-3xl font-bold text-white text-center">@lang('features.title')</h2>
 
             <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 hover:border-teal-500/30 transition-colors group">
-                    <div class="w-10 h-10 bg-teal-600/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-600/30 transition-colors">
-                        <svg class="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 transition-all duration-200 hover:border-teal-400/45 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40 group">
+                    <div class="w-12 h-12 bg-teal-500/15 ring-1 ring-inset ring-teal-400/30 rounded-xl flex items-center justify-center mb-4 transition-colors group-hover:bg-teal-500/25 group-hover:ring-teal-400/50">
+                        <svg class="w-6 h-6 text-teal-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
                     </div>
                     <h3 class="text-white font-semibold text-lg">@lang('features.element.title')</h3>
                     <p class="mt-2 text-slate-400 text-sm leading-relaxed">@lang('features.element.desc')</p>
                 </div>
 
-                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 hover:border-teal-500/30 transition-colors group">
-                    <div class="w-10 h-10 bg-teal-600/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-600/30 transition-colors">
-                        <svg class="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 transition-all duration-200 hover:border-teal-400/45 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40 group">
+                    <div class="w-12 h-12 bg-teal-500/15 ring-1 ring-inset ring-teal-400/30 rounded-xl flex items-center justify-center mb-4 transition-colors group-hover:bg-teal-500/25 group-hover:ring-teal-400/50">
+                        <svg class="w-6 h-6 text-teal-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <h3 class="text-white font-semibold text-lg">@lang('features.recurring.title')</h3>
                     <p class="mt-2 text-slate-400 text-sm leading-relaxed">@lang('features.recurring.desc')</p>
                 </div>
 
-                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 hover:border-teal-500/30 transition-colors group">
-                    <div class="w-10 h-10 bg-teal-600/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-600/30 transition-colors">
-                        <svg class="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 transition-all duration-200 hover:border-teal-400/45 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40 group">
+                    <div class="w-12 h-12 bg-teal-500/15 ring-1 ring-inset ring-teal-400/30 rounded-xl flex items-center justify-center mb-4 transition-colors group-hover:bg-teal-500/25 group-hover:ring-teal-400/50">
+                        <svg class="w-6 h-6 text-teal-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
                     </div>
                     <h3 class="text-white font-semibold text-lg">@lang('features.dashboard.title')</h3>
                     <p class="mt-2 text-slate-400 text-sm leading-relaxed">@lang('features.dashboard.desc')</p>
                 </div>
 
-                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 hover:border-teal-500/30 transition-colors group">
-                    <div class="w-10 h-10 bg-teal-600/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-600/30 transition-colors">
-                        <svg class="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 transition-all duration-200 hover:border-teal-400/45 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40 group">
+                    <div class="w-12 h-12 bg-teal-500/15 ring-1 ring-inset ring-teal-400/30 rounded-xl flex items-center justify-center mb-4 transition-colors group-hover:bg-teal-500/25 group-hover:ring-teal-400/50">
+                        <svg class="w-6 h-6 text-teal-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
                     </div>
                     <h3 class="text-white font-semibold text-lg">@lang('features.stripe.title')</h3>
                     <p class="mt-2 text-slate-400 text-sm leading-relaxed">@lang('features.stripe.desc')</p>
                 </div>
 
-                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 hover:border-teal-500/30 transition-colors group">
-                    <div class="w-10 h-10 bg-teal-600/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-600/30 transition-colors">
-                        <svg class="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 transition-all duration-200 hover:border-teal-400/45 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40 group">
+                    <div class="w-12 h-12 bg-teal-500/15 ring-1 ring-inset ring-teal-400/30 rounded-xl flex items-center justify-center mb-4 transition-colors group-hover:bg-teal-500/25 group-hover:ring-teal-400/50">
+                        <svg class="w-6 h-6 text-teal-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                     </div>
                     <h3 class="text-white font-semibold text-lg">@lang('features.campaign.title')</h3>
                     <p class="mt-2 text-slate-400 text-sm leading-relaxed">@lang('features.campaign.desc')</p>
                 </div>
 
-                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 hover:border-teal-500/30 transition-colors group">
-                    <div class="w-10 h-10 bg-teal-600/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-600/30 transition-colors">
-                        <svg class="w-5 h-5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 9v.906a2.25 2.25 0 01-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 001.183 1.981l6.478 3.488m8.839 2.51l-4.66-2.51m0 0l-1.023-.55a2.25 2.25 0 00-2.134 0l-1.022.55m0 0l-4.661 2.51m16.5 1.615a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V8.844a2.25 2.25 0 011.183-1.981l7.5-4.039a2.25 2.25 0 012.134 0l7.5 4.039a2.25 2.25 0 011.183 1.98V19.5z"/></svg>
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 transition-all duration-200 hover:border-teal-400/45 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40 group">
+                    <div class="w-12 h-12 bg-teal-500/15 ring-1 ring-inset ring-teal-400/30 rounded-xl flex items-center justify-center mb-4 transition-colors group-hover:bg-teal-500/25 group-hover:ring-teal-400/50">
+                        <svg class="w-6 h-6 text-teal-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 9v.906a2.25 2.25 0 01-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 001.183 1.981l6.478 3.488m8.839 2.51l-4.66-2.51m0 0l-1.023-.55a2.25 2.25 0 00-2.134 0l-1.022.55m0 0l-4.661 2.51m16.5 1.615a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V8.844a2.25 2.25 0 011.183-1.981l7.5-4.039a2.25 2.25 0 012.134 0l7.5 4.039a2.25 2.25 0 011.183 1.98V19.5z"/></svg>
                     </div>
                     <h3 class="text-white font-semibold text-lg">@lang('features.receipt.title')</h3>
                     <p class="mt-2 text-slate-400 text-sm leading-relaxed">@lang('features.receipt.desc')</p>
@@ -432,7 +432,7 @@
     </section>
 
     {{-- Pricing --}}
-    <section id="pricing" class="bg-[#131d31] py-20 sm:py-28">
+    <section id="pricing" class="bg-band border-t border-teal-400/15 py-20 sm:py-28">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="text-2xl sm:text-3xl font-bold text-white">@lang('pricing.title')</h2>
             <p class="mt-3 text-slate-400">@lang('pricing.subtitle')</p>
