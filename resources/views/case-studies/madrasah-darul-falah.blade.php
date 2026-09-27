@@ -206,15 +206,5 @@
     </section>
 
     {{-- Footer --}}
-    <footer class="border-t border-slate-200 py-8 bg-teal-50/40">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
-            <span>@lang('footer.copyright')</span>
-            <div class="flex items-center gap-6">
-                <a href="mailto:@lang('footer.email')" class="hover:text-slate-600 transition-colors">@lang('footer.email')</a>
-                <a href="{{ route('language.switch', ['locale' => app()->getLocale() === 'ms' ? 'en' : 'ms']) }}" class="text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors border border-slate-200 rounded-full px-3 py-1">
-                    @lang('nav.switch_language')
-                </a>
-            </div>
-        </div>
-    </footer>
+    <x-landing-footer variant="light" />
 </x-layouts::landing>
