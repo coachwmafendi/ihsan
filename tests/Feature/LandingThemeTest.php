@@ -71,3 +71,29 @@ it('gives every dark colour on the landing a light counterpart', function () {
 
     expect($unpaired)->toBe([]);
 });
+
+/**
+ * A hover state is as mode-dependent as a resting one. The secondary button
+ * kept `hover:bg-slate-700` after the rest of the page was paired, so hovering
+ * it in light mode turned a pale button dark under text that stayed dark.
+ * Accent colours are exempt: teal means the same thing in both modes.
+ */
+it('gives every neutral hover colour on the landing a light counterpart', function () {
+    $markup = file_get_contents(resource_path('views/welcome.blade.php'));
+
+    preg_match_all('/class="([^"]*)"/', $markup, $matches);
+
+    $unpaired = [];
+
+    foreach ($matches[1] as $classes) {
+        preg_match_all('/(?<![\w:-])hover:(bg|text|border)-(slate|white|black|gray)[\w\/.-]*/', $classes, $hovers, PREG_SET_ORDER);
+
+        foreach ($hovers as [$hover, $property, $palette]) {
+            if (preg_match('/(?<![\w-])dark:hover:'.$property.'-/', $classes) !== 1) {
+                $unpaired[] = $hover.'  in:  '.trim($classes);
+            }
+        }
+    }
+
+    expect($unpaired)->toBe([]);
+});
