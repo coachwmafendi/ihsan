@@ -1,16 +1,41 @@
 {{-- The footer was written out once per page, in two colour schemes, so a link
-     added to it reached only the page it was typed into. --}}
+     added to it reached only the page it was typed into.
+
+     variant="auto" follows the theme toggle and is what the landing uses. The
+     case study and the policy pages are light whatever the toggle says, so
+     they ask for "light" and stay put. --}}
 @props(['variant' => 'dark'])
 
 @php
     $isLight = $variant === 'light';
-    $border = $isLight ? 'border-slate-200 bg-teal-50/40' : 'border-white/5';
-    $text = $isLight ? 'text-slate-400' : 'text-slate-600';
-    $link = $isLight ? 'hover:text-slate-600' : 'hover:text-slate-400';
-    $pill = $isLight ? 'text-slate-400 hover:text-slate-600 border-slate-200' : 'text-slate-600 hover:text-slate-400 border-white/10';
+    $isAuto = $variant === 'auto';
+
+    $shell = match (true) {
+        $isLight => 'border-slate-200 bg-teal-50/40',
+        $isAuto => 'border-slate-200 dark:border-white/5',
+        default => 'border-white/5',
+    };
+
+    $text = match (true) {
+        $isLight => 'text-slate-400',
+        $isAuto => 'text-slate-500 dark:text-slate-600',
+        default => 'text-slate-600',
+    };
+
+    $link = match (true) {
+        $isLight => 'hover:text-slate-600',
+        $isAuto => 'hover:text-slate-900 dark:hover:text-slate-400',
+        default => 'hover:text-slate-400',
+    };
+
+    $pill = match (true) {
+        $isLight => 'text-slate-400 hover:text-slate-600 border-slate-200',
+        $isAuto => 'text-slate-500 hover:text-slate-900 border-slate-200 dark:text-slate-600 dark:hover:text-slate-400 dark:border-white/10',
+        default => 'text-slate-600 hover:text-slate-400 border-white/10',
+    };
 @endphp
 
-<footer data-landing-footer class="border-t {{ $border }} py-8">
+<footer data-landing-footer class="border-t {{ $shell }} py-8">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm {{ $text }}">
         <span>@lang('footer.copyright')</span>
         <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">

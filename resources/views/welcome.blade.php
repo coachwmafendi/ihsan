@@ -99,11 +99,11 @@
                         @lang('nav.register_organization')
                     </a>
                     @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-600 dark:text-slate-200 px-8 py-3.5 rounded-full font-semibold text-base border border-slate-300 dark:border-slate-700 transition-colors">
+                        <a href="{{ route('register') }}" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-200 px-8 py-3.5 rounded-full font-semibold text-base border border-slate-300 dark:border-slate-700 transition-colors">
                             @lang('hero.cta')
                         </a>
                     @endif
-                    <a href="#features" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-600 dark:text-slate-200 px-8 py-3.5 rounded-full font-semibold text-base border border-slate-300 dark:border-slate-700 transition-colors">
+                    <a href="#features" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-200 px-8 py-3.5 rounded-full font-semibold text-base border border-slate-300 dark:border-slate-700 transition-colors">
                         @lang('hero.how_it_works')
                     </a>
                 @endauth
@@ -533,7 +533,7 @@
                         @lang('nav.register_organization')
                     </a>
                     @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="inline-block bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-600 dark:text-slate-200 px-8 py-3.5 rounded-full font-semibold text-base border border-slate-300 dark:border-slate-700 transition-colors">
+                        <a href="{{ route('register') }}" class="inline-block bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-200 px-8 py-3.5 rounded-full font-semibold text-base border border-slate-300 dark:border-slate-700 transition-colors">
                             @lang('cta.button')
                         </a>
                     @endif
@@ -543,5 +543,5 @@
     </section>
 
     {{-- Footer --}}
-    <x-landing-footer />
+    <x-landing-footer variant="auto" />
 </x-layouts::landing>
