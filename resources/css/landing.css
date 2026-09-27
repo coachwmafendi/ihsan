@@ -32,3 +32,7 @@
 html {
     scroll-behavior: smooth;
 }
+
+/* Alpine hides these until it initialises; without the rule the theme toggle
+   shows both its icons for a beat on load. */
+[x-cloak] { display: none !important; }

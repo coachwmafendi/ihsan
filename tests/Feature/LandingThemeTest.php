@@ -9,9 +9,14 @@ declare(strict_types=1);
  * they stay named.
  */
 it('picks the landing colours by name, not by hex', function () {
-    $markup = file_get_contents(resource_path('views/welcome.blade.php'));
-
-    expect($markup)->not->toContain('bg-[#');
+    // The first version of this guard read welcome.blade.php alone, so the
+    // body colour the whole page sits on stayed a bare hex and the test still
+    // passed. The layout that sets it belongs here too.
+    foreach (['views/welcome.blade.php', 'views/layouts/landing.blade.php'] as $file) {
+        expect(file_get_contents(resource_path($file)))
+            ->not->toContain('bg-[#')
+            ->not->toContain('text-[#');
+    }
 });
 
 it('defines a role for each named landing colour', function () {
@@ -37,4 +42,32 @@ it('gives every feature card the same icon tile', function () {
 
     expect($tiles[1])->toHaveCount(6)
         ->and(array_unique($tiles[1]))->toHaveCount(1);
+});
+
+/**
+ * An element styled for one mode only is invisible in the other - light text on
+ * a light background - and nothing else catches it, because the page still
+ * renders and every test still passes.
+ */
+it('gives every dark colour on the landing a light counterpart', function () {
+    $markup = file_get_contents(resource_path('views/welcome.blade.php'));
+
+    preg_match_all('/class="([^"]*dark:(?:bg|text)-[^"]*)"/', $markup, $matches);
+
+    expect($matches[1])->not->toBeEmpty();
+
+    $unpaired = [];
+
+    foreach ($matches[1] as $classes) {
+        foreach (['bg', 'text'] as $property) {
+            $hasDark = preg_match('/(?<![\w-])dark:'.$property.'-/', $classes) === 1;
+            $hasLight = preg_match('/(?<![\w:-])'.$property.'-/', $classes) === 1;
+
+            if ($hasDark && ! $hasLight) {
+                $unpaired[] = $property.': '.$classes;
+            }
+        }
+    }
+
+    expect($unpaired)->toBe([]);
 });
