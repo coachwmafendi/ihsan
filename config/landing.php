@@ -13,6 +13,6 @@ return [
     |
     */
 
-    'demo_video_id' => '0AvkQVVilz0',
+    'demo_video_id' => 'raHLgwS8iMo',
 
 ];
