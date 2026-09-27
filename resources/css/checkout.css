@@ -31,6 +31,9 @@
 
 /* The form itself and the components it renders. */
 @source '../views/livewire/donation-form.blade.php';
+/* The campaign page shares the donation layout, so it is dressed by this
+   stylesheet too. Left off the list, it rendered with no styling at all. */
+@source '../views/livewire/campaign-public-page.blade.php';
 @source '../views/components/checkout-help.blade.php';
 @source '../views/components/currency-flag.blade.php';
 @source '../views/components/tracking-scripts.blade.php';
