@@ -132,5 +132,7 @@
     "case.img.building_caption": "The new main building under construction — now more than 50% complete.",
     "nav.back_home": "Back to home",
     "footer.privacy": "Privacy Policy",
-    "footer.terms": "Terms of Service"
+    "footer.terms": "Terms of Service",
+    "nav.theme_light": "Switch to light mode",
+    "nav.theme_dark": "Switch to dark mode"
 }
