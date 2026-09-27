@@ -538,15 +538,5 @@
     </section>
 
     {{-- Footer --}}
-    <footer class="border-t border-white/5 py-8">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-600">
-            <span>@lang('footer.copyright')</span>
-            <div class="flex items-center gap-6">
-                <a href="mailto:@lang('footer.email')" class="hover:text-slate-400 transition-colors">@lang('footer.email')</a>
-                <a href="{{ route('language.switch', ['locale' => app()->getLocale() === 'ms' ? 'en' : 'ms']) }}" class="text-xs font-medium text-slate-600 hover:text-slate-400 transition-colors border border-white/10 rounded-full px-3 py-1">
-                    @lang('nav.switch_language')
-                </a>
-            </div>
-        </div>
-    </footer>
+    <x-landing-footer />
 </x-layouts::landing>

@@ -7,21 +7,18 @@
     "nav.register": "Register NGO",
     "nav.login": "Sign in",
     "nav.switch_language": "BM",
-
     "hero.badge": "Donation & Fundraising Platform for Malaysian NGOs",
     "hero.heading_1": "Give with sincerity.",
     "hero.heading_2": "Continuously.",
     "hero.subtitle": "A SaaS fundraising platform that enables Malaysian NGOs, mosques, and charities to accept one-time and recurring donations online — easily, professionally, and sustainably.",
     "hero.cta": "Register Your NGO",
     "hero.how_it_works": "How It Works",
-
     "stat.digital_donors_label": "Malaysians who have donated digitally",
     "stat.digital_donors_value": "37%",
     "stat.target_raised_label": "Target donations processed (MVP)",
     "stat.target_raised_value": "RM 50k+",
     "stat.retention_label": "Donor retention rate target",
     "stat.retention_value": "70%+",
-
     "features.title": "Everything your NGO needs for fundraising",
     "features.element.title": "Donation Elements",
     "features.element.desc": "Embeddable forms, buttons & popups — install on your NGO website without a developer.",
@@ -35,7 +32,6 @@
     "features.campaign.desc": "Create fundraising campaigns with targets, end dates, and shareable links in minutes.",
     "features.receipt.title": "Auto Receipts",
     "features.receipt.desc": "Automated email receipts for every donation — professional, LHDN-ready, and instant.",
-
     "for.title": "Built for NGOs & Donors",
     "for.ngo.label": "FOR NGOS",
     "for.ngo.title": "Manage donations without technical hassle",
@@ -54,7 +50,6 @@
     "for.donor.point_4": "Pause, resume, or cancel your subscription anytime",
     "for.donor.point_5": "Auto PDF receipt for every donation, downloadable anytime",
     "for.donor.point_6": "View all history and donate to multiple NGOs from one portal",
-
     "pricing.title": "Transparent Pricing",
     "pricing.subtitle": "Processing fee as low as 2.5% — no platform fee, no monthly charges during MVP",
     "pricing.mvp.name": "MVP",
@@ -62,7 +57,6 @@
     "pricing.mvp.fee": "+ 2.5% processing fee",
     "pricing.coming.name": "Coming Soon",
     "pricing.coming.desc": "Paid plans to be announced",
-
     "faq.title": "Frequently Asked Questions",
     "faq.q1.q": "What is Ihsan?",
     "faq.q1.a": "Ihsan is a fundraising platform for Malaysian NGOs — enabling one-time & recurring donations through Stripe, with a powerful admin dashboard.",
@@ -74,24 +68,18 @@
     "faq.q4.a": "Visa, Mastercard, Apple Pay, and Google Pay via Stripe. More payment methods coming in future updates.",
     "faq.q5.q": "Can donors set up recurring donations?",
     "faq.q5.a": "Yes! Donors can choose weekly, monthly, or yearly recurring plans. Auto-billing handled by Stripe with smart retry logic.",
-
     "cta.title": "Ready to start your fundraising journey?",
     "cta.subtitle": "Free to register — set up in less than 25 minutes.",
     "cta.button": "Register Your NGO",
-
     "footer.copyright": "© Ihsan — Donation Platform for Malaysian NGOs",
     "footer.email": "hello@getihsan.my",
-
     "preview.title": "See the platform in action",
     "preview.subtitle": "A clean, powerful dashboard built for NGO operations — no training needed.",
-
     "nav.case_study": "Case Study",
-
     "case.meta_title": "Madrasah Darul Falah × Ihsan — Case Study",
     "case.label": "Case Study",
     "case.title": "Madrasah Darul Falah doubled its online donations with Ihsan",
     "case.subtitle": "How a religious primary school in Kuala Nerus, Terengganu turned seasonal bank-transfer appeals into steady, recurring support for 185 students — and its RM1.7 million development fund.",
-
     "case.stat1.value": "2.1x",
     "case.stat1.label": "online donation conversion rate",
     "case.stat2.value": "38%",
@@ -100,7 +88,6 @@
     "case.stat3.label": "of donors cover the processing fee",
     "case.stat4.value": "10+ hrs",
     "case.stat4.label": "of admin work saved every month",
-
     "case.facts.title": "At a glance",
     "case.facts.org_label": "Organization",
     "case.facts.org": "Madrasah Darul Falah",
@@ -116,17 +103,14 @@
     "case.facts.since_label": "Using Ihsan since",
     "case.facts.since": "2025",
     "case.facts.visit_website": "Visit website",
-
     "case.about.title": "About Madrasah Darul Falah",
     "case.about.p1": "Madrasah Darul Falah is a religious primary school in Kg. Pengkalan Maras, Mengabang Telipot, Kuala Nerus, Terengganu. Established in 2015 and opened in January 2016 on donated land, the madrasah provides Quranic education and core Islamic studies to 185 students, supported by 16 teachers and 6 support staff.",
     "case.about.p2": "Many of its students are orphans and asnaf from difficult family backgrounds who could not otherwise afford schooling, meals, books, or boarding. To keep serving them, the madrasah launched a development fund with a Phase 1 target of RM1.7 million — the main building is now more than 50% complete.",
-
     "case.challenge.title": "The challenge",
     "case.challenge.p1": "Like many madrasahs, Darul Falah raised funds through account numbers on posters, WhatsApp appeals, and seasonal campaigns. Donors had to copy account numbers, transfer manually, and send proof of payment — and every official receipt was typed by hand.",
     "case.challenge.p2": "Giving spiked during Ramadan, then went quiet for the rest of the year. There was no way for supporters to give monthly, no record of who was donating, and no simple donate button on the madrasah's own website.",
     "case.challenge.quote": "Supporters kept telling us they wanted to help beyond Ramadan. We believed them — we just never made it easy.",
     "case.challenge.quote_by": "Fundraising & Development Team, Madrasah Darul Falah",
-
     "case.solution.title": "The solution",
     "case.solution.intro": "With Ihsan, the madrasah added a donation form and a floating donate button to its existing website with a single script tag — no developer needed. The Development Fund became a campaign page with a live progress bar, and monthly giving became the default ask.",
     "case.solution.point1": "Embedded donation form & floating button installed in one afternoon",
@@ -135,18 +119,18 @@
     "case.solution.point4": "Automatic, LHDN-ready PDF receipts for every donation",
     "case.solution.point5": "Virtual Terminal for walk-in and phone donations at the office",
     "case.solution.point6": "Smart retry that automatically recovers failed recurring payments",
-
     "case.results.title": "The results",
     "case.results.p1": "Within months, online donation conversions more than doubled compared to the old transfer-and-WhatsApp flow. 38% of online donors chose a monthly plan, giving the madrasah predictable income it could plan around for the first time.",
     "case.results.p2": "Because 92% of donors opt to cover the processing fee, almost every ringgit given reaches the students. And with receipts, reminders, and failed-payment retries fully automated, the office saves more than ten hours of manual work each month.",
     "case.results.quote": "In the first month, recurring donations alone covered our students' meal programme. Now we plan ahead instead of waiting for the next appeal.",
     "case.results.quote_by": "School Administration, Madrasah Darul Falah",
-
     "case.cta.title": "Your organization could be next",
     "case.cta.subtitle": "Set up campaigns, embedded forms, and recurring giving in under 30 minutes — free during MVP.",
-
     "case.img.hero_caption": "Madrasah Darul Falah, Kg. Pengkalan Maras, Kuala Nerus, Terengganu",
     "case.img.students_caption": "Many students are orphans and asnaf who receive schooling, meals, and boarding at no cost.",
     "case.img.form_caption": "The Ihsan donation form embedded on the madrasah's website.",
-    "case.img.building_caption": "The new main building under construction — now more than 50% complete."
+    "case.img.building_caption": "The new main building under construction — now more than 50% complete.",
+    "nav.back_home": "Back to home",
+    "footer.privacy": "Privacy Policy",
+    "footer.terms": "Terms of Service"
 }
