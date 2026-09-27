@@ -79,3 +79,28 @@ it('says plainly that Ihsan never holds card numbers', function () {
         ->assertOk()
         ->assertSee('never see or store your card number');
 });
+
+it('covers each part of the terms', function () {
+    $response = $this->get('/terms')->assertOk();
+
+    foreach ([
+        'What Ihsan is',
+        'Making a donation',
+        'Recurring gifts',
+        'Fees',
+        'Refunds',
+        'Receipts',
+        'If you are an organization',
+        'Limits',
+        'Governing law',
+        'Changes to these terms',
+    ] as $heading) {
+        $response->assertSee($heading);
+    }
+});
+
+it('says plainly that a donation goes to the organization', function () {
+    $this->get('/terms')
+        ->assertOk()
+        ->assertSee('Your donation is made to that organization, not to Ihsan');
+});
