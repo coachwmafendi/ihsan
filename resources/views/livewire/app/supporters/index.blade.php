@@ -348,7 +348,26 @@
                                     <p class="text-sm font-medium text-slate-900">{{ $donor->name }}</p>
                                 </td>
                                 <td class="px-5 py-4 text-sm text-slate-600">
-                                    <x-ui.tooltip :text="$donor->email">
+                                    @php
+                                        $emailStatus = $donor->emailDeliveryStatus();
+                                        $emailDot = match ($emailStatus['tone']) {
+                                            'red' => 'bg-red-500',
+                                            'amber' => 'bg-amber-500',
+                                            'green' => 'bg-green-500',
+                                            default => 'bg-slate-400',
+                                        };
+                                    @endphp
+                                    {{-- Opens downwards: on the first row an upward balloon covers the
+                                         column header, and the component only flips at the viewport edge. --}}
+                                    <x-ui.tooltip position="bottom" align="start">
+                                        <x-slot:tip>
+                                            <span class="flex items-center gap-2">
+                                                <span class="size-1.5 shrink-0 rounded-full {{ $emailDot }}"></span>
+                                                <span>{{ $emailStatus['label'] }}</span>
+                                            </span>
+                                            {{-- Only worth repeating when the cell cut it off. --}}
+                                            <span x-show="truncated" x-cloak class="mt-1 block break-all text-slate-500">{{ $donor->email }}</span>
+                                        </x-slot:tip>
                                         <span class="block max-w-[11rem] truncate sm:max-w-[18rem]">{{ $donor->email }}</span>
                                     </x-ui.tooltip>
                                 </td>
