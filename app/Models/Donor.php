@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\PublicIdGenerator;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Database\Factories\DonorFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -226,6 +227,42 @@ class Donor extends Model
         return ! $this->hasOptedOutOfEmails()
             && ! $this->hasBouncedEmail()
             && ! $this->hasComplainedEmail();
+    }
+
+    /**
+     * Whether email reaches this donor, in words an admin can act on.
+     *
+     * The worst news wins: someone who unsubscribed after a bounce still has an
+     * address that does not work, and that is the part worth knowing first.
+     *
+     * @return array{label: string, tone: string}
+     */
+    public function emailDeliveryStatus(): array
+    {
+        $on = fn (?CarbonInterface $at): string => $at ? myrTime($at, false, 'j M Y') : '';
+
+        return match (true) {
+            $this->email_complained_at !== null => [
+                'label' => 'Marked as spam '.$on($this->email_complained_at),
+                'tone' => 'red',
+            ],
+            $this->email_bounced_at !== null => [
+                'label' => 'Bounced '.$on($this->email_bounced_at).' — address undeliverable',
+                'tone' => 'red',
+            ],
+            $this->email_opt_out_at !== null => [
+                'label' => 'Unsubscribed '.$on($this->email_opt_out_at).' — no further email',
+                'tone' => 'amber',
+            ],
+            $this->email_validated_at !== null => [
+                'label' => 'Email confirmed '.$on($this->email_validated_at),
+                'tone' => 'green',
+            ],
+            default => [
+                'label' => 'Not confirmed yet',
+                'tone' => 'slate',
+            ],
+        };
     }
 
     /**

@@ -10,6 +10,7 @@ document.addEventListener('alpine:init', () => {
         style: {},
         disabled,
         resolvedPosition: position,
+        truncated: false,
 
         init() {
             this.$nextTick(() => {
@@ -49,6 +50,17 @@ document.addEventListener('alpine:init', () => {
             return this.text.length > 0 || (this.$refs.tooltip?.textContent?.trim().length ?? 0) > 0;
         },
 
+        /**
+         * Whether the trigger is actually clipping its text. A tooltip that
+         * repeats an address the cell showed in full tells the reader nothing;
+         * one that completes a cut-off address earns its place.
+         */
+        isTruncated() {
+            const el = this.$el.querySelector('.truncate') ?? this.$el;
+
+            return el.scrollWidth > el.clientWidth + 1;
+        },
+
         currentTriggerEl() {
             const focusableSelector = 'button, a[href], input, select, textarea';
 
@@ -71,6 +83,7 @@ document.addEventListener('alpine:init', () => {
                     return;
                 }
 
+                this.truncated = this.isTruncated();
                 this.open = true;
                 this.$nextTick(() => this.reposition());
             }, showDelay);
