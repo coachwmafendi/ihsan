@@ -103,7 +103,7 @@
                             @lang('hero.cta')
                         </a>
                     @endif
-                    <a href="#features" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-200 px-8 py-3.5 rounded-full font-semibold text-base border border-slate-300 dark:border-slate-700 transition-colors">
+                    <a href="{{ filled(config('landing.demo_video_id')) ? '#demo' : '#features' }}" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-200 px-8 py-3.5 rounded-full font-semibold text-base border border-slate-300 dark:border-slate-700 transition-colors">
                         @lang('hero.how_it_works')
                     </a>
                 @endauth
@@ -130,6 +130,35 @@
             </div>
         </div>
     </section>
+
+    {{-- Demo video: a poster until the visitor presses play, so YouTube's player
+         and cookies load only for people who want the video. --}}
+    @if (filled(config('landing.demo_video_id')))
+        <section id="demo" class="border-t border-slate-200 dark:border-white/5 py-20 sm:py-28">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-10 sm:mb-12">
+                    <span class="inline-block text-teal-600 dark:text-teal-400 font-semibold text-xs tracking-widest uppercase bg-teal-500/10 border border-teal-500/20 rounded-full px-4 py-1.5">@lang('demo.badge')</span>
+                    <h2 class="mt-5 text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">@lang('demo.title')</h2>
+                    <p class="mt-3 text-slate-600 dark:text-slate-400 max-w-xl mx-auto">@lang('demo.subtitle')</p>
+                </div>
+
+                <div x-data="{ playing: false }" class="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-950 shadow-[0_0_80px_-20px_rgba(20,184,166,0.35)]">
+                    <template x-if="playing">
+                        <iframe src="https://www.youtube-nocookie.com/embed/{{ config('landing.demo_video_id') }}?autoplay=1&rel=0&playsinline=1" title="@lang('demo.title')" class="absolute inset-0 w-full h-full" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                    </template>
+
+                    {{-- A real link, so the video still opens on YouTube if Alpine never runs. --}}
+                    <a x-show="! playing" href="https://www.youtube.com/watch?v={{ config('landing.demo_video_id') }}" x-on:click.prevent="playing = true" aria-label="@lang('demo.play')" class="group absolute inset-0 block focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-teal-400">
+                        <img src="{{ asset('images/landing/demo-poster.jpg') }}" alt="" width="1280" height="720" loading="lazy" decoding="async" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]">
+                        {{-- Centred on the checkout card in the poster, clear of its headline. --}}
+                        <span class="absolute left-[77%] top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-14 h-14 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full bg-teal-500 text-slate-950 ring-8 ring-teal-400/25 shadow-xl shadow-black/40 transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110">
+                            <svg class="w-6 h-6 sm:w-9 sm:h-9 lg:w-10 lg:h-10 translate-x-0.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.29-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14Z"/></svg>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    @endif
 
     {{-- Product Preview --}}
     <section class="py-20 sm:py-28 overflow-hidden">
