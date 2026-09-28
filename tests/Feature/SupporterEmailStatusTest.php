@@ -44,31 +44,31 @@ it('names the email delivery state, worst news first', function (array $state, s
         'email_bounced_at' => now()->subDays(5),
         'email_opt_out_at' => now()->subDays(6),
         'email_validated_at' => now()->subDays(9),
-    ], 'Marked as spam'],
+    ], 'Marked as spam on'],
     'a bounce outranks an unsubscribe' => [[
         'email_complained_at' => null,
         'email_bounced_at' => now()->subDays(5),
         'email_opt_out_at' => now()->subDays(6),
         'email_validated_at' => now()->subDays(9),
-    ], 'Bounced'],
+    ], 'Bounced on'],
     'an unsubscribe outranks a confirmation' => [[
         'email_complained_at' => null,
         'email_bounced_at' => null,
         'email_opt_out_at' => now()->subDays(6),
         'email_validated_at' => now()->subDays(9),
-    ], 'Unsubscribed'],
+    ], 'Unsubscribed on'],
     'a confirmation when nothing went wrong' => [[
         'email_complained_at' => null,
         'email_bounced_at' => null,
         'email_opt_out_at' => null,
         'email_validated_at' => now()->subDays(9),
-    ], 'Email confirmed'],
+    ], 'Delivered on'],
     'nothing recorded at all' => [[
         'email_complained_at' => null,
         'email_bounced_at' => null,
         'email_opt_out_at' => null,
         'email_validated_at' => null,
-    ], 'Not confirmed yet'],
+    ], 'No delivery recorded yet'],
 ]);
 
 it('dates the state it reports', function () {
@@ -92,7 +92,7 @@ it('tells the supporters table something the row does not already show', functio
 
     Livewire::actingAs($this->user)
         ->test(SupporterIndex::class)
-        ->assertSee('Bounced 12 Sep 2026')
+        ->assertSee('Bounced on 12 Sep 2026')
         ->assertSee($donor->email);
 });
 
@@ -102,4 +102,23 @@ it('opens the email tooltip downwards, clear of the column header', function () 
     $html = Livewire::actingAs($this->user)->test(SupporterIndex::class)->html();
 
     expect($html)->toContain("position: 'bottom'");
+});
+
+/**
+ * email_validated_at is stamped when Amazon SES reports a delivery or an open
+ * (EmailWebhookService), not by any action the donor took - this application
+ * has no confirmation link. Wording that implies otherwise is a lie the tooltip
+ * would tell on every row.
+ */
+it('does not claim the donor confirmed anything', function () {
+    $donor = Donor::factory()->make([
+        'email_complained_at' => null,
+        'email_bounced_at' => null,
+        'email_opt_out_at' => null,
+        'email_validated_at' => now(),
+    ]);
+
+    expect($donor->emailDeliveryStatus()['label'])
+        ->toContain('Delivered')
+        ->not->toContain('confirm');
 });

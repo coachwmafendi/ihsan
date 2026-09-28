@@ -243,23 +243,26 @@ class Donor extends Model
 
         return match (true) {
             $this->email_complained_at !== null => [
-                'label' => 'Marked as spam '.$on($this->email_complained_at),
+                'label' => 'Marked as spam on '.$on($this->email_complained_at),
                 'tone' => 'red',
             ],
             $this->email_bounced_at !== null => [
-                'label' => 'Bounced '.$on($this->email_bounced_at).' — address undeliverable',
+                'label' => 'Bounced on '.$on($this->email_bounced_at).' — address undeliverable',
                 'tone' => 'red',
             ],
             $this->email_opt_out_at !== null => [
-                'label' => 'Unsubscribed '.$on($this->email_opt_out_at).' — no further email',
+                'label' => 'Unsubscribed on '.$on($this->email_opt_out_at).' — no further email',
                 'tone' => 'amber',
             ],
+            // Amazon SES told us mail reached the address, or was opened there.
+            // The donor confirmed nothing: this application has no confirmation
+            // link, so anything reading as though they did would be a lie.
             $this->email_validated_at !== null => [
-                'label' => 'Email confirmed '.$on($this->email_validated_at),
+                'label' => 'Delivered on '.$on($this->email_validated_at),
                 'tone' => 'green',
             ],
             default => [
-                'label' => 'Not confirmed yet',
+                'label' => 'No delivery recorded yet',
                 'tone' => 'slate',
             ],
         };
