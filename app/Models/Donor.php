@@ -261,11 +261,33 @@ class Donor extends Model
                 'label' => 'Delivered on '.$on($this->email_validated_at),
                 'tone' => 'green',
             ],
-            default => [
-                'label' => 'No delivery recorded yet',
-                'tone' => 'slate',
-            ],
+            // Nothing has come back, which covers two different situations: an
+            // address nobody has written to, and one that went silent. Reading
+            // them the same way hid nine addresses that had heard nothing for
+            // a fortnight or more.
+            default => ($sentAt = $this->lastEmailSentAt()) !== null
+                ? [
+                    'label' => 'Sent on '.$on($sentAt).', no delivery confirmed',
+                    'tone' => 'slate',
+                ]
+                : [
+                    'label' => 'No email sent yet',
+                    'tone' => 'slate',
+                ],
         };
+    }
+
+    /**
+     * When we last wrote to this donor, from the list query's withMax where it
+     * loaded one, and from a lookup otherwise.
+     */
+    private function lastEmailSentAt(): ?CarbonInterface
+    {
+        $sentAt = array_key_exists('last_email_sent_at', $this->attributes)
+            ? $this->attributes['last_email_sent_at']
+            : $this->emailLogs()->max('created_at');
+
+        return $sentAt ? CarbonImmutable::parse($sentAt) : null;
     }
 
     /**
