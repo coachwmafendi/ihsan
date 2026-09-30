@@ -122,3 +122,26 @@ it('does not claim the donor confirmed anything', function () {
         ->toContain('Delivered')
         ->not->toContain('confirm');
 });
+
+/**
+ * Two rows out of 216 on production actually need attention. Marking the other
+ * 214 as healthy would bury the two that matter, so the list stays quiet until
+ * something is wrong.
+ */
+it('marks only the supporters whose email is not getting through', function (array $state, ?string $expected) {
+    supporterWith($state, $this->campaign);
+
+    $html = Livewire::actingAs($this->user)->test(SupporterIndex::class)->html();
+
+    if ($expected === null) {
+        expect($html)->not->toContain('data-email-problem');
+    } else {
+        expect($html)->toContain('data-email-problem="'.$expected.'"');
+    }
+})->with([
+    'a spam complaint is flagged' => [['email_complained_at' => now()], 'red'],
+    'a bounce is flagged' => [['email_bounced_at' => now()], 'red'],
+    'an unsubscribe is flagged' => [['email_opt_out_at' => now()], 'amber'],
+    'a delivered address is left alone' => [['email_validated_at' => now()], null],
+    'an address with no record yet is left alone' => [[], null],
+]);
