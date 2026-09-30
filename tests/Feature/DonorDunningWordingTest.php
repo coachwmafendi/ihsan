@@ -82,3 +82,18 @@ it('says the same thing in Malay', function () {
     expect($mail->envelope()->subject)->not->toContain('Esok');
     expect($mail->render())->not->toContain('Percubaan Akhir Esok');
 });
+
+/**
+ * The final-attempt copy is not dead. Stripe-billed plans still use it from
+ * ProcessStripeWebhook, where "final attempt" means Stripe's last retry and the
+ * plan is still alive - there, "Last Chance to Update Payment" is exactly
+ * right. It is only app-controlled plans that no longer send it, because by
+ * then the plan has already ended and its own email says so.
+ */
+it('keeps the last-chance wording for a plan Stripe is still billing', function () {
+    $plan = dunningPlan(['stripe_subscription_id' => 'sub_legacy_test']);
+
+    $mail = new DonorDunningNotification($plan, retryCount: 4, isFinalAttempt: true);
+
+    expect($mail->envelope()->subject)->toContain('Last Chance');
+});

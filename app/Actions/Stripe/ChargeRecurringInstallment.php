@@ -362,13 +362,19 @@ class ChargeRecurringInstallment
     {
         SendFailedPaymentNotification::dispatch($subscription, $errorMessage);
 
+        // A plan that has run out of attempts gets the email written for that:
+        // "Recurring Donation Ended - no further charges will be attempted",
+        // with an invitation to start again. Dunning it as well put "Last
+        // Chance to Update Payment" in the same inbox at the same moment, for
+        // a plan that will never be charged again.
         if ($subscription->status === SubscriptionStatus::Failed) {
             SendDonorSubscriptionFailedNotification::dispatch($subscription);
+
+            return;
         }
 
         if ($sendDunning && $subscription->donor?->canReceiveEmails()) {
-            $isFinalAttempt = $subscription->status === SubscriptionStatus::Failed;
-            SendDonorDunningNotification::dispatch($subscription, $oldRetryCount + 1, $isFinalAttempt);
+            SendDonorDunningNotification::dispatch($subscription, $oldRetryCount + 1);
         }
     }
 }
