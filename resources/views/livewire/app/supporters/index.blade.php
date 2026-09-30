@@ -374,9 +374,12 @@
                                         <span class="flex items-center gap-1.5">
                                             <span class="block max-w-[11rem] truncate sm:max-w-[18rem]">{{ $donor->email }}</span>
                                             @if ($emailStatus['tone'] === 'red')
-                                                <x-heroicon-o-exclamation-circle data-email-problem="red" class="size-4 shrink-0 text-red-500" />
+                                                <x-heroicon-o-exclamation-circle data-email-flag="red" class="size-4 shrink-0 text-red-500" />
                                             @elseif ($emailStatus['tone'] === 'amber')
-                                                <x-heroicon-o-no-symbol data-email-problem="amber" class="size-4 shrink-0 text-amber-500" />
+                                                <x-heroicon-o-no-symbol data-email-flag="amber" class="size-4 shrink-0 text-amber-500" />
+                                            @elseif ($emailStatus['tone'] === 'slate')
+                                                {{-- Mail went out and nothing came back. Not broken, just unknown. --}}
+                                                <x-heroicon-o-question-mark-circle data-email-flag="slate" class="size-4 shrink-0 text-slate-400" />
                                             @endif
                                         </span>
                                     </x-ui.tooltip>

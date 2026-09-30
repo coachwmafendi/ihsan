@@ -136,9 +136,9 @@ it('marks only the supporters whose email is not getting through', function (arr
     $html = Livewire::actingAs($this->user)->test(SupporterIndex::class)->html();
 
     if ($expected === null) {
-        expect($html)->not->toContain('data-email-problem');
+        expect($html)->not->toContain('data-email-flag');
     } else {
-        expect($html)->toContain('data-email-problem="'.$expected.'"');
+        expect($html)->toContain('data-email-flag="'.$expected.'"');
     }
 })->with([
     'a spam complaint is flagged' => [['email_complained_at' => now()], 'red'],
@@ -175,7 +175,7 @@ it('leaves both of those unmarked in the list', function () {
 
     $html = Livewire::actingAs($this->user)->test(SupporterIndex::class)->html();
 
-    expect($html)->not->toContain('data-email-problem');
+    expect($html)->not->toContain('data-email-flag');
 });
 
 it('reads the supporters list without a query per row', function () {
@@ -189,4 +189,32 @@ it('reads the supporters list without a query per row', function () {
     DB::disableQueryLog();
 
     expect($queries)->toBeLessThan(30);
+});
+
+/**
+ * Mail went out and nothing came back. That is not a failure - it may well have
+ * arrived and SES never said so - but nine of the ten on production had been
+ * silent for a fortnight or more, and none of it was visible without hovering.
+ */
+it('marks an address that went silent, without calling it broken', function () {
+    $silent = supporterWith([], $this->campaign);
+    DonorEmailLog::factory()->create([
+        'donor_id' => $silent->id,
+        'created_at' => now()->subDays(20),
+        'delivered_at' => null,
+        'opened_at' => null,
+    ]);
+
+    $html = Livewire::actingAs($this->user)->test(SupporterIndex::class)->html();
+
+    expect($html)->toContain('data-email-flag="slate"')
+        ->not->toContain('data-email-flag="red"')
+        ->not->toContain('data-email-flag="amber"');
+});
+
+it('leaves an address nobody has written to unmarked', function () {
+    supporterWith([], $this->campaign);
+
+    expect(Livewire::actingAs($this->user)->test(SupporterIndex::class)->html())
+        ->not->toContain('data-email-flag');
 });
