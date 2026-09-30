@@ -267,12 +267,14 @@ class Donor extends Model
             // a fortnight or more.
             default => ($sentAt = $this->lastEmailSentAt()) !== null
                 ? [
+                    // Not a failure: the mail may well have arrived and SES
+                    // never said so. Worth seeing, not worth an alarm.
                     'label' => 'Sent on '.$on($sentAt).', no delivery confirmed',
                     'tone' => 'slate',
                 ]
                 : [
                     'label' => 'No email sent yet',
-                    'tone' => 'slate',
+                    'tone' => 'none',
                 ],
         };
     }
