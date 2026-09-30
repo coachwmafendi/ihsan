@@ -368,7 +368,17 @@
                                             {{-- Only worth repeating when the cell cut it off. --}}
                                             <span x-show="truncated" x-cloak class="mt-1 block break-all text-slate-500">{{ $donor->email }}</span>
                                         </x-slot:tip>
-                                        <span class="block max-w-[11rem] truncate sm:max-w-[18rem]">{{ $donor->email }}</span>
+                                        {{-- Marked only when the address is not getting through. Two rows
+                                             in two hundred need attention; flagging the healthy ones as well
+                                             would bury them. --}}
+                                        <span class="flex items-center gap-1.5">
+                                            <span class="block max-w-[11rem] truncate sm:max-w-[18rem]">{{ $donor->email }}</span>
+                                            @if ($emailStatus['tone'] === 'red')
+                                                <x-heroicon-o-exclamation-circle data-email-problem="red" class="size-4 shrink-0 text-red-500" />
+                                            @elseif ($emailStatus['tone'] === 'amber')
+                                                <x-heroicon-o-no-symbol data-email-problem="amber" class="size-4 shrink-0 text-amber-500" />
+                                            @endif
+                                        </span>
                                     </x-ui.tooltip>
                                 </td>
                                 <td class="px-5 py-4 text-right text-sm tabular-nums text-slate-900">

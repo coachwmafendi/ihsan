@@ -8,7 +8,7 @@
     $isFinalAttempt => 'emails.dunning.preheader_final',
     $retryCount >= 3 => 'emails.dunning.preheader_almost_final',
     default => 'emails.dunning.preheader_default',
-}, ['campaign' => $subscription->campaign->title]))
+}, ['campaign' => $subscription->campaign->title, 'retry' => $retryCount]))
 
 @section('content')
     @if ($isFinalAttempt)
@@ -24,7 +24,15 @@
     @if ($isFinalAttempt)
         <p>{{ $t('emails.dunning.intro_final', ['campaign' => $subscription->campaign->title]) }}</p>
     @elseif ($retryCount >= 3)
-        <p>{{ $t('emails.dunning.intro_almost_final', ['campaign' => $subscription->campaign->title]) }}</p>
+        {{-- The date the schedule will actually try again, rather than a
+             guess. The ladder is 1, 3, 7 then 7 days, so by this point the
+             next attempt is a week out, not tomorrow. --}}
+        <p>
+            {{ $t('emails.dunning.intro_almost_final', ['campaign' => $subscription->campaign->title, 'retry' => $retryCount]) }}
+            @if ($subscription->next_charge_at)
+                {{ $t('emails.dunning.next_attempt', ['date' => myrTime($subscription->next_charge_at, true, 'j M Y')]) }}
+            @endif
+        </p>
     @else
         <p>{{ $t('emails.dunning.intro_default', ['campaign' => $subscription->campaign->title]) }}</p>
     @endif
