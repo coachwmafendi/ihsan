@@ -189,6 +189,10 @@ class SupporterIndex extends Component
             ->withCount(['donations as donations_count' => $orgDonations])
             ->withMin(['donations as donations_min_created_at' => $orgDonations], 'created_at')
             ->withMax(['donations as donations_max_created_at' => $orgDonations], 'created_at')
+            // The email tooltip tells an address nobody wrote to apart from one
+            // that went silent, which needs the last send date - one subquery
+            // here rather than a lookup per row.
+            ->withMax('emailLogs as last_email_sent_at', 'created_at')
             ->selectSub(
                 fn ($q) => $q->from('donations')
                     ->whereColumn('donations.donor_id', 'donors.id')

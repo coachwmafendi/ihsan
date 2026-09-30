@@ -7,9 +7,11 @@ use App\Livewire\App\Supporters\SupporterIndex;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Donor;
+use App\Models\DonorEmailLog;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -68,7 +70,7 @@ it('names the email delivery state, worst news first', function (array $state, s
         'email_bounced_at' => null,
         'email_opt_out_at' => null,
         'email_validated_at' => null,
-    ], 'No delivery recorded yet'],
+    ], 'No email sent yet'],
 ]);
 
 it('dates the state it reports', function () {
@@ -145,3 +147,46 @@ it('marks only the supporters whose email is not getting through', function (arr
     'a delivered address is left alone' => [['email_validated_at' => now()], null],
     'an address with no record yet is left alone' => [[], null],
 ]);
+
+/**
+ * "No delivery recorded yet" covered two different situations: nobody has ever
+ * written to this address, and mail went out and nothing came back. On
+ * production that was 14 of one and 10 of the other, nine of them more than a
+ * fortnight old, all reading identically.
+ */
+it('separates an address nobody wrote to from one that went silent', function () {
+    $neverWritten = supporterWith([], $this->campaign);
+
+    $wroteButSilent = supporterWith([], $this->campaign);
+    DonorEmailLog::factory()->create([
+        'donor_id' => $wroteButSilent->id,
+        'created_at' => now()->setDate(2026, 9, 18),
+        'delivered_at' => null,
+        'opened_at' => null,
+    ]);
+
+    expect($neverWritten->fresh()->emailDeliveryStatus()['label'])->toBe('No email sent yet')
+        ->and($wroteButSilent->fresh()->emailDeliveryStatus()['label'])->toContain('18 Sep 2026')
+        ->and($wroteButSilent->fresh()->emailDeliveryStatus()['label'])->toContain('no delivery confirmed');
+});
+
+it('leaves both of those unmarked in the list', function () {
+    supporterWith([], $this->campaign);
+
+    $html = Livewire::actingAs($this->user)->test(SupporterIndex::class)->html();
+
+    expect($html)->not->toContain('data-email-problem');
+});
+
+it('reads the supporters list without a query per row', function () {
+    for ($i = 0; $i < 12; $i++) {
+        supporterWith(['email_validated_at' => now()], $this->campaign);
+    }
+
+    DB::enableQueryLog();
+    Livewire::actingAs($this->user)->test(SupporterIndex::class)->html();
+    $queries = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    expect($queries)->toBeLessThan(30);
+});
