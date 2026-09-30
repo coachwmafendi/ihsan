@@ -8,6 +8,7 @@ use App\Enums\SubscriptionStatus;
 use App\Jobs\SendCampaignMilestoneNotification;
 use App\Jobs\SendDonorDunningNotification;
 use App\Jobs\SendDonorRecurringPaymentNotification;
+use App\Jobs\SendDonorSubscriptionFailedNotification;
 use App\Jobs\SendFailedPaymentNotification;
 use App\Jobs\SendLargeDonationNotification;
 use App\Jobs\SendLinkedInConversionEvent;
@@ -440,9 +441,13 @@ it('marks subscription as failed and dispatches final dunning on terminal failur
         ->next_charge_at->toBeNull();
 
     Queue::assertPushed(SendFailedPaymentNotification::class);
-    Queue::assertPushed(SendDonorDunningNotification::class, function ($job) use ($subscription) {
-        return $job->subscription->is($subscription) && $job->retryCount === 4 && $job->isFinalAttempt === true;
-    });
+
+    // The donor gets one email at this moment, and it is the one written for
+    // it: "Recurring Donation Ended - no further charges will be attempted".
+    // The dunning email would land beside it saying "Last Chance to Update
+    // Payment", for a plan that will never be charged again.
+    Queue::assertPushed(SendDonorSubscriptionFailedNotification::class, fn ($job) => $job->subscription->is($subscription));
+    Queue::assertNotPushed(SendDonorDunningNotification::class);
 });
 
 it('pauses schedule for authentication when a charge requires action', function (): void {
