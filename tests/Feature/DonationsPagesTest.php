@@ -1102,3 +1102,34 @@ it('does not tell the checkout it borrowed its own device', function () {
         ->assertSeeText('Android')
         ->assertDontSee('device this plan was started on');
 });
+
+/**
+ * One phone glyph sat on 319 of 339 rows, saying the same thing on nearly all
+ * of them. Android and iOS split those rows 2:1, and which platform a donation
+ * came from is the first thing worth knowing when a donor reports that a wallet
+ * button never appeared.
+ */
+it('tells an iPhone apart from an Android in the donations list', function (?string $deviceType, ?string $os, ?string $expected) {
+    Donation::factory()->create([
+        'campaign_id' => $this->campaign->id,
+        'donor_id' => $this->donor->id,
+        'device_type' => $deviceType,
+        'os' => $os,
+    ]);
+
+    $html = Livewire::actingAs($this->user)->test(DonationIndex::class)->html();
+
+    if ($expected === null) {
+        expect($html)->not->toContain('data-device-platform');
+    } else {
+        expect($html)->toContain('data-device-platform="'.$expected.'"');
+    }
+})->with([
+    'an iPhone' => ['iPhone', 'iOS', 'ios'],
+    'an Android phone' => ['Android', 'Android', 'android'],
+    'a bucket row whose os names iOS' => ['mobile', 'iOS', 'ios'],
+    'a bucket row whose os names Android' => ['mobile', 'Android', 'android'],
+    'a phone with no os recorded' => ['mobile', null, null],
+    'a desktop' => ['Mac', 'macOS', null],
+    'a tablet keeps its own icon' => ['iPad', 'iOS', null],
+]);
