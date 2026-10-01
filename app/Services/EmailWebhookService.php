@@ -252,6 +252,12 @@ class EmailWebhookService
 
         $log = $this->findSesLog($messageId, $headers);
 
+        if ($log !== null && filled($messageId) && blank($log->ses_message_id)) {
+            // Keep it from whichever event matched first, so the ones that
+            // follow can be found whether or not they carry the headers.
+            $log->update(['ses_message_id' => $this->normalizeMessageId($messageId)]);
+        }
+
         if ($log === null) {
             Log::info('SES event received but no matching DonorEmailLog found.', ['message_id' => $messageId, 'event_type' => $eventType]);
 
@@ -325,9 +331,15 @@ class EmailWebhookService
         }
 
         if (filled($messageId)) {
+            $normalized = $this->normalizeMessageId($messageId);
+
             return DonorEmailLog::query()
-                ->where('provider_message_id', $this->normalizeMessageId($messageId))
-                ->orWhere('message_id', $this->normalizeMessageId($messageId))
+                // SES's own id, kept from the first event that matched. Without
+                // it only the header could match, so an event arriving without
+                // the original headers had nothing to find its log by.
+                ->where('ses_message_id', $normalized)
+                ->orWhere('provider_message_id', $normalized)
+                ->orWhere('message_id', $normalized)
                 ->first();
         }
 

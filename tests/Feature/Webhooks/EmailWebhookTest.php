@@ -489,3 +489,44 @@ function swapSesSnsValidatorToAlwaysPass(): void
 
     app()->instance(EmailWebhookService::class, new EmailWebhookService($validator));
 }
+
+/**
+ * SES identifies a message by its own id, which nothing recorded. An event that
+ * arrived without the original headers had only that id to match on, found
+ * nothing, and was dropped - which is how one production email in twenty never
+ * recorded a delivery despite SES having accepted it.
+ */
+it('remembers the ses message id so a later event can find the log without headers', function () {
+    config(['services.ses.webhook_token' => 'ses-secret-token']);
+
+    $log = DonorEmailLog::factory()->create([
+        'message_id' => 'our-own-uuid-abc',
+        'provider_message_id' => 'smtp-id@getihsan.my',
+        'delivery_status' => 'queued',
+    ]);
+
+    // The send event carries the header, so it matches and the id is kept.
+    $this->postJson(route('webhooks.ses', ['token' => 'ses-secret-token']), [
+        'eventType' => 'Send',
+        'mail' => [
+            'messageId' => '010e01a0f4c32e62-58e3ee76-000000',
+            'headers' => [
+                ['name' => 'X-Donor-Email-Log-Message-Id', 'value' => 'our-own-uuid-abc'],
+            ],
+        ],
+    ])->assertOk();
+
+    expect($log->fresh()->ses_message_id)->toBe('010e01a0f4c32e62-58e3ee76-000000');
+
+    // The delivery event arrives with no headers at all, and still finds it.
+    $this->postJson(route('webhooks.ses', ['token' => 'ses-secret-token']), [
+        'eventType' => 'Delivery',
+        'mail' => [
+            'messageId' => '010e01a0f4c32e62-58e3ee76-000000',
+        ],
+    ])->assertOk();
+
+    expect($log->fresh())
+        ->delivery_status->toBe('delivered')
+        ->delivered_at->not->toBeNull();
+});
