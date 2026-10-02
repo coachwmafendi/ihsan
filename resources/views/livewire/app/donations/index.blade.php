@@ -539,15 +539,15 @@
                                         {{ $nameHead }}<span class="whitespace-nowrap">{{ $nameTail }}@if ($deviceCategory)<span data-device-category="{{ $deviceCategory }}" class="ml-1.5 inline-flex align-middle">
                                             <x-ui.tooltip :text="$deviceTooltip">
                                                 @if ($deviceCategory === 'mobile' && $devicePlatform === 'ios')
-                                                    <x-icons.phone-ios data-device-platform="ios" class="size-3.5 shrink-0 text-slate-400" />
+                                                    <x-icons.phone-ios data-device-platform="ios" class="size-4 shrink-0 text-slate-400" />
                                                 @elseif ($deviceCategory === 'mobile' && $devicePlatform === 'android')
-                                                    <x-icons.phone-android data-device-platform="android" class="size-3.5 shrink-0 text-slate-400" />
+                                                    <x-icons.phone-android data-device-platform="android" class="size-4 shrink-0 text-slate-400" />
                                                 @elseif ($deviceCategory === 'mobile')
-                                                    <x-heroicon-o-device-phone-mobile class="size-3.5 shrink-0 text-slate-400" />
+                                                    <x-heroicon-o-device-phone-mobile class="size-4 shrink-0 text-slate-400" />
                                                 @elseif ($deviceCategory === 'tablet')
-                                                    <x-heroicon-o-device-tablet class="size-3.5 shrink-0 text-slate-400" />
+                                                    <x-heroicon-o-device-tablet class="size-4 shrink-0 text-slate-400" />
                                                 @else
-                                                    <x-heroicon-o-computer-desktop class="size-3.5 shrink-0 text-slate-400" />
+                                                    <x-heroicon-o-computer-desktop class="size-4 shrink-0 text-slate-400" />
                                                 @endif
                                             </x-ui.tooltip>
                                             </span>@endif</span>
