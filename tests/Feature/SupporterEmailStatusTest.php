@@ -10,6 +10,7 @@ use App\Models\Donor;
 use App\Models\DonorEmailLog;
 use App\Models\Organization;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -78,7 +79,7 @@ it('dates the state it reports', function () {
         'email_complained_at' => null,
         'email_bounced_at' => null,
         'email_opt_out_at' => null,
-        'email_validated_at' => now()->setDate(2026, 9, 3),
+        'email_validated_at' => CarbonImmutable::parse('2026-09-03 12:00', 'Asia/Kuala_Lumpur'),
     ]);
 
     expect($donor->emailDeliveryStatus()['label'])->toContain('3 Sep 2026');
@@ -90,7 +91,7 @@ it('dates the state it reports', function () {
  * this table.
  */
 it('tells the supporters table something the row does not already show', function () {
-    $donor = supporterWith(['email_bounced_at' => now()->setDate(2026, 9, 12), 'email_validated_at' => null], $this->campaign);
+    $donor = supporterWith(['email_bounced_at' => CarbonImmutable::parse('2026-09-12 12:00', 'Asia/Kuala_Lumpur'), 'email_validated_at' => null], $this->campaign);
 
     Livewire::actingAs($this->user)
         ->test(SupporterIndex::class)
@@ -160,7 +161,7 @@ it('separates an address nobody wrote to from one that went silent', function ()
     $wroteButSilent = supporterWith([], $this->campaign);
     DonorEmailLog::factory()->create([
         'donor_id' => $wroteButSilent->id,
-        'created_at' => now()->setDate(2026, 9, 18),
+        'created_at' => CarbonImmutable::parse('2026-09-18 12:00', 'Asia/Kuala_Lumpur'),
         'delivered_at' => null,
         'opened_at' => null,
     ]);

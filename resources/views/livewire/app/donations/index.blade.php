@@ -524,6 +524,7 @@
                                     @php
                                         $supporterName = $donation->donor?->name ?? 'Anonymous';
                                         $deviceCategory = $donation->displayDeviceCategory();
+                                        $devicePlatform = $donation->displayDevicePlatform();
                                         $deviceTooltip = $donation->deviceIsInherited()
                                             ? $donation->displayDeviceLabel().' — device this plan was started on'
                                             : $donation->displayDeviceLabel().' donation';
@@ -537,7 +538,11 @@
                                     <div class="text-sm font-medium text-slate-900">
                                         {{ $nameHead }}<span class="whitespace-nowrap">{{ $nameTail }}@if ($deviceCategory)<span data-device-category="{{ $deviceCategory }}" class="ml-1.5 inline-flex align-middle">
                                             <x-ui.tooltip :text="$deviceTooltip">
-                                                @if ($deviceCategory === 'mobile')
+                                                @if ($deviceCategory === 'mobile' && $devicePlatform === 'ios')
+                                                    <x-icons.phone-ios data-device-platform="ios" class="size-3.5 shrink-0 text-slate-400" />
+                                                @elseif ($deviceCategory === 'mobile' && $devicePlatform === 'android')
+                                                    <x-icons.phone-android data-device-platform="android" class="size-3.5 shrink-0 text-slate-400" />
+                                                @elseif ($deviceCategory === 'mobile')
                                                     <x-heroicon-o-device-phone-mobile class="size-3.5 shrink-0 text-slate-400" />
                                                 @elseif ($deviceCategory === 'tablet')
                                                     <x-heroicon-o-device-tablet class="size-3.5 shrink-0 text-slate-400" />

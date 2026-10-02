@@ -343,6 +343,29 @@ class Donation extends Model
     }
 
     /**
+     * Which phone platform this came from, where it came from a phone at all.
+     *
+     * One glyph sat on nearly every row, so the icon said little. Android and
+     * iOS split those rows roughly two to one, and the platform is the first
+     * thing worth knowing when a donor reports a wallet button that never
+     * appeared.
+     */
+    public function displayDevicePlatform(): ?string
+    {
+        $source = $this->deviceSource();
+
+        if ($source === null || $source->deviceCategory() !== 'mobile') {
+            return null;
+        }
+
+        return match (true) {
+            $source->os === 'iOS', in_array($source->device_type, ['iPhone', 'iPod'], true) => 'ios',
+            $source->os === 'Android', $source->device_type === 'Android' => 'android',
+            default => null,
+        };
+    }
+
+    /**
      * Name the device as precisely as the stored columns allow.
      *
      * Rows written before devices were named only hold a bucket, but they still
