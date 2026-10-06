@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Spatie\Activitylog\Models\Activity;
@@ -302,4 +303,21 @@ it('records an admin cancellation once, with the reason given', function () {
     expect($entries)->toHaveCount(1)
         ->and($entries->first()->properties->get('reason'))->toBe('Duplicate plan')
         ->and($entries->first()->properties->get('initiator'))->toBe('admin');
+});
+
+it('keeps a cancellation reason with long details', function () {
+    // The reason column held 255 characters, so a reason plus a few lines of
+    // details cancelled the plan and then failed with a server error.
+    $subscription = planWith(SubscriptionStatus::Active, ['next_charge_at' => now()->addDays(5)]);
+    $details = str_repeat('Saya tersalah klik butang. ', 35);
+
+    plan($subscription)
+        ->set('cancelReason', 'Created by mistake')
+        ->set('cancelDetails', $details)
+        ->call('cancelSubscription')
+        ->assertHasNoErrors();
+
+    expect(Schema::getColumnType('subscriptions', 'cancellation_reason'))->toBe('text')
+        ->and($subscription->fresh()->cancellation_reason)->toBe('Created by mistake: '.$details)
+        ->and(Activity::query()->where('event', 'subscription.cancelled')->count())->toBe(1);
 });
