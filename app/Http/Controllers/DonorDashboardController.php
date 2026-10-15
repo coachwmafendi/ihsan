@@ -6,8 +6,10 @@ use App\Enums\DonationStatus;
 use App\Enums\ElementType;
 use App\Enums\SubscriptionStatus;
 use App\Models\Campaign;
+use App\Models\Donation;
 use App\Models\Element;
 use App\Models\Organization;
+use App\Models\Subscription;
 use App\Support\Currency;
 use App\Support\DateExpression;
 
@@ -74,18 +76,19 @@ class DonorDashboardController extends Controller
             ->where('status', SubscriptionStatus::Active)
             ->get();
 
+        // A weekly plan is worth more than its amount each month, a yearly one less.
         $monthlyRecurringByCurrency = $activeSubscriptionsList
             ->groupBy('currency')
             ->map(function ($subs, $currency) {
-                $total = $subs->sum('amount');
+                $total = $subs->sum(fn (Subscription $subscription): float => $subscription->monthlyAmount());
 
-                return Currency::symbol($currency).' '.number_format((float) $total, 2);
+                return Currency::format($currency, (float) $total);
             })
             ->toArray();
 
         $monthlyDonations = $this->scopeToOrg($donor->donations(), $organization)
             ->where('status', DonationStatus::Succeeded)
-            ->selectRaw(DateExpression::monthlyGroup('created_at').' as month, SUM(COALESCE(base_amount, gross_amount)) as total')
+            ->selectRaw(DateExpression::monthlyGroup('created_at').' as month, SUM('.Donation::reportAmountSql().') as total')
             ->groupBy('month')
             ->orderBy('month', 'desc')
             ->limit(12)
@@ -103,14 +106,16 @@ class DonorDashboardController extends Controller
             ->groupBy('campaign')
             ->map(function ($items) {
                 return $items->mapWithKeys(function ($item) {
-                    return [$item->currency => Currency::symbol($item->currency).' '.number_format((float) $item->total, 2)];
+                    return [$item->currency => Currency::format($item->currency, (float) $item->total)];
                 });
             });
 
+        // One ringgit figure per campaign, so donations in different currencies
+        // can share a chart; `approximate` marks totals that needed a conversion.
         $campaignChartData = $this->scopeToOrg($donor->donations(), $organization)
             ->where('donations.status', DonationStatus::Succeeded)
             ->join('campaigns', 'donations.campaign_id', '=', 'campaigns.id')
-            ->selectRaw('campaigns.title as campaign, SUM(donations.gross_amount) as total')
+            ->selectRaw('campaigns.title as campaign, SUM('.Donation::reportAmountSql().") as total, MAX(CASE WHEN LOWER(donations.currency) <> 'myr' THEN 1 ELSE 0 END) as approximate")
             ->groupBy('campaigns.title')
             ->orderByDesc('total')
             ->get()

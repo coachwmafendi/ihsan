@@ -18,7 +18,7 @@
         $currencyTotals = $donations->groupBy(fn ($d) => strtolower((string) $d->currency))
             ->map(fn ($group) => $group->sum(fn ($d) => (float) $d->gross_amount));
 
-        $grandMyr = $donations->sum(fn ($d) => (float) ($d->base_amount ?? $d->gross_amount));
+        $grandMyr = $donations->sum(fn ($d) => (float) $d->report_amount);
         $isMixed = $currencyTotals->count() > 1;
 
         $logoData = null;

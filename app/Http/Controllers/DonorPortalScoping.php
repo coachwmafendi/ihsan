@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\DonationStatus;
 use App\Models\Campaign;
+use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Organization;
 use App\Support\Currency;
-use Illuminate\Support\Facades\DB;
 
 trait DonorPortalScoping
 {
@@ -19,11 +19,12 @@ trait DonorPortalScoping
         );
     }
 
+    /** Everything the donor has given, in ringgit at each donation's own rate. */
     private function getTotalGiven(Donor $donor, Organization $organization): float
     {
         return (float) $this->scopeToOrg($donor->donations(), $organization)
             ->where('status', DonationStatus::Succeeded)
-            ->sum(DB::raw('COALESCE(base_amount, gross_amount)'));
+            ->sum(Donation::reportAmountColumn());
     }
 
     private function getCurrencyBreakdown(Donor $donor, Organization $organization): array
@@ -34,7 +35,7 @@ trait DonorPortalScoping
             ->groupBy('currency')
             ->pluck('total', 'currency')
             ->mapWithKeys(function ($total, $currency) {
-                return [$currency => Currency::symbol($currency).' '.number_format((float) $total, 2)];
+                return [$currency => Currency::format($currency, (float) $total)];
             })
             ->toArray();
     }

@@ -151,7 +151,7 @@
                                     <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background:{{ $donutColors[$i % count($donutColors)] }};"></span>
                                     <p class="truncate text-xs font-semibold text-slate-700">{{ $item->campaign }}</p>
                                 </div>
-                                <p class="shrink-0 text-xs font-black text-slate-900">MYR {{ number_format((float) $item->total, 2) }}</p>
+                                <p class="shrink-0 text-xs font-black text-slate-900">{{ $item->approximate ? '≈ ' : '' }}MYR {{ number_format((float) $item->total, 2) }}</p>
                             </div>
                         @endforeach
                     @else

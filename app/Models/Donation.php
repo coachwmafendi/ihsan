@@ -524,6 +524,59 @@ class Donation extends Model
             : (float) $this->donor_fee_covered;
     }
 
+    /** What the payment processor kept: CHIP's fee for CHIP payments, Stripe's otherwise. */
+    public function paymentProcessorFee(): float
+    {
+        return filled($this->chip_purchase_id) || filled($this->chip_recurring_token)
+            ? (float) $this->chip_fee
+            : (float) $this->stripe_fee;
+    }
+
+    /**
+     * gross_amount and donor_fee_covered are always in the charge currency,
+     * but stripe_fee, processing_fee and net_amount are rewritten in ringgit
+     * once a foreign charge settles (base_amount is set). This brings one of
+     * those settlement figures back into the charge currency.
+     */
+    public function settlementInChargeCurrency(float $amount): float
+    {
+        if (strtolower((string) $this->currency) === 'myr' || $this->base_amount === null) {
+            return $amount;
+        }
+
+        $rate = (float) $this->exchange_rate;
+
+        if ($rate <= 0 && (float) $this->gross_amount > 0) {
+            $rate = (float) $this->base_amount / (float) $this->gross_amount;
+        }
+
+        return $rate > 0 ? round($amount / $rate, 2) : $amount;
+    }
+
+    /**
+     * The breakdown a donor sees, every line in the currency they were charged
+     * in so the lines add up, plus the settled ringgit net for foreign gifts.
+     *
+     * @return array{donation: float, fee_covered: float, processor_fee: float, platform_fee: float, net: float, net_in_base: float|null}
+     */
+    public function donorBreakdown(): array
+    {
+        $donation = (float) $this->gross_amount;
+        $feeCovered = (float) $this->donor_fee_covered;
+        $processorFee = $this->settlementInChargeCurrency($this->paymentProcessorFee());
+        $platformFee = $this->settlementInChargeCurrency((float) $this->processing_fee);
+        $isSettledForeign = strtolower((string) $this->currency) !== 'myr' && $this->base_amount !== null;
+
+        return [
+            'donation' => $donation,
+            'fee_covered' => $feeCovered,
+            'processor_fee' => $processorFee,
+            'platform_fee' => $platformFee,
+            'net' => round($donation + $feeCovered - $processorFee - $platformFee, 2),
+            'net_in_base' => $isSettledForeign ? (float) $this->net_amount : null,
+        ];
+    }
+
     /** Donation amount (gross) with the MYR conversion appended when known. */
     public function displayDonationAmount(): Attribute
     {
