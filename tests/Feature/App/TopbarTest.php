@@ -39,6 +39,37 @@ it('sets the organisation name in bold', function () {
     expect($html)->toMatch('/<span class="[^"]*\bfont-bold\b[^"]*">\s*'.preg_quote(e($this->organization->name), '/').'\s*<\/span>/');
 });
 
+it('links the organisation to its settings', function () {
+    actingAs($this->user);
+
+    Livewire::test(Topbar::class)
+        ->assertSeeHtml('href="'.route('app.settings.organization').'"');
+});
+
+it('shows the organisation logo beside its name', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('logos/org.png', 'png');
+    $this->organization->update(['logo_path' => 'logos/org.png']);
+
+    actingAs($this->user);
+
+    Livewire::test(Topbar::class)
+        ->assertSeeHtml('src="'.Storage::disk('public')->url('logos/org.png').'"');
+});
+
+/**
+ * Three organisations have no logo. A blank gap where the logo should be
+ * reads as a broken image, so they get their initials instead.
+ */
+it('shows the organisation initials when there is no logo', function () {
+    $this->organization->update(['name' => 'Masjid Tahfiz Al Ayubi', 'logo_path' => null]);
+
+    actingAs($this->user);
+
+    Livewire::test(Topbar::class)
+        ->assertSeeHtml('>MT</span>');
+});
+
 it('hides the badge when there are no unread notifications', function () {
     actingAs($this->user);
 
