@@ -10,9 +10,23 @@
         </button>
 
         @if($organization)
-            <div class="flex items-center gap-2 text-sm text-slate-500">
-                <span class="hidden sm:inline font-bold">{{ $organization->name }}</span>
-            </div>
+            <x-ui.tooltip text="Organization settings" position="bottom">
+                <a
+                    href="{{ route('app.settings.organization') }}"
+                    wire:navigate
+                    aria-label="{{ $organization->name }} — Organization settings"
+                    class="flex items-center gap-2.5 -mx-1.5 px-1.5 py-1 rounded-lg text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                >
+                    {{-- Height is fixed and width follows the logo, so square logos
+                         sit as a 32px tile and wide wordmarks stay legible. --}}
+                    @if (filled($logoUrl = $organization->logoUrl()))
+                        <img src="{{ $logoUrl }}" alt="" class="h-8 w-auto max-w-30 shrink-0 rounded-md bg-white object-contain ring-1 ring-slate-200">
+                    @else
+                        <span class="flex items-center justify-center size-8 shrink-0 rounded-md bg-teal-600 text-xs font-bold text-white">{{ $organization->initials() }}</span>
+                    @endif
+                    <span class="hidden sm:block max-w-64 truncate font-bold">{{ $organization->name }}</span>
+                </a>
+            </x-ui.tooltip>
         @endif
     </div>
 
