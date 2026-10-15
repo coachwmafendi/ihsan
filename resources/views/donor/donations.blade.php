@@ -64,12 +64,12 @@
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     @if (! empty($statementYears))
                         <div x-data="{ year: '{{ $statementYears[0] }}' }" class="flex items-center gap-2">
-                            <select x-model="year"
-                                    class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 focus:border-emerald-500 focus:ring-emerald-500">
+                            <x-ui.native-select x-model="year"
+                                    class="rounded-xl border border-slate-200 bg-white pl-3 py-2.5 text-sm font-semibold text-slate-700 focus:border-emerald-500 focus:ring-emerald-500">
                                 @foreach ($statementYears as $statementYear)
                                     <option value="{{ $statementYear }}">{{ $statementYear }}</option>
                                 @endforeach
-                            </select>
+                            </x-ui.native-select>
                             <a :href="'{{ route('donorportal.donations.annual-statement', $organization) }}?year=' + year"
                                class="inline-flex items-center gap-2 rounded-xl border border-emerald-600 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50">
                                 <x-heroicon name="document-text" class="h-4 w-4" />
@@ -113,27 +113,27 @@
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
                     <label for="status" class="sr-only">Status</label>
-                    <select id="status" name="status"
-                            class="w-full rounded-lg border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <x-ui.native-select id="status" name="status"
+                            class="w-full rounded-lg border-slate-200 pl-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         <option value="">All statuses</option>
                         @foreach (\App\Enums\DonationStatus::cases() as $statusOption)
                             <option value="{{ $statusOption->value }}" @selected($filters['status'] === $statusOption->value)>
                                 {{ str($statusOption->value)->headline() }}
                             </option>
                         @endforeach
-                    </select>
+                    </x-ui.native-select>
                 </div>
                 <div>
                     <label for="type" class="sr-only">Type</label>
-                    <select id="type" name="type"
-                            class="w-full rounded-lg border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    <x-ui.native-select id="type" name="type"
+                            class="w-full rounded-lg border-slate-200 pl-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         <option value="">All types</option>
                         @foreach (\App\Enums\DonationType::cases() as $typeOption)
                             <option value="{{ $typeOption->value }}" @selected($filters['type'] === $typeOption->value)>
                                 {{ str($typeOption->value)->headline() }}
                             </option>
                         @endforeach
-                    </select>
+                    </x-ui.native-select>
                 </div>
                 <div>
                     <label for="date_from" class="sr-only">From date</label>

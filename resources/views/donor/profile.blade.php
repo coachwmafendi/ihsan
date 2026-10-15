@@ -146,13 +146,13 @@
                             <div class="sm:col-span-2 flex flex-col sm:flex-row gap-4">
                                 <div class="w-full sm:w-28 flex-shrink-0">
                                     <label class="mb-1 block text-xs font-semibold text-slate-600">Title</label>
-                                    <select name="title"
-                                            class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('title') border-red-300 @enderror">
+                                    <x-ui.native-select name="title"
+                                            :class="'w-full rounded-lg border border-slate-200 pl-3 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'.($errors->has('title') ? ' border-red-300' : '')">
                                         <option value="">Select</option>
                                         @foreach (['Mr', 'Mrs', 'Ms', 'Miss', 'Dr', 'Prof', 'Sir', 'Madam'] as $t)
                                             <option value="{{ $t }}" {{ old('title', $donor->title) === $t ? 'selected' : '' }}>{{ $t }}</option>
                                         @endforeach
-                                    </select>
+                                    </x-ui.native-select>
                                     @error('title') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                 </div>
                                 <div class="flex-1">
@@ -182,13 +182,13 @@
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="mb-1 block text-xs font-semibold text-slate-600">Occupation</label>
-                                <select name="occupation"
-                                        class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('occupation') border-red-300 @enderror">
+                                <x-ui.native-select name="occupation"
+                                        :class="'w-full rounded-lg border border-slate-200 pl-3.5 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'.($errors->has('occupation') ? ' border-red-300' : '')">
                                     <option value="">Select</option>
                                     @foreach (['Employed', 'Self-employed', 'Business owner', 'Student', 'Retired', 'Unemployed', 'Other'] as $o)
                                         <option value="{{ $o }}" {{ old('occupation', $donor->occupation) === $o ? 'selected' : '' }}>{{ $o }}</option>
                                     @endforeach
-                                </select>
+                                </x-ui.native-select>
                                 @error('occupation') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
                         </div>
@@ -232,13 +232,13 @@
                             </div>
                             <div>
                                 <label class="mb-1 block text-xs font-semibold text-slate-600">Country</label>
-                                <select name="country"
-                                        class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('country') border-red-300 @enderror">
+                                <x-ui.native-select name="country"
+                                        :class="'w-full rounded-lg border border-slate-200 pl-3.5 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'.($errors->has('country') ? ' border-red-300' : '')">
                                     <option value="">Select a country</option>
                                     @foreach ($countries as $code => $name)
                                         <option value="{{ $code }}" {{ old('country', $donor->country) === $code ? 'selected' : '' }}>{{ $name }}</option>
                                     @endforeach
-                                </select>
+                                </x-ui.native-select>
                                 @error('country') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
                         </div>
@@ -252,11 +252,11 @@
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="mb-1 block text-xs font-semibold text-slate-600">Language</label>
-                                <select name="locale"
-                                        class="w-full rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 @error('locale') border-red-300 @enderror">
+                                <x-ui.native-select name="locale"
+                                        :class="'w-full rounded-lg border border-slate-200 pl-3.5 py-2.5 text-sm text-slate-900 transition focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'.($errors->has('locale') ? ' border-red-300' : '')">
                                     <option value="en" {{ old('locale', $donor->locale) === 'en' ? 'selected' : '' }}>English</option>
                                     <option value="ms" {{ old('locale', $donor->locale) === 'ms' ? 'selected' : '' }}>Bahasa Melayu</option>
-                                </select>
+                                </x-ui.native-select>
                                 @error('locale') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
                         </div>
