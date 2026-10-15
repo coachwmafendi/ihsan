@@ -11,7 +11,7 @@
 
         @if($organization)
             <div class="flex items-center gap-2 text-sm text-slate-500">
-                <span class="hidden sm:inline">{{ $organization->name }}</span>
+                <span class="hidden sm:inline font-bold">{{ $organization->name }}</span>
             </div>
         @endif
     </div>

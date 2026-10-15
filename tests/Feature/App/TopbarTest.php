@@ -31,6 +31,14 @@ it('shows the unread notification count badge anchored to the bell icon', functi
         ->assertSeeHtml('relative inline-flex items-center justify-center');
 });
 
+it('sets the organisation name in bold', function () {
+    actingAs($this->user);
+
+    $html = Livewire::test(Topbar::class)->html();
+
+    expect($html)->toMatch('/<span class="[^"]*\bfont-bold\b[^"]*">\s*'.preg_quote(e($this->organization->name), '/').'\s*<\/span>/');
+});
+
 it('hides the badge when there are no unread notifications', function () {
     actingAs($this->user);
 
