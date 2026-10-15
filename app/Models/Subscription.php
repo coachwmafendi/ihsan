@@ -196,6 +196,12 @@ class Subscription extends Model
         'yearly' => 1 / 12,
     ];
 
+    /** What this plan is worth per month, in the plan's own currency. */
+    public function monthlyAmount(): float
+    {
+        return (float) $this->amount * (self::MonthlyMultipliers[$this->interval->value] ?? 1);
+    }
+
     /**
      * What this plan is worth per month in ringgit.
      *
@@ -209,8 +215,7 @@ class Subscription extends Model
      */
     public function monthlyReportAmount(): ?float
     {
-        $multiplier = self::MonthlyMultipliers[$this->interval->value] ?? 1;
-        $amount = (float) $this->amount * $multiplier;
+        $amount = $this->monthlyAmount();
 
         if (strtolower((string) $this->currency) === 'myr') {
             return $amount;

@@ -74,26 +74,36 @@
             @endif
         </div>
 
+        @php($breakdown = $donation->donorBreakdown())
         <div class="mt-6 rounded-xl border border-slate-100 p-4">
             <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Payment breakdown</p>
             <div class="mt-3 space-y-2 text-sm">
                 <div class="flex justify-between">
                     <span class="text-slate-500">Donation amount</span>
-                    <span class="font-semibold text-slate-700">{{ $donation->formatted_amount }}</span>
+                    <span class="font-semibold text-slate-700">{{ $donation->displayAmount($breakdown['donation']) }}</span>
                 </div>
-                @if ($donation->donor_fee_covered > 0)
+                @if ($breakdown['fee_covered'] > 0)
                     <div class="flex justify-between">
                         <span class="text-slate-500">Fee covered</span>
-                        <span class="font-semibold text-emerald-600">+ {{ $donation->displayAmount((float) $donation->donor_fee_covered) }}</span>
+                        <span class="font-semibold text-emerald-600">+ {{ $donation->displayAmount($breakdown['fee_covered']) }}</span>
                     </div>
                 @endif
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Processing fee</span>
-                    <span class="font-semibold text-slate-700">- {{ $donation->displayAmount((float) $donation->processing_fee) }}</span>
+                    <span class="text-slate-500">Payment processing fee</span>
+                    <span class="font-semibold text-slate-700">- {{ $donation->displayAmount($breakdown['processor_fee']) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Platform fee</span>
+                    <span class="font-semibold text-slate-700">- {{ $donation->displayAmount($breakdown['platform_fee']) }}</span>
                 </div>
                 <div class="border-t border-slate-100 pt-2 flex justify-between">
                     <span class="font-semibold text-slate-900">Net received</span>
-                    <span class="font-black text-slate-900">{{ $donation->displayAmount((float) $donation->net_amount) }}</span>
+                    <span class="text-right">
+                        <span class="block font-black text-slate-900">{{ $donation->displayAmount($breakdown['net']) }}</span>
+                        @if ($breakdown['net_in_base'] !== null)
+                            <span class="block text-xs text-slate-400">≈ {{ $donation->displayAmount($breakdown['net_in_base'], asBaseCurrency: true) }}</span>
+                        @endif
+                    </span>
                 </div>
             </div>
         </div>
