@@ -1,5 +1,6 @@
 <x-layouts::landing>
     <x-slot:title>@lang('case.meta_title')</x-slot:title>
+    <x-slot:description>@lang('case.subtitle')</x-slot:description>
     <x-slot:bodyClass>bg-white text-slate-600</x-slot:bodyClass>
 
     {{-- Nav --}}
