@@ -63,6 +63,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->breadcrumbs(false)
             ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): View => view('filament.admin.meta-tags'),
+            )
+            ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn (): View => view('filament.admin.bottom-nav'),
             )
