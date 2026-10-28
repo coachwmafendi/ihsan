@@ -34,7 +34,7 @@ docs/superpowers/plans/*.md
 !storage/app/public/**/*.png
 !/public/logo-ihsan*.png
 !/public/images/docs/*.png
-!/public/images/og-image.png
+!/public/images/og-*.png
 opencode.json
 
 # Opencode local tooling (agents/ and skills/frontend-design stay tracked)
