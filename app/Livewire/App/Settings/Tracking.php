@@ -114,6 +114,8 @@ class Tracking extends Component
             return;
         }
 
+        $this->cleanCredentials($providerSlug);
+
         $credentialKeys = array_column($provider->credentialFields(), 'key');
         $optionKeys = array_column($provider->optionFields(), 'key');
 
@@ -156,6 +158,8 @@ class Tracking extends Component
     {
         $provider = TrackingProvider::from($providerSlug);
         $primaryKey = $provider->primaryCredentialKey();
+
+        $this->cleanCredentials($providerSlug);
 
         if (empty($this->credentials[$providerSlug][$primaryKey] ?? '')) {
             $this->dispatch('notify', type: 'error', message: "Enter credentials for {$provider->label()} first.");
@@ -225,9 +229,34 @@ class Tracking extends Component
             }
 
             $message = $response->json('error.message') ?? $response->body();
+
+            // Meta says this when the string itself is not a token it issued,
+            // which is invisible from the masked box; show what went out.
+            if (str_contains($message, 'could not be decrypted')) {
+                $message .= sprintf(
+                    ' The token sent was %d characters long and starts with "%s". A Conversions API token starts with "EAA": generate a new one in Events Manager → your dataset → Settings → Conversions API.',
+                    strlen($accessToken),
+                    substr($accessToken, 0, 4),
+                );
+            }
+
             $this->dispatch('notify', type: 'error', message: "Meta connection failed: {$message}");
         } catch (\Exception $e) {
             $this->dispatch('notify', type: 'error', message: "Meta connection failed: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Strips whitespace from a provider's credentials, including the invisible
+     * kinds a copy from a phone, chat or PDF brings along. No ID, token or
+     * secret contains any, and the provider rejects the value if it does.
+     */
+    private function cleanCredentials(string $providerSlug): void
+    {
+        foreach ($this->credentials[$providerSlug] ?? [] as $key => $value) {
+            if (is_string($value)) {
+                $this->credentials[$providerSlug][$key] = preg_replace('/[\s\x{00A0}\x{200B}-\x{200D}\x{2060}\x{FEFF}]+/u', '', $value) ?? $value;
+            }
         }
     }
 
