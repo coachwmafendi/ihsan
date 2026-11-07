@@ -223,6 +223,7 @@
                         <div class="min-w-0 flex-1">
                             <p class="text-sm font-bold text-slate-900">{{ $subscription->campaign->title }}</p>
                             <p class="mt-0.5 text-xs text-slate-500">{{ $subscription->campaign->organization->name }}</p>
+                            <p class="mt-1 font-mono text-[11px] text-slate-400">Plan ID: {{ $subscription->public_id }}</p>
                         </div>
                         <div class="flex-shrink-0 sm:text-right text-left">
                             <p class="text-base font-black text-slate-900">

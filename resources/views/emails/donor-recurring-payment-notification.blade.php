@@ -32,6 +32,25 @@
 
     <p style="font-size: 18px;">{{ $t('emails.donor_recurring_payment.body') }}</p>
 
+    {{-- A donor can hold several plans with one organization, each sending
+         this same email; the plan ID matches the one in the donor portal. --}}
+    @if ($donation->subscription)
+        <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 16px;">
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b; width: 40%;">{{ $t('emails.donor_recurring_payment.campaign_label') }}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">{{ $donation->campaign->title }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; color: #64748b;">{{ $t('emails.donor_recurring_payment.plan_label') }}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">{{ $donation->subscription->displayAmount() }}/{{ $donation->subscription->interval->shortLabel($locale) }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; color: #64748b;">{{ $t('emails.donor_recurring_payment.plan_id_label') }}</td>
+                <td style="padding: 8px; font-family: monospace; font-size: 14px;">{{ $donation->subscription->public_id }}</td>
+            </tr>
+        </table>
+    @endif
+
     <p style="font-size: 18px;">– {{ $t('emails.donor_recurring_payment.sign_off', ['organization' => $donation->campaign->organization->name]) }}</p>
 
     @if ($upgradeChips)

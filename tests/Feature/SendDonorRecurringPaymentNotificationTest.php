@@ -59,6 +59,50 @@ it('sends a thank you email to a supporter for subsequent recurring payments', f
         ->subscription_id->toBe($subscription->getKey());
 });
 
+it('names the plan a payment belongs to, for donors with several plans', function () {
+    Mail::fake();
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create(['locale' => 'en']);
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create(['amount' => 50, 'currency' => 'MYR']);
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'subscription_id' => $subscription->getKey(),
+        'type' => DonationType::Recurring,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    (new SendDonorRecurringPaymentNotification($donation))->handle();
+
+    Mail::assertQueued(DonorRecurringPaymentNotification::class, function (DonorRecurringPaymentNotification $mail) use ($subscription, $campaign) {
+        $html = $mail->render();
+
+        return str_contains($html, 'Plan ID')
+            && str_contains($html, $subscription->public_id)
+            && str_contains($html, e($subscription->displayAmount()).'/'.$subscription->interval->shortLabel('en'))
+            && str_contains($html, e($campaign->title));
+    });
+});
+
+it('labels the plan in malay for a malay-speaking donor', function () {
+    Mail::fake();
+
+    $organization = Organization::factory()->create();
+    $campaign = Campaign::factory()->for($organization)->create();
+    $donor = Donor::factory()->create(['locale' => 'ms']);
+    $subscription = Subscription::factory()->for($campaign)->for($donor)->create();
+    $donation = Donation::factory()->for($campaign)->for($donor)->create([
+        'subscription_id' => $subscription->getKey(),
+        'type' => DonationType::Recurring,
+        'status' => DonationStatus::Succeeded,
+    ]);
+
+    (new SendDonorRecurringPaymentNotification($donation))->handle();
+
+    Mail::assertQueued(DonorRecurringPaymentNotification::class, fn (DonorRecurringPaymentNotification $mail) => str_contains($mail->render(), 'ID Pelan')
+        && str_contains($mail->render(), $subscription->public_id));
+});
+
 it('does not send duplicate recurring payment emails for the same donation', function () {
     Mail::fake();
 
