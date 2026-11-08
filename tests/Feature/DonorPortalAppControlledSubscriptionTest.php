@@ -33,6 +33,16 @@ beforeEach(function () {
     };
 });
 
+it('shows each plan its ID, so a donor can match it to their emails', function () {
+    $subscription = ($this->createSubscription)($this->donor);
+
+    ($this->authenticateAsDonor)($this->donor);
+
+    $this->withoutVite()->get(route('donorportal.subscriptions', $this->organization))
+        ->assertOk()
+        ->assertSee('Plan ID: '.$subscription->public_id);
+});
+
 it('cancels an app-controlled recurring plan', function () {
     Queue::fake();
 

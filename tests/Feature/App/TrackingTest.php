@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\UserRole;
 use App\Livewire\App\Settings\Tracking;
 use App\Models\Organization;
+use App\Models\TrackingConfiguration;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -98,6 +99,60 @@ it('shows an error when meta test connection fails', function () {
         ->set('credentials.meta.access_token', 'bad-token')
         ->call('testConnection', 'meta')
         ->assertDispatched('notify', type: 'error');
+});
+
+it('strips spaces and invisible characters from a pasted token before testing it', function () {
+    Http::fake([
+        'graph.facebook.com/v18.0/*/events' => Http::response(['events_received' => 1], 200),
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(Tracking::class)
+        ->set('credentials.meta.pixel_id', ' 123456789012345 ')
+        ->set('credentials.meta.access_token', " EAAabc\u{200B}123\u{00A0}\n")
+        ->call('testConnection', 'meta')
+        ->assertSet('credentials.meta.access_token', 'EAAabc123')
+        ->assertDispatched('notify', type: 'success');
+
+    Http::assertSent(fn ($request) => $request->hasHeader('Authorization', 'Bearer EAAabc123')
+        && str_contains($request->url(), '/123456789012345/events'));
+});
+
+it('saves a pasted token without its stray whitespace', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(Tracking::class)
+        ->set('credentials.meta.pixel_id', '123456789012345')
+        ->set('credentials.meta.access_token', "EAAabc123\n")
+        ->call('saveProvider', 'meta');
+
+    expect(TrackingConfiguration::where('organization_id', $this->organization->id)->first()->credential('access_token'))
+        ->toBe('EAAabc123');
+});
+
+it('says what token went out when meta cannot decrypt it', function () {
+    Http::fake([
+        'graph.facebook.com/v18.0/*/events' => Http::response(['error' => ['message' => 'The access token could not be decrypted', 'code' => 190]], 400),
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(Tracking::class)
+        ->set('credentials.meta.pixel_id', '123456789012345')
+        ->set('credentials.meta.access_token', 'EAAxyz')
+        ->call('testConnection', 'meta')
+        ->assertDispatched('notify', fn (string $name, array $params) => $params['type'] === 'error'
+            && str_contains($params['message'], 'could not be decrypted')
+            && str_contains($params['message'], '6 characters long and starts with "EAAx"'));
+});
+
+it('keeps the phone keyboard from correcting a credential', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(Tracking::class)
+        ->assertSeeHtml('autocorrect="off"')
+        ->assertSeeHtml('spellcheck="false"');
 });
 
 it('tests the google analytics 4 measurement id is reachable', function () {
