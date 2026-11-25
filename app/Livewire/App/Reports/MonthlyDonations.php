@@ -38,6 +38,18 @@ class MonthlyDonations extends Component
         // A month from the link (e.g. the monthly report email) is validated
         // by setDateRangeFromMonth, which falls back to the current month.
         $this->setDateRangeFromMonth();
+
+        // The weekly report email links to its exact week with ?from=&to=.
+        $from = request()->query('from');
+        $to = request()->query('to');
+
+        if (is_string($from) && is_string($to)
+            && Carbon::canBeCreatedFromFormat($from, 'Y-m-d')
+            && Carbon::canBeCreatedFromFormat($to, 'Y-m-d')) {
+            $this->customRange = true;
+            $this->dateFrom = $from;
+            $this->dateTo = $to;
+        }
     }
 
     public function updatedSelectedMonth(): void

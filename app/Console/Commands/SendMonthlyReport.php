@@ -2,18 +2,15 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\DonationStatus;
 use App\Enums\DonationType;
-use App\Enums\SubscriptionStatus;
 use App\Enums\UserRole;
 use App\Mail\MonthlyReport;
 use App\Models\Donation;
 use App\Models\Organization;
-use App\Models\Subscription;
 use App\Models\User;
+use App\Services\DonationReportFigures;
 use Carbon\CarbonInterface;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
 
@@ -23,8 +20,12 @@ class SendMonthlyReport extends Command
 
     protected $description = 'Send monthly donation report to organizations that have it enabled';
 
-    public function handle(): void
+    private DonationReportFigures $figures;
+
+    public function handle(DonationReportFigures $figures): void
     {
+        $this->figures = $figures;
+
         $period = $this->option('period')
             ? now('Asia/Kuala_Lumpur')->parse($this->option('period'))
             : now('Asia/Kuala_Lumpur')->subMonthNoOverflow();
@@ -59,7 +60,7 @@ class SendMonthlyReport extends Command
                 continue;
             }
 
-            $donations = $this->succeededDonations($org)
+            $donations = $this->figures->succeededDonations($org)
                 ->with('campaign')
                 ->whereBetween('created_at', [$startUtc, $endUtc])
                 ->get();
@@ -68,13 +69,11 @@ class SendMonthlyReport extends Command
                 'title' => $items->first()->campaign->title,
                 'count' => $items->count(),
                 'total' => number_format($items->sum('report_amount'), 2),
-                'approximate' => $this->hasForeignCurrency($items),
+                'approximate' => $this->figures->hasForeignCurrency($items),
             ])->values()->toArray();
 
             $total = (float) $donations->sum('report_amount');
-            $previousTotal = (float) $this->succeededDonations($org)
-                ->whereBetween('created_at', [$previousStartUtc, $previousEndUtc])
-                ->sum(Donation::reportAmountColumn());
+            $previousTotal = $this->figures->totalBetween($org, $previousStartUtc, $previousEndUtc);
 
             foreach ($admins as $admin) {
                 Mail::to($admin->email)->queue(
@@ -84,11 +83,9 @@ class SendMonthlyReport extends Command
                         totalAmount: number_format($total, 2),
                         campaigns: $campaigns,
                         period: $periodLabel,
-                        hasApproximation: $this->hasForeignCurrency($donations),
+                        hasApproximation: $this->figures->hasForeignCurrency($donations),
                         previousTotalAmount: number_format($previousTotal, 2),
-                        changePercent: $previousTotal > 0
-                            ? round(($total - $previousTotal) / $previousTotal * 100, 1)
-                            : null,
+                        changePercent: $this->figures->changePercent($total, $previousTotal),
                         highlights: $this->highlights($org, $donations, $startUtc, $endUtc),
                         reportUrl: appPanelRoute('app.reports.monthly-donations', ['month' => $period->format('Y-m')]),
                     )
@@ -102,29 +99,6 @@ class SendMonthlyReport extends Command
     }
 
     /**
-     * @return Builder<Donation>
-     */
-    private function succeededDonations(Organization $organization): Builder
-    {
-        return Donation::query()
-            ->whereHas('campaign', fn (Builder $query) => $query->where('organization_id', $organization->getKey()))
-            ->where('status', DonationStatus::Succeeded);
-    }
-
-    /**
-     * A total that mixes currencies is converted at each donation's settled
-     * rate, so it is an estimate rather than a figure that reconciles to the cent.
-     *
-     * @param  Collection<int, Donation>  $donations
-     */
-    private function hasForeignCurrency(Collection $donations): bool
-    {
-        return $donations->contains(
-            fn (Donation $donation): bool => strtolower($donation->currency ?? '') !== 'myr'
-        );
-    }
-
-    /**
      * @param  Collection<int, Donation>  $donations
      * @return array{one_time_count: int, one_time_total: string, recurring_count: int, recurring_total: string, new_donor_count: int, returning_donor_count: int, average_amount: string, largest_amount: string, new_plan_count: int, cancelled_plan_count: int, past_due_plan_count: int}
      */
@@ -135,14 +109,11 @@ class SendMonthlyReport extends Command
         );
 
         $donorIds = $donations->pluck('donor_id')->unique();
-        $returningDonorCount = $donorIds->isEmpty() ? 0 : $this->succeededDonations($organization)
+        $returningDonorCount = $donorIds->isEmpty() ? 0 : $this->figures->succeededDonations($organization)
             ->whereIn('donor_id', $donorIds)
             ->where('created_at', '<', $startUtc)
             ->distinct()
             ->count('donor_id');
-
-        $subscriptions = fn (): Builder => Subscription::query()
-            ->whereHas('campaign', fn (Builder $query) => $query->where('organization_id', $organization->getKey()));
 
         return [
             'one_time_count' => $oneTime->count(),
@@ -153,16 +124,7 @@ class SendMonthlyReport extends Command
             'returning_donor_count' => $returningDonorCount,
             'average_amount' => number_format($donations->isEmpty() ? 0 : $donations->avg('report_amount'), 2),
             'largest_amount' => number_format($donations->max('report_amount') ?? 0, 2),
-            'new_plan_count' => $subscriptions()
-                ->whereBetween('created_at', [$startUtc, $endUtc])
-                ->whereNotIn('status', [SubscriptionStatus::Incomplete, SubscriptionStatus::IncompleteExpired])
-                ->count(),
-            'cancelled_plan_count' => $subscriptions()
-                ->whereBetween('cancelled_at', [$startUtc, $endUtc])
-                ->count(),
-            'past_due_plan_count' => $subscriptions()
-                ->where('status', SubscriptionStatus::PastDue)
-                ->count(),
+            ...$this->figures->planCounts($organization, $startUtc, $endUtc),
         ];
     }
 }
