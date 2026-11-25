@@ -17,12 +17,14 @@ use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
 #[Title('Report')]
 class MonthlyDonations extends Component
 {
+    #[Url(as: 'month', except: '')]
     public string $selectedMonth = '';
 
     public bool $customRange = false;
@@ -33,8 +35,21 @@ class MonthlyDonations extends Component
 
     public function mount(): void
     {
-        $this->selectedMonth = $this->reportingPeriod()->localNow()->format('Y-m');
+        // A month from the link (e.g. the monthly report email) is validated
+        // by setDateRangeFromMonth, which falls back to the current month.
         $this->setDateRangeFromMonth();
+
+        // The weekly report email links to its exact week with ?from=&to=.
+        $from = request()->query('from');
+        $to = request()->query('to');
+
+        if (is_string($from) && is_string($to)
+            && Carbon::canBeCreatedFromFormat($from, 'Y-m-d')
+            && Carbon::canBeCreatedFromFormat($to, 'Y-m-d')) {
+            $this->customRange = true;
+            $this->dateFrom = $from;
+            $this->dateTo = $to;
+        }
     }
 
     public function updatedSelectedMonth(): void

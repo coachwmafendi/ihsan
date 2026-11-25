@@ -12,6 +12,10 @@ class WeeklyDonationSummary extends Mailable
 {
     use Queueable, SerializesModels;
 
+    /**
+     * @param  list<array{title: string, count: int, total: string, approximate: bool}>  $campaigns
+     * @param  array{new_plan_count?: int, cancelled_plan_count?: int, past_due_plan_count?: int}  $plans
+     */
     public function __construct(
         public Organization $organization,
         public int $donationCount,
@@ -19,12 +23,16 @@ class WeeklyDonationSummary extends Mailable
         public array $campaigns,
         public string $period,
         public bool $hasApproximation = false,
+        public ?string $previousTotalAmount = null,
+        public ?float $changePercent = null,
+        public array $plans = [],
+        public ?string $reportUrl = null,
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Weekly Donation Report — '.$this->period,
+            subject: $this->organization->name.' — Weekly donation report, '.$this->period,
         );
     }
 
