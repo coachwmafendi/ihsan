@@ -12,6 +12,10 @@ class MonthlyReport extends Mailable
 {
     use Queueable, SerializesModels;
 
+    /**
+     * @param  list<array{title: string, count: int, total: string, approximate: bool}>  $campaigns
+     * @param  array{one_time_count?: int, one_time_total?: string, recurring_count?: int, recurring_total?: string, new_donor_count?: int, returning_donor_count?: int, average_amount?: string, largest_amount?: string, new_plan_count?: int, cancelled_plan_count?: int, past_due_plan_count?: int}  $highlights
+     */
     public function __construct(
         public Organization $organization,
         public int $donationCount,
@@ -19,12 +23,16 @@ class MonthlyReport extends Mailable
         public array $campaigns,
         public string $period,
         public bool $hasApproximation = false,
+        public ?string $previousTotalAmount = null,
+        public ?float $changePercent = null,
+        public array $highlights = [],
+        public ?string $reportUrl = null,
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Report — '.$this->period,
+            subject: $this->organization->name.' — Donation report, '.$this->period,
         );
     }
 
