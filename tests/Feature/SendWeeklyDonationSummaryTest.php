@@ -383,3 +383,16 @@ it('renders the change, plans and link inside the email', function () {
         ->toContain('Past due now')
         ->toContain('https://app.example.test/reports/monthly-donations?from=2026-08-24&amp;to=2026-08-30');
 });
+
+it('lays out label and value rows with tables, which Gmail keeps, instead of flexbox, which it strips', function () {
+    $html = (new WeeklyDonationSummary(
+        organization: Organization::factory()->create(),
+        donationCount: 1,
+        totalAmount: '50.00',
+        campaigns: [['title' => 'Dana', 'count' => 1, 'total' => '50.00', 'approximate' => false]],
+        period: '24 Aug – 30 Aug 2026',
+        plans: ['new_plan_count' => 1, 'cancelled_plan_count' => 0, 'past_due_plan_count' => 2],
+    ))->render();
+
+    expect($html)->not->toContain('justify-content: space-between');
+});

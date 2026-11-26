@@ -44,10 +44,12 @@
                 @foreach ($campaigns as $campaign)
                     <div style="background: {{ $loop->even ? '#f8fafc' : '#ffffff' }}; border-radius: 8px; padding: 14px 16px; margin-bottom: 1px; border-bottom: 1px solid #e2e8f0; word-wrap: break-word;">
                         <div class="email-value" style="font-size: 15px; font-weight: 500; color: #1a1a2e; margin-bottom: 6px; line-height: 1.4;">{{ $campaign['title'] }}</div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="email-small" style="font-size: 13px; color: #64748b; flex-shrink: 0;">{{ $campaign['count'] }} {{ Str::plural('donation', $campaign['count']) }}</span>
-                            <span class="email-value" style="font-size: 15px; font-weight: 600; color: #0f766e; text-align: right; margin-left: 12px;">{{ ($campaign['approximate'] ?? $hasApproximation) ? "≈ MYR" : "MYR" }} {{ $campaign['total'] }}</span>
-                        </div>
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                            <tr>
+                                <td class="email-small" style="font-size: 13px; color: #64748b; white-space: nowrap;">{{ $campaign['count'] }} {{ Str::plural('donation', $campaign['count']) }}</td>
+                                <td class="email-value" align="right" style="font-size: 15px; font-weight: 600; color: #0f766e; text-align: right; padding-left: 12px; white-space: nowrap;">{{ ($campaign['approximate'] ?? $hasApproximation) ? "≈ MYR" : "MYR" }} {{ $campaign['total'] }}</td>
+                            </tr>
+                        </table>
                     </div>
                 @endforeach
             </div>
@@ -57,18 +59,19 @@
         @isset($plans['new_plan_count'])
             <div style="margin: 24px 0 8px;">
                 <h2 style="margin: 0 0 12px; font-size: 15px; font-weight: 700; color: #1a1a2e;">Monthly plans</h2>
-                <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; border-collapse: separate; border-spacing: 0; overflow: hidden;">
                     @foreach ([
                         'Started this week' => $plans['new_plan_count'],
                         'Cancelled this week' => $plans['cancelled_plan_count'],
                         'Past due now' => $plans['past_due_plan_count'],
                     ] as $planLabel => $planCount)
-                        <div style="display: flex; justify-content: space-between; padding: 12px 16px;{{ $loop->last ? '' : ' border-bottom: 1px solid #e2e8f0;' }}">
-                            <span class="email-small" style="font-size: 14px; color: #64748b;">{{ $planLabel }}</span>
-                            <span class="email-value" style="font-size: 15px; font-weight: 600; color: {{ $loop->last && $planCount > 0 ? '#b45309' : '#1a1a2e' }};">{{ $planCount }}</span>
-                        </div>
+                        @php($rowBorder = $loop->last ? '' : ' border-bottom: 1px solid #e2e8f0;')
+                        <tr>
+                            <td class="email-small" style="padding: 12px 16px; font-size: 14px; color: #64748b;{{ $rowBorder }}">{{ $planLabel }}</td>
+                            <td class="email-value" align="right" style="padding: 12px 16px; font-size: 15px; font-weight: 600; text-align: right; color: {{ $loop->last && $planCount > 0 ? '#b45309' : '#1a1a2e' }};{{ $rowBorder }}">{{ $planCount }}</td>
+                        </tr>
                     @endforeach
-                </div>
+                </table>
                 @if ($plans['past_due_plan_count'] > 0)
                     <p class="email-small" style="margin: 8px 0 0; font-size: 13px; color: #64748b;">Past due plans are retried automatically. A plan that keeps failing usually needs the supporter to update their card.</p>
                 @endif
