@@ -15,25 +15,27 @@
         </div>
 
         {{-- Summary row --}}
-        <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px; overflow: hidden; display: flex; flex-wrap: wrap;">
-            <div style="flex: 1; padding: 20px; min-width: 140px; box-sizing: border-box; border-bottom: 1px solid #e2e8f0;">
-                <div class="email-label" style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Total Donations</div>
-                <div class="email-metric" style="font-size: 20px; font-weight: 700; color: #0f766e;">{{ $donationCount }}</div>
-            </div>
-            <div style="flex: 1; padding: 20px; min-width: 140px; box-sizing: border-box;">
-                <div class="email-label" style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Total Amount</div>
-                <div class="email-metric" style="font-size: 20px; font-weight: 700; color: #0f766e;">{{ $hasApproximation ? "≈ MYR" : "MYR" }} {{ $totalAmount }}</div>
-                @if ($previousTotalAmount !== null)
-                    <div class="email-small" style="margin-top: 4px; font-size: 13px; color: #64748b;">
-                        @if ($changePercent === null)
-                            Nothing raised the week before.
-                        @else
-                            <span style="color: {{ $changePercent >= 0 ? '#15803d' : '#b91c1c' }}; font-weight: 600;">{{ $changePercent >= 0 ? '▲' : '▼' }} {{ rtrim(rtrim(number_format(abs($changePercent), 1), '0'), '.') }}%</span> from the week before (MYR {{ $previousTotalAmount }})
-                        @endif
-                    </div>
-                @endif
-            </div>
-        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; border-collapse: separate; border-spacing: 0; margin-bottom: 24px;">
+            <tr>
+                <td width="35%" valign="top" style="padding: 20px; vertical-align: top;">
+                    <div class="email-label" style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Donations</div>
+                    <div class="email-metric" style="font-size: 20px; font-weight: 700; color: #0f766e;">{{ $donationCount }}</div>
+                </td>
+                <td width="65%" valign="top" style="padding: 20px; vertical-align: top; border-left: 1px solid #e2e8f0;">
+                    <div class="email-label" style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Total Amount</div>
+                    <div class="email-metric" style="font-size: 20px; font-weight: 700; color: #0f766e; white-space: nowrap;">{{ $hasApproximation ? "≈ MYR" : "MYR" }} {{ $totalAmount }}</div>
+                    @if ($previousTotalAmount !== null)
+                        <div class="email-small" style="margin-top: 4px; font-size: 13px; color: #64748b;">
+                            @if ($changePercent === null)
+                                Nothing raised the week before.
+                            @else
+                                <span style="color: {{ $changePercent >= 0 ? '#15803d' : '#b91c1c' }}; font-weight: 600;">{{ $changePercent >= 0 ? '▲' : '▼' }} {{ rtrim(rtrim(number_format(abs($changePercent), 1), '0'), '.') }}%</span> from the week before (MYR {{ $previousTotalAmount }})
+                            @endif
+                        </div>
+                    @endif
+                </td>
+            </tr>
+        </table>
 
         {{-- Campaigns --}}
         @if (count($campaigns) > 0)

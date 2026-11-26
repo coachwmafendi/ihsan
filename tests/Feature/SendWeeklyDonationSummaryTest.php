@@ -394,5 +394,6 @@ it('lays out label and value rows with tables, which Gmail keeps, instead of fle
         plans: ['new_plan_count' => 1, 'cancelled_plan_count' => 0, 'past_due_plan_count' => 2],
     ))->render();
 
-    expect($html)->not->toContain('justify-content: space-between');
+    expect($html)->not->toContain('display: flex')
+        ->not->toContain('justify-content');
 });
